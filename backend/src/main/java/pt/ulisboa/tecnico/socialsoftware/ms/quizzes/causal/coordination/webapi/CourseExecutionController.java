@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.webapi;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CourseExecutionFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 
 import java.util.List;
@@ -12,10 +12,10 @@ import java.util.Set;
 @RestController
 public class CourseExecutionController {
     @Autowired
-    private CourseExecutionFunctionalities courseExecutionFunctionalities;
+    private CourseExecutionFunctionalitiesInterface courseExecutionFunctionalities;
 
     @PostMapping(value = "/executions/create")
-    public CourseExecutionDto createCourseExecution(@RequestBody CourseExecutionDto executionDto) {
+    public CourseExecutionDto createCourseExecution(@RequestBody CourseExecutionDto executionDto) throws Exception {
         CourseExecutionDto courseExecutionDto = courseExecutionFunctionalities.createCourseExecution(executionDto);
         return courseExecutionDto;
     }
@@ -31,12 +31,12 @@ public class CourseExecutionController {
     }
 
     @PostMapping("/executions/{executionAggregateId}/delete")
-    public void removeCourseExecution(@PathVariable Integer executionAggregateId) {
+    public void removeCourseExecution(@PathVariable Integer executionAggregateId) throws Exception {
         courseExecutionFunctionalities.removeCourseExecution(executionAggregateId);
     }
 
     @PostMapping("/executions/{executionAggregateId}/students/add")
-    public void enrollStudent(@PathVariable Integer executionAggregateId, @RequestParam Integer userAggregateId) {
+    public void enrollStudent(@PathVariable Integer executionAggregateId, @RequestParam Integer userAggregateId) throws Exception {
         courseExecutionFunctionalities.addStudent(executionAggregateId, userAggregateId);
     }
 
@@ -46,17 +46,17 @@ public class CourseExecutionController {
     }
 
     @PostMapping("/executions/{executionAggregateId}/students/remove")
-    public void removeStudentFromCourseExecution(@PathVariable Integer executionAggregateId, @RequestParam Integer userAggregateId) {
+    public void removeStudentFromCourseExecution(@PathVariable Integer executionAggregateId, @RequestParam Integer userAggregateId) throws Exception {
         courseExecutionFunctionalities.removeStudentFromCourseExecution(executionAggregateId, userAggregateId);
     }
 
     @PostMapping("/executions/{executionAggregateId}/anonymize")
-    public void anonymizeExecutionStudent(@PathVariable Integer executionAggregateId, @RequestParam Integer userAggregateId) {
+    public void anonymizeExecutionStudent(@PathVariable Integer executionAggregateId, @RequestParam Integer userAggregateId) throws Exception {
         courseExecutionFunctionalities.anonymizeStudent(executionAggregateId, userAggregateId);
     }
 
     @PostMapping("/executions/{executionAggregateId}/students/{userAggregateId}/update/name")
-    public void updateExecutionStudentName(@PathVariable Integer executionAggregateId, @PathVariable Integer userAggregateId, @RequestBody UserDto userDto) {
+    public void updateExecutionStudentName(@PathVariable Integer executionAggregateId, @PathVariable Integer userAggregateId, @RequestBody UserDto userDto) throws Exception {
         courseExecutionFunctionalities.updateStudentName(executionAggregateId, userAggregateId, userDto);
     }
 }

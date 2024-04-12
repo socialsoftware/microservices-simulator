@@ -4,8 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.TournamentFunctionalities;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalTournamentFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 
 import java.util.List;
@@ -16,20 +17,20 @@ public class TournamentController {
     private final Logger logger = LoggerFactory.getLogger(TournamentController.class);
 
     @Autowired
-    private TournamentFunctionalities tournamentFunctionalities;
+    private TournamentFunctionalitiesInterface tournamentFunctionalities;
 
     @PostMapping(value = "/executions/{executionId}/tournaments/create")
-    public TournamentDto createTournament(@PathVariable int executionId, @RequestParam Integer userId, @RequestParam List<Integer> topicsId, @RequestBody TournamentDto tournamentDto) {
+    public TournamentDto createTournament(@PathVariable int executionId, @RequestParam Integer userId, @RequestParam List<Integer> topicsId, @RequestBody TournamentDto tournamentDto) throws Exception {
         return tournamentFunctionalities.createTournament(userId, executionId, topicsId, tournamentDto);
     }
 
     @PostMapping(value = "/tournaments/update")
-    public void updateTournament(@RequestParam Set<Integer> topicsId, @RequestBody TournamentDto tournamentDto) {
+    public void updateTournament(@RequestParam Set<Integer> topicsId, @RequestBody TournamentDto tournamentDto) throws Exception {
         tournamentFunctionalities.updateTournament(tournamentDto, topicsId);
     }
 
     @PostMapping(value = "/tournaments/{tournamentAggregateId}/join")
-    public void joinTournament(@PathVariable Integer tournamentAggregateId, @RequestParam Integer userAggregateId) {
+    public void joinTournament(@PathVariable Integer tournamentAggregateId, @RequestParam Integer userAggregateId) throws Exception {
         tournamentFunctionalities.addParticipant(tournamentAggregateId, userAggregateId);
     }
 
@@ -39,7 +40,7 @@ public class TournamentController {
     }
 
     @PostMapping(value = "/tournaments/{tournamentAggregateId}/solveQuiz")
-    public QuizDto solveQuiz(@PathVariable Integer tournamentAggregateId, @RequestParam Integer userAggregateId) {
+    public QuizDto solveQuiz(@PathVariable Integer tournamentAggregateId, @RequestParam Integer userAggregateId) throws Exception {
         return tournamentFunctionalities.solveQuiz(tournamentAggregateId, userAggregateId);
     }
 
@@ -59,7 +60,7 @@ public class TournamentController {
     }
 
     @PostMapping("/tournaments/{tournamentAggregate}/remove")
-    public void removeTournament(@PathVariable Integer tournamentAggregate) {
+    public void removeTournament(@PathVariable Integer tournamentAggregate) throws Exception {
         tournamentFunctionalities.removeTournament(tournamentAggregate);
     }
 
