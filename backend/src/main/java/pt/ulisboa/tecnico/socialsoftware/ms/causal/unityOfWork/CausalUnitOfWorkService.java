@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.version.VersionService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
@@ -25,8 +27,9 @@ import java.util.*;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
 
+@Profile("tcc")
 @Service
-public class CausalUnitOfWorkService {
+public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork> {
     private static final Logger logger = LoggerFactory.getLogger(CausalUnitOfWorkService.class);
 
     @Autowired

@@ -16,7 +16,8 @@ public abstract class Aggregate {
     public enum AggregateState {
         ACTIVE,
         INACTIVE,
-        DELETED
+        DELETED,
+        IN_SAGA
     }
 
     @Id
