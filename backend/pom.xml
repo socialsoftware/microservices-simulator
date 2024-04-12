@@ -61,6 +61,21 @@
 				</plugins>
 			</build>
 		</profile>
+		<!-- TCC profile -->
+		<profile>
+			<id>tcc</id>
+			<properties>
+				<activatedProperties>tcc</activatedProperties>
+			</properties>
+		</profile>
+
+		<!-- Sagas profile -->
+		<profile>
+			<id>sagas</id>
+			<properties>
+				<activatedProperties>sagas</activatedProperties>
+			</properties>
+		</profile>
 	</profiles>
 	<dependencies>
 		<dependency>
