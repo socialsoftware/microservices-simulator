@@ -13,5 +13,8 @@ import java.util.Optional;
 @Transactional
 public interface CourseRepository extends JpaRepository<Course, Integer> {
     @Query(value = "select c1.id from Course c1 where c1.name = :courseName AND c1.state = 'ACTIVE'")
-    Optional<Integer> findCourseIdByName(String courseName);
+    Optional<Integer> findCourseIdByNameForTCC(String courseName);
+
+    @Query(value = "select c1.id from Course c1 where c1.name = :courseName AND c1.state = 'ACTIVE' AND c1.state != 'IN_SAGA'")
+    Optional<Integer> findCourseIdByNameForSaga(String courseName);
 }
