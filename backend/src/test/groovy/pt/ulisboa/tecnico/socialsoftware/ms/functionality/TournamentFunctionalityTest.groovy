@@ -9,18 +9,18 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.version.VersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalCourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.QuestionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalQuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.OptionDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.QuizFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.TopicFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalQuizFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalTopicFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalTournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.UserFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalUserFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler
 
@@ -29,17 +29,17 @@ class TournamentFunctionalityTest extends SpockTest {
     public static final String UPDATED_NAME = "UpdatedName"
 
     @Autowired
-    private CourseExecutionFunctionalities courseExecutionFunctionalities
+    private CausalCourseExecutionFunctionalities courseExecutionFunctionalities
     @Autowired
-    private UserFunctionalities userFunctionalities
+    private CausalUserFunctionalities userFunctionalities
     @Autowired
-    private TopicFunctionalities topicFunctionalities
+    private CausalTopicFunctionalities topicFunctionalities
     @Autowired
-    private QuestionFunctionalities questionFunctionalities
+    private CausalQuestionFunctionalities questionFunctionalities
     @Autowired
-    private QuizFunctionalities quizFunctionalities
+    private CausalQuizFunctionalities quizFunctionalities
     @Autowired
-    private TournamentFunctionalities tournamentFunctionalities
+    private CausalTournamentFunctionalities tournamentFunctionalities
 
     @Autowired
     private VersionService versionService;
