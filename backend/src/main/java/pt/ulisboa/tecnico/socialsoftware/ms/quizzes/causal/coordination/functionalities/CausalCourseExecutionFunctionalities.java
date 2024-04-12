@@ -1,10 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
@@ -15,8 +18,9 @@ import java.util.Set;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
 
+@Profile("tcc")
 @Service
-public class CourseExecutionFunctionalities {
+public class CausalCourseExecutionFunctionalities implements CourseExecutionFunctionalitiesInterface {
     @Autowired
     private CourseExecutionService courseExecutionService;
     @Autowired

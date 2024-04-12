@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalQuiz;
@@ -39,8 +41,8 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.ag
 public class QuizService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
-    @Autowired
-    private CausalUnitOfWorkService unitOfWorkService;
+    //@Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
     @Autowired
     private QuizRepository quizRepository;
     @Autowired
@@ -52,7 +54,7 @@ public class QuizService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public QuizDto getQuizById(Integer aggregateId, CausalUnitOfWork unitOfWork) {
+    public QuizDto getQuizById(Integer aggregateId, UnitOfWork unitOfWork) {
         return new QuizDto((Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
@@ -62,7 +64,7 @@ public class QuizService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public QuizDto generateQuiz(Integer courseExecutionAggregateId, QuizDto quizDto, List<Integer> topicIds, Integer numberOfQuestions, CausalUnitOfWork unitOfWork) {
+    public QuizDto generateQuiz(Integer courseExecutionAggregateId, QuizDto quizDto, List<Integer> topicIds, Integer numberOfQuestions, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
 
         QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionService.getCourseExecutionById(courseExecutionAggregateId, unitOfWork));
@@ -94,7 +96,7 @@ public class QuizService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public QuizDto startTournamentQuiz(Integer userAggregateId, Integer quizAggregateId, CausalUnitOfWork unitOfWork) {
+    public QuizDto startTournamentQuiz(Integer userAggregateId, Integer quizAggregateId, UnitOfWork unitOfWork) {
         /* must add more verifications */
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
         QuizDto quizDto = new QuizDto(oldQuiz);
@@ -115,7 +117,7 @@ public class QuizService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public QuizDto createQuiz(QuizCourseExecution quizCourseExecution, Set<QuestionDto> questions, QuizDto quizDto, CausalUnitOfWork unitOfWork) {
+    public QuizDto createQuiz(QuizCourseExecution quizCourseExecution, Set<QuestionDto> questions, QuizDto quizDto, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
 
         Set<QuizQuestion> quizQuestions = questions.stream()
@@ -131,7 +133,7 @@ public class QuizService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public QuizDto updateGeneratedQuiz(QuizDto quizDto, Set<Integer> topicsAggregateIds, Integer numberOfQuestions, CausalUnitOfWork unitOfWork) {
+    public QuizDto updateGeneratedQuiz(QuizDto quizDto, Set<Integer> topicsAggregateIds, Integer numberOfQuestions, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
         Quiz newQuiz = new CausalQuiz((CausalQuiz) oldQuiz);
         newQuiz.update(quizDto);
@@ -159,7 +161,7 @@ public class QuizService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public QuizDto updateQuiz(QuizDto quizDto, Set<QuizQuestion> quizQuestions, CausalUnitOfWork unitOfWork) {
+    public QuizDto updateQuiz(QuizDto quizDto, Set<QuizQuestion> quizQuestions, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
         Quiz newQuiz = new CausalQuiz((CausalQuiz) oldQuiz);
 
@@ -192,7 +194,7 @@ public class QuizService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public List<QuizDto> getAvailableQuizzes(Integer courseExecutionAggregateId, CausalUnitOfWork unitOfWork) {
+    public List<QuizDto> getAvailableQuizzes(Integer courseExecutionAggregateId, UnitOfWork unitOfWork) {
         LocalDateTime now = LocalDateTime.now();
        return quizRepository.findAllQuizIdsByCourseExecution(courseExecutionAggregateId).stream()
                .map(id -> (Quiz) unitOfWorkService.aggregateLoad(id, unitOfWork))
@@ -208,7 +210,7 @@ public class QuizService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public Quiz removeCourseExecution(Integer quizAggregateId, Integer courseExecutionId, Integer aggregateVersion, CausalUnitOfWork unitOfWork) {
+    public Quiz removeCourseExecution(Integer quizAggregateId, Integer courseExecutionId, Integer aggregateVersion, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
         Quiz newQuiz = new CausalQuiz((CausalQuiz) oldQuiz);
         
@@ -225,7 +227,7 @@ public class QuizService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void updateQuestion(Integer quizAggregateId, Integer questionAggregateId, String title, String content, Integer aggregateVersion, CausalUnitOfWork unitOfWork) {
+    public void updateQuestion(Integer quizAggregateId, Integer questionAggregateId, String title, String content, Integer aggregateVersion, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
         Quiz newQuiz = new CausalQuiz((CausalQuiz) oldQuiz);
 
@@ -242,7 +244,7 @@ public class QuizService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void removeQuizQuestion(Integer quizAggregateId, Integer questionAggregateId, CausalUnitOfWork unitOfWork) {
+    public void removeQuizQuestion(Integer quizAggregateId, Integer questionAggregateId, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
         Quiz newQuiz = new CausalQuiz((CausalQuiz) oldQuiz);
 

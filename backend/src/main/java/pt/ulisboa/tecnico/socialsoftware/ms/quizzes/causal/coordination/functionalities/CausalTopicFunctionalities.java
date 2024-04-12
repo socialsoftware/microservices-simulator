@@ -1,9 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicCourse;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService;
@@ -15,8 +17,9 @@ import java.util.List;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
 
+@Profile("tcc")
 @Service
-public class TopicFunctionalities {
+public class CausalTopicFunctionalities implements TopicFunctionalitiesInterface {
     @Autowired
     private TopicService topicService;
     @Autowired

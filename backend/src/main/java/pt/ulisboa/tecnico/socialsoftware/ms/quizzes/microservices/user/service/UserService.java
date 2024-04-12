@@ -6,10 +6,10 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalUser;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.events.publish.DeleteUserEvent;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.Role;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
@@ -30,14 +30,14 @@ public class UserService {
     private UserRepository userRepository;
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
-    @Autowired
-    private CausalUnitOfWorkService unitOfWorkService;
+    //@Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public UserDto getUserById(Integer aggregateId, CausalUnitOfWork unitOfWork) {
+    public UserDto getUserById(Integer aggregateId, UnitOfWork unitOfWork) {
         return new UserDto((User) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
@@ -46,7 +46,7 @@ public class UserService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public UserDto createUser(UserDto userDto, CausalUnitOfWork unitOfWork) {
+    public UserDto createUser(UserDto userDto, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
         User user = new CausalUser(aggregateId, userDto);
         unitOfWork.registerChanged(user);
@@ -57,7 +57,7 @@ public class UserService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void activateUser(Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+    public void activateUser(Integer userAggregateId, UnitOfWork unitOfWork) {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
         if (oldUser.isActive()) {
             throw new TutorException(USER_ACTIVE);
@@ -71,7 +71,7 @@ public class UserService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void deleteUser(Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+    public void deleteUser(Integer userAggregateId, UnitOfWork unitOfWork) {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
         User newUser = new CausalUser((CausalUser) oldUser);
         newUser.remove();
@@ -83,7 +83,7 @@ public class UserService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public List<UserDto> getStudents(CausalUnitOfWork unitOfWork) {
+    public List<UserDto> getStudents(UnitOfWork unitOfWork) {
         Set<Integer> studentsIds = userRepository.findAll().stream()
                 .filter(u -> u.getRole().equals(Role.STUDENT))
                 .map(User::getAggregateId)
@@ -98,7 +98,7 @@ public class UserService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public List<UserDto> getTeachers(CausalUnitOfWork unitOfWork) {
+    public List<UserDto> getTeachers(UnitOfWork unitOfWork) {
         Set<Integer> teacherIds = userRepository.findAll().stream()
                 .filter(u -> u.getRole().equals(Role.TEACHER))
                 .map(User::getAggregateId)

@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
@@ -20,6 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.even
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.events.publish.DisenrollStudentFromCourseExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.events.publish.UpdateStudentNameEvent;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionCourse;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionCustomRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
@@ -36,10 +39,12 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.excepti
 public class CourseExecutionService {
     @Autowired
     private CourseExecutionRepository courseExecutionRepository;
+    //@Autowired
+    private CourseExecutionCustomRepository courseExecutionCustomRepository;
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
-    @Autowired
-    private CausalUnitOfWorkService unitOfWorkService;
+    //@Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
     @Autowired
     private CourseService courseService;
 
@@ -47,7 +52,7 @@ public class CourseExecutionService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public CourseExecutionDto getCourseExecutionById(Integer executionAggregateId, CausalUnitOfWork unitOfWorkWorkService) {
+    public CourseExecutionDto getCourseExecutionById(Integer executionAggregateId, UnitOfWork unitOfWorkWorkService) {
         return new CourseExecutionDto((CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWorkWorkService));
     }
 
@@ -55,7 +60,7 @@ public class CourseExecutionService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public CourseExecutionDto createCourseExecution(CourseExecutionDto courseExecutionDto, CausalUnitOfWork unitOfWork) {
+    public CourseExecutionDto createCourseExecution(CourseExecutionDto courseExecutionDto, UnitOfWork unitOfWork) {
         CourseExecutionCourse courseExecutionCourse = new CourseExecutionCourse(courseService.getAndOrCreateCourseRemote(courseExecutionDto, unitOfWork));
 
         CourseExecution courseExecution = new CausalCourseExecution(aggregateIdGeneratorService.getNewAggregateId(), courseExecutionDto, courseExecutionCourse);
@@ -68,8 +73,8 @@ public class CourseExecutionService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public List<CourseExecutionDto> getAllCourseExecutions(CausalUnitOfWork unitOfWork) {
-        return courseExecutionRepository.findCourseExecutionIdsOfAllNonDeleted().stream()
+    public List<CourseExecutionDto> getAllCourseExecutions(UnitOfWork unitOfWork) {
+        return courseExecutionCustomRepository.findCourseExecutionIdsOfAllNonDeleted().stream()
                 .map(id -> (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(CourseExecutionDto::new)
                 .collect(Collectors.toList());
@@ -79,7 +84,7 @@ public class CourseExecutionService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void removeCourseExecution(Integer executionAggregateId, CausalUnitOfWork unitOfWork) {
+    public void removeCourseExecution(Integer executionAggregateId, UnitOfWork unitOfWork) {
         CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
         CourseExecution newCourseExecution = new CausalCourseExecution((CausalCourseExecution) oldCourseExecution);
 
@@ -102,7 +107,7 @@ public class CourseExecutionService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void enrollStudent(Integer courseExecutionAggregateId, UserDto userDto, CausalUnitOfWork unitOfWork) {
+    public void enrollStudent(Integer courseExecutionAggregateId, UserDto userDto, UnitOfWork unitOfWork) {
         CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
 
         CourseExecutionStudent courseExecutionStudent = new CourseExecutionStudent(userDto);
@@ -120,7 +125,7 @@ public class CourseExecutionService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public Set<CourseExecutionDto> getCourseExecutionsByUserId(Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+    public Set<CourseExecutionDto> getCourseExecutionsByUserId(Integer userAggregateId, UnitOfWork unitOfWork) {
         return courseExecutionRepository.findAll().stream()
                 .map(CourseExecution::getAggregateId)
                 .map(aggregateId -> (CourseExecution) unitOfWorkService.aggregateLoad(aggregateId, unitOfWork))
@@ -134,7 +139,7 @@ public class CourseExecutionService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void removeStudentFromCourseExecution(Integer courseExecutionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+    public void removeStudentFromCourseExecution(Integer courseExecutionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
         CourseExecution newCourseExecution = new CausalCourseExecution((CausalCourseExecution) oldCourseExecution);
         newCourseExecution.removeStudent(userAggregateId);
@@ -146,7 +151,7 @@ public class CourseExecutionService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public UserDto getStudentByExecutionIdAndUserId(Integer executionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+    public UserDto getStudentByExecutionIdAndUserId(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         CourseExecution courseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
         if (!courseExecution.hasStudent(userAggregateId)) {
             throw new TutorException(COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, executionAggregateId);
@@ -158,7 +163,7 @@ public class CourseExecutionService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void anonymizeStudent(Integer executionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+    public void anonymizeStudent(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
         if (!oldExecution.hasStudent(userAggregateId)) {
             throw new TutorException(COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, executionAggregateId);
@@ -173,7 +178,7 @@ public class CourseExecutionService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void updateExecutionStudentName(Integer executionAggregateId, Integer userAggregateId, String name, CausalUnitOfWork unitOfWork) {
+    public void updateExecutionStudentName(Integer executionAggregateId, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
         CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
         if (!oldExecution.hasStudent(userAggregateId)) {
             throw new TutorException(COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, executionAggregateId);
@@ -190,7 +195,7 @@ public class CourseExecutionService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public CourseExecution removeUser(Integer executionAggregateId, Integer userAggregateId, Integer aggregateEventVersion, CausalUnitOfWork unitOfWork) {
+    public CourseExecution removeUser(Integer executionAggregateId, Integer userAggregateId, Integer aggregateEventVersion, UnitOfWork unitOfWork) {
         CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
         CourseExecution newExecution = new CausalCourseExecution((CausalCourseExecution) oldExecution);
         newExecution.findStudent(userAggregateId).setState(Aggregate.AggregateState.INACTIVE);
