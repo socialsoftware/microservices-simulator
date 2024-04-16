@@ -16,7 +16,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkS
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.version.VersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CourseCustomRepositoryTCC   
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.QuizAnswerCustomRepositoryTCC   
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.TournamentCustomRepositoryTCC   
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.TournamentCustomRepositoryTCC
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CourseExecutionCustomRepositoryTCC;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionRepository;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalCourseExecutionFunctionalities
@@ -135,6 +142,11 @@ class BeanConfiguration {
     }
 
     @Bean
+    CourseCustomRepositoryTCC courseExecutionCustomRepositoryTCC(){
+        return new CourseCustomRepositoryTCC()
+    }
+
+    @Bean
     QuizAnswerCustomRepositoryTCC quizAnswerCustomRepositoryTCC(){
         return new QuizAnswerCustomRepositoryTCC()
     }
@@ -145,48 +157,38 @@ class BeanConfiguration {
     }
 
     @Bean
-    QuizAnswerService quizAnswerService(CausalUnitOfWorkService unitOfWorkService, QuizAnswerCustomRepositoryTCC quizAnswerRepository) {
+    QuizAnswerService answerService(CausalUnitOfWorkService unitOfWorkService, QuizAnswerCustomRepositoryTCC quizAnswerRepository) {
         return new QuizAnswerService(unitOfWorkService, quizAnswerRepository)
     }
 
     @Bean
-    TournamentService TournamentService(CausalUnitOfWorkService unitOfWorkService, TournamentCustomRepositoryTCC tournamentRepository) {
+    TournamentService tournamentService(CausalUnitOfWorkService unitOfWorkService, TournamentCustomRepositoryTCC tournamentRepository) {
         return new TournamentService(unitOfWorkService, tournamentRepository)
     }
 
     @Bean
-    CourseExecutionService courseExecutionService() {
-        return new CourseExecutionService()
+    CourseExecutionService courseExecutionService(CausalUnitOfWorkService unitOfWorkService, CourseExecutionRepository courseExecutionRepository, CourseExecutionCustomRepositoryTCC courseExecutionCustomRepository) {
+        return new CourseExecutionService(unitOfWorkService, courseExecutionRepository, courseExecutionCustomRepository)
     }
 
     @Bean
-    UserService userService() {
-        return new UserService()
+    UserService userService(CausalUnitOfWorkService unitOfWorkService, UserRepository userRepository) {
+        return new UserService(unitOfWorkService, userRepository)
     }
 
     @Bean
-    TopicService topicService() {
-        return new TopicService()
+    TopicService topicService(CausalUnitOfWorkService unitOfWorkService, TopicRepository topicRepository) {
+        return new TopicService(unitOfWorkService, topicRepository)
     }
 
     @Bean
-    QuestionService questionService() {
-        return new QuestionService()
+    QuestionService questionService(CausalUnitOfWorkService unitOfWorkService, QuestionRepository questionRepository) {
+        return new QuestionService(unitOfWorkService, questionRepository)
     }
 
     @Bean
-    QuizService quizService() {
-        return new QuizService()
-    }
-
-    @Bean
-    QuizAnswerService answerService() {
-        return new QuizAnswerService()
-    }
-
-    @Bean
-    TournamentService tournamentService() {
-        return new TournamentService()
+    QuizService quizService(CausalUnitOfWorkService unitOfWorkService, QuizRepository quizRepository) {
+        return new QuizService(unitOfWorkService, quizRepository)
     }
 
     @Bean

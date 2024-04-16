@@ -47,7 +47,6 @@ public class TournamentService {
 
     private final TournamentCustomRepository tournamentRepository;
 
-    @Autowired
     public TournamentService(UnitOfWorkService unitOfWorkService, TournamentCustomRepository tournamentRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.tournamentRepository = tournamentRepository;

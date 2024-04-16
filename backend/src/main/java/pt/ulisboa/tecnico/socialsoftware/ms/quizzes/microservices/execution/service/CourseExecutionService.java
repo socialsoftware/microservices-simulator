@@ -38,15 +38,22 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.excepti
 @Service
 public class CourseExecutionService {
     @Autowired
-    private CourseExecutionRepository courseExecutionRepository;
-    //@Autowired
-    private CourseExecutionCustomRepository courseExecutionCustomRepository;
-    @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
-    //@Autowired
-    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    
     @Autowired
     private CourseService courseService;
+
+    private final CourseExecutionRepository courseExecutionRepository;
+
+    private final CourseExecutionCustomRepository courseExecutionCustomRepository;
+    
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+
+    public CourseExecutionService(UnitOfWorkService unitOfWorkService, CourseExecutionRepository courseExecutionRepository, CourseExecutionCustomRepository courseExecutionCustomRepository) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.courseExecutionRepository = courseExecutionRepository;
+        this.courseExecutionCustomRepository = courseExecutionCustomRepository;
+    }
 
     @Retryable(
             value = { SQLException.class },

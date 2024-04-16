@@ -27,11 +27,14 @@ public class TopicService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    //@Autowired
-    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    private final TopicRepository topicRepository;
 
-    @Autowired
-    private TopicRepository topicRepository;
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    
+    public TopicService(UnitOfWorkService unitOfWorkService, TopicRepository topicRepository) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.topicRepository = topicRepository;
+    }
 
     @Retryable(
             value = { SQLException.class },

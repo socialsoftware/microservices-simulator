@@ -29,7 +29,6 @@
 
         private final CourseCustomRepository courseRepository;
 
-        @Autowired
         public CourseService(UnitOfWorkService unitOfWorkService, CourseCustomRepository courseRepository) {
             this.unitOfWorkService = unitOfWorkService;
             this.courseRepository = courseRepository;

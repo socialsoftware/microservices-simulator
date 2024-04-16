@@ -41,14 +41,19 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.ag
 public class QuizService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
-    //@Autowired
-    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
-    @Autowired
-    private QuizRepository quizRepository;
     @Autowired
     private QuestionService questionService;
     @Autowired
     private CourseExecutionService courseExecutionService;
+    
+    private final QuizRepository quizRepository;
+    
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    
+    public QuizService(UnitOfWorkService unitOfWorkService, QuizRepository quizRepository) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.quizRepository = quizRepository;
+    }
 
     @Retryable(
             value = { SQLException.class },

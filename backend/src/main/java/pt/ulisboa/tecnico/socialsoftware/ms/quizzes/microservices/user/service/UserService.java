@@ -26,12 +26,18 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.excepti
 
 @Service
 public class UserService {
-    @Autowired
-    private UserRepository userRepository;
+    
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
-    //@Autowired
-    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
+
+    private final UserRepository userRepository;
+
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    
+    public UserService(UnitOfWorkService unitOfWorkService, UserRepository userRepository) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.userRepository = userRepository;
+    }
 
     @Retryable(
             value = { SQLException.class },

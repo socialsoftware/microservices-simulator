@@ -38,7 +38,6 @@ public class QuizAnswerService {
 
     private final QuizAnswerCustomRepository quizAnswerRepository;
 
-    @Autowired
     public QuizAnswerService(UnitOfWorkService unitOfWorkService, QuizAnswerCustomRepository quizAnswerRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.quizAnswerRepository = quizAnswerRepository;

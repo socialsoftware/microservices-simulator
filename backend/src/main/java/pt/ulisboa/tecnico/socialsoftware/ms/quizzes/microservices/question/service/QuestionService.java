@@ -28,11 +28,16 @@ import java.util.stream.Collectors;
 @Service
 public class QuestionService {
     @Autowired
-    private QuestionRepository questionRepository;
-    @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
-    //@Autowired
-    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    
+    private final QuestionRepository questionRepository;
+
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    
+    public QuestionService(UnitOfWorkService unitOfWorkService, QuestionRepository questionRepository) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.questionRepository = questionRepository;
+    }
 
     @Retryable(
             value = { SQLException.class },
