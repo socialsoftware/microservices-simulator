@@ -17,9 +17,8 @@ public class QuizAnswerEventProcessing {
     @Autowired
     private QuizAnswerService quizAnswerService;
 
-    private final UnitOfWorkService unitOfWorkService;
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    @Autowired
     public QuizAnswerEventProcessing(UnitOfWorkService unitOfWorkService) {
         this.unitOfWorkService = unitOfWorkService;
     }

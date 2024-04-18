@@ -21,9 +21,8 @@ public class TournamentEventProcessing {
     @Autowired
     private TournamentService tournamentService;
     
-    private final UnitOfWorkService unitOfWorkService;
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    @Autowired
     public TournamentEventProcessing(UnitOfWorkService unitOfWorkService) {
         this.unitOfWorkService = unitOfWorkService;
     }

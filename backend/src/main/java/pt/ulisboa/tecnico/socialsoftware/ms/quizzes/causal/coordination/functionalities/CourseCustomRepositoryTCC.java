@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Profile("tcc")
-@Repository
+@Service
 public class CourseCustomRepositoryTCC implements CourseCustomRepository {
 
     @Autowired

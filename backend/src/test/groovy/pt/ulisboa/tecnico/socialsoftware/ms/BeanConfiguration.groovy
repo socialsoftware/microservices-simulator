@@ -82,8 +82,8 @@ class BeanConfiguration {
     }
 
     @Bean
-    CourseExecutionEventProcessing courseExecutionEventProcessing() {
-        return new CourseExecutionEventProcessing()
+    CourseExecutionEventProcessing courseExecutionEventProcessing(CausalUnitOfWorkService unitOfWorkService) {
+        return new CourseExecutionEventProcessing(unitOfWorkService)
     }
 
     @Bean
@@ -102,8 +102,8 @@ class BeanConfiguration {
     }
 
     @Bean
-    QuestionEventProcessing questionEventProcessing() {
-        return new QuestionEventProcessing();
+    QuestionEventProcessing questionEventProcessing(CausalUnitOfWorkService unitOfWorkService) {
+        return new QuestionEventProcessing(unitOfWorkService);
     }
 
     @Bean
@@ -112,8 +112,8 @@ class BeanConfiguration {
     }
 
     @Bean
-    QuizEventProcessing quizEventProcessing() {
-        return new QuizEventProcessing();
+    QuizEventProcessing quizEventProcessing(CausalUnitOfWorkService unitOfWorkService) {
+        return new QuizEventProcessing(unitOfWorkService);
     }
 
     @Bean
@@ -122,8 +122,8 @@ class BeanConfiguration {
     }
 
     @Bean
-    QuizAnswerEventProcessing answerEventProcessing() {
-        return new QuizAnswerEventProcessing()
+    QuizAnswerEventProcessing answerEventProcessing(CausalUnitOfWorkService unitOfWorkService) {
+        return new QuizAnswerEventProcessing(unitOfWorkService)
     }
 
     @Bean
@@ -132,8 +132,8 @@ class BeanConfiguration {
     }
 
     @Bean
-    TournamentEventProcessing tournamentEventProcessing() {
-        return new TournamentEventProcessing()
+    TournamentEventProcessing tournamentEventProcessing(CausalUnitOfWorkService unitOfWorkService) {
+        return new TournamentEventProcessing(unitOfWorkService)
     }
 
     @Bean
@@ -142,8 +142,13 @@ class BeanConfiguration {
     }
 
     @Bean
-    CourseCustomRepositoryTCC courseExecutionCustomRepositoryTCC(){
-        return new CourseCustomRepositoryTCC()
+    CourseExecutionCustomRepositoryTCC courseExecutionCustomRepositoryTCC(){
+        return new CourseExecutionCustomRepositoryTCC()
+    }
+
+    @Bean
+    TournamentCustomRepositoryTCC tournamentCustomRepositoryTCC(){
+        return new TournamentCustomRepositoryTCC()
     }
 
     @Bean

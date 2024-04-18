@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -18,7 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import java.util.Optional;
 import java.util.Set;
 
-@Repository
+@Service
 @Profile("sagas")
 public class CourseExecutionCustomRepositorySagas implements CourseExecutionCustomRepository {
 

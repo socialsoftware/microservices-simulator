@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Profile("sagas")
-@Repository
+@Service
 public class CourseCustomRepositorySagas implements CourseCustomRepository {
 
     @Autowired

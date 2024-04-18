@@ -15,9 +15,8 @@ public class QuestionEventProcessing {
     @Autowired
     private QuestionService questionService;
     
-    private final UnitOfWorkService unitOfWorkService;
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    @Autowired
     public QuestionEventProcessing(UnitOfWorkService unitOfWorkService) {
         this.unitOfWorkService = unitOfWorkService;
     }

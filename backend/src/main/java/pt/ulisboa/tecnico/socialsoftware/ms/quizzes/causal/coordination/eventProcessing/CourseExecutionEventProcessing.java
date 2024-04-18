@@ -15,9 +15,8 @@ public class CourseExecutionEventProcessing {
     @Autowired
     private CourseExecutionService courseExecutionService;
 
-    private final UnitOfWorkService unitOfWorkService;
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    @Autowired
     public CourseExecutionEventProcessing(UnitOfWorkService unitOfWorkService) {
         this.unitOfWorkService = unitOfWorkService;
     }
