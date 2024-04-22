@@ -25,6 +25,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionRepository;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.CausalQuizAnswerFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CausalCourseFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CausalCourseExecutionFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.CausalQuestionFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.CausalQuizFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.CausalTopicFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.CausalTournamentFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.CausalUserFactory;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalCourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.events.handling.CourseExecutionEventHandling
@@ -154,6 +163,46 @@ class BeanConfiguration {
     @Bean
     QuizAnswerCustomRepositoryTCC quizAnswerCustomRepositoryTCC(){
         return new QuizAnswerCustomRepositoryTCC()
+    }
+
+    @Bean
+    CausalQuizAnswerFactory causalQuizAnswerFactory(){
+        return new CausalQuizAnswerFactory()
+    }
+
+    @Bean
+    CausalCourseFactory causalCourseFactory(){
+        return new CausalCourseFactory()
+    }
+
+    @Bean
+    CausalCourseExecutionFactory causalCourseExecutionFactory(){
+        return new CausalCourseExecutionFactory()
+    }
+
+    @Bean
+    CausalQuestionFactory causalQuestionFactory(){
+        return new CausalQuestionFactory()
+    }
+
+    @Bean
+    CausalQuizFactory causalQuizFactory(){
+        return new CausalQuizFactory()
+    }
+
+    @Bean
+    CausalTopicFactory causalTopicFactory(){
+        return new CausalTopicFactory()
+    }
+
+    @Bean
+    CausalTournamentFactory causalTournamentFactory(){
+        return new CausalTournamentFactory()
+    }
+
+    @Bean
+    CausalUserFactory causalUserFactory(){
+        return new CausalUserFactory()
     }
 
     @Bean

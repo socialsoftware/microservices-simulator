@@ -12,6 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkS
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalQuiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.events.publish.InvalidateQuizEvent;
@@ -49,6 +50,9 @@ public class QuizService {
     private final QuizRepository quizRepository;
     
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+
+    @Autowired
+    private QuizFactory quizFactory;
     
     public QuizService(UnitOfWorkService unitOfWorkService, QuizRepository quizRepository) {
         this.unitOfWorkService = unitOfWorkService;
@@ -91,7 +95,7 @@ public class QuizService {
                 .collect(Collectors.toSet());
 
 
-        Quiz quiz = new CausalQuiz(aggregateId, quizCourseExecution, quizQuestions, quizDto, GENERATED);
+        Quiz quiz = quizFactory.createQuiz(aggregateId, quizCourseExecution, quizQuestions, quizDto, GENERATED);
         quiz.setTitle("Generated Quiz Title");
         unitOfWork.registerChanged(quiz);
         return new QuizDto(quiz);
@@ -129,7 +133,7 @@ public class QuizService {
                 .map(QuizQuestion::new)
                 .collect(Collectors.toSet());
 
-        Quiz quiz = new CausalQuiz(aggregateId, quizCourseExecution, quizQuestions, quizDto, IN_CLASS);
+        Quiz quiz = quizFactory.createQuiz(aggregateId, quizCourseExecution, quizQuestions, quizDto, IN_CLASS);
         unitOfWork.registerChanged(quiz);
         return new QuizDto(quiz);
     }
@@ -140,7 +144,7 @@ public class QuizService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public QuizDto updateGeneratedQuiz(QuizDto quizDto, Set<Integer> topicsAggregateIds, Integer numberOfQuestions, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
-        Quiz newQuiz = new CausalQuiz((CausalQuiz) oldQuiz);
+        Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
         newQuiz.update(quizDto);
 
         if (topicsAggregateIds != null && numberOfQuestions != null) {
@@ -168,7 +172,7 @@ public class QuizService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public QuizDto updateQuiz(QuizDto quizDto, Set<QuizQuestion> quizQuestions, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
-        Quiz newQuiz = new CausalQuiz((CausalQuiz) oldQuiz);
+        Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
 
 
         if (quizDto.getTitle() != null) {
@@ -217,7 +221,7 @@ public class QuizService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Quiz removeCourseExecution(Integer quizAggregateId, Integer courseExecutionId, Integer aggregateVersion, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
-        Quiz newQuiz = new CausalQuiz((CausalQuiz) oldQuiz);
+        Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
         
         if (newQuiz.getQuizCourseExecution().getCourseExecutionAggregateId().equals(courseExecutionId)) {
             newQuiz.setState(Aggregate.AggregateState.INACTIVE);
@@ -234,7 +238,7 @@ public class QuizService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateQuestion(Integer quizAggregateId, Integer questionAggregateId, String title, String content, Integer aggregateVersion, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
-        Quiz newQuiz = new CausalQuiz((CausalQuiz) oldQuiz);
+        Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
 
         QuizQuestion quizQuestion = newQuiz.findQuestion(questionAggregateId);
 
@@ -251,7 +255,7 @@ public class QuizService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void removeQuizQuestion(Integer quizAggregateId, Integer questionAggregateId, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
-        Quiz newQuiz = new CausalQuiz((CausalQuiz) oldQuiz);
+        Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
 
         QuizQuestion quizQuestion = newQuiz.findQuestion(questionAggregateId);
 

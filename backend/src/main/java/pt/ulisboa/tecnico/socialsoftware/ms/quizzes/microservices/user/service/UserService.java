@@ -16,6 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGenerato
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserFactory;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -33,6 +34,9 @@ public class UserService {
     private final UserRepository userRepository;
 
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+
+    @Autowired
+    private UserFactory userFactory;
     
     public UserService(UnitOfWorkService unitOfWorkService, UserRepository userRepository) {
         this.unitOfWorkService = unitOfWorkService;
@@ -54,7 +58,7 @@ public class UserService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public UserDto createUser(UserDto userDto, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        User user = new CausalUser(aggregateId, userDto);
+        User user = userFactory.createUser(aggregateId, userDto);
         unitOfWork.registerChanged(user);
         return new UserDto(user);
     }
@@ -68,7 +72,7 @@ public class UserService {
         if (oldUser.isActive()) {
             throw new TutorException(USER_ACTIVE);
         }
-        User newUser = new CausalUser((CausalUser) oldUser);
+        User newUser = userFactory.createUserFromExisting(oldUser);
         newUser.setActive(true);
         unitOfWork.registerChanged(newUser);
     }
@@ -79,7 +83,7 @@ public class UserService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void deleteUser(Integer userAggregateId, UnitOfWork unitOfWork) {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-        User newUser = new CausalUser((CausalUser) oldUser);
+        User newUser = userFactory.createUserFromExisting(oldUser);
         newUser.remove();
         unitOfWork.registerChanged(newUser);
         unitOfWork.addEvent(new DeleteUserEvent(newUser.getAggregateId()));

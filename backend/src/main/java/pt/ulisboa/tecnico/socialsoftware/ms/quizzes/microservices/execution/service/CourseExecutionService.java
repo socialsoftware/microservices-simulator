@@ -27,6 +27,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -49,6 +50,9 @@ public class CourseExecutionService {
     
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
+    @Autowired
+    private CourseExecutionFactory courseExecutionFactory;
+
     public CourseExecutionService(UnitOfWorkService unitOfWorkService, CourseExecutionRepository courseExecutionRepository, CourseExecutionCustomRepository courseExecutionCustomRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.courseExecutionRepository = courseExecutionRepository;
@@ -70,7 +74,7 @@ public class CourseExecutionService {
     public CourseExecutionDto createCourseExecution(CourseExecutionDto courseExecutionDto, UnitOfWork unitOfWork) {
         CourseExecutionCourse courseExecutionCourse = new CourseExecutionCourse(courseService.getAndOrCreateCourseRemote(courseExecutionDto, unitOfWork));
 
-        CourseExecution courseExecution = new CausalCourseExecution(aggregateIdGeneratorService.getNewAggregateId(), courseExecutionDto, courseExecutionCourse);
+        CourseExecution courseExecution = courseExecutionFactory.createCourseExecution(aggregateIdGeneratorService.getNewAggregateId(), courseExecutionDto, courseExecutionCourse);
 
         unitOfWork.registerChanged(courseExecution);
         return new CourseExecutionDto(courseExecution);
@@ -93,7 +97,7 @@ public class CourseExecutionService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void removeCourseExecution(Integer executionAggregateId, UnitOfWork unitOfWork) {
         CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-        CourseExecution newCourseExecution = new CausalCourseExecution((CausalCourseExecution) oldCourseExecution);
+        CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldCourseExecution);
 
         /*
             REMOVE_COURSE_IS_VALID
@@ -122,7 +126,7 @@ public class CourseExecutionService {
             throw new TutorException(ErrorMessage.INACTIVE_USER, courseExecutionStudent.getUserAggregateId());
         }
 
-        CourseExecution newCourseExecution = new CausalCourseExecution((CausalCourseExecution) oldCourseExecution);
+        CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldCourseExecution);
         newCourseExecution.addStudent(courseExecutionStudent);
 
         unitOfWork.registerChanged(newCourseExecution);
@@ -148,7 +152,7 @@ public class CourseExecutionService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void removeStudentFromCourseExecution(Integer courseExecutionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
-        CourseExecution newCourseExecution = new CausalCourseExecution((CausalCourseExecution) oldCourseExecution);
+        CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldCourseExecution);
         newCourseExecution.removeStudent(userAggregateId);
         unitOfWork.registerChanged(newCourseExecution);
         unitOfWork.addEvent(new DisenrollStudentFromCourseExecutionEvent(courseExecutionAggregateId, userAggregateId));
@@ -175,7 +179,7 @@ public class CourseExecutionService {
         if (!oldExecution.hasStudent(userAggregateId)) {
             throw new TutorException(COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, executionAggregateId);
         }
-        CourseExecution newExecution = new CausalCourseExecution((CausalCourseExecution) oldExecution);
+        CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).anonymize();
         unitOfWork.registerChanged(newExecution);
         unitOfWork.addEvent(new AnonymizeStudentEvent(executionAggregateId, "ANONYMOUS", "ANONYMOUS", userAggregateId));
@@ -190,7 +194,7 @@ public class CourseExecutionService {
         if (!oldExecution.hasStudent(userAggregateId)) {
             throw new TutorException(COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, executionAggregateId);
         }
-        CourseExecution newExecution = new CausalCourseExecution((CausalCourseExecution) oldExecution);
+        CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setName(name);
         unitOfWork.registerChanged(newExecution);
         unitOfWork.addEvent(new UpdateStudentNameEvent(executionAggregateId, userAggregateId, name));
@@ -204,7 +208,7 @@ public class CourseExecutionService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public CourseExecution removeUser(Integer executionAggregateId, Integer userAggregateId, Integer aggregateEventVersion, UnitOfWork unitOfWork) {
         CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-        CourseExecution newExecution = new CausalCourseExecution((CausalCourseExecution) oldExecution);
+        CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setState(Aggregate.AggregateState.INACTIVE);
         unitOfWork.registerChanged(newExecution);
         unitOfWork.addEvent(new DisenrollStudentFromCourseExecutionEvent(executionAggregateId, userAggregateId));

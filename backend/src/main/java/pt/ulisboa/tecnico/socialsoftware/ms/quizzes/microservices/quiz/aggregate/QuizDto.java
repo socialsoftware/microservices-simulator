@@ -16,6 +16,7 @@ public class QuizDto implements Serializable {
     private List<QuestionDto> questionDtos;
     private Integer courseExecutionAggregateId;
     private Integer courseExecutionVersion;
+    private String state;
 
     public QuizDto() {
 
@@ -105,5 +106,13 @@ public class QuizDto implements Serializable {
 
     public void setCourseExecutionVersion(Integer courseExecutionVersion) {
         this.courseExecutionVersion = courseExecutionVersion;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 }

@@ -38,6 +38,9 @@ public class QuizAnswerService {
 
     private final QuizAnswerCustomRepository quizAnswerRepository;
 
+    @Autowired
+    private QuizAnswerFactory quizAnswerFactory;
+
     public QuizAnswerService(UnitOfWorkService unitOfWorkService, QuizAnswerCustomRepository quizAnswerRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.quizAnswerRepository = quizAnswerRepository;
@@ -74,7 +77,7 @@ public class QuizAnswerService {
         UserDto userDto = courseExecutionService.getStudentByExecutionIdAndUserId(userAggregateId, quizDto.getCourseExecutionAggregateId(), unitOfWork);
 
         // QUESTIONS_ANSWER_QUESTIONS_BELONG_TO_QUIZ because questions come from the quiz
-        QuizAnswer quizAnswer = new CausalQuizAnswer(aggregateId, new AnswerCourseExecution(quizDto.getCourseExecutionAggregateId(), quizDto.getCourseExecutionVersion()), new AnswerStudent(userDto), new AnsweredQuiz(quizDto));
+        QuizAnswer quizAnswer = quizAnswerFactory.createQuizAnswer(aggregateId, new AnswerCourseExecution(quizDto.getCourseExecutionAggregateId(), quizDto.getCourseExecutionVersion()), new AnswerStudent(userDto), new AnsweredQuiz(quizDto));
         quizAnswer.setAnswerDate(LocalDateTime.now());
         unitOfWork.registerChanged(quizAnswer);
         return new QuizAnswerDto(quizAnswer);
@@ -86,7 +89,7 @@ public class QuizAnswerService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void answerQuestion(Integer quizAggregateId, Integer userAggregateId, QuestionAnswerDto userAnswerDto, QuestionDto questionDto, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
-        QuizAnswer newQuizAnswer = new CausalQuizAnswer((CausalQuizAnswer) oldQuizAnswer);
+        QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
 
         QuestionAnswer questionAnswer = new QuestionAnswer(userAnswerDto, questionDto);
         newQuizAnswer.addQuestionAnswer(questionAnswer);
@@ -100,7 +103,7 @@ public class QuizAnswerService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void concludeQuiz(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
-        QuizAnswer newQuizAnswer = new CausalQuizAnswer((CausalQuizAnswer) oldQuizAnswer);
+        QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
 
         newQuizAnswer.setCompleted(true);
         unitOfWork.registerChanged(newQuizAnswer);
@@ -114,7 +117,7 @@ public class QuizAnswerService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateUserName(Integer answerAggregateId, Integer executionAggregateId, Integer eventVersion, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId, unitOfWork);
-        QuizAnswer newQuizAnswer = new CausalQuizAnswer((CausalQuizAnswer) oldQuizAnswer);
+        QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
 
         if (!newQuizAnswer.getAnswerCourseExecution().getCourseExecutionAggregateId().equals(executionAggregateId)) {
             return;
@@ -137,7 +140,7 @@ public class QuizAnswerService {
             return null;
         }
 
-        QuizAnswer newQuizAnswer = new CausalQuizAnswer((CausalQuizAnswer) oldQuizAnswer);
+        QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
         newQuizAnswer.getStudent().setStudentState(Aggregate.AggregateState.DELETED);
         newQuizAnswer.setState(Aggregate.AggregateState.INACTIVE);
         unitOfWork.registerChanged(newQuizAnswer);
@@ -152,7 +155,7 @@ public class QuizAnswerService {
             return null;
         }
 
-        QuizAnswer newQuizAnswer = new CausalQuizAnswer((CausalQuizAnswer) oldQuizAnswer);
+        QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
         questionAnswer.setState(Aggregate.AggregateState.DELETED);
         newQuizAnswer.setState(Aggregate.AggregateState.INACTIVE);
         unitOfWork.registerChanged(newQuizAnswer);

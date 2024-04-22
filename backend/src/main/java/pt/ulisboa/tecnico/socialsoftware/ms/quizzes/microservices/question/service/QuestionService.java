@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionCourse;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionTopic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.publish.DeleteQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.publish.UpdateQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionRepository;
@@ -33,6 +34,9 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
 
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+
+    @Autowired
+    private QuestionFactory questionFactory;
     
     public QuestionService(UnitOfWorkService unitOfWorkService, QuestionRepository questionRepository) {
         this.unitOfWorkService = unitOfWorkService;
@@ -72,7 +76,7 @@ public class QuestionService {
                 .map(QuestionTopic::new)
                 .collect(Collectors.toList());
 
-        Question question = new CausalQuestion(aggregateId, course, questionDto, questionTopics);
+        Question question = questionFactory.createQuestion(aggregateId, course, questionDto, questionTopics);
         unitOfWork.registerChanged(question);
         return new QuestionDto(question);
     }
@@ -86,7 +90,7 @@ public class QuestionService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateQuestion(QuestionDto questionDto, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-        Question newQuestion = new CausalQuestion((CausalQuestion) oldQuestion);
+        Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
         newQuestion.update(questionDto);
         unitOfWork.registerChanged(newQuestion);
         unitOfWork.addEvent(new UpdateQuestionEvent(newQuestion.getAggregateId(), newQuestion.getTitle(), newQuestion.getContent()));
@@ -98,7 +102,7 @@ public class QuestionService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void removeQuestion(Integer courseAggregateId, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
-        Question newQuestion = new CausalQuestion((CausalQuestion) oldQuestion);
+        Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
         newQuestion.remove();
         unitOfWork.registerChanged(newQuestion);
         unitOfWork.addEvent(new DeleteQuestionEvent(newQuestion.getAggregateId()));
@@ -110,7 +114,7 @@ public class QuestionService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateQuestionTopics(Integer courseAggregateId, Set<QuestionTopic> topics, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
-        Question newQuestion = new CausalQuestion((CausalQuestion) oldQuestion);
+        Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
         newQuestion.setQuestionTopics(topics);
         unitOfWork.registerChanged(newQuestion);
     }
@@ -146,7 +150,7 @@ public class QuestionService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Question updateTopic(Integer questionAggregateId, Integer topicAggregateId, String topicName, Integer aggregateVersion, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
-        Question newQuestion = new CausalQuestion((CausalQuestion) oldQuestion);
+        Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
 
         QuestionTopic questionTopic = newQuestion.findTopic(topicAggregateId);
         /*
@@ -166,7 +170,7 @@ public class QuestionService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Question removeTopic(Integer questionAggregateId, Integer topicAggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
-        Question newQuestion = new CausalQuestion((CausalQuestion) oldQuestion);
+        Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
 
         QuestionTopic questionTopic = newQuestion.findTopic(topicAggregateId);
         if(questionTopic != null && questionTopic.getTopicAggregateId().equals(topicAggregateId) && questionTopic.getTopicVersion() >= aggregateVersion) {

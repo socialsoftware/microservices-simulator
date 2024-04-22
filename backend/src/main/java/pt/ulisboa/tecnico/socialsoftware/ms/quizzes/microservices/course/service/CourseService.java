@@ -13,7 +13,8 @@
     import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.Course;
     import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseCustomRepository;
     import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseDto;
-    import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalCourse;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalCourse;
     import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
     import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseRepository;
     import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
@@ -28,6 +29,9 @@
         private final UnitOfWorkService unitOfWorkService;
 
         private final CourseCustomRepository courseRepository;
+
+        @Autowired
+        private CourseFactory courseFactory;
 
         public CourseService(UnitOfWorkService unitOfWorkService, CourseCustomRepository courseRepository) {
             this.unitOfWorkService = unitOfWorkService;
@@ -50,7 +54,7 @@
             Course course = getCourseByName(courseExecutionDto.getName(), unitOfWork);
             if (course == null) {
                 Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-                course = new CausalCourse(aggregateId, courseExecutionDto);
+                course = courseFactory.createCourse(aggregateId, courseExecutionDto);
                 unitOfWork.registerChanged(course);
             }
             courseExecutionDto.setCourseAggregateId(course.getAggregateId());
