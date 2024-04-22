@@ -54,6 +54,12 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         try {
             checkInput(userId, topicsId, tournamentDto);
 
+            if (tournamentDto.getState() != null && tournamentDto.getState().equals(AggregateState.IN_SAGA.toString())) {
+                throw new Exception("Error: Tournament aggregate is currently being modified in another saga.");
+            }
+
+            tournamentDto.setState(AggregateState.IN_SAGA.toString());
+
             // by making this call the invariants regarding the course execution and the role of the creator are guaranteed
             UserDto creatorDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId, unitOfWork);
 
@@ -69,6 +75,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
             quizDto.setResultsDate(tournamentDto.getEndTime());
             QuizDto quizResultDto = quizService.generateQuiz(executionId, quizDto, topicsId, tournamentDto.getNumberOfQuestions(), unitOfWork);
 
+            quizDto.setState(AggregateState.IN_SAGA.toString());
     //        NUMBER_OF_QUESTIONS
     //            this.numberOfQuestions == Quiz(tournamentQuiz.id).quizQuestions.size
     //            Quiz(this.tournamentQuiz.id) DEPENDS ON this.numberOfQuestions
@@ -79,21 +86,15 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
     //        END_TIME_CONCLUSION_DATE
     //            this.endTime == Quiz(tournamentQuiz.id).conclusionDate
 
-            if (tournamentDto.getState() == AggregateState.IN_SAGA.toString()) {
-                // abortar ou esperar?
-                throw new Exception("Error creating tournament: aggregate being changed in other saga");
-            }
-
-            //tournament.setState(AggregateState.IN_SAGA);
-
             TournamentDto tournamentResultDto = tournamentService.createTournament(tournamentDto, creatorDto, courseExecutionDto, topicDtos, quizResultDto, unitOfWork);
 
-            //TODO
-            //unitOfWork.registerCompensation(() -> tournamentService.removeTournament(tournamentResultDto.getAggregateId(), unitOfWork));
+            //TODO check
+            unitOfWork.registerCompensation(() -> tournamentService.removeTournament(tournamentResultDto.getAggregateId(), unitOfWork));
 
             unitOfWorkService.commit(unitOfWork);
 
-            //tournamentResultDto.setState(AggregateState.ACTIVE);
+            quizDto.setState(AggregateState.ACTIVE.toString()); // TODO pass to commit
+            tournamentResultDto.setState(AggregateState.ACTIVE.toString()); // TODO pass to commit
 
             return tournamentResultDto;
         } catch (Exception ex) {
@@ -106,15 +107,25 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         try {
             TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+
+            if (tournamentDto.getState() != null && tournamentDto.getState().equals(AggregateState.IN_SAGA.toString())) {
+                throw new Exception("Error: Tournament aggregate is currently being modified in another saga.");
+            }
+
+            tournamentDto.setState(AggregateState.IN_SAGA.toString());
+
             // by making this call the invariants regarding the course execution and the role of the participant are guaranteed
             UserDto userDto = courseExecutionService.getStudentByExecutionIdAndUserId(tournamentDto.getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
             TournamentParticipant participant = new TournamentParticipant(userDto);
             tournamentService.addParticipant(tournamentAggregateId, participant, userDto.getRole(), unitOfWork);
             
-            //TODO
-            //unitOfWork.registerCompensation(() -> tournamentService.removeParticipant(tournamentAggregateId, userDto.getAggregateId(), unitOfWork));
+            //TODO check
+            unitOfWork.registerCompensation(() -> tournamentService.leaveTournament(tournamentAggregateId, userDto.getAggregateId(), unitOfWork));
 
             unitOfWorkService.commit(unitOfWork);
+
+            tournamentDto.setState(AggregateState.ACTIVE.toString()); // todo pass to commit
+
         } catch (Exception ex) {
             unitOfWorkService.compensate(unitOfWork);
             throw new Exception("Error adding participant to tournament", ex);
@@ -126,11 +137,18 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         try {
             //checkInput(topicsAggregateIds, tournamentDto);
 
+            // for roll back
+            TournamentDto originalTournamentDto = tournamentService.getTournamentById(tournamentDto.getAggregateId(), unitOfWork);
+
+            if (tournamentDto.getState() != null && tournamentDto.getState().equals(AggregateState.IN_SAGA.toString())) {
+                throw new Exception("Error: Tournament aggregate is currently being modified in another saga.");
+            }
+
+            originalTournamentDto.setState(AggregateState.IN_SAGA.toString());
+
             Set<TopicDto> topicDtos = topicsAggregateIds.stream()
                     .map(topicAggregateId -> topicService.getTopicById(topicAggregateId, unitOfWork))
                     .collect(Collectors.toSet());
-
-            TournamentDto originalTournamentDto = tournamentService.getTournamentById(tournamentDto.getAggregateId(), unitOfWork);
 
             TournamentDto newTournamentDto = tournamentService.updateTournament(tournamentDto, topicDtos, unitOfWork);
 
@@ -139,6 +157,8 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
             quizDto.setAvailableDate(newTournamentDto.getStartTime());
             quizDto.setConclusionDate(newTournamentDto.getEndTime());
             quizDto.setResultsDate(newTournamentDto.getEndTime());
+
+            quizDto.setState(AggregateState.IN_SAGA.toString());
 
     //        NUMBER_OF_QUESTIONS
     //		    this.numberOfQuestions == Quiz(tournamentQuiz.id).quizQuestions.size
@@ -160,10 +180,17 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
             }
             //quizService.updateGeneratedQuiz(quizDto, topicsAggregateIds, newTournamentDto.getNumberOfQuestions(), unitOfWork);
 
-            //TODO
-            unitOfWork.registerCompensation(() -> tournamentService.updateTournament(originalTournamentDto, originalTournamentDto.getTopics(), unitOfWork));    
+            //TODO check
+            unitOfWork.registerCompensation(() -> {
+                tournamentService.updateTournament(originalTournamentDto, originalTournamentDto.getTopics(), unitOfWork);
+                originalTournamentDto.setState(AggregateState.ACTIVE.toString()); // Ensure state is reset
+            });
 
             unitOfWorkService.commit(unitOfWork);
+
+            quizDto.setState(AggregateState.ACTIVE.toString()); // TODO pass to commit
+            newTournamentDto.setState(AggregateState.ACTIVE.toString()); // TODO pass to commit
+            
         } catch (Exception ex) {
             unitOfWorkService.compensate(unitOfWork);
             throw new Exception("Error updating tournament", ex);
