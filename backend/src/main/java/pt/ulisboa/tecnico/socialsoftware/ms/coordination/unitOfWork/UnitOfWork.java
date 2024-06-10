@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.coordination;
+package pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
@@ -12,11 +12,14 @@ public abstract class UnitOfWork {
     private Set<Event> eventsToEmit;
     private String functionalityName;
 
+    private ArrayList<Runnable> compensatingActions;
+
     public UnitOfWork(Integer version, String functionalityName) {
         this.aggregatesToCommit = new HashMap<>();
         this.eventsToEmit = new HashSet<>();
         setVersion(version);
         this.functionalityName = functionalityName;
+        this.compensatingActions = new ArrayList<>(); //TODO might be only for sagas
     }
 
     public Integer getId() {
@@ -59,5 +62,9 @@ public abstract class UnitOfWork {
 
     public void addEvent(Event event) {
         this.eventsToEmit.add(event);
+    }
+
+    public void registerCompensation(Runnable compensationLogic) {
+        this.compensatingActions.add(compensationLogic);
     }
 }

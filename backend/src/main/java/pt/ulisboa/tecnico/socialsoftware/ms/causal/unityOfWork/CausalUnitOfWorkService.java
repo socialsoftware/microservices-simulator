@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.version.VersionService;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
@@ -182,6 +182,11 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         }
 
         return concurrentAggregate;
+    }
+
+    @Override
+    public void abort(CausalUnitOfWork unitOfWork) {
+        // TODO
     }
 
 }

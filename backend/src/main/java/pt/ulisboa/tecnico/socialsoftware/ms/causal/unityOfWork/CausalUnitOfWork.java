@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.coordination;
+package pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork;
 
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -32,6 +32,12 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public abstract void commit(U unitOfWork);
+
+    @Retryable(
+            value = { SQLException.class },
+            backoff = @Backoff(delay = 5000))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public abstract void abort(U unitOfWork);
 
 
     // Must be serializable in order to ensure no other commits are made between the checking of concurrent versions and the actual persist

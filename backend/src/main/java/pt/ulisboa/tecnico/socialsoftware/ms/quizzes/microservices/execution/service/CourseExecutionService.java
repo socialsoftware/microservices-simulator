@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
@@ -124,6 +124,10 @@ public class CourseExecutionService {
         CourseExecutionStudent courseExecutionStudent = new CourseExecutionStudent(userDto);
         if (!courseExecutionStudent.isActive()){
             throw new TutorException(ErrorMessage.INACTIVE_USER, courseExecutionStudent.getUserAggregateId());
+        }
+        
+        if (oldCourseExecution.hasStudent(courseExecutionStudent.getUserAggregateId())) {
+            throw new TutorException(COURSE_EXECUTION_STUDENT_ALREADY_ENROLLED, courseExecutionStudent.getUserAggregateId(), courseExecutionAggregateId);
         }
 
         CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldCourseExecution);

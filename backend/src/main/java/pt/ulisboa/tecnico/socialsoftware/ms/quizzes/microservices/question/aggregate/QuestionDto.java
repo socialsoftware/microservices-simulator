@@ -18,6 +18,7 @@ public class QuestionDto implements Serializable {
     private Set<TopicDto> topicDto;
     private List<OptionDto> optionDtos;
     private Integer sequence;
+    private String state;
 
     public QuestionDto() {}
 
@@ -106,5 +107,13 @@ public class QuestionDto implements Serializable {
 
     public void setSequence(Integer sequence) {
         this.sequence = sequence;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 }

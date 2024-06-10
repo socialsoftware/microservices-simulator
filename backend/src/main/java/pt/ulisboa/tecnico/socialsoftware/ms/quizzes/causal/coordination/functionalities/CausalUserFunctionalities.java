@@ -28,6 +28,7 @@ public class CausalUserFunctionalities implements UserFunctionalitiesInterface {
         UserDto userDto1 = userService.createUser(userDto, unitOfWork);
 
         unitOfWorkService.commit(unitOfWork);
+
         return userDto1;
     }
 

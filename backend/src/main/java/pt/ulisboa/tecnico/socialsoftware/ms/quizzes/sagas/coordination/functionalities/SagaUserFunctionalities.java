@@ -3,14 +3,20 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.function
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.USER_ACTIVE;
 
 import java.util.List;
 
@@ -23,65 +29,149 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
     private SagaUnitOfWorkService unitOfWorkService;
 
     public UserDto createUser(UserDto userDto) throws Exception {
-        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        try {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+
+        CreateUserData data = new CreateUserData();
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+
+        SyncStep checkInputStep = new SyncStep(() -> {
             checkInput(userDto);
-            UserDto createdUserDto = userService.createUser(userDto, unitOfWork);
+            userDto.setState(AggregateState.IN_SAGA.toString());
+            data.setUserDto(userDto);
+        });
 
-            // TODO
-            // unitOfWork.registerCompensation(() -> userService.deleteUser(createdUserDto.getAggregateId(), unitOfWork));
+        SyncStep createUserStep = new SyncStep(() -> {
+            UserDto createdUserDto = userService.createUser(data.getUserDto(), unitOfWork);
+            data.setCreatedUserDto(createdUserDto);
+        });
 
-            unitOfWorkService.commit(unitOfWork);
-            return createdUserDto;
-        } catch (Exception ex) {
-            unitOfWorkService.compensate(unitOfWork);
-            throw new Exception("Error creating user", ex);
-        }
+        createUserStep.registerCompensation(() -> {
+            User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(data.getCreatedUserDto().getAggregateId(), unitOfWork);
+            user.remove();
+            user.setState(AggregateState.DELETED);
+            unitOfWork.registerChanged(user);
+        }, unitOfWork);
+
+        workflow.addStep(checkInputStep);
+        workflow.addStep(createUserStep);
+
+        workflow.execute();
+
+        return data.getCreatedUserDto();
     }
 
     public UserDto findByUserId(Integer userAggregateId) {
-        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        return userService.getUserById(userAggregateId, unitOfWork);
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+    
+        FindUserByIdData data = new FindUserByIdData();
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+    
+        SyncStep findUserStep = new SyncStep(() -> {
+            UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
+            data.setUserDto(userDto);
+        });
+    
+        workflow.addStep(findUserStep);
+        workflow.execute();
+    
+        return data.getUserDto();
     }
 
     public void activateUser(Integer userAggregateId) throws Exception {
-        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        try {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+    
+        ActivateUserData data = new ActivateUserData();
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+    
+        SyncStep getUserStep = new SyncStep(() -> {
+            User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
+            user.setState(AggregateState.IN_SAGA);
+            data.setUser(user);
+        });
+    
+        getUserStep.registerCompensation(() -> {
+            User user = data.getUser();
+            user.setActive(false);
+            user.setState(AggregateState.ACTIVE);
+            unitOfWork.registerChanged(user);
+        }, unitOfWork);
+    
+        SyncStep activateUserStep = new SyncStep(() -> {
             userService.activateUser(userAggregateId, unitOfWork);
-
-            // TODO
-            // unitOfWork.registerCompensation(() -> userService.deactivateUser(userAggregateId, unitOfWork));
-
-            unitOfWorkService.commit(unitOfWork);
-        } catch (Exception ex) {
-            unitOfWorkService.compensate(unitOfWork);
-            throw new Exception("Error activating user", ex);
-        }
+        });
+    
+        workflow.addStep(getUserStep);
+        workflow.addStep(activateUserStep);
+    
+        workflow.execute();
     }
 
     public void deleteUser(Integer userAggregateId) throws Exception {
-        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        try {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+    
+        DeleteUserData data = new DeleteUserData();
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+    
+        SyncStep getUserStep = new SyncStep(() -> {
+            User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
+            user.setState(AggregateState.IN_SAGA);
+            data.setUser(user);
+        });
+    
+        getUserStep.registerCompensation(() -> {
+            User user = data.getUser();
+            user.setState(AggregateState.ACTIVE);
+            unitOfWork.registerChanged(user);
+        }, unitOfWork);
+    
+        SyncStep deleteUserStep = new SyncStep(() -> {
             userService.deleteUser(userAggregateId, unitOfWork);
-
-            // TODO
-            // unitOfWork.registerCompensation(() -> userService.createUser(userAggregateId, unitOfWork));
-
-            unitOfWorkService.commit(unitOfWork);
-        } catch (Exception ex) {
-            unitOfWorkService.compensate(unitOfWork);
-            throw new Exception("Error deleting user", ex);
-        }
+        });
+    
+        workflow.addStep(getUserStep);
+        workflow.addStep(deleteUserStep);
+    
+        workflow.execute();
     }
 
     public List<UserDto> getStudents() {
-        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        return userService.getStudents(unitOfWork);
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+    
+        GetStudentsData data = new GetStudentsData();
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+    
+        SyncStep getStudentsStep = new SyncStep(() -> {
+            List<UserDto> students = userService.getStudents(unitOfWork);
+            data.setStudents(students);
+        });
+    
+        workflow.addStep(getStudentsStep);
+        workflow.execute();
+    
+        return data.getStudents();
     }
 
     public List<UserDto> getTeachers() {
-        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        return userService.getTeachers(unitOfWork);
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+    
+        GetTeachersData data = new GetTeachersData();
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+    
+        SyncStep getTeachersStep = new SyncStep(() -> {
+            List<UserDto> teachers = userService.getTeachers(unitOfWork);
+            data.setTeachers(teachers);
+        });
+    
+        workflow.addStep(getTeachersStep);
+        workflow.execute();
+    
+        return data.getTeachers();
     }
 
     private void checkInput(UserDto userDto) {

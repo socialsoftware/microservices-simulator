@@ -12,6 +12,7 @@ public class QuizAnswerDto implements Serializable {
     private Integer studentAggregateId;
     private String studentName;
     private Integer quizAggregateId;
+    private String state;
 
     //private List<QuestionAnswer> questionAnswers;
 
@@ -79,5 +80,13 @@ public class QuizAnswerDto implements Serializable {
 
     public void setQuizAggregateId(Integer quizAggregateId) {
         this.quizAggregateId = quizAggregateId;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 }

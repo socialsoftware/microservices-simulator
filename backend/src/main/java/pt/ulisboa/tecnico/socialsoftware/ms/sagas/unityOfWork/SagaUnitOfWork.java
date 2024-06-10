@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 
 import java.util.*;
 

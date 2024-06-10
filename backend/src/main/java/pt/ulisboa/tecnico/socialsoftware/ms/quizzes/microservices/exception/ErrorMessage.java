@@ -28,8 +28,9 @@ public enum ErrorMessage {
     PARTICIPANT_NOT_STUDENT("User %d must be a student to be added as participant to tournament %d."),
     PARTICIPANT_NOT_ENROLLED_IN_TOURNAMENT_EXECUTION("User %d not enrolled in tournament's %d course execution."),
     TOURNAMENT_PARTICIPANT_ADDING_ANSWER_WITH_WRONG_QUIZ_ANSWER_ID("Tournament participant is being added a wrong quiz answer id %d"),
+    TOURNAMENT_IN_SAGA("Tournament is already in a saga."),
 
-
+    COURSE_EXECUTION_STUDENT_ALREADY_ENROLLED("Student with aggregate id %d is already enrolled in course execution %d."),
 
     USER_IS_ANONYMOUS("Cant add anonymous user %d."),
 

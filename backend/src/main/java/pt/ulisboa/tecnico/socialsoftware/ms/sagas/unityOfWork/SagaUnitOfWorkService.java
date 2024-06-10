@@ -9,10 +9,11 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.version.VersionService;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 
 import jakarta.persistence.EntityManager;
@@ -22,6 +23,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
 
 @Profile("sagas")
@@ -41,7 +43,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public SagaUnitOfWork createUnitOfWork(String functionalityName) {
         Integer lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
 
@@ -52,17 +53,15 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return unitOfWork;
     }
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) {
         Aggregate aggregate = sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
-                .orElseThrow(() -> new RuntimeException("Aggregate not found: " + aggregateId));
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
 
         // TODO: add register read logic if needed
         logger.info("Loaded and registered read for aggregate ID: {}", aggregateId);
         return aggregate;
     }
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Aggregate aggregateLoad(Integer aggregateId, SagaUnitOfWork unitOfWork) {
         Aggregate aggregate = sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
@@ -74,7 +73,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return aggregate;
     }
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Aggregate registerRead(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
         // TODO: add register read logic if needed
         return aggregate;
@@ -83,18 +81,29 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commit(SagaUnitOfWork unitOfWork) {
-        // TODO: add commit logic
+        Map<Integer, Aggregate> aggregatesToCommit = unitOfWork.getAggregatesToCommit();
+        aggregatesToCommit.values().stream().forEach(a -> {
+                            if (a.getState() != AggregateState.DELETED && a.getState() != AggregateState.INACTIVE)
+                                a.setState(AggregateState.ACTIVE);
+                            });
+
+
+        Integer commitVersion = versionService.incrementAndGetVersionNumber();
+        commitAllObjects(commitVersion, aggregatesToCommit);
+
+        unitOfWork.getEventsToEmit().forEach(e -> {
+            /* this is so event detectors can compare this version to those of running transactions */
+            e.setPublisherAggregateVersion(commitVersion);
+            eventRepository.save(e);
+        });
         logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
     }
 
 
-    // Must be serializable in order to ensure no other commits are made between the checking of concurrent versions and the actual persist
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
         aggregateMap.values().forEach(aggregateToWrite -> {
             aggregateToWrite.setVersion(commitVersion);
@@ -105,5 +114,10 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     public void compensate(SagaUnitOfWork unitOfWork) {
         unitOfWork.compensate();
+    }
+
+    @Override
+    public void abort(SagaUnitOfWork unitOfWork) {
+        // TODO
     }
 }
