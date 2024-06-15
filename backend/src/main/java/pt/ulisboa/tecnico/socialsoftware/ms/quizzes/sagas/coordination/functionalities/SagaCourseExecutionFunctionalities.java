@@ -17,6 +17,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregat
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.AddStudentData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.AnonymizeStudentData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateCourseExecutionData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetCourseExecutionByIdData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetCourseExecutionsByUserData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetCourseExecutionsData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveCourseExecutionData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveStudentFromCourseExecutionData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateStudentNameData;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;

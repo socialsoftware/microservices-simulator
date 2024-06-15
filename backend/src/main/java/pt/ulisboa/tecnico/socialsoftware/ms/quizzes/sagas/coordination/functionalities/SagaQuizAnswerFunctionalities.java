@@ -19,6 +19,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.AnswerQuestionData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.ConcludeQuizData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.StartQuizData;
 
 @Profile("sagas")
 @Service

@@ -25,6 +25,17 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.AddParticipantData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CancelTournamentData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateTournamentData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindTournamentData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetClosedTournamentsForCourseExecutionData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetOpenedTournamentsForCourseExecutionData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetTournamentsForCourseExecutionData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.LeaveTournamentData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveTournamentData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.SolveQuizData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateTournamentData;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;

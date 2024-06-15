@@ -13,6 +13,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregat
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateQuestionData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindQuestionByAggregateIdData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindQuestionsByCourseData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveQuestionData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateQuestionData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateQuestionTopicsData;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService;

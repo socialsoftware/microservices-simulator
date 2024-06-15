@@ -8,6 +8,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.ActivateUserData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateUserData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.DeleteUserData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindUserByIdData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetStudentsData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetTeachersData;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
