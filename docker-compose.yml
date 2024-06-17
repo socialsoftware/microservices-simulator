@@ -24,7 +24,7 @@ services:
     build:
       context: ./backend/
       args:
-        PROFILE: tcc
+        PROFILE: tcc,dev
     image: backend
     container_name: backend
     depends_on:
@@ -34,7 +34,7 @@ services:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=tcc
+      - SPRING_PROFILES_ACTIVE=tcc,dev
       - SPRING.DATASOURCE.USERNAME=postgres
       - SPRING.DATASOURCE.PASSWORD=postgres
       - SPRING.JPA.DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect

@@ -10,7 +10,7 @@ FROM base as test
 CMD ["mvn", "-Ptest", "test"]
 
 FROM base as run
-ARG PROFILE=tcc
+ARG PROFILE=tcc,dev
 RUN mvn clean -P$PROFILE -Dmaven.test.skip=true package
 
 FROM openjdk:21-jdk-slim
