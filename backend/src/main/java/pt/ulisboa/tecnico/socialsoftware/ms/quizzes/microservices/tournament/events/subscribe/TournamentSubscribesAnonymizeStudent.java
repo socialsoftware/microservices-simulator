@@ -17,6 +17,7 @@ public class TournamentSubscribesAnonymizeStudent extends EventSubscription {
         tournamentDto = new TournamentDto(tournament);
     }
 
+    @Override
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event) && checkTournamentInfo((AnonymizeStudentEvent)event);
     }

@@ -12,6 +12,7 @@ public class TournamentSubscribesDeleteCourseExecution extends EventSubscription
                 DeleteCourseExecutionEvent.class.getSimpleName());
     }
 
+    @Override
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event);
     }

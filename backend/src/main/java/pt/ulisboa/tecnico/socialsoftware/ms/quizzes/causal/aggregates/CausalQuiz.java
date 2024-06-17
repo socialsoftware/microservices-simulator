@@ -37,6 +37,7 @@ public class CausalQuiz extends Quiz implements CausalAggregate {
                 new String[]{"conclusionDate", "resultsDate"});
     }
 
+    @Override
     public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
         CausalQuiz committedQuiz = (CausalQuiz) committedVersion;
         CausalQuiz mergedQuiz = new CausalQuiz(this);

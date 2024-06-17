@@ -12,6 +12,7 @@ public class TournamentSubscribesDeleteTopic extends EventSubscription {
                 DeleteTopicEvent.class.getSimpleName());
     }
 
+    @Override
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event);
     }

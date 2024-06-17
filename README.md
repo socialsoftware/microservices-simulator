@@ -8,21 +8,29 @@ The artifact supports the test of business logic of a microservices application 
 
 The system allows testing the interleaving of functionalities execution in a deterministic context, such that it is possible to evaluate the resulting behavior.
 
+The description of the examples for Transactional Causal Consistency are in [Transactional Causal Consistent Microservices Simulator](https://doi.org/10.1007/978-3-031-35260-7_4).
+
 ## Run Using Docker
+
+### Technology Requirements
+
+- [Docker Compose V2] (https://docs.docker.com/compose/install/)
+
+### Usage
 
 * Build the application
 ```
-docker-compose build
+docker compose build
 ```
 
 * Running the application
 ```
-docker-compose up backend
+docker compose up backend
 ```
 
 * Running Spock Tests
 ```
-docker-compose up unit-tests
+docker compose up unit-tests
 ```
 
 * Some test cases:
@@ -34,7 +42,7 @@ docker-compose up unit-tests
 
 ### Technology Requirements
 
-- [Maven 3.6.3](https://archive.apache.org/dist/maven/maven-3/3.6.3/)
+- [Maven 3.9.6](https://archive.apache.org/dist/maven/maven-3/3.9.6/)
 
 - [Java 17+](https://openjdk.org/projects/jdk/17/)
 
@@ -47,18 +55,18 @@ docker-compose up unit-tests
 ```
 sudo service postgresql start
 sudo su -l postgres
-dropdb blcmdb
-createdb blcmdb
+dropdb msdb
+createdb msdb
 ```
 * Create user to access db
 ```
-psql blcmdb
+psql msdb
 CREATE USER your-username WITH SUPERUSER LOGIN PASSWORD 'yourpassword';
 \q
 exit
 ```
-* Rename `backend/src/main/resources/application-dev.properties.example` to `application-dev.properties` and fill the placeholder fields.
-
+* Copy `backend/src/main/resources/application-dev.properties.example` to `application-dev.properties` and fill the placeholder fields.
+* If you have run the unit-test using docker, `backend/target` directory may be with root owner and group, do: `sudo rm -rf backend/target`.
 
 ### Running the application
 
@@ -106,7 +114,35 @@ jmeter
 * The command launches JMeter GUI. By clicking `File > Open` and selecting a test file it is possible to observe the test structure.
 * Tests can also be run using the GUI, by clicking on the `Start` button.
 
-##  Spock Tests in DAIS2023 paper - 23nd International Conference on Distributed Applications and Interoperable Systems
+## How to implement and test your own business logic
+
+The code follows the structure in the figure, where the packages in blue and orange contain, respectively, the microservices domain specific code and the transactional causal consistency domain specific code.
+
+![Code Structure](https://github.com/socialsoftware/business-logic-consistency-models/blob/master/data/figs/decomposition.png)
+
+The figure shows the main classes to be extended in the steps described next. 
+
+![Code Structure](https://github.com/socialsoftware/business-logic-consistency-models/blob/master/data/figs/extension.png)
+
+Apply the following steps:
+
+1. **Define Aggregate**: Each microservice is modeled as an aggregate. The first step is to define the aggregates. 
+The simulator uses Spring-Boot and JPA, so the domain entities definition uses the JPA notation. 
+In [Tournament](https://github.com/socialsoftware/business-logic-consistency-models/blob/af1196a31afdb8ddca9a8e2dd3bff014f3c4066b/backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/aggregate/Tournament.java#L60)
+aggregate we can see the aggregate root entity and the reference to its internal entities.
+2. **Specify Invariants**: The aggregate invariants are defined by overriding method [verifyInvariants()](https://github.com/socialsoftware/business-logic-consistency-models/blob/af1196a31afdb8ddca9a8e2dd3bff014f3c4066b/backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/aggregate/Tournament.java#L273).
+3. **Define Causal Aggregates**: Extend aggregates with the information required to process merges, like [CausalTournament](https://github.com/socialsoftware/business-logic-consistency-models/blob/af1196a31afdb8ddca9a8e2dd3bff014f3c4066b/backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/aggregates/CausalTournament.java#L24).
+4. **Define Events**: Define the events published by upstream aggregates and subscribed by downstream aggregates, like [UpdateStudentNameEvent](https://github.com/socialsoftware/business-logic-consistency-models/blob/af1196a31afdb8ddca9a8e2dd3bff014f3c4066b/backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/execution/events/publish/UpdateStudentNameEvent.java#L6).
+5. **Subscribe Events**: The events published by upstream aggregates can be subscribed by overriding method [getEventSubscriptions()](https://github.com/socialsoftware/business-logic-consistency-models/blob/af1196a31afdb8ddca9a8e2dd3bff014f3c4066b/backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/aggregate/Tournament.java#L141).
+6. **Define Event Subscriptions**: Events can be subscribed depending on its data. Therefore, define subscription classes like [TournamentSubscribesUpdateStudentName](https://github.com/socialsoftware/business-logic-consistency-models/blob/af1196a31afdb8ddca9a8e2dd3bff014f3c4066b/backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/events/subscribe/TournamentSubscribesUpdateStudentName.java#L10).
+7. **Define Event Handlers**: For each subscribed event define an event handler that delegates the handling in a handling functionality, like [UpdateStudentNameEventHandler](https://github.com/socialsoftware/business-logic-consistency-models/blob/af1196a31afdb8ddca9a8e2dd3bff014f3c4066b/backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/events/handling/handlers/UpdateStudentNameEventHandler.java#L8)
+and its handling functionality [processUpdateStudentNameEvent(...)](https://github.com/socialsoftware/business-logic-consistency-models/blob/af1196a31afdb8ddca9a8e2dd3bff014f3c4066b/backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination/eventProcessing/TournamentEventProcessing.java#L59).
+8. **Define Functionalities**: Functionalities coordinate the execution of aggregate services using TCC, like functionality [updateStudentName(...)](https://github.com/socialsoftware/business-logic-consistency-models/blob/af1196a31afdb8ddca9a8e2dd3bff014f3c4066b/backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination/functionalities/CourseExecutionFunctionalities.java#L81), 
+where each service interacts with the unit of work to register changes and publish events, like service [updateExecutionStudentName(...)](https://github.com/socialsoftware/business-logic-consistency-models/blob/af1196a31afdb8ddca9a8e2dd3bff014f3c4066b/backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/execution/service/CourseExecutionService.java#L175).
+9. **Define Test Cases**: Define deterministic tests cases for the concurrent execution of functionalities using services to decrement the system version number, 
+which defines functionalities execution order, and to force the deterministic processing of events, like in the [Concurrent Execution of Update Name and Add Participant](https://github.com/socialsoftware/business-logic-consistency-models/blob/af1196a31afdb8ddca9a8e2dd3bff014f3c4066b/backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/TournamentFunctionalityTest.groovy#L178).
+
+##  Spock Tests in [DAIS2023](https://docs.docker.com/compose/install/) paper - 23nd International Conference on Distributed Applications and Interoperable Systems
 
 To reproduce the paper results follow the steps:
 

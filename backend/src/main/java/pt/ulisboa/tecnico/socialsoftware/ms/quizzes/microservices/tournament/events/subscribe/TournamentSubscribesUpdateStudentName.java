@@ -17,6 +17,7 @@ public class TournamentSubscribesUpdateStudentName extends EventSubscription {
         tournamentDto = new TournamentDto(tournament);
     }
 
+    @Override
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event) && checkTournamentInfo((UpdateStudentNameEvent)event);
     }

@@ -14,6 +14,7 @@ public class TournamentSubscribesAnswerQuestion extends EventSubscription {
         this.studentAggregateId = tournamentParticipant.getParticipantAggregateId();
     }
 
+    @Override
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event) && checkAnswerInfo((QuizAnswerQuestionAnswerEvent)event);
     }

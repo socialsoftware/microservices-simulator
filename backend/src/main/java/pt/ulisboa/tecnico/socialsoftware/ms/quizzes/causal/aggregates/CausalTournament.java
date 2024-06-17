@@ -51,6 +51,7 @@ public class CausalTournament extends Tournament implements CausalAggregate {
                 new String[]{"numberOfQuestions", "tournamentTopics"});
     }
 
+    @Override
     public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields){
         if (!(committedVersion instanceof CausalTournament)) {
             throw new TutorException(AGGREGATE_MERGE_FAILURE, getAggregateId());
