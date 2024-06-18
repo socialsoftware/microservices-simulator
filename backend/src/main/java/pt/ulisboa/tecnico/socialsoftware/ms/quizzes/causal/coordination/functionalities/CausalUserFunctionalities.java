@@ -10,11 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.U
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Profile("tcc")
@@ -26,112 +22,41 @@ public class CausalUserFunctionalities implements UserFunctionalitiesInterface {
     private CausalUnitOfWorkService unitOfWorkService;
 
     public UserDto createUser(UserDto userDto) {
+        CausalUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        checkInput(userDto);
 
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        CausalUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-        CausalWorkflow workflow = new CausalWorkflow(unitOfWorkService, functionalityName);
+        UserDto userDto1 = userService.createUser(userDto, unitOfWork);
 
-        SyncStep checkInputStep = new SyncStep(() -> {
-            checkInput(userDto);
-        });
+        unitOfWorkService.commit(unitOfWork);
 
-        final UserDto[] userDtoHolder = new UserDto[1];
-        
-        SyncStep createUserStep = new SyncStep(() -> {
-            userDtoHolder[0] = userService.createUser(userDto, unitOfWork);
-        });
-
-        workflow.addStep(checkInputStep);
-        workflow.addStep(createUserStep);
-
-        workflow.execute();
-
-        return userDtoHolder[0];
+        return userDto1;
     }
 
     public UserDto findByUserId(Integer userAggregateId) {
-
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        CausalUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-        CausalWorkflow workflow = new CausalWorkflow(unitOfWorkService, functionalityName);
-    
-        final UserDto[] userDtoHolder = new UserDto[1];
-    
-        SyncStep findUserStep = new SyncStep(() -> {
-            userDtoHolder[0] = userService.getUserById(userAggregateId, unitOfWork);
-        });
-    
-        workflow.addStep(findUserStep);
-    
-        workflow.execute();
-    
-        return userDtoHolder[0];
-    }   
+        CausalUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        return userService.getUserById(userAggregateId, unitOfWork);
+    }
 
     public void activateUser(Integer userAggregateId) {
-
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        CausalUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-        CausalWorkflow workflow = new CausalWorkflow(unitOfWorkService, functionalityName);
-    
-        SyncStep activateUserStep = new SyncStep(() -> {
-            userService.activateUser(userAggregateId, unitOfWork);
-        });
-    
-        workflow.addStep(activateUserStep);
-    
-        workflow.execute();
+        CausalUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        userService.activateUser(userAggregateId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 
     public void deleteUser(Integer userAggregateId) {
-
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        CausalUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-        CausalWorkflow workflow = new CausalWorkflow(unitOfWorkService, functionalityName);
-    
-        SyncStep deleteUserStep = new SyncStep(() -> {
-            userService.deleteUser(userAggregateId, unitOfWork);
-        });
-    
-        workflow.addStep(deleteUserStep);
-    
-        workflow.execute();
+        CausalUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        userService.deleteUser(userAggregateId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 
     public List<UserDto> getStudents() {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        CausalUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-        CausalWorkflow workflow = new CausalWorkflow(unitOfWorkService, functionalityName);
-
-        List<UserDto> studentsHolder = new ArrayList<>();
-
-        SyncStep getStudentsStep = new SyncStep(() -> {
-            studentsHolder.addAll(userService.getStudents(unitOfWork));
-        });
-
-        workflow.addStep(getStudentsStep);
-
-        workflow.execute();
-
-        return studentsHolder;
+        CausalUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        return userService.getStudents(unitOfWork);
     }
 
     public List<UserDto> getTeachers() {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        CausalUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-        CausalWorkflow workflow = new CausalWorkflow(unitOfWorkService, functionalityName);
-    
-        List<UserDto> teachersHolder = new ArrayList<>();
-    
-        SyncStep getTeachersStep = new SyncStep(() -> {
-            teachersHolder.addAll(userService.getTeachers(unitOfWork));
-        });
-    
-        workflow.addStep(getTeachersStep);
-    
-        workflow.execute();
-    
-        return teachersHolder;
+        CausalUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        return userService.getTeachers(unitOfWork);
     }
 
     private void checkInput(UserDto userDto) {
