@@ -9,6 +9,14 @@ public class ExecutionPlan {
         this.plan = plan;
     }
 
+    public ArrayList<FlowStep> getPlan() {
+        return this.plan;
+    }
+
+    public void setPlan(ArrayList<FlowStep> plan) {
+        this.plan = plan;
+    }
+
     public void execute(){
         for (FlowStep step: plan) {
             step.execute();
