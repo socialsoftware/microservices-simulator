@@ -10,20 +10,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.ExecutionPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Workflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowData;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 
 public class SagaWorkflow extends Workflow {
-    public SagaWorkflow(WorkflowData data, UnitOfWorkService unitOfWorkService, String functionalityName) {
-        super(data, unitOfWorkService, functionalityName);
+    public SagaWorkflow(WorkflowData data, UnitOfWorkService unitOfWorkService, String functionalityName, SagaUnitOfWork unitOfWork) {
+        super(data, unitOfWorkService, functionalityName, unitOfWork);
     }
 
     @Override
     public ExecutionPlan planOrder(HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies) {
-        //TODO
-        // mapear cada step com o numero de dependencias que tem
-        // quando um step nao tiver dependencias por na queue de ordenados/comecar
-        // cada vez que um passo for concluido reduzir o numero de dependencias do passos que dependiam dele
-        // repetir ate a lista de steps por ordenar ficar vazia
-
         ArrayList<FlowStep> orderedSteps = new ArrayList<>();
         HashMap<FlowStep, Integer> inDegree = new HashMap<>();
         Queue<FlowStep> readySteps = new LinkedList<>();
@@ -31,7 +26,7 @@ public class SagaWorkflow extends Workflow {
         for (HashMap.Entry<FlowStep, ArrayList<FlowStep>> entry: stepsWithDependencies.entrySet()) {
             inDegree.put(entry.getKey(), entry.getValue().size());
         }
-        
+
         for (HashMap.Entry<FlowStep, Integer> entry: inDegree.entrySet()) {
             if (entry.getValue() == 0) {
                 readySteps.add(entry.getKey());
@@ -61,6 +56,6 @@ public class SagaWorkflow extends Workflow {
         // atualizar dependencias no lado do execute live durante execucao 
         // em vez de ter uma queue pre determinada estaticamente
 
-        return new ExecutionPlan(orderedSteps);
+        return new ExecutionPlan(orderedSteps, stepsWithDependencies);
     } 
 }

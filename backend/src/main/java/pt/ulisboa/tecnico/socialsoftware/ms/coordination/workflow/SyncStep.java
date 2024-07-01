@@ -8,7 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 public class SyncStep implements FlowStep {
     private Runnable syncOperation;
     private Runnable compensationLogic;
-    private ArrayList<FlowStep> dependencies = new ArrayList<FlowStep>();
+    private ArrayList<FlowStep> dependencies = new ArrayList<>();
 
     public SyncStep(Runnable syncOperation) {
         this.syncOperation = syncOperation;

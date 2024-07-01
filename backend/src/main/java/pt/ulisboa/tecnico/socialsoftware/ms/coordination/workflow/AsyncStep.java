@@ -13,13 +13,13 @@ public class AsyncStep implements FlowStep {
     private Supplier<CompletableFuture<Void>> asyncOperation;
     private Runnable compensationLogic;
     private ExecutorService executorService;
-    private ArrayList<FlowStep> dependencies = new ArrayList<FlowStep>();
+    private ArrayList<FlowStep> dependencies = new ArrayList<>();
 
     private static final ExecutorService DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 
-    public AsyncStep(Supplier<CompletableFuture<Void>> asyncOperation, ArrayList<FlowStep> stepsWithDependencies, ExecutorService executorService) {
+    public AsyncStep(Supplier<CompletableFuture<Void>> asyncOperation, ArrayList<FlowStep> dependencies, ExecutorService executorService) {
         this.asyncOperation = asyncOperation;
-        this.dependencies = stepsWithDependencies;
+        this.dependencies = dependencies;
         this.executorService = executorService;
     }
 
@@ -33,9 +33,9 @@ public class AsyncStep implements FlowStep {
         this.executorService = DEFAULT_EXECUTOR;
     }
 
-    public AsyncStep(Supplier<CompletableFuture<Void>> asyncOperation, ArrayList<FlowStep> stepsWithDependencies) {
+    public AsyncStep(Supplier<CompletableFuture<Void>> asyncOperation, ArrayList<FlowStep> dependencies) {
         this.asyncOperation = asyncOperation;
-        this.dependencies = stepsWithDependencies;
+        this.dependencies = dependencies;
         this.executorService = DEFAULT_EXECUTOR;
     }
 
@@ -62,7 +62,7 @@ public class AsyncStep implements FlowStep {
     }
 
     @Override
-    public void setDependencies(ArrayList<FlowStep> stepsWithDependencies) {
-        this.dependencies = stepsWithDependencies;
+    public void setDependencies(ArrayList<FlowStep> dependencies) {
+        this.dependencies = dependencies;
     }
 }

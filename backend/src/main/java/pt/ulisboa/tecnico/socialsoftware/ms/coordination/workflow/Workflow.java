@@ -1,26 +1,27 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 
 public abstract class Workflow {
     private UnitOfWorkService unitOfWorkService;
     private UnitOfWork unitOfWork;
     private WorkflowData data;
-    private HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies = new HashMap<FlowStep, ArrayList<FlowStep>>();
+    private HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies = new HashMap<>();
 
-    public Workflow(WorkflowData data, UnitOfWorkService unitOfWorkService, String functionalityName) {
+    public Workflow(WorkflowData data, UnitOfWorkService unitOfWorkService, String functionalityName, UnitOfWork unitOfWork) {
         this.data = data;
         this.unitOfWorkService = unitOfWorkService;
-        this.unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        this.unitOfWork = unitOfWork;
     }
 
-    public Workflow(UnitOfWorkService unitOfWorkService, String functionalityName) {
+    public Workflow(UnitOfWorkService unitOfWorkService, String functionalityName, UnitOfWork unitOfWork) {
         this.unitOfWorkService = unitOfWorkService;
-        this.unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        this.unitOfWork = unitOfWork;
     }
 
     public UnitOfWork getUnitOfWork() {
@@ -33,15 +34,14 @@ public abstract class Workflow {
 
     public abstract ExecutionPlan planOrder(HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies);
 
-    public void execute() {
+    public CompletableFuture<Void> execute() {
         ExecutionPlan executionPlan = planOrder(this.stepsWithDependencies); // redefined for each transaction model
 
-        try {
-            executionPlan.execute(); // independent of transactional model
-            unitOfWorkService.commit(unitOfWork);
-        } catch (Exception e) {
-            unitOfWorkService.abort(unitOfWork);
-            throw e;
-        }
+        return executionPlan.execute()
+            .thenRun(() -> unitOfWorkService.commit(unitOfWork))
+            .exceptionally(ex -> {
+                unitOfWorkService.abort(unitOfWork);
+                throw new RuntimeException(ex);
+            });
     }
 }
