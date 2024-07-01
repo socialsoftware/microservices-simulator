@@ -1,9 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
-
-import java.util.*;
 
 public abstract class UnitOfWork {
     private Integer id;
@@ -47,7 +51,7 @@ public abstract class UnitOfWork {
     }
 
     public Map<Integer, Aggregate> getAggregatesToCommit() {
-        return aggregatesToCommit;
+        return this.aggregatesToCommit;
     }
 
     public void registerChanged(Aggregate aggregate) {
