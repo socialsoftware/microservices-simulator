@@ -1,5 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -11,12 +17,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizQuestion;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizQuestion;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateQuizData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindQuizData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetAvailableQuizzesData;
@@ -24,13 +29,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.Upda
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
-
-import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
-import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.IN_SAGA;
-
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Profile("sagas")
 @Service
@@ -51,7 +49,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
         CreateQuizData data = new CreateQuizData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
 
         SyncStep getCourseExecutionStep = new SyncStep(() -> {
             QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionService.getCourseExecutionById(courseExecutionId, unitOfWork));
@@ -68,12 +66,11 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         SyncStep createQuizStep = new SyncStep(() -> {
             QuizDto createdQuizDto = quizService.createQuiz(data.getQuizCourseExecution(), data.getQuestions(), quizDto, unitOfWork);
             data.setCreatedQuizDto(createdQuizDto);
-        });
+        }, new ArrayList<>(Arrays.asList(getCourseExecutionStep, getQuestionsStep)));
 
         createQuizStep.registerCompensation(() -> {
             Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(data.getCreatedQuizDto().getAggregateId(), unitOfWork);
             quiz.remove();
-            quiz.setState(AggregateState.DELETED);
             unitOfWork.registerChanged(quiz);
         }, unitOfWork);
 
@@ -91,7 +88,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         FindQuizData data = new FindQuizData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep findQuizStep = new SyncStep(() -> {
             QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
@@ -109,7 +106,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         GetAvailableQuizzesData data = new GetAvailableQuizzesData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getAvailableQuizzesStep = new SyncStep(() -> {
             List<QuizDto> availableQuizzes = quizService.getAvailableQuizzes(courseExecutionAggregateId, unitOfWork);
@@ -127,7 +124,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         UpdateQuizData data = new UpdateQuizData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getOldQuizStep = new SyncStep(() -> {
             Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
@@ -145,7 +142,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
             Set<QuizQuestion> quizQuestions = quizDto.getQuestionDtos().stream().map(QuizQuestion::new).collect(Collectors.toSet());
             QuizDto updatedQuizDto = quizService.updateQuiz(quizDto, quizQuestions, unitOfWork);
             data.setUpdatedQuizDto(updatedQuizDto);
-        });
+        }, new ArrayList<>(Arrays.asList(getOldQuizStep)));
     
         workflow.addStep(getOldQuizStep);
         workflow.addStep(updateQuizStep);

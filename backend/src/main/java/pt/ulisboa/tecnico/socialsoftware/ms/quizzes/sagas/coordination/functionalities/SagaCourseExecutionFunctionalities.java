@@ -1,19 +1,27 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities;
 
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.COURSE_EXECUTION_MISSING_ACADEMIC_TERM;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.COURSE_EXECUTION_MISSING_ACRONYM;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.COURSE_EXECUTION_MISSING_END_DATE;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.USER_MISSING_NAME;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.Question;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.Topic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
@@ -26,14 +34,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetC
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveCourseExecutionData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveStudentFromCourseExecutionData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateStudentNameData;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-
-import java.util.List;
-import java.util.Set;
-
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 @Profile("sagas")
 @Service
@@ -52,7 +55,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
         CreateCourseExecutionData data = new CreateCourseExecutionData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
 
         SyncStep checkInputStep = new SyncStep(() -> {
             checkInput(courseExecutionDto);
@@ -62,12 +65,11 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SyncStep createCourseExecutionStep = new SyncStep(() -> {
             CourseExecutionDto createdCourseExecution = courseExecutionService.createCourseExecution(data.getCourseExecutionDto(), unitOfWork);
             data.setCreatedCourseExecution(createdCourseExecution);
-        });
+        }, new ArrayList<>(Arrays.asList(checkInputStep)));
 
         createCourseExecutionStep.registerCompensation(() -> {
             CourseExecution courseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(data.getCreatedCourseExecution().getAggregateId(), unitOfWork);
             courseExecution.remove();
-            courseExecution.setState(AggregateState.DELETED);
             unitOfWork.registerChanged(courseExecution);
         }, unitOfWork);
 
@@ -85,7 +87,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         GetCourseExecutionByIdData data = new GetCourseExecutionByIdData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getCourseExecutionStep = new SyncStep(() -> {
             CourseExecutionDto courseExecutionDto = courseExecutionService.getCourseExecutionById(executionAggregateId, unitOfWork);
@@ -103,7 +105,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         GetCourseExecutionsData data = new GetCourseExecutionsData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getCourseExecutionsStep = new SyncStep(() -> {
             List<CourseExecutionDto> courseExecutions = courseExecutionService.getAllCourseExecutions(unitOfWork);
@@ -121,7 +123,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         RemoveCourseExecutionData data = new RemoveCourseExecutionData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getCourseExecutionStep = new SyncStep(() -> {
             CourseExecution courseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
@@ -137,7 +139,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep removeCourseExecutionStep = new SyncStep(() -> {
             courseExecutionService.removeCourseExecution(executionAggregateId, unitOfWork);
-        });
+        }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
     
         workflow.addStep(getCourseExecutionStep);
         workflow.addStep(removeCourseExecutionStep);
@@ -150,7 +152,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         AddStudentData data = new AddStudentData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getUserStep = new SyncStep(() -> {
             UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
@@ -171,7 +173,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep enrollStudentStep = new SyncStep(() -> {
             courseExecutionService.enrollStudent(executionAggregateId, data.getUserDto(), unitOfWork);
-        });
+        }, new ArrayList<>(Arrays.asList(getUserStep, getOldCourseExecutionStep)));
     
         workflow.addStep(getUserStep);
         workflow.addStep(getOldCourseExecutionStep);
@@ -185,7 +187,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         GetCourseExecutionsByUserData data = new GetCourseExecutionsByUserData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getCourseExecutionsByUserStep = new SyncStep(() -> {
             Set<CourseExecutionDto> courseExecutions = courseExecutionService.getCourseExecutionsByUserId(userAggregateId, unitOfWork);
@@ -203,7 +205,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         RemoveStudentFromCourseExecutionData data = new RemoveStudentFromCourseExecutionData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
             CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
@@ -219,7 +221,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep removeStudentStep = new SyncStep(() -> {
             courseExecutionService.removeStudentFromCourseExecution(courseExecutionAggregateId, userAggregateId, unitOfWork);
-        });
+        }, new ArrayList<>(Arrays.asList(getOldCourseExecutionStep)));
     
         workflow.addStep(getOldCourseExecutionStep);
         workflow.addStep(removeStudentStep);
@@ -232,7 +234,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         AnonymizeStudentData data = new AnonymizeStudentData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
             CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
@@ -248,7 +250,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep anonymizeStudentStep = new SyncStep(() -> {
             courseExecutionService.anonymizeStudent(executionAggregateId, userAggregateId, unitOfWork);
-        });
+        }, new ArrayList<>(Arrays.asList(getOldCourseExecutionStep)));
     
         workflow.addStep(getOldCourseExecutionStep);
         workflow.addStep(anonymizeStudentStep);
@@ -261,7 +263,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         UpdateStudentNameData data = new UpdateStudentNameData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         if (userDto.getName() == null) {
             throw new TutorException(USER_MISSING_NAME);
@@ -293,7 +295,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep updateStudentNameStep = new SyncStep(() -> {
             courseExecutionService.updateExecutionStudentName(executionAggregateId, userAggregateId, userDto.getName(), unitOfWork);
-        });
+        }, new ArrayList<>(Arrays.asList(getStudentStep, getOldCourseExecutionStep)));
     
         workflow.addStep(getStudentStep);
         workflow.addStep(getOldCourseExecutionStep);
