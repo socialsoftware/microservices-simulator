@@ -23,7 +23,7 @@ class PlanOrderTest extends SpockTest {
     def unitOfWorkService = Mock(SagaUnitOfWorkService)
     def unitOfWork = new SagaUnitOfWork(0, "TEST")
     def data = Mock(WorkflowData)
-    def workflow = new SagaWorkflow(data, unitOfWorkService, "TEST")
+    def workflow = new SagaWorkflow(data, unitOfWorkService, "TEST", unitOfWork)
     def step1 = new SyncStep({ System.out.println("Step 1 executed") })
     def step2 = new SyncStep({ System.out.println("Step 2 executed") })
     def step3 = new SyncStep({ System.out.println("Step 3 executed") })
