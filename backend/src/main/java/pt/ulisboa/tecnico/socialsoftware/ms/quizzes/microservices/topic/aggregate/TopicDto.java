@@ -1,7 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.Topic;
-
 import java.io.Serializable;
 
 public class TopicDto implements Serializable {
@@ -19,6 +17,7 @@ public class TopicDto implements Serializable {
         setVersion(topic.getVersion());
         setCourseId(topic.getTopicCourse().getCourseAggregateId());
         setName(topic.getName());
+        setState(topic.getState().toString());
     }
 
     public Integer getAggregateId() {

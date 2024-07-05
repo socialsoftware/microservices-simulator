@@ -54,7 +54,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         });
 
         workflow.addStep(findTopicsStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
 
         return data.getTopics();
     }
@@ -91,7 +91,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         workflow.addStep(getCourseStep);
         workflow.addStep(createTopicStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getCreatedTopicDto();
     }
@@ -127,7 +127,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         workflow.addStep(getOldTopicStep);
         workflow.addStep(updateTopicStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public void deleteTopic(Integer topicAggregateId) throws Exception {
@@ -156,7 +156,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         workflow.addStep(getTopicStep);
         workflow.addStep(deleteTopicStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     private void checkInput(TopicDto topicDto) {

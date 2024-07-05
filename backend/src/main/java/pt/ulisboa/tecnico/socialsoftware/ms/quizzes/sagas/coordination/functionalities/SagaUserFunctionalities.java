@@ -61,7 +61,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         workflow.addStep(checkInputStep);
         workflow.addStep(createUserStep);
 
-        workflow.execute();
+        workflow.execute(unitOfWork);
 
         return data.getCreatedUserDto();
     }
@@ -79,7 +79,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         });
     
         workflow.addStep(findUserStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getUserDto();
     }
@@ -111,7 +111,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         workflow.addStep(getUserStep);
         workflow.addStep(activateUserStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public void deleteUser(Integer userAggregateId) throws Exception {
@@ -140,7 +140,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         workflow.addStep(getUserStep);
         workflow.addStep(deleteUserStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public List<UserDto> getStudents() {
@@ -156,7 +156,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         });
     
         workflow.addStep(getStudentsStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getStudents();
     }
@@ -174,7 +174,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         });
     
         workflow.addStep(getTeachersStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getTeachers();
     }

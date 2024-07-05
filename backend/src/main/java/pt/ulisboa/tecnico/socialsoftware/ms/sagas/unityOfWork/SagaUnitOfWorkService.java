@@ -117,5 +117,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Override
     public void abort(SagaUnitOfWork unitOfWork) {
         // TODO
+        this.compensate(unitOfWork);
     }
 }

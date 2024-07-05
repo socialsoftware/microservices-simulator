@@ -1,10 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
 
 public class QuizDto implements Serializable {
     private Integer aggregateId;
@@ -34,6 +34,7 @@ public class QuizDto implements Serializable {
                 .collect(Collectors.toList()));
         setCourseExecutionAggregateId(quiz.getQuizCourseExecution().getCourseExecutionAggregateId());
         setCourseExecutionVersion(quiz.getQuizCourseExecution().getCourseExecutionVersion());
+        setState(quiz.getState().toString());
     }
 
     public Integer getAggregateId() {

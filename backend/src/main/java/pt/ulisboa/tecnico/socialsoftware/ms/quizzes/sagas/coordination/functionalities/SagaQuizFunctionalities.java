@@ -78,7 +78,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         workflow.addStep(getQuestionsStep);
         workflow.addStep(createQuizStep);
 
-        workflow.execute();
+        workflow.execute(unitOfWork);
 
         return data.getCreatedQuizDto();
     }
@@ -96,7 +96,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         });
     
         workflow.addStep(findQuizStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getQuizDto();
     }
@@ -114,7 +114,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         });
     
         workflow.addStep(getAvailableQuizzesStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getAvailableQuizzes();
     }
@@ -147,7 +147,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         workflow.addStep(getOldQuizStep);
         workflow.addStep(updateQuizStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getUpdatedQuizDto();
     }

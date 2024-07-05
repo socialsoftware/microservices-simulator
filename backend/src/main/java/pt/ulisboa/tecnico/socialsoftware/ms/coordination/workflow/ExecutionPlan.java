@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+
 public class ExecutionPlan {
     private ArrayList<FlowStep> plan;
     private HashMap<FlowStep, ArrayList<FlowStep>> dependencies;
@@ -21,13 +23,13 @@ public class ExecutionPlan {
         this.plan = plan;
     }
 
-    public CompletableFuture<Void> execute() {
+    public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         HashMap<FlowStep, CompletableFuture<Void>> stepFutures = new HashMap<>();
 
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
             if (dependencies.get(step).isEmpty() /* && step instanceof AsyncStep */ ) {;
-                stepFutures.put(step, step.execute());
+                stepFutures.put(step, step.execute(unitOfWork));
             }
         }
 
@@ -39,7 +41,7 @@ public class ExecutionPlan {
                 CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(
                     deps.stream().map(stepFutures::get).toArray(CompletableFuture[]::new)
                 );
-                stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute()));
+                stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork)));
             }
         }
 

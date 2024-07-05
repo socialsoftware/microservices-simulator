@@ -121,12 +121,13 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         }, unitOfWork);
 
         SyncStep getTopicsStep = new SyncStep(() -> {
-            Set<TopicDto> topicDtos = topicsId.stream()
-                    .map(topicId -> topicService.getTopicById(topicId, unitOfWork))
-                    .collect(Collectors.toSet());
+            //TODO change other steps that affect multiple aggregates to be like this
+            topicsId.stream().forEach(topicId -> {
+                TopicDto t = topicService.getTopicById(topicId, unitOfWork);
+                t.setState(AggregateState.IN_SAGA.toString());
+                data.addTopicDto(t);
+            });
 
-            topicDtos.stream().forEach(t -> t.setState(AggregateState.IN_SAGA.toString()));
-            data.setTopicsDtos(topicDtos);
         }, new ArrayList<>(Arrays.asList(checkInputStep)));
 
         getTopicsStep.registerCompensation(() -> {
@@ -142,7 +143,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
             QuizDto quizResultDto = quizService.generateQuiz(executionId, quizDto, topicsId, tournamentDto.getNumberOfQuestions(), unitOfWork);
             quizDto.setState(AggregateState.IN_SAGA.toString());
             data.setQuizDto(quizResultDto);
-        }, new ArrayList<>(Arrays.asList(checkInputStep)));
+        }, new ArrayList<>(Arrays.asList(checkInputStep, getTopicsStep)));
 
         generateQuizStep.registerCompensation(() -> {
             QuizDto quizDto = data.getQuizDto();
@@ -178,7 +179,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         workflow.addStep(generateQuizStep);
         workflow.addStep(createTournamentStep);
         
-        workflow.execute();
+        workflow.execute(unitOfWork);
         return data.getTournamentDto();
     }
 
@@ -222,7 +223,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         workflow.addStep(getUserStep);
         workflow.addStep(addParticipantStep);
 
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public void updateTournament(TournamentDto tournamentDto, Set<Integer> topicsAggregateIds) throws Exception {
@@ -326,7 +327,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         workflow.addStep(updateTournamentStep);
         workflow.addStep(updateQuizStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public List<TournamentDto> getTournamentsForCourseExecution(Integer executionAggregateId) {
@@ -342,7 +343,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         });
     
         workflow.addStep(getTournamentsStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getTournaments();
     }
@@ -360,7 +361,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         });
     
         workflow.addStep(getOpenedTournamentsStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getOpenedTournaments();
     }
@@ -378,7 +379,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         });
     
         workflow.addStep(getClosedTournamentsStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getClosedTournaments();
     }
@@ -409,7 +410,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         workflow.addStep(getOldTournamentStep);
         workflow.addStep(leaveTournamentStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public QuizDto solveQuiz(Integer tournamentAggregateId, Integer userAggregateId) throws Exception {
@@ -477,7 +478,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         workflow.addStep(getOldTournamentStep);
         workflow.addStep(solveQuizStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getQuizDto();
     }
@@ -508,7 +509,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         workflow.addStep(getOldTournamentStep);
         workflow.addStep(cancelTournamentStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public void removeTournament(Integer tournamentAggregateId) throws Exception {
@@ -537,7 +538,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         workflow.addStep(getOldTournamentStep);
         workflow.addStep(removeTournamentStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public TournamentDto findTournament(Integer tournamentAggregateId) {
@@ -553,7 +554,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         });
     
         workflow.addStep(findTournamentStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getTournamentDto();
     }

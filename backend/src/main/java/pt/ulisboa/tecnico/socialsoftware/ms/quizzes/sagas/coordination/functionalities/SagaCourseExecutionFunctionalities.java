@@ -76,7 +76,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         workflow.addStep(checkInputStep);
         workflow.addStep(createCourseExecutionStep);
 
-        workflow.execute();
+        workflow.execute(unitOfWork);
 
         return data.getCreatedCourseExecution();
     }
@@ -95,7 +95,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         });
     
         workflow.addStep(getCourseExecutionStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getCourseExecutionDto();
     }
@@ -113,7 +113,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         });
     
         workflow.addStep(getCourseExecutionsStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getCourseExecutions();
     }
@@ -144,7 +144,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         workflow.addStep(getCourseExecutionStep);
         workflow.addStep(removeCourseExecutionStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public void addStudent(Integer executionAggregateId, Integer userAggregateId) throws Exception {
@@ -179,7 +179,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         workflow.addStep(getOldCourseExecutionStep);
         workflow.addStep(enrollStudentStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public Set<CourseExecutionDto> getCourseExecutionsByUser(Integer userAggregateId) {
@@ -195,7 +195,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         });
     
         workflow.addStep(getCourseExecutionsByUserStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getCourseExecutions();
     }
@@ -226,7 +226,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         workflow.addStep(getOldCourseExecutionStep);
         workflow.addStep(removeStudentStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public void anonymizeStudent(Integer executionAggregateId, Integer userAggregateId) throws Exception {
@@ -255,7 +255,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         workflow.addStep(getOldCourseExecutionStep);
         workflow.addStep(anonymizeStudentStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public void updateStudentName(Integer executionAggregateId, Integer userAggregateId, UserDto userDto) throws Exception {
@@ -301,7 +301,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         workflow.addStep(getOldCourseExecutionStep);
         workflow.addStep(updateStudentNameStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
     
 

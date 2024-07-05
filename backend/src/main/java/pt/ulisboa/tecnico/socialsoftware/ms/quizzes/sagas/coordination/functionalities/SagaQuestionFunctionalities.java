@@ -61,7 +61,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         });
 
         workflow.addStep(findQuestionStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
 
         return data.getQuestionDto();
     }
@@ -79,7 +79,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         });
     
         workflow.addStep(findQuestionsStep);
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getQuestions();
     }
@@ -127,7 +127,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         workflow.addStep(getTopicsStep);
         workflow.addStep(createQuestionStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     
         return data.getCreatedQuestion();
     }
@@ -158,7 +158,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         workflow.addStep(getOldQuestionStep);
         workflow.addStep(updateQuestionStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public void removeQuestion(Integer questionAggregateId) throws Exception {
@@ -187,7 +187,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         workflow.addStep(getQuestionStep);
         workflow.addStep(removeQuestionStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
 
@@ -233,7 +233,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         workflow.addStep(getOldQuestionStep);
         workflow.addStep(updateQuestionTopicsStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
 }

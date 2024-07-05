@@ -34,10 +34,10 @@ public abstract class Workflow {
 
     public abstract ExecutionPlan planOrder(HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies);
 
-    public CompletableFuture<Void> execute() {
+    public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         ExecutionPlan executionPlan = planOrder(this.stepsWithDependencies); // redefined for each transaction model
 
-        return executionPlan.execute()
+        return executionPlan.execute(unitOfWork)
             .thenRun(() -> unitOfWorkService.commit(unitOfWork))
             .exceptionally(ex -> {
                 unitOfWorkService.abort(unitOfWork);

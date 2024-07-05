@@ -77,7 +77,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         workflow.addStep(getOldQuizAnswerStep);
         workflow.addStep(answerQuestionStep);
 
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public void startQuiz(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId) throws Exception {
@@ -111,7 +111,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         workflow.addStep(getQuizStep);
         workflow.addStep(startQuizStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 
     public void concludeQuiz(Integer quizAggregateId, Integer userAggregateId) throws Exception {
@@ -141,6 +141,6 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         workflow.addStep(getQuizAnswerStep);
         workflow.addStep(concludeQuizStep);
     
-        workflow.execute();
+        workflow.execute(unitOfWork);
     }
 }
