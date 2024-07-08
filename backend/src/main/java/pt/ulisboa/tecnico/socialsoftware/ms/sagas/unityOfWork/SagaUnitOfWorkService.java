@@ -4,7 +4,6 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.excepti
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_NOT_FOUND;
 
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -22,6 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregateRepository;
 
 @Profile("sagas")
@@ -105,7 +105,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
         aggregateMap.values().forEach(aggregateToWrite -> {
             aggregateToWrite.setVersion(commitVersion);
-            aggregateToWrite.setCreationTs(LocalDateTime.now());
+            aggregateToWrite.setCreationTs(DateHandler.now());
             entityManager.persist(aggregateToWrite);
         });
     }

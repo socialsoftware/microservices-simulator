@@ -1,7 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswer;
-
 import java.io.Serializable;
 
 public class QuizAnswerDto implements Serializable {

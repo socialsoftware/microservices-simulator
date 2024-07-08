@@ -33,6 +33,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggr
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.TimeUnit
 
 @DataJpaTest
 class TournamentFunctionalityTestSagas extends SpockTest {
@@ -185,6 +186,112 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         courseExecutionDto.state == AggregateState.ACTIVE.toString()
         topicDto1.state == AggregateState.ACTIVE.toString()
         topicDto2.state == AggregateState.ACTIVE.toString()
+    }
+
+    def "find tournament successfully"() {
+        when:
+        def foundTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+
+        then:
+        foundTournament.getStartTime() == DateHandler.toISOString(TIME_1)
+        foundTournament.getEndTime() == DateHandler.toISOString(TIME_3)
+        foundTournament.getNumberOfQuestions() == 2
+    }
+
+    def "create add participant successfully"() {
+        given: 'a new user'
+        def newUserDto = new UserDto()
+        newUserDto.setName('NewUser')
+        newUserDto.setUsername('NewUsername')
+        newUserDto.setRole('STUDENT')
+        newUserDto = userFunctionalities.createUser(newUserDto)
+        userFunctionalities.activateUser(newUserDto.getAggregateId())
+        courseExecutionFunctionalities.addStudent(courseExecutionDto.getAggregateId(), newUserDto.getAggregateId())
+
+        when: 'adding the new user as a participant to the tournament'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), newUserDto.getAggregateId())
+
+        then: 'the participant should be added successfully'
+        def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        updatedTournament.participants.any { it.aggregateId == newUserDto.getAggregateId() }
+    }
+
+    def "update tournament successfully"() {
+        given:
+        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+
+        when:
+        tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)
+        def updatedTournamentDto = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+
+        then:
+        updatedTournamentDto != null
+        updatedTournamentDto.topics*.aggregateId.containsAll([topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()])
+    }
+
+    def "leave tournament successfully"() {
+        given:
+        def userToLeave = new UserDto(
+            name: "TestUser",
+            username: "testuser",
+            role: "STUDENT"
+        )
+        userToLeave = userFunctionalities.createUser(userToLeave)
+        userFunctionalities.activateUser(userToLeave.aggregateId)
+        courseExecutionFunctionalities.addStudent(courseExecutionDto.aggregateId, userToLeave.aggregateId)
+        tournamentFunctionalities.addParticipant(tournamentDto.aggregateId, userToLeave.aggregateId)
+
+        when:
+        tournamentFunctionalities.leaveTournament(tournamentDto.aggregateId, userToLeave.aggregateId)
+
+        then:
+        def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        !updatedTournament.participants.any { it.aggregateId == userToLeave.aggregateId }
+    }
+
+    // TODO bug: quiz doesnt have the same id as course exec
+    def "solve quiz successfully"() {
+        given:
+        def userToSolve = new UserDto(
+            name: "TestUser",
+            username: "testuser",
+            role: "STUDENT"
+        )
+        userToSolve = userFunctionalities.createUser(userToSolve)
+        userFunctionalities.activateUser(userToSolve.aggregateId)
+        courseExecutionFunctionalities.addStudent(courseExecutionDto.aggregateId, userToSolve.aggregateId)
+        tournamentFunctionalities.addParticipant(tournamentDto.aggregateId, userToSolve.aggregateId)
+
+        when:
+        def quizDto = tournamentFunctionalities.solveQuiz(tournamentDto.aggregateId, userToSolve.aggregateId)
+        def tournamentDto = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        
+        // TODO FIX: should be using a participant and not a user
+        def participantAnswer = tournamentDto.getParticipants().find { it.getAggregateId() == userToSolve.aggregateId }.getParticipantAnswer()
+        
+        then:
+        def updatedQuizDto = tournamentFunctionalities.findQuizByTournamentId(tournamentDto.aggregateId)
+        updatedQuizDto.state == AggregateState.ACTIVE.toString()
+        participantAnswer == true
+    }
+
+    def "cancel tournament successfully"() {
+        when:
+        tournamentFunctionalities.cancelTournament(tournamentDto.aggregateId)
+
+        then:
+        def canceledTournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        canceledTournament.isCancelled() == true
+    }
+
+    def "remove tournament successfully"() {
+        when:
+        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
+        def removedTournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+
+        then:
+        thrown(TutorException)
+        removedTournament == null
     }
 
     @TestConfiguration

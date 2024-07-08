@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data;
 
-import java.util.Set;
+import java.util.HashSet;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
@@ -10,7 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 
 public class UpdateTournamentData extends WorkflowData{
     private TournamentDto originalTournamentDto;
-    private Set<TopicDto> topicsDtos;
+    private HashSet<TopicDto> topicDtos = new HashSet<TopicDto>();
     private Tournament oldTournament;
     private TournamentDto newTournamentDto;
     private QuizDto quizDto;
@@ -24,12 +25,16 @@ public class UpdateTournamentData extends WorkflowData{
         this.originalTournamentDto = originalTournamentDto;
     }
 
-    public Set<TopicDto> getTopicsDtos() {
-        return topicsDtos;
+    public HashSet<TopicDto> getTopicsDtos() {
+        return topicDtos;
     }
 
-    public void setTopicsDtos(Set<TopicDto> topicsDtos) {
-        this.topicsDtos = topicsDtos;
+    public void setTopicsDtos(HashSet<TopicDto> topicDtos) {
+        this.topicDtos = topicDtos;
+    }
+
+    public void addTopicDto(TopicDto topicDto) {
+        this.topicDtos.add(topicDto);
     }
 
     public Tournament getOldTournament() {
