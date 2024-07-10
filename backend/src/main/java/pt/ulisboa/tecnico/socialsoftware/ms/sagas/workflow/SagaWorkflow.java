@@ -23,10 +23,12 @@ public class SagaWorkflow extends Workflow {
         HashMap<FlowStep, Integer> inDegree = new HashMap<>();
         Queue<FlowStep> readySteps = new LinkedList<>();
 
+        // calcular quantas dependencias tem cada step
         for (HashMap.Entry<FlowStep, ArrayList<FlowStep>> entry: stepsWithDependencies.entrySet()) {
             inDegree.put(entry.getKey(), entry.getValue().size());
         }
 
+        // os steps sem dependencias estao prontos para ser ordenados
         for (HashMap.Entry<FlowStep, Integer> entry: inDegree.entrySet()) {
             if (entry.getValue() == 0) {
                 readySteps.add(entry.getKey());
@@ -39,8 +41,8 @@ public class SagaWorkflow extends Workflow {
 
             for (HashMap.Entry<FlowStep, ArrayList<FlowStep>> entry: stepsWithDependencies.entrySet()) {
                 if (!entry.getKey().equals(step) && entry.getValue().contains(step)) {
-                    inDegree.put(entry.getKey(), inDegree.get(entry.getKey()) - 1);
-                    if (inDegree.get(entry.getKey()) == 0) {
+                    inDegree.put(entry.getKey(), inDegree.get(entry.getKey()) - 1); // se o passo ordenado for uma dependencia de outro reduzir o numero de dependencias desse step
+                    if (inDegree.get(entry.getKey()) == 0) { // se deixou de ter dependencias esta pronto a ser ordenado
                         readySteps.add(entry.getKey());
                     }
                 }
