@@ -1,11 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 public class QuizAnswerDto implements Serializable {
     private Integer aggregateId;
     private Integer version;
-    private String answerDate;
+    private LocalDateTime answerDate;
     private boolean completed;
     private Integer studentAggregateId;
     private String studentName;
@@ -17,7 +18,7 @@ public class QuizAnswerDto implements Serializable {
     public QuizAnswerDto(QuizAnswer quizAnswer) {
         setAggregateId(quizAnswer.getAggregateId());
         setVersion(quizAnswer.getVersion());
-        setAnswerDate(quizAnswer.getCreationDate().toString());
+        setAnswerDate(quizAnswer.getAnswerDate());
         setCompleted(quizAnswer.isCompleted());
         setStudentAggregateId(quizAnswer.getStudent().getStudentAggregateId());
         setStudentName(quizAnswer.getStudent().getName());
@@ -40,11 +41,11 @@ public class QuizAnswerDto implements Serializable {
         this.version = version;
     }
 
-    public String getAnswerDate() {
+    public LocalDateTime getAnswerDate() {
         return answerDate;
     }
 
-    public void setAnswerDate(String answerDate) {
+    public void setAnswerDate(LocalDateTime answerDate) {
         this.answerDate = answerDate;
     }
 

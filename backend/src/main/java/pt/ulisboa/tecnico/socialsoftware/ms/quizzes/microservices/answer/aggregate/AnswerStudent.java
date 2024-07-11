@@ -1,6 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 
@@ -22,7 +25,7 @@ public class AnswerStudent {
     public AnswerStudent(UserDto userDto) {
         this.studentAggregateId = userDto.getAggregateId();
         this.name = userDto.getName();
-        setStudentState(Aggregate.AggregateState.valueOf(userDto.getState()));
+        setStudentState(userDto.getState());
     }
 
     public AnswerStudent(AnswerStudent other) {

@@ -75,7 +75,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
     private QuizFactory quizFactory;
 
     public TournamentDto createTournament(Integer userId, Integer executionId, List<Integer> topicsId,
-                                          TournamentDto tournamentDto) throws Exception {
+                                          TournamentDto tournamentDto) {
 
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
@@ -98,13 +98,13 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         SyncStep getCreatorStep = new SyncStep(() -> {
             // by making this call the invariants regarding the course execution and the role of the creator are guaranteed
             UserDto creatorDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId, unitOfWork);
-            creatorDto.setState(AggregateState.IN_SAGA.toString());
+            creatorDto.setState(AggregateState.IN_SAGA);
             data.setUserDto(creatorDto);
         }, new ArrayList<>(Arrays.asList(checkInputStep)));
 
         getCreatorStep.registerCompensation(() -> {
             UserDto creatorDto = data.getUserDto();
-            creatorDto.setState(AggregateState.ACTIVE.toString());
+            creatorDto.setState(AggregateState.ACTIVE);
             data.setUserDto(creatorDto);
         }, unitOfWork);
 

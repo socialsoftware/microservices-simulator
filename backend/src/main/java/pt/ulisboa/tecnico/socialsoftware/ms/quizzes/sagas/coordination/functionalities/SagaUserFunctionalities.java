@@ -43,7 +43,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
 
         SyncStep checkInputStep = new SyncStep(() -> {
             checkInput(userDto);
-            userDto.setState(AggregateState.IN_SAGA.toString());
+            userDto.setState(AggregateState.IN_SAGA);
             data.setUserDto(userDto);
         });
 

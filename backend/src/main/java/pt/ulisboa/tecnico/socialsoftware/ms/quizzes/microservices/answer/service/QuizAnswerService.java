@@ -75,13 +75,13 @@ public class QuizAnswerService {
         QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
 
         // COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION
-        if (!courseExecutionAggregateId.equals(quizDto.getAggregateId())) {
+        if (!courseExecutionAggregateId.equals(quizDto.getCourseExecutionAggregateId())) {
             throw new TutorException(ErrorMessage.QUIZ_DOES_NOT_BELONG_TO_COURSE_EXECUTION, quizAggregateId, courseExecutionAggregateId);
         }
 
         // QUIZ_COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
         // COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
-        UserDto userDto = courseExecutionService.getStudentByExecutionIdAndUserId(userAggregateId, quizDto.getCourseExecutionAggregateId(), unitOfWork);
+        UserDto userDto = courseExecutionService.getStudentByExecutionIdAndUserId(quizDto.getCourseExecutionAggregateId(), userAggregateId, unitOfWork);
 
         // QUESTIONS_ANSWER_QUESTIONS_BELONG_TO_QUIZ because questions come from the quiz
         QuizAnswer quizAnswer = quizAnswerFactory.createQuizAnswer(aggregateId, new AnswerCourseExecution(quizDto.getCourseExecutionAggregateId(), quizDto.getCourseExecutionVersion()), new AnswerStudent(userDto), new AnsweredQuiz(quizDto));

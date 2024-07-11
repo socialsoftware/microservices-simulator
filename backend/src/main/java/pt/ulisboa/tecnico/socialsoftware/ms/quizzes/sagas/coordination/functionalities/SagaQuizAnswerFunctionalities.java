@@ -48,13 +48,13 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
 
         SyncStep getQuestionStep = new SyncStep(() -> {
             QuestionDto questionDto = questionService.getQuestionById(userQuestionAnswerDto.getQuestionAggregateId(), unitOfWork);
-            questionDto.setState(AggregateState.IN_SAGA.toString());
+            questionDto.setState(AggregateState.IN_SAGA);
             data.setQuestionDto(questionDto);
         });
 
         getQuestionStep.registerCompensation(() -> {
             QuestionDto questionDto = data.getQuestionDto();
-            questionDto.setState(AggregateState.ACTIVE.toString());
+            questionDto.setState(AggregateState.ACTIVE);
             data.setQuestionDto(questionDto);
         }, unitOfWork);
 
@@ -66,7 +66,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         getOldQuizAnswerStep.registerCompensation(() -> {
             QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(data.getOldQuizAnswer());
             unitOfWork.registerChanged(newQuizAnswer);
-            data.getQuestionDto().setState(AggregateState.ACTIVE.toString());
+            data.getQuestionDto().setState(AggregateState.ACTIVE);
         }, unitOfWork);
 
         SyncStep answerQuestionStep = new SyncStep(() -> {
