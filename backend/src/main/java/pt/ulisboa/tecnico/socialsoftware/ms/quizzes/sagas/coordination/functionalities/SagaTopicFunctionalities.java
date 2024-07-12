@@ -24,6 +24,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateTopicData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.DeleteTopicData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindTopicsByCourseData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetTopicByIdData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateTopicData;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
@@ -57,6 +58,24 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         workflow.execute(unitOfWork);
 
         return data.getTopics();
+    }
+
+    public TopicDto getTopicByAggregateId(Integer topicAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+    
+        GetTopicByIdData data = new GetTopicByIdData();
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+    
+        SyncStep getTopicStep = new SyncStep(() -> {
+            TopicDto topicDto = topicService.getTopicById(topicAggregateId, unitOfWork);
+            data.setTopicDto(topicDto);
+        });
+    
+        workflow.addStep(getTopicStep);
+        workflow.execute(unitOfWork);
+    
+        return data.getTopicDto();
     }
 
     public TopicDto createTopic(Integer courseAggregateId, TopicDto topicDto) throws Exception {
@@ -109,14 +128,14 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
     
         SyncStep getOldTopicStep = new SyncStep(() -> {
             Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
-            oldTopic.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(oldTopic, AggregateState.IN_SAGA, unitOfWork);
             data.setOldTopic(oldTopic);
         }, new ArrayList<>(Arrays.asList(checkInputStep)));
     
         getOldTopicStep.registerCompensation(() -> {
             Topic newTopic = topicFactory.createTopicFromExisting(data.getOldTopic());
+            unitOfWorkService.registerSagaState(newTopic, AggregateState.ACTIVE, unitOfWork);
             unitOfWork.registerChanged(newTopic);
-            newTopic.setState(AggregateState.ACTIVE);
         }, unitOfWork);
     
         SyncStep updateTopicStep = new SyncStep(() -> {
@@ -139,13 +158,13 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
     
         SyncStep getTopicStep = new SyncStep(() -> {
             Topic topic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
-            topic.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(topic, AggregateState.IN_SAGA, unitOfWork);
             data.setTopic(topic);
         });
     
         getTopicStep.registerCompensation(() -> {
             Topic topic = data.getTopic();
-            topic.setState(AggregateState.ACTIVE);
+            unitOfWorkService.registerSagaState(topic, AggregateState.ACTIVE, unitOfWork);
             unitOfWork.registerChanged(topic);
         }, unitOfWork);
     

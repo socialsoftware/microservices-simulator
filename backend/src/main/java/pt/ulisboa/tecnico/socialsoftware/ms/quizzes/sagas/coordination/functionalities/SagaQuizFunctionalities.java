@@ -128,14 +128,14 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
     
         SyncStep getOldQuizStep = new SyncStep(() -> {
             Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
-            oldQuiz.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(oldQuiz, AggregateState.IN_SAGA, unitOfWork);
             data.setOldQuiz(oldQuiz);
         });
     
         getOldQuizStep.registerCompensation(() -> {
             Quiz newQuiz = quizFactory.createQuizFromExisting(data.getOldQuiz());
+            unitOfWorkService.registerSagaState(newQuiz, AggregateState.IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newQuiz);
-            newQuiz.setState(AggregateState.ACTIVE);
         }, unitOfWork);
     
         SyncStep updateQuizStep = new SyncStep(() -> {

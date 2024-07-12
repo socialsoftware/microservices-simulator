@@ -127,13 +127,13 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep getCourseExecutionStep = new SyncStep(() -> {
             CourseExecution courseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            courseExecution.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(courseExecution, AggregateState.IN_SAGA, unitOfWork);
             data.setCourseExecution(courseExecution);
         });
     
         getCourseExecutionStep.registerCompensation(() -> {
             CourseExecution courseExecution = data.getCourseExecution();
-            courseExecution.setState(AggregateState.ACTIVE);
+            unitOfWorkService.registerSagaState(courseExecution, AggregateState.ACTIVE, unitOfWork);
             unitOfWork.registerChanged(courseExecution);
         }, unitOfWork);
     
@@ -161,13 +161,13 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
             CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            oldCourseExecution.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(oldCourseExecution, AggregateState.IN_SAGA, unitOfWork);
             data.setOldCourseExecution(oldCourseExecution);
         });
     
         getOldCourseExecutionStep.registerCompensation(() -> {
             CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(data.getOldCourseExecution());
-            newCourseExecution.setState(AggregateState.ACTIVE);
+            unitOfWorkService.registerSagaState(newCourseExecution, AggregateState.ACTIVE, unitOfWork);
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     
@@ -209,13 +209,13 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
             CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
-            oldCourseExecution.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(oldCourseExecution, AggregateState.IN_SAGA, unitOfWork);
             data.setOldCourseExecution(oldCourseExecution);
         });
     
         getOldCourseExecutionStep.registerCompensation(() -> {
             CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(data.getOldCourseExecution());
-            newCourseExecution.setState(AggregateState.ACTIVE);
+            unitOfWorkService.registerSagaState(newCourseExecution, AggregateState.ACTIVE, unitOfWork);
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     
@@ -238,13 +238,13 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
             CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            oldCourseExecution.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(oldCourseExecution, AggregateState.IN_SAGA, unitOfWork);
             data.setOldCourseExecution(oldCourseExecution);
         });
     
         getOldCourseExecutionStep.registerCompensation(() -> {
             CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(data.getOldCourseExecution());
-            newCourseExecution.setState(AggregateState.ACTIVE);
+            unitOfWorkService.registerSagaState(newCourseExecution, AggregateState.ACTIVE, unitOfWork);
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     
@@ -271,25 +271,25 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep getStudentStep = new SyncStep(() -> {
             User student = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            student.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(student, AggregateState.IN_SAGA, unitOfWork);
             data.setStudent(student);
         });
     
         getStudentStep.registerCompensation(() -> {
             User student = data.getStudent();
-            student.setState(AggregateState.ACTIVE);
+            unitOfWorkService.registerSagaState(student, AggregateState.ACTIVE, unitOfWork);
             unitOfWork.registerChanged(student);
         }, unitOfWork);
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
             CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            oldCourseExecution.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(oldCourseExecution, AggregateState.IN_SAGA, unitOfWork);
             data.setOldCourseExecution(oldCourseExecution);
         });
     
         getOldCourseExecutionStep.registerCompensation(() -> {
             CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(data.getOldCourseExecution());
-            newCourseExecution.setState(AggregateState.ACTIVE);
+            unitOfWorkService.registerSagaState(newCourseExecution, AggregateState.ACTIVE, unitOfWork);
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     

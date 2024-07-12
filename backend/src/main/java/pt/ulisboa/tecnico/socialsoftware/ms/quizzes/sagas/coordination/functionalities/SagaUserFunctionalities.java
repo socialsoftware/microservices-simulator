@@ -43,7 +43,6 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
 
         SyncStep checkInputStep = new SyncStep(() -> {
             checkInput(userDto);
-            userDto.setState(AggregateState.IN_SAGA);
             data.setUserDto(userDto);
         });
 
@@ -93,7 +92,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
     
         SyncStep getUserStep = new SyncStep(() -> {
             User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            user.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(user, AggregateState.IN_SAGA, unitOfWork);
             data.setUser(user);
         });
     
@@ -123,7 +122,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
     
         SyncStep getUserStep = new SyncStep(() -> {
             User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            user.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(user, AggregateState.IN_SAGA, unitOfWork);
             data.setUser(user);
         });
     

@@ -52,6 +52,8 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) {
+        System.out.println("Load");
+
         Aggregate aggregate = sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
 
@@ -76,10 +78,17 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return aggregate;
     }
 
+    // TODO check this
+    public void registerSagaState(Aggregate aggregate, AggregateState state, SagaUnitOfWork unitOfWork) {
+        aggregate.setState(state);
+        entityManager.persist(aggregate);
+    }
+
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     public void commit(SagaUnitOfWork unitOfWork) {
+        System.out.println("Commit");
         Map<Integer, Aggregate> aggregatesToCommit = unitOfWork.getAggregatesToCommit();
         aggregatesToCommit.values().stream().forEach(a -> {
                             if (a.getState() != AggregateState.DELETED && a.getState() != AggregateState.INACTIVE)
@@ -116,6 +125,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     @Override
     public void abort(SagaUnitOfWork unitOfWork) {
+        System.out.println("abort");
         // TODO
         this.compensate(unitOfWork);
     }

@@ -175,16 +175,19 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         
         when:
         tournamentFunctionalities.createTournament(userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId(), 999], tournamentDto)
-
         //verificar o estado do agregado e nao do dto
         //verificar que nada é criado na base de dados (quiz/tournament)
         then:
+        userFunctionalities.findByUserId(userCreatorDto.getAggregateId()).state == AggregateState.ACTIVE
+        courseExecutionFunctionalities.getCourseExecutionById(executionId).state == AggregateState.ACTIVE;
+        topicFunctionalities.getTopicById(topicDto1.getAggregateId()).state == AggregateState.ACTIVE;
+        topicFunctionalities.getTopicById(topicDto2.getAggregateId()).state == AggregateState.ACTIVE;
+        
+        when:
+        tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+
+        then:
         thrown(TutorException)
-        tournamentDto.state == AggregateState.ACTIVE.toString()
-        userCreatorDto.state == AggregateState.ACTIVE.toString()
-        courseExecutionDto.state == AggregateState.ACTIVE.toString()
-        topicDto1.state == AggregateState.ACTIVE.toString()
-        topicDto2.state == AggregateState.ACTIVE.toString()
     }
 
     def "find tournament successfully"() {

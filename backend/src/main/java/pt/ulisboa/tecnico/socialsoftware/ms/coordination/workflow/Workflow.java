@@ -38,10 +38,10 @@ public abstract class Workflow {
         ExecutionPlan executionPlan = planOrder(this.stepsWithDependencies); // redefined for each transaction model
 
         return executionPlan.execute(unitOfWork)
-            .thenRun(() -> unitOfWorkService.commit(unitOfWork))
             .exceptionally(ex -> {
+                System.out.println("REBENTOU");
                 unitOfWorkService.abort(unitOfWork);
                 throw new RuntimeException(ex);
-            });
+            }).thenRun(() -> unitOfWorkService.commit(unitOfWork));
     }
 }

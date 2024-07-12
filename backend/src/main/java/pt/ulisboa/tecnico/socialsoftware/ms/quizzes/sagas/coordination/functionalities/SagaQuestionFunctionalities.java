@@ -141,14 +141,14 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
     
         SyncStep getOldQuestionStep = new SyncStep(() -> {
             Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-            oldQuestion.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(oldQuestion, AggregateState.IN_SAGA, unitOfWork);
             data.setOldQuestion(oldQuestion);
         });
     
         getOldQuestionStep.registerCompensation(() -> {
             Question newQuestion = questionFactory.createQuestionFromExisting(data.getOldQuestion());
+            unitOfWorkService.registerSagaState(newQuestion, AggregateState.ACTIVE, unitOfWork);
             unitOfWork.registerChanged(newQuestion);
-            newQuestion.setState(AggregateState.ACTIVE);
         }, unitOfWork);
     
         SyncStep updateQuestionStep = new SyncStep(() -> {
@@ -170,13 +170,13 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
     
         SyncStep getQuestionStep = new SyncStep(() -> {
             Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
-            question.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(question, AggregateState.IN_SAGA, unitOfWork);
             data.setQuestion(question);
         });
     
         getQuestionStep.registerCompensation(() -> {
             Question question = data.getQuestion();
-            question.setState(AggregateState.ACTIVE);
+            unitOfWorkService.registerSagaState(question, AggregateState.ACTIVE, unitOfWork);
             unitOfWork.registerChanged(question);
         }, unitOfWork);
     
@@ -203,15 +203,13 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
                             .map(id -> topicService.getTopicById(id, unitOfWork))
                             .map(QuestionTopic::new)
                             .collect(Collectors.toSet());
-            topics.forEach(t -> t.setState(AggregateState.IN_SAGA));
             data.setTopics(topics);
         });
     
         SyncStep getOldQuestionStep = new SyncStep(() -> {
             Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
-            oldQuestion.setState(AggregateState.IN_SAGA);
+            unitOfWorkService.registerSagaState(oldQuestion, AggregateState.IN_SAGA, unitOfWork);
             Set<QuestionTopic> oldTopics = oldQuestion.getQuestionTopics();
-            oldTopics.forEach(t -> t.setState(AggregateState.IN_SAGA));
             data.setOldQuestion(oldQuestion);
             data.setOldTopics(oldTopics);
         });
@@ -219,9 +217,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         getOldQuestionStep.registerCompensation(() -> {
             Question newQuestion = questionFactory.createQuestionFromExisting(data.getOldQuestion());
             newQuestion.setQuestionTopics(data.getOldTopics());
-            data.getTopics().forEach(t -> t.setState(AggregateState.ACTIVE));
-            data.getOldTopics().forEach(t -> t.setState(AggregateState.ACTIVE));
-            newQuestion.setState(AggregateState.ACTIVE);
+            unitOfWorkService.registerSagaState(newQuestion, AggregateState.ACTIVE, unitOfWork);
             unitOfWork.registerChanged(newQuestion);
         }, unitOfWork);
     
