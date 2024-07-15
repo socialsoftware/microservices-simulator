@@ -9,19 +9,20 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaUser;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.ActivateUserData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateUserData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.DeleteUserData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindUserByIdData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetStudentsData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetTeachersData;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
@@ -91,15 +92,15 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getUserStep = new SyncStep(() -> {
-            User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(user, AggregateState.IN_SAGA, unitOfWork);
+            SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(user, SagaState.IN_SAGA, unitOfWork);
             data.setUser(user);
         });
     
         getUserStep.registerCompensation(() -> {
-            User user = data.getUser();
+            SagaUser user = data.getUser();
             user.setActive(false);
-            user.setState(AggregateState.ACTIVE);
+            unitOfWorkService.registerSagaState(user, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(user);
         }, unitOfWork);
     
@@ -121,14 +122,14 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getUserStep = new SyncStep(() -> {
-            User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(user, AggregateState.IN_SAGA, unitOfWork);
+            SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(user, SagaState.IN_SAGA, unitOfWork);
             data.setUser(user);
         });
     
         getUserStep.registerCompensation(() -> {
-            User user = data.getUser();
-            user.setState(AggregateState.ACTIVE);
+            SagaUser user = data.getUser();
+            unitOfWorkService.registerSagaState(user, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(user);
         }, unitOfWork);
     

@@ -1,16 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.Topic;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
 
 public class DeleteTopicData extends WorkflowData {
-    private Topic topic;
+    private SagaTopic topic;
 
-    public Topic getTopic() {
+    public SagaTopic getTopic() {
         return topic;
     }
 
-    public void setTopic(Topic topic) {
+    public void setTopic(SagaTopic topic) {
         this.topic = topic;
     }
 }

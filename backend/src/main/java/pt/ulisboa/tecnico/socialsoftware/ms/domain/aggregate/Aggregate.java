@@ -1,14 +1,21 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-
-import jakarta.persistence.*;
+import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.DELETED;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.DELETED;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.ManyToOne;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
@@ -16,8 +23,7 @@ public abstract class Aggregate {
     public enum AggregateState {
         ACTIVE,
         INACTIVE,
-        DELETED,
-        IN_SAGA
+        DELETED
     }
 
     @Id

@@ -1,16 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaUser;
 
 public class DeleteUserData extends WorkflowData {
-    private User user;
+    private SagaUser user;
 
-    public User getUser() {
+    public SagaUser getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(SagaUser user) {
         this.user = user;
     }
 }

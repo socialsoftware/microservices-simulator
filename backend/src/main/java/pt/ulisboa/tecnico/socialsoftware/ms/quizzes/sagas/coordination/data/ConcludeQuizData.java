@@ -1,16 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswer;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuizAnswer;
 
 public class ConcludeQuizData extends WorkflowData {
-    private QuizAnswer quizAnswer;
+    private SagaQuizAnswer quizAnswer;
 
-    public QuizAnswer getQuizAnswer() {
+    public SagaQuizAnswer getQuizAnswer() {
         return quizAnswer;
     }
 
-    public void setQuizAnswer(QuizAnswer quizAnswer) {
+    public void setQuizAnswer(SagaQuizAnswer quizAnswer) {
         this.quizAnswer = quizAnswer;
     }
 }

@@ -68,7 +68,6 @@ public class ExecutionPlan {
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
             if (!stepFutures.containsKey(step)) { // se for um step com dependencias
-
                 ArrayList<FlowStep> deps = dependencies.get(step); // vai buscar todas as dependencias
                 CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // cria um future que so executa quando todas as dependencias forem completadas
                     deps.stream().map(stepFutures::get).toArray(CompletableFuture[]::new) // mapeia cada dependencia com o correspondente future de step futures

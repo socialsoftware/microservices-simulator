@@ -1,16 +1,27 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
+public enum SagaState {
+    // generic states
+    NOT_IN_SAGA,
+    IN_SAGA,
 
-@Entity
-@Inheritance(strategy = InheritanceType.JOINED)
-public abstract class SagaState {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    // tournament functionalities
+    CREATE_TOURNAMENT_READ_CREATOR,
+    CREATE_TOURNAMENT_READ_COURSE,
+    CREATE_TOURNAMENT_READ_TOPIC,
+    
+    UPDATE_TOURNAMENT_READ_TOURNAMENT,
+    UPDATE_TOURNAMENT_READ_TOPIC,
+    UPDATE_TOURNAMENT_READ_UPDATED_TOPICS,
+    UPDATE_TOURNAMENT_READ_QUIZ,
+
+    LEAVE_TOURNAMENT_READ_TOURANMENT,
+
+    SOLVE_QUIZ_READ_TOURNAMENT,
+    SOLVE_QUIZ_STARTED_TOURNAMENT_QUIZ,
+    SOLVE_QUIZ_STARTED_QUIZ,
+
+    CANCEL_TOURNAMENT_READ_TOURNAMENT,
+
+    REMOVE_TOURNAMENT_READ_TOURNAMENT,
 }

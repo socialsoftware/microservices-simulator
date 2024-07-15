@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
@@ -24,12 +23,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.servi
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuestion;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateQuestionData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindQuestionByAggregateIdData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindQuestionsByCourseData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveQuestionData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateQuestionData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateQuestionTopicsData;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
@@ -140,14 +141,14 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getOldQuestionStep = new SyncStep(() -> {
-            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuestion, AggregateState.IN_SAGA, unitOfWork);
+            SagaQuestion oldQuestion = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuestion, SagaState.IN_SAGA, unitOfWork);
             data.setOldQuestion(oldQuestion);
         });
     
         getOldQuestionStep.registerCompensation(() -> {
             Question newQuestion = questionFactory.createQuestionFromExisting(data.getOldQuestion());
-            unitOfWorkService.registerSagaState(newQuestion, AggregateState.ACTIVE, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaQuestion) newQuestion, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newQuestion);
         }, unitOfWork);
     
@@ -169,14 +170,14 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getQuestionStep = new SyncStep(() -> {
-            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(question, AggregateState.IN_SAGA, unitOfWork);
+            SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(question, SagaState.IN_SAGA, unitOfWork);
             data.setQuestion(question);
         });
     
         getQuestionStep.registerCompensation(() -> {
-            Question question = data.getQuestion();
-            unitOfWorkService.registerSagaState(question, AggregateState.ACTIVE, unitOfWork);
+            SagaQuestion question = data.getQuestion();
+            unitOfWorkService.registerSagaState(question, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(question);
         }, unitOfWork);
     
@@ -207,8 +208,8 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         });
     
         SyncStep getOldQuestionStep = new SyncStep(() -> {
-            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuestion, AggregateState.IN_SAGA, unitOfWork);
+            SagaQuestion oldQuestion = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuestion, SagaState.IN_SAGA, unitOfWork);
             Set<QuestionTopic> oldTopics = oldQuestion.getQuestionTopics();
             data.setOldQuestion(oldQuestion);
             data.setOldTopics(oldTopics);
@@ -217,7 +218,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         getOldQuestionStep.registerCompensation(() -> {
             Question newQuestion = questionFactory.createQuestionFromExisting(data.getOldQuestion());
             newQuestion.setQuestionTopics(data.getOldTopics());
-            unitOfWorkService.registerSagaState(newQuestion, AggregateState.ACTIVE, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaQuestion) newQuestion, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newQuestion);
         }, unitOfWork);
     

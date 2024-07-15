@@ -25,11 +25,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.SagasCourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.*
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -38,6 +40,9 @@ import java.util.concurrent.TimeUnit
 @DataJpaTest
 class TournamentFunctionalityTestSagas extends SpockTest {
     public static final String UPDATED_NAME = "UpdatedName"
+
+    @Autowired
+    private SagaUnitOfWorkService unitOfWorkService
 
     @Autowired
     private SagaCourseExecutionFunctionalities courseExecutionFunctionalities
@@ -171,17 +176,19 @@ class TournamentFunctionalityTestSagas extends SpockTest {
 
     def "saga compensations"() {
         given:
-        def tournamentDto = new TournamentDto(startTime: DateHandler.toISOString(TIME_1), endTime: DateHandler.toISOString(TIME_3), numberOfQuestions: 2, state:AggregateState.ACTIVE)
+        def unitOfWork = unitOfWorkService.createUnitOfWork("TEST");
+        def tournamentDto = new TournamentDto(startTime: DateHandler.toISOString(TIME_1), endTime: DateHandler.toISOString(TIME_3), numberOfQuestions: 2)
         
         when:
         tournamentFunctionalities.createTournament(userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId(), 999], tournamentDto)
-        //verificar o estado do agregado e nao do dto
-        //verificar que nada é criado na base de dados (quiz/tournament)
+
         then:
-        userFunctionalities.findByUserId(userCreatorDto.getAggregateId()).state == AggregateState.ACTIVE
-        courseExecutionFunctionalities.getCourseExecutionById(executionId).state == AggregateState.ACTIVE;
-        topicFunctionalities.getTopicById(topicDto1.getAggregateId()).state == AggregateState.ACTIVE;
-        topicFunctionalities.getTopicById(topicDto2.getAggregateId()).state == AggregateState.ACTIVE;
+        def courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork)
+        courseExecution.sagaState == SagaState.NOT_IN_SAGA;
+        def topic1 = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto1.getAggregateId(), unitOfWork)
+        def topic2 = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto2.getAggregateId(), unitOfWork)
+        topic1.sagaState == SagaState.NOT_IN_SAGA;
+        topic2.sagaState == SagaState.NOT_IN_SAGA;
         
         when:
         tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())

@@ -1,31 +1,35 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates;
 
+import java.util.Set;
+
 import jakarta.persistence.Entity;
-import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizQuestion;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizType;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
-
-import java.util.Set;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 
 @Entity
 public class SagaQuiz extends Quiz implements SagaAggregate {
-    @OneToOne
+    @Enumerated(EnumType.STRING)
     private SagaState sagaState;
     
     public SagaQuiz() {
+        this.sagaState = SagaState.NOT_IN_SAGA;
     }
 
     public SagaQuiz(Integer aggregateId, QuizCourseExecution quizCourseExecution, Set<QuizQuestion> quizQuestions, QuizDto quizDto, QuizType quizType) {
         super(aggregateId, quizCourseExecution, quizQuestions, quizDto, quizType);
+        this.sagaState = SagaState.NOT_IN_SAGA;
     }
 
     public SagaQuiz(SagaQuiz other) {
         super(other);
+        this.sagaState = other.getSagaState();
     }
 
     @Override

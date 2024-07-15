@@ -37,9 +37,8 @@ public abstract class Workflow {
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         ExecutionPlan executionPlan = planOrder(this.stepsWithDependencies); // redefined for each transaction model
 
-        return executionPlan.execute(unitOfWork)
+        return executionPlan.oldexecute(unitOfWork)
             .exceptionally(ex -> {
-                System.out.println("REBENTOU");
                 unitOfWorkService.abort(unitOfWork);
                 throw new RuntimeException(ex);
             }).thenRun(() -> unitOfWorkService.commit(unitOfWork));

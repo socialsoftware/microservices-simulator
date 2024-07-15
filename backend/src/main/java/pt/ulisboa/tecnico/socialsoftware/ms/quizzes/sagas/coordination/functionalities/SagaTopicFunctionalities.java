@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
@@ -21,11 +20,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregat
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateTopicData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.DeleteTopicData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindTopicsByCourseData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetTopicByIdData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateTopicData;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
@@ -127,14 +128,14 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         });
     
         SyncStep getOldTopicStep = new SyncStep(() -> {
-            Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(oldTopic, AggregateState.IN_SAGA, unitOfWork);
+            SagaTopic oldTopic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
+            unitOfWorkService.registerSagaState(oldTopic, SagaState.IN_SAGA, unitOfWork);
             data.setOldTopic(oldTopic);
         }, new ArrayList<>(Arrays.asList(checkInputStep)));
     
         getOldTopicStep.registerCompensation(() -> {
             Topic newTopic = topicFactory.createTopicFromExisting(data.getOldTopic());
-            unitOfWorkService.registerSagaState(newTopic, AggregateState.ACTIVE, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaTopic) newTopic, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newTopic);
         }, unitOfWork);
     
@@ -157,14 +158,14 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getTopicStep = new SyncStep(() -> {
-            Topic topic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(topic, AggregateState.IN_SAGA, unitOfWork);
+            SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(topic, SagaState.IN_SAGA, unitOfWork);
             data.setTopic(topic);
         });
     
         getTopicStep.registerCompensation(() -> {
-            Topic topic = data.getTopic();
-            unitOfWorkService.registerSagaState(topic, AggregateState.ACTIVE, unitOfWork);
+            SagaTopic topic = data.getTopic();
+            unitOfWorkService.registerSagaState(topic, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(topic);
         }, unitOfWork);
     

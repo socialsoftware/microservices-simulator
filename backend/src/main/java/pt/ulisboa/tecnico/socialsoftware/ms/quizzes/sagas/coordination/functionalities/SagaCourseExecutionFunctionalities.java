@@ -15,16 +15,16 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaUser;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.AddStudentData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.AnonymizeStudentData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateCourseExecutionData;
@@ -34,6 +34,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetC
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveCourseExecutionData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveStudentFromCourseExecutionData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateStudentNameData;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
@@ -126,14 +127,14 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getCourseExecutionStep = new SyncStep(() -> {
-            CourseExecution courseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, AggregateState.IN_SAGA, unitOfWork);
+            SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(courseExecution, SagaState.IN_SAGA, unitOfWork);
             data.setCourseExecution(courseExecution);
         });
     
         getCourseExecutionStep.registerCompensation(() -> {
-            CourseExecution courseExecution = data.getCourseExecution();
-            unitOfWorkService.registerSagaState(courseExecution, AggregateState.ACTIVE, unitOfWork);
+            SagaCourseExecution courseExecution = data.getCourseExecution();
+            unitOfWorkService.registerSagaState(courseExecution, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(courseExecution);
         }, unitOfWork);
     
@@ -160,14 +161,14 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         });
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
-            CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, AggregateState.IN_SAGA, unitOfWork);
+            SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.IN_SAGA, unitOfWork);
             data.setOldCourseExecution(oldCourseExecution);
         });
     
         getOldCourseExecutionStep.registerCompensation(() -> {
             CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(data.getOldCourseExecution());
-            unitOfWorkService.registerSagaState(newCourseExecution, AggregateState.ACTIVE, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaCourseExecution) newCourseExecution, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     
@@ -208,14 +209,14 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
-            CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, AggregateState.IN_SAGA, unitOfWork);
+            SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.IN_SAGA, unitOfWork);
             data.setOldCourseExecution(oldCourseExecution);
         });
     
         getOldCourseExecutionStep.registerCompensation(() -> {
             CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(data.getOldCourseExecution());
-            unitOfWorkService.registerSagaState(newCourseExecution, AggregateState.ACTIVE, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaCourseExecution) newCourseExecution, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     
@@ -237,14 +238,14 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
-            CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, AggregateState.IN_SAGA, unitOfWork);
+            SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.IN_SAGA, unitOfWork);
             data.setOldCourseExecution(oldCourseExecution);
         });
     
         getOldCourseExecutionStep.registerCompensation(() -> {
             CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(data.getOldCourseExecution());
-            unitOfWorkService.registerSagaState(newCourseExecution, AggregateState.ACTIVE, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaCourseExecution) newCourseExecution, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     
@@ -270,26 +271,26 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         }
     
         SyncStep getStudentStep = new SyncStep(() -> {
-            User student = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(student, AggregateState.IN_SAGA, unitOfWork);
+            SagaUser student = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(student, SagaState.IN_SAGA, unitOfWork);
             data.setStudent(student);
         });
     
         getStudentStep.registerCompensation(() -> {
-            User student = data.getStudent();
-            unitOfWorkService.registerSagaState(student, AggregateState.ACTIVE, unitOfWork);
+            SagaUser student = data.getStudent();
+            unitOfWorkService.registerSagaState(student, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(student);
         }, unitOfWork);
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
-            CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, AggregateState.IN_SAGA, unitOfWork);
+            SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.IN_SAGA, unitOfWork);
             data.setOldCourseExecution(oldCourseExecution);
         });
     
         getOldCourseExecutionStep.registerCompensation(() -> {
             CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(data.getOldCourseExecution());
-            unitOfWorkService.registerSagaState(newCourseExecution, AggregateState.ACTIVE, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaCourseExecution) newCourseExecution, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     

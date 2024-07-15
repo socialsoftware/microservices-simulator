@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuestionAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
@@ -18,9 +17,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuestion;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.AnswerQuestionData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.ConcludeQuizData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.StartQuizData;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
@@ -48,25 +51,27 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
 
         SyncStep getQuestionStep = new SyncStep(() -> {
             QuestionDto questionDto = questionService.getQuestionById(userQuestionAnswerDto.getQuestionAggregateId(), unitOfWork);
-            questionDto.setState(AggregateState.IN_SAGA);
+            SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
+            unitOfWorkService.registerSagaState(question, SagaState.IN_SAGA, unitOfWork);
             data.setQuestionDto(questionDto);
         });
 
         getQuestionStep.registerCompensation(() -> {
             QuestionDto questionDto = data.getQuestionDto();
-            questionDto.setState(AggregateState.ACTIVE);
-            data.setQuestionDto(questionDto);
+            SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
+            unitOfWorkService.registerSagaState(question, SagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
 
         SyncStep getOldQuizAnswerStep = new SyncStep(() -> {
-            QuizAnswer oldQuizAnswer = quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
+            SagaQuizAnswer oldQuizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuizAnswer, SagaState.IN_SAGA, unitOfWork);
             data.setOldQuizAnswer(oldQuizAnswer);
         });
 
         getOldQuizAnswerStep.registerCompensation(() -> {
             QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(data.getOldQuizAnswer());
+            unitOfWorkService.registerSagaState((SagaQuizAnswer) newQuizAnswer, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newQuizAnswer);
-            data.getQuestionDto().setState(AggregateState.ACTIVE);
         }, unitOfWork);
 
         SyncStep answerQuestionStep = new SyncStep(() -> {
@@ -89,14 +94,14 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
     
         SyncStep getQuizStep = new SyncStep(() -> {
             QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
-            quizDto.setState(AggregateState.IN_SAGA.toString());
+            SagaQuiz quiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
+            unitOfWorkService.registerSagaState(quiz, SagaState.IN_SAGA, unitOfWork);
             data.setQuizDto(quizDto);
         });
     
         getQuizStep.registerCompensation(() -> {
-            QuizDto quizDto = data.getQuizDto();
-            quizDto.setState(AggregateState.ACTIVE.toString());
-            data.setQuizDto(quizDto);
+            SagaQuiz quiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(quiz, SagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
         SyncStep startQuizStep = new SyncStep(() -> {
@@ -122,15 +127,15 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
     
         SyncStep getQuizAnswerStep = new SyncStep(() -> {
-            QuizAnswer quizAnswer = quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
-            quizAnswer.setState(AggregateState.IN_SAGA);
+            SagaQuizAnswer quizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(quizAnswer, SagaState.IN_SAGA, unitOfWork);
             data.setQuizAnswer(quizAnswer);
         });
     
         getQuizAnswerStep.registerCompensation(() -> {
-            QuizAnswer quizAnswer = data.getQuizAnswer();
+            SagaQuizAnswer quizAnswer = data.getQuizAnswer();
             quizAnswer.setCompleted(false);
-            quizAnswer.setState(AggregateState.ACTIVE);
+            unitOfWorkService.registerSagaState(quizAnswer, SagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(quizAnswer);
         }, unitOfWork);
     
