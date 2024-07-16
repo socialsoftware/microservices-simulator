@@ -128,7 +128,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep getCourseExecutionStep = new SyncStep(() -> {
             SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(courseExecution, SagaState.REMOVE_COURSE_EXECUTION_READ_COURSE, unitOfWork);
             data.setCourseExecution(courseExecution);
         });
     
@@ -162,7 +162,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.ADD_STUDENT_READ_COURSE, unitOfWork);
             data.setOldCourseExecution(oldCourseExecution);
         });
     
@@ -210,7 +210,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.REMOVE_STUDENT_FROM_COURSE_EXECUTION_READ_COURSE, unitOfWork);
             data.setOldCourseExecution(oldCourseExecution);
         });
     
@@ -239,7 +239,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.ANONYMIZE_STUDENT_READ_COURSE, unitOfWork);
             data.setOldCourseExecution(oldCourseExecution);
         });
     
@@ -272,7 +272,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep getStudentStep = new SyncStep(() -> {
             SagaUser student = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(student, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(student, SagaState.UPDATE_STUDENT_NAME_READ_STUDENT, unitOfWork);
             data.setStudent(student);
         });
     
@@ -284,7 +284,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
     
         SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.UPDATE_STUDENT_NAME_READ_COURSE, unitOfWork);
             data.setOldCourseExecution(oldCourseExecution);
         });
     

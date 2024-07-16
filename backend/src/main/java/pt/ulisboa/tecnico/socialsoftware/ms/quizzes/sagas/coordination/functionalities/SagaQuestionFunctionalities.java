@@ -142,7 +142,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
     
         SyncStep getOldQuestionStep = new SyncStep(() -> {
             SagaQuestion oldQuestion = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuestion, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuestion, SagaState.UPDATE_QUESTION_READ_QUESTION, unitOfWork);
             data.setOldQuestion(oldQuestion);
         });
     
@@ -171,7 +171,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
     
         SyncStep getQuestionStep = new SyncStep(() -> {
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(question, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(question, SagaState.REMOVE_QUESTION_READ_QUESTION, unitOfWork);
             data.setQuestion(question);
         });
     
@@ -209,7 +209,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
     
         SyncStep getOldQuestionStep = new SyncStep(() -> {
             SagaQuestion oldQuestion = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuestion, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuestion, SagaState.UPDATE_QUESTION_TOPICS_READ_QUESTION, unitOfWork);
             Set<QuestionTopic> oldTopics = oldQuestion.getQuestionTopics();
             data.setOldQuestion(oldQuestion);
             data.setOldTopics(oldTopics);

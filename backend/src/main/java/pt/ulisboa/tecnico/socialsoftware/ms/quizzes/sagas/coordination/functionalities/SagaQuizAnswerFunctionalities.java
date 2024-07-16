@@ -52,7 +52,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         SyncStep getQuestionStep = new SyncStep(() -> {
             QuestionDto questionDto = questionService.getQuestionById(userQuestionAnswerDto.getQuestionAggregateId(), unitOfWork);
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(question, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(question, SagaState.ANSWER_QUESTION_READ_QUESTION, unitOfWork);
             data.setQuestionDto(questionDto);
         });
 
@@ -64,7 +64,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
 
         SyncStep getOldQuizAnswerStep = new SyncStep(() -> {
             SagaQuizAnswer oldQuizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuizAnswer, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuizAnswer, SagaState.ANSWER_QUESTION_READ_QUIZ_ANSWER, unitOfWork);
             data.setOldQuizAnswer(oldQuizAnswer);
         });
 
@@ -95,7 +95,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         SyncStep getQuizStep = new SyncStep(() -> {
             QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
             SagaQuiz quiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(quiz, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(quiz, SagaState.START_QUIZ_READ_QUIZ, unitOfWork);
             data.setQuizDto(quizDto);
         });
     
@@ -128,7 +128,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
     
         SyncStep getQuizAnswerStep = new SyncStep(() -> {
             SagaQuizAnswer quizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(quizAnswer, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(quizAnswer, SagaState.CONCLUDE_QUIZ_READ_QUIZ_ANSWER, unitOfWork);
             data.setQuizAnswer(quizAnswer);
         });
     

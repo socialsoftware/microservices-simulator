@@ -93,7 +93,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
     
         SyncStep getUserStep = new SyncStep(() -> {
             SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(user, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(user, SagaState.ACTIVATE_USER_READ_USER, unitOfWork);
             data.setUser(user);
         });
     
@@ -123,7 +123,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
     
         SyncStep getUserStep = new SyncStep(() -> {
             SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(user, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(user, SagaState.DELETE_USER_READ_USER, unitOfWork);
             data.setUser(user);
         });
     

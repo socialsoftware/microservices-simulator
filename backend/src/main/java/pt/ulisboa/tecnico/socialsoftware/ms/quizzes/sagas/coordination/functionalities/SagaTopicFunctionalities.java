@@ -129,7 +129,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
     
         SyncStep getOldTopicStep = new SyncStep(() -> {
             SagaTopic oldTopic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(oldTopic, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(oldTopic, SagaState.UPDATE_TOPIC_READ_TOPIC, unitOfWork);
             data.setOldTopic(oldTopic);
         }, new ArrayList<>(Arrays.asList(checkInputStep)));
     
@@ -159,7 +159,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
     
         SyncStep getTopicStep = new SyncStep(() -> {
             SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(topic, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(topic, SagaState.DELETE_TOPIC_READ_TOPIC, unitOfWork);
             data.setTopic(topic);
         });
     
