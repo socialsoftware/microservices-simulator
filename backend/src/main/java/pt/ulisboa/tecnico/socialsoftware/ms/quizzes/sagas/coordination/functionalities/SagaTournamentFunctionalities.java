@@ -20,7 +20,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
@@ -31,12 +30,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentParticipant;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
@@ -84,103 +81,14 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
 
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-
-        CreateTournamentData data = new CreateTournamentData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
-
-        SyncStep checkInputStep = new SyncStep(() -> {
-            checkInput(userId, topicsId, tournamentDto);
-        });
-
-        SyncStep getCreatorStep = new SyncStep(() -> {
-            // by making this call the invariants regarding the course execution and the role of the creator are guaranteed
-            UserDto creatorDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId, unitOfWork);
-            SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, SagaState.CREATE_TOURNAMENT_READ_CREATOR, unitOfWork);
-            data.setUserDto(creatorDto);
-        }, new ArrayList<>(Arrays.asList(checkInputStep)));
-
-        getCreatorStep.registerCompensation(() -> {
-            SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, SagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);
-
-        SyncStep getCourseExecutionStep = new SyncStep(() -> {
-            CourseExecutionDto courseExecutionDto = courseExecutionService.getCourseExecutionById(executionId, unitOfWork);
-            SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, SagaState.CREATE_TOURNAMENT_READ_COURSE, unitOfWork);
-            data.setCourseExecutionDto(courseExecutionDto);
-        }, new ArrayList<>(Arrays.asList(checkInputStep)));
-
-        getCourseExecutionStep.registerCompensation(() -> {
-            CourseExecutionDto courseExecutionDto = data.getCourseExecutionDto();
-            SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, SagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);
-
-        SyncStep getTopicsStep = new SyncStep(() -> {
-            //TODO change other steps that affect multiple aggregates to be like this
-            topicsId.stream().forEach(topicId -> {
-                TopicDto t = topicService.getTopicById(topicId, unitOfWork);
-                SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(t.getAggregateId(), unitOfWork);
-                unitOfWorkService.registerSagaState(topic, SagaState.CREATE_TOURNAMENT_READ_TOPIC, unitOfWork);
-                data.addTopicDto(t);
-                
-            });
-        }, new ArrayList<>(Arrays.asList(checkInputStep)));
-
-        getTopicsStep.registerCompensation(() -> {
-            Set<TopicDto> topicDtos = data.getTopicsDtos();
-            topicDtos.stream().forEach(t -> {
-                SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(t.getAggregateId(), unitOfWork);
-                unitOfWorkService.registerSagaState(topic, SagaState.NOT_IN_SAGA, unitOfWork);
-            });
-        }, unitOfWork);
-
-        SyncStep generateQuizStep = new SyncStep(() -> {
-            QuizDto quizDto = new QuizDto();
-            quizDto.setAvailableDate(tournamentDto.getStartTime());
-            quizDto.setConclusionDate(tournamentDto.getEndTime());
-            quizDto.setResultsDate(tournamentDto.getEndTime());
-            QuizDto quizResultDto = quizService.generateQuiz(executionId, quizDto, topicsId, tournamentDto.getNumberOfQuestions(), unitOfWork);
-            data.setQuizDto(quizResultDto);
-        }, new ArrayList<>(Arrays.asList(checkInputStep, getTopicsStep)));
-
-        generateQuizStep.registerCompensation(() -> {
-            QuizDto quizDto = data.getQuizDto();
-            Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
-            quiz.remove();
-        }, unitOfWork);
-
-    //        NUMBER_OF_QUESTIONS
-    //            this.numberOfQuestions == Quiz(tournamentQuiz.id).quizQuestions.size
-    //            Quiz(this.tournamentQuiz.id) DEPENDS ON this.numberOfQuestions
-    //        QUIZ_TOPICS
-    //            Quiz(this.tournamentQuiz.id) DEPENDS ON this.topics // the topics of the quiz questions are related to the tournament topics
-    //        START_TIME_AVAILABLE_DATE
-    //            this.startTime == Quiz(tournamentQuiz.id).availableDate
-    //        END_TIME_CONCLUSION_DATE
-    //            this.endTime == Quiz(tournamentQuiz.id).conclusionDate
-
-        SyncStep createTournamentStep = new SyncStep(() -> {
-            TournamentDto tournamentResultDto = tournamentService.createTournament(tournamentDto, data.getUserDto(), data.getCourseExecutionDto(), data.getTopicsDtos(), data.getQuizDto(), unitOfWork);
-            data.setTournamentDto(tournamentResultDto);
-        }, new ArrayList<>(Arrays.asList(checkInputStep, getCreatorStep, getCourseExecutionStep, getTopicsStep, generateQuizStep)));
-
-        createTournamentStep.registerCompensation(() -> {
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentDto.getAggregateId(), unitOfWork);
-            tournament.remove();
-            unitOfWork.registerChanged(tournament);
-        }, unitOfWork);
         
-        workflow.addStep(checkInputStep);
-        workflow.addStep(getCreatorStep);
-        workflow.addStep(getCourseExecutionStep);
-        workflow.addStep(getTopicsStep);
-        workflow.addStep(generateQuizStep);
-        workflow.addStep(createTournamentStep);
-        
-        workflow.execute(unitOfWork);
+        checkInput(userId, topicsId, tournamentDto);
+
+        CreateTournamentData data = new CreateTournamentData(tournamentService, courseExecutionService, topicService, quizService, unitOfWorkService, 
+                                                            userId, executionId, topicsId, tournamentDto, 
+                                                            unitOfWork);
+
+        data.executeWorkflow(unitOfWork);
         return data.getTournamentDto();
     }
 
@@ -188,43 +96,9 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
-        AddParticipantData data = new AddParticipantData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        AddParticipantData data = new AddParticipantData(tournamentService, courseExecutionService, unitOfWorkService, tournamentAggregateId, userAggregateId, unitOfWork);
 
-        SyncStep getTournamentStep = new SyncStep(() -> {
-            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            TournamentDto tournamentDto = tournamentService
-                    .getTournamentById(tournamentAggregateId, workflow.getUnitOfWork());
-            data.setTournamentDto(tournamentDto);
-            data.setTournament(oldTournament);
-        });
-
-        SyncStep getUserStep = new SyncStep(() -> {
-            TournamentDto tournamentDto = data.getTournamentDto();
-            UserDto userDto = courseExecutionService
-                    .getStudentByExecutionIdAndUserId(
-                            tournamentDto.getCourseExecution().getAggregateId(),
-                            userAggregateId,
-                            unitOfWork);
-            data.setUserDto(userDto);
-        }, new ArrayList<>(Arrays.asList(getTournamentStep)));
-
-        SyncStep addParticipantStep = new SyncStep(() -> {
-            
-            UserDto userDto = data.getUserDto();
-            TournamentParticipant participant = new TournamentParticipant(userDto);
-            tournamentService.addParticipant(tournamentAggregateId, participant, userDto.getRole(), unitOfWork);
-        }, new ArrayList<>(Arrays.asList(getUserStep)));
-
-        addParticipantStep.registerCompensation(() -> {
-            unitOfWork.registerChanged(data.getTournament());
-        }, unitOfWork);
-
-        workflow.addStep(getTournamentStep);
-        workflow.addStep(getUserStep);
-        workflow.addStep(addParticipantStep);
-
-        workflow.execute(unitOfWork);
+        data.executeWorkflow(unitOfWork);
     }
 
     public void updateTournament(TournamentDto tournamentDto, Set<Integer> topicsAggregateIds) {
@@ -232,7 +106,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         UpdateTournamentData data = new UpdateTournamentData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getOriginalTournamentStep = new SyncStep(() -> {
             TournamentDto originalTournamentDto = tournamentService.getTournamentById(tournamentDto.getAggregateId(), unitOfWork);
@@ -321,7 +195,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         GetTournamentsForCourseExecutionData data = new GetTournamentsForCourseExecutionData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getTournamentsStep = new SyncStep(() -> {
             List<TournamentDto> tournaments = tournamentService.getTournamentsByCourseExecutionId(executionAggregateId, unitOfWork);
@@ -339,7 +213,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         GetOpenedTournamentsForCourseExecutionData data = new GetOpenedTournamentsForCourseExecutionData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getOpenedTournamentsStep = new SyncStep(() -> {
             List<TournamentDto> openedTournaments = tournamentService.getOpenedTournamentsForCourseExecution(executionAggregateId, unitOfWork);
@@ -357,7 +231,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         GetClosedTournamentsForCourseExecutionData data = new GetClosedTournamentsForCourseExecutionData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getClosedTournamentsStep = new SyncStep(() -> {
             List<TournamentDto> closedTournaments = tournamentService.getClosedTournamentsForCourseExecution(executionAggregateId, unitOfWork);
@@ -375,7 +249,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         LeaveTournamentData data = new LeaveTournamentData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getOldTournamentStep = new SyncStep(() -> {
             SagaTournament oldTournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
@@ -404,7 +278,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         SolveQuizData data = new SolveQuizData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getTournamentStep = new SyncStep(() -> {
             TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
@@ -468,7 +342,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         CancelTournamentData data = new CancelTournamentData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getOldTournamentStep = new SyncStep(() -> {
             SagaTournament oldTournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
@@ -497,7 +371,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         RemoveTournamentData data = new RemoveTournamentData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getOldTournamentStep = new SyncStep(() -> {
             SagaTournament oldTournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
@@ -526,7 +400,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         FindTournamentData data = new FindTournamentData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep findTournamentStep = new SyncStep(() -> {
             TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);

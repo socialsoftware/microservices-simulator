@@ -40,7 +40,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
         CreateUserData data = new CreateUserData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
 
         SyncStep checkInputStep = new SyncStep(() -> {
             checkInput(userDto);
@@ -71,7 +71,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         FindUserByIdData data = new FindUserByIdData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep findUserStep = new SyncStep(() -> {
             UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
@@ -89,7 +89,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         ActivateUserData data = new ActivateUserData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getUserStep = new SyncStep(() -> {
             SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
@@ -119,7 +119,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         DeleteUserData data = new DeleteUserData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getUserStep = new SyncStep(() -> {
             SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
@@ -148,7 +148,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         GetStudentsData data = new GetStudentsData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getStudentsStep = new SyncStep(() -> {
             List<UserDto> students = userService.getStudents(unitOfWork);
@@ -166,7 +166,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         GetTeachersData data = new GetTeachersData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getTeachersStep = new SyncStep(() -> {
             List<UserDto> teachers = userService.getTeachers(unitOfWork);

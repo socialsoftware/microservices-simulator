@@ -11,4 +11,5 @@ public interface FlowStep {
     public Runnable getCompensation();
     public void setDependencies(ArrayList<FlowStep> dependencies);
     public ArrayList<FlowStep> getDependencies();
+    public String getName();
 }

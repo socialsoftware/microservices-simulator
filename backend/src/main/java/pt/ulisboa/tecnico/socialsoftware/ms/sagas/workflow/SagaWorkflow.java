@@ -13,8 +13,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowData;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 
 public class SagaWorkflow extends Workflow {
-    public SagaWorkflow(WorkflowData data, UnitOfWorkService unitOfWorkService, String functionalityName, SagaUnitOfWork unitOfWork) {
-        super(data, unitOfWorkService, functionalityName, unitOfWork);
+    public SagaWorkflow(WorkflowData data, UnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
+        super(data, unitOfWorkService, unitOfWork);
     }
 
     @Override

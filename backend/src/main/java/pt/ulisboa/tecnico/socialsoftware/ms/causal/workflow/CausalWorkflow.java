@@ -10,8 +10,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Workflow;
 
 public class CausalWorkflow extends Workflow {
-    public CausalWorkflow(UnitOfWorkService unitOfWorkService, String functionalityName, CausalUnitOfWork unitOfWork) {
-        super(unitOfWorkService, functionalityName, unitOfWork);
+    public CausalWorkflow(UnitOfWorkService unitOfWorkService, CausalUnitOfWork unitOfWork) {
+        super(unitOfWorkService, unitOfWork);
     }
 
     @Override

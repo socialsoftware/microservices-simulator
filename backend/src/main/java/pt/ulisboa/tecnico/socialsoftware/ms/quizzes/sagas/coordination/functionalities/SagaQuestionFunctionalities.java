@@ -54,7 +54,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
         FindQuestionByAggregateIdData data = new FindQuestionByAggregateIdData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
 
         SyncStep findQuestionStep = new SyncStep(() -> {
             QuestionDto questionDto = questionService.getQuestionById(aggregateId, unitOfWork);
@@ -72,7 +72,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         FindQuestionsByCourseData data = new FindQuestionsByCourseData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep findQuestionsStep = new SyncStep(() -> {
             List<QuestionDto> questions = questionService.findQuestionsByCourseAggregateId(courseAggregateId, unitOfWork);
@@ -90,7 +90,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         CreateQuestionData data = new CreateQuestionData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep validateQuestionTopicsStep = new SyncStep(() -> {
             for (TopicDto topicDto : questionDto.getTopicDto()) {
@@ -138,7 +138,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         UpdateQuestionData data = new UpdateQuestionData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getOldQuestionStep = new SyncStep(() -> {
             SagaQuestion oldQuestion = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
@@ -167,7 +167,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         RemoveQuestionData data = new RemoveQuestionData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getQuestionStep = new SyncStep(() -> {
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
@@ -197,7 +197,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         UpdateQuestionTopicsData data = new UpdateQuestionTopicsData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getTopicsStep = new SyncStep(() -> {
             Set<QuestionTopic> topics = topicIds.stream()

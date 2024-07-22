@@ -6,15 +6,31 @@ import java.util.concurrent.CompletableFuture;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 
 public class SyncStep implements FlowStep {
+    private String stepName;
     private Runnable syncOperation;
     private Runnable compensationLogic;
     private ArrayList<FlowStep> dependencies = new ArrayList<>();
 
-    public SyncStep(Runnable syncOperation) {
+    public SyncStep(String stepName, Runnable syncOperation) {
+        this.stepName = stepName;
         this.syncOperation = syncOperation;
     }
 
+    //temp
+    public SyncStep(Runnable syncOperation) {
+        this.stepName = stepName;
+        this.syncOperation = syncOperation;
+    }
+
+    //temp
     public SyncStep(Runnable syncOperation, ArrayList<FlowStep> dependencies) {
+        this.stepName = stepName;
+        this.syncOperation = syncOperation;
+        this.dependencies = dependencies;
+    }
+
+    public SyncStep(String stepName, Runnable syncOperation, ArrayList<FlowStep> dependencies) {
+        this.stepName = stepName;
         this.syncOperation = syncOperation;
         this.dependencies = dependencies;
     }
@@ -45,5 +61,10 @@ public class SyncStep implements FlowStep {
     @Override
     public void setDependencies(ArrayList<FlowStep> dependencies) {
         this.dependencies = dependencies;
+    }
+
+    @Override
+    public String getName() {
+        return this.stepName;
     }
 }

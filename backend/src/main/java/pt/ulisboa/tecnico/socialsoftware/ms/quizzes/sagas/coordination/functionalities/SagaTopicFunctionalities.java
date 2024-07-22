@@ -48,7 +48,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
         FindTopicsByCourseData data = new FindTopicsByCourseData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
 
         SyncStep findTopicsStep = new SyncStep(() -> {
             List<TopicDto> topics = topicService.findTopicsByCourseId(courseAggregateId, unitOfWork);
@@ -66,7 +66,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         GetTopicByIdData data = new GetTopicByIdData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getTopicStep = new SyncStep(() -> {
             TopicDto topicDto = topicService.getTopicById(topicAggregateId, unitOfWork);
@@ -84,7 +84,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         CreateTopicData data = new CreateTopicData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep checkInputStep = new SyncStep(() -> {
             checkInput(topicDto);
@@ -121,7 +121,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         UpdateTopicData data = new UpdateTopicData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep checkInputStep = new SyncStep(() -> {
             checkInput(topicDto);
@@ -155,7 +155,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         DeleteTopicData data = new DeleteTopicData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getTopicStep = new SyncStep(() -> {
             SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);

@@ -50,7 +50,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
         CreateQuizData data = new CreateQuizData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
 
         SyncStep getCourseExecutionStep = new SyncStep(() -> {
             QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionService.getCourseExecutionById(courseExecutionId, unitOfWork));
@@ -89,7 +89,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         FindQuizData data = new FindQuizData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep findQuizStep = new SyncStep(() -> {
             QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
@@ -107,7 +107,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         GetAvailableQuizzesData data = new GetAvailableQuizzesData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getAvailableQuizzesStep = new SyncStep(() -> {
             List<QuizDto> availableQuizzes = quizService.getAvailableQuizzes(courseExecutionAggregateId, unitOfWork);
@@ -125,7 +125,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         UpdateQuizData data = new UpdateQuizData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getOldQuizStep = new SyncStep(() -> {
             SagaQuiz oldQuiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);

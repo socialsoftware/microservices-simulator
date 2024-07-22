@@ -47,7 +47,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
         AnswerQuestionData data = new AnswerQuestionData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
 
         SyncStep getQuestionStep = new SyncStep(() -> {
             QuestionDto questionDto = questionService.getQuestionById(userQuestionAnswerDto.getQuestionAggregateId(), unitOfWork);
@@ -90,7 +90,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         StartQuizData data = new StartQuizData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getQuizStep = new SyncStep(() -> {
             QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
@@ -124,7 +124,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
         ConcludeQuizData data = new ConcludeQuizData();
-        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, functionalityName, unitOfWork);
+        SagaWorkflow workflow = new SagaWorkflow(data, unitOfWorkService, unitOfWork);
     
         SyncStep getQuizAnswerStep = new SyncStep(() -> {
             SagaQuizAnswer quizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);

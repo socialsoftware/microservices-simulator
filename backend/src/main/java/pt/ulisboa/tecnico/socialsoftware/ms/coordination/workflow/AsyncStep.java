@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 
 public class AsyncStep implements FlowStep {
+    private String stepName;
     private Supplier<CompletableFuture<Void>> asyncOperation;
     private Runnable compensationLogic;
     private ExecutorService executorService;
@@ -17,23 +18,27 @@ public class AsyncStep implements FlowStep {
 
     private static final ExecutorService DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 
-    public AsyncStep(Supplier<CompletableFuture<Void>> asyncOperation, ArrayList<FlowStep> dependencies, ExecutorService executorService) {
+    public AsyncStep(String stepName, Supplier<CompletableFuture<Void>> asyncOperation, ArrayList<FlowStep> dependencies, ExecutorService executorService) {
+        this.stepName = stepName;
         this.asyncOperation = asyncOperation;
         this.dependencies = dependencies;
         this.executorService = executorService;
     }
 
-    public AsyncStep(Supplier<CompletableFuture<Void>> asyncOperation, ExecutorService executorService) {
+    public AsyncStep(String stepName, Supplier<CompletableFuture<Void>> asyncOperation, ExecutorService executorService) {
+        this.stepName = stepName;
         this.asyncOperation = asyncOperation;
         this.executorService = executorService;
     }
 
-    public AsyncStep(Supplier<CompletableFuture<Void>> asyncOperation) {
+    public AsyncStep(String stepName, Supplier<CompletableFuture<Void>> asyncOperation) {
+        this.stepName = stepName;
         this.asyncOperation = asyncOperation;
         this.executorService = DEFAULT_EXECUTOR;
     }
 
-    public AsyncStep(Supplier<CompletableFuture<Void>> asyncOperation, ArrayList<FlowStep> dependencies) {
+    public AsyncStep(String stepName, Supplier<CompletableFuture<Void>> asyncOperation, ArrayList<FlowStep> dependencies) {
+        this.stepName = stepName;
         this.asyncOperation = asyncOperation;
         this.dependencies = dependencies;
         this.executorService = DEFAULT_EXECUTOR;
@@ -64,5 +69,10 @@ public class AsyncStep implements FlowStep {
     @Override
     public void setDependencies(ArrayList<FlowStep> dependencies) {
         this.dependencies = dependencies;
+    }
+
+    @Override
+    public String getName() {
+        return this.stepName;
     }
 }
