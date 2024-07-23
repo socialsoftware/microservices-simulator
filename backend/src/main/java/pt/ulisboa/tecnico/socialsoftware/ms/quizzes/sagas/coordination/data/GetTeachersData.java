@@ -2,11 +2,55 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data;
 
 import java.util.List;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class GetTeachersData extends WorkflowData {
     private List<UserDto> teachers;
+
+    private SagaWorkflow workflow;
+
+    private final UserService userService;
+    private final SagaUnitOfWorkService unitOfWorkService;
+
+    public GetTeachersData(UserService userService, SagaUnitOfWorkService unitOfWorkService,  
+                            SagaUnitOfWork unitOfWork) {
+        this.userService = userService;
+        this.unitOfWorkService = unitOfWorkService;
+        this.buildWorkflow(unitOfWork);
+    }
+
+    public void buildWorkflow(SagaUnitOfWork unitOfWork) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+
+        SyncStep getTeachersStep = new SyncStep(() -> {
+            List<UserDto> teachers = userService.getTeachers(unitOfWork);
+            this.setTeachers(teachers);
+        });
+    
+        workflow.addStep(getTeachersStep);
+    }
+
+    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
+        workflow.execute(unitOfWork);
+    }
+
+    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
+        workflow.executeStepByName(stepName, unitOfWork);
+    }
+
+    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
+        workflow.executeUntilStep(stepName, unitOfWork);
+    }
+
+    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
+        workflow.resume(unitOfWork);
+    }
 
     public List<UserDto> getTeachers() {
         return teachers;

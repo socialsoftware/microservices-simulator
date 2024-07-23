@@ -306,17 +306,18 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         given: 'creator name is updated'
         def updateNameDto = new UserDto()
         updateNameDto.setName(UPDATED_NAME)
-        def functionalityName1 = "updateStudentName"
-        def functionalityName2 = "addParticipant"
+        def functionalityName1 = UpdateStudentNameData.getClass().getSimpleName()
+        def functionalityName2 = AddParticipantData.getClass().getSimpleName()
         def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
         def updateStudentNameData = new UpdateStudentNameData(courseExecutionService, courseExecutionFactory, unitOfWorkService, courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto, unitOfWork1)
         def addParticipantData = new AddParticipantData(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
 
-        when:
         addParticipantData.executeUntilStep("getUserStep", unitOfWork2) 
         updateStudentNameData.executeWorkflow(unitOfWork1) 
+        
+        when:
         addParticipantData.resumeWorkflow(unitOfWork2) 
 
         then: 'the name is updated in course execution'

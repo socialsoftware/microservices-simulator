@@ -2,11 +2,55 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data;
 
 import java.util.Set;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowData;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class GetCourseExecutionsByUserData extends WorkflowData {
     private Set<CourseExecutionDto> courseExecutions;
+
+    private SagaWorkflow workflow;
+
+    private final CourseExecutionService courseExecutionService;
+    private final SagaUnitOfWorkService unitOfWorkService;
+
+    public GetCourseExecutionsByUserData(CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService, 
+                                    Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+        this.courseExecutionService = courseExecutionService;
+        this.unitOfWorkService = unitOfWorkService;
+        this.buildWorkflow(userAggregateId, unitOfWork);
+    }
+
+    public void buildWorkflow(Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+
+        SyncStep getCourseExecutionsByUserStep = new SyncStep(() -> {
+            Set<CourseExecutionDto> courseExecutions = courseExecutionService.getCourseExecutionsByUserId(userAggregateId, unitOfWork);
+            this.setCourseExecutions(courseExecutions);
+        });
+    
+        workflow.addStep(getCourseExecutionsByUserStep);
+    }
+
+    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
+        workflow.execute(unitOfWork);
+    }
+
+    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
+        workflow.executeStepByName(stepName, unitOfWork);
+    }
+
+    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
+        workflow.executeUntilStep(stepName, unitOfWork);
+    }
+
+    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
+        workflow.resume(unitOfWork);
+    }
 
     public Set<CourseExecutionDto> getCourseExecutions() {
         return courseExecutions;

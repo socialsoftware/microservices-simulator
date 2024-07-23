@@ -43,6 +43,19 @@ public class SyncStep implements FlowStep {
         return result;
     }
 
+    /*
+    @Override
+    public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
+        try {
+            unitOfWork.registerCompensation(compensationLogic);
+            syncOperation.run();
+            return CompletableFuture.completedFuture(null);
+        } catch (Exception e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+    */
+
     @Override
     public void registerCompensation(Runnable compensationLogic, UnitOfWork unitOfWork) {
         this.compensationLogic = compensationLogic;

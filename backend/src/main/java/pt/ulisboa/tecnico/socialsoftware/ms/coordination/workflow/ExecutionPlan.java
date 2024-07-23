@@ -146,6 +146,6 @@ public class ExecutionPlan {
                 return step;
             }
         }
-        throw new IllegalArgumentException("Step with name " + stepName + " not found.");
+        throw new IllegalArgumentException("Step with name: " + stepName + " not found.");
     }
 }

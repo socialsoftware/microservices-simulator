@@ -89,7 +89,6 @@ public class CreateTournamentData extends WorkflowData {
                 SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(t.getAggregateId(), unitOfWork);
                 unitOfWorkService.registerSagaState(topic, SagaState.CREATE_TOURNAMENT_READ_TOPIC, unitOfWork);
                 this.addTopicDto(t);
-                
             });
         });
 
