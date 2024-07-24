@@ -48,10 +48,10 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
 
         checkInput(courseExecutionDto);
 
-        CreateCourseExecutionFunctionality data = new CreateCourseExecutionFunctionality(courseExecutionService, unitOfWorkService, courseExecutionDto, unitOfWork);
+        CreateCourseExecutionFunctionality functionality = new CreateCourseExecutionFunctionality(courseExecutionService, unitOfWorkService, courseExecutionDto, unitOfWork);
 
-        data.executeWorkflow(unitOfWork);
-        return data.getCreatedCourseExecution();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getCreatedCourseExecution();
     }
 
 
@@ -59,75 +59,75 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetCourseExecutionByIdFunctionality data = new GetCourseExecutionByIdFunctionality(courseExecutionService, unitOfWorkService, executionAggregateId, unitOfWork);
+        GetCourseExecutionByIdFunctionality functionality = new GetCourseExecutionByIdFunctionality(courseExecutionService, unitOfWorkService, executionAggregateId, unitOfWork);
 
-        data.executeWorkflow(unitOfWork);
-        return data.getCourseExecutionDto();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getCourseExecutionDto();
     }
 
     public List<CourseExecutionDto> getCourseExecutions() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetCourseExecutionsFunctionality data = new GetCourseExecutionsFunctionality(courseExecutionService, unitOfWorkService, unitOfWork);
+        GetCourseExecutionsFunctionality functionality = new GetCourseExecutionsFunctionality(courseExecutionService, unitOfWorkService, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getCourseExecutions();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getCourseExecutions();
     }
 
     public void removeCourseExecution(Integer executionAggregateId) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        RemoveCourseExecutionFunctionality data = new RemoveCourseExecutionFunctionality(courseExecutionService, unitOfWorkService, executionAggregateId, unitOfWork);
+        RemoveCourseExecutionFunctionality functionality = new RemoveCourseExecutionFunctionality(courseExecutionService, unitOfWorkService, executionAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
     public void addStudent(Integer executionAggregateId, Integer userAggregateId) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        AddStudentFunctionality data = new AddStudentFunctionality(courseExecutionService, userService, unitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, unitOfWork);
+        AddStudentFunctionality functionality = new AddStudentFunctionality(courseExecutionService, userService, unitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
     public Set<CourseExecutionDto> getCourseExecutionsByUser(Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetCourseExecutionsByUserFunctionality data = new GetCourseExecutionsByUserFunctionality(courseExecutionService, unitOfWorkService, userAggregateId, unitOfWork);
+        GetCourseExecutionsByUserFunctionality functionality = new GetCourseExecutionsByUserFunctionality(courseExecutionService, unitOfWorkService, userAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getCourseExecutions();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getCourseExecutions();
     }
 
     public void removeStudentFromCourseExecution(Integer courseExecutionAggregateId, Integer userAggregateId) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        RemoveStudentFromCourseExecutionFunctionality data = new RemoveStudentFromCourseExecutionFunctionality(courseExecutionService, unitOfWorkService, courseExecutionFactory, userAggregateId, userAggregateId, unitOfWork);
+        RemoveStudentFromCourseExecutionFunctionality functionality = new RemoveStudentFromCourseExecutionFunctionality(courseExecutionService, unitOfWorkService, courseExecutionFactory, userAggregateId, userAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
     public void anonymizeStudent(Integer executionAggregateId, Integer userAggregateId) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        AnonymizeStudentFunctionality data = new AnonymizeStudentFunctionality(courseExecutionService, unitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, unitOfWork);
+        AnonymizeStudentFunctionality functionality = new AnonymizeStudentFunctionality(courseExecutionService, unitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
     public void updateStudentName(Integer executionAggregateId, Integer userAggregateId, UserDto userDto) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        UpdateStudentNameFunctionality data = new UpdateStudentNameFunctionality(courseExecutionService, courseExecutionFactory, unitOfWorkService, executionAggregateId, userAggregateId, userDto, unitOfWork);
+        UpdateStudentNameFunctionality functionality = new UpdateStudentNameFunctionality(courseExecutionService, courseExecutionFactory, unitOfWorkService, executionAggregateId, userAggregateId, userDto, unitOfWork);
     
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
     
 

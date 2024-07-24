@@ -38,20 +38,20 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
-        FindTopicsByCourseFunctionality data = new FindTopicsByCourseFunctionality(topicService, unitOfWorkService, courseAggregateId, unitOfWork);
+        FindTopicsByCourseFunctionality functionality = new FindTopicsByCourseFunctionality(topicService, unitOfWorkService, courseAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getTopics();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getTopics();
     }
 
     public TopicDto getTopicByAggregateId(Integer topicAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetTopicByIdFunctionality data = new GetTopicByIdFunctionality(topicService, unitOfWorkService, topicAggregateId, unitOfWork);
+        GetTopicByIdFunctionality functionality = new GetTopicByIdFunctionality(topicService, unitOfWorkService, topicAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getTopicDto();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getTopicDto();
     }
 
     public TopicDto createTopic(Integer courseAggregateId, TopicDto topicDto) throws Exception {
@@ -60,10 +60,10 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
     
         checkInput(topicDto);
 
-        CreateTopicFunctionality data = new CreateTopicFunctionality(topicService, courseService, unitOfWorkService, courseAggregateId, topicDto, unitOfWork);
+        CreateTopicFunctionality functionality = new CreateTopicFunctionality(topicService, courseService, unitOfWorkService, courseAggregateId, topicDto, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getCreatedTopicDto();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getCreatedTopicDto();
     }
 
     public void updateTopic(TopicDto topicDto) throws Exception {
@@ -72,18 +72,18 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
     
         checkInput(topicDto);
 
-        UpdateTopicFunctionality data = new UpdateTopicFunctionality(topicService, unitOfWorkService, topicDto, topicFactory, unitOfWork);
+        UpdateTopicFunctionality functionality = new UpdateTopicFunctionality(topicService, unitOfWorkService, topicDto, topicFactory, unitOfWork);
 
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
     public void deleteTopic(Integer topicAggregateId) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        DeleteTopicFunctionality data = new DeleteTopicFunctionality(topicService, unitOfWorkService, topicAggregateId, unitOfWork);
+        DeleteTopicFunctionality functionality = new DeleteTopicFunctionality(topicService, unitOfWorkService, topicAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
     private void checkInput(TopicDto topicDto) {

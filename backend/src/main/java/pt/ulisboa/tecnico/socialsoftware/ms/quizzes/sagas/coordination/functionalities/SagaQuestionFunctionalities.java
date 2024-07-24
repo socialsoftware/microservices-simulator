@@ -39,48 +39,48 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
-        FindQuestionByAggregateIdFunctionality data = new FindQuestionByAggregateIdFunctionality(questionService, unitOfWorkService, aggregateId, unitOfWork);
+        FindQuestionByAggregateIdFunctionality functionality = new FindQuestionByAggregateIdFunctionality(questionService, unitOfWorkService, aggregateId, unitOfWork);
 
-        data.executeWorkflow(unitOfWork);
-        return data.getQuestionDto();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getQuestionDto();
     }
 
     public List<QuestionDto> findQuestionsByCourseAggregateId(Integer courseAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        FindQuestionsByCourseFunctionality data = new FindQuestionsByCourseFunctionality(questionService, unitOfWorkService, courseAggregateId, unitOfWork);
+        FindQuestionsByCourseFunctionality functionality = new FindQuestionsByCourseFunctionality(questionService, unitOfWorkService, courseAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getQuestions();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getQuestions();
     }
 
     public QuestionDto createQuestion(Integer courseAggregateId, QuestionDto questionDto) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        CreateQuestionFunctionality data = new CreateQuestionFunctionality(questionService, topicService, courseService, unitOfWorkService, courseAggregateId, questionDto, unitOfWork);
+        CreateQuestionFunctionality functionality = new CreateQuestionFunctionality(questionService, topicService, courseService, unitOfWorkService, courseAggregateId, questionDto, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getCreatedQuestion();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getCreatedQuestion();
     }
 
     public void updateQuestion(QuestionDto questionDto) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        UpdateQuestionFunctionality data = new UpdateQuestionFunctionality(questionService, unitOfWorkService, questionFactory, questionDto, unitOfWork);
+        UpdateQuestionFunctionality functionality = new UpdateQuestionFunctionality(questionService, unitOfWorkService, questionFactory, questionDto, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
     public void removeQuestion(Integer questionAggregateId) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        RemoveQuestionFunctionality data = new RemoveQuestionFunctionality(questionService, unitOfWorkService, questionAggregateId, unitOfWork);
+        RemoveQuestionFunctionality functionality = new RemoveQuestionFunctionality(questionService, unitOfWorkService, questionAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
 
@@ -88,9 +88,9 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        UpdateQuestionTopicsFunctionality data = new UpdateQuestionTopicsFunctionality(questionService, topicService, questionFactory, unitOfWorkService, courseAggregateId, topicIds, unitOfWork);
+        UpdateQuestionTopicsFunctionality functionality = new UpdateQuestionTopicsFunctionality(questionService, topicService, questionFactory, unitOfWorkService, courseAggregateId, topicIds, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
 }

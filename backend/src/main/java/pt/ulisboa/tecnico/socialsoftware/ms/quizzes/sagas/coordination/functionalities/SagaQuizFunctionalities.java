@@ -37,40 +37,40 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
-        CreateQuizFunctionality data = new CreateQuizFunctionality(courseExecutionService, quizService, questionService, unitOfWorkService, courseExecutionId, quizDto, unitOfWork);
+        CreateQuizFunctionality functionality = new CreateQuizFunctionality(courseExecutionService, quizService, questionService, unitOfWorkService, courseExecutionId, quizDto, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getCreatedQuizDto();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getCreatedQuizDto();
     }
 
     public QuizDto findQuiz(Integer quizAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        FindQuizFunctionality data = new FindQuizFunctionality(quizService, unitOfWorkService, quizAggregateId, unitOfWork);
+        FindQuizFunctionality functionality = new FindQuizFunctionality(quizService, unitOfWorkService, quizAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getQuizDto();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getQuizDto();
     }
 
     public List<QuizDto> getAvailableQuizzes(Integer userAggregateId, Integer courseExecutionAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetAvailableQuizzesFunctionality data = new GetAvailableQuizzesFunctionality(quizService, unitOfWorkService, courseExecutionAggregateId, courseExecutionAggregateId, unitOfWork);
+        GetAvailableQuizzesFunctionality functionality = new GetAvailableQuizzesFunctionality(quizService, unitOfWorkService, courseExecutionAggregateId, courseExecutionAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getAvailableQuizzes();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getAvailableQuizzes();
     }
 
     public QuizDto updateQuiz(QuizDto quizDto) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        UpdateQuizFunctionality data = new UpdateQuizFunctionality(quizService, unitOfWorkService, quizFactory, quizDto, unitOfWork);
+        UpdateQuizFunctionality functionality = new UpdateQuizFunctionality(quizService, unitOfWorkService, quizFactory, quizDto, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getUpdatedQuizDto();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getUpdatedQuizDto();
     }
 
 }

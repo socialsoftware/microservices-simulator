@@ -34,58 +34,58 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
 
         checkInput(userDto);
 
-        CreateUserFunctionality data = new CreateUserFunctionality(userService, unitOfWorkService, userDto, unitOfWork);
+        CreateUserFunctionality functionality = new CreateUserFunctionality(userService, unitOfWorkService, userDto, unitOfWork);
 
-        data.executeWorkflow(unitOfWork);
-        return data.getCreatedUserDto();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getCreatedUserDto();
     }
 
     public UserDto findByUserId(Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        FindUserByIdFunctionality data = new FindUserByIdFunctionality(userService, unitOfWorkService, userAggregateId, unitOfWork);
+        FindUserByIdFunctionality functionality = new FindUserByIdFunctionality(userService, unitOfWorkService, userAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getUserDto();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getUserDto();
     }
 
     public void activateUser(Integer userAggregateId) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        ActivateUserFunctionality data = new ActivateUserFunctionality(userService, unitOfWorkService, userAggregateId, unitOfWork);
+        ActivateUserFunctionality functionality = new ActivateUserFunctionality(userService, unitOfWorkService, userAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
     public void deleteUser(Integer userAggregateId) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        DeleteUserFunctionality data = new DeleteUserFunctionality(userService, unitOfWorkService, userAggregateId, unitOfWork);
+        DeleteUserFunctionality functionality = new DeleteUserFunctionality(userService, unitOfWorkService, userAggregateId, unitOfWork);
        
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
     public List<UserDto> getStudents() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetStudentsFunctionality data = new GetStudentsFunctionality(userService, unitOfWorkService, unitOfWork);
+        GetStudentsFunctionality functionality = new GetStudentsFunctionality(userService, unitOfWorkService, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getStudents();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getStudents();
     }
 
     public List<UserDto> getTeachers() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetTeachersFunctionality data = new GetTeachersFunctionality(userService, unitOfWorkService, unitOfWork);
+        GetTeachersFunctionality functionality = new GetTeachersFunctionality(userService, unitOfWorkService, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
-        return data.getTeachers();
+        functionality.executeWorkflow(unitOfWork);
+        return functionality.getTeachers();
     }
 
     private void checkInput(UserDto userDto) {

@@ -34,26 +34,26 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
-        AnswerQuestionFunctionality data = new AnswerQuestionFunctionality(quizAnswerService, questionService, unitOfWorkService, quizAnswerFactory, userAggregateId, userAggregateId, userQuestionAnswerDto, unitOfWork);
+        AnswerQuestionFunctionality functionality = new AnswerQuestionFunctionality(quizAnswerService, questionService, unitOfWorkService, quizAnswerFactory, userAggregateId, userAggregateId, userQuestionAnswerDto, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
     public void startQuiz(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        StartQuizFunctionality data = new StartQuizFunctionality(quizAnswerService, quizService, unitOfWorkService, userAggregateId, userAggregateId, userAggregateId, unitOfWork);
+        StartQuizFunctionality functionality = new StartQuizFunctionality(quizAnswerService, quizService, unitOfWorkService, userAggregateId, userAggregateId, userAggregateId, unitOfWork);
 
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 
     public void concludeQuiz(Integer quizAggregateId, Integer userAggregateId) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        ConcludeQuizFunctionality data = new ConcludeQuizFunctionality(quizAnswerService, unitOfWorkService, userAggregateId, userAggregateId, unitOfWork);
+        ConcludeQuizFunctionality functionality = new ConcludeQuizFunctionality(quizAnswerService, unitOfWorkService, userAggregateId, userAggregateId, unitOfWork);
         
-        data.executeWorkflow(unitOfWork);
+        functionality.executeWorkflow(unitOfWork);
     }
 }
