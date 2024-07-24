@@ -33,7 +33,7 @@ public class RemoveTournamentFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getOldTournamentStep = new SyncStep(() -> {
+        SyncStep getOldTournamentStep = new SyncStep("getTournamentStep", () -> {
             SagaTournament oldTournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(oldTournament, SagaState.REMOVE_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
             this.setOldTournament(oldTournament);
@@ -45,7 +45,7 @@ public class RemoveTournamentFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(newTournament);
         }, unitOfWork);
     
-        SyncStep removeTournamentStep = new SyncStep(() -> {
+        SyncStep removeTournamentStep = new SyncStep("removeTournamentStep", () -> {
             tournamentService.removeTournament(tournamentAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getOldTournamentStep)));
     
