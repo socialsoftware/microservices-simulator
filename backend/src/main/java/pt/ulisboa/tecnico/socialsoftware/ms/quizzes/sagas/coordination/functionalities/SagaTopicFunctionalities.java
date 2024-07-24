@@ -14,11 +14,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregat
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateTopicData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.DeleteTopicData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindTopicsByCourseData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetTopicByIdData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateTopicData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.CreateTopicFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.DeleteTopicFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.FindTopicsByCourseFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.GetTopicByIdFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.UpdateTopicFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
@@ -38,7 +38,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
-        FindTopicsByCourseData data = new FindTopicsByCourseData(topicService, unitOfWorkService, courseAggregateId, unitOfWork);
+        FindTopicsByCourseFunctionality data = new FindTopicsByCourseFunctionality(topicService, unitOfWorkService, courseAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getTopics();
@@ -48,7 +48,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetTopicByIdData data = new GetTopicByIdData(topicService, unitOfWorkService, topicAggregateId, unitOfWork);
+        GetTopicByIdFunctionality data = new GetTopicByIdFunctionality(topicService, unitOfWorkService, topicAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getTopicDto();
@@ -60,7 +60,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
     
         checkInput(topicDto);
 
-        CreateTopicData data = new CreateTopicData(topicService, courseService, unitOfWorkService, courseAggregateId, topicDto, unitOfWork);
+        CreateTopicFunctionality data = new CreateTopicFunctionality(topicService, courseService, unitOfWorkService, courseAggregateId, topicDto, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getCreatedTopicDto();
@@ -72,7 +72,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
     
         checkInput(topicDto);
 
-        UpdateTopicData data = new UpdateTopicData(topicService, unitOfWorkService, topicDto, topicFactory, unitOfWork);
+        UpdateTopicFunctionality data = new UpdateTopicFunctionality(topicService, unitOfWorkService, topicDto, topicFactory, unitOfWork);
 
         data.executeWorkflow(unitOfWork);
     }
@@ -81,7 +81,7 @@ public class SagaTopicFunctionalities implements TopicFunctionalitiesInterface {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        DeleteTopicData data = new DeleteTopicData(topicService, unitOfWorkService, topicAggregateId, unitOfWork);
+        DeleteTopicFunctionality data = new DeleteTopicFunctionality(topicService, unitOfWorkService, topicAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
     }

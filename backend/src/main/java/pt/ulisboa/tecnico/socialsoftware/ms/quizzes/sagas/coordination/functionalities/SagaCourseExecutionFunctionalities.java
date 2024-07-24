@@ -18,15 +18,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.serv
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.AddStudentData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.AnonymizeStudentData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateCourseExecutionData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetCourseExecutionByIdData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetCourseExecutionsByUserData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetCourseExecutionsData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveCourseExecutionData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveStudentFromCourseExecutionData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateStudentNameData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.AddStudentFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.AnonymizeStudentFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.CreateCourseExecutionFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.GetCourseExecutionByIdFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.GetCourseExecutionsByUserFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.GetCourseExecutionsFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.RemoveCourseExecutionFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.RemoveStudentFromCourseExecutionFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.UpdateStudentNameFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
@@ -48,7 +48,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
 
         checkInput(courseExecutionDto);
 
-        CreateCourseExecutionData data = new CreateCourseExecutionData(courseExecutionService, unitOfWorkService, courseExecutionDto, unitOfWork);
+        CreateCourseExecutionFunctionality data = new CreateCourseExecutionFunctionality(courseExecutionService, unitOfWorkService, courseExecutionDto, unitOfWork);
 
         data.executeWorkflow(unitOfWork);
         return data.getCreatedCourseExecution();
@@ -59,7 +59,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetCourseExecutionByIdData data = new GetCourseExecutionByIdData(courseExecutionService, unitOfWorkService, executionAggregateId, unitOfWork);
+        GetCourseExecutionByIdFunctionality data = new GetCourseExecutionByIdFunctionality(courseExecutionService, unitOfWorkService, executionAggregateId, unitOfWork);
 
         data.executeWorkflow(unitOfWork);
         return data.getCourseExecutionDto();
@@ -69,7 +69,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetCourseExecutionsData data = new GetCourseExecutionsData(courseExecutionService, unitOfWorkService, unitOfWork);
+        GetCourseExecutionsFunctionality data = new GetCourseExecutionsFunctionality(courseExecutionService, unitOfWorkService, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getCourseExecutions();
@@ -79,7 +79,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        RemoveCourseExecutionData data = new RemoveCourseExecutionData(courseExecutionService, unitOfWorkService, executionAggregateId, unitOfWork);
+        RemoveCourseExecutionFunctionality data = new RemoveCourseExecutionFunctionality(courseExecutionService, unitOfWorkService, executionAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
     }
@@ -88,7 +88,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        AddStudentData data = new AddStudentData(courseExecutionService, userService, unitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, unitOfWork);
+        AddStudentFunctionality data = new AddStudentFunctionality(courseExecutionService, userService, unitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
     }
@@ -97,7 +97,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetCourseExecutionsByUserData data = new GetCourseExecutionsByUserData(courseExecutionService, unitOfWorkService, userAggregateId, unitOfWork);
+        GetCourseExecutionsByUserFunctionality data = new GetCourseExecutionsByUserFunctionality(courseExecutionService, unitOfWorkService, userAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getCourseExecutions();
@@ -107,7 +107,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        RemoveStudentFromCourseExecutionData data = new RemoveStudentFromCourseExecutionData(courseExecutionService, unitOfWorkService, courseExecutionFactory, userAggregateId, userAggregateId, unitOfWork);
+        RemoveStudentFromCourseExecutionFunctionality data = new RemoveStudentFromCourseExecutionFunctionality(courseExecutionService, unitOfWorkService, courseExecutionFactory, userAggregateId, userAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
     }
@@ -116,7 +116,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        AnonymizeStudentData data = new AnonymizeStudentData(courseExecutionService, unitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, unitOfWork);
+        AnonymizeStudentFunctionality data = new AnonymizeStudentFunctionality(courseExecutionService, unitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
     }
@@ -125,7 +125,7 @@ public class SagaCourseExecutionFunctionalities implements CourseExecutionFuncti
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        UpdateStudentNameData data = new UpdateStudentNameData(courseExecutionService, courseExecutionFactory, unitOfWorkService, executionAggregateId, userAggregateId, userDto, unitOfWork);
+        UpdateStudentNameFunctionality data = new UpdateStudentNameFunctionality(courseExecutionService, courseExecutionFactory, unitOfWorkService, executionAggregateId, userAggregateId, userDto, unitOfWork);
     
         data.executeWorkflow(unitOfWork);
     }

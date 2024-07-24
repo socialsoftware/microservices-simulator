@@ -12,10 +12,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateQuizData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindQuizData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetAvailableQuizzesData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateQuizData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.CreateQuizFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.FindQuizFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.GetAvailableQuizzesFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.UpdateQuizFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
@@ -37,7 +37,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
-        CreateQuizData data = new CreateQuizData(courseExecutionService, quizService, questionService, unitOfWorkService, courseExecutionId, quizDto, unitOfWork);
+        CreateQuizFunctionality data = new CreateQuizFunctionality(courseExecutionService, quizService, questionService, unitOfWorkService, courseExecutionId, quizDto, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getCreatedQuizDto();
@@ -47,7 +47,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        FindQuizData data = new FindQuizData(quizService, unitOfWorkService, quizAggregateId, unitOfWork);
+        FindQuizFunctionality data = new FindQuizFunctionality(quizService, unitOfWorkService, quizAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getQuizDto();
@@ -57,7 +57,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetAvailableQuizzesData data = new GetAvailableQuizzesData(quizService, unitOfWorkService, courseExecutionAggregateId, courseExecutionAggregateId, unitOfWork);
+        GetAvailableQuizzesFunctionality data = new GetAvailableQuizzesFunctionality(quizService, unitOfWorkService, courseExecutionAggregateId, courseExecutionAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getAvailableQuizzes();
@@ -67,7 +67,7 @@ public class SagaQuizFunctionalities implements QuizFunctionalitiesInterface{
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        UpdateQuizData data = new UpdateQuizData(quizService, unitOfWorkService, quizFactory, quizDto, unitOfWork);
+        UpdateQuizFunctionality data = new UpdateQuizFunctionality(quizService, unitOfWorkService, quizFactory, quizDto, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getUpdatedQuizDto();

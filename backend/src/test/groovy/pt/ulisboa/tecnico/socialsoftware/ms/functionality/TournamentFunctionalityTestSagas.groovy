@@ -36,8 +36,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.*
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.AddParticipantData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateStudentNameData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.AddParticipantFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.UpdateStudentNameFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 
 import java.time.LocalDateTime
@@ -306,19 +306,19 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         given: 'creator name is updated'
         def updateNameDto = new UserDto()
         updateNameDto.setName(UPDATED_NAME)
-        def functionalityName1 = UpdateStudentNameData.getClass().getSimpleName()
-        def functionalityName2 = AddParticipantData.getClass().getSimpleName()
+        def functionalityName1 = UpdateStudentNameFunctionality.getClass().getSimpleName()
+        def functionalityName2 = AddParticipantFunctionality.getClass().getSimpleName()
         def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
-        def updateStudentNameData = new UpdateStudentNameData(courseExecutionService, courseExecutionFactory, unitOfWorkService, courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto, unitOfWork1)
-        def addParticipantData = new AddParticipantData(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
+        def updateStudentNameFunctionality = new UpdateStudentNameFunctionality(courseExecutionService, courseExecutionFactory, unitOfWorkService, courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto, unitOfWork1)
+        def addParticipantFunctionality = new AddParticipantFunctionality(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
 
-        addParticipantData.executeUntilStep("getUserStep", unitOfWork2) 
-        updateStudentNameData.executeWorkflow(unitOfWork1) 
+        addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2) 
+        updateStudentNameFunctionality.executeWorkflow(unitOfWork1) 
         
         when:
-        addParticipantData.resumeWorkflow(unitOfWork2) 
+        addParticipantFunctionality.resumeWorkflow(unitOfWork2) 
 
         then: 'the name is updated in course execution'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())

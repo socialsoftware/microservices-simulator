@@ -11,12 +11,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.Tuto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.ActivateUserData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateUserData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.DeleteUserData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindUserByIdData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetStudentsData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetTeachersData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.ActivateUserFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.CreateUserFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.DeleteUserFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.FindUserByIdFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.GetStudentsFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.GetTeachersFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
@@ -34,7 +34,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
 
         checkInput(userDto);
 
-        CreateUserData data = new CreateUserData(userService, unitOfWorkService, userDto, unitOfWork);
+        CreateUserFunctionality data = new CreateUserFunctionality(userService, unitOfWorkService, userDto, unitOfWork);
 
         data.executeWorkflow(unitOfWork);
         return data.getCreatedUserDto();
@@ -44,7 +44,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        FindUserByIdData data = new FindUserByIdData(userService, unitOfWorkService, userAggregateId, unitOfWork);
+        FindUserByIdFunctionality data = new FindUserByIdFunctionality(userService, unitOfWorkService, userAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getUserDto();
@@ -54,7 +54,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        ActivateUserData data = new ActivateUserData(userService, unitOfWorkService, userAggregateId, unitOfWork);
+        ActivateUserFunctionality data = new ActivateUserFunctionality(userService, unitOfWorkService, userAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
     }
@@ -63,7 +63,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        DeleteUserData data = new DeleteUserData(userService, unitOfWorkService, userAggregateId, unitOfWork);
+        DeleteUserFunctionality data = new DeleteUserFunctionality(userService, unitOfWorkService, userAggregateId, unitOfWork);
        
         data.executeWorkflow(unitOfWork);
     }
@@ -72,7 +72,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetStudentsData data = new GetStudentsData(userService, unitOfWorkService, unitOfWork);
+        GetStudentsFunctionality data = new GetStudentsFunctionality(userService, unitOfWorkService, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getStudents();
@@ -82,7 +82,7 @@ public class SagaUserFunctionalities implements UserFunctionalitiesInterface {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetTeachersData data = new GetTeachersData(userService, unitOfWorkService, unitOfWork);
+        GetTeachersFunctionality data = new GetTeachersFunctionality(userService, unitOfWorkService, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getTeachers();

@@ -26,17 +26,17 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.AddParticipantData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CancelTournamentData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateTournamentData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindTournamentData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetClosedTournamentsForCourseExecutionData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetOpenedTournamentsForCourseExecutionData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.GetTournamentsForCourseExecutionData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.LeaveTournamentData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveTournamentData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.SolveQuizData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateTournamentData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.AddParticipantFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.CancelTournamentFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.CreateTournamentFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.FindTournamentFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.GetClosedTournamentsForCourseExecutionFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.GetOpenedTournamentsForCourseExecutionFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.GetTournamentsForCourseExecutionFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.LeaveTournamentFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.RemoveTournamentFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.SolveQuizFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.UpdateTournamentFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
@@ -70,7 +70,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         
         checkInput(userId, topicsId, tournamentDto);
 
-        CreateTournamentData data = new CreateTournamentData(tournamentService, courseExecutionService, topicService, quizService, unitOfWorkService, 
+        CreateTournamentFunctionality data = new CreateTournamentFunctionality(tournamentService, courseExecutionService, topicService, quizService, unitOfWorkService, 
                                                             userId, executionId, topicsId, tournamentDto, 
                                                             unitOfWork);
 
@@ -82,7 +82,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
-        AddParticipantData data = new AddParticipantData(tournamentService, courseExecutionService, unitOfWorkService, tournamentAggregateId, userAggregateId, unitOfWork);
+        AddParticipantFunctionality data = new AddParticipantFunctionality(tournamentService, courseExecutionService, unitOfWorkService, tournamentAggregateId, userAggregateId, unitOfWork);
 
         data.executeWorkflow(unitOfWork);
     }
@@ -91,7 +91,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        UpdateTournamentData data = new UpdateTournamentData(tournamentService, topicService, quizService, unitOfWorkService, tournamentFactory, quizFactory, tournamentDto, topicsAggregateIds, unitOfWork);
+        UpdateTournamentFunctionality data = new UpdateTournamentFunctionality(tournamentService, topicService, quizService, unitOfWorkService, tournamentFactory, quizFactory, tournamentDto, topicsAggregateIds, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
     }
@@ -100,7 +100,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetTournamentsForCourseExecutionData data = new GetTournamentsForCourseExecutionData(tournamentService, unitOfWorkService, executionAggregateId, unitOfWork);        
+        GetTournamentsForCourseExecutionFunctionality data = new GetTournamentsForCourseExecutionFunctionality(tournamentService, unitOfWorkService, executionAggregateId, unitOfWork);        
         
         data.executeWorkflow(unitOfWork);
         return data.getTournaments();
@@ -110,7 +110,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetOpenedTournamentsForCourseExecutionData data = new GetOpenedTournamentsForCourseExecutionData(tournamentService, unitOfWorkService, executionAggregateId, unitOfWork);
+        GetOpenedTournamentsForCourseExecutionFunctionality data = new GetOpenedTournamentsForCourseExecutionFunctionality(tournamentService, unitOfWorkService, executionAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getOpenedTournaments();
@@ -120,7 +120,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        GetClosedTournamentsForCourseExecutionData data = new GetClosedTournamentsForCourseExecutionData(tournamentService, unitOfWorkService, executionAggregateId, unitOfWork);
+        GetClosedTournamentsForCourseExecutionFunctionality data = new GetClosedTournamentsForCourseExecutionFunctionality(tournamentService, unitOfWorkService, executionAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getClosedTournaments();
@@ -130,7 +130,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        LeaveTournamentData data = new LeaveTournamentData(tournamentService, unitOfWorkService, tournamentFactory, tournamentAggregateId, userAggregateId, unitOfWork);
+        LeaveTournamentFunctionality data = new LeaveTournamentFunctionality(tournamentService, unitOfWorkService, tournamentFactory, tournamentAggregateId, userAggregateId, unitOfWork);
     
         data.executeWorkflow(unitOfWork);
     }
@@ -139,7 +139,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        SolveQuizData data = new SolveQuizData(tournamentService, quizService, quizAnswerService, unitOfWorkService, tournamentFactory, userAggregateId, userAggregateId, unitOfWork);
+        SolveQuizFunctionality data = new SolveQuizFunctionality(tournamentService, quizService, quizAnswerService, unitOfWorkService, tournamentFactory, userAggregateId, userAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getQuizDto();
@@ -149,7 +149,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        CancelTournamentData data = new CancelTournamentData(tournamentService, unitOfWorkService, tournamentFactory, tournamentAggregateId, unitOfWork);
+        CancelTournamentFunctionality data = new CancelTournamentFunctionality(tournamentService, unitOfWorkService, tournamentFactory, tournamentAggregateId, unitOfWork);
 
         data.executeWorkflow(unitOfWork);
     }
@@ -158,7 +158,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        RemoveTournamentData data = new RemoveTournamentData(tournamentService, unitOfWorkService, tournamentFactory, tournamentAggregateId, unitOfWork);
+        RemoveTournamentFunctionality data = new RemoveTournamentFunctionality(tournamentService, unitOfWorkService, tournamentFactory, tournamentAggregateId, unitOfWork);
     
         data.executeWorkflow(unitOfWork);
     }
@@ -167,7 +167,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        FindTournamentData data = new FindTournamentData(tournamentService, unitOfWorkService, tournamentAggregateId, unitOfWork);
+        FindTournamentFunctionality data = new FindTournamentFunctionality(tournamentService, unitOfWorkService, tournamentAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getTournamentDto();

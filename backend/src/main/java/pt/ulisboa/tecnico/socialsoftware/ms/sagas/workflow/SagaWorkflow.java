@@ -9,11 +9,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.ExecutionPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Workflow;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowData;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 
 public class SagaWorkflow extends Workflow {
-    public SagaWorkflow(WorkflowData data, UnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
+    public SagaWorkflow(WorkflowFunctionality data, UnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
         super(data, unitOfWorkService, unitOfWork);
     }
 

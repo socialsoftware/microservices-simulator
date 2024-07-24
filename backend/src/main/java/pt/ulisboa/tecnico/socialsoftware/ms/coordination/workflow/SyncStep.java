@@ -35,6 +35,7 @@ public class SyncStep implements FlowStep {
         this.dependencies = dependencies;
     }
 
+    /* 
     @Override
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         unitOfWork.registerCompensation(compensationLogic);
@@ -42,19 +43,22 @@ public class SyncStep implements FlowStep {
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);
         return result;
     }
+    */
 
-    /*
+    
     @Override
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         try {
-            unitOfWork.registerCompensation(compensationLogic);
+            if (compensationLogic != null) {
+                unitOfWork.registerCompensation(compensationLogic);
+            }
             syncOperation.run();
             return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
             return CompletableFuture.failedFuture(e);
         }
     }
-    */
+    
 
     @Override
     public void registerCompensation(Runnable compensationLogic, UnitOfWork unitOfWork) {

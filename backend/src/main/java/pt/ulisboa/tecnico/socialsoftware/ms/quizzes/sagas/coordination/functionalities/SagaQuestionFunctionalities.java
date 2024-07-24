@@ -12,12 +12,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionFunctionalitiesInterface;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.CreateQuestionData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindQuestionByAggregateIdData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.FindQuestionsByCourseData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.RemoveQuestionData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateQuestionData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.UpdateQuestionTopicsData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.CreateQuestionFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.FindQuestionByAggregateIdFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.FindQuestionsByCourseFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.RemoveQuestionFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.UpdateQuestionFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.UpdateQuestionTopicsFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
@@ -39,7 +39,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
-        FindQuestionByAggregateIdData data = new FindQuestionByAggregateIdData(questionService, unitOfWorkService, aggregateId, unitOfWork);
+        FindQuestionByAggregateIdFunctionality data = new FindQuestionByAggregateIdFunctionality(questionService, unitOfWorkService, aggregateId, unitOfWork);
 
         data.executeWorkflow(unitOfWork);
         return data.getQuestionDto();
@@ -49,7 +49,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        FindQuestionsByCourseData data = new FindQuestionsByCourseData(questionService, unitOfWorkService, courseAggregateId, unitOfWork);
+        FindQuestionsByCourseFunctionality data = new FindQuestionsByCourseFunctionality(questionService, unitOfWorkService, courseAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getQuestions();
@@ -59,7 +59,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        CreateQuestionData data = new CreateQuestionData(questionService, topicService, courseService, unitOfWorkService, courseAggregateId, questionDto, unitOfWork);
+        CreateQuestionFunctionality data = new CreateQuestionFunctionality(questionService, topicService, courseService, unitOfWorkService, courseAggregateId, questionDto, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
         return data.getCreatedQuestion();
@@ -69,7 +69,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        UpdateQuestionData data = new UpdateQuestionData(questionService, unitOfWorkService, questionFactory, questionDto, unitOfWork);
+        UpdateQuestionFunctionality data = new UpdateQuestionFunctionality(questionService, unitOfWorkService, questionFactory, questionDto, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
     }
@@ -78,7 +78,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        RemoveQuestionData data = new RemoveQuestionData(questionService, unitOfWorkService, questionAggregateId, unitOfWork);
+        RemoveQuestionFunctionality data = new RemoveQuestionFunctionality(questionService, unitOfWorkService, questionAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
     }
@@ -88,7 +88,7 @@ public class SagaQuestionFunctionalities implements QuestionFunctionalitiesInter
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        UpdateQuestionTopicsData data = new UpdateQuestionTopicsData(questionService, topicService, questionFactory, unitOfWorkService, courseAggregateId, topicIds, unitOfWork);
+        UpdateQuestionTopicsFunctionality data = new UpdateQuestionTopicsFunctionality(questionService, topicService, questionFactory, unitOfWorkService, courseAggregateId, topicIds, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
     }

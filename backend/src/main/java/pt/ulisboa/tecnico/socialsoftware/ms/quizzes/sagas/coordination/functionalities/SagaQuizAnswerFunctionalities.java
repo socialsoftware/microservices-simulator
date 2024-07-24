@@ -10,9 +10,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.AnswerQuestionData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.ConcludeQuizData;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.data.StartQuizData;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.AnswerQuestionFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.ConcludeQuizFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalitiesWorkflows.StartQuizFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
@@ -34,7 +34,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
-        AnswerQuestionData data = new AnswerQuestionData(quizAnswerService, questionService, unitOfWorkService, quizAnswerFactory, userAggregateId, userAggregateId, userQuestionAnswerDto, unitOfWork);
+        AnswerQuestionFunctionality data = new AnswerQuestionFunctionality(quizAnswerService, questionService, unitOfWorkService, quizAnswerFactory, userAggregateId, userAggregateId, userQuestionAnswerDto, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
     }
@@ -43,7 +43,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        StartQuizData data = new StartQuizData(quizAnswerService, quizService, unitOfWorkService, userAggregateId, userAggregateId, userAggregateId, unitOfWork);
+        StartQuizFunctionality data = new StartQuizFunctionality(quizAnswerService, quizService, unitOfWorkService, userAggregateId, userAggregateId, userAggregateId, unitOfWork);
 
         data.executeWorkflow(unitOfWork);
     }
@@ -52,7 +52,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        ConcludeQuizData data = new ConcludeQuizData(quizAnswerService, unitOfWorkService, userAggregateId, userAggregateId, unitOfWork);
+        ConcludeQuizFunctionality data = new ConcludeQuizFunctionality(quizAnswerService, unitOfWorkService, userAggregateId, userAggregateId, unitOfWork);
         
         data.executeWorkflow(unitOfWork);
     }

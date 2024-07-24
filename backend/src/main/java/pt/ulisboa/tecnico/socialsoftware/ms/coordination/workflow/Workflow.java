@@ -12,13 +12,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 public abstract class Workflow {
     private UnitOfWorkService unitOfWorkService;
     private UnitOfWork unitOfWork;
-    private WorkflowData data;
+    private WorkflowFunctionality data;
     protected HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies = new HashMap<>();
     private ExecutionPlan executionPlan; // redefined for each transaction model
     private HashMap<String, FlowStep> stepNameMap = new HashMap<>();
     private FlowStep lastExecutedStep;
 
-    public Workflow(WorkflowData data, UnitOfWorkService unitOfWorkService, UnitOfWork unitOfWork) {
+    public Workflow(WorkflowFunctionality data, UnitOfWorkService unitOfWorkService, UnitOfWork unitOfWork) {
         this.data = data;
         this.unitOfWorkService = unitOfWorkService;
         this.unitOfWork = unitOfWork;
