@@ -598,21 +598,6 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         //error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
-    // check
-    def 'concurrent remove tournament and add student: remove finishes first' () {
-        given: 'remove tournament'
-        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
-        and: 'the version number is decreased to simulate concurrency'
-        versionService.decrementVersionNumber()
-
-        when: 'a student is concurrently added to a tournament that is not deleted'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
-
-        then: 'fails during merge because the most recent version of the tournament is deleted'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_DELETED
-    }
-
     // NEW (fails) handleevent para este?
     def 'concurrent remove tournament and add student: add student finishes first' () {
         given: 'student added before tournament removal'
@@ -653,6 +638,47 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         then: 'fails during merge because breaks invariant that forbids to delete a tournament with participants'
         def error = thrown(TutorException)
         error.errorMessage == ErrorMessage.INVARIANT_BREAK
+    }
+    */
+
+    // NEW (fails) handleevent para este?
+    def 'concurrent remove tournament and add student: remove tournament finishes first' () {
+        given: 'tournament removal before student added'
+        def functionalityName1 = AddParticipantFunctionality.getClass().getSimpleName()
+        def functionalityName2 = RemoveTournamentFunctionality.getClass().getSimpleName()
+        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
+        def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
+
+        def addParticipantFunctionality = new AddParticipantFunctionality(tournamentService, courseExecutionService, unitOfWorkService, 
+                                                        tournamentDto.getAggregateId(), userDto.getAggregateId(), unitOfWork1)
+        def removeTournamentFunctionality = new RemoveTournamentFunctionality(tournamentService,unitOfWorkService, tournamentFactory,
+                                                        tournamentDto.getAggregateId(), unitOfWork2)
+
+        addParticipantFunctionality.executeUntilStep("getTournamentStep", unitOfWork1) 
+        removeTournamentFunctionality.executeWorkflow(unitOfWork2) 
+        
+        when: 'remove tournament concurrently with add student'
+        addParticipantFunctionality.resumeWorkflow(unitOfWork1) 
+
+        then: 'the tournament is deleted'
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult == null
+    }
+
+    /*
+    // check
+    def 'concurrent remove tournament and add student: remove finishes first' () {
+        given: 'remove tournament'
+        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
+        and: 'the version number is decreased to simulate concurrency'
+        versionService.decrementVersionNumber()
+
+        when: 'a student is concurrently added to a tournament that is not deleted'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+
+        then: 'fails during merge because the most recent version of the tournament is deleted'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_DELETED
     }
     */
 
