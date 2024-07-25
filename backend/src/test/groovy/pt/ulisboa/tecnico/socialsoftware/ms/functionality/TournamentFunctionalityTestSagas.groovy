@@ -341,7 +341,13 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
     }
 
-    // TODO: decide how sagas become consistent (events)
+    // TODO: decide how sagas become consistent (events) 
+    // check for lost updates, dirty reads and Fuzzy/nonrepeatable reads
+    // merges e eventos em cada ciclo
+    // registar os aggregados lidos durante a funcionalidade na unit of work, durante o commit fazer um lock e fazer um re-read, se nao houver mudanca commit, caso contrario retry da saga com o novo valor lido
+    // com eventos a meio subscrever eventos de alteracao para fazer undo
+    // em cada step ver os eventos e processar
+    // a cada passo executado ver os eventos em relacao aos passos anteriores
     // NEW
     def 'concurrent add creator as tournament participant and update name in course execution: update name finishes first and event processing is after everything finished' () {
         given: 'creator name is updated'
@@ -380,7 +386,7 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentDtoResult2.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
     }
 
-    // NEW (fails)
+    // NEW (fails) lost updates
     def 'concurrent add creator as tournament participant and update name in course execution: update name finishes first and event processing is during addParticipant' () {
         given: 'creator name is updated'
         def updateNameDto = new UserDto()
