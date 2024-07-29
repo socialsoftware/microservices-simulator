@@ -13,8 +13,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 
 public class SagaWorkflow extends Workflow {
-    public SagaWorkflow(WorkflowFunctionality data, UnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
-        super(data, unitOfWorkService, unitOfWork);
+    public SagaWorkflow(WorkflowFunctionality functionality, UnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
+        super(functionality, unitOfWorkService, unitOfWork);
     }
 
     @Override
@@ -58,6 +58,6 @@ public class SagaWorkflow extends Workflow {
         // atualizar dependencias no lado do execute live durante execucao 
         // em vez de ter uma queue pre determinada estaticamente
 
-        return new ExecutionPlan(orderedSteps, stepsWithDependencies);
+        return new ExecutionPlan(orderedSteps, stepsWithDependencies, this.getFunctionality());
     } 
 }

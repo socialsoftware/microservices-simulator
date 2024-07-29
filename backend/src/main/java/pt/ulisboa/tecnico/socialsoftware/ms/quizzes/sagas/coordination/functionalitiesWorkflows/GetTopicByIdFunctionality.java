@@ -34,6 +34,11 @@ public class GetTopicByIdFunctionality extends WorkflowFunctionality {
         workflow.addStep(getTopicStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

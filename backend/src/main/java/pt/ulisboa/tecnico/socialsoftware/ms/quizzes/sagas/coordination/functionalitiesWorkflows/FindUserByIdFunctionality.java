@@ -34,6 +34,11 @@ public class FindUserByIdFunctionality extends WorkflowFunctionality {
         workflow.addStep(findUserStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

@@ -51,6 +51,11 @@ public class ActivateUserFunctionality extends WorkflowFunctionality {
         workflow.addStep(activateUserStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

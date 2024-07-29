@@ -50,6 +50,11 @@ public class DeleteUserFunctionality extends WorkflowFunctionality {
         workflow.addStep(deleteUserStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

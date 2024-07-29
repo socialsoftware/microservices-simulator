@@ -143,6 +143,11 @@ public class CreateTournamentFunctionality extends WorkflowFunctionality {
         this.workflow.addStep(createTournamentStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

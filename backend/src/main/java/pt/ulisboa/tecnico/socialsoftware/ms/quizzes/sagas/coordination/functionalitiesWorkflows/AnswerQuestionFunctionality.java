@@ -73,6 +73,11 @@ public class AnswerQuestionFunctionality extends WorkflowFunctionality {
         workflow.addStep(answerQuestionStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

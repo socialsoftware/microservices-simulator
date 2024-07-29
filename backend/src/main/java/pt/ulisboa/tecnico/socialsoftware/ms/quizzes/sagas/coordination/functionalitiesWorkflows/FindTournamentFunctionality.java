@@ -35,6 +35,11 @@ public class FindTournamentFunctionality extends WorkflowFunctionality {
         workflow.addStep(findTournamentStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) throws TutorException {
         workflow.execute(unitOfWork);
     }

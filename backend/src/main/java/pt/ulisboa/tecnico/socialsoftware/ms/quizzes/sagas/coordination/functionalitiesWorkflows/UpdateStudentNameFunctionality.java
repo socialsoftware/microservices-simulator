@@ -76,6 +76,11 @@ public class UpdateStudentNameFunctionality extends WorkflowFunctionality {
         workflow.addStep(updateStudentNameStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

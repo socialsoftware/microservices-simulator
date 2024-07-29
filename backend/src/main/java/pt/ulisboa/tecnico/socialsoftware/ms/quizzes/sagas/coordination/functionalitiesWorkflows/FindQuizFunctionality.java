@@ -34,6 +34,11 @@ public class FindQuizFunctionality extends WorkflowFunctionality {
         workflow.addStep(findQuizStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

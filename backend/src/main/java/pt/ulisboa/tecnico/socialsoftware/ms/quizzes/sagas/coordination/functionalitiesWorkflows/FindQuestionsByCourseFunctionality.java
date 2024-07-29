@@ -36,6 +36,11 @@ public class FindQuestionsByCourseFunctionality extends WorkflowFunctionality {
         workflow.addStep(findQuestionsStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

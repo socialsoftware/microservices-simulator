@@ -36,6 +36,11 @@ public class GetCourseExecutionsFunctionality extends WorkflowFunctionality {
         workflow.addStep(getCourseExecutionsStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

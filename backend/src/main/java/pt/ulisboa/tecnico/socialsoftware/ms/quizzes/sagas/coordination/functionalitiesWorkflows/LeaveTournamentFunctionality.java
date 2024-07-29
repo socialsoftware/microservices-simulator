@@ -57,6 +57,11 @@ public class LeaveTournamentFunctionality extends WorkflowFunctionality {
         workflow.execute(unitOfWork);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
         workflow.executeStepByName(stepName, unitOfWork);
     }

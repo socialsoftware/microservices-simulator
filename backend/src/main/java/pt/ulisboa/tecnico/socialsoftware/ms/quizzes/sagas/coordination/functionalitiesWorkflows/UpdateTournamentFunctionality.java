@@ -134,6 +134,11 @@ public class UpdateTournamentFunctionality extends WorkflowFunctionality{
         workflow.addStep(updateQuizStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

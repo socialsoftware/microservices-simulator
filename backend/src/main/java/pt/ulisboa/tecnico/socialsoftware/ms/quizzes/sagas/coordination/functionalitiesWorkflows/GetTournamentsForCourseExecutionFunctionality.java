@@ -36,6 +36,11 @@ public class GetTournamentsForCourseExecutionFunctionality extends WorkflowFunct
         workflow.addStep(getTournamentsStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

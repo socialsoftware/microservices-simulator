@@ -50,6 +50,11 @@ public class RemoveQuestionFunctionality extends WorkflowFunctionality {
         workflow.addStep(removeQuestionStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

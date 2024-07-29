@@ -53,6 +53,11 @@ public class UpdateQuestionFunctionality extends WorkflowFunctionality {
         workflow.addStep(updateQuestionStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

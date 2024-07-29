@@ -50,6 +50,11 @@ public class RemoveCourseExecutionFunctionality extends WorkflowFunctionality {
         workflow.addStep(removeCourseExecutionStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

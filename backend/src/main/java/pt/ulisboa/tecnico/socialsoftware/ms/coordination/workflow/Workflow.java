@@ -33,6 +33,10 @@ public abstract class Workflow {
         return unitOfWork;
     }
 
+    public WorkflowFunctionality getFunctionality() {
+        return this.functionality;
+    }
+
     public ExecutionPlan getExecutionPlan() {
         return this.executionPlan;
     }

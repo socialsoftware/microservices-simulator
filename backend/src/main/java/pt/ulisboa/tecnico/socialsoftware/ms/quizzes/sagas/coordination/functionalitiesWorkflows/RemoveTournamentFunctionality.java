@@ -53,6 +53,11 @@ public class RemoveTournamentFunctionality extends WorkflowFunctionality {
         workflow.addStep(removeTournamentStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

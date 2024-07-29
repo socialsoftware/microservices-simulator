@@ -50,6 +50,11 @@ public class DeleteTopicFunctionality extends WorkflowFunctionality {
         workflow.addStep(deleteTopicStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

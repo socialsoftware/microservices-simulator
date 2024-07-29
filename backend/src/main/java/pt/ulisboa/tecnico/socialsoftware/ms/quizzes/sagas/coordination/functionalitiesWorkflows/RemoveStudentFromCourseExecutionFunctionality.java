@@ -52,6 +52,11 @@ public class RemoveStudentFromCourseExecutionFunctionality extends WorkflowFunct
         workflow.addStep(removeStudentStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

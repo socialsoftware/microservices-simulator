@@ -12,13 +12,15 @@ public class ExecutionPlan {
     private HashMap<FlowStep, ArrayList<FlowStep>> dependencies;
     private HashMap<FlowStep, Boolean> executedSteps = new HashMap<>();
     private HashMap<FlowStep, CompletableFuture<Void>> stepFutures = new HashMap<>();
+    private WorkflowFunctionality functionality;
 
-    public ExecutionPlan(ArrayList<FlowStep> plan, HashMap<FlowStep, ArrayList<FlowStep>> dependencies) {
+    public ExecutionPlan(ArrayList<FlowStep> plan, HashMap<FlowStep, ArrayList<FlowStep>> dependencies, WorkflowFunctionality functionality) {
         this.plan = plan;
         this.dependencies = dependencies;
         for (FlowStep step : plan) {
             executedSteps.put(step, false);
         }
+        this.functionality = functionality;
     }
 
     public ArrayList<FlowStep> getPlan() {
@@ -50,6 +52,7 @@ public class ExecutionPlan {
         while (iterator.hasNext()) {
             FlowStep step = iterator.next();
             if (canExecute(this.stepFutures, step)) {
+                functionality.handleEvents();
                 this.stepFutures.put(step, step.execute(unitOfWork));
                 iterator.remove();
                 iterator = plan.listIterator();
@@ -64,7 +67,9 @@ public class ExecutionPlan {
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
             if (dependencies.get(step).isEmpty()) {;
+                functionality.handleEvents();
                 this.stepFutures.put(step, step.execute(unitOfWork)); // executa e guarda os passos sem dependencias
+                executedSteps.put(step, true);
             }
         }
 
@@ -75,6 +80,7 @@ public class ExecutionPlan {
                 CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // cria um future que so executa quando todas as dependencias forem completadas
                     deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // mapeia cada dependencia com o correspondente future de step futures
                 );
+                functionality.handleEvents();
                 this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // so executa depois das dependencias estarem completadas
             }
         }
@@ -87,6 +93,7 @@ public class ExecutionPlan {
         for (FlowStep step : plan) {
             if (!executedSteps.get(step) && dependencies.get(step).stream().allMatch(dep -> executedSteps.get(dep))) {
                 executedSteps.put(step, true);
+                functionality.handleEvents();
                 return step.execute(unitOfWork).thenRun(() -> { /* Next step will be executed in test case */ });
             }
         }
@@ -97,6 +104,7 @@ public class ExecutionPlan {
 
         for (FlowStep step : steps) {
             if (dependencies.get(step).isEmpty()) {
+                functionality.handleEvents();
                 this.stepFutures.put(step, step.execute(unitOfWork));
             }
         }
@@ -107,6 +115,7 @@ public class ExecutionPlan {
                 CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(
                         deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new)
                 );
+                functionality.handleEvents();
                 this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork)));
             }
         }

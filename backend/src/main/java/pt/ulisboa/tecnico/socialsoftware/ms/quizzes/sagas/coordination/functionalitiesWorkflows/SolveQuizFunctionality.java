@@ -100,6 +100,11 @@ public class SolveQuizFunctionality extends WorkflowFunctionality {
         workflow.addStep(solveQuizStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

@@ -34,6 +34,11 @@ public class FindQuestionByAggregateIdFunctionality extends WorkflowFunctionalit
         workflow.addStep(findQuestionStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

@@ -36,6 +36,11 @@ public class GetAvailableQuizzesFunctionality extends WorkflowFunctionality {
         workflow.addStep(getAvailableQuizzesStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

@@ -57,6 +57,11 @@ public class CreateTopicFunctionality extends WorkflowFunctionality {
         workflow.addStep(createTopicStep);
     }
 
+    @Override
+    public void handleEvents() {
+
+    }
+
     public void executeWorkflow(SagaUnitOfWork unitOfWork) {
         workflow.execute(unitOfWork);
     }

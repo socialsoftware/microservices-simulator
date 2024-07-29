@@ -33,6 +33,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggr
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.*
 
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 
@@ -77,6 +79,8 @@ class TournamentFunctionalityTestSagas extends SpockTest {
 
     @Autowired
     private VersionService versionService;
+    @Autowired
+    private EventService eventService;
 
     @Autowired
     private TournamentEventHandling tournamentEventHandling
@@ -220,7 +224,7 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
         def updateStudentNameFunctionality = new UpdateStudentNameFunctionality(courseExecutionService, courseExecutionFactory, unitOfWorkService, courseExecutionDto.getAggregateId(), userDto.getAggregateId(), updateNameDto, unitOfWork1)
-        def addParticipantFunctionality = new AddParticipantFunctionality(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2)
+        def addParticipantFunctionality = new AddParticipantFunctionality(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2)
 
         updateStudentNameFunctionality.executeUntilStep("getOldCourseExecutionStep", unitOfWork1) 
         addParticipantFunctionality.executeWorkflow(unitOfWork2) 
@@ -348,6 +352,10 @@ class TournamentFunctionalityTestSagas extends SpockTest {
     // com eventos a meio subscrever eventos de alteracao para fazer undo
     // em cada step ver os eventos e processar
     // a cada passo executado ver os eventos em relacao aos passos anteriores
+
+
+    /*
+    // wrong with event mid step
     // NEW
     def 'concurrent add creator as tournament participant and update name in course execution: update name finishes first and event processing is after everything finished' () {
         given: 'creator name is updated'
@@ -359,7 +367,7 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
         def updateStudentNameFunctionality = new UpdateStudentNameFunctionality(courseExecutionService, courseExecutionFactory, unitOfWorkService, courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto, unitOfWork1)
-        def addParticipantFunctionality = new AddParticipantFunctionality(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
+        def addParticipantFunctionality = new AddParticipantFunctionality(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
 
         addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2) 
         updateStudentNameFunctionality.executeWorkflow(unitOfWork1) 
@@ -385,6 +393,7 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentDtoResult2.getParticipants().size() == 1
         tournamentDtoResult2.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
     }
+    */
 
     // NEW (fails) lost updates
     def 'concurrent add creator as tournament participant and update name in course execution: update name finishes first and event processing is during addParticipant' () {
@@ -397,11 +406,10 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
         def updateStudentNameFunctionality = new UpdateStudentNameFunctionality(courseExecutionService, courseExecutionFactory, unitOfWorkService, courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto, unitOfWork1)
-        def addParticipantFunctionality = new AddParticipantFunctionality(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
+        def addParticipantFunctionality = new AddParticipantFunctionality(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
 
         addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2) 
         updateStudentNameFunctionality.executeWorkflow(unitOfWork1) 
-        tournamentEventHandling.handleUpdateStudentNameEvent();
         
         when:
         addParticipantFunctionality.resumeWorkflow(unitOfWork2) 
@@ -409,7 +417,7 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         then: 'the name is updated in course execution'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
-        and: 'the creator is added as participant with old name'
+        and: 'the creator is added as participant with new name'
         def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult.creator.name == UPDATED_NAME
         tournamentDtoResult.getParticipants().size() == 1
@@ -612,7 +620,7 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
-        def addParticipantFunctionality = new AddParticipantFunctionality(tournamentService, courseExecutionService, unitOfWorkService, 
+        def addParticipantFunctionality = new AddParticipantFunctionality(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, 
                                                         tournamentDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork1)
         def removeTournamentFunctionality = new RemoveTournamentFunctionality(tournamentService,unitOfWorkService, tournamentFactory,
                                                         tournamentDto.getAggregateId(), unitOfWork2)
@@ -655,7 +663,7 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
-        def addParticipantFunctionality = new AddParticipantFunctionality(tournamentService, courseExecutionService, unitOfWorkService, 
+        def addParticipantFunctionality = new AddParticipantFunctionality(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, 
                                                         tournamentDto.getAggregateId(), userDto.getAggregateId(), unitOfWork1)
         def removeTournamentFunctionality = new RemoveTournamentFunctionality(tournamentService,unitOfWorkService, tournamentFactory,
                                                         tournamentDto.getAggregateId(), unitOfWork2)
