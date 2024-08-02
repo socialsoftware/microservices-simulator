@@ -166,7 +166,7 @@ public class SagaTournamentFunctionalities implements TournamentFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        RemoveTournamentFunctionality functionality = new RemoveTournamentFunctionality(tournamentService, unitOfWorkService, tournamentFactory, tournamentAggregateId, unitOfWork);
+        RemoveTournamentFunctionality functionality = new RemoveTournamentFunctionality(eventService, tournamentService, unitOfWorkService, tournamentFactory, tournamentAggregateId, unitOfWork);
     
         functionality.executeWorkflow(unitOfWork);
     }

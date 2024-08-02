@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.events.publish.AnonymizeStudentEvent;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.events.publish.UpdateStudentNameEvent;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
@@ -18,6 +19,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
@@ -56,10 +59,15 @@ public class AddParticipantFunctionality extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep getTournamentStep = new SyncStep("getTournamentStep", () -> {
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+            SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(tournament, SagaState.ADD_PARTICIPANT_READ_TOURNAMENT, unitOfWork);
             this.setTournament(tournament);
             this.currentStep = "getTournamentStep";
         });
+
+        getTournamentStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState((SagaTournament) tournament, SagaState.NOT_IN_SAGA, unitOfWork);
+        }, unitOfWork);
 
         SyncStep getUserStep = new SyncStep("getUserStep", () -> {
             UserDto userDto = courseExecutionService.getStudentByExecutionIdAndUserId(
@@ -70,7 +78,9 @@ public class AddParticipantFunctionality extends WorkflowFunctionality {
 
         SyncStep addParticipantStep = new SyncStep("addParticipantStep", () -> {
             TournamentParticipant participant = new TournamentParticipant(this.getUserDto());
-            tournamentService.addParticipant(tournamentAggregateId, participant, userDto.getRole(), unitOfWork);
+            if (!tournament.getTournamentCreator().getCreatorName().equals("ANONYMOUS")) {
+                tournamentService.addParticipant(tournamentAggregateId, participant, userDto.getRole(), unitOfWork);
+            }
             this.currentStep = "addParticipantStep";
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
@@ -99,6 +109,17 @@ public class AddParticipantFunctionality extends WorkflowFunctionality {
                         tournament.getTournamentCreator().setCreatorName(eventToProcess.getUpdatedName());
                     }
                 }
+                eventsToProcess = eventService.getSubscribedEvents(eventSubscription, AnonymizeStudentEvent.class);
+                for (Event event: eventsToProcess) {
+                    AnonymizeStudentEvent eventToProcess = (AnonymizeStudentEvent) event;
+                    this.getUserDto().setName("ANONYMOUS");
+                    this.getUserDto().setUsername("ANONYMOUS");
+                    if (tournament.getTournamentCreator().getCreatorAggregateId().equals(eventToProcess.getStudentAggregateId())) {
+                        tournament.getTournamentCreator().setCreatorName("ANONYMOUS");
+                        tournament.getTournamentCreator().setCreatorUsername("ANONYMOUS");
+                    }
+                }
+                // TODO tournamentRemovedEvent
             } 
         }
     }

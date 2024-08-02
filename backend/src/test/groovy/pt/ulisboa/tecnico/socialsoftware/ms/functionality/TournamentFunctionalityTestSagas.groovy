@@ -305,10 +305,7 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         when: 'add creator as participant where the creator in tournament still has the old name'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
 
-        then: 'fails because course execution emitted the update event but it was not processed by the tournament'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED
-        and: 'when event is finally processed it updates the creator name'
+        then: 'when event is finally processed it updates the creator name'
         tournamentEventHandling.handleUpdateStudentNameEvent()
         and: 'creator can be added as participant because tournament has processed all events it subscribes from course execution'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
@@ -460,22 +457,9 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         def updateNameDto = new UserDto()
         updateNameDto.setName(UPDATED_NAME)
         courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
-        and: 'the version number is decreased to simulate concurrency'
-        versionService.decrementVersionNumber()
         and: 'add creator as participant which uses a previous version of the name, creator and participant have the same info'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
-        and: 'the version number is decreased to simulate concurrency'
-        versionService.decrementVersionNumber()
 
-        when: 'process update name in the tournament that does not have participant, so only the creator is updated, and' +
-                'when merging with the tournament that has participant, creator and participant have different names'
-        tournamentEventHandling.handleUpdateStudentNameEvent()
-
-        then: 'fails because invariant about same info for creator and participant, if the creator, breaks'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.INVARIANT_BREAK
-        and: 'process update name event using tournament version that has the creator and the participant'
-        tournamentEventHandling.handleUpdateStudentNameEvent();
         and: 'the name is updated in course execution'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
@@ -490,8 +474,6 @@ class TournamentFunctionalityTestSagas extends SpockTest {
     def 'concurrent add creator as tournament participant and update name in course execution: add creator finishes first' () {
         given: 'add creator as participant'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
-        and: 'the version number is decreased to simulate concurrency'
-        versionService.decrementVersionNumber()
         and: 'creator name is updated'
         def updateNameDto = new UserDto()
         updateNameDto.setName(UPDATED_NAME)
@@ -523,10 +505,7 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         when: 'a student is added to a tournament'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
 
-        then: 'fails during commit because tournament is inactive due to anonymous creator'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
-        and: 'creator is anonymized'
+        then: 'creator is anonymized'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
@@ -547,11 +526,7 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         when: 'a student is added to a tournament'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
 
-        then: 'fails because it is not possible to get a causal snapshot, ' +
-                'course execution emitted an event that is not processed by tournament'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED
-        and: 'tournament processes event to anonymize the creator'
+        then: 'tournament processes event to anonymize the creator'
         tournamentEventHandling.handleAnonymizeStudentEvents()
         and: 'creator is anonymized'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
@@ -572,17 +547,12 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
         and: 'tournament processes event to anonymize the creator'
         tournamentEventHandling.handleAnonymizeStudentEvents()
-        and: 'the version number is decreased to simulate concurrency'
-        versionService.decrementVersionNumber()
 
         when: 'another student is concurrently added to a tournament where the creator was anonymized in the course execution' +
                 'but not in the tournament'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
 
-        then: 'fails during merge because course execution emitted an event that was not processed by the tournament version'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED
-        and: 'creator is anonymized'
+        then: 'creator is anonymized'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
@@ -622,7 +592,7 @@ class TournamentFunctionalityTestSagas extends SpockTest {
 
         def addParticipantFunctionality = new AddParticipantFunctionality(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, 
                                                         tournamentDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork1)
-        def removeTournamentFunctionality = new RemoveTournamentFunctionality(tournamentService,unitOfWorkService, tournamentFactory,
+        def removeTournamentFunctionality = new RemoveTournamentFunctionality(eventService, tournamentService,unitOfWorkService, tournamentFactory,
                                                         tournamentDto.getAggregateId(), unitOfWork2)
 
         removeTournamentFunctionality.executeUntilStep("getTournamentStep", unitOfWork2) 
@@ -665,7 +635,7 @@ class TournamentFunctionalityTestSagas extends SpockTest {
 
         def addParticipantFunctionality = new AddParticipantFunctionality(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, 
                                                         tournamentDto.getAggregateId(), userDto.getAggregateId(), unitOfWork1)
-        def removeTournamentFunctionality = new RemoveTournamentFunctionality(tournamentService,unitOfWorkService, tournamentFactory,
+        def removeTournamentFunctionality = new RemoveTournamentFunctionality(eventService, tournamentService,unitOfWorkService, tournamentFactory,
                                                         tournamentDto.getAggregateId(), unitOfWork2)
 
         addParticipantFunctionality.executeUntilStep("getTournamentStep", unitOfWork1) 

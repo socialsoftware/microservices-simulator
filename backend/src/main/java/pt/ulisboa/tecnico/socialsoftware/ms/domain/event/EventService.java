@@ -1,16 +1,17 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.event;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateRepository;
-
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateRepository;
 
 @Service
 public class EventService {
@@ -34,6 +35,7 @@ public class EventService {
     public List<? extends Event> getSubscribedEvents(EventSubscription eventSubscription, Class<? extends Event> eventClass) {
         return eventRepository.findAll().stream()
                 .filter(eventSubscription::subscribesEvent)
+                .filter(eventClass::isInstance) // TODO check this
                 .map(eventClass::cast)
                 .sorted(Comparator.comparing(Event::getTimestamp).reversed())
                 .toList();
