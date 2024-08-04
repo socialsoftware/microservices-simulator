@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.sagas.worklow
+package pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow
 
 import org.springframework.boot.test.context.SpringBootTest
 
@@ -23,16 +23,16 @@ class PlanOrderTest extends SpockTest {
     def unitOfWorkService = Mock(SagaUnitOfWorkService)
     def unitOfWork = new SagaUnitOfWork(0, "TEST")
     def workflowFunctionality = Mock(WorkflowFunctionality)
-    def workflow = new SagaWorkflow(workflowFunctionality, unitOfWorkService, "TEST", unitOfWork)
+    def workflow = new SagaWorkflow(workflowFunctionality, unitOfWorkService, unitOfWork)
     def step1 = new SyncStep({ System.out.println("Step 1 executed") })
     def step2 = new SyncStep({ System.out.println("Step 2 executed") })
     def step3 = new SyncStep({ System.out.println("Step 3 executed") })
     def step4 = new SyncStep({ System.out.println("Step 4 executed") })
-    def asyncStep1 = new AsyncStep(() -> CompletableFuture.runAsync(() -> {
+    def asyncStep1 = new AsyncStep("AsyncStep1", () -> CompletableFuture.runAsync(() -> {
         try { TimeUnit.MILLISECONDS.sleep(200); } catch (InterruptedException e) { e.printStackTrace(); }
         System.out.println("Async Step 1 executed");
     }))
-    def asyncStep2 = new AsyncStep(() -> CompletableFuture.runAsync(() -> {
+    def asyncStep2 = new AsyncStep("AsyncStep2", () -> CompletableFuture.runAsync(() -> {
         try { TimeUnit.MILLISECONDS.sleep(200); } catch (InterruptedException e) { e.printStackTrace(); }
         System.out.println("Async Step 2 executed");
     }))

@@ -16,13 +16,13 @@ public class SyncStep implements FlowStep {
         this.syncOperation = syncOperation;
     }
 
-    //temp
+    // TODO temp
     public SyncStep(Runnable syncOperation) {
         this.stepName = stepName;
         this.syncOperation = syncOperation;
     }
 
-    //temp
+    // TODO temp
     public SyncStep(Runnable syncOperation, ArrayList<FlowStep> dependencies) {
         this.stepName = stepName;
         this.syncOperation = syncOperation;

@@ -46,9 +46,14 @@ public class AsyncStep implements FlowStep {
 
     @Override
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-        unitOfWork.registerCompensation(compensationLogic);
-        CompletableFuture<Void> result = CompletableFuture.supplyAsync(asyncOperation, executorService).thenCompose(Function.identity());
-        return result;
+        try {
+            if (compensationLogic != null) {
+                unitOfWork.registerCompensation(compensationLogic);
+            }
+            return CompletableFuture.supplyAsync(asyncOperation, executorService).thenCompose(Function.identity());
+        } catch (Exception e) {
+            return CompletableFuture.failedFuture(e);
+        }
     }
 
     @Override
