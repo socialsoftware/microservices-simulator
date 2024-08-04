@@ -1,15 +1,19 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-
-import jakarta.persistence.*;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.INVARIANT_BREAK;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.USER_ACTIVE;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.MergeableAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 
 /*
     INTRA-INVARIANTS:
@@ -18,7 +22,7 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.excepti
     INTER_INVARIANTS:
  */
 @Entity
-public abstract class User extends Aggregate {
+public abstract class User extends Aggregate implements MergeableAggregate {
     @Column
     private String name;
     @Column
@@ -107,5 +111,20 @@ public abstract class User extends Aggregate {
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
         return new HashSet<>();
+    }
+
+    @Override
+    public Set<String> getMutableFields() {
+        return Set.of("name", "username", "active");
+    }
+
+    @Override
+    public Set<String[]> getIntentions() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
+        return this;
     }
 }

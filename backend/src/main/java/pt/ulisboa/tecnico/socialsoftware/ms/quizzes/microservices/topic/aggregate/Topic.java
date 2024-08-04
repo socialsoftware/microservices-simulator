@@ -1,11 +1,15 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-
-import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToOne;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.MergeableAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
 /*
     INTRA-INVARIANTS:
@@ -14,7 +18,7 @@ import java.util.Set;
         COURSE-EXISTS (course doesnt send events)
  */
 @Entity
-public abstract class Topic extends Aggregate {
+public abstract class Topic extends Aggregate implements MergeableAggregate {
     @Column
     private String name;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "topic")
@@ -59,6 +63,31 @@ public abstract class Topic extends Aggregate {
     public void setTopicCourse(TopicCourse course) {
         this.topicCourse = course;
         this.topicCourse.setTopic(this);
+    }
+
+    @Override
+    public Set<String> getMutableFields() {
+        return Set.of("name");
+    }
+
+    @Override
+    public Set<String[]> getIntentions() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
+        Topic committedTopic = (Topic) committedVersion;
+        mergeName(toCommitVersionChangedFields, this, committedTopic);
+        return this;
+    }
+
+    private void mergeName(Set<String> toCommitVersionChangedFields, Topic mergedTopic, Topic committedTopic) {
+        if (toCommitVersionChangedFields.contains("name")) {
+            mergedTopic.setName(getName());
+        } else {
+            mergedTopic.setName(committedTopic.getName());
+        }
     }
 
 }

@@ -17,7 +17,6 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityManager;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.version.VersionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
@@ -119,7 +118,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
                 // this verification in order to not detect the same as a version as concurrent again
                 if (concurrentAggregate != null && unitOfWork.getVersion() <= concurrentAggregate.getVersion()) {
                     concurrentAggregates = true;
-                    Aggregate newAggregate = ((CausalAggregate) aggregateToWrite).merge(aggregateToWrite, concurrentAggregate); // TODO change this to saga aggregate
+                    Aggregate newAggregate = ((SagaAggregate) aggregateToWrite).merge(aggregateToWrite, concurrentAggregate); // TODO change this to saga aggregate
                     newAggregate.verifyInvariants();
                     newAggregate.setId(null);
                     modifiedAggregatesToCommit.put(aggregateId, newAggregate);

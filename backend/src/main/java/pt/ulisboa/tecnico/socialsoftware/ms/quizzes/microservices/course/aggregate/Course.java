@@ -1,13 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-
-import jakarta.persistence.*;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.MergeableAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
 /*
     INTRA-INVARIANTS:
@@ -16,7 +19,7 @@ import java.util.Set;
     INTER_INVARIANTS:
  */
 @Entity
-public abstract class Course extends Aggregate {
+public abstract class Course extends Aggregate implements MergeableAggregate {
     /*
         COURSE_TYPE_FINAL
      */
@@ -61,6 +64,21 @@ public abstract class Course extends Aggregate {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public Set<String> getMutableFields() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public Set<String[]> getIntentions() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
+        return null;
     }
 
 }
