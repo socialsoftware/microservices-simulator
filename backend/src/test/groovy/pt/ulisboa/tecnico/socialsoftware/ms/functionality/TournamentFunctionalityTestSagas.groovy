@@ -681,11 +681,10 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
 
         when: 'find the tournament'
-        tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        def tournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
 
         then: 'after merge the tournament is removed, not found'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+        tournament == null
     }
 
     // update topics in tournament and update topics in tournament
