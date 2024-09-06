@@ -3,8 +3,9 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.even
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.QuestionEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.eventProcessing.QuestionEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.handling.handlers.DeleteTopicEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.handling.handlers.UpdateTopicEventHandler;

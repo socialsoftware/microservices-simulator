@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.handling.handlers;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.eventProcessing.QuestionEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionRepository;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.QuestionEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.events.publish.DeleteTopicEvent;
 
 public class DeleteTopicEventHandler extends QuestionEventHandler {

@@ -1,12 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.events.handling.handlers;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswer;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerRepository;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.QuizAnswerEventProcessing;
-
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.eventProcessing.QuizAnswerEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswer;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerRepository;
 
 public abstract class QuizAnswerEventHandler extends EventHandler {
     private QuizAnswerRepository quizAnswerRepository;

@@ -1,12 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.handlers;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentRepository;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.TournamentEventProcessing;
-
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.eventProcessing.TournamentEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentRepository;
 
 public abstract class TournamentEventHandler extends EventHandler {
     private TournamentRepository tournamentRepository;
