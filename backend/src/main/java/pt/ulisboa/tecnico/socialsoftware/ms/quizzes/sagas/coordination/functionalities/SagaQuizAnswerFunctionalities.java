@@ -52,7 +52,7 @@ public class SagaQuizAnswerFunctionalities implements QuizAnswerFunctionalitiesI
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
     
-        ConcludeQuizFunctionality functionality = new ConcludeQuizFunctionality(quizAnswerService, unitOfWorkService, userAggregateId, userAggregateId, unitOfWork);
+        ConcludeQuizFunctionality functionality = new ConcludeQuizFunctionality(quizAnswerService, unitOfWorkService, quizAggregateId, userAggregateId, unitOfWork);
         
         functionality.executeWorkflow(unitOfWork);
     }
