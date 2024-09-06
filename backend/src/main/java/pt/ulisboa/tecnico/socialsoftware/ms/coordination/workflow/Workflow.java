@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 
 //TODO change how planOrder works
 public abstract class Workflow {
-    private UnitOfWorkService unitOfWorkService;
+    protected UnitOfWorkService unitOfWorkService;
     private UnitOfWork unitOfWork;
     private WorkflowFunctionality functionality;
     protected HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies = new HashMap<>();
