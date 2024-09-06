@@ -42,19 +42,19 @@ public class CreateQuizFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer courseExecutionId, QuizDto quizDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getCourseExecutionStep = new SyncStep(() -> {
+        SyncStep getCourseExecutionStep = new SyncStep("getCourseExecutionStep", () -> {
             QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionService.getCourseExecutionById(courseExecutionId, unitOfWork));
             this.setQuizCourseExecution(quizCourseExecution);
         });
 
-        SyncStep getQuestionsStep = new SyncStep(() -> {
+        SyncStep getQuestionsStep = new SyncStep("getQuestionsStep", () -> {
             Set<QuestionDto> questions = quizDto.getQuestionDtos().stream()
                     .map(qq -> questionService.getQuestionById(qq.getAggregateId(), unitOfWork))
                     .collect(Collectors.toSet());
             this.setQuestions(questions);
         });
 
-        SyncStep createQuizStep = new SyncStep(() -> {
+        SyncStep createQuizStep = new SyncStep("createQuizStep", () -> {
             QuizDto createdQuizDto = quizService.createQuiz(this.getQuizCourseExecution(), this.getQuestions(), quizDto, unitOfWork);
             this.setCreatedQuizDto(createdQuizDto);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep, getQuestionsStep)));

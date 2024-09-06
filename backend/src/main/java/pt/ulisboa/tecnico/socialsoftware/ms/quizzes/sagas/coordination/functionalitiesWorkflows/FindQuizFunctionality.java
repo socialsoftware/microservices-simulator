@@ -26,7 +26,7 @@ public class FindQuizFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer quizAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep findQuizStep = new SyncStep(() -> {
+        SyncStep findQuizStep = new SyncStep("findQuizStep", () -> {
             QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
             this.setQuizDto(quizDto);
         });

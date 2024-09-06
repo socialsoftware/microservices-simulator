@@ -39,7 +39,7 @@ public class AnswerQuestionFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer quizAggregateId, Integer userAggregateId, QuestionAnswerDto userQuestionAnswerDto, QuizAnswerFactory quizAnswerFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getQuestionStep = new SyncStep(() -> {
+        SyncStep getQuestionStep = new SyncStep("getQuestionStep", () -> {
             QuestionDto questionDto = questionService.getQuestionById(userQuestionAnswerDto.getQuestionAggregateId(), unitOfWork);
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(question, SagaState.ANSWER_QUESTION_READ_QUESTION, unitOfWork);
@@ -52,7 +52,7 @@ public class AnswerQuestionFunctionality extends WorkflowFunctionality {
             unitOfWorkService.registerSagaState(question, SagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
 
-        SyncStep getOldQuizAnswerStep = new SyncStep(() -> {
+        SyncStep getOldQuizAnswerStep = new SyncStep("getOldQuizAnswerStep", () -> {
             SagaQuizAnswer oldQuizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(oldQuizAnswer, SagaState.ANSWER_QUESTION_READ_QUIZ_ANSWER, unitOfWork);
             this.setOldQuizAnswer(oldQuizAnswer);
@@ -64,7 +64,7 @@ public class AnswerQuestionFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(newQuizAnswer);
         }, unitOfWork);
 
-        SyncStep answerQuestionStep = new SyncStep(() -> {
+        SyncStep answerQuestionStep = new SyncStep("answerQuestionStep", () -> {
             quizAnswerService.answerQuestion(quizAggregateId, userAggregateId, userQuestionAnswerDto, this.getQuestionDto(), unitOfWork);
         }, new ArrayList<>(Arrays.asList(getQuestionStep, getOldQuizAnswerStep)));
 

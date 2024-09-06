@@ -54,7 +54,7 @@ public class UpdateTournamentFunctionality extends WorkflowFunctionality{
     public void buildWorkflow(TournamentDto tournamentDto, Set<Integer> topicsAggregateIds, TournamentFactory tournamentFactory, QuizFactory quizFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
     
-        SyncStep getOriginalTournamentStep = new SyncStep(() -> {
+        SyncStep getOriginalTournamentStep = new SyncStep("getOriginalTournamentStep", () -> {
             TournamentDto originalTournamentDto = tournamentService.getTournamentById(tournamentDto.getAggregateId(), unitOfWork);
             SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(originalTournamentDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(tournament, SagaState.UPDATE_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
@@ -68,7 +68,7 @@ public class UpdateTournamentFunctionality extends WorkflowFunctionality{
             unitOfWorkService.registerSagaState(tournament, SagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
-        SyncStep getTopicsStep = new SyncStep(() -> {
+        SyncStep getTopicsStep = new SyncStep("getTopicsStep", () -> {
             topicsAggregateIds.stream().forEach(topicId -> {
                 TopicDto t = topicService.getTopicById(topicId, unitOfWork);
                 SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(t.getAggregateId(), unitOfWork);
@@ -85,7 +85,7 @@ public class UpdateTournamentFunctionality extends WorkflowFunctionality{
             });
         }, unitOfWork);
     
-        SyncStep updateTournamentStep = new SyncStep(() -> {
+        SyncStep updateTournamentStep = new SyncStep("updateTournamentStep", () -> {
             TournamentDto newTournamentDto = tournamentService.updateTournament(tournamentDto, this.getTopicsDtos(), unitOfWork);
             SagaTournament newTournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(newTournamentDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(newTournament, SagaState.UPDATE_TOURNAMENT_READ_UPDATED_TOPICS, unitOfWork);
@@ -98,7 +98,7 @@ public class UpdateTournamentFunctionality extends WorkflowFunctionality{
             unitOfWork.registerChanged(oldTournament);
         }, unitOfWork);
     
-        SyncStep updateQuizStep = new SyncStep(() -> {
+        SyncStep updateQuizStep = new SyncStep("updateQuizStep", () -> {
             QuizDto quizDto = new QuizDto();
             quizDto.setAggregateId(this.getNewTournamentDto().getQuiz().getAggregateId());
             quizDto.setAvailableDate(this.getNewTournamentDto().getStartTime());

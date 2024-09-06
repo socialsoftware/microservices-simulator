@@ -44,7 +44,7 @@ public class CreateQuestionFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer courseAggregateId, QuestionDto questionDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep validateQuestionTopicsStep = new SyncStep(() -> {
+        SyncStep validateQuestionTopicsStep = new SyncStep("validateQuestionTopicsStep", () -> {
             for (TopicDto topicDto : questionDto.getTopicDto()) {
                 if (!topicDto.getCourseId().equals(courseAggregateId)) {
                     throw new TutorException(ErrorMessage.QUESTION_TOPIC_INVALID_COURSE, topicDto.getAggregateId(), courseAggregateId);
@@ -52,19 +52,19 @@ public class CreateQuestionFunctionality extends WorkflowFunctionality {
             }
         });
     
-        SyncStep getCourseStep = new SyncStep(() -> {
+        SyncStep getCourseStep = new SyncStep("getCourseStep", () -> {
             QuestionCourse course = new QuestionCourse(courseService.getCourseById(courseAggregateId, unitOfWork));
             this.setCourse(course);
         });
     
-        SyncStep getTopicsStep = new SyncStep(() -> {
+        SyncStep getTopicsStep = new SyncStep("getTopicsStep", () -> {
             List<TopicDto> topics = questionDto.getTopicDto().stream()
                     .map(topicDto -> topicService.getTopicById(topicDto.getAggregateId(), unitOfWork))
                     .collect(Collectors.toList());
             this.setTopics(topics);
         });
     
-        SyncStep createQuestionStep = new SyncStep(() -> {
+        SyncStep createQuestionStep = new SyncStep("createQuestionStep", () -> {
             QuestionDto createdQuestion = questionService.createQuestion(this.getCourse(), questionDto, this.getTopics(), unitOfWork);
             this.setCreatedQuestion(createdQuestion);
         }, new ArrayList<>(Arrays.asList(validateQuestionTopicsStep, getCourseStep, getTopicsStep)));

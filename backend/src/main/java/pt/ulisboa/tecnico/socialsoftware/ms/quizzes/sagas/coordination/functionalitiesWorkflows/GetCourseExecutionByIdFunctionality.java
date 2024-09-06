@@ -26,7 +26,7 @@ public class GetCourseExecutionByIdFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer executionAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getCourseExecutionStep = new SyncStep(() -> {
+        SyncStep getCourseExecutionStep = new SyncStep("getCourseExecutionStep", () -> {
             CourseExecutionDto courseExecutionDto = courseExecutionService.getCourseExecutionById(executionAggregateId, unitOfWork);
             this.setCourseExecutionDto(courseExecutionDto);
         });

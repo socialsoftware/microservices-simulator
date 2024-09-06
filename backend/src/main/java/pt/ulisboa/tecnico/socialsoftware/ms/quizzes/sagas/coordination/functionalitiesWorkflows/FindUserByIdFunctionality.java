@@ -26,7 +26,7 @@ public class FindUserByIdFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep findUserStep = new SyncStep(() -> {
+        SyncStep findUserStep = new SyncStep("findUserStep", () -> {
             UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
             this.setUserDto(userDto);
         });

@@ -28,7 +28,7 @@ public class GetStudentsFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getStudentsStep = new SyncStep(() -> {
+        SyncStep getStudentsStep = new SyncStep("getStudentsStep", () -> {
             List<UserDto> students = userService.getStudents(unitOfWork);
             this.setStudents(students);
         });

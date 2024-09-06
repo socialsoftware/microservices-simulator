@@ -42,7 +42,7 @@ public class UpdateQuestionTopicsFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer courseAggregateId, List<Integer> topicIds, QuestionFactory questionFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getTopicsStep = new SyncStep(() -> {
+        SyncStep getTopicsStep = new SyncStep("getTopicsStep", () -> {
             Set<QuestionTopic> topics = topicIds.stream()
                             .map(id -> topicService.getTopicById(id, unitOfWork))
                             .map(QuestionTopic::new)
@@ -50,7 +50,7 @@ public class UpdateQuestionTopicsFunctionality extends WorkflowFunctionality {
             this.setTopics(topics);
         });
     
-        SyncStep getOldQuestionStep = new SyncStep(() -> {
+        SyncStep getOldQuestionStep = new SyncStep("getOldQuestionStep", () -> {
             SagaQuestion oldQuestion = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(oldQuestion, SagaState.UPDATE_QUESTION_TOPICS_READ_QUESTION, unitOfWork);
             Set<QuestionTopic> oldTopics = oldQuestion.getQuestionTopics();
@@ -65,7 +65,7 @@ public class UpdateQuestionTopicsFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(newQuestion);
         }, unitOfWork);
     
-        SyncStep updateQuestionTopicsStep = new SyncStep(() -> {
+        SyncStep updateQuestionTopicsStep = new SyncStep("updateQuestionTopicsStep", () -> {
             questionService.updateQuestionTopics(courseAggregateId, this.getTopics(), unitOfWork);
         }, new ArrayList<>(Arrays.asList(getTopicsStep, getOldQuestionStep)));
     

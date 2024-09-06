@@ -30,7 +30,7 @@ public class DeleteUserFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getUserStep = new SyncStep(() -> {
+        SyncStep getUserStep = new SyncStep("getUserStep", () -> {
             SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(user, SagaState.DELETE_USER_READ_USER, unitOfWork);
             this.setUser(user);
@@ -42,7 +42,7 @@ public class DeleteUserFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(user);
         }, unitOfWork);
     
-        SyncStep deleteUserStep = new SyncStep(() -> {
+        SyncStep deleteUserStep = new SyncStep("deleteUserStep", () -> {
             userService.deleteUser(userAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
     

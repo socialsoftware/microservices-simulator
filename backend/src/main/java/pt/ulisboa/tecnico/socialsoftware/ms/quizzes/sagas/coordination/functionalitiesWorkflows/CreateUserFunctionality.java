@@ -28,7 +28,7 @@ public class CreateUserFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(UserDto userDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep createUserStep = new SyncStep(() -> {
+        SyncStep createUserStep = new SyncStep("createUserStep", () -> {
             UserDto createdUserDto = userService.createUser(userDto, unitOfWork);
             this.setCreatedUserDto(createdUserDto);
         });

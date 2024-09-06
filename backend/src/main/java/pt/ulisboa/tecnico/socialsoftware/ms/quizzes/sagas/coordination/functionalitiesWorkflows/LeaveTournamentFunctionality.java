@@ -33,7 +33,7 @@ public class LeaveTournamentFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getOldTournamentStep = new SyncStep(() -> {
+        SyncStep getOldTournamentStep = new SyncStep("getOldTournamentStep", () -> {
             SagaTournament oldTournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(oldTournament, SagaState.LEAVE_TOURNAMENT_READ_TOURANMENT, unitOfWork);
             this.setOldTournament(oldTournament);
@@ -45,7 +45,7 @@ public class LeaveTournamentFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(newTournament);
         }, unitOfWork);
     
-        SyncStep leaveTournamentStep = new SyncStep(() -> {
+        SyncStep leaveTournamentStep = new SyncStep("leaveTournamentStep", () -> {
             tournamentService.leaveTournament(tournamentAggregateId, userAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getOldTournamentStep)));
     

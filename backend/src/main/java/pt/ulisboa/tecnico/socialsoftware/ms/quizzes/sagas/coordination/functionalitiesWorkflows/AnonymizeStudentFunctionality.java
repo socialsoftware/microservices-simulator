@@ -32,7 +32,7 @@ public class AnonymizeStudentFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, CourseExecutionFactory courseExecutionFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
+        SyncStep getOldCourseExecutionStep = new SyncStep("getOldCourseExecutionStep", () -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.ANONYMIZE_STUDENT_READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
@@ -44,7 +44,7 @@ public class AnonymizeStudentFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     
-        SyncStep anonymizeStudentStep = new SyncStep(() -> {
+        SyncStep anonymizeStudentStep = new SyncStep("anonymizeStudentStep", () -> {
             courseExecutionService.anonymizeStudent(executionAggregateId, userAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getOldCourseExecutionStep)));
     

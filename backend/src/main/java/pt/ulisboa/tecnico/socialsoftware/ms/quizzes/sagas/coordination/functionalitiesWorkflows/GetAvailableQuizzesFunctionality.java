@@ -28,7 +28,7 @@ public class GetAvailableQuizzesFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer userAggregateId, Integer courseExecutionAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getAvailableQuizzesStep = new SyncStep(() -> {
+        SyncStep getAvailableQuizzesStep = new SyncStep("getAvailableQuizzesStep", () -> {
             List<QuizDto> availableQuizzes = quizService.getAvailableQuizzes(courseExecutionAggregateId, unitOfWork);
             this.setAvailableQuizzes(availableQuizzes);
         });

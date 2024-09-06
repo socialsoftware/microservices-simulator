@@ -30,7 +30,7 @@ public class ConcludeQuizFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer quizAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getQuizAnswerStep = new SyncStep(() -> {
+        SyncStep getQuizAnswerStep = new SyncStep("getQuizAnswerStep", () -> {
             SagaQuizAnswer quizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(quizAnswer, SagaState.CONCLUDE_QUIZ_READ_QUIZ_ANSWER, unitOfWork);
             this.setQuizAnswer(quizAnswer);
@@ -43,7 +43,7 @@ public class ConcludeQuizFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(quizAnswer);
         }, unitOfWork);
     
-        SyncStep concludeQuizStep = new SyncStep(() -> {
+        SyncStep concludeQuizStep = new SyncStep("concludeQuizStep", () -> {
             quizAnswerService.concludeQuiz(quizAggregateId, userAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getQuizAnswerStep)));
     

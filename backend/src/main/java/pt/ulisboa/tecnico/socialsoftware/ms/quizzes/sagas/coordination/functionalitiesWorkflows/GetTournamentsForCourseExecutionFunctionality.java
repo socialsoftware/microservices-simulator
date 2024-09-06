@@ -28,7 +28,7 @@ public class GetTournamentsForCourseExecutionFunctionality extends WorkflowFunct
     public void buildWorkflow(Integer executionAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getTournamentsStep = new SyncStep(() -> {
+        SyncStep getTournamentsStep = new SyncStep("getTournamentsStep", () -> {
             List<TournamentDto> tournaments = tournamentService.getTournamentsByCourseExecutionId(executionAggregateId, unitOfWork);
             this.setTournaments(tournaments);
         });

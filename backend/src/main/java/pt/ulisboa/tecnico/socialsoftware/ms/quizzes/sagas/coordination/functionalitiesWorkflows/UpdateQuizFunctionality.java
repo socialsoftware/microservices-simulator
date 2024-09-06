@@ -37,7 +37,7 @@ public class UpdateQuizFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(QuizDto quizDto, QuizFactory quizFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getOldQuizStep = new SyncStep(() -> {
+        SyncStep getOldQuizStep = new SyncStep("getOldQuizStep", () -> {
             SagaQuiz oldQuiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(oldQuiz, SagaState.IN_SAGA, unitOfWork);
             this.setOldQuiz(oldQuiz);
@@ -49,7 +49,7 @@ public class UpdateQuizFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(newQuiz);
         }, unitOfWork);
     
-        SyncStep updateQuizStep = new SyncStep(() -> {
+        SyncStep updateQuizStep = new SyncStep("updateQuizStep", () -> {
             Set<QuizQuestion> quizQuestions = quizDto.getQuestionDtos().stream().map(QuizQuestion::new).collect(Collectors.toSet());
             QuizDto updatedQuizDto = quizService.updateQuiz(quizDto, quizQuestions, unitOfWork);
             this.setUpdatedQuizDto(updatedQuizDto);

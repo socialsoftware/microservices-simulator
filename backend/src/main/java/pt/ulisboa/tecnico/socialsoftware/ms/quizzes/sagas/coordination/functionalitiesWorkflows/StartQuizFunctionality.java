@@ -35,7 +35,7 @@ public class StartQuizFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getQuizStep = new SyncStep(() -> {
+        SyncStep getQuizStep = new SyncStep("getQuizStep", () -> {
             QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
             SagaQuiz quiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(quiz, SagaState.START_QUIZ_READ_QUIZ, unitOfWork);
@@ -47,7 +47,7 @@ public class StartQuizFunctionality extends WorkflowFunctionality {
             unitOfWorkService.registerSagaState(quiz, SagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
-        SyncStep startQuizStep = new SyncStep(() -> {
+        SyncStep startQuizStep = new SyncStep("startQuizStep", () -> {
             quizAnswerService.startQuiz(quizAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getQuizStep)));
     

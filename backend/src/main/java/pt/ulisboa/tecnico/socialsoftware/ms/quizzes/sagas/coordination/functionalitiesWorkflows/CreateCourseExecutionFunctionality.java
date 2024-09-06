@@ -28,7 +28,7 @@ public class CreateCourseExecutionFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(CourseExecutionDto courseExecutionDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep createCourseExecutionStep = new SyncStep(() -> {
+        SyncStep createCourseExecutionStep = new SyncStep("createCourseExecutionStep", () -> {
             CourseExecutionDto createdCourseExecution = courseExecutionService.createCourseExecution(courseExecutionDto, unitOfWork);
             this.setCreatedCourseExecution(createdCourseExecution);
         });

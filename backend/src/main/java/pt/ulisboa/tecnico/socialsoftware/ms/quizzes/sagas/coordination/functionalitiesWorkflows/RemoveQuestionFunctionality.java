@@ -30,7 +30,7 @@ public class RemoveQuestionFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer questionAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getQuestionStep = new SyncStep(() -> {
+        SyncStep getQuestionStep = new SyncStep("getQuestionStep", () -> {
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(question, SagaState.REMOVE_QUESTION_READ_QUESTION, unitOfWork);
             this.setQuestion(question);
@@ -42,7 +42,7 @@ public class RemoveQuestionFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(question);
         }, unitOfWork);
     
-        SyncStep removeQuestionStep = new SyncStep(() -> {
+        SyncStep removeQuestionStep = new SyncStep("removeQuestionStep", () -> {
             questionService.removeQuestion(questionAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getQuestionStep)));
     

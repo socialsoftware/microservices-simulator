@@ -33,7 +33,7 @@ public class CancelTournamentFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getOldTournamentStep = new SyncStep(() -> {
+        SyncStep getOldTournamentStep = new SyncStep("getOldTournamentStep", () -> {
             SagaTournament oldTournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(oldTournament, SagaState.CANCEL_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
             this.setOldTournament(oldTournament);
@@ -45,7 +45,7 @@ public class CancelTournamentFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(newTournament);
         }, unitOfWork);
     
-        SyncStep cancelTournamentStep = new SyncStep(() -> {
+        SyncStep cancelTournamentStep = new SyncStep("cancelTournamentStep", () -> {
             tournamentService.cancelTournament(tournamentAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getOldTournamentStep)));
     

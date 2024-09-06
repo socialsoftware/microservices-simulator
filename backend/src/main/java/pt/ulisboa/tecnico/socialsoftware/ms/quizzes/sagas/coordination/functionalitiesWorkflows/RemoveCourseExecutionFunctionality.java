@@ -30,7 +30,7 @@ public class RemoveCourseExecutionFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer executionAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getCourseExecutionStep = new SyncStep(() -> {
+        SyncStep getCourseExecutionStep = new SyncStep("getCourseExecutionStep", () -> {
             SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(courseExecution, SagaState.REMOVE_COURSE_EXECUTION_READ_COURSE, unitOfWork);
             this.setCourseExecution(courseExecution);
@@ -42,7 +42,7 @@ public class RemoveCourseExecutionFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(courseExecution);
         }, unitOfWork);
     
-        SyncStep removeCourseExecutionStep = new SyncStep(() -> {
+        SyncStep removeCourseExecutionStep = new SyncStep("removeCourseExecutionStep", () -> {
             courseExecutionService.removeCourseExecution(executionAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
     

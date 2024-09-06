@@ -30,7 +30,7 @@ public class DeleteTopicFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer topicAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getTopicStep = new SyncStep(() -> {
+        SyncStep getTopicStep = new SyncStep("getTopicStep", () -> {
             SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(topic, SagaState.DELETE_TOPIC_READ_TOPIC, unitOfWork);
             this.setTopic(topic);
@@ -42,7 +42,7 @@ public class DeleteTopicFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(topic);
         }, unitOfWork);
     
-        SyncStep deleteTopicStep = new SyncStep(() -> {
+        SyncStep deleteTopicStep = new SyncStep("deleteTopicStep", () -> {
             topicService.deleteTopic(topicAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getTopicStep)));
     

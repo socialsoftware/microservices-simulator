@@ -28,7 +28,7 @@ public class GetTeachersFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getTeachersStep = new SyncStep(() -> {
+        SyncStep getTeachersStep = new SyncStep("getTeachersStep", () -> {
             List<UserDto> teachers = userService.getTeachers(unitOfWork);
             this.setTeachers(teachers);
         });

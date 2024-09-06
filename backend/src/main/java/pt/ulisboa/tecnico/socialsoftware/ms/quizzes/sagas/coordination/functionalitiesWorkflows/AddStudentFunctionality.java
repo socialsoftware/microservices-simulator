@@ -37,12 +37,12 @@ public class AddStudentFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, CourseExecutionFactory courseExecutionFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getUserStep = new SyncStep(() -> {
+        SyncStep getUserStep = new SyncStep("getUserStep", () -> {
             UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
             this.setUserDto(userDto);
         });
     
-        SyncStep getOldCourseExecutionStep = new SyncStep(() -> {
+        SyncStep getOldCourseExecutionStep = new SyncStep("getOldCourseExecutionStep", () -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.ADD_STUDENT_READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
@@ -54,7 +54,7 @@ public class AddStudentFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     
-        SyncStep enrollStudentStep = new SyncStep(() -> {
+        SyncStep enrollStudentStep = new SyncStep("enrollStudentStep", () -> {
             courseExecutionService.enrollStudent(executionAggregateId, this.getUserDto(), unitOfWork);
         }, new ArrayList<>(Arrays.asList(getUserStep, getOldCourseExecutionStep)));
     

@@ -36,13 +36,13 @@ public class CreateTopicFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer courseAggregateId, TopicDto topicDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getCourseStep = new SyncStep(() -> {
+        SyncStep getCourseStep = new SyncStep("getCourseStep", () -> {
             CourseDto courseDto = courseService.getCourseById(courseAggregateId, unitOfWork);
             TopicCourse course = new TopicCourse(courseDto);
             this.setCourse(course);
         });
     
-        SyncStep createTopicStep = new SyncStep(() -> {
+        SyncStep createTopicStep = new SyncStep("createTopicStep", () -> {
             TopicDto createdTopicDto = topicService.createTopic(topicDto, this.getCourse(), unitOfWork);
             this.setCreatedTopicDto(createdTopicDto);
         }, new ArrayList<>(Arrays.asList(getCourseStep)));

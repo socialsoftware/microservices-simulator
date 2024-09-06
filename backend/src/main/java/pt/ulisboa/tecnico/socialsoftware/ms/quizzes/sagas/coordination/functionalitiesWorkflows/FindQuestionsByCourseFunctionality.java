@@ -28,7 +28,7 @@ public class FindQuestionsByCourseFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer courseAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep findQuestionsStep = new SyncStep(() -> {
+        SyncStep findQuestionsStep = new SyncStep("findQuestionsStep", () -> {
             List<QuestionDto> questions = questionService.findQuestionsByCourseAggregateId(courseAggregateId, unitOfWork);
             this.setQuestions(questions);
         });

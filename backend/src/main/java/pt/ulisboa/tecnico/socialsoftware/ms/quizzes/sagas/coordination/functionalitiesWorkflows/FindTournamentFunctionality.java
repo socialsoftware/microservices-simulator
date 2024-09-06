@@ -27,7 +27,7 @@ public class FindTournamentFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep findTournamentStep = new SyncStep(() -> {
+        SyncStep findTournamentStep = new SyncStep("findTournamentStep", () -> {
             TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
             this.setTournamentDto(tournamentDto);
         });

@@ -26,7 +26,7 @@ public class FindQuestionByAggregateIdFunctionality extends WorkflowFunctionalit
     public void buildWorkflow(Integer aggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep findQuestionStep = new SyncStep(() -> {
+        SyncStep findQuestionStep = new SyncStep("findQuestionStep",() -> {
             QuestionDto questionDto = questionService.getQuestionById(aggregateId, unitOfWork);
             this.setQuestionDto(questionDto);
         });

@@ -28,7 +28,7 @@ public class FindTopicsByCourseFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(Integer courseAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep findTopicsStep = new SyncStep(() -> {
+        SyncStep findTopicsStep = new SyncStep("findTopicsStep", () -> {
             List<TopicDto> topics = topicService.findTopicsByCourseId(courseAggregateId, unitOfWork);
             this.setTopics(topics);
         });

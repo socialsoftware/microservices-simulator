@@ -28,7 +28,7 @@ public class GetCourseExecutionsFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getCourseExecutionsStep = new SyncStep(() -> {
+        SyncStep getCourseExecutionsStep = new SyncStep("getCourseExecutionsStep", () -> {
             List<CourseExecutionDto> courseExecutions = courseExecutionService.getAllCourseExecutions(unitOfWork);
             this.setCourseExecutions(courseExecutions);
         });

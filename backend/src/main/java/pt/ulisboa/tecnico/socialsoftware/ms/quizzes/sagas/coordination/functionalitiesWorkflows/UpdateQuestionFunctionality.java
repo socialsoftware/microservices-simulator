@@ -33,7 +33,7 @@ public class UpdateQuestionFunctionality extends WorkflowFunctionality {
     public void buildWorkflow(QuestionFactory questionFactory, QuestionDto questionDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getOldQuestionStep = new SyncStep(() -> {
+        SyncStep getOldQuestionStep = new SyncStep("getOldQuestionStep", () -> {
             SagaQuestion oldQuestion = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(oldQuestion, SagaState.UPDATE_QUESTION_READ_QUESTION, unitOfWork);
             this.setOldQuestion(oldQuestion);
@@ -45,7 +45,7 @@ public class UpdateQuestionFunctionality extends WorkflowFunctionality {
             unitOfWork.registerChanged(newQuestion);
         }, unitOfWork);
     
-        SyncStep updateQuestionStep = new SyncStep(() -> {
+        SyncStep updateQuestionStep = new SyncStep("updateQuestionStep", () -> {
             questionService.updateQuestion(questionDto, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getOldQuestionStep)));
     

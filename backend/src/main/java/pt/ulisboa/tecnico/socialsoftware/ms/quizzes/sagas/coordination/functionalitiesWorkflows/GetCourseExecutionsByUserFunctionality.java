@@ -28,7 +28,7 @@ public class GetCourseExecutionsByUserFunctionality extends WorkflowFunctionalit
     public void buildWorkflow(Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getCourseExecutionsByUserStep = new SyncStep(() -> {
+        SyncStep getCourseExecutionsByUserStep = new SyncStep("getCourseExecutionsByUserStep", () -> {
             Set<CourseExecutionDto> courseExecutions = courseExecutionService.getCourseExecutionsByUserId(userAggregateId, unitOfWork);
             this.setCourseExecutions(courseExecutions);
         });
