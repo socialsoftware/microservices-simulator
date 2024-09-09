@@ -6,18 +6,18 @@ import org.springframework.context.annotation.PropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalQuizAnswerFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.QuizAnswerFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.events.handling.QuizAnswerEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.QuizAnswerEventProcessing
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.eventProcessing.QuizAnswerEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.version.VersionService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CourseCustomRepositoryTCC   
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.QuizAnswerCustomRepositoryTCC   
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.TournamentCustomRepositoryTCC
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CourseExecutionCustomRepositoryTCC;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.repositories.CourseCustomRepositoryTCC   
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.repositories.QuizAnswerCustomRepositoryTCC   
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.repositories.TournamentCustomRepositoryTCC
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.repositories.CourseExecutionCustomRepositoryTCC;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserRepository;
@@ -35,26 +35,26 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.CausalUserFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalCourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.CourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.events.handling.CourseExecutionEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.CourseExecutionEventProcessing
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.eventProcessing.CourseExecutionEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalQuestionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.QuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.handling.QuestionEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.QuestionEventProcessing
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.eventProcessing.QuestionEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalQuizFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.events.handling.QuizEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.QuizEventProcessing
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.eventProcessing.QuizEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalTopicFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.TopicFunctionalities
 
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalTournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.TournamentEventProcessing
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.eventProcessing.TournamentEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.functionalities.CausalUserFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.UserFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService
 
 @TestConfiguration
@@ -86,8 +86,8 @@ class BeanConfiguration {
     }
 
     @Bean
-    CausalCourseExecutionFunctionalities courseExecutionFunctionalities() {
-        return new CausalCourseExecutionFunctionalities()
+    CourseExecutionFunctionalities courseExecutionFunctionalities() {
+        return new CourseExecutionFunctionalities()
     }
 
     @Bean
@@ -96,18 +96,18 @@ class BeanConfiguration {
     }
 
     @Bean
-    CausalUserFunctionalities userFunctionalities() {
-        return new CausalUserFunctionalities()
+    UserFunctionalities userFunctionalities() {
+        return new UserFunctionalities()
     }
 
     @Bean
-    CausalTopicFunctionalities topicFunctionalities() {
-        return new CausalTopicFunctionalities()
+    TopicFunctionalities topicFunctionalities() {
+        return new TopicFunctionalities()
     }
 
     @Bean
-    CausalQuestionFunctionalities questionFunctionalities() {
-        return new CausalQuestionFunctionalities()
+    QuestionFunctionalities questionFunctionalities() {
+        return new QuestionFunctionalities()
     }
 
     @Bean
@@ -116,8 +116,8 @@ class BeanConfiguration {
     }
 
     @Bean
-    CausalQuizFunctionalities quizFunctionalities() {
-        return new CausalQuizFunctionalities()
+    QuizFunctionalities quizFunctionalities() {
+        return new QuizFunctionalities()
     }
 
     @Bean
@@ -126,8 +126,8 @@ class BeanConfiguration {
     }
 
     @Bean
-    CausalQuizAnswerFunctionalities answerFunctionalities() {
-        return new CausalQuizAnswerFunctionalities()
+    QuizAnswerFunctionalities answerFunctionalities() {
+        return new QuizAnswerFunctionalities()
     }
 
     @Bean
@@ -136,8 +136,8 @@ class BeanConfiguration {
     }
 
     @Bean
-    CausalTournamentFunctionalities tournamentFunctionalities() {
-        return new CausalTournamentFunctionalities()
+    TournamentFunctionalities tournamentFunctionalities() {
+        return new TournamentFunctionalities()
     }
 
     @Bean

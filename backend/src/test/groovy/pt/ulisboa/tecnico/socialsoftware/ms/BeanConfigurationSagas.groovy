@@ -6,18 +6,18 @@ import org.springframework.context.annotation.PropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities.SagaQuizAnswerFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.QuizAnswerFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.events.handling.QuizAnswerEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.QuizAnswerEventProcessing
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.eventProcessing.QuizAnswerEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.version.VersionService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities.CourseCustomRepositorySagas   
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities.QuizAnswerCustomRepositorySagas   
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities.TournamentCustomRepositorySagas
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities.CourseExecutionCustomRepositorySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.repositories.CourseCustomRepositorySagas   
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.repositories.QuizAnswerCustomRepositorySagas   
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.repositories.TournamentCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.repositories.CourseExecutionCustomRepositorySagas;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserRepository;
@@ -35,26 +35,26 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.SagasUserFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities.SagaCourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.CourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.events.handling.CourseExecutionEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.CourseExecutionEventProcessing
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.eventProcessing.CourseExecutionEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities.SagaQuestionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.QuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.handling.QuestionEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.QuestionEventProcessing
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.eventProcessing.QuestionEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities.SagaQuizFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.events.handling.QuizEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.QuizEventProcessing
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.eventProcessing.QuizEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities.SagaTopicFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.TopicFunctionalities
 
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities.SagaTournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.eventProcessing.TournamentEventProcessing
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.eventProcessing.TournamentEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.functionalities.SagaUserFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.UserFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService
 
 @TestConfiguration
@@ -86,8 +86,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    SagaCourseExecutionFunctionalities courseExecutionFunctionalities() {
-        return new SagaCourseExecutionFunctionalities()
+    CourseExecutionFunctionalities courseExecutionFunctionalities() {
+        return new CourseExecutionFunctionalities()
     }
 
     @Bean
@@ -96,18 +96,18 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    SagaUserFunctionalities userFunctionalities() {
-        return new SagaUserFunctionalities()
+    UserFunctionalities userFunctionalities() {
+        return new UserFunctionalities()
     }
 
     @Bean
-    SagaTopicFunctionalities topicFunctionalities() {
-        return new SagaTopicFunctionalities()
+    TopicFunctionalities topicFunctionalities() {
+        return new TopicFunctionalities()
     }
 
     @Bean
-    SagaQuestionFunctionalities questionFunctionalities() {
-        return new SagaQuestionFunctionalities()
+    QuestionFunctionalities questionFunctionalities() {
+        return new QuestionFunctionalities()
     }
 
     @Bean
@@ -116,8 +116,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    SagaQuizFunctionalities quizFunctionalities() {
-        return new SagaQuizFunctionalities()
+    QuizFunctionalities quizFunctionalities() {
+        return new QuizFunctionalities()
     }
 
     @Bean
@@ -126,8 +126,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    SagaQuizAnswerFunctionalities answerFunctionalities() {
-        return new SagaQuizAnswerFunctionalities()
+    QuizAnswerFunctionalities answerFunctionalities() {
+        return new QuizAnswerFunctionalities()
     }
 
     @Bean
@@ -136,8 +136,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    SagaTournamentFunctionalities tournamentFunctionalities() {
-        return new SagaTournamentFunctionalities()
+    TournamentFunctionalities tournamentFunctionalities() {
+        return new TournamentFunctionalities()
     }
 
     @Bean
