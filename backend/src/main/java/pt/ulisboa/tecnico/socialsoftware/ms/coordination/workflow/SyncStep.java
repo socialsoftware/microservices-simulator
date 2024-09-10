@@ -55,7 +55,8 @@ public class SyncStep implements FlowStep {
             syncOperation.run();
             return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
-            return CompletableFuture.failedFuture(e);
+            throw e;
+            //return CompletableFuture.failedFuture(e);
         }
     }
     

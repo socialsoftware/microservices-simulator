@@ -573,13 +573,9 @@ class TournamentFunctionalityTestSagas extends SpockTest {
 
         when: 'a student is added to a tournament that is removed'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
-
-        then: 'fails because the the tournament is not found'
-        def tournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournament == null
-        // change to this
-        //def error = thrown(TutorException)
-        //error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+        then: 'the tournament is removed, not found'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
     // NEW (fails) handleevent para este?
@@ -641,12 +637,14 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         addParticipantFunctionality.executeUntilStep("getTournamentStep", unitOfWork1) 
         removeTournamentFunctionality.executeWorkflow(unitOfWork2) 
         
-        when: 'remove tournament concurrently with add student'
+        and: 'remove tournament concurrently with add student'
         addParticipantFunctionality.resumeWorkflow(unitOfWork1) 
 
-        then: 'the tournament is deleted'
-        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult == null
+        when: 'find the tournament'
+        tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        then: 'the tournament is removed, not found'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
     /*
@@ -681,10 +679,10 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
 
         when: 'find the tournament'
-        def tournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
-
-        then: 'after merge the tournament is removed, not found'
-        tournament == null
+        tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        then: 'the tournament is removed, not found'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
     // update topics in tournament and update topics in tournament
@@ -745,19 +743,21 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         when:
         tournamentFunctionalities.createTournament(userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId(), 999], tournamentDto)
 
+        and: 'find the tournament'
+        tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        then: 'the tournament is not found'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
         then:
         def courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork)
         courseExecution.sagaState == SagaState.NOT_IN_SAGA;
+        /*
         def topic1 = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto1.getAggregateId(), unitOfWork)
         def topic2 = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto2.getAggregateId(), unitOfWork)
         topic1.sagaState == SagaState.NOT_IN_SAGA;
         topic2.sagaState == SagaState.NOT_IN_SAGA;
-        
-        when:
-        def tournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        */
 
-        then:
-        tournament == null
     }
 
     def "find tournament successfully"() {
@@ -830,12 +830,14 @@ class TournamentFunctionalityTestSagas extends SpockTest {
     }
 
     def "remove tournament successfully"() {
-        when:
+        given: 'tournament is deleted'
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
-        def removedTournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
 
-        then:
-        removedTournament == null
+        when: 'find the tournament'
+        tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        then: 'the tournament is removed, not found'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
     @TestConfiguration

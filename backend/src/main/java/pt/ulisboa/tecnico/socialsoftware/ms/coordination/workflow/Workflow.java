@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 
 //TODO change how planOrder works
 public abstract class Workflow {
@@ -60,11 +61,13 @@ public abstract class Workflow {
     }
 
     public CompletableFuture<Void> resume(UnitOfWork unitOfWork) {
-        return executionPlan.resume(unitOfWork)
-            .exceptionally(ex -> {
-                unitOfWorkService.abort(unitOfWork);
-                throw new RuntimeException(ex);
-            }).thenRun(() -> unitOfWorkService.commit(unitOfWork));
+        try {
+            return executionPlan.resume(unitOfWork)
+                .thenRun(() -> unitOfWorkService.commit(unitOfWork));
+        } catch (TutorException ex) {
+            unitOfWorkService.abort(unitOfWork);
+            throw ex;
+        }
     }
 
     private FlowStep getStepByName(String stepName) {
@@ -78,11 +81,14 @@ public abstract class Workflow {
     public abstract ExecutionPlan planOrder(HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies);
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-        this.executionPlan = planOrder(this.stepsWithDependencies);
-        return executionPlan.oldexecute(unitOfWork)
-            .exceptionally(ex -> {
-                unitOfWorkService.abort(unitOfWork);
-                throw new RuntimeException(ex);
-            }).thenRun(() -> unitOfWorkService.commit(unitOfWork));
+        try {
+            this.executionPlan = planOrder(this.stepsWithDependencies);
+            return executionPlan.oldexecute(unitOfWork)
+                .thenRun(() -> unitOfWorkService.commit(unitOfWork));
+
+        } catch (TutorException ex) {
+            unitOfWorkService.abort(unitOfWork);
+            throw ex;
+        }
     }
 }

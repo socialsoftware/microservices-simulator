@@ -66,7 +66,10 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
         });
 
         getTournamentStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState((SagaTournament) tournament, SagaState.NOT_IN_SAGA, unitOfWork);
+            //TODO check if needed and if needed in other places
+            if (tournament != null) {
+                unitOfWorkService.registerSagaState((SagaTournament) tournament, SagaState.NOT_IN_SAGA, unitOfWork);
+            }
         }, unitOfWork);
 
         SyncStep getUserStep = new SyncStep("getUserStep", () -> {
