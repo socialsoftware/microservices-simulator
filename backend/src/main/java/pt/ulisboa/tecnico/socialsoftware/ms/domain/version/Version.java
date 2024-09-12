@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.causal.version;
+package pt.ulisboa.tecnico.socialsoftware.ms.domain.version;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

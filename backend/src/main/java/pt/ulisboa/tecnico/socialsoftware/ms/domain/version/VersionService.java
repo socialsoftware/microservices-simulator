@@ -1,4 +1,7 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.causal.version;
+package pt.ulisboa.tecnico.socialsoftware.ms.domain.version;
+
+import java.sql.SQLException;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.annotation.Backoff;
@@ -6,11 +9,9 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-
-import java.sql.SQLException;
-import java.util.Optional;
 
 @Service
 public class VersionService {

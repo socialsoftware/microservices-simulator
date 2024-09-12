@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.causal.version;
+package pt.ulisboa.tecnico.socialsoftware.ms.domain.version;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;

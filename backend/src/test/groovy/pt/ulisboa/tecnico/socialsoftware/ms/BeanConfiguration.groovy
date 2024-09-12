@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.version.VersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.repositories.CourseCustomRepositoryTCC   
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.repositories.QuizAnswerCustomRepositoryTCC   
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.repositories.TournamentCustomRepositoryTCC
