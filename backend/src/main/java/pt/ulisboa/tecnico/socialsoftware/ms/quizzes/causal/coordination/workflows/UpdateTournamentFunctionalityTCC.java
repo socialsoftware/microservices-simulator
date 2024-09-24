@@ -9,7 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkS
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalTopic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
@@ -30,7 +29,7 @@ public class UpdateTournamentFunctionalityTCC extends WorkflowFunctionality{
     private QuizDto quizDto;
     private Quiz oldQuiz;
 
-    private CausalWorkflow workflow;
+    
 
     private final TournamentService tournamentService;
     private final TopicService topicService;
@@ -75,11 +74,7 @@ public class UpdateTournamentFunctionalityTCC extends WorkflowFunctionality{
 
             /* this if is required for the case of updating a quiz and not altering neither the number of questions neither the topics */
             if (topicsAggregateIds != null || tournamentDto.getNumberOfQuestions() != null) {
-                if (topicsAggregateIds == null) {
-                    quizService.updateGeneratedQuiz(quizDto, newTournamentDto.getTopics().stream().filter(t -> t.getState().equals(Aggregate.AggregateState.ACTIVE.toString())).map(TopicDto::getAggregateId).collect(Collectors.toSet()), newTournamentDto.getNumberOfQuestions(), unitOfWork);
-                } else {
-                    quizService.updateGeneratedQuiz(quizDto, topicsAggregateIds, newTournamentDto.getNumberOfQuestions(), unitOfWork);
-                }
+                quizService.updateGeneratedQuiz(quizDto, topicsAggregateIds, newTournamentDto.getNumberOfQuestions(), unitOfWork);
             }
             //quizService.updateGeneratedQuiz(quizDto, topicsAggregateIds, newTournamentDto.getNumberOfQuestions(), unitOfWork);
         });
@@ -92,21 +87,7 @@ public class UpdateTournamentFunctionalityTCC extends WorkflowFunctionality{
 
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public TournamentDto getOriginalTournamentDto() {
         return originalTournamentDto;

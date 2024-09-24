@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class GetOpenedTournamentsForCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
     private List<TournamentDto> openedTournaments;
 
-    private SagaWorkflow workflow;
+    
 
     private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -41,21 +41,7 @@ public class GetOpenedTournamentsForCourseExecutionFunctionalitySagas extends Wo
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
 
     public List<TournamentDto> getOpenedTournaments() {

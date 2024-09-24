@@ -13,7 +13,7 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
     private CourseExecutionDto courseExecutionDto;
     private CourseExecutionDto createdCourseExecution;
 
-    private SagaWorkflow workflow;
+    
 
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -47,21 +47,7 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public CourseExecutionDto getCourseExecutionDto() {
         return courseExecutionDto;

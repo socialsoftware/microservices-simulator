@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,14 +15,11 @@ public abstract class UnitOfWork {
     private Set<Event> eventsToEmit;
     private String functionalityName;
 
-    private ArrayList<Runnable> compensatingActions;
-
     public UnitOfWork(Integer version, String functionalityName) {
         this.aggregatesToCommit = new HashMap<>();
         this.eventsToEmit = new HashSet<>();
         setVersion(version);
         this.functionalityName = functionalityName;
-        this.compensatingActions = new ArrayList<>(); //TODO might be only for sagas
     }
 
     public Integer getId() {
@@ -68,7 +64,5 @@ public abstract class UnitOfWork {
         this.eventsToEmit.add(event);
     }
 
-    public void registerCompensation(Runnable compensationLogic) {
-        this.compensatingActions.add(compensationLogic);
-    }
+    
 }

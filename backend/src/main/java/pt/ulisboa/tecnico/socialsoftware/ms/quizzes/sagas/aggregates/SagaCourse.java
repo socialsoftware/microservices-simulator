@@ -1,26 +1,26 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.Course;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 
 @Entity
 public class SagaCourse extends Course implements SagaAggregate {
-    @Enumerated(EnumType.STRING)
+    @Column
     private SagaState sagaState;
     
     public SagaCourse() {
         super();
-        this.sagaState = SagaState.NOT_IN_SAGA;
+        this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 
     public SagaCourse(Integer aggregateId, CourseExecutionDto courseExecutionDto) {
         super(aggregateId, courseExecutionDto);
-        this.sagaState = SagaState.NOT_IN_SAGA; 
+        this.sagaState = GenericSagaState.NOT_IN_SAGA; 
     }
 
     public SagaCourse(SagaCourse other) {

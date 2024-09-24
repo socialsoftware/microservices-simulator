@@ -12,16 +12,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.Q
 public class StartQuizFunctionalityTCC extends WorkflowFunctionality {
     private QuizDto quizDto;
 
-    private CausalWorkflow workflow;
+    
 
     private final QuizAnswerService quizAnswerService;
-    private final QuizService quizService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
     public StartQuizFunctionalityTCC(QuizAnswerService quizAnswerService, QuizService quizService, CausalUnitOfWorkService unitOfWorkService,  
                         Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork) {
         this.quizAnswerService = quizAnswerService;
-        this.quizService = quizService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(quizAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
     }
@@ -41,21 +39,7 @@ public class StartQuizFunctionalityTCC extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public QuizDto getQuizDto() {
         return quizDto;

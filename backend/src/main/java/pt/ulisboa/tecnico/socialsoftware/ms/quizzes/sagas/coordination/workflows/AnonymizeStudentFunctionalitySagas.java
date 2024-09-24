@@ -9,15 +9,25 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggr
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
+    public enum State implements SagaState {
+        ANONYMIZE_STUDENT_READ_COURSE {
+            @Override
+            public String getStateName() {
+                return "ANONYMIZE_STUDENT_READ_COURSE";
+            }
+        }
+    }
+    
     private CourseExecution oldCourseExecution;
 
-    private SagaWorkflow workflow;
+    
 
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -34,13 +44,13 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getOldCourseExecutionStep = new SyncStep("getOldCourseExecutionStep", () -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.ANONYMIZE_STUDENT_READ_COURSE, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, State.ANONYMIZE_STUDENT_READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
         });
     
         getOldCourseExecutionStep.registerCompensation(() -> {
             CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(this.getOldCourseExecution());
-            unitOfWorkService.registerSagaState((SagaCourseExecution) newCourseExecution, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaCourseExecution) newCourseExecution, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     
@@ -57,21 +67,7 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public CourseExecution getOldCourseExecution() {
         return oldCourseExecution;

@@ -12,7 +12,7 @@ public class FindParticipantFunctionalityTCC extends WorkflowFunctionality {
     private Tournament tournament;
     private TournamentParticipant participant;
 
-    private CausalWorkflow workflow;
+    
 
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -38,21 +38,7 @@ public class FindParticipantFunctionalityTCC extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public void setTournament(Tournament tournament) {
         this.tournament = tournament;

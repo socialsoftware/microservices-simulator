@@ -13,18 +13,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 public class RemoveTournamentFunctionalityTCC extends WorkflowFunctionality {
     private Tournament tournament;
 
-    private CausalWorkflow workflow;
+    
 
-    private EventService eventService;
     private final TournamentService tournamentService;
     private final CausalUnitOfWorkService unitOfWorkService;
-
-    private String currentStep = "";
 
     public RemoveTournamentFunctionalityTCC(EventService eventService, TournamentService tournamentService,CausalUnitOfWorkService unitOfWorkService, 
                                 TournamentFactory tournamentFactory,
                                 Integer tournamentAggregateId, CausalUnitOfWork unitOfWork) {
-        this.eventService = eventService;
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(tournamentFactory, tournamentAggregateId, unitOfWork);
@@ -44,21 +40,7 @@ public class RemoveTournamentFunctionalityTCC extends WorkflowFunctionality {
     public void handleEvents() {
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
     
     public Tournament getTournament() {
         return tournament;

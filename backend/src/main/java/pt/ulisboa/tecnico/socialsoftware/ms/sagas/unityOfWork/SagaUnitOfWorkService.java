@@ -25,6 +25,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
@@ -85,6 +86,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     public void registerSagaState(SagaAggregate aggregate, SagaState state, SagaUnitOfWork unitOfWork) {
         aggregate.setSagaState(state);
         entityManager.persist(aggregate);
+        unitOfWork.addToAggregatesInSaga(aggregate);
     }
 
     @Retryable(
@@ -133,13 +135,18 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             }
         }
 
+        unitOfWork.getAggregatesInSaga().stream().forEach(a -> {
+            a.setSagaState(GenericSagaState.NOT_IN_SAGA);
+        });
+
         // The commit is done with the last commited version plus one
         Integer commitVersion = versionService.incrementAndGetVersionNumber();
         unitOfWork.setVersion(commitVersion);
 
         modifiedAggregatesToCommit.values().stream().forEach(a -> {
-                            if (a.getState() != AggregateState.DELETED && a.getState() != AggregateState.INACTIVE)
-                                a.setState(AggregateState.ACTIVE);
+                                if (a.getState() != AggregateState.DELETED && a.getState() != AggregateState.INACTIVE) {
+                                    a.setState(AggregateState.ACTIVE);
+                                }
                             });
 
         commitAllObjects(commitVersion, modifiedAggregatesToCommit);

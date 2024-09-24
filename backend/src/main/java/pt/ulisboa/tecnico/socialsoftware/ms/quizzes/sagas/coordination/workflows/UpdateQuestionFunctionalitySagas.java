@@ -10,15 +10,25 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuestion;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
+    public enum State implements SagaState {
+        UPDATE_QUESTION_READ_QUESTION {
+            @Override
+            public String getStateName() {
+                return "UPDATE_QUESTION_READ_QUESTION";
+            }
+        }
+    }
+    
     private Question oldQuestion;
 
-    private SagaWorkflow workflow;
+    
 
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -35,13 +45,13 @@ public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getOldQuestionStep = new SyncStep("getOldQuestionStep", () -> {
             SagaQuestion oldQuestion = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuestion, SagaState.UPDATE_QUESTION_READ_QUESTION, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuestion, State.UPDATE_QUESTION_READ_QUESTION, unitOfWork);
             this.setOldQuestion(oldQuestion);
         });
     
         getOldQuestionStep.registerCompensation(() -> {
             Question newQuestion = questionFactory.createQuestionFromExisting(this.getOldQuestion());
-            unitOfWorkService.registerSagaState((SagaQuestion) newQuestion, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaQuestion) newQuestion, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newQuestion);
         }, unitOfWork);
     
@@ -58,21 +68,7 @@ public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public Question getOldQuestion() {
         return oldQuestion;

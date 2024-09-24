@@ -25,7 +25,7 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
     private List<TopicDto> topics;
     private QuestionDto createdQuestion;
 
-    private SagaWorkflow workflow;
+    
 
     private final QuestionService questionService;
     private final TopicService topicService;
@@ -84,23 +84,7 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
     @Override
     public void handleEvents() {
 
-    }
-
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    }    
 
     public QuestionCourse getCourse() {
         return course;

@@ -20,7 +20,7 @@ public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
     private QuizAnswerDto quizAnswerDto;
     private Tournament oldTournament;
 
-    private CausalWorkflow workflow;
+    
 
     private final TournamentService tournamentService;
     private final QuizService quizService;
@@ -55,21 +55,7 @@ public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public TournamentDto getTournamentDto() {
         return tournamentDto;

@@ -14,10 +14,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGenerato
 
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.repositories.CourseCustomRepositoryTCC   
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.repositories.QuizAnswerCustomRepositoryTCC   
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.repositories.TournamentCustomRepositoryTCC
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.repositories.CourseExecutionCustomRepositoryTCC;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.repositories.CourseCustomRepositoryTCC   
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.repositories.QuizAnswerCustomRepositoryTCC   
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.repositories.TournamentCustomRepositoryTCC
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.repositories.CourseExecutionCustomRepositoryTCC;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserRepository;
@@ -25,14 +25,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionRepository;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.CausalQuizAnswerFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CausalCourseFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CausalCourseExecutionFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.CausalQuestionFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.CausalQuizFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.CausalTopicFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.CausalTournamentFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.CausalUserFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.factories.CausalQuizAnswerFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.factories.CausalCourseFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.factories.CausalCourseExecutionFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.factories.CausalQuestionFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.factories.CausalQuizFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.factories.CausalTopicFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.factories.CausalTournamentFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.factories.CausalUserFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.CourseExecutionFunctionalities

@@ -22,7 +22,7 @@ public class CreateQuestionFunctionalityTCC extends WorkflowFunctionality {
     private List<TopicDto> topics;
     private QuestionDto createdQuestion;
 
-    private CausalWorkflow workflow;
+    
 
     private final QuestionService questionService;
     private final TopicService topicService;
@@ -68,21 +68,7 @@ public class CreateQuestionFunctionalityTCC extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public QuestionCourse getCourse() {
         return course;

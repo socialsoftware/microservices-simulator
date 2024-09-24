@@ -21,12 +21,40 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
+    public enum State implements SagaState {
+        UPDATE_TOURNAMENT_READ_TOURNAMENT {
+            @Override
+            public String getStateName() {
+                return "UPDATE_TOURNAMENT_READ_TOURNAMENT";
+            }
+        },
+        UPDATE_TOURNAMENT_READ_TOPIC {
+            @Override
+            public String getStateName() {
+                return "UPDATE_TOURNAMENT_READ_TOPIC";
+            }
+        },
+        UPDATE_TOURNAMENT_READ_UPDATED_TOPICS {
+            @Override
+            public String getStateName() {
+                return "UPDATE_TOURNAMENT_READ_UPDATED_TOPICS";
+            }
+        },
+        UPDATE_TOURNAMENT_READ_QUIZ {
+            @Override
+            public String getStateName() {
+                return "UPDATE_TOURNAMENT_READ_QUIZ";
+            }
+        }
+    }
+    
     private TournamentDto originalTournamentDto;
     private HashSet<SagaTopic> topics = new HashSet<SagaTopic>();
     private Tournament oldTournament;
@@ -34,7 +62,7 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
     private QuizDto quizDto;
     private Quiz oldQuiz;
 
-    private SagaWorkflow workflow;
+    
 
     private final TournamentService tournamentService;
     private final TopicService topicService;
@@ -57,22 +85,24 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
         SyncStep getOriginalTournamentStep = new SyncStep("getOriginalTournamentStep", () -> {
             TournamentDto originalTournamentDto = tournamentService.getTournamentById(tournamentDto.getAggregateId(), unitOfWork);
             SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(originalTournamentDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(tournament, SagaState.UPDATE_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
+            unitOfWorkService.registerSagaState(tournament, State.UPDATE_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
             this.setOriginalTournamentDto(originalTournamentDto);
             this.setOldTournament(tournament);
         });
     
         getOriginalTournamentStep.registerCompensation(() -> {
             TournamentDto originalTournamentDto = this.getOriginalTournamentDto();
-            SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(originalTournamentDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(tournament, SagaState.NOT_IN_SAGA, unitOfWork);
+            if (originalTournamentDto != null) {
+                SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(originalTournamentDto.getAggregateId(), unitOfWork);
+                unitOfWorkService.registerSagaState(tournament, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            }
         }, unitOfWork);
     
         SyncStep getTopicsStep = new SyncStep("getTopicsStep", () -> {
             topicsAggregateIds.stream().forEach(topicId -> {
                 TopicDto t = topicService.getTopicById(topicId, unitOfWork);
                 SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(t.getAggregateId(), unitOfWork);
-                unitOfWorkService.registerSagaState(topic, SagaState.UPDATE_TOURNAMENT_READ_TOPIC, unitOfWork);
+                unitOfWorkService.registerSagaState(topic, State.UPDATE_TOURNAMENT_READ_TOPIC, unitOfWork);
                 this.addTopic(topic);
             });
         }, new ArrayList<>(Arrays.asList(getOriginalTournamentStep)));
@@ -81,20 +111,20 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
             Set<SagaTopic> topics = this.getTopics();
             topics.stream().forEach(t -> {
                 SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(t.getAggregateId(), unitOfWork);
-                unitOfWorkService.registerSagaState(topic, SagaState.NOT_IN_SAGA, unitOfWork);
+                unitOfWorkService.registerSagaState(topic, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             });
         }, unitOfWork);
     
         SyncStep updateTournamentStep = new SyncStep("updateTournamentStep", () -> {
             TournamentDto newTournamentDto = tournamentService.updateTournament(tournamentDto, this.getTopicsDtos(), unitOfWork);
             SagaTournament newTournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(newTournamentDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(newTournament, SagaState.UPDATE_TOURNAMENT_READ_UPDATED_TOPICS, unitOfWork);
+            unitOfWorkService.registerSagaState(newTournament, State.UPDATE_TOURNAMENT_READ_UPDATED_TOPICS, unitOfWork);
             this.setNewTournamentDto(newTournamentDto);
         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
     
         updateTournamentStep.registerCompensation(() -> {
             Tournament oldTournament = tournamentFactory.createTournamentFromExisting(this.getOldTournament());
-            unitOfWorkService.registerSagaState((SagaTournament) oldTournament, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaTournament) oldTournament, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(oldTournament);
         }, unitOfWork);
     
@@ -107,13 +137,13 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
             this.setQuizDto(quizDto);
 
             SagaQuiz oldQuiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuiz, SagaState.IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuiz, GenericSagaState.IN_SAGA, unitOfWork);
             this.setOldQuiz(oldQuiz);
     
             if (topicsAggregateIds != null || tournamentDto.getNumberOfQuestions() != null) {
                 if (topicsAggregateIds == null) {
                     quizService.updateGeneratedQuiz(quizDto, this.getTopics().stream()
-                            .filter(t -> t.getSagaState().equals(SagaState.NOT_IN_SAGA))
+                            .filter(t -> t.getSagaState().equals(GenericSagaState.NOT_IN_SAGA))
                             .map(SagaTopic::getAggregateId)
                             .collect(Collectors.toSet()), this.getNewTournamentDto().getNumberOfQuestions(), unitOfWork);
                 } else {
@@ -124,7 +154,7 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
     
         updateQuizStep.registerCompensation(() -> {
             Quiz newQuiz = quizFactory.createQuizFromExisting(this.getOldQuiz());
-            unitOfWorkService.registerSagaState((SagaQuiz) newQuiz, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaQuiz) newQuiz, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newQuiz);
         }, unitOfWork);
     
@@ -139,21 +169,7 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public TournamentDto getOriginalTournamentDto() {
         return originalTournamentDto;

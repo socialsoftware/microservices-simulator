@@ -21,19 +21,41 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
+    public enum State implements SagaState {
+        CREATE_TOURNAMENT_READ_CREATOR {
+            @Override
+            public String getStateName() {
+                return "CREATE_TOURNAMENT_READ_CREATOR";
+            }
+        },
+        CREATE_TOURNAMENT_READ_COURSE {
+            @Override
+            public String getStateName() {
+                return "CREATE_TOURNAMENT_READ_COURSE";
+            }
+        },
+        CREATE_TOURNAMENT_READ_TOPIC {
+            @Override
+            public String getStateName() {
+                return "CREATE_TOURNAMENT_READ_TOPIC";
+            }
+        }
+    }
+    
     private CourseExecutionDto courseExecutionDto;
     private UserDto userDto;
     private HashSet<TopicDto> topicDtos = new HashSet<TopicDto>();
     private QuizDto quizDto;
     private TournamentDto tournamentDto;
 
-    private SagaWorkflow workflow;
+    
 
     private final TournamentService tournamentService;
     private final CourseExecutionService courseExecutionService;
@@ -60,34 +82,34 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             // by making this call the invariants regarding the course execution and the role of the creator are guaranteed
             UserDto creatorDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId, unitOfWork);
             SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, SagaState.CREATE_TOURNAMENT_READ_CREATOR, unitOfWork);
+            unitOfWorkService.registerSagaState(courseExecution, State.CREATE_TOURNAMENT_READ_CREATOR, unitOfWork);
             this.setUserDto(creatorDto);
         });
-
+        
         getCreatorStep.registerCompensation(() -> {
             SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(courseExecution, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
-
+        
         SyncStep getCourseExecutionStep = new SyncStep("getCourseExecutionStep", () -> {
             CourseExecutionDto courseExecutionDto = courseExecutionService.getCourseExecutionById(executionId, unitOfWork);
             SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, SagaState.CREATE_TOURNAMENT_READ_COURSE, unitOfWork);
+            unitOfWorkService.registerSagaState(courseExecution, State.CREATE_TOURNAMENT_READ_COURSE, unitOfWork);
             this.setCourseExecutionDto(courseExecutionDto);
         });
-
+        
         getCourseExecutionStep.registerCompensation(() -> {
             CourseExecutionDto courseExecutionDto = this.getCourseExecutionDto();
             SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(courseExecution, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
-
+        
         SyncStep getTopicsStep = new SyncStep("getTopicsStep", () -> {
             //TODO change other steps that affect multiple aggregates to be like this
             topicsId.stream().forEach(topicId -> {
                 TopicDto t = topicService.getTopicById(topicId, unitOfWork);
                 SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(t.getAggregateId(), unitOfWork);
-                unitOfWorkService.registerSagaState(topic, SagaState.CREATE_TOURNAMENT_READ_TOPIC, unitOfWork);
+                unitOfWorkService.registerSagaState(topic, State.CREATE_TOURNAMENT_READ_TOPIC, unitOfWork);
                 this.addTopicDto(t);
             });
         });
@@ -96,7 +118,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             Set<TopicDto> topicDtos = this.getTopicsDtos();
             topicDtos.stream().forEach(t -> {
                 SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(t.getAggregateId(), unitOfWork);
-                unitOfWorkService.registerSagaState(topic, SagaState.NOT_IN_SAGA, unitOfWork);
+                unitOfWorkService.registerSagaState(topic, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             });
         }, unitOfWork);
 
@@ -148,21 +170,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public void setCourseExecutionDto(CourseExecutionDto courseExecutionDto) {
         this.courseExecutionDto = courseExecutionDto;

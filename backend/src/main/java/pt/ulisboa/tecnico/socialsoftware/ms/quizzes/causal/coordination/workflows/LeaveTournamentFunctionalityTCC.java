@@ -12,7 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 public class LeaveTournamentFunctionalityTCC extends WorkflowFunctionality {
     private Tournament oldTournament;
 
-    private CausalWorkflow workflow;
+    
 
     private final TournamentService tournamentService;
     private final CausalUnitOfWorkService unitOfWorkService;

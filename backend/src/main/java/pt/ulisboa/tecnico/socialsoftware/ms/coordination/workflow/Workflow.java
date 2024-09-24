@@ -17,7 +17,6 @@ public abstract class Workflow {
     protected HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies = new HashMap<>();
     private ExecutionPlan executionPlan; // redefined for each transaction model
     private HashMap<String, FlowStep> stepNameMap = new HashMap<>();
-    private FlowStep lastExecutedStep;
 
     public Workflow(WorkflowFunctionality functionality, UnitOfWorkService unitOfWorkService, UnitOfWork unitOfWork) {
         this.functionality = functionality;
@@ -50,14 +49,12 @@ public abstract class Workflow {
     public void executeStepByName(String stepName, UnitOfWork unitOfWork) {
         FlowStep step = getStepByName(stepName);
         executionPlan.executeSteps((ArrayList<FlowStep>) Collections.singletonList(step), unitOfWork).join();
-        lastExecutedStep = step;
     }
     
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
         this.executionPlan = planOrder(this.stepsWithDependencies);
         FlowStep targetStep = getStepByName(stepName);
         executionPlan.executeUntilStep(targetStep, unitOfWork).join();
-        lastExecutedStep = targetStep;
     }
 
     public CompletableFuture<Void> resume(UnitOfWork unitOfWork) {
@@ -83,7 +80,7 @@ public abstract class Workflow {
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         try {
             this.executionPlan = planOrder(this.stepsWithDependencies);
-            return executionPlan.oldexecute(unitOfWork)
+            return executionPlan.execute(unitOfWork)
                 .thenRun(() -> unitOfWorkService.commit(unitOfWork));
 
         } catch (TutorException ex) {

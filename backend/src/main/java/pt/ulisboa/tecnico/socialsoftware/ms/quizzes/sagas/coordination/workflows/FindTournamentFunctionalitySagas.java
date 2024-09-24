@@ -2,7 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
@@ -12,7 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class FindTournamentFunctionalitySagas extends WorkflowFunctionality {
     private TournamentDto tournamentDto;
 
-    private SagaWorkflow workflow;
+    
 
     private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -38,22 +37,6 @@ public class FindTournamentFunctionalitySagas extends WorkflowFunctionality {
     @Override
     public void handleEvents() {
 
-    }
-
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) throws TutorException {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
     }
 
     public TournamentDto getTournamentDto() {

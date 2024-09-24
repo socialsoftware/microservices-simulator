@@ -7,15 +7,25 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuestion;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
+    public enum State implements SagaState {
+        REMOVE_QUESTION_READ_QUESTION {
+            @Override
+            public String getStateName() {
+                return "REMOVE_QUESTION_READ_QUESTION";
+            }
+        }
+    }
+
     private SagaQuestion question;
 
-    private SagaWorkflow workflow;
+    
 
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -32,13 +42,13 @@ public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getQuestionStep = new SyncStep("getQuestionStep", () -> {
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(question, SagaState.REMOVE_QUESTION_READ_QUESTION, unitOfWork);
+            unitOfWorkService.registerSagaState(question, State.REMOVE_QUESTION_READ_QUESTION, unitOfWork);
             this.setQuestion(question);
         });
     
         getQuestionStep.registerCompensation(() -> {
             SagaQuestion question = this.getQuestion();
-            unitOfWorkService.registerSagaState(question, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(question, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(question);
         }, unitOfWork);
     
@@ -53,22 +63,6 @@ public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
     @Override
     public void handleEvents() {
 
-    }
-
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
     }
 
     public SagaQuestion getQuestion() {

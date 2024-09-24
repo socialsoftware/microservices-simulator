@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 public class GetClosedTournamentsForCourseExecutionFunctionalityTCC extends WorkflowFunctionality {
     private List<TournamentDto> closedTournaments;
 
-    private CausalWorkflow workflow;
+    
 
     private final TournamentService tournamentService;
     private final CausalUnitOfWorkService unitOfWorkService;
@@ -40,21 +40,7 @@ public class GetClosedTournamentsForCourseExecutionFunctionalityTCC extends Work
 
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
 
     public List<TournamentDto> getClosedTournaments() {

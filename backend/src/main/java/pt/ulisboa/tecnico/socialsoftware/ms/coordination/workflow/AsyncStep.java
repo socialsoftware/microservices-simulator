@@ -8,6 +8,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 
 public class AsyncStep implements FlowStep {
     private String stepName;
@@ -48,7 +49,7 @@ public class AsyncStep implements FlowStep {
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         try {
             if (compensationLogic != null) {
-                unitOfWork.registerCompensation(compensationLogic);
+                ((SagaUnitOfWork)unitOfWork).registerCompensation(compensationLogic);
             }
             return CompletableFuture.supplyAsync(asyncOperation, executorService).thenCompose(Function.identity());
         } catch (Exception e) {

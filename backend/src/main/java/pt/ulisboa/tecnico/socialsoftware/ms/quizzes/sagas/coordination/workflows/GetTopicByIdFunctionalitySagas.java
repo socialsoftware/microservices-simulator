@@ -11,7 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class GetTopicByIdFunctionalitySagas extends WorkflowFunctionality {
     private TopicDto topicDto;
 
-    private SagaWorkflow workflow;
+    
 
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -39,21 +39,7 @@ public class GetTopicByIdFunctionalitySagas extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public void setTopicDto(TopicDto topicDto) {
         this.topicDto = topicDto;

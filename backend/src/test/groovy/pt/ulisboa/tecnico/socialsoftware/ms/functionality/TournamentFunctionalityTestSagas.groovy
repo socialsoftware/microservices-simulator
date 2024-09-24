@@ -26,10 +26,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHand
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.SagasCourseExecutionFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.factories.SagasCourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.*
 
@@ -156,8 +157,8 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         questionDto2 = questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto2)
 
         questionDto3 = new QuestionDto()
-        questionDto3.setTitle('Title' + 2)
-        questionDto3.setContent('Content' + 2)
+        questionDto3.setTitle('Title' + 3)
+        questionDto3.setContent('Content' + 3)
         set =  new HashSet<>(Arrays.asList(topicDto3));
         questionDto3.setTopicDto(set)
         questionDto3.setOptionDtos([optionDto1,optionDto2])
@@ -177,6 +178,11 @@ class TournamentFunctionalityTestSagas extends SpockTest {
 
     // update name in course execution and add student in tournament
 
+    /* Case C: involves writing to the main aggregate (the course execution aggregate in this case). 
+    The anomaly described in Case C, where a lost update can occur, could happen if an intermediate state is overwritten. 
+    The functionality writes to the student’s information in the course execution first, 
+    and then checks if it was propagated properly to the tournament
+    */
     def 'sequential update name in course execution and then add student as tournament participant' () {
         given: 'student name is updated'
         def updateNameDto = new UserDto()
@@ -194,6 +200,11 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentDtoResult.getParticipants().find { it.aggregateId == userDto.aggregateId }.name == UPDATED_NAME
     }
 
+    /* Case D: it deals with writing to both the main and secondary upstream aggregates. 
+    Here, the student is first added to the tournament (which can be seen as a secondary upstream aggregate in this context), 
+    and then their name is updated in the course execution (main aggregate). 
+    The event processing ensures consistency across both aggregates, avoiding lost updates.
+    */
     def 'sequential add student as tournament participant and then update name in course execution' () {
         given: 'student is added to tournament'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
@@ -213,7 +224,11 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentDtoResult.getParticipants().find{it.aggregateId == userDto.aggregateId}.name == UPDATED_NAME
     }
 
-    // NEW
+    /* Case B deals with reading and writing from both main and secondary aggregates 
+    (in this case, course execution and tournament). 
+    A dirty read occurs when the student is added to the tournament with the old name, 
+    and non-repeatable read can happen as the name is updated later and must be synchronized across aggregates.
+    */
     def 'concurrent add student as tournament participant and update name in course execution - add student finishes first' () {
         given: 'student is added to tournament'
         def updateNameDto = new UserDto()
@@ -270,6 +285,18 @@ class TournamentFunctionalityTestSagas extends SpockTest {
     }
     */
 
+    /* Case B (Dirty Read, Non-repeatable Read):
+    Anomalies: This case involves the concurrency issue where the tournament aggregate reads an outdated version of the student's name. 
+    The system tries to update the name in the course execution, 
+    but the tournament does not immediately pick up this change. 
+    This can be viewed as a dirty read and non-repeatable read anomaly since the tournament 
+    first reads old data and then later needs to be updated with the correct name.
+
+    Case C (Lost Update):
+    Anomalies: The outdated version issue is a classic example of a lost update anomaly. 
+    The tournament functionality adds the student using an outdated version of their data, 
+    simulating a lost update because the name change was not initially reflected.
+    */
     def 'concurrent add student as tournament participant and update name in course execution - update name finishes first' () {
         given: 'student name is updated'
         def updateNameDto = new UserDto()
@@ -295,7 +322,16 @@ class TournamentFunctionalityTestSagas extends SpockTest {
 
     // update creator name in course execution and add creator in tournament
 
-    // check
+    /* Case A (Dirty Read):
+    Anomalies: In this case, a dirty read occurs when the tournament reads the outdated name of the creator 
+    while trying to add them as a participant. This happens because the event that updates the name has not been processed yet.
+
+    Case B (Non-repeatable Read, Phantom Read):
+    Anomalies: The test highlights the issue of non-repeatable read since the tournament 
+    first reads the old name, and then later, after event processing, it needs to read the updated name. 
+    There could also be a phantom read if the data (the creator's name) changes between different local 
+    transactions before the functionality is complete.
+    */
     def 'sequential update creator name in course execution and add creator as tournament participant: fails because when creator is added tournament have not process the event yet' () {
         given: 'creator name is updated'
         def updateNameDto = new UserDto()
@@ -320,6 +356,16 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
     }
 
+    /* Case B (Non-repeatable Read, Phantom Read):
+    Anomalies: Since the creator is added as a participant with the old name and 
+    the update event hasn't been processed yet, a non-repeatable read or phantom read situation arises. 
+    Initially, the tournament uses the outdated name, and after the event is processed, the system needs to re-read the data to update the name.
+    The test ensures that, after event handling, the correct name is propagated to both the course execution and the tournament, 
+    ensuring consistency across the aggregates. This is crucial for maintaining eventual consistency in distributed systems.
+    Case C (Lost Update):
+    Anomalies: The update of the creator's name in the course execution without immediately propagating it to the tournament 
+    could lead to a lost update if the data were not eventually synchronized. However, by processing the event and updating the tournament participant, the system avoids this anomaly.
+    */
     def 'sequential add creator as tournament participant and update creator name in course execution' () {
         given: 'add creator as participant'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
@@ -392,7 +438,15 @@ class TournamentFunctionalityTestSagas extends SpockTest {
     }
     */
 
-    // NEW (fails) lost updates
+    /* Case C (Lost Update):
+    Anomalies: Since the addParticipant process begins while the name update is ongoing, 
+    there is a risk of a lost update if the tournament were to add the creator with the old name before processing the name change.
+
+    Case B (Non-repeatable Read, Phantom Read):
+    Anomalies: During the concurrent operation, the addParticipant functionality 
+    initially uses the old state of the user (with the outdated name) until the update is processed. 
+    This creates a non-repeatable read scenario, where different parts of the system might see different versions of the data (old vs. new name).
+    */
     def 'concurrent add creator as tournament participant and update name in course execution: update name finishes first and event processing is during addParticipant' () {
         given: 'creator name is updated'
         def updateNameDto = new UserDto()
@@ -451,7 +505,15 @@ class TournamentFunctionalityTestSagas extends SpockTest {
     }
     */
 
-    // check
+    /* Case B (Non-repeatable Read, Phantom Read):
+    Anomalies: During the concurrent addParticipant operation, the tournament may use an outdated version
+     of the creator’s name if the event update has not yet propagated. This leads to non-repeatable read issues, 
+     where different parts of the system might see different versions of the creator’s name.
+    
+    Case C (Lost Update):
+    Anomalies: There is a risk of lost update if the tournament functionality 
+    operates with an old version of the data before the name update event is fully processed.
+    */
     def 'concurrent add creator as tournament participant and update name in course execution - update name finishes first and event processing starts before add creator finishes' () {
         given: 'creator name is updated'
         def updateNameDto = new UserDto()
@@ -471,6 +533,15 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
     }
 
+    /* Case B (Non-repeatable Read, Phantom Read):
+    Anomalies: The primary issue here is that the addParticipant operation uses 
+    the old name while the name update is pending. This can cause non-repeatable 
+    reads if the system reads the outdated name before processing the event.
+
+    Case D (Lost Update):
+    Anomalies: The lost update could occur if the tournament initially adds the 
+    creator with an old name and doesn't update it after the event is processed.
+    */
     def 'concurrent add creator as tournament participant and update name in course execution: add creator finishes first' () {
         given: 'add creator as participant'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
@@ -495,7 +566,19 @@ class TournamentFunctionalityTestSagas extends SpockTest {
 
     // anonymize creator in course execution and add student in tournament
 
-    // check
+    /* Case A (Dirty Read):
+    Anomalies: Although not directly related to dirty reads, ensuring that the creator’s anonymization 
+    is processed before adding a new participant helps prevent scenarios where outdated information might affect the addition of new participants.
+
+    Case C (Lost Update):
+    Anomalies: There is no direct lost update issue here as the anonymization is 
+    processed before the new student is added. The focus is on ensuring that the 
+    anonymization event is handled correctly before any new updates.
+
+    Case E (Complex Functionality):
+    Anomalies: Anonymization involves updating multiple states (creator and participants), 
+    and ensuring that the tournament becomes inactive after anonymization reflects proper handling of complex functionality.
+    */
     def 'sequential anonymize creator and add student: event is processed before add student' () {
         given: 'anonymize creator'
         courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
@@ -518,7 +601,22 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentDtoResult.getParticipants().size() == 0
     }
 
-    // check
+    /* 
+    Case A (Dirty Read):
+    Anomalies: By adding a student before processing the anonymization, this test ensures that 
+    there are no inconsistencies or dirty reads where a partially anonymized or 
+    inconsistent state might affect the addition of participants.
+    
+    Case C (Lost Update):
+    Anomalies: If the anonymization event is processed after the student is added, 
+    the system must ensure that no updates are lost and that the anonymization 
+    fully overrides any pre-existing data (e.g., participants list).
+    
+    Case E (Complex Functionality):
+    Anomalies: Anonymization and handling of participants involve multiple state 
+    updates and event processing, which makes it a complex functionality. The test 
+    ensures that these operations are handled in the correct sequence.
+    */
     def 'sequential anonymize creator and add student: event is processed after add student' () {
         given: 'anonymize creator'
         courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
@@ -541,7 +639,22 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentDtoResult.getParticipants().size() == 0
     }
 
-    // check
+    /* 
+    Case A (Dirty Read):
+    Anomalies: Since the anonymization finishes first, the system needs to ensure that no 
+    dirty reads occur when adding a student. For example, the anonymized state of 
+    the creator should not interfere with the addition of the student.
+    
+    Case C (Lost Update):
+    Anomalies: There's a risk of losing updates if the system doesn't handle concurrent 
+    operations properly. If anonymization occurs first, the system must ensure that 
+    adding a student does not overwrite the anonymized state of the creator or reactivate the tournament incorrectly.
+    
+    Case D (Write Skew/Phantom Read):
+    Anomalies: Concurrent operations may lead to inconsistent or skewed writes, 
+    where an anonymized creator might still exist as a non-anonymized participant 
+    or cause the tournament to be in an inconsistent state.
+    */
     def 'concurrent anonymize creator and add student: anonymize finishes first' () {
         given: 'anonymize creator'
         courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
@@ -565,8 +678,15 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentDtoResult.getParticipants().size() == 0
     }
 
-    // delete tournament and add student in tournament
+    /*
+    Case A (Dirty Read):
+    Anomalies: If the system allows adding a participant to a removed tournament, 
+    it would result in a dirty read scenario, where data no longer exists in the system but is still being referenced.
 
+    Case B (Lost Update):
+    Anomalies: If the system doesn't throw an error when trying to add a participant 
+    to a removed tournament, it may lead to a lost update where operations are performed on nonexistent data.
+    */
     def 'sequential remove tournament and add student' () {
         given: 'remove tournament'
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
@@ -578,7 +698,16 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
-    // NEW (fails) handleevent para este?
+    /*
+    Case B (Lost Update):
+    Anomalies: Without proper handling, the system could remove the tournament after 
+    adding a participant, which would result in a lost update scenario, where the 
+    added participant is "lost" because the tournament is removed.
+
+    Case C (Inconsistent State):
+    Anomalies: If both the add participant and the remove tournament operations complete successfully, 
+    the system would enter an inconsistent state where a removed tournament has participants, violating the business rule.
+    */
     def 'concurrent remove tournament and add student: add student finishes first' () {
         given: 'student added before tournament removal'
         def functionalityName1 = AddParticipantFunctionalitySagas.getClass().getSimpleName()
@@ -621,7 +750,18 @@ class TournamentFunctionalityTestSagas extends SpockTest {
     }
     */
 
-    // NEW (fails) handleevent para este?
+    /*
+    Case D (Check-Then-Act):
+    Anomalies: The add participant operation checks if the tournament exists (the "getTournamentStep"), 
+    but by the time it resumes the workflow, the tournament has already been deleted. 
+    This is a classic check-then-act scenario where the state changes after the check, 
+    leading to an invalid action (adding a participant to a removed tournament).
+
+    Case B (Lost Update):
+    Anomalies: If the tournament were not removed properly or the state was not updated, 
+    the participant could be added to a non-existent tournament, resulting in a lost update. 
+    This test ensures that does not happen.
+    */
     def 'concurrent remove tournament and add student: remove tournament finishes first' () {
         given: 'tournament removal before student added'
         def functionalityName1 = AddParticipantFunctionalitySagas.getClass().getSimpleName()
@@ -664,8 +804,16 @@ class TournamentFunctionalityTestSagas extends SpockTest {
     }
     */
 
-    // delete tournament and update start time
-
+    /*
+    Case D (Check-Then-Act):
+    Anomalies: The system updates the tournament’s start time, assuming the tournament 
+    still exists. However, by the time the tournament is removed, the state has changed, 
+    causing the final act (the find operation) to fail.
+    
+    Case B (Lost Update):
+    Anomalies: If the removal operation did not correctly update the state, the system 
+    might still show the updated start time for a removed tournament, resulting in an inconsistency.
+    */
     def 'concurrent remove tournament and update start time: update start time finishes first' () {
         given: 'update start time'
         def updateTournamentDto = new TournamentDto()
@@ -685,8 +833,13 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
-    // update topics in tournament and update topics in tournament
+    /*
+    Case D (Check-Then-Act):
+    Anomalies: The system assumes the first update is the latest, but the second update occurs concurrently and alters the state. The merge must ensure that the final state reflects the most recent update.
 
+    Case B (Lost Update):
+    Anomalies: Without proper version handling, the system could incorrectly apply topicDto2 and lose the more recent update to topicDto3.
+    */
     def 'concurrent change of tournament topics' () {
         given: 'update topics to topic 2'
         def updateTournamentDto = new TournamentDto()
@@ -725,6 +878,9 @@ class TournamentFunctionalityTestSagas extends SpockTest {
     
         result.numberOfQuestions == 2
         result.topics*.aggregateId.containsAll([topicDto1.getAggregateId(), topicDto2.getAggregateId()])
+        def unitOfWork = unitOfWorkService.createUnitOfWork("TEST");
+        def courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork)
+        courseExecution.sagaState == GenericSagaState.NOT_IN_SAGA;
     }
 
     def "create tournament with invalid input"() {
@@ -737,7 +893,6 @@ class TournamentFunctionalityTestSagas extends SpockTest {
 
     def "saga compensations"() {
         given:
-        def unitOfWork = unitOfWorkService.createUnitOfWork("TEST");
         def tournamentDto = new TournamentDto(startTime: DateHandler.toISOString(TIME_1), endTime: DateHandler.toISOString(TIME_3), numberOfQuestions: 2)
         
         when:
@@ -749,15 +904,13 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         def error = thrown(TutorException)
         error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
         then:
+        def unitOfWork = unitOfWorkService.createUnitOfWork("TEST");
         def courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork)
-        courseExecution.sagaState == SagaState.NOT_IN_SAGA;
-        /*
+        courseExecution.sagaState == GenericSagaState.NOT_IN_SAGA;
         def topic1 = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto1.getAggregateId(), unitOfWork)
         def topic2 = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto2.getAggregateId(), unitOfWork)
-        topic1.sagaState == SagaState.NOT_IN_SAGA;
-        topic2.sagaState == SagaState.NOT_IN_SAGA;
-        */
-
+        topic1.sagaState == GenericSagaState.NOT_IN_SAGA;
+        topic2.sagaState == GenericSagaState.NOT_IN_SAGA;
     }
 
     def "find tournament successfully"() {
@@ -794,9 +947,9 @@ class TournamentFunctionalityTestSagas extends SpockTest {
 
         when:
         tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)
-        def updatedTournamentDto = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
 
         then:
+        def updatedTournamentDto = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto != null
         updatedTournamentDto.topics*.aggregateId.containsAll([topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()])
     }

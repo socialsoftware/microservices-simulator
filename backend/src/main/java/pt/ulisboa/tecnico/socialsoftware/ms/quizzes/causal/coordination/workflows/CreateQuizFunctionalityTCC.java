@@ -20,7 +20,7 @@ public class CreateQuizFunctionalityTCC extends WorkflowFunctionality {
     private Set<QuestionDto> questions;
     private QuizDto createdQuizDto;
 
-    private CausalWorkflow workflow;
+    
 
     private final CourseExecutionService courseExecutionService;
     private final QuizService quizService;
@@ -57,21 +57,7 @@ public class CreateQuizFunctionalityTCC extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public QuizCourseExecution getQuizCourseExecution() {
         return quizCourseExecution;

@@ -7,15 +7,26 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaUser;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class ActivateUserFunctionalitySagas extends WorkflowFunctionality {
+
+    public enum State implements SagaState {
+        ACTIVATE_USER_READ_USER {
+            @Override
+            public String getStateName() {
+                return "ACTIVATE_USER_READ_USER";
+            }
+        }
+    }
+
     private SagaUser user;
 
-    private SagaWorkflow workflow;
+    
 
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -32,14 +43,14 @@ public class ActivateUserFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getUserStep = new SyncStep("getUserStep", () -> {
             SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(user, SagaState.ACTIVATE_USER_READ_USER, unitOfWork);
+            unitOfWorkService.registerSagaState(user, State.ACTIVATE_USER_READ_USER, unitOfWork);
             this.setUser(user);
         });
     
         getUserStep.registerCompensation(() -> {
             SagaUser user = this.getUser();
             user.setActive(false);
-            unitOfWorkService.registerSagaState(user, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(user, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(user);
         }, unitOfWork);
     
@@ -54,23 +65,7 @@ public class ActivateUserFunctionalitySagas extends WorkflowFunctionality {
     @Override
     public void handleEvents() {
 
-    }
-
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    }    
 
     public SagaUser getUser() {
         return user;

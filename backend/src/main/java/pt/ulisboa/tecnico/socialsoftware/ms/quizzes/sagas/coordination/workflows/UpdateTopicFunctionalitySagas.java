@@ -10,15 +10,25 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregat
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
+    public enum State implements SagaState {
+        UPDATE_TOPIC_READ_TOPIC {
+            @Override
+            public String getStateName() {
+                return "UPDATE_TOPIC_READ_TOPIC";
+            }
+        }
+    }
+    
     private Topic oldTopic;
 
-    private SagaWorkflow workflow;
+    
 
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -35,13 +45,13 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getOldTopicStep = new SyncStep("getOldTopicStep", () -> {
             SagaTopic oldTopic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(oldTopic, SagaState.UPDATE_TOPIC_READ_TOPIC, unitOfWork);
+            unitOfWorkService.registerSagaState(oldTopic, State.UPDATE_TOPIC_READ_TOPIC, unitOfWork);
             this.setOldTopic(oldTopic);
         });
     
         getOldTopicStep.registerCompensation(() -> {
             Topic newTopic = topicFactory.createTopicFromExisting(this.getOldTopic());
-            unitOfWorkService.registerSagaState((SagaTopic) newTopic, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaTopic) newTopic, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newTopic);
         }, unitOfWork);
     
@@ -58,21 +68,7 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public Topic getOldTopic() {
         return oldTopic;

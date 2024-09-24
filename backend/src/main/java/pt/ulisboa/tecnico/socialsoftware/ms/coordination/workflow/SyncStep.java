@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 
 public class SyncStep implements FlowStep {
     private String stepName;
@@ -18,13 +19,11 @@ public class SyncStep implements FlowStep {
 
     // TODO temp
     public SyncStep(Runnable syncOperation) {
-        this.stepName = stepName;
         this.syncOperation = syncOperation;
     }
 
     // TODO temp
     public SyncStep(Runnable syncOperation, ArrayList<FlowStep> dependencies) {
-        this.stepName = stepName;
         this.syncOperation = syncOperation;
         this.dependencies = dependencies;
     }
@@ -50,7 +49,7 @@ public class SyncStep implements FlowStep {
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         try {
             if (compensationLogic != null) {
-                unitOfWork.registerCompensation(compensationLogic);
+                ((SagaUnitOfWork)unitOfWork).registerCompensation(compensationLogic);
             }
             syncOperation.run();
             return CompletableFuture.completedFuture(null);

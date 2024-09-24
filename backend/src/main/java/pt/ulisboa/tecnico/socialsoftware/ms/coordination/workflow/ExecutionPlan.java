@@ -2,7 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.ListIterator;
 import java.util.concurrent.CompletableFuture;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
@@ -34,11 +33,11 @@ public class ExecutionPlan {
     /* 
      * while not plan.isempty
      *      do: step = getplan.first / getplan.next
-     *          if canExec(step): 
+     *          if canExecute(step): 
      *              step.exec()
      *              plan.remove(step)
      * 
-     * canExec(step):
+     * canExecute(step):
      *      return stepFutures.containAll(step.dependencies)
     */
 
@@ -46,6 +45,7 @@ public class ExecutionPlan {
         return stepFutures.keySet().containsAll(step.getDependencies());
     }
 
+    /* TODO remove
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         ListIterator<FlowStep> iterator = plan.listIterator();
 
@@ -61,27 +61,28 @@ public class ExecutionPlan {
 
         return CompletableFuture.allOf(this.stepFutures.values().toArray(new CompletableFuture[0]));
     }
+    */
 
-    public CompletableFuture<Void> oldexecute(UnitOfWork unitOfWork) {
+    public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
 
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
-            if (dependencies.get(step).isEmpty()) {;
+            if (dependencies.get(step).isEmpty()) {
                 functionality.handleEvents();
-                this.stepFutures.put(step, step.execute(unitOfWork)); // executa e guarda os passos sem dependencias
+                this.stepFutures.put(step, step.execute(unitOfWork)); // execute and save the steps with no dependencies
                 executedSteps.put(step, true);
             }
         }
 
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
-            if (!this.stepFutures.containsKey(step)) { // se for um step com dependencias
-                ArrayList<FlowStep> deps = dependencies.get(step); // vai buscar todas as dependencias
-                CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // cria um future que so executa quando todas as dependencias forem completadas
-                    deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // mapeia cada dependencia com o correspondente future de step futures
+            if (!this.stepFutures.containsKey(step)) { // if the step has dependencies
+                ArrayList<FlowStep> deps = dependencies.get(step); // get all dependencies
+                CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
+                    deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
                 );
                 functionality.handleEvents();
-                this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // so executa depois das dependencias estarem completadas
+                this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // only executes after all dependencies are completed
             }
         }
 

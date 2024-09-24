@@ -18,29 +18,16 @@ public class AddParticipantFunctionalityTCC extends WorkflowFunctionality {
     private TournamentDto tournamentDto;
     private Tournament tournament;
     private UserDto userDto;
-    private Integer userAggregateId;
-    private Integer tournamentAggregateId;
-    private CausalUnitOfWork unitOfWork;
-
-    private CausalWorkflow workflow;
+    
 
     private TournamentService tournamentService;
     private CourseExecutionService courseExecutionService;
     private CausalUnitOfWorkService unitOfWorkService;
 
-    private TournamentEventHandling tournamentEventHandling;
-    private EventService eventService;
-    private String currentStep = "";
-
     public AddParticipantFunctionalityTCC(EventService eventService, TournamentEventHandling tournamentEventHandling, TournamentService tournamentService, CourseExecutionService courseExecutionService, CausalUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork) {
-        this.eventService = eventService;
-        this.tournamentEventHandling = tournamentEventHandling;
         this.tournamentService = tournamentService;
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.tournamentAggregateId = tournamentAggregateId;
-        this.userAggregateId = userAggregateId;
-        this.unitOfWork = unitOfWork;
         this.buildWorkflow(tournamentAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -63,21 +50,7 @@ public class AddParticipantFunctionalityTCC extends WorkflowFunctionality {
     public void handleEvents() {
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public void setTournamentDto(TournamentDto tournamentDto) {
         this.tournamentDto = tournamentDto;

@@ -7,15 +7,24 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
+    public enum State implements SagaState {
+        DELETE_TOPIC_READ_TOPIC {
+            @Override
+            public String getStateName() {
+                return "DELETE_TOPIC_READ_TOPIC";
+            }
+        }
+    }
     private SagaTopic topic;
 
-    private SagaWorkflow workflow;
+    
 
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -32,13 +41,13 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getTopicStep = new SyncStep("getTopicStep", () -> {
             SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(topic, SagaState.DELETE_TOPIC_READ_TOPIC, unitOfWork);
+            unitOfWorkService.registerSagaState(topic, State.DELETE_TOPIC_READ_TOPIC, unitOfWork);
             this.setTopic(topic);
         });
     
         getTopicStep.registerCompensation(() -> {
             SagaTopic topic = this.getTopic();
-            unitOfWorkService.registerSagaState(topic, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(topic, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(topic);
         }, unitOfWork);
     
@@ -53,22 +62,6 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
     @Override
     public void handleEvents() {
 
-    }
-
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
     }
 
     public SagaTopic getTopic() {

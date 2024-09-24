@@ -11,7 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class FindQuestionByAggregateIdFunctionalitySagas extends WorkflowFunctionality {
     private QuestionDto questionDto;
 
-    private SagaWorkflow workflow;
+    
 
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -39,21 +39,7 @@ public class FindQuestionByAggregateIdFunctionalitySagas extends WorkflowFunctio
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public QuestionDto getQuestionDto() {
         return questionDto;

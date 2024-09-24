@@ -12,7 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 public class FindTournamentFunctionalityTCC extends WorkflowFunctionality {
     private TournamentDto tournamentDto;
 
-    private CausalWorkflow workflow;
+    
 
     private final TournamentService tournamentService;
     private final CausalUnitOfWorkService unitOfWorkService;

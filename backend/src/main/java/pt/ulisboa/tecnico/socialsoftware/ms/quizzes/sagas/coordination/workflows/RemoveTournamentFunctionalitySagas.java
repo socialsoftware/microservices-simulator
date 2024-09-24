@@ -12,17 +12,26 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
+    public enum State implements SagaState {
+        REMOVE_TOURNAMENT_READ_TOURNAMENT {
+            @Override
+            public String getStateName() {
+                return "REMOVE_TOURNAMENT_READ_TOURNAMENT";
+            }
+        }
+    }
+
     private Tournament tournament;
 
-    private SagaWorkflow workflow;
+    
 
-    private EventService eventService;
     private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -31,7 +40,6 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
     public RemoveTournamentFunctionalitySagas(EventService eventService, TournamentService tournamentService,SagaUnitOfWorkService unitOfWorkService, 
                                 TournamentFactory tournamentFactory,
                                 Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
-        this.eventService = eventService;
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(tournamentFactory, tournamentAggregateId, unitOfWork);
@@ -42,15 +50,17 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep gettournamentStep = new SyncStep("getTournamentStep", () -> {
             SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(tournament, SagaState.REMOVE_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
+            unitOfWorkService.registerSagaState(tournament, State.REMOVE_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
             this.setTournament(tournament);
             this.currentStep = "getTournamentStep";
         });
     
         gettournamentStep.registerCompensation(() -> {
-            Tournament newTournament = tournamentFactory.createTournamentFromExisting(this.getTournament());
-            unitOfWorkService.registerSagaState((SagaTournament) newTournament, SagaState.NOT_IN_SAGA, unitOfWork);
-            unitOfWork.registerChanged(newTournament);
+            if (this.getTournament() != null) {
+                Tournament newTournament = tournamentFactory.createTournamentFromExisting(this.getTournament());
+                unitOfWorkService.registerSagaState((SagaTournament) newTournament, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+                unitOfWork.registerChanged(newTournament);
+            }
         }, unitOfWork);
     
         SyncStep removeTournamentStep = new SyncStep("removeTournamentStep", () -> {
@@ -74,21 +84,7 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
         } 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
     
     public Tournament getTournament() {
         return tournament;

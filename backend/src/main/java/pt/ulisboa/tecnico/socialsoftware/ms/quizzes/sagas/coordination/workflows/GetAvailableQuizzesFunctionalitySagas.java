@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class GetAvailableQuizzesFunctionalitySagas extends WorkflowFunctionality {
     private List<QuizDto> availableQuizzes;
 
-    private SagaWorkflow workflow;
+    
 
     private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -41,21 +41,7 @@ public class GetAvailableQuizzesFunctionalitySagas extends WorkflowFunctionality
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public List<QuizDto> getAvailableQuizzes() {
         return availableQuizzes;

@@ -1,10 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.Option;
+import java.io.Serializable;
 
 import jakarta.persistence.Embeddable;
-
-import java.io.Serializable;
 
 @Embeddable
 public class OptionDto implements Serializable {

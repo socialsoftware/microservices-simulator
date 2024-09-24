@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.Q
 public class GetAvailableQuizzesFunctionalityTCC extends WorkflowFunctionality {
     private List<QuizDto> availableQuizzes;
 
-    private CausalWorkflow workflow;
+    
 
     private final QuizService quizService;
     private final CausalUnitOfWorkService unitOfWorkService;
@@ -40,21 +40,7 @@ public class GetAvailableQuizzesFunctionalityTCC extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public List<QuizDto> getAvailableQuizzes() {
         return availableQuizzes;

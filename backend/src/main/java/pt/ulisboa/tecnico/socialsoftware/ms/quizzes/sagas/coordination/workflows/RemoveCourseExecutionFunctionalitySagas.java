@@ -7,15 +7,25 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
+    public enum State implements SagaState {
+        REMOVE_COURSE_EXECUTION_READ_COURSE {
+            @Override
+            public String getStateName() {
+                return "REMOVE_COURSE_EXECUTION_READ_COURSE";
+            }
+        }
+    }
+
     private SagaCourseExecution courseExecution;
 
-    private SagaWorkflow workflow;
+    
 
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -32,13 +42,13 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
 
         SyncStep getCourseExecutionStep = new SyncStep("getCourseExecutionStep", () -> {
             SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, SagaState.REMOVE_COURSE_EXECUTION_READ_COURSE, unitOfWork);
+            unitOfWorkService.registerSagaState(courseExecution, State.REMOVE_COURSE_EXECUTION_READ_COURSE, unitOfWork);
             this.setCourseExecution(courseExecution);
         });
     
         getCourseExecutionStep.registerCompensation(() -> {
             SagaCourseExecution courseExecution = this.getCourseExecution();
-            unitOfWorkService.registerSagaState(courseExecution, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(courseExecution, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(courseExecution);
         }, unitOfWork);
     
@@ -53,22 +63,6 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
     @Override
     public void handleEvents() {
 
-    }
-
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
     }
 
     public SagaCourseExecution getCourseExecution() {

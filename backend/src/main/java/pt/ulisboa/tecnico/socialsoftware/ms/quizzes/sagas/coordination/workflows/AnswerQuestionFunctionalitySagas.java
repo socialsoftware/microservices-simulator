@@ -13,16 +13,32 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuestion;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuizAnswer;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
+    public enum State implements SagaState {
+        ANSWER_QUESTION_READ_QUESTION {
+            @Override
+            public String getStateName() {
+                return "ANSWER_QUESTION_READ_QUESTION";
+            }
+        },
+        ANSWER_QUESTION_READ_QUIZ_ANSWER {
+            @Override
+            public String getStateName() {
+                return "ANSWER_QUESTION_READ_QUIZ_ANSWER";
+            }
+        }
+    }
+    
     private QuestionDto questionDto;
     private QuizAnswer oldQuizAnswer;
 
-    private SagaWorkflow workflow;
+    
 
     private final QuizAnswerService quizAnswerService;
     private final QuestionService questionService;
@@ -42,25 +58,25 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
         SyncStep getQuestionStep = new SyncStep("getQuestionStep", () -> {
             QuestionDto questionDto = questionService.getQuestionById(userQuestionAnswerDto.getQuestionAggregateId(), unitOfWork);
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(question, SagaState.ANSWER_QUESTION_READ_QUESTION, unitOfWork);
+            unitOfWorkService.registerSagaState(question, State.ANSWER_QUESTION_READ_QUESTION, unitOfWork);
             this.setQuestionDto(questionDto);
         });
 
         getQuestionStep.registerCompensation(() -> {
             QuestionDto questionDto = this.getQuestionDto();
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(question, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(question, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
 
         SyncStep getOldQuizAnswerStep = new SyncStep("getOldQuizAnswerStep", () -> {
             SagaQuizAnswer oldQuizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuizAnswer, SagaState.ANSWER_QUESTION_READ_QUIZ_ANSWER, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuizAnswer, State.ANSWER_QUESTION_READ_QUIZ_ANSWER, unitOfWork);
             this.setOldQuizAnswer(oldQuizAnswer);
         });
 
         getOldQuizAnswerStep.registerCompensation(() -> {
             QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(this.getOldQuizAnswer());
-            unitOfWorkService.registerSagaState((SagaQuizAnswer) newQuizAnswer, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaQuizAnswer) newQuizAnswer, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newQuizAnswer);
         }, unitOfWork);
 
@@ -78,21 +94,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public QuestionDto getQuestionDto() {
         return questionDto;

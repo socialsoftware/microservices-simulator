@@ -20,7 +20,7 @@ public class UpdateQuestionTopicsFunctionalityTCC extends WorkflowFunctionality 
     private Question oldQuestion;
     private Set<QuestionTopic> oldTopics;
 
-    private CausalWorkflow workflow;
+    
 
     private final QuestionService questionService;
     private final TopicService topicService;
@@ -55,21 +55,7 @@ public class UpdateQuestionTopicsFunctionalityTCC extends WorkflowFunctionality 
 
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public Set<QuestionTopic> getTopics() {
         return topics;

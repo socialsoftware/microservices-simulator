@@ -13,7 +13,7 @@ public class CreateUserFunctionalitySagas extends WorkflowFunctionality {
     private UserDto userDto;
     private UserDto createdUserDto;
 
-    private SagaWorkflow workflow;
+    
 
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -47,21 +47,7 @@ public class CreateUserFunctionalitySagas extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public UserDto getUserDto() {
         return userDto;

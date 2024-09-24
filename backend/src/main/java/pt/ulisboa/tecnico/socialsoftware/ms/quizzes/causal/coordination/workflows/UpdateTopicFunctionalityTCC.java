@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.
 public class UpdateTopicFunctionalityTCC extends WorkflowFunctionality {
     private Topic oldTopic;
 
-    private CausalWorkflow workflow;
+    
 
     private final TopicService topicService;
     private final CausalUnitOfWorkService unitOfWorkService;
@@ -40,21 +40,7 @@ public class UpdateTopicFunctionalityTCC extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public Topic getOldTopic() {
         return oldTopic;

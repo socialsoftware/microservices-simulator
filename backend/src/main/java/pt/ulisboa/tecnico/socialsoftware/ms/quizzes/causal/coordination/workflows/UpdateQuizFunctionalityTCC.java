@@ -18,7 +18,7 @@ public class UpdateQuizFunctionalityTCC extends WorkflowFunctionality {
     private Quiz oldQuiz;
     private QuizDto updatedQuizDto;
 
-    private CausalWorkflow workflow;
+    
 
     private final QuizService quizService;
     private final CausalUnitOfWorkService unitOfWorkService;
@@ -46,21 +46,7 @@ public class UpdateQuizFunctionalityTCC extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public Quiz getOldQuiz() {
         return oldQuiz;

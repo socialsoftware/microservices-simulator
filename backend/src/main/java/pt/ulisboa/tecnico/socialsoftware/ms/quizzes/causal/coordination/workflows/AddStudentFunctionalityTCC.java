@@ -15,7 +15,7 @@ public class AddStudentFunctionalityTCC extends WorkflowFunctionality {
     private UserDto userDto;
     private CourseExecution oldCourseExecution;
 
-    private CausalWorkflow workflow;
+    
 
     private final CourseExecutionService courseExecutionService;
     private final UserService userService;
@@ -45,21 +45,7 @@ public class AddStudentFunctionalityTCC extends WorkflowFunctionality {
 
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public UserDto getUserDto() {
         return userDto;

@@ -9,15 +9,25 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggr
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class RemoveStudentFromCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
+    public enum State implements SagaState {
+        REMOVE_STUDENT_FROM_COURSE_EXECUTION_READ_COURSE {
+            @Override
+            public String getStateName() {
+                return "REMOVE_STUDENT_FROM_COURSE_EXECUTION_READ_COURSE";
+            }
+        }
+    }
+    
     private CourseExecution oldCourseExecution;
 
-    private SagaWorkflow workflow;
+    
 
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -34,13 +44,13 @@ public class RemoveStudentFromCourseExecutionFunctionalitySagas extends Workflow
 
         SyncStep getOldCourseExecutionStep = new SyncStep("getOldCourseExecutionStep", () -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, SagaState.REMOVE_STUDENT_FROM_COURSE_EXECUTION_READ_COURSE, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, State.REMOVE_STUDENT_FROM_COURSE_EXECUTION_READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
         });
     
         getOldCourseExecutionStep.registerCompensation(() -> {
             CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(this.getOldCourseExecution());
-            unitOfWorkService.registerSagaState((SagaCourseExecution) newCourseExecution, SagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState((SagaCourseExecution) newCourseExecution, GenericSagaState.NOT_IN_SAGA, unitOfWork);
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     
@@ -57,21 +67,7 @@ public class RemoveStudentFromCourseExecutionFunctionalitySagas extends Workflow
 
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
-    }
+    
 
     public CourseExecution getOldCourseExecution() {
         return oldCourseExecution;
