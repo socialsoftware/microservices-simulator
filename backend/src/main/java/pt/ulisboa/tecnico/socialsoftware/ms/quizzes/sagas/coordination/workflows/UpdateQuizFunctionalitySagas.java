@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
@@ -16,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
@@ -37,7 +37,7 @@ public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(QuizDto quizDto, QuizFactory quizFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getOldQuizStep = new SyncStep("getOldQuizStep", () -> {
+        SagaSyncStep getOldQuizStep = new SagaSyncStep("getOldQuizStep", () -> {
             SagaQuiz oldQuiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(oldQuiz, GenericSagaState.IN_SAGA, unitOfWork);
             this.setOldQuiz(oldQuiz);
@@ -49,7 +49,7 @@ public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
             unitOfWork.registerChanged(newQuiz);
         }, unitOfWork);
     
-        SyncStep updateQuizStep = new SyncStep("updateQuizStep", () -> {
+        SagaSyncStep updateQuizStep = new SagaSyncStep("updateQuizStep", () -> {
             Set<QuizQuestion> quizQuestions = quizDto.getQuestionDtos().stream().map(QuizQuestion::new).collect(Collectors.toSet());
             QuizDto updatedQuizDto = quizService.updateQuiz(quizDto, quizQuestions, unitOfWork);
             this.setUpdatedQuizDto(updatedQuizDto);

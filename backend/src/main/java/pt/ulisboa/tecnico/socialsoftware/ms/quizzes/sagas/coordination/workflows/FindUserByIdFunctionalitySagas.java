@@ -1,11 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class FindUserByIdFunctionalitySagas extends WorkflowFunctionality {
@@ -26,7 +26,7 @@ public class FindUserByIdFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep findUserStep = new SyncStep("findUserStep", () -> {
+        SagaSyncStep findUserStep = new SagaSyncStep("findUserStep", () -> {
             UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
             this.setUserDto(userDto);
         });

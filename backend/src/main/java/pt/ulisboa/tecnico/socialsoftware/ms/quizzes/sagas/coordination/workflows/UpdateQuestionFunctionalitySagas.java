@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.Question;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
@@ -14,6 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.Ques
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
@@ -34,7 +34,7 @@ public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(QuestionFactory questionFactory, QuestionDto questionDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getOldQuestionStep = new SyncStep("getOldQuestionStep", () -> {
+        SagaSyncStep getOldQuestionStep = new SagaSyncStep("getOldQuestionStep", () -> {
             SagaQuestion oldQuestion = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(oldQuestion, QuestionSagaState.UPDATE_QUESTION_READ_QUESTION, unitOfWork);
             this.setOldQuestion(oldQuestion);
@@ -46,7 +46,7 @@ public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
             unitOfWork.registerChanged(newQuestion);
         }, unitOfWork);
     
-        SyncStep updateQuestionStep = new SyncStep("updateQuestionStep", () -> {
+        SagaSyncStep updateQuestionStep = new SagaSyncStep("updateQuestionStep", () -> {
             questionService.updateQuestion(questionDto, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getOldQuestionStep)));
     

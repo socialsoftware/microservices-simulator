@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService;
@@ -14,6 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.Quiz
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
@@ -37,7 +37,7 @@ public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getQuizStep = new SyncStep("getQuizStep", () -> {
+        SagaSyncStep getQuizStep = new SagaSyncStep("getQuizStep", () -> {
             QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
             SagaQuiz quiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(quiz, QuizSagaState.START_QUIZ_READ_QUIZ, unitOfWork);
@@ -49,7 +49,7 @@ public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
             unitOfWorkService.registerSagaState(quiz, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
-        SyncStep startQuizStep = new SyncStep("startQuizStep", () -> {
+        SagaSyncStep startQuizStep = new SagaSyncStep("startQuizStep", () -> {
             quizAnswerService.startQuiz(quizAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getQuizStep)));
     

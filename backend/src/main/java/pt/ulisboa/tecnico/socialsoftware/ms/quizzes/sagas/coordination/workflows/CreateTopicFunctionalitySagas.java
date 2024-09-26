@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService;
@@ -13,6 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregat
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
@@ -36,13 +36,13 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer courseAggregateId, TopicDto topicDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getCourseStep = new SyncStep("getCourseStep", () -> {
+        SagaSyncStep getCourseStep = new SagaSyncStep("getCourseStep", () -> {
             CourseDto courseDto = courseService.getCourseById(courseAggregateId, unitOfWork);
             TopicCourse course = new TopicCourse(courseDto);
             this.setCourse(course);
         });
     
-        SyncStep createTopicStep = new SyncStep("createTopicStep", () -> {
+        SagaSyncStep createTopicStep = new SagaSyncStep("createTopicStep", () -> {
             TopicDto createdTopicDto = topicService.createTopic(topicDto, this.getCourse(), unitOfWork);
             this.setCreatedTopicDto(createdTopicDto);
         }, new ArrayList<>(Arrays.asList(getCourseStep)));

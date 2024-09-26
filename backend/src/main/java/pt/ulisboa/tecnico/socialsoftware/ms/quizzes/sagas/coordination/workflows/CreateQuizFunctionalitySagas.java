@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
@@ -16,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
@@ -42,19 +42,19 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer courseExecutionId, QuizDto quizDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getCourseExecutionStep = new SyncStep("getCourseExecutionStep", () -> {
+        SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {
             QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionService.getCourseExecutionById(courseExecutionId, unitOfWork));
             this.setQuizCourseExecution(quizCourseExecution);
         });
 
-        SyncStep getQuestionsStep = new SyncStep("getQuestionsStep", () -> {
+        SagaSyncStep getQuestionsStep = new SagaSyncStep("getQuestionsStep", () -> {
             Set<QuestionDto> questions = quizDto.getQuestionDtos().stream()
                     .map(qq -> questionService.getQuestionById(qq.getAggregateId(), unitOfWork))
                     .collect(Collectors.toSet());
             this.setQuestions(questions);
         });
 
-        SyncStep createQuizStep = new SyncStep("createQuizStep", () -> {
+        SagaSyncStep createQuizStep = new SagaSyncStep("createQuizStep", () -> {
             QuizDto createdQuizDto = quizService.createQuiz(this.getQuizCourseExecution(), this.getQuestions(), quizDto, unitOfWork);
             this.setCreatedQuizDto(createdQuizDto);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep, getQuestionsStep)));

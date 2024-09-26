@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 
 public class SyncStep extends FlowStep {
     private Runnable syncOperation;
@@ -40,13 +39,13 @@ public class SyncStep extends FlowStep {
     }
     */
 
+    public Runnable getSyncOperation() {
+        return this.syncOperation;
+    }
     
     @Override
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         try {
-            if (getCompensation() != null) {
-                ((SagaUnitOfWork)unitOfWork).registerCompensation(getCompensation());
-            }
             syncOperation.run();
             return CompletableFuture.completedFuture(null);
         } catch (Exception e) {

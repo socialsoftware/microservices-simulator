@@ -5,8 +5,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import pt.ulisboa.tecnico.socialsoftware.ms.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.ExecutionPlan
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.AsyncStep
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaAsyncStep
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality
 
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow
@@ -24,15 +24,15 @@ class PlanOrderTest extends SpockTest {
     def unitOfWork = new SagaUnitOfWork(0, "TEST")
     def workflowFunctionality = Mock(WorkflowFunctionality)
     def workflow = new SagaWorkflow(workflowFunctionality, unitOfWorkService, unitOfWork)
-    def step1 = new SyncStep({ System.out.println("Step 1 executed") })
-    def step2 = new SyncStep({ System.out.println("Step 2 executed") })
-    def step3 = new SyncStep({ System.out.println("Step 3 executed") })
-    def step4 = new SyncStep({ System.out.println("Step 4 executed") })
-    def asyncStep1 = new AsyncStep("AsyncStep1", () -> CompletableFuture.runAsync(() -> {
+    def step1 = new SagaSyncStep({ System.out.println("Step 1 executed") })
+    def step2 = new SagaSyncStep({ System.out.println("Step 2 executed") })
+    def step3 = new SagaSyncStep({ System.out.println("Step 3 executed") })
+    def step4 = new SagaSyncStep({ System.out.println("Step 4 executed") })
+    def asyncStep1 = new SagaAsyncStep("SagaAsyncStep1", () -> CompletableFuture.runAsync(() -> {
         try { TimeUnit.MILLISECONDS.sleep(200); } catch (InterruptedException e) { e.printStackTrace(); }
         System.out.println("Async Step 1 executed");
     }))
-    def asyncStep2 = new AsyncStep("AsyncStep2", () -> CompletableFuture.runAsync(() -> {
+    def asyncStep2 = new SagaAsyncStep("SagaAsyncStep2", () -> CompletableFuture.runAsync(() -> {
         try { TimeUnit.MILLISECONDS.sleep(200); } catch (InterruptedException e) { e.printStackTrace(); }
         System.out.println("Async Step 2 executed");
     }))

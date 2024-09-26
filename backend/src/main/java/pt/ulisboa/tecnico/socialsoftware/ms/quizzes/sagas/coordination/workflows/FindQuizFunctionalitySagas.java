@@ -1,11 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class FindQuizFunctionalitySagas extends WorkflowFunctionality {
@@ -26,7 +26,7 @@ public class FindQuizFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer quizAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep findQuizStep = new SyncStep("findQuizStep", () -> {
+        SagaSyncStep findQuizStep = new SagaSyncStep("findQuizStep", () -> {
             QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
             this.setQuizDto(quizDto);
         });

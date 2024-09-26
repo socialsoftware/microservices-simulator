@@ -2,12 +2,12 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 
 import java.util.List;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class FindTopicsByCourseFunctionalitySagas extends WorkflowFunctionality {
@@ -28,7 +28,7 @@ public class FindTopicsByCourseFunctionalitySagas extends WorkflowFunctionality 
     public void buildWorkflow(Integer courseAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep findTopicsStep = new SyncStep("findTopicsStep", () -> {
+        SagaSyncStep findTopicsStep = new SagaSyncStep("findTopicsStep", () -> {
             List<TopicDto> topics = topicService.findTopicsByCourseId(courseAggregateId, unitOfWork);
             this.setTopics(topics);
         });

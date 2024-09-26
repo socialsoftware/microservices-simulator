@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuestionAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswer;
@@ -18,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.Quiz
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
@@ -42,7 +42,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer quizAggregateId, Integer userAggregateId, QuestionAnswerDto userQuestionAnswerDto, QuizAnswerFactory quizAnswerFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getQuestionStep = new SyncStep("getQuestionStep", () -> {
+        SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
             QuestionDto questionDto = questionService.getQuestionById(userQuestionAnswerDto.getQuestionAggregateId(), unitOfWork);
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(question, QuestionSagaState.ANSWER_QUESTION_READ_QUESTION, unitOfWork);
@@ -55,7 +55,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             unitOfWorkService.registerSagaState(question, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
 
-        SyncStep getOldQuizAnswerStep = new SyncStep("getOldQuizAnswerStep", () -> {
+        SagaSyncStep getOldQuizAnswerStep = new SagaSyncStep("getOldQuizAnswerStep", () -> {
             SagaQuizAnswer oldQuizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(oldQuizAnswer, QuizAnswerSagaState.ANSWER_QUESTION_READ_QUIZ_ANSWER, unitOfWork);
             this.setOldQuizAnswer(oldQuizAnswer);
@@ -67,7 +67,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             unitOfWork.registerChanged(newQuizAnswer);
         }, unitOfWork);
 
-        SyncStep answerQuestionStep = new SyncStep("answerQuestionStep", () -> {
+        SagaSyncStep answerQuestionStep = new SagaSyncStep("answerQuestionStep", () -> {
             quizAnswerService.answerQuestion(quizAggregateId, userAggregateId, userQuestionAnswerDto, this.getQuestionDto(), unitOfWork);
         }, new ArrayList<>(Arrays.asList(getQuestionStep, getOldQuizAnswerStep)));
 

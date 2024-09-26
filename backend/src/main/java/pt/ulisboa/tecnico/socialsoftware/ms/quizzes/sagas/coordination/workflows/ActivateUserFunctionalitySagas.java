@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.User
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class ActivateUserFunctionalitySagas extends WorkflowFunctionality {
@@ -29,7 +30,7 @@ public class ActivateUserFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getUserStep = new SyncStep("getUserStep", () -> {
+        SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
             SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(user, UserSagaState.ACTIVATE_USER_READ_USER, unitOfWork);
             this.setUser(user);

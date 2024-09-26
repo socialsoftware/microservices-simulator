@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService;
@@ -22,6 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.Tour
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
@@ -50,7 +50,7 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getTournamentStep = new SyncStep("getTournamentStep", () -> {
+        SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
             TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
             SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(tournament, TournamentSagaState.SOLVE_QUIZ_READ_TOURNAMENT, unitOfWork);
@@ -63,7 +63,7 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
             unitOfWorkService.registerSagaState(tournament, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
-        SyncStep startQuizStep = new SyncStep("startQuizStep", () -> {
+        SagaSyncStep startQuizStep = new SagaSyncStep("startQuizStep", () -> {
             QuizDto quizDto = quizService.startTournamentQuiz(userAggregateId, this.getTournamentDto().getQuiz().getAggregateId(), unitOfWork);
             SagaQuiz quiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(quiz, QuizSagaState.SOLVE_QUIZ_STARTED_TOURNAMENT_QUIZ, unitOfWork);
@@ -75,7 +75,7 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
             unitOfWorkService.registerSagaState(quiz, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
-        SyncStep startQuizAnswerStep = new SyncStep("startQuizAnswerStep", () -> {
+        SagaSyncStep startQuizAnswerStep = new SagaSyncStep("startQuizAnswerStep", () -> {
             QuizAnswerDto quizAnswerDto = quizAnswerService.startQuiz(this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
             SagaQuizAnswer quizAnswer = (SagaQuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(quizAnswer, QuizAnswerSagaState.SOLVE_QUIZ_STARTED_QUIZ, unitOfWork);
@@ -87,7 +87,7 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
             quizAnswerDto.setState(GenericSagaState.NOT_IN_SAGA.toString());
         }, unitOfWork);
         
-        SyncStep solveQuizStep = new SyncStep("solveQuizStep", () -> {
+        SagaSyncStep solveQuizStep = new SagaSyncStep("solveQuizStep", () -> {
             tournamentService.solveQuiz(tournamentAggregateId, userAggregateId, this.getQuizAnswerDto().getAggregateId(), unitOfWork);
         });
         

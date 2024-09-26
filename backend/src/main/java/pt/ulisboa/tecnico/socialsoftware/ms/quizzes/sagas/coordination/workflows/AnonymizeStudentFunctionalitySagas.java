@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
@@ -13,6 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.Cour
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
@@ -34,7 +34,7 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, CourseExecutionFactory courseExecutionFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getOldCourseExecutionStep = new SyncStep("getOldCourseExecutionStep", () -> {
+        SagaSyncStep getOldCourseExecutionStep = new SagaSyncStep("getOldCourseExecutionStep", () -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.ANONYMIZE_STUDENT_READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
@@ -46,7 +46,7 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     
-        SyncStep anonymizeStudentStep = new SyncStep("anonymizeStudentStep", () -> {
+        SagaSyncStep anonymizeStudentStep = new SagaSyncStep("anonymizeStudentStep", () -> {
             courseExecutionService.anonymizeStudent(executionAggregateId, userAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getOldCourseExecutionStep)));
     

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
@@ -16,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.Tour
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
@@ -37,7 +37,7 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep gettournamentStep = new SyncStep("getTournamentStep", () -> {
+        SagaSyncStep gettournamentStep = new SagaSyncStep("getTournamentStep", () -> {
             SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(tournament, TournamentSagaState.REMOVE_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
             this.setTournament(tournament);
@@ -52,7 +52,7 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
             }
         }, unitOfWork);
     
-        SyncStep removeTournamentStep = new SyncStep("removeTournamentStep", () -> {
+        SagaSyncStep removeTournamentStep = new SagaSyncStep("removeTournamentStep", () -> {
             tournamentService.removeTournament(tournamentAggregateId, unitOfWork);
             this.currentStep = "removeTournamentStep";
         }, new ArrayList<>(Arrays.asList(gettournamentStep)));

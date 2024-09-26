@@ -8,7 +8,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 public abstract class FlowStep {
     private String stepName;
     private ArrayList<FlowStep> dependencies = new ArrayList<>();
-    private Runnable compensationLogic;
 
     public FlowStep() {
     }
@@ -36,14 +35,6 @@ public abstract class FlowStep {
 
     public String getName() {
         return this.stepName;
-    }
-
-    public void registerCompensation(Runnable compensationLogic, UnitOfWork unitOfWork) {
-        this.compensationLogic = compensationLogic;
-    }
-
-    public Runnable getCompensation() {
-        return this.compensationLogic;
     }
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {

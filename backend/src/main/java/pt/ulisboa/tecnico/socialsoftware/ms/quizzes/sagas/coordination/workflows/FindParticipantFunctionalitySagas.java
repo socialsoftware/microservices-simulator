@@ -3,12 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentParticipant;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
@@ -27,12 +27,12 @@ public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getTournamentStep = new SyncStep("getTournamentStep", () -> {
+        SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
             Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
             this.setTournament(tournament);
         });
 
-        SyncStep getParticipantStep = new SyncStep("getParticipantStep", () -> {
+        SagaSyncStep getParticipantStep = new SagaSyncStep("getParticipantStep", () -> {
             TournamentParticipant participant = getTournament().findParticipant(userAggregateId);
             this.setParticipant(participant);
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));

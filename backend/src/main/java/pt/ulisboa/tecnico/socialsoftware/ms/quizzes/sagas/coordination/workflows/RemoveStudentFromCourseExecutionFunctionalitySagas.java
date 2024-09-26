@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
@@ -13,6 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.Cour
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class RemoveStudentFromCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
@@ -34,7 +34,7 @@ public class RemoveStudentFromCourseExecutionFunctionalitySagas extends Workflow
     public void buildWorkflow(Integer courseExecutionAggregateId, Integer userAggregateId, CourseExecutionFactory courseExecutionFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getOldCourseExecutionStep = new SyncStep("getOldCourseExecutionStep", () -> {
+        SagaSyncStep getOldCourseExecutionStep = new SagaSyncStep("getOldCourseExecutionStep", () -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.REMOVE_STUDENT_FROM_COURSE_EXECUTION_READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
@@ -46,7 +46,7 @@ public class RemoveStudentFromCourseExecutionFunctionalitySagas extends Workflow
             unitOfWork.registerChanged(newCourseExecution);
         }, unitOfWork);
     
-        SyncStep removeStudentStep = new SyncStep("removeStudentStep", () -> {
+        SagaSyncStep removeStudentStep = new SagaSyncStep("removeStudentStep", () -> {
             courseExecutionService.removeStudentFromCourseExecution(courseExecutionAggregateId, userAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getOldCourseExecutionStep)));
     

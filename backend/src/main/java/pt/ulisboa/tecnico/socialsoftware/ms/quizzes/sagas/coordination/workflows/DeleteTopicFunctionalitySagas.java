@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
@@ -11,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.Topi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
@@ -32,7 +32,7 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer topicAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getTopicStep = new SyncStep("getTopicStep", () -> {
+        SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
             SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(topic, TopicSagaState.DELETE_TOPIC_READ_TOPIC, unitOfWork);
             this.setTopic(topic);
@@ -44,7 +44,7 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
             unitOfWork.registerChanged(topic);
         }, unitOfWork);
     
-        SyncStep deleteTopicStep = new SyncStep("deleteTopicStep", () -> {
+        SagaSyncStep deleteTopicStep = new SagaSyncStep("deleteTopicStep", () -> {
             topicService.deleteTopic(topicAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getTopicStep)));
     

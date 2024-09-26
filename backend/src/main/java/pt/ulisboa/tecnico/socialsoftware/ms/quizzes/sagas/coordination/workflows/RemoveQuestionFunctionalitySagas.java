@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuestion;
@@ -11,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.Ques
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
@@ -32,7 +32,7 @@ public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer questionAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep getQuestionStep = new SyncStep("getQuestionStep", () -> {
+        SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(question, QuestionSagaState.REMOVE_QUESTION_READ_QUESTION, unitOfWork);
             this.setQuestion(question);
@@ -44,7 +44,7 @@ public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
             unitOfWork.registerChanged(question);
         }, unitOfWork);
     
-        SyncStep removeQuestionStep = new SyncStep("removeQuestionStep", () -> {
+        SagaSyncStep removeQuestionStep = new SagaSyncStep("removeQuestionStep", () -> {
             questionService.removeQuestion(questionAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getQuestionStep)));
     
