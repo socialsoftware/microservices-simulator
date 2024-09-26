@@ -14,22 +14,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuestion;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuestionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        UPDATE_QUESTION_TOPICS_READ_QUESTION {
-            @Override
-            public String getStateName() {
-                return "UPDATE_QUESTION_TOPICS_READ_QUESTION";
-            }
-        }
-    }
-
     private Set<QuestionTopic> topics;
     private Question oldQuestion;
     private Set<QuestionTopic> oldTopics;
@@ -62,7 +53,7 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
     
         SyncStep getOldQuestionStep = new SyncStep("getOldQuestionStep", () -> {
             SagaQuestion oldQuestion = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuestion, State.UPDATE_QUESTION_TOPICS_READ_QUESTION, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuestion, QuestionSagaState.UPDATE_QUESTION_TOPICS_READ_QUESTION, unitOfWork);
             Set<QuestionTopic> oldTopics = oldQuestion.getQuestionTopics();
             this.setOldQuestion(oldQuestion);
             this.setOldTopics(oldTopics);

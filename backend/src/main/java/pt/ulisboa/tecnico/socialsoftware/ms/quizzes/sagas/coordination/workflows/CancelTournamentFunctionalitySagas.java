@@ -9,21 +9,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class CancelTournamentFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        CANCEL_TOURNAMENT_READ_TOURNAMENT {
-            @Override
-            public String getStateName() {
-                return "CANCEL_TOURNAMENT_READ_TOURNAMENT";
-            }
-        }
-    }
     
     private Tournament oldTournament;
 
@@ -45,7 +37,7 @@ public class CancelTournamentFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getOldTournamentStep = new SyncStep("getOldTournamentStep", () -> {
             SagaTournament oldTournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldTournament, State.CANCEL_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
+            unitOfWorkService.registerSagaState(oldTournament, TournamentSagaState.CANCEL_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
             this.setOldTournament(oldTournament);
         });
     

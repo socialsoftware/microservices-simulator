@@ -7,21 +7,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TopicSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        DELETE_TOPIC_READ_TOPIC {
-            @Override
-            public String getStateName() {
-                return "DELETE_TOPIC_READ_TOPIC";
-            }
-        }
-    }
+
     private SagaTopic topic;
 
     
@@ -41,7 +34,7 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getTopicStep = new SyncStep("getTopicStep", () -> {
             SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(topic, State.DELETE_TOPIC_READ_TOPIC, unitOfWork);
+            unitOfWorkService.registerSagaState(topic, TopicSagaState.DELETE_TOPIC_READ_TOPIC, unitOfWork);
             this.setTopic(topic);
         });
     

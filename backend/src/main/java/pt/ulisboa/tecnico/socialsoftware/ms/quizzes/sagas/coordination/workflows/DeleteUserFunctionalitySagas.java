@@ -7,22 +7,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaUser;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.UserSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
-
-    public enum State implements SagaState {
-        DELETE_USER_READ_USER {
-            @Override
-            public String getStateName() {
-                return "DELETE_USER_READ_USER";
-            }
-        }
-    }
 
     private SagaUser user;
 
@@ -43,7 +34,7 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getUserStep = new SyncStep("getUserStep", () -> {
             SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(user, State.DELETE_USER_READ_USER, unitOfWork);
+            unitOfWorkService.registerSagaState(user, UserSagaState.DELETE_USER_READ_USER, unitOfWork);
             this.setUser(user);
         });
     

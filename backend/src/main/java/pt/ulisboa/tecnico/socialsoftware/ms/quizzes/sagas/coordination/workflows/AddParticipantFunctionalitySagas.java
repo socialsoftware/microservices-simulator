@@ -20,27 +20,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.eve
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        ADD_PARTICIPANT_READ_TOURNAMENT {
-            @Override
-            public String getStateName() {
-                return "ADD_PARTICIPANT_READ_TOURNAMENT";
-            }
-        },
-        ADD_PARTICIPANT_READ_USER {
-            @Override
-            public String getStateName() {
-                return "ADD_PARTICIPANT_READ_USER";
-            }
-        }
-    }
     
     private TournamentDto tournamentDto;
     private Tournament tournament;
@@ -67,7 +53,7 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getTournamentStep = new SyncStep("getTournamentStep", () -> {
             SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(tournament, State.ADD_PARTICIPANT_READ_TOURNAMENT, unitOfWork);
+            unitOfWorkService.registerSagaState(tournament, TournamentSagaState.ADD_PARTICIPANT_READ_TOURNAMENT, unitOfWork);
             this.setTournament(tournament);
             this.currentStep = "getTournamentStep";
         });

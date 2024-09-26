@@ -7,21 +7,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuestion;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuestionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        REMOVE_QUESTION_READ_QUESTION {
-            @Override
-            public String getStateName() {
-                return "REMOVE_QUESTION_READ_QUESTION";
-            }
-        }
-    }
 
     private SagaQuestion question;
 
@@ -42,7 +34,7 @@ public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getQuestionStep = new SyncStep("getQuestionStep", () -> {
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(question, State.REMOVE_QUESTION_READ_QUESTION, unitOfWork);
+            unitOfWorkService.registerSagaState(question, QuestionSagaState.REMOVE_QUESTION_READ_QUESTION, unitOfWork);
             this.setQuestion(question);
         });
     

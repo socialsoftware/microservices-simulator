@@ -10,22 +10,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuestion;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuestionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        UPDATE_QUESTION_READ_QUESTION {
-            @Override
-            public String getStateName() {
-                return "UPDATE_QUESTION_READ_QUESTION";
-            }
-        }
-    }
-    
     private Question oldQuestion;
 
     
@@ -45,7 +36,7 @@ public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getOldQuestionStep = new SyncStep("getOldQuestionStep", () -> {
             SagaQuestion oldQuestion = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuestion, State.UPDATE_QUESTION_READ_QUESTION, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuestion, QuestionSagaState.UPDATE_QUESTION_READ_QUESTION, unitOfWork);
             this.setOldQuestion(oldQuestion);
         });
     

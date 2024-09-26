@@ -12,26 +12,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        REMOVE_TOURNAMENT_READ_TOURNAMENT {
-            @Override
-            public String getStateName() {
-                return "REMOVE_TOURNAMENT_READ_TOURNAMENT";
-            }
-        }
-    }
 
     private Tournament tournament;
-
-    
-
     private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -50,7 +39,7 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep gettournamentStep = new SyncStep("getTournamentStep", () -> {
             SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(tournament, State.REMOVE_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
+            unitOfWorkService.registerSagaState(tournament, TournamentSagaState.REMOVE_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
             this.setTournament(tournament);
             this.currentStep = "getTournamentStep";
         });

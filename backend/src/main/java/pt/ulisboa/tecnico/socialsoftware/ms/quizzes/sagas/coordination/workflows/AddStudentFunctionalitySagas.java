@@ -11,21 +11,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.serv
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.CourseExecutionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        ADD_STUDENT_READ_COURSE {
-            @Override
-            public String getStateName() {
-                return "ADD_STUDENT_READ_COURSE";
-            }
-        }
-    }
     
     private UserDto userDto;
     private CourseExecution oldCourseExecution;
@@ -54,7 +46,7 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
     
         SyncStep getOldCourseExecutionStep = new SyncStep("getOldCourseExecutionStep", () -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, State.ADD_STUDENT_READ_COURSE, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.ADD_STUDENT_READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
         });
     

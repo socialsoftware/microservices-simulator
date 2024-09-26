@@ -10,21 +10,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuizSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        START_QUIZ_READ_QUIZ {
-            @Override
-            public String getStateName() {
-                return "START_QUIZ_READ_QUIZ";
-            }
-        }
-    }
     
     private QuizDto quizDto;
 
@@ -48,7 +40,7 @@ public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
         SyncStep getQuizStep = new SyncStep("getQuizStep", () -> {
             QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
             SagaQuiz quiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(quiz, State.START_QUIZ_READ_QUIZ, unitOfWork);
+            unitOfWorkService.registerSagaState(quiz, QuizSagaState.START_QUIZ_READ_QUIZ, unitOfWork);
             this.setQuizDto(quizDto);
         });
     

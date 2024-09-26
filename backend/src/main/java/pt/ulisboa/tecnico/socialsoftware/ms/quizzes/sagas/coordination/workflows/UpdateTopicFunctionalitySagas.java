@@ -10,22 +10,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregat
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TopicSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        UPDATE_TOPIC_READ_TOPIC {
-            @Override
-            public String getStateName() {
-                return "UPDATE_TOPIC_READ_TOPIC";
-            }
-        }
-    }
-    
     private Topic oldTopic;
 
     
@@ -45,7 +36,7 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getOldTopicStep = new SyncStep("getOldTopicStep", () -> {
             SagaTopic oldTopic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(oldTopic, State.UPDATE_TOPIC_READ_TOPIC, unitOfWork);
+            unitOfWorkService.registerSagaState(oldTopic, TopicSagaState.UPDATE_TOPIC_READ_TOPIC, unitOfWork);
             this.setOldTopic(oldTopic);
         });
     

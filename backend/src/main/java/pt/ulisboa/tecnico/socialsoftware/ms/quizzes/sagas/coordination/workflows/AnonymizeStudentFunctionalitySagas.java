@@ -9,21 +9,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggr
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.CourseExecutionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        ANONYMIZE_STUDENT_READ_COURSE {
-            @Override
-            public String getStateName() {
-                return "ANONYMIZE_STUDENT_READ_COURSE";
-            }
-        }
-    }
     
     private CourseExecution oldCourseExecution;
 
@@ -44,7 +36,7 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getOldCourseExecutionStep = new SyncStep("getOldCourseExecutionStep", () -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, State.ANONYMIZE_STUDENT_READ_COURSE, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.ANONYMIZE_STUDENT_READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
         });
     

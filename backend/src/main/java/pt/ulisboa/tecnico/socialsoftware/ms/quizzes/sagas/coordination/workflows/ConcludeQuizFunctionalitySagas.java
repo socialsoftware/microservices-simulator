@@ -7,26 +7,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuizAnswer;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuizAnswerSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        CONCLUDE_QUIZ_READ_QUIZ_ANSWER {
-            @Override
-            public String getStateName() {
-                return "CONCLUDE_QUIZ_READ_QUIZ_ANSWER";
-            }
-        }
-    }
     
     private SagaQuizAnswer quizAnswer;
-
-    
-
     private final QuizAnswerService quizAnswerService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -42,7 +31,7 @@ public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getQuizAnswerStep = new SyncStep("getQuizAnswerStep", () -> {
             SagaQuizAnswer quizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(quizAnswer, State.CONCLUDE_QUIZ_READ_QUIZ_ANSWER, unitOfWork);
+            unitOfWorkService.registerSagaState(quizAnswer, QuizAnswerSagaState.CONCLUDE_QUIZ_READ_QUIZ_ANSWER, unitOfWork);
             this.setQuizAnswer(quizAnswer);
         });
     

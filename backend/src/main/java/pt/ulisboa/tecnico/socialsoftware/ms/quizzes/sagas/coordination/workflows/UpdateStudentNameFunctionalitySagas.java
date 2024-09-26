@@ -14,27 +14,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.serv
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaUser;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.CourseExecutionSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.UserSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        UPDATE_STUDENT_NAME_READ_STUDENT {
-            @Override
-            public String getStateName() {
-                return "UPDATE_STUDENT_NAME_READ_STUDENT";
-            }
-        },
-        UPDATE_STUDENT_NAME_READ_COURSE {
-            @Override
-            public String getStateName() {
-                return "UPDATE_STUDENT_NAME_READ_COURSE";
-            }
-        }
-    }
     
     private SagaUser student;
     private CourseExecution oldCourseExecution;
@@ -61,7 +48,7 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
     
         SyncStep getStudentStep = new SyncStep("getStudentStep", () -> {
             SagaUser student = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(student, State.UPDATE_STUDENT_NAME_READ_STUDENT, unitOfWork);
+            unitOfWorkService.registerSagaState(student, UserSagaState.UPDATE_STUDENT_NAME_READ_STUDENT, unitOfWork);
             this.setStudent(student);
         });
     
@@ -73,7 +60,7 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
     
         SyncStep getOldCourseExecutionStep = new SyncStep("getOldCourseExecutionStep", () -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, State.UPDATE_STUDENT_NAME_READ_COURSE, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.UPDATE_STUDENT_NAME_READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
         });
     

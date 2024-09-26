@@ -13,27 +13,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuestion;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuizAnswer;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuestionSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuizAnswerSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
-    public enum State implements SagaState {
-        ANSWER_QUESTION_READ_QUESTION {
-            @Override
-            public String getStateName() {
-                return "ANSWER_QUESTION_READ_QUESTION";
-            }
-        },
-        ANSWER_QUESTION_READ_QUIZ_ANSWER {
-            @Override
-            public String getStateName() {
-                return "ANSWER_QUESTION_READ_QUIZ_ANSWER";
-            }
-        }
-    }
     
     private QuestionDto questionDto;
     private QuizAnswer oldQuizAnswer;
@@ -58,7 +45,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
         SyncStep getQuestionStep = new SyncStep("getQuestionStep", () -> {
             QuestionDto questionDto = questionService.getQuestionById(userQuestionAnswerDto.getQuestionAggregateId(), unitOfWork);
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(question, State.ANSWER_QUESTION_READ_QUESTION, unitOfWork);
+            unitOfWorkService.registerSagaState(question, QuestionSagaState.ANSWER_QUESTION_READ_QUESTION, unitOfWork);
             this.setQuestionDto(questionDto);
         });
 
@@ -70,7 +57,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
 
         SyncStep getOldQuizAnswerStep = new SyncStep("getOldQuizAnswerStep", () -> {
             SagaQuizAnswer oldQuizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuizAnswer, State.ANSWER_QUESTION_READ_QUIZ_ANSWER, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuizAnswer, QuizAnswerSagaState.ANSWER_QUESTION_READ_QUIZ_ANSWER, unitOfWork);
             this.setOldQuizAnswer(oldQuizAnswer);
         });
 
