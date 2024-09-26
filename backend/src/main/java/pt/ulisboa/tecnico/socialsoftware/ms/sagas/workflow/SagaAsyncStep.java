@@ -44,7 +44,13 @@ public class SagaAsyncStep extends AsyncStep implements SagaStep {
             if (getCompensation() != null) {
                 ((SagaUnitOfWork)unitOfWork).registerCompensation(getCompensation());
             }
-            return CompletableFuture.supplyAsync(getAsyncOperation(), getExecutorService()).thenCompose(Function.identity());
+            
+            return CompletableFuture.supplyAsync(getAsyncOperation(), getExecutorService())
+                    .thenCompose(Function.identity())
+                    .exceptionallyCompose(ex -> {
+                        return ((SagaUnitOfWork) unitOfWork).compensateAsync(getExecutorService())
+                                .thenCompose(v -> CompletableFuture.failedFuture(ex)); // Rethrow the original exception
+                    });
         } catch (Exception e) {
             return CompletableFuture.failedFuture(e);
         }
