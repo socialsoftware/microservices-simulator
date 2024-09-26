@@ -10,8 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionTopic;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
-
 @Entity
 public class SagaQuestion extends Question implements SagaAggregate {
     @Column

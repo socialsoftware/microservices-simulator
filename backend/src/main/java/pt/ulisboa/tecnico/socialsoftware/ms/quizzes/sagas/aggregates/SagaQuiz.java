@@ -11,8 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizType;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
-
 @Entity
 public class SagaQuiz extends Quiz implements SagaAggregate {
     @Column

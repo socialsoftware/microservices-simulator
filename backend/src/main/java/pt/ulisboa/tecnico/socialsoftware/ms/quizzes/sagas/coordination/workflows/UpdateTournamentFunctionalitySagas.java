@@ -22,7 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
@@ -140,7 +140,7 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
             unitOfWorkService.registerSagaState(oldQuiz, GenericSagaState.IN_SAGA, unitOfWork);
             this.setOldQuiz(oldQuiz);
     
-            if (topicsAggregateIds != null || tournamentDto.getNumberOfQuestions() != null) {
+            if (topicsAggregateIds != null || this.getNewTournamentDto().getNumberOfQuestions() != null) {
                 if (topicsAggregateIds == null) {
                     quizService.updateGeneratedQuiz(quizDto, this.getTopics().stream()
                             .filter(t -> t.getSagaState().equals(GenericSagaState.NOT_IN_SAGA))

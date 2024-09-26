@@ -27,8 +27,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.Tuto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregateRepository;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaState;
 
 @Profile("sagas")
 @Service
