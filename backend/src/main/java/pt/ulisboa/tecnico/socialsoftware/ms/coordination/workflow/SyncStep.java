@@ -6,14 +6,11 @@ import java.util.concurrent.CompletableFuture;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 
-public class SyncStep implements FlowStep {
-    private String stepName;
+public class SyncStep extends FlowStep {
     private Runnable syncOperation;
-    private Runnable compensationLogic;
-    private ArrayList<FlowStep> dependencies = new ArrayList<>();
-
+    
     public SyncStep(String stepName, Runnable syncOperation) {
-        this.stepName = stepName;
+        super(stepName);
         this.syncOperation = syncOperation;
     }
 
@@ -24,14 +21,13 @@ public class SyncStep implements FlowStep {
 
     // TODO temp
     public SyncStep(Runnable syncOperation, ArrayList<FlowStep> dependencies) {
+        super(dependencies);
         this.syncOperation = syncOperation;
-        this.dependencies = dependencies;
     }
 
     public SyncStep(String stepName, Runnable syncOperation, ArrayList<FlowStep> dependencies) {
-        this.stepName = stepName;
+        super(stepName, dependencies);
         this.syncOperation = syncOperation;
-        this.dependencies = dependencies;
     }
 
     /* 
@@ -48,8 +44,8 @@ public class SyncStep implements FlowStep {
     @Override
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         try {
-            if (compensationLogic != null) {
-                ((SagaUnitOfWork)unitOfWork).registerCompensation(compensationLogic);
+            if (getCompensation() != null) {
+                ((SagaUnitOfWork)unitOfWork).registerCompensation(getCompensation());
             }
             syncOperation.run();
             return CompletableFuture.completedFuture(null);
@@ -59,29 +55,5 @@ public class SyncStep implements FlowStep {
         }
     }
     
-
-    @Override
-    public void registerCompensation(Runnable compensationLogic, UnitOfWork unitOfWork) {
-        this.compensationLogic = compensationLogic;
-    }
-
-    @Override
-    public ArrayList<FlowStep> getDependencies() {
-        return this.dependencies;
-    }
-
-    @Override
-    public Runnable getCompensation() {
-        return this.compensationLogic;
-    }
-
-    @Override
-    public void setDependencies(ArrayList<FlowStep> dependencies) {
-        this.dependencies = dependencies;
-    }
-
-    @Override
-    public String getName() {
-        return this.stepName;
-    }
+    
 }
