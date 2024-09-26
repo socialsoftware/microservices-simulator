@@ -53,7 +53,7 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
             TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
             SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(tournament, TournamentSagaState.SOLVE_QUIZ_READ_TOURNAMENT, unitOfWork);
+            unitOfWorkService.registerSagaState(tournament, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
             this.setOldTournament(tournament);
             this.setTournamentDto(tournamentDto);
         });
@@ -66,7 +66,7 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
         SagaSyncStep startQuizStep = new SagaSyncStep("startQuizStep", () -> {
             QuizDto quizDto = quizService.startTournamentQuiz(userAggregateId, this.getTournamentDto().getQuiz().getAggregateId(), unitOfWork);
             SagaQuiz quiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(quiz, QuizSagaState.SOLVE_QUIZ_STARTED_TOURNAMENT_QUIZ, unitOfWork);
+            unitOfWorkService.registerSagaState(quiz, QuizSagaState.STARTED_TOURNAMENT_QUIZ, unitOfWork);
             this.setQuizDto(quizDto);
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
     
@@ -78,7 +78,7 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
         SagaSyncStep startQuizAnswerStep = new SagaSyncStep("startQuizAnswerStep", () -> {
             QuizAnswerDto quizAnswerDto = quizAnswerService.startQuiz(this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
             SagaQuizAnswer quizAnswer = (SagaQuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(quizAnswer, QuizAnswerSagaState.SOLVE_QUIZ_STARTED_QUIZ, unitOfWork);
+            unitOfWorkService.registerSagaState(quizAnswer, QuizAnswerSagaState.STARTED_QUIZ, unitOfWork);
             this.setQuizAnswerDto(quizAnswerDto);
         }, new ArrayList<>(Arrays.asList(startQuizStep)));
     

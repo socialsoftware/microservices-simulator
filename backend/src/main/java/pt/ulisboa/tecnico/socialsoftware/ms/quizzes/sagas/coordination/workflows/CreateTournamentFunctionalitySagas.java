@@ -63,7 +63,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             // by making this call the invariants regarding the course execution and the role of the creator are guaranteed
             UserDto creatorDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId, unitOfWork);
             SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, CourseExecutionSagaState.CREATE_TOURNAMENT_READ_CREATOR, unitOfWork);
+            unitOfWorkService.registerSagaState(courseExecution, CourseExecutionSagaState.READ_CREATOR, unitOfWork);
             this.setUserDto(creatorDto);
         });
         
@@ -75,7 +75,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
         SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {
             CourseExecutionDto courseExecutionDto = courseExecutionService.getCourseExecutionById(executionId, unitOfWork);
             SagaCourseExecution courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(courseExecution, CourseExecutionSagaState.CREATE_TOURNAMENT_READ_COURSE, unitOfWork);
+            unitOfWorkService.registerSagaState(courseExecution, CourseExecutionSagaState.READ_COURSE, unitOfWork);
             this.setCourseExecutionDto(courseExecutionDto);
         });
         
@@ -90,7 +90,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             topicsId.stream().forEach(topicId -> {
                 TopicDto t = topicService.getTopicById(topicId, unitOfWork);
                 SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(t.getAggregateId(), unitOfWork);
-                unitOfWorkService.registerSagaState(topic, TopicSagaState.CREATE_TOURNAMENT_READ_TOPIC, unitOfWork);
+                unitOfWorkService.registerSagaState(topic, TopicSagaState.READ_TOPIC, unitOfWork);
                 this.addTopicDto(t);
             });
         });

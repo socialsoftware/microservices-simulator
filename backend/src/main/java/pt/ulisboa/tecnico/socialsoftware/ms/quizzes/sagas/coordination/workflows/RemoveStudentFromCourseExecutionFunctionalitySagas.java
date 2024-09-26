@@ -36,7 +36,7 @@ public class RemoveStudentFromCourseExecutionFunctionalitySagas extends Workflow
 
         SagaSyncStep getOldCourseExecutionStep = new SagaSyncStep("getOldCourseExecutionStep", () -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.REMOVE_STUDENT_FROM_COURSE_EXECUTION_READ_COURSE, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
         });
     

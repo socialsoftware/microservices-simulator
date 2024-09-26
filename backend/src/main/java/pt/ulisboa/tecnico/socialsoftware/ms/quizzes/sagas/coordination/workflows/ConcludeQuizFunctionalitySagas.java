@@ -31,7 +31,7 @@ public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep getQuizAnswerStep = new SagaSyncStep("getQuizAnswerStep", () -> {
             SagaQuizAnswer quizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(quizAnswer, QuizAnswerSagaState.CONCLUDE_QUIZ_READ_QUIZ_ANSWER, unitOfWork);
+            unitOfWorkService.registerSagaState(quizAnswer, QuizAnswerSagaState.READ_QUIZ_ANSWER, unitOfWork);
             this.setQuizAnswer(quizAnswer);
         });
     

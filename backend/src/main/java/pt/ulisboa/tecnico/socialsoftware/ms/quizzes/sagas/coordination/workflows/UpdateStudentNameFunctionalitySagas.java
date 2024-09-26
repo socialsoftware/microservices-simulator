@@ -48,7 +48,7 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
     
         SagaSyncStep getStudentStep = new SagaSyncStep("getStudentStep", () -> {
             SagaUser student = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(student, UserSagaState.UPDATE_STUDENT_NAME_READ_STUDENT, unitOfWork);
+            unitOfWorkService.registerSagaState(student, UserSagaState.READ_STUDENT, unitOfWork);
             this.setStudent(student);
         });
     
@@ -60,7 +60,7 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
     
         SagaSyncStep getOldCourseExecutionStep = new SagaSyncStep("getOldCourseExecutionStep", () -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.UPDATE_STUDENT_NAME_READ_COURSE, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
         });
     

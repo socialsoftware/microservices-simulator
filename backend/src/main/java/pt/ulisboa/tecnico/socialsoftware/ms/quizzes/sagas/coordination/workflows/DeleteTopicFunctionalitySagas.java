@@ -34,7 +34,7 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
             SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(topic, TopicSagaState.DELETE_TOPIC_READ_TOPIC, unitOfWork);
+            unitOfWorkService.registerSagaState(topic, TopicSagaState.READ_TOPIC, unitOfWork);
             this.setTopic(topic);
         });
     

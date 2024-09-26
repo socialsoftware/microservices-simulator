@@ -46,7 +46,7 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
     
         SagaSyncStep getOldCourseExecutionStep = new SagaSyncStep("getOldCourseExecutionStep", () -> {
             SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.ADD_STUDENT_READ_COURSE, unitOfWork);
+            unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
         });
     

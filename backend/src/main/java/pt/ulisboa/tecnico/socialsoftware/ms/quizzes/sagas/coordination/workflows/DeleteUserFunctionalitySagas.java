@@ -34,7 +34,7 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
             SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(user, UserSagaState.DELETE_USER_READ_USER, unitOfWork);
+            unitOfWorkService.registerSagaState(user, UserSagaState.READ_USER, unitOfWork);
             this.setUser(user);
         });
     

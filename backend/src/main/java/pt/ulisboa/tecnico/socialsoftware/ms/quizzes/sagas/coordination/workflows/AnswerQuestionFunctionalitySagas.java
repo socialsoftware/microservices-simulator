@@ -45,7 +45,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
         SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
             QuestionDto questionDto = questionService.getQuestionById(userQuestionAnswerDto.getQuestionAggregateId(), unitOfWork);
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(question, QuestionSagaState.ANSWER_QUESTION_READ_QUESTION, unitOfWork);
+            unitOfWorkService.registerSagaState(question, QuestionSagaState.READ_QUESTION, unitOfWork);
             this.setQuestionDto(questionDto);
         });
 
@@ -57,7 +57,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep getOldQuizAnswerStep = new SagaSyncStep("getOldQuizAnswerStep", () -> {
             SagaQuizAnswer oldQuizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuizAnswer, QuizAnswerSagaState.ANSWER_QUESTION_READ_QUIZ_ANSWER, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuizAnswer, QuizAnswerSagaState.READ_QUIZ_ANSWER, unitOfWork);
             this.setOldQuizAnswer(oldQuizAnswer);
         });
 

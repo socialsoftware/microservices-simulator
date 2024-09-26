@@ -40,7 +40,7 @@ public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
         SagaSyncStep getQuizStep = new SagaSyncStep("getQuizStep", () -> {
             QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
             SagaQuiz quiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(quiz, QuizSagaState.START_QUIZ_READ_QUIZ, unitOfWork);
+            unitOfWorkService.registerSagaState(quiz, QuizSagaState.READ_QUIZ, unitOfWork);
             this.setQuizDto(quizDto);
         });
     

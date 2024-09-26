@@ -37,7 +37,7 @@ public class CancelTournamentFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep getOldTournamentStep = new SagaSyncStep("getOldTournamentStep", () -> {
             SagaTournament oldTournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldTournament, TournamentSagaState.CANCEL_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
+            unitOfWorkService.registerSagaState(oldTournament, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
             this.setOldTournament(oldTournament);
         });
     

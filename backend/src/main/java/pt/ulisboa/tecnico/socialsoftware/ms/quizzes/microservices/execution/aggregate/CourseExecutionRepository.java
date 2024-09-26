@@ -14,6 +14,6 @@ public interface CourseExecutionRepository extends JpaRepository<CourseExecution
     @Query(value = "select ce1.aggregateId from CourseExecution ce1 where ce1.aggregateId NOT IN (select ce2.aggregateId from CourseExecution ce2 where ce2.state = 'DELETED')")
     Set<Integer> findCourseExecutionIdsOfAllNonDeletedForTCC();
 
-    @Query(value = "select ce1.aggregateId from CourseExecution ce1 where ce1.aggregateId NOT IN (select ce2.aggregateId from CourseExecution ce2 where ce2.state = 'DELETED' AND ce2.sagaState = 'IN_SAGA')")
+    @Query(value = "select ce1.aggregateId from CourseExecution ce1 where ce1.aggregateId NOT IN (select ce2.aggregateId from CourseExecution ce2 where ce2.state = 'DELETED' AND ce2.sagaState != 'NOT_IN_SAGA')")
     Set<Integer> findCourseExecutionIdsOfAllNonDeletedForSaga();
 }

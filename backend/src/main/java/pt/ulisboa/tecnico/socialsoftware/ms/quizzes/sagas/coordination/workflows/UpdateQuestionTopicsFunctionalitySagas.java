@@ -53,7 +53,7 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
     
         SagaSyncStep getOldQuestionStep = new SagaSyncStep("getOldQuestionStep", () -> {
             SagaQuestion oldQuestion = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuestion, QuestionSagaState.UPDATE_QUESTION_TOPICS_READ_QUESTION, unitOfWork);
+            unitOfWorkService.registerSagaState(oldQuestion, QuestionSagaState.READ_QUESTION, unitOfWork);
             Set<QuestionTopic> oldTopics = oldQuestion.getQuestionTopics();
             this.setOldQuestion(oldQuestion);
             this.setOldTopics(oldTopics);

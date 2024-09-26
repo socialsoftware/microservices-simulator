@@ -39,7 +39,7 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep gettournamentStep = new SagaSyncStep("getTournamentStep", () -> {
             SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(tournament, TournamentSagaState.REMOVE_TOURNAMENT_READ_TOURNAMENT, unitOfWork);
+            unitOfWorkService.registerSagaState(tournament, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
             this.setTournament(tournament);
             this.currentStep = "getTournamentStep";
         });

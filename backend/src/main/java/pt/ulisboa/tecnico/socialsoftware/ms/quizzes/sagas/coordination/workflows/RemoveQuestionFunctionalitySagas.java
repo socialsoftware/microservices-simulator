@@ -34,7 +34,7 @@ public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
             SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(question, QuestionSagaState.REMOVE_QUESTION_READ_QUESTION, unitOfWork);
+            unitOfWorkService.registerSagaState(question, QuestionSagaState.READ_QUESTION, unitOfWork);
             this.setQuestion(question);
         });
     
