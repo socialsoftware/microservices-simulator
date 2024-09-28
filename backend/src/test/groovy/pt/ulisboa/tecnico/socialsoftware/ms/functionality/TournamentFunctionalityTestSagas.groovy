@@ -865,6 +865,51 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentDtoResult.quiz.aggregateId == tournamentDto.quiz.aggregateId
     }
 
+
+    def 'concurrent add two participants to tournament'() {
+        given: 'two new users'
+        def userDto1 = new UserDto()
+        userDto1.setName('User1')
+        userDto1.setUsername('Username1')
+        userDto1.setRole('STUDENT')
+        userDto1 = userFunctionalities.createUser(userDto1)
+        userFunctionalities.activateUser(userDto1.getAggregateId())
+        courseExecutionFunctionalities.addStudent(courseExecutionDto.getAggregateId(), userDto1.getAggregateId())
+
+        def userDto2 = new UserDto()
+        userDto2.setName('User2')
+        userDto2.setUsername('Username2')
+        userDto2.setRole('STUDENT')
+        userDto2 = userFunctionalities.createUser(userDto2)
+        userFunctionalities.activateUser(userDto2.getAggregateId())
+        courseExecutionFunctionalities.addStudent(courseExecutionDto.getAggregateId(), userDto2.getAggregateId())
+
+        and: 'create unit of works for concurrent addition of participants'
+        def functionalityName1 = AddParticipantFunctionalitySagas.getClass().getSimpleName()
+        def functionalityName2 = AddParticipantFunctionalitySagas.getClass().getSimpleName()
+        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
+        def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
+
+        def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, 
+                courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userDto1.getAggregateId(), unitOfWork1)
+        def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, 
+                courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userDto2.getAggregateId(), unitOfWork2)
+
+        when: 
+        addParticipantFunctionality1.executeUntilStep("getTournamentStep", unitOfWork1)
+        addParticipantFunctionality2.executeWorkflow(unitOfWork2)
+
+        and: 
+        addParticipantFunctionality1.resumeWorkflow(unitOfWork1)
+
+        then: 'both participants should be successfully added to the tournament'
+        def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        updatedTournament.participants.size() == 2
+        updatedTournament.participants.any { it.aggregateId == userDto1.getAggregateId() }
+        updatedTournament.participants.any { it.aggregateId == userDto2.getAggregateId() }
+    }
+
+
     /*------------------------------------------------------------------------------------------------------------------------*/
 
     def "create tournament successfully"() {
