@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork;
 
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA;
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_DELETED;
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_NOT_FOUND;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -95,70 +95,82 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void commit(SagaUnitOfWork unitOfWork) {
-        boolean concurrentAggregates = true;
-
-        // STEP 1 check whether any of the aggregates to write have concurrent versions
-        // STEP 2 if so perform any merges necessary
-        // STEP 3 performs steps 1 and 2 until step 1 stops holding
-        // STEP 4 perform a commit of the aggregates under SERIALIZABLE isolation
-
-        Map<Integer, Aggregate> originalAggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
-
-        // may contain merged aggregates
-        // we do not want to compare intermediate merged aggregates with concurrent aggregate, so we separate
-        // the comparison is always between the original written by the functionality and the concurrent
-        Map<Integer, Aggregate> modifiedAggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
-
-        while (concurrentAggregates) {
-            concurrentAggregates = false;
-            for (Integer aggregateId : originalAggregatesToCommit.keySet()) {
-                Aggregate aggregateToWrite = originalAggregatesToCommit.get(aggregateId);
-                if (aggregateToWrite.getPrev() != null && aggregateToWrite.getPrev().getState() == Aggregate.AggregateState.INACTIVE) {
-                    throw new TutorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregateToWrite.getAggregateId());
-                }
-                aggregateToWrite.verifyInvariants();
-                Aggregate concurrentAggregate = getConcurrentAggregate(aggregateToWrite);
-                // second condition is necessary for when a concurrent version is detected at first and then in the following detections it will have to do
-                // this verification in order to not detect the same as a version as concurrent again
-                if (concurrentAggregate != null && unitOfWork.getVersion() <= concurrentAggregate.getVersion()) {
-                    concurrentAggregates = true;
-                    Aggregate newAggregate = ((SagaAggregate) aggregateToWrite).merge(aggregateToWrite, concurrentAggregate); // TODO change this to saga aggregate
-                    newAggregate.verifyInvariants();
-                    newAggregate.setId(null);
-                    modifiedAggregatesToCommit.put(aggregateId, newAggregate);
-                }
-            }
-
-            if (concurrentAggregates) {
-                // because there was a concurrent version we need to get a new version
-                // the service to get a new version must also increment it to guarantee two transactions do run with the same version number
-                // a number must be requested every time a concurrent version is detected
-                unitOfWork.setVersion(versionService.incrementAndGetVersionNumber());
-            }
+    public void registerSagaState(Integer aggregateId, SagaState state, SagaUnitOfWork unitOfWork) {
+        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+        while (aggregate.getSagaState() != GenericSagaState.NOT_IN_SAGA) {
+            aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
         }
+        aggregate.setSagaState(state);
+        entityManager.persist(aggregate);
+        unitOfWork.addToAggregatesInSaga(aggregate);
+    }
+
+    @Retryable(
+            value = { SQLException.class },
+            backoff = @Backoff(delay = 5000))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void commit(SagaUnitOfWork unitOfWork) {
+        Map<Integer, Aggregate> aggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
 
         unitOfWork.getAggregatesInSaga().stream().forEach(a -> {
             a.setSagaState(GenericSagaState.NOT_IN_SAGA);
+            entityManager.persist(a);
         });
 
         // The commit is done with the last commited version plus one
         Integer commitVersion = versionService.incrementAndGetVersionNumber();
         unitOfWork.setVersion(commitVersion);
 
-        modifiedAggregatesToCommit.values().stream().forEach(a -> {
+        aggregatesToCommit.values().stream().forEach(a -> {
+                                ((SagaAggregate)a).setSagaState(GenericSagaState.NOT_IN_SAGA);
                                 if (a.getState() != AggregateState.DELETED && a.getState() != AggregateState.INACTIVE) {
                                     a.setState(AggregateState.ACTIVE);
                                 }
                             });
 
-        commitAllObjects(commitVersion, modifiedAggregatesToCommit);
+        commitAllObjects(commitVersion, aggregatesToCommit);
 
         unitOfWork.getEventsToEmit().forEach(e -> {
             /* this is so event detectors can compare this version to those of running transactions */
             e.setPublisherAggregateVersion(commitVersion);
             eventRepository.save(e);
         });
+        logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+    }
+
+    @Retryable(
+            value = { SQLException.class },
+            backoff = @Backoff(delay = 5000))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void commitEvent(SagaUnitOfWork unitOfWork) {
+        Map<Integer, Aggregate> aggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
+
+    // The commit is done with the last committed version plus one
+    Integer commitVersion = versionService.incrementAndGetVersionNumber();
+    unitOfWork.setVersion(commitVersion);
+
+    aggregatesToCommit.values().stream().forEach(a -> {
+        // Wait until the aggregate is not in a saga
+        while (((SagaAggregate)a).getSagaState() != GenericSagaState.NOT_IN_SAGA) {
+            a = sagaAggregateRepository.findSagaAggregate(a.getId(), unitOfWork.getVersion())
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+        }
+
+        // Set state to ACTIVE if it's not DELETED or INACTIVE
+        if (a.getState() != AggregateState.DELETED && a.getState() != AggregateState.INACTIVE) {
+            a.setState(AggregateState.ACTIVE);
+        }
+    });
+
+    commitAllObjects(commitVersion, aggregatesToCommit);
+
+    unitOfWork.getEventsToEmit().forEach(e -> {
+        // This is so event detectors can compare this version to those of running transactions
+        e.setPublisherAggregateVersion(commitVersion);
+        eventRepository.save(e);
+    });
         logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
     }
 
@@ -201,5 +213,9 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     public void abort(SagaUnitOfWork unitOfWork) {
         // TODO
         this.compensate(unitOfWork);
+    }
+
+    public void throwException(Integer aggregateId) {
+        throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, aggregateId);
     }
 }

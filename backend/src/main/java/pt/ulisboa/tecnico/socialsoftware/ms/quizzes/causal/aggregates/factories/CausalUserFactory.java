@@ -21,5 +21,9 @@ public class CausalUserFactory implements UserFactory {
     public User createUserFromExisting(User existingUser) {
         return new CausalUser((CausalUser) existingUser);
     }
-    
+
+    @Override
+    public UserDto createUserDto(User user) {
+        return new UserDto(user);
+    }
 }

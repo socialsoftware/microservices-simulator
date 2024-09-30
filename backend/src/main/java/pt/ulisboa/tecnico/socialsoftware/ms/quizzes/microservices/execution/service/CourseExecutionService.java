@@ -64,7 +64,7 @@ public class CourseExecutionService {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public CourseExecutionDto getCourseExecutionById(Integer executionAggregateId, UnitOfWork unitOfWorkWork) {
-        return new CourseExecutionDto((CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWorkWork));
+        return courseExecutionFactory.createCourseExecutionDto((CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWorkWork));
     }
 
     @Retryable(
@@ -77,7 +77,7 @@ public class CourseExecutionService {
         CourseExecution courseExecution = courseExecutionFactory.createCourseExecution(aggregateIdGeneratorService.getNewAggregateId(), courseExecutionDto, courseExecutionCourse);
 
         unitOfWork.registerChanged(courseExecution);
-        return new CourseExecutionDto(courseExecution);
+        return courseExecutionFactory.createCourseExecutionDto(courseExecution);
     }
 
     @Retryable(
@@ -146,7 +146,7 @@ public class CourseExecutionService {
                 .map(aggregateId -> (CourseExecution) unitOfWorkService.aggregateLoad(aggregateId, unitOfWork))
                 .filter(ce -> ce.hasStudent(userAggregateId))
                 .map(courseExecution -> (CourseExecution) unitOfWorkService.registerRead(courseExecution, unitOfWork))
-                .map(ce -> new CourseExecutionDto(ce))
+                .map(ce -> courseExecutionFactory.createCourseExecutionDto(ce))
                 .collect(Collectors.toSet());
     }
 

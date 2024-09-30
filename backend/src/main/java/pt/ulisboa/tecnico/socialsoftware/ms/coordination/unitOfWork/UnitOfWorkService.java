@@ -1,14 +1,15 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork;
 
+import java.sql.SQLException;
+import java.util.Map;
+
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.SQLException;
-import java.util.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
 @Service
 public abstract class UnitOfWorkService<U extends UnitOfWork> {
@@ -32,6 +33,12 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public abstract void commit(U unitOfWork);
+
+    @Retryable(
+            value = { SQLException.class },
+            backoff = @Backoff(delay = 5000))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public abstract void commitEvent(U unitOfWork);
 
     @Retryable(
             value = { SQLException.class },

@@ -13,6 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
 
 @Service
 @Profile("sagas")
@@ -29,6 +30,8 @@ public class SagasTournamentFactory implements TournamentFactory {
         return new SagaTournament((SagaTournament) existingTournament);
     }
 
-    
-    
+    @Override
+    public TournamentDto createTournamentDto(Tournament tournament) {
+        return new SagaTournamentDto(tournament);
+    }
 }

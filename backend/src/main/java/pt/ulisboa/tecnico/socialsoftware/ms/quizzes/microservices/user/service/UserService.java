@@ -48,7 +48,7 @@ public class UserService {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public UserDto getUserById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return new UserDto((User) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
+        return userFactory.createUserDto((User) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
     /*simple user creation*/
@@ -60,7 +60,7 @@ public class UserService {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
         User user = userFactory.createUser(aggregateId, userDto);
         unitOfWork.registerChanged(user);
-        return new UserDto(user);
+        return userFactory.createUserDto(user);
     }
 
     @Retryable(

@@ -1,24 +1,23 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows;
 
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.events.publish.AnonymizeStudentEvent;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.events.publish.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentParticipant;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
@@ -26,7 +25,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
     
-    private TournamentDto tournamentDto;
+    private SagaTournamentDto tournamentDto;
     private Tournament tournament;
     private UserDto userDto;
     
@@ -52,26 +51,35 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
-            TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
-            setTournamentDto(tournamentDto);
-            this.currentStep = "getTournamentStep";
+            SagaTournamentDto tournamentDto = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            if (tournamentDto.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)) {
+                unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
+                setTournamentDto(tournamentDto);
+            }
+            else {
+                throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+            }
         });
 
-        
+        getTournamentStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(tournamentAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+        }, unitOfWork);
+    
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            UserDto userDto = courseExecutionService.getStudentByExecutionIdAndUserId(
+            this.userDto = courseExecutionService.getStudentByExecutionIdAndUserId(
                 tournamentDto.getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
-            this.setUserDto(userDto);
-            this.currentStep = "getUserStep";
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
+
+        getUserStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(userAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+        }, unitOfWork);
 
         SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {
             TournamentParticipant participant = new TournamentParticipant(this.getUserDto());
             if (!tournamentDto.getCreator().getName().equals("ANONYMOUS")) {
                 tournamentService.addParticipant(tournamentAggregateId, participant, userDto.getRole(), unitOfWork);
             }
-            this.currentStep = "addParticipantStep";
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
         this.workflow.addStep(getTournamentStep);
@@ -81,39 +89,11 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
 
     @Override
     public void handleEvents() {
-
-        if (currentStep.equals("getUserStep") || currentStep.equals("addParticipantStep")) {
-            SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentDto.getAggregateId(), unitOfWork);
-        
-            Set<EventSubscription> eventSubscriptions = tournament.getEventSubscriptions();
-            
-            for (EventSubscription eventSubscription: eventSubscriptions) {
-                List<? extends Event> eventsToProcess = eventService.getSubscribedEvents(eventSubscription, UpdateStudentNameEvent.class);
-                for (Event event: eventsToProcess) {
-                    UpdateStudentNameEvent eventToProcess = (UpdateStudentNameEvent) event;
-                    this.getUserDto().setName(eventToProcess.getUpdatedName());
-                    if (tournament.getTournamentCreator().getCreatorAggregateId().equals(eventToProcess.getStudentAggregateId())) {
-                        tournament.getTournamentCreator().setCreatorName(eventToProcess.getUpdatedName());
-                    }
-                }
-                eventsToProcess = eventService.getSubscribedEvents(eventSubscription, AnonymizeStudentEvent.class);
-                for (Event event: eventsToProcess) {
-                    AnonymizeStudentEvent eventToProcess = (AnonymizeStudentEvent) event;
-                    this.getUserDto().setName("ANONYMOUS");
-                    this.getUserDto().setUsername("ANONYMOUS");
-                    if (tournament.getTournamentCreator().getCreatorAggregateId().equals(eventToProcess.getStudentAggregateId())) {
-                        tournament.getTournamentCreator().setCreatorName("ANONYMOUS");
-                        tournament.getTournamentCreator().setCreatorUsername("ANONYMOUS");
-                    }
-                }
-                // TODO tournamentRemovedEvent
-            } 
-        }
     }
 
     
 
-    public void setTournamentDto(TournamentDto tournamentDto) {
+    public void setTournamentDto(SagaTournamentDto tournamentDto) {
         this.tournamentDto = tournamentDto;
     }
 
@@ -125,7 +105,7 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
         return tournament;
     }
 
-    public TournamentDto getTournamentDto() {
+    public SagaTournamentDto getTournamentDto() {
         return tournamentDto;
     }
 

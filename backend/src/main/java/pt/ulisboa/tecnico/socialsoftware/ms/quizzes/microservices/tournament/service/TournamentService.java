@@ -61,7 +61,7 @@ public class TournamentService {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public TournamentDto getTournamentById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return new TournamentDto((Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
+        return tournamentFactory.createTournamentDto((Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
     @Retryable(
@@ -77,7 +77,7 @@ public class TournamentService {
         Tournament tournament = tournamentFactory.createTournament(aggregateId, tournamentDto, creatorDto, courseExecutionDto, topicDtos, quizDto); /* should the skeleton creation be part of the functionality?? */
 
         unitOfWork.registerChanged(tournament);
-        return new TournamentDto(tournament);
+        return tournamentFactory.createTournamentDto(tournament);
     }
 
     @Retryable(
@@ -129,7 +129,7 @@ public class TournamentService {
             unitOfWork.registerChanged(newTournament);
         }
 
-        return new TournamentDto(newTournament);
+        return tournamentFactory.createTournamentDto(newTournament);
     }
 
     @Retryable(

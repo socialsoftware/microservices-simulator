@@ -84,6 +84,7 @@ public abstract class Workflow {
                 .thenRun(() -> unitOfWorkService.commit(unitOfWork));
 
         } catch (TutorException ex) {
+            System.out.println("VVVVVVVVVVVVVVVV");
             unitOfWorkService.abort(unitOfWork);
             throw ex;
         }

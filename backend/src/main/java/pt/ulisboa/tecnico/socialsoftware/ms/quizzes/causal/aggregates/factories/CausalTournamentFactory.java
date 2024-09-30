@@ -28,4 +28,9 @@ public class CausalTournamentFactory implements TournamentFactory {
     public Tournament createTournamentFromExisting(Tournament existingTournament) {
         return new CausalTournament((CausalTournament) existingTournament);
     }
+
+    @Override
+    public TournamentDto createTournamentDto(Tournament tournament) {
+        return new TournamentDto(tournament);
+    }
 }

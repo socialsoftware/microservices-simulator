@@ -14,5 +14,11 @@ public enum CourseExecutionSagaState implements SagaState {
         public String getStateName() {
             return "READ_CREATOR";
         }
+    },
+    READ_STUDENT {
+        @Override
+        public String getStateName() {
+            return "READ_STUDENT";
+        }
     }
 }

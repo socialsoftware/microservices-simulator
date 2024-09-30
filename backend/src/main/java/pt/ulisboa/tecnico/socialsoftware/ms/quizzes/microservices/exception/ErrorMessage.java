@@ -1,6 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception;
 
 public enum ErrorMessage {
+    AGGREGATE_BEING_USED_IN_OTHER_SAGA("Aggregate %s is being used in other saga"),
+
     INVALID_AGGREGATE_TYPE("Aggregate type %s does not exist"),
 
     AGGREGATE_DELETED("Aggregate %s with aggregate id %d already deleted."),

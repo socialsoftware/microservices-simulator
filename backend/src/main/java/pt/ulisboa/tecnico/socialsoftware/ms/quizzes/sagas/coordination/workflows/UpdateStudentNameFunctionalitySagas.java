@@ -7,14 +7,12 @@ import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaUser;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaCourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.CourseExecutionSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.UserSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
@@ -23,8 +21,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
     
-    private SagaUser student;
-    private CourseExecution oldCourseExecution;
+    private UserDto student;
+    private CourseExecutionDto oldCourseExecution;
         
     
 
@@ -45,37 +43,28 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
         if (userDto.getName() == null) {
             throw new TutorException(USER_MISSING_NAME);
         }
-    
-        SagaSyncStep getStudentStep = new SagaSyncStep("getStudentStep", () -> {
-            SagaUser student = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(student, UserSagaState.READ_STUDENT, unitOfWork);
-            this.setStudent(student);
-        });
-    
-        getStudentStep.registerCompensation(() -> {
-            SagaUser student = this.getStudent();
-            unitOfWorkService.registerSagaState(student, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            unitOfWork.registerChanged(student);
-        }, unitOfWork);
-    
+        
         SagaSyncStep getOldCourseExecutionStep = new SagaSyncStep("getOldCourseExecutionStep", () -> {
-            SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.READ_COURSE, unitOfWork);
+            SagaCourseExecutionDto oldCourseExecution = (SagaCourseExecutionDto) courseExecutionService.getCourseExecutionById(executionAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(executionAggregateId, CourseExecutionSagaState.READ_COURSE, unitOfWork);
             this.setOldCourseExecution(oldCourseExecution);
         });
-    
+
         getOldCourseExecutionStep.registerCompensation(() -> {
-            CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(this.getOldCourseExecution());
-            unitOfWorkService.registerSagaState((SagaCourseExecution) newCourseExecution, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            unitOfWork.registerChanged(newCourseExecution);
+            unitOfWorkService.registerSagaState(executionAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
+
+        SagaSyncStep getStudentStep = new SagaSyncStep("getStudentStep", () -> {
+            UserDto student = courseExecutionService.getStudentByExecutionIdAndUserId(executionAggregateId, userAggregateId, unitOfWork);
+            this.setStudent(student);
+        }, new ArrayList<>(Arrays.asList(getOldCourseExecutionStep)));
     
         SagaSyncStep updateStudentNameStep = new SagaSyncStep("updateStudentNameStep", () -> {
             courseExecutionService.updateExecutionStudentName(executionAggregateId, userAggregateId, userDto.getName(), unitOfWork);
-        }, new ArrayList<>(Arrays.asList(getStudentStep, getOldCourseExecutionStep)));
+        }, new ArrayList<>(Arrays.asList(getOldCourseExecutionStep,getStudentStep)));
     
-        workflow.addStep(getStudentStep);
         workflow.addStep(getOldCourseExecutionStep);
+        workflow.addStep(getStudentStep);
         workflow.addStep(updateStudentNameStep);
     }
 
@@ -84,19 +73,19 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
 
     }
 
-    public SagaUser getStudent() {
+    public UserDto getStudent() {
         return student;
     }
 
-    public void setStudent(SagaUser student) {
+    public void setStudent(UserDto student) {
         this.student = student;
     }
 
-    public CourseExecution getOldCourseExecution() {
+    public CourseExecutionDto getOldCourseExecution() {
         return oldCourseExecution;
     }
 
-    public void setOldCourseExecution(CourseExecution oldCourseExecution) {
+    public void setOldCourseExecution(CourseExecutionDto oldCourseExecution) {
         this.oldCourseExecution = oldCourseExecution;
     }
 }

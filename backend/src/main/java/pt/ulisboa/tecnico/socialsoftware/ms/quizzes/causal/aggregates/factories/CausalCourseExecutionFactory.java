@@ -21,4 +21,9 @@ public class CausalCourseExecutionFactory implements CourseExecutionFactory {
     public CourseExecution createCourseExecutionFromExisting(CourseExecution existingAnswer) {
         return new CausalCourseExecution((CausalCourseExecution) existingAnswer);
     }
+
+    @Override
+    public CourseExecutionDto createCourseExecutionDto(CourseExecution courseExecution) {
+        return new CourseExecutionDto(courseExecution);
+    }
 }
