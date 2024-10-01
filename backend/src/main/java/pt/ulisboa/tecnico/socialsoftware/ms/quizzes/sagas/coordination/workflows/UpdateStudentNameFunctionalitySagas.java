@@ -56,8 +56,13 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep getStudentStep = new SagaSyncStep("getStudentStep", () -> {
             UserDto student = courseExecutionService.getStudentByExecutionIdAndUserId(executionAggregateId, userAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(executionAggregateId, CourseExecutionSagaState.READ_STUDENT, new ArrayList<>(Arrays.asList(CourseExecutionSagaState.READ_COURSE)), unitOfWork);
             this.setStudent(student);
         }, new ArrayList<>(Arrays.asList(getOldCourseExecutionStep)));
+
+        getStudentStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(executionAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+        }, unitOfWork);
     
         SagaSyncStep updateStudentNameStep = new SagaSyncStep("updateStudentNameStep", () -> {
             courseExecutionService.updateExecutionStudentName(executionAggregateId, userAggregateId, userDto.getName(), unitOfWork);

@@ -5,6 +5,7 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.excepti
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_NOT_FOUND;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -98,7 +99,23 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     public void registerSagaState(Integer aggregateId, SagaState state, SagaUnitOfWork unitOfWork) {
         SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
-        while (aggregate.getSagaState() != GenericSagaState.NOT_IN_SAGA) {
+        while (!aggregate.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)) {
+            aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+        }
+        aggregate.setSagaState(state);
+        entityManager.persist(aggregate);
+        unitOfWork.addToAggregatesInSaga(aggregate);
+    }
+
+    @Retryable(
+            value = { SQLException.class },
+            backoff = @Backoff(delay = 5000))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void registerSagaState(Integer aggregateId, SagaState state, ArrayList<SagaState> allowedStates, SagaUnitOfWork unitOfWork) {
+        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+        while (!aggregate.getSagaState().equals(GenericSagaState.NOT_IN_SAGA) && !allowedStates.contains(aggregate.getSagaState())) {
             aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
         }
