@@ -8,7 +8,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggrega
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.AnsweredQuiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.Question;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuizAnswer;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaQuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaQuizAnswerDto;
 
 @Service
 @Profile("sagas")
@@ -21,5 +24,10 @@ public class SagasQuizAnswerFactory implements QuizAnswerFactory {
     @Override
     public QuizAnswer createQuizAnswerFromExisting(QuizAnswer existingAnswer) {
         return new SagaQuizAnswer((SagaQuizAnswer) existingAnswer);
+    }
+
+    @Override
+    public SagaQuizAnswerDto createQuizAnswerDto(QuizAnswer quizAnswer) {
+        return new SagaQuizAnswerDto(quizAnswer);
     }
 }

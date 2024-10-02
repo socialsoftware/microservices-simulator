@@ -48,7 +48,7 @@ public class QuestionService {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public QuestionDto getQuestionById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return new QuestionDto((Question) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
+        return questionFactory.createQuestionDto((Question) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
     @Retryable(
@@ -78,7 +78,7 @@ public class QuestionService {
 
         Question question = questionFactory.createQuestion(aggregateId, course, questionDto, questionTopics);
         unitOfWork.registerChanged(question);
-        return new QuestionDto(question);
+        return questionFactory.createQuestionDto(question);
     }
 
     private void checkInput(QuestionCourse course, QuestionDto questionDto) {

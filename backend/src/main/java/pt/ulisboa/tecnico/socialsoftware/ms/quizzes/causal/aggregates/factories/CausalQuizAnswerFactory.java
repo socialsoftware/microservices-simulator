@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggrega
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.AnswerStudent;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.AnsweredQuiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswer;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
 
 @Service
@@ -22,4 +23,9 @@ public class CausalQuizAnswerFactory implements QuizAnswerFactory {
     public QuizAnswer createQuizAnswerFromExisting(QuizAnswer existingAnswer) {
         return new CausalQuizAnswer((CausalQuizAnswer) existingAnswer);
     }
+
+	@Override
+	public QuizAnswerDto createQuizAnswerDto(QuizAnswer quizAnswer) {
+		return new QuizAnswerDto(quizAnswer);
+	}
 }

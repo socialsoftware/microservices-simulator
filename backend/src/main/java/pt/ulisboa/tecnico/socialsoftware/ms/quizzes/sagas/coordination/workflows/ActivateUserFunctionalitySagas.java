@@ -5,8 +5,12 @@ import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaUser;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaUserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.UserSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
@@ -14,9 +18,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkServ
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA;
+
 public class ActivateUserFunctionalitySagas extends WorkflowFunctionality {
 
-    private SagaUser user;
+    private SagaUserDto user;
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -31,16 +37,18 @@ public class ActivateUserFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(user, UserSagaState.READ_USER, unitOfWork);
-            this.setUser(user);
+            SagaUserDto user = (SagaUserDto) userService.getUserById(userAggregateId, unitOfWork);
+            if (user.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)) {
+                unitOfWorkService.registerSagaState(userAggregateId, UserSagaState.READ_USER, unitOfWork);
+                this.setUser(user);
+            }
+            else {
+                throw new TutorException(ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+            }
         });
     
         getUserStep.registerCompensation(() -> {
-            SagaUser user = this.getUser();
-            user.setActive(false);
-            unitOfWorkService.registerSagaState(user, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            unitOfWork.registerChanged(user);
+            unitOfWorkService.registerSagaState(userAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
         SyncStep activateUserStep = new SyncStep("activateUserStep", () -> {
@@ -56,11 +64,11 @@ public class ActivateUserFunctionalitySagas extends WorkflowFunctionality {
 
     }    
 
-    public SagaUser getUser() {
+    public SagaUserDto getUser() {
         return user;
     }
 
-    public void setUser(SagaUser user) {
+    public void setUser(SagaUserDto user) {
         this.user = user;
     }
 }

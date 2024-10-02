@@ -4,13 +4,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaCourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaUserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.CourseExecutionSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.UserSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
@@ -20,7 +25,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
     
     private UserDto userDto;
-    private CourseExecution oldCourseExecution;
+    private SagaCourseExecutionDto courseExecution;
 
     
 
@@ -40,28 +45,37 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
-            this.setUserDto(userDto);
+            SagaUserDto user = (SagaUserDto) userService.getUserById(userAggregateId, unitOfWork);
+            if (user.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)) {
+                unitOfWorkService.registerSagaState(userAggregateId, UserSagaState.READ_USER, unitOfWork);
+                this.setUserDto(user);
+            }
+            else {
+                throw new TutorException(ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+            }
         });
     
-        SagaSyncStep getOldCourseExecutionStep = new SagaSyncStep("getOldCourseExecutionStep", () -> {
-            SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.READ_COURSE, unitOfWork);
-            this.setOldCourseExecution(oldCourseExecution);
+        SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {
+            SagaCourseExecutionDto courseExecution = (SagaCourseExecutionDto) courseExecutionService.getCourseExecutionById(executionAggregateId, unitOfWork);
+            if (courseExecution.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)) {
+                unitOfWorkService.registerSagaState(executionAggregateId, CourseExecutionSagaState.READ_COURSE, unitOfWork);
+                this.setCourseExecution(courseExecution);
+            }
+            else {
+                throw new TutorException(ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+            }
         });
     
-        getOldCourseExecutionStep.registerCompensation(() -> {
-            CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(this.getOldCourseExecution());
-            unitOfWorkService.registerSagaState((SagaCourseExecution) newCourseExecution, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            unitOfWork.registerChanged(newCourseExecution);
+        getCourseExecutionStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(executionAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
         SagaSyncStep enrollStudentStep = new SagaSyncStep("enrollStudentStep", () -> {
             courseExecutionService.enrollStudent(executionAggregateId, this.getUserDto(), unitOfWork);
-        }, new ArrayList<>(Arrays.asList(getUserStep, getOldCourseExecutionStep)));
+        }, new ArrayList<>(Arrays.asList(getUserStep, getCourseExecutionStep)));
     
         workflow.addStep(getUserStep);
-        workflow.addStep(getOldCourseExecutionStep);
+        workflow.addStep(getCourseExecutionStep);
         workflow.addStep(enrollStudentStep);
     }
 
@@ -80,11 +94,11 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
         this.userDto = userDto;
     }
 
-    public CourseExecution getOldCourseExecution() {
-        return oldCourseExecution;
+    public SagaCourseExecutionDto getCourseExecution() {
+        return courseExecution;
     }
 
-    public void setOldCourseExecution(CourseExecution oldCourseExecution) {
-        this.oldCourseExecution = oldCourseExecution;
+    public void setCourseExecution(SagaCourseExecutionDto courseExecution) {
+        this.courseExecution = courseExecution;
     }
 }

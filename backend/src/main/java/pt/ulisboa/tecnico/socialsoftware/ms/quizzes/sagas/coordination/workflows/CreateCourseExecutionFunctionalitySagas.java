@@ -4,14 +4,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaCourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
-    private CourseExecutionDto courseExecutionDto;
-    private CourseExecutionDto createdCourseExecution;
+    private SagaCourseExecutionDto courseExecutionDto;
+    private SagaCourseExecutionDto createdCourseExecution;
 
     
 
@@ -29,7 +30,7 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createCourseExecutionStep = new SagaSyncStep("createCourseExecutionStep", () -> {
-            CourseExecutionDto createdCourseExecution = courseExecutionService.createCourseExecution(courseExecutionDto, unitOfWork);
+            SagaCourseExecutionDto createdCourseExecution = (SagaCourseExecutionDto) courseExecutionService.createCourseExecution(courseExecutionDto, unitOfWork);
             this.setCreatedCourseExecution(createdCourseExecution);
         });
 
@@ -47,13 +48,11 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
 
     }
 
-    
-
     public CourseExecutionDto getCourseExecutionDto() {
         return courseExecutionDto;
     }
 
-    public void setCourseExecutionDto(CourseExecutionDto courseExecutionDto) {
+    public void setCourseExecutionDto(SagaCourseExecutionDto courseExecutionDto) {
         this.courseExecutionDto = courseExecutionDto;
     }
 
@@ -61,7 +60,7 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         return createdCourseExecution;
     }
 
-    public void setCreatedCourseExecution(CourseExecutionDto createdCourseExecution) {
+    public void setCreatedCourseExecution(SagaCourseExecutionDto createdCourseExecution) {
         this.createdCourseExecution = createdCourseExecution;
     }
 }

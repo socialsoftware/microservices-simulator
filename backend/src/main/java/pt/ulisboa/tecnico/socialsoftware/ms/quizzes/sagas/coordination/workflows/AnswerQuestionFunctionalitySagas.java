@@ -12,6 +12,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuestion;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuizAnswer;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaQuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaQuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuestionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuizAnswerSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
@@ -22,8 +24,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
     
-    private QuestionDto questionDto;
-    private QuizAnswer oldQuizAnswer;
+    private SagaQuestionDto questionDto;
+    private SagaQuizAnswerDto quizAnswer;
 
     
 
@@ -43,36 +45,31 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
-            QuestionDto questionDto = questionService.getQuestionById(userQuestionAnswerDto.getQuestionAggregateId(), unitOfWork);
-            SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(question, QuestionSagaState.READ_QUESTION, unitOfWork);
+            SagaQuestionDto questionDto = (SagaQuestionDto) questionService.getQuestionById(userQuestionAnswerDto.getQuestionAggregateId(), unitOfWork);
+            unitOfWorkService.registerSagaState(userQuestionAnswerDto.getQuestionAggregateId(), QuestionSagaState.READ_QUESTION, unitOfWork);
             this.setQuestionDto(questionDto);
         });
 
         getQuestionStep.registerCompensation(() -> {
-            QuestionDto questionDto = this.getQuestionDto();
-            SagaQuestion question = (SagaQuestion) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(question, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(this.questionDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
 
-        SagaSyncStep getOldQuizAnswerStep = new SagaSyncStep("getOldQuizAnswerStep", () -> {
-            SagaQuizAnswer oldQuizAnswer = (SagaQuizAnswer) quizAnswerService.getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldQuizAnswer, QuizAnswerSagaState.READ_QUIZ_ANSWER, unitOfWork);
-            this.setOldQuizAnswer(oldQuizAnswer);
+        SagaSyncStep getQuizAnswerStep = new SagaSyncStep("getQuizAnswerStep", () -> {
+            SagaQuizAnswerDto quizAnswer = (SagaQuizAnswerDto) quizAnswerService.getQuizAnswerDtoByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(quizAggregateId, QuizAnswerSagaState.READ_QUIZ_ANSWER, unitOfWork);
+            this.setQuizAnswer(quizAnswer);
         });
 
-        getOldQuizAnswerStep.registerCompensation(() -> {
-            QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(this.getOldQuizAnswer());
-            unitOfWorkService.registerSagaState((SagaQuizAnswer) newQuizAnswer, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            unitOfWork.registerChanged(newQuizAnswer);
+        getQuizAnswerStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(this.quizAnswer.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
 
         SagaSyncStep answerQuestionStep = new SagaSyncStep("answerQuestionStep", () -> {
             quizAnswerService.answerQuestion(quizAggregateId, userAggregateId, userQuestionAnswerDto, this.getQuestionDto(), unitOfWork);
-        }, new ArrayList<>(Arrays.asList(getQuestionStep, getOldQuizAnswerStep)));
+        }, new ArrayList<>(Arrays.asList(getQuestionStep, getQuizAnswerStep)));
 
         workflow.addStep(getQuestionStep);
-        workflow.addStep(getOldQuizAnswerStep);
+        workflow.addStep(getQuizAnswerStep);
         workflow.addStep(answerQuestionStep);
     }
 
@@ -83,19 +80,19 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
 
     
 
-    public QuestionDto getQuestionDto() {
+    public SagaQuestionDto getQuestionDto() {
         return questionDto;
     }
 
-    public void setQuestionDto(QuestionDto questionDto) {
+    public void setQuestionDto(SagaQuestionDto questionDto) {
         this.questionDto = questionDto;
     }
 
-    public QuizAnswer getOldQuizAnswer() {
-        return oldQuizAnswer;
+    public SagaQuizAnswerDto getQuizAnswer() {
+        return quizAnswer;
     }
 
-    public void setOldQuizAnswer(QuizAnswer oldQuizAnswer) {
-        this.oldQuizAnswer = oldQuizAnswer;
+    public void setQuizAnswer(SagaQuizAnswerDto quizAnswer) {
+        this.quizAnswer = quizAnswer;
     }
 }

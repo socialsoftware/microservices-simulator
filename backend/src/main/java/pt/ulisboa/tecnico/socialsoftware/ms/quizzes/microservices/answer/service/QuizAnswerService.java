@@ -66,6 +66,19 @@ public class QuizAnswerService {
         return quizAnswer;
     }
 
+    public QuizAnswerDto getQuizAnswerDtoByQuizIdAndUserId(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+        Integer quizAnswerId = quizAnswerRepository.findQuizAnswerIdByQuizIdAndUserId(quizAggregateId, userAggregateId)
+                .orElseThrow(() -> new TutorException(ErrorMessage.NO_USER_ANSWER_FOR_QUIZ, quizAggregateId, userAggregateId));
+
+        QuizAnswer quizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerId, unitOfWork);
+
+        if (quizAnswer.getState() == Aggregate.AggregateState.DELETED) {
+            throw new TutorException(ErrorMessage.QUIZ_ANSWER_DELETED, quizAnswer.getAggregateId());
+        }
+
+        return quizAnswerFactory.createQuizAnswerDto(quizAnswer);
+    }
+
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
@@ -89,7 +102,7 @@ public class QuizAnswerService {
         quizAnswer.setAnswerDate(DateHandler.now());
 
         unitOfWork.registerChanged(quizAnswer);
-        return new QuizAnswerDto(quizAnswer);
+        return quizAnswerFactory.createQuizAnswerDto(quizAnswer);
     }
 
     @Retryable(

@@ -3,4 +3,5 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggreg
 public interface QuizAnswerFactory {
     QuizAnswer createQuizAnswer(Integer aggregateId, AnswerCourseExecution answerCourseExecution, AnswerStudent answerStudent, AnsweredQuiz answeredQuiz);
     QuizAnswer createQuizAnswerFromExisting(QuizAnswer existingAnswer);
+    QuizAnswerDto createQuizAnswerDto(QuizAnswer quizAnswer);
 }

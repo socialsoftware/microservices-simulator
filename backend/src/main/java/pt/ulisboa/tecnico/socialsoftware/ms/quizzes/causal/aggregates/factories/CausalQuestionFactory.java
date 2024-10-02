@@ -11,6 +11,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionTopic;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaUserDto;
 
 @Service
 @Profile("tcc")
@@ -24,6 +27,11 @@ public class CausalQuestionFactory implements QuestionFactory {
     @Override
     public Question createQuestionFromExisting(Question existingQuestion) {
         return new CausalQuestion((CausalQuestion) existingQuestion);
+    }
+
+    @Override
+    public QuestionDto createQuestionDto(Question question) {
+        return new QuestionDto(question);
     }
     
 }

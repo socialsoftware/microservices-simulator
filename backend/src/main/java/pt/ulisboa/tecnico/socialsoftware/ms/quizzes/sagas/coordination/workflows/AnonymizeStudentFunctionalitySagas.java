@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaCourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.CourseExecutionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
@@ -17,7 +20,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
     
-    private CourseExecution oldCourseExecution;
+    private SagaCourseExecutionDto courseExecution;
 
     
 
@@ -34,23 +37,26 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, CourseExecutionFactory courseExecutionFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getOldCourseExecutionStep = new SagaSyncStep("getOldCourseExecutionStep", () -> {
-            SagaCourseExecution oldCourseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldCourseExecution, CourseExecutionSagaState.READ_COURSE, unitOfWork);
-            this.setOldCourseExecution(oldCourseExecution);
+        SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {
+            SagaCourseExecutionDto courseExecution = (SagaCourseExecutionDto) courseExecutionService.getCourseExecutionById(executionAggregateId, unitOfWork);
+            if (courseExecution.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)) {
+                unitOfWorkService.registerSagaState(executionAggregateId, CourseExecutionSagaState.READ_COURSE, unitOfWork);
+                this.setCourseExecution(courseExecution);
+            }
+            else {
+                throw new TutorException(ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+            }
         });
     
-        getOldCourseExecutionStep.registerCompensation(() -> {
-            CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(this.getOldCourseExecution());
-            unitOfWorkService.registerSagaState((SagaCourseExecution) newCourseExecution, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            unitOfWork.registerChanged(newCourseExecution);
+        getCourseExecutionStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(executionAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
         SagaSyncStep anonymizeStudentStep = new SagaSyncStep("anonymizeStudentStep", () -> {
             courseExecutionService.anonymizeStudent(executionAggregateId, userAggregateId, unitOfWork);
-        }, new ArrayList<>(Arrays.asList(getOldCourseExecutionStep)));
+        }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
     
-        workflow.addStep(getOldCourseExecutionStep);
+        workflow.addStep(getCourseExecutionStep);
         workflow.addStep(anonymizeStudentStep);
     }
 
@@ -61,11 +67,11 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
 
     
 
-    public CourseExecution getOldCourseExecution() {
-        return oldCourseExecution;
+    public SagaCourseExecutionDto getCourseExecution() {
+        return this.courseExecution;
     }
 
-    public void setOldCourseExecution(CourseExecution oldCourseExecution) {
-        this.oldCourseExecution = oldCourseExecution;
+    public void setCourseExecution(SagaCourseExecutionDto courseExecution) {
+        this.courseExecution = courseExecution;
     }
 }

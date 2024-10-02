@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
@@ -52,12 +53,13 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
             SagaTournamentDto tournamentDto = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            //TODO check this if since registerSagaState already blocks there
             if (tournamentDto.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)) {
                 unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
                 setTournamentDto(tournamentDto);
             }
             else {
-                throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+                throw new TutorException(ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA);
             }
         });
 

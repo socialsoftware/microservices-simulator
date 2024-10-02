@@ -252,7 +252,7 @@ class NewTest extends SpockTest {
         def updateStudentNameFunctionality = new UpdateStudentNameFunctionalitySagas(courseExecutionService, courseExecutionFactory, unitOfWorkService, courseExecutionDto.getAggregateId(), userDto.getAggregateId(), updateNameDto, unitOfWork1)
         def addParticipantFunctionality = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2)
 
-        updateStudentNameFunctionality.executeUntilStep("getOldCourseExecutionStep", unitOfWork1) 
+        updateStudentNameFunctionality.executeUntilStep("getCourseExecutionStep", unitOfWork1) 
         addParticipantFunctionality.executeWorkflow(unitOfWork2) 
         
         when:
