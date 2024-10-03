@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregat
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TopicSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
@@ -17,7 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
-    private Topic oldTopic;
+    private SagaTopicDto topic;
 
     
 
@@ -34,23 +35,21 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(TopicDto topicDto, TopicFactory topicFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getOldTopicStep = new SagaSyncStep("getOldTopicStep", () -> {
-            SagaTopic oldTopic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(oldTopic, TopicSagaState.READ_TOPIC, unitOfWork);
-            this.setOldTopic(oldTopic);
+        SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
+            SagaTopicDto topic = (SagaTopicDto) topicService.getTopicById(topicDto.getAggregateId(), unitOfWork);
+            unitOfWorkService.registerSagaState(topic.getAggregateId(), TopicSagaState.READ_TOPIC, unitOfWork);
+            this.setTopic(topic);
         });
     
-        getOldTopicStep.registerCompensation(() -> {
-            Topic newTopic = topicFactory.createTopicFromExisting(this.getOldTopic());
-            unitOfWorkService.registerSagaState((SagaTopic) newTopic, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            unitOfWork.registerChanged(newTopic);
+        getTopicStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(topic.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
         SagaSyncStep updateTopicStep = new SagaSyncStep("updateTopicStep", () -> {
             topicService.updateTopic(topicDto, unitOfWork);
-        }, new ArrayList<>(Arrays.asList(getOldTopicStep)));
+        }, new ArrayList<>(Arrays.asList(getTopicStep)));
     
-        workflow.addStep(getOldTopicStep);
+        workflow.addStep(getTopicStep);
         workflow.addStep(updateTopicStep);
     }
 
@@ -61,11 +60,11 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
 
     
 
-    public Topic getOldTopic() {
-        return oldTopic;
+    public SagaTopicDto getTopic() {
+        return topic;
     }
 
-    public void setOldTopic(Topic oldTopic) {
-        this.oldTopic = oldTopic;
+    public void setTopic(SagaTopicDto topic) {
+        this.topic = topic;
     }
 }

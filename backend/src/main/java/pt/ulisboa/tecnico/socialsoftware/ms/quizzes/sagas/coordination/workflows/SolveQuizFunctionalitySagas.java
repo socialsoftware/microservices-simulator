@@ -15,6 +15,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaQuizAnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaQuizDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuizAnswerSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuizSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
@@ -25,9 +28,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
-    private TournamentDto tournamentDto;
-    private QuizDto quizDto;
-    private QuizAnswerDto quizAnswerDto;
+    private SagaTournamentDto tournament;
+    private SagaQuizDto quizDto;
+    private SagaQuizAnswerDto quizAnswerDto;
     private Tournament oldTournament;
 
     
@@ -51,11 +54,9 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
-            TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
-            SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(tournament, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
-            this.setOldTournament(tournament);
-            this.setTournamentDto(tournamentDto);
+            SagaTournamentDto tournament = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
+            this.setTournament(tournament);
         });
     
         getTournamentStep.registerCompensation(() -> {
@@ -64,38 +65,28 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
         }, unitOfWork);
     
         SagaSyncStep startQuizStep = new SagaSyncStep("startQuizStep", () -> {
-            QuizDto quizDto = quizService.startTournamentQuiz(userAggregateId, this.getTournamentDto().getQuiz().getAggregateId(), unitOfWork);
-            SagaQuiz quiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(quiz, QuizSagaState.STARTED_TOURNAMENT_QUIZ, unitOfWork);
-            this.setQuizDto(quizDto);
+            SagaQuizDto quiz = (SagaQuizDto) quizService.startTournamentQuiz(userAggregateId, this.getTournamentDto().getQuiz().getAggregateId(), unitOfWork);
+            unitOfWorkService.registerSagaState(quiz.getAggregateId(), QuizSagaState.STARTED_TOURNAMENT_QUIZ, unitOfWork);
+            this.setQuizDto(quiz);
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
     
         startQuizStep.registerCompensation(() -> {
-            SagaQuiz quiz = (SagaQuiz) unitOfWorkService.aggregateLoadAndRegisterRead(this.getQuizDto().getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(quiz, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(this.getQuizDto().getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
         SagaSyncStep startQuizAnswerStep = new SagaSyncStep("startQuizAnswerStep", () -> {
-            QuizAnswerDto quizAnswerDto = quizAnswerService.startQuiz(this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
-            SagaQuizAnswer quizAnswer = (SagaQuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(quizAnswer, QuizAnswerSagaState.STARTED_QUIZ, unitOfWork);
+            SagaQuizAnswerDto quizAnswerDto = (SagaQuizAnswerDto) quizAnswerService.startQuiz(this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(quizAnswerDto.getAggregateId(), QuizAnswerSagaState.STARTED_QUIZ, unitOfWork);
             this.setQuizAnswerDto(quizAnswerDto);
         }, new ArrayList<>(Arrays.asList(startQuizStep)));
     
         startQuizAnswerStep.registerCompensation(() -> {
-            QuizAnswerDto quizAnswerDto = this.getQuizAnswerDto();
-            quizAnswerDto.setState(GenericSagaState.NOT_IN_SAGA.toString());
+            unitOfWorkService.registerSagaState(this.getQuizAnswerDto().getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
         
         SagaSyncStep solveQuizStep = new SagaSyncStep("solveQuizStep", () -> {
             tournamentService.solveQuiz(tournamentAggregateId, userAggregateId, this.getQuizAnswerDto().getAggregateId(), unitOfWork);
         });
-        
-        solveQuizStep.registerCompensation(() -> {
-            Tournament newTournament = tournamentFactory.createTournamentFromExisting(this.getOldTournament());
-            unitOfWorkService.registerSagaState((SagaTournament) newTournament, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            unitOfWork.registerChanged(newTournament);
-        }, unitOfWork);
 
         workflow.addStep(getTournamentStep);
         workflow.addStep(startQuizStep);
@@ -107,30 +98,29 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
     public void handleEvents() {
 
     }
-
     
 
-    public TournamentDto getTournamentDto() {
-        return tournamentDto;
+    public SagaTournamentDto getTournamentDto() {
+        return tournament;
     }
 
-    public void setTournamentDto(TournamentDto tournamentDto) {
-        this.tournamentDto = tournamentDto;
+    public void setTournament(SagaTournamentDto tournament) {
+        this.tournament = tournament;
     }
 
-    public QuizDto getQuizDto() {
+    public SagaQuizDto getQuizDto() {
         return quizDto;
     }
 
-    public void setQuizDto(QuizDto quizDto) {
+    public void setQuizDto(SagaQuizDto quizDto) {
         this.quizDto = quizDto;
     }
 
-    public QuizAnswerDto getQuizAnswerDto() {
+    public SagaQuizAnswerDto getQuizAnswerDto() {
         return quizAnswerDto;
     }
 
-    public void setQuizAnswerDto(QuizAnswerDto quizAnswerDto) {
+    public void setQuizAnswerDto(SagaQuizAnswerDto quizAnswerDto) {
         this.quizAnswerDto = quizAnswerDto;
     }
 
