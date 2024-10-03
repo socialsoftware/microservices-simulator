@@ -4,10 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
@@ -16,7 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class LeaveTournamentFunctionalitySagas extends WorkflowFunctionality {
-    private Tournament oldTournament;
+    private SagaTournamentDto oldTournament;
 
     
 
@@ -35,15 +34,13 @@ public class LeaveTournamentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getOldTournamentStep = new SagaSyncStep("getOldTournamentStep", () -> {
-            SagaTournament oldTournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(oldTournament, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
+            SagaTournamentDto oldTournament = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
             this.setOldTournament(oldTournament);
         });
     
         getOldTournamentStep.registerCompensation(() -> {
-            Tournament newTournament = tournamentFactory.createTournamentFromExisting(this.getOldTournament());
-            unitOfWorkService.registerSagaState((SagaTournament) newTournament, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            unitOfWork.registerChanged(newTournament);
+            unitOfWorkService.registerSagaState(tournamentAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
         SagaSyncStep leaveTournamentStep = new SagaSyncStep("leaveTournamentStep", () -> {
@@ -75,11 +72,11 @@ public class LeaveTournamentFunctionalitySagas extends WorkflowFunctionality {
         workflow.resume(unitOfWork);
     }
 
-    public Tournament getOldTournament() {
+    public SagaTournamentDto getOldTournament() {
         return oldTournament;
     }
 
-    public void setOldTournament(Tournament oldTournament) {
+    public void setOldTournament(SagaTournamentDto oldTournament) {
         this.oldTournament = oldTournament;
     }
 }

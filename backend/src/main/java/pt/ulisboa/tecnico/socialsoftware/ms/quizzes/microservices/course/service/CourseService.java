@@ -40,7 +40,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggr
                 backoff = @Backoff(delay = 5000))
         @Transactional(isolation = Isolation.READ_COMMITTED)
         public CourseDto getCourseById(Integer aggregateId, UnitOfWork unitOfWorkWorkService) {
-            return new CourseDto((Course) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWorkWorkService));
+            return courseFactory.createCourseDto((Course) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWorkWorkService));
         }
 
         @Retryable(

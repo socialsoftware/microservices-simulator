@@ -1,8 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows;
 
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 

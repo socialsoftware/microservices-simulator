@@ -25,4 +25,9 @@ public class CausalQuizFactory implements QuizFactory {
     public Quiz createQuizFromExisting(Quiz existingQuiz) {
         return new CausalQuiz((CausalQuiz) existingQuiz);
     }
+
+    @Override
+    public QuizDto createQuizDto(Quiz quiz) {
+        return new QuizDto(quiz);
+    }
 }

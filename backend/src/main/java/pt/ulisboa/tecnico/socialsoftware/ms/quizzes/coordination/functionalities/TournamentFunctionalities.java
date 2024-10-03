@@ -39,7 +39,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.Q
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentParticipant;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
@@ -333,13 +332,13 @@ public class TournamentFunctionalities {
         */
     }
 
-    public TournamentParticipant findParticipant(Integer tournamentAggregateId, Integer userAggregateId) throws TutorException {
+    public UserDto findParticipant(Integer tournamentAggregateId, Integer userAggregateId) throws TutorException {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         if ("sagas".equals(workflowType)) {
             SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
             FindParticipantFunctionalitySagas functionality = new FindParticipantFunctionalitySagas(
-                    sagaUnitOfWorkService, tournamentAggregateId, userAggregateId, unitOfWork);
+                    tournamentService, sagaUnitOfWorkService, tournamentAggregateId, userAggregateId, unitOfWork);
 
             functionality.executeWorkflow(unitOfWork);
             return functionality.getParticipant();

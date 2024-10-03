@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaUser;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaUserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.UserSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
@@ -15,7 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
 
-    private SagaUser user;
+    private SagaUserDto user;
 
     
 
@@ -33,15 +33,13 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            SagaUser user = (SagaUser) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(user, UserSagaState.READ_USER, unitOfWork);
+            SagaUserDto user = (SagaUserDto) userService.getUserById(userAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(userAggregateId, UserSagaState.READ_USER, unitOfWork);
             this.setUser(user);
         });
     
         getUserStep.registerCompensation(() -> {
-            SagaUser user = this.getUser();
-            unitOfWorkService.registerSagaState(user, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            unitOfWork.registerChanged(user);
+            unitOfWorkService.registerSagaState(userAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
         SagaSyncStep deleteUserStep = new SagaSyncStep("deleteUserStep", () -> {
@@ -57,11 +55,11 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
 
     }
 
-    public SagaUser getUser() {
+    public SagaUserDto getUser() {
         return user;
     }
 
-    public void setUser(SagaUser user) {
+    public void setUser(SagaUserDto user) {
         this.user = user;
     }
 }

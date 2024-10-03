@@ -6,11 +6,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentParticipant;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 
 public class FindParticipantFunctionalityTCC extends WorkflowFunctionality {
     private Tournament tournament;
-    private TournamentParticipant participant;
+    private UserDto participant;
 
     
 
@@ -26,7 +26,7 @@ public class FindParticipantFunctionalityTCC extends WorkflowFunctionality {
 
         SyncStep step = new SyncStep(() -> {
             Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            TournamentParticipant participant = tournament.findParticipant(userAggregateId);
+            UserDto participant = tournament.findParticipant(userAggregateId).buildDto();
             this.setParticipant(participant);
         });
     
@@ -49,11 +49,11 @@ public class FindParticipantFunctionalityTCC extends WorkflowFunctionality {
     }
 
 
-    public void setParticipant(TournamentParticipant participant) {
+    public void setParticipant(UserDto participant) {
         this.participant = participant;
     }
 
-    public TournamentParticipant getParticipant() {
+    public UserDto getParticipant() {
         return this.participant;
     }
 }

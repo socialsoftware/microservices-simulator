@@ -12,6 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizQuestion;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizType;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaQuizDto;
 
 @Service
 @Profile("sagas")
@@ -26,4 +27,8 @@ public class SagasQuizFactory implements QuizFactory {
         return new SagaQuiz((SagaQuiz) existingQuiz);
     }
     
+    @Override
+    public QuizDto createQuizDto(Quiz quiz) {
+        return new SagaQuizDto(quiz);
+    }
 }

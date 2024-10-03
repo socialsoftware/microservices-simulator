@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalTopic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.Topic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicCourse;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicFactory;
 
 @Service
@@ -21,5 +22,9 @@ public class CausalTopicFactory implements TopicFactory {
     public Topic createTopicFromExisting(Topic existingTopic) {
         return new CausalTopic((CausalTopic) existingTopic);
     }
-    
+
+    @Override
+    public TopicDto createTopicDto(Topic topic) {
+        return new TopicDto(topic);
+    }
 }

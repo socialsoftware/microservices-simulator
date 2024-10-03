@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaCourseExecutionDto;
@@ -33,12 +32,6 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
             SagaCourseExecutionDto createdCourseExecution = (SagaCourseExecutionDto) courseExecutionService.createCourseExecution(courseExecutionDto, unitOfWork);
             this.setCreatedCourseExecution(createdCourseExecution);
         });
-
-        createCourseExecutionStep.registerCompensation(() -> {
-            CourseExecution courseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(this.getCreatedCourseExecution().getAggregateId(), unitOfWork);
-            courseExecution.remove();
-            unitOfWork.registerChanged(courseExecution);
-        }, unitOfWork);
 
         workflow.addStep(createCourseExecutionStep);
     }

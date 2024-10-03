@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
@@ -32,12 +31,6 @@ public class CreateUserFunctionalitySagas extends WorkflowFunctionality {
             UserDto createdUserDto = userService.createUser(userDto, unitOfWork);
             this.setCreatedUserDto(createdUserDto);
         });
-
-        createUserStep.registerCompensation(() -> {
-            User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(this.getCreatedUserDto().getAggregateId(), unitOfWork);
-            user.remove();
-            unitOfWork.registerChanged(user);
-        }, unitOfWork);
 
         workflow.addStep(createUserStep);
     }

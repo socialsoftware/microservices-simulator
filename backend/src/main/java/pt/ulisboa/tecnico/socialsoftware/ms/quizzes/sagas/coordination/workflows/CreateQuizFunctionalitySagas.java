@@ -9,10 +9,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaCourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.CourseExecutionSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuestionSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
@@ -22,6 +25,7 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
     private QuizCourseExecution quizCourseExecution;
     private Set<QuestionDto> questions;
     private QuizDto createdQuizDto;
+    private SagaCourseExecutionDto courseExecutionDto;
 
     
 
@@ -43,27 +47,37 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {
-            QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionService.getCourseExecutionById(courseExecutionId, unitOfWork));
+            this.courseExecutionDto = (SagaCourseExecutionDto) courseExecutionService.getCourseExecutionById(courseExecutionId, unitOfWork);
+            unitOfWorkService.registerSagaState(courseExecutionDto.getAggregateId(), CourseExecutionSagaState.READ_COURSE, unitOfWork);
+            QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionDto);
             this.setQuizCourseExecution(quizCourseExecution);
         });
 
+        getCourseExecutionStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(courseExecutionDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+        }, unitOfWork);
+
         SagaSyncStep getQuestionsStep = new SagaSyncStep("getQuestionsStep", () -> {
             Set<QuestionDto> questions = quizDto.getQuestionDtos().stream()
-                    .map(qq -> questionService.getQuestionById(qq.getAggregateId(), unitOfWork))
-                    .collect(Collectors.toSet());
+                .map(questionDto -> {
+                    QuestionDto question = questionService.getQuestionById(questionDto.getAggregateId(), unitOfWork);
+                    unitOfWorkService.registerSagaState(question.getAggregateId(), QuestionSagaState.READ_QUESTION, unitOfWork);
+                    return question;
+                })
+                .collect(Collectors.toSet());
             this.setQuestions(questions);
         });
+
+        getQuestionsStep.registerCompensation(() -> {
+            quizDto.getQuestionDtos().forEach(questionDto -> {
+                unitOfWorkService.registerSagaState(questionDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            });
+        }, unitOfWork);
 
         SagaSyncStep createQuizStep = new SagaSyncStep("createQuizStep", () -> {
             QuizDto createdQuizDto = quizService.createQuiz(this.getQuizCourseExecution(), this.getQuestions(), quizDto, unitOfWork);
             this.setCreatedQuizDto(createdQuizDto);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep, getQuestionsStep)));
-
-        createQuizStep.registerCompensation(() -> {
-            Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(this.getCreatedQuizDto().getAggregateId(), unitOfWork);
-            quiz.remove();
-            unitOfWork.registerChanged(quiz);
-        }, unitOfWork);
 
         workflow.addStep(getCourseExecutionStep);
         workflow.addStep(getQuestionsStep);

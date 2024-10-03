@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.Topic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicCourse;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaCourseDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.CourseSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
@@ -18,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
     private TopicCourse course;
     private TopicDto createdTopicDto;
+    private SagaCourseDto courseDto;
 
     
 
@@ -37,21 +39,20 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseStep = new SagaSyncStep("getCourseStep", () -> {
-            CourseDto courseDto = courseService.getCourseById(courseAggregateId, unitOfWork);
+            this.courseDto = (SagaCourseDto) courseService.getCourseById(courseAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(courseDto.getAggregateId(), CourseSagaState.READ_COURSE, unitOfWork);
             TopicCourse course = new TopicCourse(courseDto);
             this.setCourse(course);
         });
+
+        getCourseStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(courseDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+        }, unitOfWork);
     
         SagaSyncStep createTopicStep = new SagaSyncStep("createTopicStep", () -> {
             TopicDto createdTopicDto = topicService.createTopic(topicDto, this.getCourse(), unitOfWork);
             this.setCreatedTopicDto(createdTopicDto);
         }, new ArrayList<>(Arrays.asList(getCourseStep)));
-    
-        createTopicStep.registerCompensation(() -> {
-            Topic topic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(this.getCreatedTopicDto().getAggregateId(), unitOfWork);
-            topic.remove();
-            unitOfWork.registerChanged(topic);
-        }, unitOfWork);
     
         workflow.addStep(getCourseStep);
         workflow.addStep(createTopicStep);

@@ -2,15 +2,12 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Set;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
@@ -20,7 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
 
-    private Tournament tournament;
+    private SagaTournamentDto tournament;
     private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -37,49 +34,36 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep gettournamentStep = new SagaSyncStep("getTournamentStep", () -> {
-            SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(tournament, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
+        SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
+            SagaTournamentDto tournament = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
             this.setTournament(tournament);
-            this.currentStep = "getTournamentStep";
         });
     
-        gettournamentStep.registerCompensation(() -> {
-            if (this.getTournament() != null) {
-                Tournament newTournament = tournamentFactory.createTournamentFromExisting(this.getTournament());
-                unitOfWorkService.registerSagaState((SagaTournament) newTournament, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-                unitOfWork.registerChanged(newTournament);
-            }
+        getTournamentStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(tournamentAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
         SagaSyncStep removeTournamentStep = new SagaSyncStep("removeTournamentStep", () -> {
             tournamentService.removeTournament(tournamentAggregateId, unitOfWork);
-            this.currentStep = "removeTournamentStep";
-        }, new ArrayList<>(Arrays.asList(gettournamentStep)));
+        }, new ArrayList<>(Arrays.asList(getTournamentStep)));
     
-        workflow.addStep(gettournamentStep);
+        workflow.addStep(getTournamentStep);
         workflow.addStep(removeTournamentStep);
     }
 
     @Override
     public void handleEvents() {
-        if (currentStep.equals("getTournamentStep") || currentStep.equals("removeTournamentStep")) {
         
-            Set<EventSubscription> eventSubscriptions = tournament.getEventSubscriptions();
-
-            for (EventSubscription eventSubscription: eventSubscriptions) {
-                // TODO missing events
-            } 
-        } 
     }
 
     
     
-    public Tournament getTournament() {
+    public SagaTournamentDto getTournament() {
         return tournament;
     }
 
-    public void setTournament(Tournament tournament) {
+    public void setTournament(SagaTournamentDto tournament) {
         this.tournament = tournament;
     }
 }

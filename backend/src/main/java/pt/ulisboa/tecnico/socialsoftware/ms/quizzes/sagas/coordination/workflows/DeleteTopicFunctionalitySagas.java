@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TopicSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
@@ -15,9 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
 
-    private SagaTopic topic;
-
-    
+    private SagaTopicDto topic;
 
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -33,15 +31,13 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
-            SagaTopic topic = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(topic, TopicSagaState.READ_TOPIC, unitOfWork);
-            this.setTopic(topic);
+            SagaTopicDto topicDto = (SagaTopicDto) topicService.getTopicById(topicAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(topicAggregateId, TopicSagaState.READ_TOPIC, unitOfWork);
+            this.setTopic(topicDto);
         });
     
         getTopicStep.registerCompensation(() -> {
-            SagaTopic topic = this.getTopic();
-            unitOfWorkService.registerSagaState(topic, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            unitOfWork.registerChanged(topic);
+            unitOfWorkService.registerSagaState(topicAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
     
         SagaSyncStep deleteTopicStep = new SagaSyncStep("deleteTopicStep", () -> {
@@ -57,11 +53,11 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
 
     }
 
-    public SagaTopic getTopic() {
+    public SagaTopicDto getTopic() {
         return topic;
     }
 
-    public void setTopic(SagaTopic topic) {
+    public void setTopic(SagaTopicDto topic) {
         this.topic = topic;
     }
 }

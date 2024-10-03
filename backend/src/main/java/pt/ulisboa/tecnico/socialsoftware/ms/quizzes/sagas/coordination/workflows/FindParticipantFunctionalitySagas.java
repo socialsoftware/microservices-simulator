@@ -4,22 +4,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentParticipant;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
-    private Tournament tournament;
-    private TournamentParticipant participant;
+    private SagaTournamentDto tournament;
+    private UserDto participant;
 
     
-
+    private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
-    public FindParticipantFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public FindParticipantFunctionalitySagas(TournamentService tournamentService, SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+        this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(tournamentAggregateId, userAggregateId, unitOfWork);
     }
@@ -28,12 +32,17 @@ public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+            SagaTournamentDto tournament = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
             this.setTournament(tournament);
         });
 
+        getTournamentStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(tournamentAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+        }, unitOfWork);
+
         SagaSyncStep getParticipantStep = new SagaSyncStep("getParticipantStep", () -> {
-            TournamentParticipant participant = getTournament().findParticipant(userAggregateId);
+            UserDto participant = getTournament().getParticipants().stream().filter(p -> p.getAggregateId().equals(userAggregateId)).findFirst().orElse(null);
             this.setParticipant(participant);
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
 
@@ -46,20 +55,20 @@ public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
 
     }    
 
-    public void setTournament(Tournament tournament) {
+    public void setTournament(SagaTournamentDto tournament) {
         this.tournament = tournament;
     }
 
-    public Tournament getTournament() {
+    public SagaTournamentDto getTournament() {
         return tournament;
     }
 
 
-    public void setParticipant(TournamentParticipant participant) {
+    public void setParticipant(UserDto participant) {
         this.participant = participant;
     }
 
-    public TournamentParticipant getParticipant() {
+    public UserDto getParticipant() {
         return this.participant;
     }
 }

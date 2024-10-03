@@ -4,4 +4,5 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggr
 
 public interface CourseFactory {
     Course createCourse(Integer aggregateId, CourseExecutionDto courseExecutionDto);
+    CourseDto createCourseDto(Course course);
 }

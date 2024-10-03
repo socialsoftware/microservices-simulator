@@ -45,7 +45,7 @@ public class TopicService {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public TopicDto getTopicById(Integer topicAggregateId, UnitOfWork unitOfWork) {
-        return new TopicDto((Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork));
+        return topicFactory.createTopicDto((Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork));
     }
 
     @Retryable(
@@ -56,7 +56,7 @@ public class TopicService {
         Topic topic = topicFactory.createTopic(aggregateIdGeneratorService.getNewAggregateId(),
                 topicDto.getName(), course);
         unitOfWorkWorkService.registerChanged(topic);
-        return new TopicDto(topic);
+        return topicFactory.createTopicDto(topic);
     }
 
     @Retryable(
