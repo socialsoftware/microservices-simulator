@@ -38,12 +38,6 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public abstract void commitEvent(U unitOfWork);
-
-    @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public abstract void abort(U unitOfWork);
 
 

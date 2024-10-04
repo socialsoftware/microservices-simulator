@@ -45,24 +45,6 @@ public class ExecutionPlan {
         return stepFutures.keySet().containsAll(step.getDependencies());
     }
 
-    /* TODO remove
-    public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-        ListIterator<FlowStep> iterator = plan.listIterator();
-
-        while (iterator.hasNext()) {
-            FlowStep step = iterator.next();
-            if (canExecute(this.stepFutures, step)) {
-                functionality.handleEvents();
-                this.stepFutures.put(step, step.execute(unitOfWork));
-                iterator.remove();
-                iterator = plan.listIterator();
-            }
-        }
-
-        return CompletableFuture.allOf(this.stepFutures.values().toArray(new CompletableFuture[0]));
-    }
-    */
-
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
 
         // Initialize futures for steps with no dependencies

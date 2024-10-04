@@ -24,17 +24,17 @@ public class QuizEventProcessing {
     public void processDeleteCourseExecutionEvent(Integer aggregateId, DeleteCourseExecutionEvent deleteCourseExecutionEvent) {
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         quizService.removeCourseExecution(aggregateId, deleteCourseExecutionEvent.getPublisherAggregateId(), deleteCourseExecutionEvent.getPublisherAggregateVersion(), unitOfWork);
-        unitOfWorkService.commitEvent(unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
     public void processUpdateQuestionEvent(Integer aggregateId, UpdateQuestionEvent updateQuestionEvent) {
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         quizService.updateQuestion(aggregateId, updateQuestionEvent.getPublisherAggregateId(), updateQuestionEvent.getTitle(), updateQuestionEvent.getContent(), updateQuestionEvent.getPublisherAggregateVersion(), unitOfWork);
-        unitOfWorkService.commitEvent(unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 
     public void processDeleteQuizQuestionEvent(Integer aggregateId, DeleteQuestionEvent deleteQuestionEvent) {
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         quizService.removeQuizQuestion(aggregateId, deleteQuestionEvent.getPublisherAggregateId(), unitOfWork);
-        unitOfWorkService.commitEvent(unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 }

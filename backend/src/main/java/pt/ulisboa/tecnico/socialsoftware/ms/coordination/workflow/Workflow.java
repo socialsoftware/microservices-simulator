@@ -9,7 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 
-//TODO change how planOrder works
 public abstract class Workflow {
     protected UnitOfWorkService unitOfWorkService;
     private UnitOfWork unitOfWork;

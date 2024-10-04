@@ -64,7 +64,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         Aggregate aggregate = sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
 
-        // TODO: add register read logic if needed
         logger.info("Loaded and registered read for aggregate ID: {}", aggregateId);
         return aggregate;
     }
@@ -81,11 +80,9 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     public Aggregate registerRead(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
-        // TODO: add register read logic if needed
         return aggregate;
     }
 
-    // TODO check this
     public void registerSagaState(SagaAggregate aggregate, SagaState state, SagaUnitOfWork unitOfWork) {
         aggregate.setSagaState(state);
         entityManager.persist(aggregate);
@@ -160,41 +157,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void commitEvent(SagaUnitOfWork unitOfWork) {
-        Map<Integer, Aggregate> aggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
-
-    // The commit is done with the last committed version plus one
-    Integer commitVersion = versionService.incrementAndGetVersionNumber();
-    unitOfWork.setVersion(commitVersion);
-
-    aggregatesToCommit.values().stream().forEach(a -> {
-        // Wait until the aggregate is not in a saga
-        while (((SagaAggregate)a).getSagaState() != GenericSagaState.NOT_IN_SAGA) {
-            a = sagaAggregateRepository.findSagaAggregate(a.getId(), unitOfWork.getVersion())
-                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
-        }
-
-        // Set state to ACTIVE if it's not DELETED or INACTIVE
-        if (a.getState() != AggregateState.DELETED && a.getState() != AggregateState.INACTIVE) {
-            a.setState(AggregateState.ACTIVE);
-        }
-    });
-
-    commitAllObjects(commitVersion, aggregatesToCommit);
-
-    unitOfWork.getEventsToEmit().forEach(e -> {
-        // This is so event detectors can compare this version to those of running transactions
-        e.setPublisherAggregateVersion(commitVersion);
-        eventRepository.save(e);
-    });
-        logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-    }
-
-
-    @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
     public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
         aggregateMap.values().forEach(aggregateToWrite -> {
             aggregateToWrite.setVersion(commitVersion);
@@ -228,7 +190,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     @Override
     public void abort(SagaUnitOfWork unitOfWork) {
-        // TODO
         this.compensate(unitOfWork);
     }
 

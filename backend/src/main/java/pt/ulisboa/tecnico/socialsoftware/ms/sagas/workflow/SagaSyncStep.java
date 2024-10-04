@@ -15,16 +15,6 @@ public class SagaSyncStep extends SyncStep implements SagaStep {
         super(stepName, syncOperation);
     }
 
-    // TODO temp
-    public SagaSyncStep(Runnable syncOperation) {
-        super(syncOperation);
-    }
-
-    // TODO temp
-    public SagaSyncStep(Runnable syncOperation, ArrayList<FlowStep> dependencies) {
-        super(syncOperation, dependencies);
-    }
-
     public SagaSyncStep(String stepName, Runnable syncOperation, ArrayList<FlowStep> dependencies) {
         super(stepName, syncOperation, dependencies);
     }

@@ -82,7 +82,6 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
         }, unitOfWork);
 
         SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> {
-            //TODO change other steps that affect multiple aggregates to be like this
             topicsId.stream().forEach(topicId -> {
                 SagaTopicDto topic = (SagaTopicDto) topicService.getTopicById(topicId, unitOfWork);
                 unitOfWorkService.registerSagaState(topicId, TopicSagaState.READ_TOPIC, unitOfWork);

@@ -13,12 +13,10 @@ public class SyncStep extends FlowStep {
         this.syncOperation = syncOperation;
     }
 
-    // TODO temp
     public SyncStep(Runnable syncOperation) {
         this.syncOperation = syncOperation;
     }
-
-    // TODO temp
+    
     public SyncStep(Runnable syncOperation, ArrayList<FlowStep> dependencies) {
         super(dependencies);
         this.syncOperation = syncOperation;

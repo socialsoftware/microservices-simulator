@@ -155,68 +155,6 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
     }
 
-    @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void commitEvent(CausalUnitOfWork unitOfWork) {
-        boolean concurrentAggregates = true;
-
-        // STEP 1 check whether any of the aggregates to write have concurrent versions
-        // STEP 2 if so perform any merges necessary
-        // STEP 3 performs steps 1 and 2 until step 1 stops holding
-        // STEP 4 perform a commit of the aggregates under SERIALIZABLE isolation
-
-        Map<Integer, Aggregate> originalAggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
-
-        // may contain merged aggregates
-        // we do not want to compare intermediate merged aggregates with concurrent aggregate, so we separate
-        // the comparison is always between the original written by the functionality and the concurrent
-        Map<Integer, Aggregate> modifiedAggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
-
-        while (concurrentAggregates) {
-            concurrentAggregates = false;
-            for (Integer aggregateId : originalAggregatesToCommit.keySet()) {
-                Aggregate aggregateToWrite = originalAggregatesToCommit.get(aggregateId);
-                if (aggregateToWrite.getPrev() != null && aggregateToWrite.getPrev().getState() == Aggregate.AggregateState.INACTIVE) {
-                    throw new TutorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregateToWrite.getAggregateId());
-                }
-                aggregateToWrite.verifyInvariants();
-                Aggregate concurrentAggregate = getConcurrentAggregate(aggregateToWrite);
-                // second condition is necessary for when a concurrent version is detected at first and then in the following detections it will have to do
-                // this verification in order to not detect the same as a version as concurrent again
-                if (concurrentAggregate != null && unitOfWork.getVersion() <= concurrentAggregate.getVersion()) {
-                    concurrentAggregates = true;
-                    Aggregate newAggregate = ((CausalAggregate) aggregateToWrite).merge(aggregateToWrite, concurrentAggregate);
-                    newAggregate.verifyInvariants();
-                    newAggregate.setId(null);
-                    modifiedAggregatesToCommit.put(aggregateId, newAggregate);
-                }
-            }
-
-            if (concurrentAggregates) {
-                // because there was a concurrent version we need to get a new version
-                // the service to get a new version must also increment it to guarantee two transactions do run with the same version number
-                // a number must be requested every time a concurrent version is detected
-                unitOfWork.setVersion(versionService.incrementAndGetVersionNumber());
-            }
-        }
-
-        // The commit is done with the last commited version plus one
-        Integer commitVersion = versionService.incrementAndGetVersionNumber();
-        unitOfWork.setVersion(commitVersion);
-
-        commitAllObjects(commitVersion, modifiedAggregatesToCommit);
-        unitOfWork.getEventsToEmit().forEach(e -> {
-            /* this is so event detectors can compare this version to those of running transactions */
-            e.setPublisherAggregateVersion(commitVersion);
-            eventRepository.save(e);
-        });
-
-        logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-    }
-
-
     // Must be serializable in order to ensure no other commits are made between the checking of concurrent versions and the actual persist
     @Retryable(
             value = { SQLException.class },
@@ -251,7 +189,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
 
     @Override
     public void abort(CausalUnitOfWork unitOfWork) {
-        // TODO
+        // Not needed
     }
 
 }

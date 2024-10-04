@@ -25,11 +25,11 @@ public class QuestionEventProcessing {
     public void processUpdateTopic(Integer aggregateId, UpdateTopicEvent updateTopicEvent) {
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         questionService.updateTopic(aggregateId, updateTopicEvent.getPublisherAggregateId(), updateTopicEvent.getTopicName(), updateTopicEvent.getPublisherAggregateVersion(), unitOfWork);
-        unitOfWorkService.commitEvent(unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
     public void processDeleteTopic(Integer aggregateId, DeleteTopicEvent deleteTopicEvent) {
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         questionService.removeTopic(aggregateId, deleteTopicEvent.getPublisherAggregateId(), deleteTopicEvent.getPublisherAggregateVersion(), unitOfWork);
-        unitOfWorkService.commitEvent(unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 }

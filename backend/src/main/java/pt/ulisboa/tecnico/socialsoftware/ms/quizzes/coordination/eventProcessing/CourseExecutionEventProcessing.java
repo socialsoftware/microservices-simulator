@@ -22,7 +22,7 @@ public class CourseExecutionEventProcessing {
     public void processDeleteUserEvent(Integer aggregateId, DeleteUserEvent deleteUserEvent) {
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         courseExecutionService.removeUser(aggregateId, deleteUserEvent.getPublisherAggregateId(), deleteUserEvent.getPublisherAggregateVersion(), unitOfWork);
-        unitOfWorkService.commitEvent(unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 
 

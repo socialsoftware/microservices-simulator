@@ -53,11 +53,6 @@ public class SagaWorkflow extends Workflow {
             throw new IllegalStateException("Cyclic dependency detected in steps");
         }
 
-        // TODO 
-        // logica para async e 
-        // atualizar dependencias no lado do execute live durante execucao 
-        // em vez de ter uma queue pre determinada estaticamente
-
         return new ExecutionPlan(orderedSteps, stepsWithDependencies, this.getFunctionality());
     } 
 }

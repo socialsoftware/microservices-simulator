@@ -35,7 +35,7 @@ public class EventService {
     public List<? extends Event> getSubscribedEvents(EventSubscription eventSubscription, Class<? extends Event> eventClass) {
         return eventRepository.findAll().stream()
                 .filter(eventSubscription::subscribesEvent)
-                .filter(eventClass::isInstance) // TODO check this
+                .filter(eventClass::isInstance) 
                 .map(eventClass::cast)
                 .sorted(Comparator.comparing(Event::getTimestamp).reversed())
                 .toList();
