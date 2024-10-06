@@ -224,16 +224,6 @@ class NewTest extends SpockTest {
         tournamentDtoResult.getParticipants().find{it.aggregateId == userDto.aggregateId}.name == UPDATED_NAME
     }
 
-    def 'sequential remove tournament and add student' () {
-        given: 'remove tournament'
-        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
-
-        when: 'a student is added to a tournament that is removed'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
-        then: 'the tournament is removed, not found'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
-    }
 
     /* Case B deals with reading and writing from both main and secondary aggregates 
     (in this case, course execution and tournament). 
@@ -244,8 +234,8 @@ class NewTest extends SpockTest {
         given: 'student is added to tournament'
         def updateNameDto = new UserDto()
         updateNameDto.setName(UPDATED_NAME)
-        def functionalityName1 = UpdateStudentNameFunctionalitySagas.getClass().getSimpleName()
-        def functionalityName2 = AddParticipantFunctionalitySagas.getClass().getSimpleName()
+        def functionalityName1 = UpdateStudentNameFunctionalitySagas.class.getSimpleName()
+        def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
         def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
@@ -389,8 +379,8 @@ class NewTest extends SpockTest {
         given: 'creator name is updated'
         def updateNameDto = new UserDto()
         updateNameDto.setName(UPDATED_NAME)
-        def functionalityName1 = UpdateStudentNameFunctionalitySagas.getClass().getSimpleName()
-        def functionalityName2 = AddParticipantFunctionalitySagas.getClass().getSimpleName()
+        def functionalityName1 = UpdateStudentNameFunctionalitySagas.class.getSimpleName()
+        def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
         def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
@@ -423,6 +413,493 @@ class NewTest extends SpockTest {
         tournamentDtoResult.creator.name == UPDATED_NAME
         tournamentDtoResult.getParticipants().size() == 1
         tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+    }
+
+    /* Case B (Non-repeatable Read, Phantom Read):
+    Anomalies: During the concurrent addParticipant operation, the tournament may use an outdated version
+     of the creator’s name if the event update has not yet propagated. This leads to non-repeatable read issues, 
+     where different parts of the system might see different versions of the creator’s name.
+    
+    Case C (Lost Update):
+    Anomalies: There is a risk of lost update if the tournament functionality 
+    operates with an old version of the data before the name update event is fully processed.
+    */
+    def 'concurrent add creator as tournament participant and update name in course execution - update name finishes first and event processing starts before add creator finishes' () {
+        given: 'creator name is updated'
+        def updateNameDto = new UserDto()
+        updateNameDto.setName(UPDATED_NAME)
+        courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
+        and: 'add creator as participant which uses a previous version of the name, creator and participant have the same info'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
+
+        and: 'the name is updated in course execution'
+        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+        and: 'the creator is update in tournament'
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult.creator.name == UPDATED_NAME
+        and: 'the creator is participant with updated name'
+        tournamentDtoResult.getParticipants().size() == 1
+        tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+    }
+
+    /* Case B (Non-repeatable Read, Phantom Read):
+    Anomalies: The primary issue here is that the addParticipant operation uses 
+    the old name while the name update is pending. This can cause non-repeatable 
+    reads if the system reads the outdated name before processing the event.
+
+    Case D (Lost Update):
+    Anomalies: The lost update could occur if the tournament initially adds the 
+    creator with an old name and doesn't update it after the event is processed.
+    */
+    def 'concurrent add creator as tournament participant and update name in course execution: add creator finishes first' () {
+        given: 'add creator as participant'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
+        and: 'creator name is updated'
+        def updateNameDto = new UserDto()
+        updateNameDto.setName(UPDATED_NAME)
+        courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
+
+        when: 'the event is processed'
+        tournamentEventHandling.handleUpdateStudentNameEvent()
+
+        then: 'the name is updated in course execution'
+        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+        and: 'the creator is update in tournament'
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult.creator.name == UPDATED_NAME
+        and: 'the creator is a participant with the correct name'
+        tournamentDtoResult.getParticipants().size() == 1
+        tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+    }
+
+    // anonymize creator in course execution and add student in tournament
+
+    /* Case A (Dirty Read):
+    Anomalies: Although not directly related to dirty reads, ensuring that the creator’s anonymization 
+    is processed before adding a new participant helps prevent scenarios where outdated information might affect the addition of new participants.
+
+    Case C (Lost Update):
+    Anomalies: There is no direct lost update issue here as the anonymization is 
+    processed before the new student is added. The focus is on ensuring that the 
+    anonymization event is handled correctly before any new updates.
+
+    Case E (Complex Functionality):
+    Anomalies: Anonymization involves updating multiple states (creator and participants), 
+    and ensuring that the tournament becomes inactive after anonymization reflects proper handling of complex functionality.
+    */
+    def 'sequential anonymize creator and add student: event is processed before add student' () {
+        given: 'anonymize creator'
+        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
+        and: 'tournament processes event to anonymize the creator'
+        tournamentEventHandling.handleAnonymizeStudentEvents()
+
+        when: 'a student is added to a tournament'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+
+        then: 'creator is anonymized'
+        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
+        and: 'the tournament is inactive and the creator anonymized'
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult.state == Aggregate.AggregateState.INACTIVE.toString()
+        tournamentDtoResult.creator.name == ANONYMOUS
+        tournamentDtoResult.creator.username == ANONYMOUS
+        and: 'there are no participants'
+        tournamentDtoResult.getParticipants().size() == 0
+    }
+
+    /* 
+    Case A (Dirty Read):
+    Anomalies: By adding a student before processing the anonymization, this test ensures that 
+    there are no inconsistencies or dirty reads where a partially anonymized or 
+    inconsistent state might affect the addition of participants.
+    
+    Case C (Lost Update):
+    Anomalies: If the anonymization event is processed after the student is added, 
+    the system must ensure that no updates are lost and that the anonymization 
+    fully overrides any pre-existing data (e.g., participants list).
+    
+    Case E (Complex Functionality):
+    Anomalies: Anonymization and handling of participants involve multiple state 
+    updates and event processing, which makes it a complex functionality. The test 
+    ensures that these operations are handled in the correct sequence.
+    */
+    def 'sequential anonymize creator and add student: event is processed after add student' () {
+        given: 'anonymize creator'
+        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
+
+        when: 'a student is added to a tournament'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+
+        then: 'tournament processes event to anonymize the creator'
+        tournamentEventHandling.handleAnonymizeStudentEvents()
+        and: 'creator is anonymized'
+        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
+        and: 'the tournament is inactive and the creator anonymized'
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult.state == Aggregate.AggregateState.INACTIVE.toString()
+        tournamentDtoResult.creator.name == ANONYMOUS
+        tournamentDtoResult.creator.username == ANONYMOUS
+        // TODO como resolver?
+        and: 'there are no participants'
+        tournamentDtoResult.getParticipants().size() == 0
+    }
+
+    /* 
+    
+    */
+    def 'concurrent anonymize creator and add student: anonymize finishes first' () {
+        given: 'anonymize creator'
+        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
+        and: 'tournament processes event to anonymize the creator'
+        tournamentEventHandling.handleAnonymizeStudentEvents()
+
+        when: 'another student is concurrently added to a tournament where the creator was anonymized in the course execution' +
+                'but not in the tournament'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+
+        then: 'creator is anonymized'
+        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
+        and: 'the tournament is inactive and the creator anonymized'
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult.state == Aggregate.AggregateState.INACTIVE.toString()
+        tournamentDtoResult.creator.name == ANONYMOUS
+        tournamentDtoResult.creator.username == ANONYMOUS
+        and: 'there are no participants'
+        tournamentDtoResult.getParticipants().size() == 0
+    }
+
+    /*
+    Case A (Dirty Read):
+    Anomalies: If the system allows adding a participant to a removed tournament, 
+    it would result in a dirty read scenario, where data no longer exists in the system but is still being referenced.
+
+    Case B (Lost Update):
+    Anomalies: If the system doesn't throw an error when trying to add a participant 
+    to a removed tournament, it may lead to a lost update where operations are performed on nonexistent data.
+    */
+    def 'sequential remove tournament and add student' () {
+        given: 'remove tournament'
+        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
+
+        when: 'a student is added to a tournament that is removed'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+        then: 'the tournament is removed, not found'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+    }
+
+    /*
+    
+    */
+    def 'concurrent remove tournament and add student: remove finishes first' () {
+        given: 'student added after tournament removal'
+        def functionalityName1 = AddParticipantFunctionalitySagas.class.getSimpleName()
+        def functionalityName2 = RemoveTournamentFunctionalitySagas.class.getSimpleName()
+        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
+        def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
+
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, 
+                                                        tournamentDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork1)
+        def removeTournamentFunctionality = new RemoveTournamentFunctionalitySagas(eventService, tournamentService,unitOfWorkService, tournamentFactory,
+                                                        tournamentDto.getAggregateId(), unitOfWork2)
+
+        when: 'remove tournament concurrently with add'
+        removeTournamentFunctionality.executeUntilStep("getTournamentStep", unitOfWork2) 
+        addParticipantFunctionality.executeWorkflow(unitOfWork1) 
+
+        then: 'tournament is locked'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+
+        when: 'remove finishes and add participant tries again'
+        removeTournamentFunctionality.resumeWorkflow(unitOfWork2) 
+        def unitOfWork3 = unitOfWorkService.createUnitOfWork(functionalityName2)
+        def addParticipantFunctionality3 = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, 
+                                                        tournamentDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork3)
+        addParticipantFunctionality3.executeWorkflow(unitOfWork3) 
+
+        then: 'fails because tournament is deleted'
+        def error2 = thrown(TutorException)
+        error2.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+    }
+
+    /*
+
+    */
+    def 'concurrent remove tournament and add student: add finishes first' () {
+        given: 'tournament removal after student added'
+        def functionalityName1 = AddParticipantFunctionalitySagas.class.getSimpleName()
+        def functionalityName2 = RemoveTournamentFunctionalitySagas.class.getSimpleName()
+        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
+        def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
+
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, 
+                                                        tournamentDto.getAggregateId(), userDto.getAggregateId(), unitOfWork1)
+        def removeTournamentFunctionality = new RemoveTournamentFunctionalitySagas(eventService, tournamentService,unitOfWorkService, tournamentFactory,
+                                                        tournamentDto.getAggregateId(), unitOfWork2)
+
+        when: 'remove tournament concurrently with add'
+        addParticipantFunctionality.executeUntilStep("getTournamentStep", unitOfWork1) 
+        removeTournamentFunctionality.executeWorkflow(unitOfWork2) 
+
+        then: 'tournament is locked'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+
+        when: 'add finishes and remove tries again'
+        addParticipantFunctionality.resumeWorkflow(unitOfWork1) 
+        removeTournamentFunctionality.executeWorkflow(unitOfWork2)
+        
+        then: 'fails because tournament has participant'
+        def error2 = thrown(TutorException)
+        error2.errorMessage == ErrorMessage.CANNOT_DELETE_TOURNAMENT // TODO test not catching
+    }
+
+    /*
+    Case D (Check-Then-Act):
+    Anomalies: The system updates the tournament’s start time, assuming the tournament 
+    still exists. However, by the time the tournament is removed, the state has changed, 
+    causing the final act (the find operation) to fail.
+    
+    Case B (Lost Update):
+    Anomalies: If the removal operation did not correctly update the state, the system 
+    might still show the updated start time for a removed tournament, resulting in an inconsistency.
+    */
+    def 'concurrent remove tournament and update start time: update start time finishes first' () {
+        given: 'update start time'
+        def updateTournamentDto = new TournamentDto()
+        updateTournamentDto.setAggregateId(tournamentDto.aggregateId)
+        updateTournamentDto.setStartTime(DateHandler.toISOString(TIME_2))
+        def topics =  new HashSet<>(Arrays.asList(topicDto1.aggregateId,topicDto2.aggregateId))
+        tournamentFunctionalities.updateTournament(updateTournamentDto, topics)
+
+        //TODO use executeUntil
+        when: 'remove tournament'
+        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
+        tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+
+        then: 'fails because tournament is deleted'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+    }
+
+    /*
+    Case D (Check-Then-Act):
+    Anomalies: The system assumes the first update is the latest, but the second update occurs concurrently and alters the state. The merge must ensure that the final state reflects the most recent update.
+
+    Case B (Lost Update):
+    Anomalies: Without proper version handling, the system could incorrectly apply topicDto2 and lose the more recent update to topicDto3.
+    */
+    def 'concurrent change of tournament topics' () {
+        given: 'update topics to topic 2'
+        def updateTournamentDto = new TournamentDto()
+        updateTournamentDto.setAggregateId(tournamentDto.aggregateId)
+        updateTournamentDto.setNumberOfQuestions(1)
+        def topics =  new HashSet<>(Arrays.asList(topicDto2.aggregateId))
+        tournamentFunctionalities.updateTournament(updateTournamentDto, topics)
+        and: 'the version number is decreased to simulate concurrency'
+        versionService.decrementVersionNumber()
+
+        when: 'update topics to topic 3 in the same concurrent version of the tournament'
+        topics =  new HashSet<>(Arrays.asList(topicDto3.aggregateId));
+        tournamentFunctionalities.updateTournament(updateTournamentDto, topics)
+
+        then: 'as result of the merge a new quiz is created for the last committed topics'
+        def quizDtoResult = quizFunctionalities.findQuiz(tournamentDto.quiz.aggregateId)
+        quizDtoResult.questionDtos.size() == 1
+        quizDtoResult.questionDtos.get(0).aggregateId == questionDto3.aggregateId
+        and: 'the tournament topics are updated and it refers to the new quiz'
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult.topics.size() == 1
+        tournamentDtoResult.topics.find{it.aggregateId == topicDto3.aggregateId} != null
+        tournamentDtoResult.quiz.aggregateId == tournamentDto.quiz.aggregateId
+    }
+
+
+    def 'concurrent add two participants to tournament'() {
+        given: 'two new users'
+        def userDto1 = new UserDto()
+        userDto1.setName('User1')
+        userDto1.setUsername('Username1')
+        userDto1.setRole('STUDENT')
+        userDto1 = userFunctionalities.createUser(userDto1)
+        userFunctionalities.activateUser(userDto1.getAggregateId())
+        courseExecutionFunctionalities.addStudent(courseExecutionDto.getAggregateId(), userDto1.getAggregateId())
+
+        def userDto2 = new UserDto()
+        userDto2.setName('User2')
+        userDto2.setUsername('Username2')
+        userDto2.setRole('STUDENT')
+        userDto2 = userFunctionalities.createUser(userDto2)
+        userFunctionalities.activateUser(userDto2.getAggregateId())
+        courseExecutionFunctionalities.addStudent(courseExecutionDto.getAggregateId(), userDto2.getAggregateId())
+
+        and: 'create unit of works for concurrent addition of participants'
+        def functionalityName1 = AddParticipantFunctionalitySagas.class.getSimpleName()
+        def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
+        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
+        def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
+
+        def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, 
+                courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userDto1.getAggregateId(), unitOfWork1)
+        def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, 
+                courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userDto2.getAggregateId(), unitOfWork2)
+
+        when: 
+        addParticipantFunctionality1.executeUntilStep("getTournamentStep", unitOfWork1)
+        addParticipantFunctionality2.executeWorkflow(unitOfWork2)
+
+        then: 'tournament is locked'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+
+        when: 'add finishes and add participant tries again'
+        addParticipantFunctionality1.resumeWorkflow(unitOfWork1) 
+        def unitOfWork3 = unitOfWorkService.createUnitOfWork(functionalityName2)
+        def addParticipantFunctionality3 = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, 
+                courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userDto2.getAggregateId(), unitOfWork3)
+        addParticipantFunctionality3.executeWorkflow(unitOfWork3) 
+
+        then: 'both participants should be successfully added to the tournament'
+        def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        updatedTournament.participants.size() == 2
+        updatedTournament.participants.any { it.aggregateId == userDto1.getAggregateId() }
+        updatedTournament.participants.any { it.aggregateId == userDto2.getAggregateId() }
+    }
+
+
+    /*------------------------------------------------------------------------------------------------------------------------*/
+    def "create tournament successfully"() {
+        when:
+        def result = tournamentFunctionalities.createTournament(userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], new TournamentDto(startTime: DateHandler.toISOString(TIME_1), endTime: DateHandler.toISOString(TIME_3), numberOfQuestions: 2))
+
+        then:
+        result != null
+        LocalDateTime.parse(result.startTime, DateTimeFormatter.ISO_DATE_TIME) == TIME_1
+        LocalDateTime.parse(result.endTime, DateTimeFormatter.ISO_DATE_TIME) == TIME_3
+    
+        result.numberOfQuestions == 2
+        result.topics*.aggregateId.containsAll([topicDto1.getAggregateId(), topicDto2.getAggregateId()])
+        def unitOfWork = unitOfWorkService.createUnitOfWork("TEST");
+        def courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork)
+        courseExecution.sagaState == GenericSagaState.NOT_IN_SAGA;
+    }
+    def "create tournament with invalid input"() {
+        when:
+        tournamentFunctionalities.createTournament(null, courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], new TournamentDto(startTime: DateHandler.toISOString(TIME_1), endTime: DateHandler.toISOString(TIME_3), numberOfQuestions: 2))
+
+        then:
+        thrown(TutorException)
+    }
+
+    def "saga compensations"() {
+        given:
+        def tournamentDto = new TournamentDto(startTime: DateHandler.toISOString(TIME_1), endTime: DateHandler.toISOString(TIME_3), numberOfQuestions: 2)
+        
+        when:
+        tournamentFunctionalities.createTournament(userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId(), 999], tournamentDto)
+
+        and: 'find the tournament'
+        tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        then: 'the tournament is not found'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+        then:
+        def unitOfWork = unitOfWorkService.createUnitOfWork("TEST");
+        def courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork)
+        courseExecution.sagaState == GenericSagaState.NOT_IN_SAGA;
+        def topic2 = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto2.getAggregateId(), unitOfWork)
+        def topic1 = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto1.getAggregateId(), unitOfWork)
+        topic1.sagaState == GenericSagaState.NOT_IN_SAGA;
+        topic2.sagaState == GenericSagaState.NOT_IN_SAGA;
+    }
+
+    def "find tournament successfully"() {
+        when:
+        def foundTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+
+        then:
+        foundTournament.getStartTime() == DateHandler.toISOString(TIME_1)
+        foundTournament.getEndTime() == DateHandler.toISOString(TIME_3)
+        foundTournament.getNumberOfQuestions() == 2
+    }
+
+    def "create add participant successfully"() {
+        given: 'a new user'
+        def newUserDto = new UserDto()
+        newUserDto.setName('NewUser')
+        newUserDto.setUsername('NewUsername')
+        newUserDto.setRole('STUDENT')
+        newUserDto = userFunctionalities.createUser(newUserDto)
+        userFunctionalities.activateUser(newUserDto.getAggregateId())
+        courseExecutionFunctionalities.addStudent(courseExecutionDto.getAggregateId(), newUserDto.getAggregateId())
+
+        when: 'adding the new user as a participant to the tournament'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), newUserDto.getAggregateId())
+
+        then: 'the participant should be added successfully'
+        def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        updatedTournament.participants.any { it.aggregateId == newUserDto.getAggregateId() }
+    }
+
+    def "update tournament successfully"() {
+        given:
+        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+
+        when:
+        tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)
+
+        then:
+        def updatedTournamentDto = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        updatedTournamentDto != null
+        updatedTournamentDto.topics*.aggregateId.containsAll([topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()])
+    }
+
+    def "leave tournament successfully"() {
+        given:
+        def userToLeaveDto = new UserDto()
+        userToLeaveDto.setName('TestUser')
+        userToLeaveDto.setUsername('TestUsername')
+        userToLeaveDto.setRole('STUDENT')
+        userToLeaveDto = userFunctionalities.createUser(userToLeaveDto)
+        userFunctionalities.activateUser(userToLeaveDto.aggregateId)
+        courseExecutionFunctionalities.addStudent(courseExecutionDto.aggregateId, userToLeaveDto.aggregateId)
+        tournamentFunctionalities.addParticipant(tournamentDto.aggregateId, userToLeaveDto.aggregateId)
+
+        when:
+        tournamentFunctionalities.leaveTournament(tournamentDto.aggregateId, userToLeaveDto.aggregateId)
+
+        then:
+        def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        !updatedTournament.participants.any { it.aggregateId == userToLeaveDto.aggregateId }
+    }
+    
+    def "cancel tournament successfully"() {
+        when:
+        tournamentFunctionalities.cancelTournament(tournamentDto.aggregateId)
+
+        then:
+        def canceledTournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        canceledTournament.isCancelled() == true
+    }
+
+    def "remove tournament successfully"() {
+        given: 'tournament is deleted'
+        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
+
+        when: 'find the tournament'
+        tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        then: 'the tournament is removed, not found'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
     @TestConfiguration
