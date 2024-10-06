@@ -17,9 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
@@ -27,7 +25,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.Quiz
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TopicSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
@@ -88,7 +85,7 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
     
         SagaSyncStep updateTournamentStep = new SagaSyncStep("updateTournamentStep", () -> {
             SagaTournamentDto newTournamentDto = (SagaTournamentDto) tournamentService.updateTournament(tournamentDto, this.getTopicsDtos(), unitOfWork);
-            unitOfWorkService.registerSagaState(newTournamentDto.getAggregateId(), TournamentSagaState.READ_UPDATED_TOPICS, unitOfWork);
+            unitOfWorkService.registerSagaState(newTournamentDto.getAggregateId(), TournamentSagaState.READ_UPDATED_TOPICS, new ArrayList<>(Arrays.asList(TournamentSagaState.READ_TOURNAMENT)), unitOfWork);
             this.setNewTournamentDto(newTournamentDto);
         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
     
@@ -103,7 +100,7 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
             quizDto.setConclusionDate(this.getNewTournamentDto().getEndTime());
             quizDto.setResultsDate(this.getNewTournamentDto().getEndTime());    
             this.setQuizDto(quizDto);
-
+            
             SagaQuizDto quiz = (SagaQuizDto) quizService.getQuizById(quizDto.getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(quiz.getAggregateId(), QuizSagaState.READ_QUIZ, unitOfWork);
     

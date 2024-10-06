@@ -63,7 +63,7 @@ public class QuizService {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public QuizDto getQuizById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return new QuizDto((Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
+        return quizFactory.createQuizDto((Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
     // intended for requests from local functionalities
@@ -97,7 +97,7 @@ public class QuizService {
         Quiz quiz = quizFactory.createQuiz(aggregateId, quizCourseExecution, quizQuestions, quizDto, GENERATED);
         quiz.setTitle("Generated Quiz Title");
         unitOfWork.registerChanged(quiz);
-        return new QuizDto(quiz);
+        return quizFactory.createQuizDto(quiz);
     }
 
     @Retryable(
@@ -107,7 +107,7 @@ public class QuizService {
     public QuizDto startTournamentQuiz(Integer userAggregateId, Integer quizAggregateId, UnitOfWork unitOfWork) {
         /* must add more verifications */
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
-        QuizDto quizDto = new QuizDto(oldQuiz);
+        QuizDto quizDto = quizFactory.createQuizDto(oldQuiz);
         List<QuestionDto> questionDtoList = new ArrayList<>();
         // TODO if I have time change the quiz to only store references to the questions (its easier)
         oldQuiz.getQuizQuestions().forEach(quizQuestion -> {
@@ -134,7 +134,7 @@ public class QuizService {
 
         Quiz quiz = quizFactory.createQuiz(aggregateId, quizCourseExecution, quizQuestions, quizDto, IN_CLASS);
         unitOfWork.registerChanged(quiz);
-        return new QuizDto(quiz);
+        return quizFactory.createQuizDto(quiz);
     }
 
     @Retryable(
@@ -162,7 +162,7 @@ public class QuizService {
 
         newQuiz.setTitle("Generated Quiz Title");
         unitOfWork.registerChanged(newQuiz);
-        return new QuizDto(newQuiz);
+        return quizFactory.createQuizDto(newQuiz);
     }
 
     @Retryable(
@@ -195,7 +195,7 @@ public class QuizService {
             newQuiz.setQuizQuestions(quizQuestions);
         }
 
-        return new QuizDto(newQuiz);
+        return quizFactory.createQuizDto(newQuiz);
     }
 
     @Retryable(

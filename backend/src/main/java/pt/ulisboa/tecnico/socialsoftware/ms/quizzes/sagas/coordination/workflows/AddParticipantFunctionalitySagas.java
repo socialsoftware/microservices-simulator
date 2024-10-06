@@ -62,7 +62,10 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
         });
 
         getTournamentStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(tournamentAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            // TODO add more checks like this
+            if (tournamentDto != null) {
+                unitOfWorkService.registerSagaState(tournamentAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            }
         }, unitOfWork);
     
 
@@ -70,10 +73,6 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
             this.userDto = courseExecutionService.getStudentByExecutionIdAndUserId(
                 tournamentDto.getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
-
-        getUserStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(userAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);
 
         SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {
             TournamentParticipant participant = new TournamentParticipant(this.getUserDto());

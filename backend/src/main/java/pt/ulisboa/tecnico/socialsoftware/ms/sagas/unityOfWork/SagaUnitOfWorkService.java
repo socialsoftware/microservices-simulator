@@ -96,7 +96,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     public void registerSagaState(Integer aggregateId, SagaState state, SagaUnitOfWork unitOfWork) {
         SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
-        while (!aggregate.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)) {
+        while (!aggregate.getSagaState().equals(GenericSagaState.NOT_IN_SAGA) && !state.equals(GenericSagaState.NOT_IN_SAGA)) {
             aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
         }
@@ -112,7 +112,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     public void registerSagaState(Integer aggregateId, SagaState state, ArrayList<SagaState> allowedStates, SagaUnitOfWork unitOfWork) {
         SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
-        while (!aggregate.getSagaState().equals(GenericSagaState.NOT_IN_SAGA) && !allowedStates.contains(aggregate.getSagaState())) {
+        while (!aggregate.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)  && !state.equals(GenericSagaState.NOT_IN_SAGA) && !allowedStates.contains(aggregate.getSagaState())) {
             aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
         }
