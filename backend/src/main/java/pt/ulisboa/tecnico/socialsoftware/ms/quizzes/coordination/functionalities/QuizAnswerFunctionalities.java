@@ -78,12 +78,12 @@ public class QuizAnswerFunctionalities {
         if ("sagas".equals(workflowType)) {
             SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
             StartQuizFunctionalitySagas functionality = new StartQuizFunctionalitySagas(
-                    quizAnswerService, quizService, sagaUnitOfWorkService, userAggregateId, userAggregateId, userAggregateId, unitOfWork);
+                    quizAnswerService, quizService, sagaUnitOfWorkService, quizAggregateId, userAggregateId, userAggregateId, unitOfWork);
             functionality.executeWorkflow(unitOfWork);
         } else {
             CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
             StartQuizFunctionalityTCC functionality = new StartQuizFunctionalityTCC(
-                    quizAnswerService, quizService, causalUnitOfWorkService, userAggregateId, userAggregateId, userAggregateId, unitOfWork);
+                    quizAnswerService, quizService, causalUnitOfWorkService, quizAggregateId, userAggregateId, userAggregateId, unitOfWork);
             functionality.executeWorkflow(unitOfWork);
         }
     }

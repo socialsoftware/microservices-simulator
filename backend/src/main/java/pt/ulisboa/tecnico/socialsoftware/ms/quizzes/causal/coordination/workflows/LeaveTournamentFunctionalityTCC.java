@@ -35,25 +35,9 @@ public class LeaveTournamentFunctionalityTCC extends WorkflowFunctionality {
         workflow.addStep(step);
     }
 
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
-
     @Override
     public void handleEvents() {
 
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
     }
 
     public Tournament getOldTournament() {

@@ -51,25 +51,10 @@ public class LeaveTournamentFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(leaveTournamentStep);
     }
 
-    public void executeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.execute(unitOfWork);
-    }
 
     @Override
     public void handleEvents() {
 
-    }
-
-    public void executeStepByName(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, SagaUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(SagaUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
     }
 
     public SagaTournamentDto getOldTournament() {

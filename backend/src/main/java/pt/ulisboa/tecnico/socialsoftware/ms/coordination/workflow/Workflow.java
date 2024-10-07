@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
@@ -59,10 +60,23 @@ public abstract class Workflow {
     public CompletableFuture<Void> resume(UnitOfWork unitOfWork) {
         try {
             return executionPlan.resume(unitOfWork)
-                .thenRun(() -> unitOfWorkService.commit(unitOfWork));
-        } catch (TutorException ex) {
+                .thenRun(() -> {
+                    unitOfWorkService.commit(unitOfWork);
+                })
+                .exceptionally(ex -> {
+                    Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
+    
+                    unitOfWorkService.abort(unitOfWork);
+    
+                    if (cause instanceof TutorException) {
+                        throw (TutorException) cause;
+                    } else {
+                        throw new RuntimeException(cause);  
+                    }
+                });
+        } catch (TutorException e) {
             unitOfWorkService.abort(unitOfWork);
-            throw ex;
+            throw e;
         }
     }
 
@@ -77,14 +91,26 @@ public abstract class Workflow {
     public abstract ExecutionPlan planOrder(HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies);
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
+        this.executionPlan = planOrder(this.stepsWithDependencies);
         try {
-            this.executionPlan = planOrder(this.stepsWithDependencies);
             return executionPlan.execute(unitOfWork)
-                .thenRun(() -> unitOfWorkService.commit(unitOfWork));
-
-        } catch (TutorException ex) {
+                .thenRun(() -> {
+                    unitOfWorkService.commit(unitOfWork);
+                })
+                .exceptionally(ex -> {
+                    Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
+    
+                    unitOfWorkService.abort(unitOfWork);
+    
+                    if (cause instanceof TutorException) {
+                        throw (TutorException) cause;
+                    } else {
+                        throw new RuntimeException(cause);  
+                    }
+                });
+        } catch (TutorException e) {
             unitOfWorkService.abort(unitOfWork);
-            throw ex;
+            throw e;
         }
     }
 }

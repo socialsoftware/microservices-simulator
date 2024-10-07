@@ -21,7 +21,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.UserFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.QuizAnswerFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork
@@ -38,10 +40,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.AddParticipantFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.RemoveTournamentFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.UpdateStudentNameFunctionalitySagas;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
 
@@ -59,11 +62,15 @@ class NewTest extends SpockTest {
     @Autowired
     private CourseExecutionService courseExecutionService
     @Autowired
+    private QuizAnswerService quizAnswerService
+    @Autowired
+    private QuizService quizService
+    @Autowired
     private TournamentService tournamentService
     @Autowired
-    private CourseExecutionFactory courseExecutionFactory;
+    private CourseExecutionFactory courseExecutionFactory
     @Autowired
-    private TournamentFactory tournamentFactory;
+    private TournamentFactory tournamentFactory
 
     @Autowired
     private CourseExecutionFunctionalities courseExecutionFunctionalities
@@ -75,6 +82,8 @@ class NewTest extends SpockTest {
     private QuestionFunctionalities questionFunctionalities
     @Autowired
     private QuizFunctionalities quizFunctionalities
+    @Autowired
+    private QuizAnswerFunctionalities quizAnswerFunctionalities
     @Autowired
     private TournamentFunctionalities tournamentFunctionalities
 
@@ -545,9 +554,21 @@ class NewTest extends SpockTest {
         tournamentDtoResult.state == Aggregate.AggregateState.INACTIVE.toString()
         tournamentDtoResult.creator.name == ANONYMOUS
         tournamentDtoResult.creator.username == ANONYMOUS
-        // TODO como resolver?
-        and: 'there are no participants'
-        tournamentDtoResult.getParticipants().size() == 0
+
+        and: 'participant was added before event processing'
+        tournamentDtoResult.getParticipants().size() == 1
+    }
+
+    def 'sequential anonymize creator and add creator: cant add anonymous user' () {
+        given: 'anonymize creator'
+        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
+
+        when: 'the creator is added as participant to a tournament'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
+
+        then: 'fails because tournament is deleted'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.USER_IS_ANONYMOUS
     }
 
     /* 
@@ -656,7 +677,10 @@ class NewTest extends SpockTest {
 
         when: 'add finishes and remove tries again'
         addParticipantFunctionality.resumeWorkflow(unitOfWork1) 
-        removeTournamentFunctionality.executeWorkflow(unitOfWork2)
+        def unitOfWork3 = unitOfWorkService.createUnitOfWork(functionalityName2)
+        def removeTournamentFunctionality2 = new RemoveTournamentFunctionalitySagas(eventService, tournamentService,unitOfWorkService, tournamentFactory,
+                                                        tournamentDto.getAggregateId(), unitOfWork3)
+        removeTournamentFunctionality2.executeWorkflow(unitOfWork3)
         
         then: 'fails because tournament has participant'
         def error2 = thrown(TutorException)
@@ -774,6 +798,9 @@ class NewTest extends SpockTest {
         updatedTournament.participants.any { it.aggregateId == userDto1.getAggregateId() }
         updatedTournament.participants.any { it.aggregateId == userDto2.getAggregateId() }
     }
+
+
+    
 
 
     /*------------------------------------------------------------------------------------------------------------------------*/

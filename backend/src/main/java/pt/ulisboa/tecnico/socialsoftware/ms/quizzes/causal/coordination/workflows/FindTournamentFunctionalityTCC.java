@@ -5,7 +5,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkS
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 
@@ -37,22 +36,6 @@ public class FindTournamentFunctionalityTCC extends WorkflowFunctionality {
     @Override
     public void handleEvents() {
 
-    }
-
-    public void executeWorkflow(CausalUnitOfWork unitOfWork) throws TutorException {
-        workflow.execute(unitOfWork);
-    }
-
-    public void executeStepByName(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
-    public void executeUntilStep(String stepName, CausalUnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
-    }
-
-    public void resumeWorkflow(CausalUnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
     }
 
     public TournamentDto getTournamentDto() {
