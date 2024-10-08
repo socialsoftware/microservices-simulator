@@ -8,7 +8,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.MergeableAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
 /*
@@ -18,7 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
         COURSE-EXISTS (course doesnt send events)
  */
 @Entity
-public abstract class Topic extends Aggregate implements MergeableAggregate {
+public abstract class Topic extends Aggregate {
     @Column
     private String name;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "topic")
@@ -64,30 +63,4 @@ public abstract class Topic extends Aggregate implements MergeableAggregate {
         this.topicCourse = course;
         this.topicCourse.setTopic(this);
     }
-
-    @Override
-    public Set<String> getMutableFields() {
-        return Set.of("name");
-    }
-
-    @Override
-    public Set<String[]> getIntentions() {
-        return new HashSet<>();
-    }
-
-    @Override
-    public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
-        Topic committedTopic = (Topic) committedVersion;
-        mergeName(toCommitVersionChangedFields, this, committedTopic);
-        return this;
-    }
-
-    private void mergeName(Set<String> toCommitVersionChangedFields, Topic mergedTopic, Topic committedTopic) {
-        if (toCommitVersionChangedFields.contains("name")) {
-            mergedTopic.setName(getName());
-        } else {
-            mergedTopic.setName(committedTopic.getName());
-        }
-    }
-
 }

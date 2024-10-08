@@ -10,9 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.
 
 public class DeleteTopicFunctionalityTCC extends WorkflowFunctionality {
     private CausalTopic topic;
-
-    
-
     private final TopicService topicService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -32,12 +29,6 @@ public class DeleteTopicFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public CausalTopic getTopic() {

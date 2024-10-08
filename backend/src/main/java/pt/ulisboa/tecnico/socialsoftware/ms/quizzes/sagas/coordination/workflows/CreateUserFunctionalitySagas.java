@@ -11,9 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class CreateUserFunctionalitySagas extends WorkflowFunctionality {
     private UserDto userDto;
     private UserDto createdUserDto;
-
-    
-
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -34,12 +31,6 @@ public class CreateUserFunctionalitySagas extends WorkflowFunctionality {
 
         workflow.addStep(createUserStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public UserDto getUserDto() {

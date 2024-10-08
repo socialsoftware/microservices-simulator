@@ -507,6 +507,10 @@ class NewTest extends SpockTest {
         when: 'a student is added to a tournament'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
 
+        then: 'fails because tournament is inactive'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
+
         then: 'creator is anonymized'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
@@ -583,6 +587,10 @@ class NewTest extends SpockTest {
         when: 'another student is concurrently added to a tournament where the creator was anonymized in the course execution' +
                 'but not in the tournament'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+
+        then: 'fails because tournament is inactive'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
 
         then: 'creator is anonymized'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
@@ -800,7 +808,25 @@ class NewTest extends SpockTest {
     }
 
 
-    
+    def 'sequential solve quiz and anonymize user'() {
+        
+        given: 'a quiz is solved for a user'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+        tournamentFunctionalities.solveQuiz(tournamentDto.aggregateId, userDto.getAggregateId())
+
+        when: 'the user is anonymized after starting the quiz'
+        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.getAggregateId(), userDto.getAggregateId())
+        tournamentEventHandling.handleAnonymizeStudentEvents()
+
+        then: 'the user is anonymized in the course execution'
+        def courseExecutionResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionResult.getStudents().find{ it.aggregateId == userDto.getAggregateId() }.name == ANONYMOUS
+
+        and: 'the quiz is still started for the anonymized user'
+        def unitOfWork = unitOfWorkService.createUnitOfWork("getQuizAnswerDtoByQuizIdAndUserId")
+        def quizAnswerResult = quizAnswerService.getQuizAnswerDtoByQuizIdAndUserId(tournamentDto.quiz.aggregateId, userDto.getAggregateId(), unitOfWork)
+        quizAnswerResult.getStudentName() == userDto.getName()
+    }
 
 
     /*------------------------------------------------------------------------------------------------------------------------*/

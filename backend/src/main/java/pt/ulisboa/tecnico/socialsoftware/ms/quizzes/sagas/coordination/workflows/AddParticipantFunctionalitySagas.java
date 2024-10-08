@@ -76,21 +76,13 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {
             TournamentParticipant participant = new TournamentParticipant(this.getUserDto());
-            if (!tournamentDto.getCreator().getName().equals("ANONYMOUS")) {
-                tournamentService.addParticipant(tournamentAggregateId, participant, userDto.getRole(), unitOfWork);
-            }
+            tournamentService.addParticipant(tournamentAggregateId, participant, userDto.getRole(), unitOfWork);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
         this.workflow.addStep(getTournamentStep);
         this.workflow.addStep(getUserStep);
         this.workflow.addStep(addParticipantStep);
     }
-
-    @Override
-    public void handleEvents() {
-    }
-
-    
 
     public void setTournamentDto(SagaTournamentDto tournamentDto) {
         this.tournamentDto = tournamentDto;

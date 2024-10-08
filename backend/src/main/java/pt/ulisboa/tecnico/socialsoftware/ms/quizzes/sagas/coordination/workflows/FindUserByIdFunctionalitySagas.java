@@ -10,9 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class FindUserByIdFunctionalitySagas extends WorkflowFunctionality {
     private UserDto userDto;
-
-    
-
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -33,12 +30,6 @@ public class FindUserByIdFunctionalitySagas extends WorkflowFunctionality {
     
         workflow.addStep(findUserStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public UserDto getUserDto() {

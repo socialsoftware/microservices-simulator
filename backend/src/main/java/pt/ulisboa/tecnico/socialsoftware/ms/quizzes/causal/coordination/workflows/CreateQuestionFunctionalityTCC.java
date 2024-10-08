@@ -21,9 +21,6 @@ public class CreateQuestionFunctionalityTCC extends WorkflowFunctionality {
     private QuestionCourse course;
     private List<TopicDto> topics;
     private QuestionDto createdQuestion;
-
-    
-
     private final QuestionService questionService;
     private final TopicService topicService;
     private final CourseService courseService;
@@ -62,12 +59,6 @@ public class CreateQuestionFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public QuestionCourse getCourse() {

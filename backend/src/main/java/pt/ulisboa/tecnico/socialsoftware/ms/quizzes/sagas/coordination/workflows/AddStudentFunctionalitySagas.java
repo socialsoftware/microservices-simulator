@@ -24,9 +24,6 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
     
     private UserDto userDto;
     private SagaCourseExecutionDto courseExecution;
-
-    
-
     private final CourseExecutionService courseExecutionService;
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -76,12 +73,6 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getCourseExecutionStep);
         workflow.addStep(enrollStudentStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public UserDto getUserDto() {

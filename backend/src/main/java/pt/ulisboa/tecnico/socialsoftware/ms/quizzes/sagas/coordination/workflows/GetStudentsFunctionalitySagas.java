@@ -12,9 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class GetStudentsFunctionalitySagas extends WorkflowFunctionality {
     private List<UserDto> students;
-
-    
-
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -35,12 +32,6 @@ public class GetStudentsFunctionalitySagas extends WorkflowFunctionality {
     
         workflow.addStep(getStudentsStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public List<UserDto> getStudents() {
         return students;
     }

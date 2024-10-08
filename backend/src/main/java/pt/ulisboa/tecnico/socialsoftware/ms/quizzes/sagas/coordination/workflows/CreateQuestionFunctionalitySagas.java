@@ -96,10 +96,7 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(createQuestionStep);
     }
 
-    @Override
-    public void handleEvents() {
-
-    }    
+        
 
     public QuestionCourse getCourse() {
         return course;

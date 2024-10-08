@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.Topic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTopic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TopicSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
@@ -19,9 +17,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
     private SagaTopicDto topic;
-
-    
-
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -52,12 +47,6 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getTopicStep);
         workflow.addStep(updateTopicStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public SagaTopicDto getTopic() {

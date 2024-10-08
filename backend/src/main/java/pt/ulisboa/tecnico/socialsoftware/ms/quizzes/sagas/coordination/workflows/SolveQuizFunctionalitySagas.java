@@ -4,16 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaQuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaQuizDto;
@@ -32,9 +27,6 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
     private SagaQuizDto quizDto;
     private SagaQuizAnswerDto quizAnswerDto;
     private Tournament oldTournament;
-
-    
-
     private final TournamentService tournamentService;
     private final QuizService quizService;
     private final QuizAnswerService quizAnswerService;
@@ -79,26 +71,22 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
             unitOfWorkService.registerSagaState(quizAnswerDto.getAggregateId(), QuizAnswerSagaState.STARTED_QUIZ, unitOfWork);
             this.setQuizAnswerDto(quizAnswerDto);
         }, new ArrayList<>(Arrays.asList(startQuizStep)));
-    
+        
         startQuizAnswerStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(this.getQuizAnswerDto().getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            if (this.getQuizAnswerDto() != null) {
+                unitOfWorkService.registerSagaState(this.getQuizAnswerDto().getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            }
         }, unitOfWork);
         
         SagaSyncStep solveQuizStep = new SagaSyncStep("solveQuizStep", () -> {
             tournamentService.solveQuiz(tournamentAggregateId, userAggregateId, this.getQuizAnswerDto().getAggregateId(), unitOfWork);
-        });
+        }, new ArrayList<>(Arrays.asList(startQuizAnswerStep)));
 
         workflow.addStep(getTournamentStep);
         workflow.addStep(startQuizStep);
         workflow.addStep(startQuizAnswerStep);
         workflow.addStep(solveQuizStep);
-    }
-
-    @Override
-    public void handleEvents() {
-
-    }
-    
+    }    
 
     public SagaTournamentDto getTournamentDto() {
         return tournament;

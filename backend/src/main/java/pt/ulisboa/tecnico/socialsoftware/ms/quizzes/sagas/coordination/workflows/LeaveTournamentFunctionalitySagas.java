@@ -16,9 +16,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class LeaveTournamentFunctionalitySagas extends WorkflowFunctionality {
     private SagaTournamentDto oldTournament;
-
-    
-
     private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -49,12 +46,6 @@ public class LeaveTournamentFunctionalitySagas extends WorkflowFunctionality {
     
         workflow.addStep(getOldTournamentStep);
         workflow.addStep(leaveTournamentStep);
-    }
-
-
-    @Override
-    public void handleEvents() {
-
     }
 
     public SagaTournamentDto getOldTournament() {

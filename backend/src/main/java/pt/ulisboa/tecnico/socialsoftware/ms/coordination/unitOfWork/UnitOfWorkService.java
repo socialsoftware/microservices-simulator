@@ -28,6 +28,9 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public abstract Aggregate registerRead(Aggregate aggregate, U unitOfWork);
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public abstract void registerChanged(Aggregate aggregate, U unitOfWork);
+
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))

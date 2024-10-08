@@ -20,9 +20,6 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
     private TopicCourse course;
     private TopicDto createdTopicDto;
     private SagaCourseDto courseDto;
-
-    
-
     private final TopicService topicService;
     private final CourseService courseService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -57,12 +54,6 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getCourseStep);
         workflow.addStep(createTopicStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public TopicCourse getCourse() {
         return course;
     }

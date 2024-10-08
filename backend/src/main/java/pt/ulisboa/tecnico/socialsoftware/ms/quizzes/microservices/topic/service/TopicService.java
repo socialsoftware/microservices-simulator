@@ -52,10 +52,10 @@ public class TopicService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public TopicDto createTopic(TopicDto topicDto, TopicCourse course, UnitOfWork unitOfWorkWorkService) { //TODO check this
+    public TopicDto createTopic(TopicDto topicDto, TopicCourse course, UnitOfWork unitOfWork) { //TODO check this
         Topic topic = topicFactory.createTopic(aggregateIdGeneratorService.getNewAggregateId(),
                 topicDto.getName(), course);
-        unitOfWorkWorkService.registerChanged(topic);
+        unitOfWorkService.registerChanged(topic, unitOfWork);
         return topicFactory.createTopicDto(topic);
     }
 
@@ -81,7 +81,7 @@ public class TopicService {
         Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
         Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
         newTopic.setName(topicDto.getName());
-        unitOfWork.registerChanged(newTopic);
+        unitOfWorkService.registerChanged(newTopic, unitOfWork);
         unitOfWork.addEvent(new UpdateTopicEvent(newTopic.getAggregateId(), newTopic.getName()));
     }
 
@@ -93,7 +93,7 @@ public class TopicService {
         Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
         Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
         newTopic.remove();
-        unitOfWork.registerChanged(newTopic);
+        unitOfWorkService.registerChanged(newTopic, unitOfWork);
         unitOfWork.addEvent(new DeleteTopicEvent(newTopic.getAggregateId()));
     }
 }

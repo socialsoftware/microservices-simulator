@@ -7,13 +7,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.Question;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionTopic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuestion;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaQuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuestionSagaState;
@@ -28,9 +26,6 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
     private Set<QuestionTopic> topics;
     private SagaQuestionDto question;
     private Set<TopicDto> topicDtos;
-
-    
-
     private final QuestionService questionService;
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -85,12 +80,6 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
         workflow.addStep(getQuestionStep);
         workflow.addStep(updateQuestionTopicsStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public Set<QuestionTopic> getTopics() {
         return topics;
     }

@@ -22,9 +22,6 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
     
     private SagaQuestionDto questionDto;
     private SagaQuizAnswerDto quizAnswer;
-
-    
-
     private final QuizAnswerService quizAnswerService;
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -68,12 +65,6 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getQuizAnswerStep);
         workflow.addStep(answerQuestionStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public SagaQuestionDto getQuestionDto() {

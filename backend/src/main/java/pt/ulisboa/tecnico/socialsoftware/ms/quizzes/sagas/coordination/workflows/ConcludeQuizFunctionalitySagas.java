@@ -46,12 +46,6 @@ public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getQuizAnswerStep);
         workflow.addStep(concludeQuizStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public SagaQuizAnswerDto getQuizAnswer() {

@@ -10,9 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 
 public class FindTournamentFunctionalityTCC extends WorkflowFunctionality {
     private TournamentDto tournamentDto;
-
-    
-
     private final TournamentService tournamentService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -32,12 +29,6 @@ public class FindTournamentFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public TournamentDto getTournamentDto() {
         return tournamentDto;
     }

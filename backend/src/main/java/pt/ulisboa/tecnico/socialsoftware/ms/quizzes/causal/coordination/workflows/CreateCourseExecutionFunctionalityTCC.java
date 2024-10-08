@@ -11,9 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.serv
 public class CreateCourseExecutionFunctionalityTCC extends WorkflowFunctionality {
     private CourseExecutionDto courseExecutionDto;
     private CourseExecutionDto createdCourseExecution;
-
-    
-
     private final CourseExecutionService courseExecutionService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -33,12 +30,6 @@ public class CreateCourseExecutionFunctionalityTCC extends WorkflowFunctionality
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public CourseExecutionDto getCourseExecutionDto() {

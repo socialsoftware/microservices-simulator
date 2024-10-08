@@ -96,7 +96,7 @@ public class QuizService {
 
         Quiz quiz = quizFactory.createQuiz(aggregateId, quizCourseExecution, quizQuestions, quizDto, GENERATED);
         quiz.setTitle("Generated Quiz Title");
-        unitOfWork.registerChanged(quiz);
+        unitOfWorkService.registerChanged(quiz, unitOfWork);
         return quizFactory.createQuizDto(quiz);
     }
 
@@ -133,7 +133,7 @@ public class QuizService {
                 .collect(Collectors.toSet());
 
         Quiz quiz = quizFactory.createQuiz(aggregateId, quizCourseExecution, quizQuestions, quizDto, IN_CLASS);
-        unitOfWork.registerChanged(quiz);
+        unitOfWorkService.registerChanged(quiz, unitOfWork);
         return quizFactory.createQuizDto(quiz);
     }
 
@@ -161,7 +161,7 @@ public class QuizService {
         }
 
         newQuiz.setTitle("Generated Quiz Title");
-        unitOfWork.registerChanged(newQuiz);
+        unitOfWorkService.registerChanged(newQuiz, unitOfWork);
         return quizFactory.createQuizDto(newQuiz);
     }
 
@@ -176,7 +176,7 @@ public class QuizService {
 
         if (quizDto.getTitle() != null) {
             newQuiz.setTitle(quizDto.getTitle());
-            unitOfWork.registerChanged(newQuiz);
+            unitOfWorkService.registerChanged(newQuiz, unitOfWork);
         }
 
         if (quizDto.getAvailableDate() != null) {
@@ -224,7 +224,7 @@ public class QuizService {
         
         if (newQuiz.getQuizCourseExecution().getCourseExecutionAggregateId().equals(courseExecutionId)) {
             newQuiz.setState(Aggregate.AggregateState.INACTIVE);
-            unitOfWork.registerChanged(newQuiz);
+            unitOfWorkService.registerChanged(newQuiz, unitOfWork);
             return newQuiz;
         }
         

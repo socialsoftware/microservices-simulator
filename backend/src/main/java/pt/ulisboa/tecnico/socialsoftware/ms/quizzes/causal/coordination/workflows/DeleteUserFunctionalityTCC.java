@@ -10,9 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.U
 
 public class DeleteUserFunctionalityTCC extends WorkflowFunctionality {
     private CausalUser user;
-
-    
-
     private final UserService userService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -32,12 +29,6 @@ public class DeleteUserFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public CausalUser getUser() {

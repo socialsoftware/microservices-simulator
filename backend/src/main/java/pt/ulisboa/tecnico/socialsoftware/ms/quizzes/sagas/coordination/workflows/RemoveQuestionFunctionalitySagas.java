@@ -16,9 +16,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
 
     private SagaQuestionDto question;
-
-    
-
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -49,12 +46,6 @@ public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getQuestionStep);
         workflow.addStep(removeQuestionStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public SagaQuestionDto getQuestion() {
         return question;
     }

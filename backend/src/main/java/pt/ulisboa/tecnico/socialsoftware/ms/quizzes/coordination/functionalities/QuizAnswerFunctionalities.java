@@ -62,12 +62,12 @@ public class QuizAnswerFunctionalities {
         if ("sagas".equals(workflowType)) {
             SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
             AnswerQuestionFunctionalitySagas functionality = new AnswerQuestionFunctionalitySagas(
-                    quizAnswerService, questionService, sagaUnitOfWorkService, quizAnswerFactory, userAggregateId, userAggregateId, userQuestionAnswerDto, unitOfWork);
+                    quizAnswerService, questionService, sagaUnitOfWorkService, quizAnswerFactory, quizAggregateId, userAggregateId, userQuestionAnswerDto, unitOfWork);
             functionality.executeWorkflow(unitOfWork);
         } else {
             CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
             AnswerQuestionFunctionalityTCC functionality = new AnswerQuestionFunctionalityTCC(
-                    quizAnswerService, questionService, causalUnitOfWorkService, quizAnswerFactory, userAggregateId, userAggregateId, userQuestionAnswerDto, unitOfWork);
+                    quizAnswerService, questionService, causalUnitOfWorkService, quizAnswerFactory, quizAggregateId, userAggregateId, userQuestionAnswerDto, unitOfWork);
             functionality.executeWorkflow(unitOfWork);
         }
     }
@@ -78,12 +78,12 @@ public class QuizAnswerFunctionalities {
         if ("sagas".equals(workflowType)) {
             SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
             StartQuizFunctionalitySagas functionality = new StartQuizFunctionalitySagas(
-                    quizAnswerService, quizService, sagaUnitOfWorkService, quizAggregateId, userAggregateId, userAggregateId, unitOfWork);
+                    quizAnswerService, quizService, sagaUnitOfWorkService, quizAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
             functionality.executeWorkflow(unitOfWork);
         } else {
             CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
             StartQuizFunctionalityTCC functionality = new StartQuizFunctionalityTCC(
-                    quizAnswerService, quizService, causalUnitOfWorkService, quizAggregateId, userAggregateId, userAggregateId, unitOfWork);
+                    quizAnswerService, quizService, causalUnitOfWorkService, quizAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
             functionality.executeWorkflow(unitOfWork);
         }
     }

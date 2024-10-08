@@ -388,9 +388,6 @@ class TournamentFunctionalityTestSagas extends SpockTest {
         tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
     }
 
-    
-
-
     /*
     // wrong with event mid step
     // NEW

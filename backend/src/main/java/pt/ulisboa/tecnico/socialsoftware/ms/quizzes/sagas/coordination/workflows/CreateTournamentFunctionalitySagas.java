@@ -34,9 +34,6 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
     private HashSet<SagaTopicDto> topicDtos = new HashSet<SagaTopicDto>();
     private QuizDto quizDto;
     private TournamentDto tournamentDto;
-
-    
-
     private final TournamentService tournamentService;
     private final CourseExecutionService courseExecutionService;
     private final TopicService topicService;
@@ -125,12 +122,6 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow.addStep(generateQuizStep);
         this.workflow.addStep(createTournamentStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public void setCourseExecutionDto(SagaCourseExecutionDto courseExecutionDto) {

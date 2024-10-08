@@ -52,7 +52,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggr
             if (course == null) {
                 Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
                 course = courseFactory.createCourse(aggregateId, courseExecutionDto);
-                unitOfWork.registerChanged(course);
+                unitOfWorkService.registerChanged(course, unitOfWork);
             }
             courseExecutionDto.setCourseAggregateId(course.getAggregateId());
             courseExecutionDto.setName(course.getName());

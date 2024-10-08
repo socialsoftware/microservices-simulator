@@ -19,9 +19,6 @@ public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
     private QuizDto quizDto;
     private QuizAnswerDto quizAnswerDto;
     private Tournament oldTournament;
-
-    
-
     private final TournamentService tournamentService;
     private final QuizService quizService;
     private final QuizAnswerService quizAnswerService;
@@ -49,12 +46,6 @@ public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public TournamentDto getTournamentDto() {

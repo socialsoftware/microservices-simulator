@@ -26,9 +26,6 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
     private Set<QuestionDto> questions;
     private QuizDto createdQuizDto;
     private SagaCourseExecutionDto courseExecutionDto;
-
-    
-
     private final CourseExecutionService courseExecutionService;
     private final QuizService quizService;
     private final QuestionService questionService;
@@ -83,12 +80,6 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getQuestionsStep);
         workflow.addStep(createQuizStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public QuizCourseExecution getQuizCourseExecution() {
         return quizCourseExecution;
     }

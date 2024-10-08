@@ -7,15 +7,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.SetUtils;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.MergeableAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
@@ -34,7 +31,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHand
  */
 
 @Entity
-public abstract class CourseExecution extends Aggregate implements MergeableAggregate {
+public abstract class CourseExecution extends Aggregate {
     private String acronym;
     private String academicTerm;
     private LocalDateTime endDate;
@@ -203,48 +200,5 @@ public abstract class CourseExecution extends Aggregate implements MergeableAggr
             }
         }
         this.students.remove(studentToRemove);
-    }
-
-    @Override
-    public Set<String> getMutableFields() {
-        return Set.of("students");
-    }
-
-    @Override
-    public Set<String[]> getIntentions() {
-        return new HashSet<>();
-    }
-
-    @Override
-    public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
-        CourseExecution committedCourseExecution = (CourseExecution) committedVersion;
-        mergeQuizQuestions((CourseExecution) getPrev(), this, committedCourseExecution, this);
-        return this;
-    }
-
-    private void mergeQuizQuestions(CourseExecution prev, CourseExecution toCommitQuiz, CourseExecution committedQuiz, CourseExecution mergedCourseExecution) {
-        Set<CourseExecutionStudent> prevStudentsPre = new HashSet<>(prev.getStudents());
-        Set<CourseExecutionStudent> toCommitStudentsPre = new HashSet<>(toCommitQuiz.getStudents());
-        Set<CourseExecutionStudent> committedStudentsPre = new HashSet<>(committedQuiz.getStudents());
-
-        CourseExecutionStudent.syncStudentVersions(prevStudentsPre, toCommitStudentsPre, committedStudentsPre);
-
-        Set<CourseExecutionStudent> prevStudents = new HashSet<>(prevStudentsPre);
-        Set<CourseExecutionStudent> toCommitQuizStudents = new HashSet<>(toCommitStudentsPre);
-        Set<CourseExecutionStudent> committedQuizStudents = new HashSet<>(committedStudentsPre);
-
-
-        Set<CourseExecutionStudent> addedStudents =  SetUtils.union(
-                SetUtils.difference(toCommitQuizStudents, prevStudents),
-                SetUtils.difference(committedQuizStudents, prevStudents)
-        );
-
-        Set<CourseExecutionStudent> removedStudents = SetUtils.union(
-                SetUtils.difference(prevStudents, toCommitQuizStudents),
-                SetUtils.difference(prevStudents, committedQuizStudents)
-        );
-
-        Set<CourseExecutionStudent> mergedStudents = SetUtils.union(SetUtils.difference(prevStudents, removedStudents), addedStudents);
-        mergedCourseExecution.setStudents(mergedStudents);
     }
 }

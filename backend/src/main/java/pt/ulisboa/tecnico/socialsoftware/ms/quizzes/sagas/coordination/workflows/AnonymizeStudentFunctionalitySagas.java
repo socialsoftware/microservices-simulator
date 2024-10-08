@@ -19,9 +19,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
     
     private SagaCourseExecutionDto courseExecution;
-
-    
-
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -57,12 +54,6 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getCourseExecutionStep);
         workflow.addStep(anonymizeStudentStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public SagaCourseExecutionDto getCourseExecution() {

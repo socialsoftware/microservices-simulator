@@ -26,9 +26,6 @@ public class CreateTournamentFunctionalityTCC extends WorkflowFunctionality {
     private HashSet<TopicDto> topicDtos = new HashSet<TopicDto>();
     private QuizDto quizDto;
     private TournamentDto tournamentDto;
-
-    
-
     private final TournamentService tournamentService;
     private final CourseExecutionService courseExecutionService;
     private final TopicService topicService;
@@ -81,12 +78,6 @@ public class CreateTournamentFunctionalityTCC extends WorkflowFunctionality {
                                 
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public void setCourseExecutionDto(CourseExecutionDto courseExecutionDto) {

@@ -35,6 +35,4 @@ public abstract class WorkflowFunctionality {
     public void resumeWorkflow(UnitOfWork unitOfWork) {
         workflow.resume(unitOfWork);
     }
-
-    public abstract void handleEvents();
 }

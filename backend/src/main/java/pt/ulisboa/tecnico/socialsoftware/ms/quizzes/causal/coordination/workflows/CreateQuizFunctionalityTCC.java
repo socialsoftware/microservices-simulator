@@ -19,9 +19,6 @@ public class CreateQuizFunctionalityTCC extends WorkflowFunctionality {
     private QuizCourseExecution quizCourseExecution;
     private Set<QuestionDto> questions;
     private QuizDto createdQuizDto;
-
-    
-
     private final CourseExecutionService courseExecutionService;
     private final QuizService quizService;
     private final QuestionService questionService;
@@ -51,12 +48,6 @@ public class CreateQuizFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public QuizCourseExecution getQuizCourseExecution() {

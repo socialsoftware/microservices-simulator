@@ -76,7 +76,7 @@ public class CourseExecutionService {
 
         CourseExecution courseExecution = courseExecutionFactory.createCourseExecution(aggregateIdGeneratorService.getNewAggregateId(), courseExecutionDto, courseExecutionCourse);
 
-        unitOfWork.registerChanged(courseExecution);
+        unitOfWorkService.registerChanged(courseExecution, unitOfWork);
         return courseExecutionFactory.createCourseExecutionDto(courseExecution);
     }
 
@@ -110,7 +110,7 @@ public class CourseExecutionService {
         }
 
         newCourseExecution.remove();
-        unitOfWork.registerChanged(newCourseExecution);
+        unitOfWorkService.registerChanged(newCourseExecution, unitOfWork);
         unitOfWork.addEvent(new DeleteCourseExecutionEvent(newCourseExecution.getAggregateId()));
     }
 
@@ -133,7 +133,7 @@ public class CourseExecutionService {
         CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldCourseExecution);
         newCourseExecution.addStudent(courseExecutionStudent);
 
-        unitOfWork.registerChanged(newCourseExecution);
+        unitOfWorkService.registerChanged(newCourseExecution, unitOfWork);
     }
 
     @Retryable(
@@ -158,7 +158,7 @@ public class CourseExecutionService {
         CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
         CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldCourseExecution);
         newCourseExecution.removeStudent(userAggregateId);
-        unitOfWork.registerChanged(newCourseExecution);
+        unitOfWorkService.registerChanged(newCourseExecution, unitOfWork);
         unitOfWork.addEvent(new DisenrollStudentFromCourseExecutionEvent(courseExecutionAggregateId, userAggregateId));
     }
 
@@ -185,7 +185,7 @@ public class CourseExecutionService {
         }
         CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).anonymize();
-        unitOfWork.registerChanged(newExecution);
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
         unitOfWork.addEvent(new AnonymizeStudentEvent(executionAggregateId, "ANONYMOUS", "ANONYMOUS", userAggregateId));
     }
 
@@ -200,7 +200,7 @@ public class CourseExecutionService {
         }
         CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setName(name);
-        unitOfWork.registerChanged(newExecution);
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
         unitOfWork.addEvent(new UpdateStudentNameEvent(executionAggregateId, userAggregateId, name));
     }
 
@@ -214,7 +214,7 @@ public class CourseExecutionService {
         CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
         CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setState(Aggregate.AggregateState.INACTIVE);
-        unitOfWork.registerChanged(newExecution);
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
         unitOfWork.addEvent(new DisenrollStudentFromCourseExecutionEvent(executionAggregateId, userAggregateId));
         return newExecution;
     }

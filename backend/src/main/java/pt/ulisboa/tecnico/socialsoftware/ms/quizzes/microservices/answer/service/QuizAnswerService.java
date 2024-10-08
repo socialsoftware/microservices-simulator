@@ -101,7 +101,7 @@ public class QuizAnswerService {
         
         quizAnswer.setAnswerDate(DateHandler.now());
 
-        unitOfWork.registerChanged(quizAnswer);
+        unitOfWorkService.registerChanged(quizAnswer, unitOfWork);
         return quizAnswerFactory.createQuizAnswerDto(quizAnswer);
     }
 
@@ -115,7 +115,7 @@ public class QuizAnswerService {
 
         QuestionAnswer questionAnswer = new QuestionAnswer(userAnswerDto, questionDto);
         newQuizAnswer.addQuestionAnswer(questionAnswer);
-        unitOfWork.registerChanged(newQuizAnswer);
+        unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
         unitOfWork.addEvent(new QuizAnswerQuestionAnswerEvent(newQuizAnswer.getAggregateId(), questionAnswer.getQuestionAggregateId(), quizAggregateId, userAggregateId, questionAnswer.isCorrect()));
     }
 
@@ -128,7 +128,7 @@ public class QuizAnswerService {
         QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
 
         newQuizAnswer.setCompleted(true);
-        unitOfWork.registerChanged(newQuizAnswer);
+        unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
     }
 
     /************************************************ EVENT PROCESSING ************************************************/
@@ -148,7 +148,7 @@ public class QuizAnswerService {
         if (newQuizAnswer.getStudent().getStudentAggregateId().equals(userAggregateId)) {
             newQuizAnswer.getStudent().setName(name);
             newQuizAnswer.getAnswerCourseExecution().setCourseExecutionVersion(eventVersion);
-            unitOfWork.registerChanged(newQuizAnswer);
+            unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
         }
     }
 
@@ -165,7 +165,7 @@ public class QuizAnswerService {
         QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
         newQuizAnswer.getStudent().setStudentState(Aggregate.AggregateState.DELETED);
         newQuizAnswer.setState(Aggregate.AggregateState.INACTIVE);
-        unitOfWork.registerChanged(newQuizAnswer);
+        unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
         return newQuizAnswer;
     }
 
@@ -180,7 +180,7 @@ public class QuizAnswerService {
         QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
         questionAnswer.setState(Aggregate.AggregateState.DELETED);
         newQuizAnswer.setState(Aggregate.AggregateState.INACTIVE);
-        unitOfWork.registerChanged(newQuizAnswer);
+        unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
         return newQuizAnswer;
     }
 }

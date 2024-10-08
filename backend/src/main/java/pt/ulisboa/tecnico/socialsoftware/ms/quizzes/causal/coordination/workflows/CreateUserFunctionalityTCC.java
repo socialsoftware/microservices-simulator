@@ -11,9 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.U
 public class CreateUserFunctionalityTCC extends WorkflowFunctionality {
     private UserDto userDto;
     private UserDto createdUserDto;
-
-    
-
     private final UserService userService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -33,12 +30,6 @@ public class CreateUserFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public UserDto getUserDto() {

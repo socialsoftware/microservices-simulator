@@ -6,12 +6,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizQuestion;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuizSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
@@ -23,9 +21,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
     private SagaQuizDto quiz;
     private QuizDto updatedQuizDto;
-
-    
-
     private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -58,12 +53,6 @@ public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getQuizStep);
         workflow.addStep(updateQuizStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public SagaQuizDto getQuiz() {
         return quiz;
     }

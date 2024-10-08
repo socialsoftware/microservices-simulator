@@ -28,9 +28,6 @@ public class UpdateTournamentFunctionalityTCC extends WorkflowFunctionality{
     private TournamentDto newTournamentDto;
     private QuizDto quizDto;
     private Quiz oldQuiz;
-
-    
-
     private final TournamentService tournamentService;
     private final TopicService topicService;
     private final QuizService quizService;
@@ -81,12 +78,6 @@ public class UpdateTournamentFunctionalityTCC extends WorkflowFunctionality{
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public TournamentDto getOriginalTournamentDto() {

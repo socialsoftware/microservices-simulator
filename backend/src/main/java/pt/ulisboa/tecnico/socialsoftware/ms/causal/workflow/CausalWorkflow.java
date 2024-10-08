@@ -37,6 +37,6 @@ public class CausalWorkflow extends Workflow {
             step.execute(unitOfWork);
         }
         unitOfWorkService.commit(unitOfWork);
-        return null;
+        return CompletableFuture.completedFuture(null);
     }
 }

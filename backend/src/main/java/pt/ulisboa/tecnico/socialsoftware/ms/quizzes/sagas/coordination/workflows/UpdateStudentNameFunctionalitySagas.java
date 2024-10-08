@@ -78,12 +78,6 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getStudentStep);
         workflow.addStep(updateStudentNameStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public UserDto getStudent() {
         return student;
     }

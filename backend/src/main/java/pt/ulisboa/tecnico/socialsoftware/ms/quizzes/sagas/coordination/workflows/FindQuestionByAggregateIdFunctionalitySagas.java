@@ -10,9 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class FindQuestionByAggregateIdFunctionalitySagas extends WorkflowFunctionality {
     private QuestionDto questionDto;
-
-    
-
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -33,12 +30,6 @@ public class FindQuestionByAggregateIdFunctionalitySagas extends WorkflowFunctio
 
         workflow.addStep(findQuestionStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public QuestionDto getQuestionDto() {

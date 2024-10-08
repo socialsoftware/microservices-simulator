@@ -35,6 +35,7 @@ public enum ErrorMessage {
     COURSE_EXECUTION_STUDENT_ALREADY_ENROLLED("Student with aggregate id %d is already enrolled in course execution %d."),
 
     USER_IS_ANONYMOUS("Cant add anonymous user %d."),
+    CREATOR_IS_ANONYMOUS("Cant add user %d because creator is anonymous."),
 
     QUIZ_DELETED("Quiz with aggregate id %d already deleted."),
     NOT_ENOUGH_QUESTIONS("Not enough questions to generate quiz."),

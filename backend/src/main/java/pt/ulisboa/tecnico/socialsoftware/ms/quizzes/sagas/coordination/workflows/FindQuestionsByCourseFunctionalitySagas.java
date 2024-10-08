@@ -12,9 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class FindQuestionsByCourseFunctionalitySagas extends WorkflowFunctionality {
     private List<QuestionDto> questions;
-
-    
-
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -35,12 +32,6 @@ public class FindQuestionsByCourseFunctionalitySagas extends WorkflowFunctionali
     
         workflow.addStep(findQuestionsStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public List<QuestionDto> getQuestions() {

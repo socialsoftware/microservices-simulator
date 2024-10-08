@@ -8,7 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.MergeableAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
@@ -19,7 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggr
     INTER_INVARIANTS:
  */
 @Entity
-public abstract class Course extends Aggregate implements MergeableAggregate {
+public abstract class Course extends Aggregate {
     /*
         COURSE_TYPE_FINAL
      */
@@ -65,20 +64,4 @@ public abstract class Course extends Aggregate implements MergeableAggregate {
     public String getName() {
         return name;
     }
-
-    @Override
-    public Set<String> getMutableFields() {
-        return new HashSet<>();
-    }
-
-    @Override
-    public Set<String[]> getIntentions() {
-        return new HashSet<>();
-    }
-
-    @Override
-    public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
-        return null;
-    }
-
 }

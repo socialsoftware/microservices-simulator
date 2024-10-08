@@ -187,12 +187,12 @@ public class CourseExecutionFunctionalities {
         if ("sagas".equals(workflowType)) {
             SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
             RemoveStudentFromCourseExecutionFunctionalitySagas functionality = new RemoveStudentFromCourseExecutionFunctionalitySagas(
-                    courseExecutionService, sagaUnitOfWorkService, courseExecutionFactory, userAggregateId, userAggregateId, unitOfWork);
+                    courseExecutionService, sagaUnitOfWorkService, courseExecutionFactory, courseExecutionAggregateId, userAggregateId, unitOfWork);
             functionality.executeWorkflow(unitOfWork);
         } else {
             CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
             RemoveStudentFromCourseExecutionFunctionalityTCC functionality = new RemoveStudentFromCourseExecutionFunctionalityTCC(
-                    courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, userAggregateId, userAggregateId, unitOfWork);
+                    courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, courseExecutionAggregateId, userAggregateId, unitOfWork);
             functionality.executeWorkflow(unitOfWork);
         }
     }

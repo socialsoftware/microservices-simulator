@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
@@ -76,7 +77,7 @@ public class TournamentService {
 
         Tournament tournament = tournamentFactory.createTournament(aggregateId, tournamentDto, creatorDto, courseExecutionDto, topicDtos, quizDto); /* should the skeleton creation be part of the functionality?? */
 
-        unitOfWork.registerChanged(tournament);
+        unitOfWorkService.registerChanged(tournament, unitOfWork);
         return tournamentFactory.createTournamentDto(tournament);
     }
 
@@ -90,11 +91,15 @@ public class TournamentService {
         }
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
 
+        if (oldTournament.getState().equals(AggregateState.INACTIVE)) {
+            throw new TutorException(ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE, tournamentAggregateId);
+        }
+
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
         newTournament.addParticipant(tournamentParticipant);
 
-        unitOfWork.registerChanged(newTournament);
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
     @Retryable(
@@ -107,17 +112,17 @@ public class TournamentService {
 
         if (tournamentDto.getStartTime() != null ) {
             newTournament.setStartTime(DateHandler.toLocalDateTime(tournamentDto.getStartTime()));
-            unitOfWork.registerChanged(newTournament);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
         if (tournamentDto.getEndTime() != null ) {
             newTournament.setEndTime(DateHandler.toLocalDateTime(tournamentDto.getEndTime()));
-            unitOfWork.registerChanged(newTournament);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
         if (tournamentDto.getNumberOfQuestions() != null ) {
             newTournament.setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
-            unitOfWork.registerChanged(newTournament);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
         if (topicDtos != null && !topicDtos.isEmpty() ) {
@@ -126,7 +131,7 @@ public class TournamentService {
                     .collect(Collectors.toSet());
 
             newTournament.setTournamentTopics(tournamentTopics);
-            unitOfWork.registerChanged(newTournament);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
         return tournamentFactory.createTournamentDto(newTournament);
@@ -186,7 +191,7 @@ public class TournamentService {
             throw new TutorException(TOURNAMENT_PARTICIPANT_NOT_FOUND, userAggregateId, tournamentAggregateId);
         }
         newTournament.removeParticipant(participantToRemove);
-        unitOfWork.registerChanged(newTournament);
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
     @Retryable(
@@ -201,7 +206,7 @@ public class TournamentService {
             throw new TutorException(TOURNAMENT_PARTICIPANT_NOT_FOUND, userAggregateId, tournamentAggregateId);
         }
         participant.answerQuiz();
-        unitOfWork.registerChanged(newTournament);
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
     @Retryable(
@@ -212,7 +217,7 @@ public class TournamentService {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         newTournament.cancel();
-        unitOfWork.registerChanged(newTournament);
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
     @Retryable(
@@ -223,7 +228,7 @@ public class TournamentService {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         newTournament.remove();
-        unitOfWork.registerChanged(newTournament);
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
 
@@ -246,7 +251,7 @@ public class TournamentService {
             newTournament.getTournamentCreator().setCreatorUsername(username);
             newTournament.getTournamentCourseExecution().setCourseExecutionVersion(eventVersion);
             newTournament.setState(Aggregate.AggregateState.INACTIVE);
-            unitOfWork.registerChanged(newTournament);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
         for (TournamentParticipant tp : newTournament.getTournamentParticipants()) {
@@ -254,7 +259,7 @@ public class TournamentService {
                 tp.setParticipantName(name);
                 tp.setParticipantUsername(username);
                 newTournament.getTournamentCourseExecution().setCourseExecutionVersion(eventVersion);
-                unitOfWork.registerChanged(newTournament);
+                unitOfWorkService.registerChanged(newTournament, unitOfWork);
             }
         }
         return newTournament;
@@ -273,7 +278,7 @@ public class TournamentService {
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         if (newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId().equals(courseExecutionId)) {
             newTournament.setState(Aggregate.AggregateState.INACTIVE);
-            unitOfWork.registerChanged(newTournament);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
         return newTournament;
     }
@@ -290,7 +295,7 @@ public class TournamentService {
             newTournament.getTournamentCreator().setCreatorState(Aggregate.AggregateState.INACTIVE);
             newTournament.setState(Aggregate.AggregateState.INACTIVE);
             newTournament.getTournamentCourseExecution().setCourseExecutionVersion(eventVersion);
-            unitOfWork.registerChanged(newTournament);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
         TournamentParticipant tournamentParticipant  = newTournament.findParticipant(userAggregateId);
@@ -298,7 +303,7 @@ public class TournamentService {
             tournamentParticipant.setState(Aggregate.AggregateState.DELETED);
             newTournament.getTournamentCourseExecution().setCourseExecutionVersion(eventVersion);
             //tournamentParticipant.setVersion(eventVersion);
-            unitOfWork.registerChanged(newTournament);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
         return newTournament;
     }
@@ -316,7 +321,7 @@ public class TournamentService {
         }
         topic.setTopicName(topicName);
         topic.setTopicVersion(eventVersion);
-        unitOfWork.registerChanged(newTournament);
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
 
         return newTournament;
     }
@@ -348,7 +353,7 @@ public class TournamentService {
             newTournament.setState(Aggregate.AggregateState.INACTIVE);
         }
 
-        unitOfWork.registerChanged(newTournament);
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
         return newTournament;
     }
 
@@ -379,7 +384,7 @@ public class TournamentService {
             }
         }
         tournamentParticipant.updateAnswerWithQuestion(quizAnswerAggregateId, quizAnswerAggregateId, isCorrect, eventVersion);
-        unitOfWork.registerChanged(newTournament);
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
         return newTournament;
     }
 
@@ -407,7 +412,7 @@ public class TournamentService {
         if (quizDto1 != null) {
             newTournament.getTournamentQuiz().setQuizAggregateId(quizDto1.getAggregateId());
             newTournament.getTournamentQuiz().setQuizVersion(quizDto1.getVersion());
-            unitOfWork.registerChanged(newTournament);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
         return newTournament;
@@ -428,14 +433,14 @@ public class TournamentService {
         if (newTournament.getTournamentCreator().getCreatorAggregateId().equals(userAggregateId)) {
             newTournament.getTournamentCreator().setCreatorName(name);
             newTournament.getTournamentCourseExecution().setCourseExecutionVersion(eventVersion);
-            unitOfWork.registerChanged(newTournament);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
         for (TournamentParticipant tp : newTournament.getTournamentParticipants()) {
             if (tp.getParticipantAggregateId().equals(userAggregateId)) {
                 tp.setParticipantName(name);
                 newTournament.getTournamentCourseExecution().setCourseExecutionVersion(eventVersion);
-                unitOfWork.registerChanged(newTournament);
+                unitOfWorkService.registerChanged(newTournament, unitOfWork);
             }
         }
     }

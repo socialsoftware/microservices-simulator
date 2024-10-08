@@ -196,4 +196,28 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     public void throwException(Integer aggregateId) {
         throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, aggregateId);
     }
+
+    @Override
+    public void registerChanged(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
+        // the id set to null to force a new entry in the db
+        //aggregate.setId(null);
+        unitOfWork.getAggregatesToCommit().put(aggregate.getAggregateId(), aggregate);
+
+        Map<Integer, Aggregate> aggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
+
+        Integer commitVersion = versionService.incrementAndGetVersionNumber();
+
+        aggregatesToCommit.values().forEach(aggregateToWrite -> {
+            aggregateToWrite.setVersion(commitVersion);
+            aggregateToWrite.setCreationTs(DateHandler.now());
+            entityManager.persist(aggregateToWrite);
+        });
+
+        unitOfWork.getEventsToEmit().forEach(e -> {
+            /* this is so event detectors can compare this version to those of running transactions */
+            e.setPublisherAggregateVersion(commitVersion);
+            eventRepository.save(e);
+        });
+        unitOfWork.setVersion(unitOfWork.getVersion()+1);
+    }
 }

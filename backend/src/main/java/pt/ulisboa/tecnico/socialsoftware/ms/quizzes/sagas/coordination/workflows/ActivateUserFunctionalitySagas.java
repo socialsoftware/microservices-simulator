@@ -55,10 +55,7 @@ public class ActivateUserFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(activateUserStep);
     }
 
-    @Override
-    public void handleEvents() {
-
-    }    
+        
 
     public SagaUserDto getUser() {
         return user;

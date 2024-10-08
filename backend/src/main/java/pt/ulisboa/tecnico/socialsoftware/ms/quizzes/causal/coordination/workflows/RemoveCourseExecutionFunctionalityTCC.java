@@ -10,9 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.serv
 
 public class RemoveCourseExecutionFunctionalityTCC extends WorkflowFunctionality {
     private CausalCourseExecution courseExecution;
-
-    
-
     private final CourseExecutionService courseExecutionService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -32,12 +29,6 @@ public class RemoveCourseExecutionFunctionalityTCC extends WorkflowFunctionality
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public CausalCourseExecution getCourseExecution() {

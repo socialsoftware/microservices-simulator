@@ -12,9 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class GetAvailableQuizzesFunctionalitySagas extends WorkflowFunctionality {
     private List<QuizDto> availableQuizzes;
-
-    
-
     private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -35,12 +32,6 @@ public class GetAvailableQuizzesFunctionalitySagas extends WorkflowFunctionality
     
         workflow.addStep(getAvailableQuizzesStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public List<QuizDto> getAvailableQuizzes() {

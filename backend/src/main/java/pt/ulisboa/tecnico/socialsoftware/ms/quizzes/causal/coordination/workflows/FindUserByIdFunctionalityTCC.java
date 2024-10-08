@@ -10,9 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.U
 
 public class FindUserByIdFunctionalityTCC extends WorkflowFunctionality {
     private UserDto userDto;
-
-    
-
     private final UserService userService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -33,12 +30,6 @@ public class FindUserByIdFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public UserDto getUserDto() {

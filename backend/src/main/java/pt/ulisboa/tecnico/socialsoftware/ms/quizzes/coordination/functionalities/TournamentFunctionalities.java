@@ -254,7 +254,7 @@ public class TournamentFunctionalities {
             SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
             SolveQuizFunctionalitySagas functionality = new SolveQuizFunctionalitySagas(
                     tournamentService, quizService, quizAnswerService, sagaUnitOfWorkService, tournamentFactory, 
-                    userAggregateId, userAggregateId, unitOfWork);
+                    tournamentAggregateId, userAggregateId, unitOfWork);
 
             functionality.executeWorkflow(unitOfWork);
             return functionality.getQuizDto();
@@ -262,7 +262,7 @@ public class TournamentFunctionalities {
             CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
             SolveQuizFunctionalityTCC functionality = new SolveQuizFunctionalityTCC(
                     tournamentService, quizService, quizAnswerService, causalUnitOfWorkService, tournamentFactory, 
-                    userAggregateId, userAggregateId, unitOfWork);
+                    tournamentAggregateId, userAggregateId, unitOfWork);
 
             functionality.executeWorkflow(unitOfWork);
             return functionality.getQuizDto();

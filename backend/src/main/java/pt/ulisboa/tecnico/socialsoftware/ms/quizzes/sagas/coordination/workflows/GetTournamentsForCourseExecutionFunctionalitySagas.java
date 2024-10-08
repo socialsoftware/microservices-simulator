@@ -12,9 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class GetTournamentsForCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
     private List<TournamentDto> tournaments;
-
-    
-
     private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -35,12 +32,6 @@ public class GetTournamentsForCourseExecutionFunctionalitySagas extends Workflow
     
         workflow.addStep(getTournamentsStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public List<TournamentDto> getTournaments() {

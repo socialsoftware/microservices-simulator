@@ -46,12 +46,6 @@ public class AddParticipantFunctionalityTCC extends WorkflowFunctionality {
         this.workflow.addStep(step);
     }
 
-    @Override
-    public void handleEvents() {
-    }
-
-    
-
     public void setTournamentDto(TournamentDto tournamentDto) {
         this.tournamentDto = tournamentDto;
     }

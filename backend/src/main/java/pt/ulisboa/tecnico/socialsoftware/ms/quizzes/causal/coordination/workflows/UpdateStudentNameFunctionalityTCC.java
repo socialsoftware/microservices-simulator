@@ -34,12 +34,6 @@ public class UpdateStudentNameFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public CausalUser getStudent() {

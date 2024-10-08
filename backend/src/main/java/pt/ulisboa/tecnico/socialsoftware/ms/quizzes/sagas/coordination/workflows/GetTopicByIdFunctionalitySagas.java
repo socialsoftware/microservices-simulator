@@ -10,9 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class GetTopicByIdFunctionalitySagas extends WorkflowFunctionality {
     private TopicDto topicDto;
-
-    
-
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -33,12 +30,6 @@ public class GetTopicByIdFunctionalitySagas extends WorkflowFunctionality {
     
         workflow.addStep(getTopicStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public void setTopicDto(TopicDto topicDto) {

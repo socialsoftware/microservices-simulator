@@ -18,9 +18,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
     
     private SagaQuizDto quizDto;
-
-    
-
     private final QuizAnswerService quizAnswerService;
     private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -53,12 +50,6 @@ public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getQuizStep);
         workflow.addStep(startQuizStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public QuizDto getQuizDto() {

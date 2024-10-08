@@ -12,9 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.servi
 
 public class FindQuestionsByCourseFunctionalityTCC extends WorkflowFunctionality {
     private List<QuestionDto> questions;
-
-    
-
     private final QuestionService questionService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -34,12 +31,6 @@ public class FindQuestionsByCourseFunctionalityTCC extends WorkflowFunctionality
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public List<QuestionDto> getQuestions() {

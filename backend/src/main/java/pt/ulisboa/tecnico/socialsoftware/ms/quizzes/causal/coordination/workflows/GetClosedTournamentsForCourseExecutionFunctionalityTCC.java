@@ -12,9 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 
 public class GetClosedTournamentsForCourseExecutionFunctionalityTCC extends WorkflowFunctionality {
     private List<TournamentDto> closedTournaments;
-
-    
-
     private final TournamentService tournamentService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -34,12 +31,6 @@ public class GetClosedTournamentsForCourseExecutionFunctionalityTCC extends Work
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
 

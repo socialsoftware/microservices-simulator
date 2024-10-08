@@ -12,9 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.servi
 
 public class UpdateQuestionFunctionalityTCC extends WorkflowFunctionality {
     private Question oldQuestion;
-
-    
-
     private final QuestionService questionService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -34,12 +31,6 @@ public class UpdateQuestionFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public Question getOldQuestion() {

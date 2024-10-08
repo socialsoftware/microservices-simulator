@@ -17,9 +17,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class RemoveStudentFromCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
     
     private SagaCourseExecutionDto oldCourseExecution;
-
-    
-
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -50,12 +47,6 @@ public class RemoveStudentFromCourseExecutionFunctionalitySagas extends Workflow
         workflow.addStep(getOldCourseExecutionStep);
         workflow.addStep(removeStudentStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public SagaCourseExecutionDto getOldCourseExecution() {

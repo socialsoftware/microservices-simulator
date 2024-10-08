@@ -50,7 +50,6 @@ public class ExecutionPlan {
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
             if (dependencies.get(step).isEmpty()) {
-                functionality.handleEvents();
                 this.stepFutures.put(step, step.execute(unitOfWork)); // execute and save the steps with no dependencies
                 executedSteps.put(step, true);
             }
@@ -63,7 +62,6 @@ public class ExecutionPlan {
                 CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
                     deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
                 );
-                functionality.handleEvents();
                 this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // only executes after all dependencies are completed
             }
         }
@@ -76,7 +74,6 @@ public class ExecutionPlan {
         for (FlowStep step : plan) {
             if (!executedSteps.get(step) && dependencies.get(step).stream().allMatch(dep -> executedSteps.get(dep))) {
                 executedSteps.put(step, true);
-                functionality.handleEvents();
                 return step.execute(unitOfWork).thenRun(() -> { /* Next step will be executed in test case */ });
             }
         }
@@ -87,7 +84,6 @@ public class ExecutionPlan {
 
         for (FlowStep step : steps) {
             if (dependencies.get(step).isEmpty()) {
-                functionality.handleEvents();
                 this.stepFutures.put(step, step.execute(unitOfWork));
             }
         }
@@ -98,7 +94,6 @@ public class ExecutionPlan {
                 CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(
                         deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new)
                 );
-                functionality.handleEvents();
                 this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork)));
             }
         }

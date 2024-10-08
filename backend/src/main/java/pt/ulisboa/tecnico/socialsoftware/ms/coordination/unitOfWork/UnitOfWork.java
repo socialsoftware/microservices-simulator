@@ -62,7 +62,4 @@ public abstract class UnitOfWork {
 
     public void addEvent(Event event) {
         this.eventsToEmit.add(event);
-    }
-
-    
-}
+    }}

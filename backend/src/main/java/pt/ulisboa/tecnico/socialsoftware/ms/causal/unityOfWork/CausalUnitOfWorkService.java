@@ -192,4 +192,11 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         // Not needed
     }
 
+    @Override
+    public void registerChanged(Aggregate aggregate, CausalUnitOfWork unitOfWork) {
+        // the id set to null to force a new entry in the db
+        aggregate.setId(null);
+        unitOfWork.getAggregatesToCommit().put(aggregate.getAggregateId(), aggregate);
+    }
+
 }

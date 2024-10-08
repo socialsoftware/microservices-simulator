@@ -16,10 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
     private SagaTournamentDto tournament;
-    private UserDto participant;
-
-    
-    private final TournamentService tournamentService;
+    private UserDto participant;    private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
     public FindParticipantFunctionalitySagas(TournamentService tournamentService, SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
@@ -50,10 +47,7 @@ public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
         this.workflow.addStep(getParticipantStep);
     }
 
-    @Override
-    public void handleEvents() {
-
-    }    
+        
 
     public void setTournament(SagaTournamentDto tournament) {
         this.tournament = tournament;

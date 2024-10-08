@@ -12,9 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 
 public class RemoveTournamentFunctionalityTCC extends WorkflowFunctionality {
     private Tournament tournament;
-
-    
-
     private final TournamentService tournamentService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -36,12 +33,6 @@ public class RemoveTournamentFunctionalityTCC extends WorkflowFunctionality {
         workflow.addStep(step);
     }
 
-    @Override
-    public void handleEvents() {
-    }
-
-    
-    
     public Tournament getTournament() {
         return tournament;
     }

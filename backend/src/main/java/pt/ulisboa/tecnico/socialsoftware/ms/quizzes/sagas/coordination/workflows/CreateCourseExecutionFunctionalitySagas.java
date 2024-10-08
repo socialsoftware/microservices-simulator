@@ -12,9 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
     private SagaCourseExecutionDto courseExecutionDto;
     private SagaCourseExecutionDto createdCourseExecution;
-
-    
-
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -35,12 +32,6 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
 
         workflow.addStep(createCourseExecutionStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public CourseExecutionDto getCourseExecutionDto() {
         return courseExecutionDto;
     }

@@ -16,9 +16,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
 
     private SagaUserDto user;
-
-    
-
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -49,12 +46,6 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getUserStep);
         workflow.addStep(deleteUserStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public SagaUserDto getUser() {
         return user;
     }

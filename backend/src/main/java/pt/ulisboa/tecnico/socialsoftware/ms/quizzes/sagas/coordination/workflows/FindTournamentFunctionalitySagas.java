@@ -10,9 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class FindTournamentFunctionalitySagas extends WorkflowFunctionality {
     private TournamentDto tournamentDto;
-
-    
-
     private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -33,12 +30,6 @@ public class FindTournamentFunctionalitySagas extends WorkflowFunctionality {
     
         workflow.addStep(findTournamentStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public TournamentDto getTournamentDto() {
         return tournamentDto;
     }

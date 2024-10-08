@@ -11,9 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate
 public class FindParticipantFunctionalityTCC extends WorkflowFunctionality {
     private Tournament tournament;
     private UserDto participant;
-
-    
-
     private final CausalUnitOfWorkService unitOfWorkService;
 
     public FindParticipantFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork) {
@@ -32,12 +29,6 @@ public class FindParticipantFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public void setTournament(Tournament tournament) {

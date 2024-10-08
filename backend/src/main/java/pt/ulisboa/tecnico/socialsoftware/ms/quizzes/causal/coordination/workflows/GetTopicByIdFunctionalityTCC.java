@@ -10,9 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.
 
 public class GetTopicByIdFunctionalityTCC extends WorkflowFunctionality {
     private TopicDto topicDto;
-
-    
-
     private final TopicService topicService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -32,12 +29,6 @@ public class GetTopicByIdFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public void setTopicDto(TopicDto topicDto) {

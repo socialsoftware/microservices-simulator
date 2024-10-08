@@ -10,9 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.servi
 
 public class RemoveQuestionFunctionalityTCC extends WorkflowFunctionality {
     private CausalQuestion question;
-
-    
-
     private final QuestionService questionService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -32,12 +29,6 @@ public class RemoveQuestionFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public CausalQuestion getQuestion() {

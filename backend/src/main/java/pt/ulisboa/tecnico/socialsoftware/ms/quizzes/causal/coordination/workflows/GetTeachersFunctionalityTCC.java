@@ -12,9 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.U
 
 public class GetTeachersFunctionalityTCC extends WorkflowFunctionality {
     private List<UserDto> teachers;
-
-    
-
     private final UserService userService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -34,12 +31,6 @@ public class GetTeachersFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public List<UserDto> getTeachers() {

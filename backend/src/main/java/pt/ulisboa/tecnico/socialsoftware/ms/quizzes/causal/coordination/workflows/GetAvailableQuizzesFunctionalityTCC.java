@@ -12,9 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.Q
 
 public class GetAvailableQuizzesFunctionalityTCC extends WorkflowFunctionality {
     private List<QuizDto> availableQuizzes;
-
-    
-
     private final QuizService quizService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -34,12 +31,6 @@ public class GetAvailableQuizzesFunctionalityTCC extends WorkflowFunctionality {
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public List<QuizDto> getAvailableQuizzes() {

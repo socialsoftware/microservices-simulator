@@ -47,12 +47,6 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getTopicStep);
         workflow.addStep(deleteTopicStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public SagaTopicDto getTopic() {
         return topic;
     }

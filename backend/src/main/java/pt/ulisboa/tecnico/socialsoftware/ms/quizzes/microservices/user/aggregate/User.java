@@ -11,7 +11,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.MergeableAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 
@@ -22,7 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.Tuto
     INTER_INVARIANTS:
  */
 @Entity
-public abstract class User extends Aggregate implements MergeableAggregate {
+public abstract class User extends Aggregate {
     @Column
     private String name;
     @Column
@@ -111,20 +110,5 @@ public abstract class User extends Aggregate implements MergeableAggregate {
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
         return new HashSet<>();
-    }
-
-    @Override
-    public Set<String> getMutableFields() {
-        return Set.of("name", "username", "active");
-    }
-
-    @Override
-    public Set<String[]> getIntentions() {
-        return new HashSet<>();
-    }
-
-    @Override
-    public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
-        return this;
     }
 }

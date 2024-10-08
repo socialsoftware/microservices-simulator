@@ -17,9 +17,6 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
 
 
     private SagaCourseExecutionDto courseExecution;
-
-    
-
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -50,12 +47,6 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         workflow.addStep(getCourseExecutionStep);
         workflow.addStep(removeCourseExecutionStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     public SagaCourseExecutionDto getCourseExecution() {
         return courseExecution;
     }

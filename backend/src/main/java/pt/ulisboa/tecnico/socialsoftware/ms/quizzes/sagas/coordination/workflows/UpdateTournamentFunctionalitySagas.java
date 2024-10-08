@@ -37,9 +37,6 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
     private TournamentDto newTournamentDto;
     private QuizDto quizDto;
     private Quiz quiz;
-
-    
-
     private final TournamentService tournamentService;
     private final TopicService topicService;
     private final QuizService quizService;
@@ -90,7 +87,9 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
     
         updateTournamentStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(newTournamentDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            if (newTournamentDto != null) {
+                unitOfWorkService.registerSagaState(newTournamentDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            }
         }, unitOfWork);
     
         SagaSyncStep updateQuizStep = new SagaSyncStep("updateQuizStep", () -> {
@@ -125,12 +124,6 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
         workflow.addStep(updateTournamentStep);
         workflow.addStep(updateQuizStep);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public SagaTournamentDto getOriginalTournamentDto() {

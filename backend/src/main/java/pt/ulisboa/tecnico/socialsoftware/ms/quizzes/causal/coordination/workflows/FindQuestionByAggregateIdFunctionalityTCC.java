@@ -10,9 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.servi
 
 public class FindQuestionByAggregateIdFunctionalityTCC extends WorkflowFunctionality {
     private QuestionDto questionDto;
-
-    
-
     private final QuestionService questionService;
     private final CausalUnitOfWorkService unitOfWorkService;
 
@@ -32,12 +29,6 @@ public class FindQuestionByAggregateIdFunctionalityTCC extends WorkflowFunctiona
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public QuestionDto getQuestionDto() {

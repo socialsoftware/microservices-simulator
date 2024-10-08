@@ -77,7 +77,7 @@ public class QuestionService {
                 .collect(Collectors.toList());
 
         Question question = questionFactory.createQuestion(aggregateId, course, questionDto, questionTopics);
-        unitOfWork.registerChanged(question);
+        unitOfWorkService.registerChanged(question, unitOfWork);
         return questionFactory.createQuestionDto(question);
     }
 
@@ -92,7 +92,7 @@ public class QuestionService {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
         newQuestion.update(questionDto);
-        unitOfWork.registerChanged(newQuestion);
+        unitOfWorkService.registerChanged(newQuestion, unitOfWork);
         unitOfWork.addEvent(new UpdateQuestionEvent(newQuestion.getAggregateId(), newQuestion.getTitle(), newQuestion.getContent()));
     }
 
@@ -104,7 +104,7 @@ public class QuestionService {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
         newQuestion.remove();
-        unitOfWork.registerChanged(newQuestion);
+        unitOfWorkService.registerChanged(newQuestion, unitOfWork);
         unitOfWork.addEvent(new DeleteQuestionEvent(newQuestion.getAggregateId()));
     }
 
@@ -116,7 +116,7 @@ public class QuestionService {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
         newQuestion.setQuestionTopics(topics);
-        unitOfWork.registerChanged(newQuestion);
+        unitOfWorkService.registerChanged(newQuestion, unitOfWork);
     }
 
     @Retryable(
@@ -160,7 +160,7 @@ public class QuestionService {
         */
         questionTopic.setTopicName(topicName);
         questionTopic.setTopicVersion(aggregateVersion);
-        unitOfWork.registerChanged(newQuestion);
+        unitOfWorkService.registerChanged(newQuestion, unitOfWork);
         return newQuestion;
     }
 
@@ -179,7 +179,7 @@ public class QuestionService {
         if(questionTopic != null) {
             questionTopic.setState(Aggregate.AggregateState.INACTIVE);
         }
-        unitOfWork.registerChanged(newQuestion);
+        unitOfWorkService.registerChanged(newQuestion, unitOfWork);
         return newQuestion;
     }
 

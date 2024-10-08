@@ -19,9 +19,6 @@ public class UpdateQuestionTopicsFunctionalityTCC extends WorkflowFunctionality 
     private Set<QuestionTopic> topics;
     private Question oldQuestion;
     private Set<QuestionTopic> oldTopics;
-
-    
-
     private final QuestionService questionService;
     private final TopicService topicService;
     private final CausalUnitOfWorkService unitOfWorkService;
@@ -49,12 +46,6 @@ public class UpdateQuestionTopicsFunctionalityTCC extends WorkflowFunctionality 
     
         workflow.addStep(step);
     }
-
-    @Override
-    public void handleEvents() {
-
-    }
-
     
 
     public Set<QuestionTopic> getTopics() {

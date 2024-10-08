@@ -61,13 +61,6 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(removeTournamentStep);
     }
 
-    @Override
-    public void handleEvents() {
-        
-    }
-
-    
-    
     public SagaTournamentDto getTournament() {
         return tournament;
     }
