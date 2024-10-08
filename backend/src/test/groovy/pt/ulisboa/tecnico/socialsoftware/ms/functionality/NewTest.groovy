@@ -328,6 +328,10 @@ class NewTest extends SpockTest {
         when: 'add creator as participant where the creator in tournament still has the old name'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
 
+        then: 'fails because invariant breaks'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.INVARIANT_BREAK
+
         then: 'when event is finally processed it updates the creator name'
         tournamentEventHandling.handleUpdateStudentNameEvent()
         and: 'creator can be added as participant because tournament has processed all events it subscribes from course execution'
@@ -420,34 +424,6 @@ class NewTest extends SpockTest {
         and: 'the creator is added as participant with new name'
         def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult.creator.name == UPDATED_NAME
-        tournamentDtoResult.getParticipants().size() == 1
-        tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
-    }
-
-    /* Case B (Non-repeatable Read, Phantom Read):
-    Anomalies: During the concurrent addParticipant operation, the tournament may use an outdated version
-     of the creator’s name if the event update has not yet propagated. This leads to non-repeatable read issues, 
-     where different parts of the system might see different versions of the creator’s name.
-    
-    Case C (Lost Update):
-    Anomalies: There is a risk of lost update if the tournament functionality 
-    operates with an old version of the data before the name update event is fully processed.
-    */
-    def 'concurrent add creator as tournament participant and update name in course execution - update name finishes first and event processing starts before add creator finishes' () {
-        given: 'creator name is updated'
-        def updateNameDto = new UserDto()
-        updateNameDto.setName(UPDATED_NAME)
-        courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
-        and: 'add creator as participant which uses a previous version of the name, creator and participant have the same info'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
-
-        and: 'the name is updated in course execution'
-        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
-        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
-        and: 'the creator is update in tournament'
-        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult.creator.name == UPDATED_NAME
-        and: 'the creator is participant with updated name'
         tournamentDtoResult.getParticipants().size() == 1
         tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
     }

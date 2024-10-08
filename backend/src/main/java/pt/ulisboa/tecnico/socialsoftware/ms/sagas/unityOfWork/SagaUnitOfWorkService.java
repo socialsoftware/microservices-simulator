@@ -170,6 +170,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         Integer commitVersion = versionService.incrementAndGetVersionNumber();
 
         aggregatesToCommit.values().forEach(aggregateToWrite -> {
+            aggregateToWrite.verifyInvariants();
             aggregateToWrite.setVersion(commitVersion);
             aggregateToWrite.setCreationTs(DateHandler.now());
             entityManager.persist(aggregateToWrite);

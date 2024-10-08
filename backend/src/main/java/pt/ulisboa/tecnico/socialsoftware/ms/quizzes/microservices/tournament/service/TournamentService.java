@@ -423,6 +423,7 @@ public class TournamentService {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateUserName(Integer tournamentAggregateId, Integer executionAggregateId, Integer eventVersion, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
+        boolean changes = false;
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
@@ -433,15 +434,18 @@ public class TournamentService {
         if (newTournament.getTournamentCreator().getCreatorAggregateId().equals(userAggregateId)) {
             newTournament.getTournamentCreator().setCreatorName(name);
             newTournament.getTournamentCourseExecution().setCourseExecutionVersion(eventVersion);
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+            changes = true;
         }
 
         for (TournamentParticipant tp : newTournament.getTournamentParticipants()) {
             if (tp.getParticipantAggregateId().equals(userAggregateId)) {
                 tp.setParticipantName(name);
                 newTournament.getTournamentCourseExecution().setCourseExecutionVersion(eventVersion);
-                unitOfWorkService.registerChanged(newTournament, unitOfWork);
+                changes = true;
             }
+        }
+        if (changes) {
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
     }
 }
