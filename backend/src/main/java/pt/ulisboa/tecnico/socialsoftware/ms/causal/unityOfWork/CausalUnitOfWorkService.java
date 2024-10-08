@@ -199,4 +199,9 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         unitOfWork.getAggregatesToCommit().put(aggregate.getAggregateId(), aggregate);
     }
 
+    @Override
+    public void registerEvent(Event event, CausalUnitOfWork unitOfWork) {
+        unitOfWork.addEvent(event);
+    }
+
 }

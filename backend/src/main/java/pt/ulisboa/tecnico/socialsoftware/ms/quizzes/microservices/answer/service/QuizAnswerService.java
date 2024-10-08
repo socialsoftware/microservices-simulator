@@ -116,7 +116,7 @@ public class QuizAnswerService {
         QuestionAnswer questionAnswer = new QuestionAnswer(userAnswerDto, questionDto);
         newQuizAnswer.addQuestionAnswer(questionAnswer);
         unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
-        unitOfWork.addEvent(new QuizAnswerQuestionAnswerEvent(newQuizAnswer.getAggregateId(), questionAnswer.getQuestionAggregateId(), quizAggregateId, userAggregateId, questionAnswer.isCorrect()));
+        unitOfWorkService.registerEvent(new QuizAnswerQuestionAnswerEvent(newQuizAnswer.getAggregateId(), questionAnswer.getQuestionAggregateId(), quizAggregateId, userAggregateId, questionAnswer.isCorrect()), unitOfWork);
     }
 
     @Retryable(

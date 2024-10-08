@@ -82,7 +82,7 @@ public class TopicService {
         Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
         newTopic.setName(topicDto.getName());
         unitOfWorkService.registerChanged(newTopic, unitOfWork);
-        unitOfWork.addEvent(new UpdateTopicEvent(newTopic.getAggregateId(), newTopic.getName()));
+        unitOfWorkService.registerEvent(new UpdateTopicEvent(newTopic.getAggregateId(), newTopic.getName()), unitOfWork);
     }
 
     @Retryable(
@@ -94,6 +94,6 @@ public class TopicService {
         Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
         newTopic.remove();
         unitOfWorkService.registerChanged(newTopic, unitOfWork);
-        unitOfWork.addEvent(new DeleteTopicEvent(newTopic.getAggregateId()));
+        unitOfWorkService.registerEvent(new DeleteTopicEvent(newTopic.getAggregateId()), unitOfWork);
     }
 }

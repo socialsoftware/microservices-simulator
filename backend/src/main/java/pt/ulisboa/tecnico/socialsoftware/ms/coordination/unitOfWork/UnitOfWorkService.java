@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 
 @Service
 public abstract class UnitOfWorkService<U extends UnitOfWork> {
@@ -30,6 +31,9 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public abstract void registerChanged(Aggregate aggregate, U unitOfWork);
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public abstract void registerEvent(Event event, U unitOfWork);
 
     @Retryable(
             value = { SQLException.class },

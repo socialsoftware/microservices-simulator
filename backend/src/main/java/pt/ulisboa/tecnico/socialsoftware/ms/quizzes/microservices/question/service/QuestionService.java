@@ -93,7 +93,7 @@ public class QuestionService {
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
         newQuestion.update(questionDto);
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
-        unitOfWork.addEvent(new UpdateQuestionEvent(newQuestion.getAggregateId(), newQuestion.getTitle(), newQuestion.getContent()));
+        unitOfWorkService.registerEvent(new UpdateQuestionEvent(newQuestion.getAggregateId(), newQuestion.getTitle(), newQuestion.getContent()), unitOfWork);
     }
 
     @Retryable(
@@ -105,7 +105,7 @@ public class QuestionService {
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
         newQuestion.remove();
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
-        unitOfWork.addEvent(new DeleteQuestionEvent(newQuestion.getAggregateId()));
+        unitOfWorkService.registerEvent(new DeleteQuestionEvent(newQuestion.getAggregateId()), unitOfWork);
     }
 
     @Retryable(

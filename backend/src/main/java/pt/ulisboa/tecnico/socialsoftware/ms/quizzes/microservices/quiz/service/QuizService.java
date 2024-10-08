@@ -261,7 +261,7 @@ public class QuizService {
         if (quizQuestion != null) {
             newQuiz.setState(Aggregate.AggregateState.INACTIVE);
             quizQuestion.setState(Aggregate.AggregateState.DELETED);
-            unitOfWork.addEvent(new InvalidateQuizEvent(newQuiz.getAggregateId()));
+            unitOfWorkService.registerEvent(new InvalidateQuizEvent(newQuiz.getAggregateId()), unitOfWork);
         }
     }
 }

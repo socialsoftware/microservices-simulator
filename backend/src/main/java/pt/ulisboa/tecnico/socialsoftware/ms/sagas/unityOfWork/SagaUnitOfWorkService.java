@@ -23,6 +23,7 @@ import jakarta.persistence.EntityManager;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
@@ -146,11 +147,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
         commitAllObjects(commitVersion, aggregatesToCommit);
 
-        unitOfWork.getEventsToEmit().forEach(e -> {
-            /* this is so event detectors can compare this version to those of running transactions */
-            e.setPublisherAggregateVersion(commitVersion);
-            eventRepository.save(e);
-        });
         logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
     }
 
@@ -212,12 +208,16 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             aggregateToWrite.setCreationTs(DateHandler.now());
             entityManager.persist(aggregateToWrite);
         });
+        
+        unitOfWork.setVersion(unitOfWork.getVersion()+1);
+    }
 
-        unitOfWork.getEventsToEmit().forEach(e -> {
-            /* this is so event detectors can compare this version to those of running transactions */
-            e.setPublisherAggregateVersion(commitVersion);
-            eventRepository.save(e);
-        });
+    @Override
+    public void registerEvent(Event event, SagaUnitOfWork unitOfWork) {
+        unitOfWork.getEventsToEmit().add(event);
+        Integer commitVersion = versionService.incrementAndGetVersionNumber();
+        event.setPublisherAggregateVersion(commitVersion);
+        eventRepository.save(event);
         unitOfWork.setVersion(unitOfWork.getVersion()+1);
     }
 }

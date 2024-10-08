@@ -86,7 +86,7 @@ public class UserService {
         User newUser = userFactory.createUserFromExisting(oldUser);
         newUser.remove();
         unitOfWork.registerChanged(newUser);
-        unitOfWork.addEvent(new DeleteUserEvent(newUser.getAggregateId()));
+        unitOfWorkService.registerEvent(new DeleteUserEvent(newUser.getAggregateId()), unitOfWork);
     }
 
     @Retryable(

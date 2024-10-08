@@ -111,7 +111,7 @@ public class CourseExecutionService {
 
         newCourseExecution.remove();
         unitOfWorkService.registerChanged(newCourseExecution, unitOfWork);
-        unitOfWork.addEvent(new DeleteCourseExecutionEvent(newCourseExecution.getAggregateId()));
+        unitOfWorkService.registerEvent(new DeleteCourseExecutionEvent(newCourseExecution.getAggregateId()), unitOfWork);
     }
 
     @Retryable(
@@ -159,7 +159,7 @@ public class CourseExecutionService {
         CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldCourseExecution);
         newCourseExecution.removeStudent(userAggregateId);
         unitOfWorkService.registerChanged(newCourseExecution, unitOfWork);
-        unitOfWork.addEvent(new DisenrollStudentFromCourseExecutionEvent(courseExecutionAggregateId, userAggregateId));
+        unitOfWorkService.registerEvent(new DisenrollStudentFromCourseExecutionEvent(courseExecutionAggregateId, userAggregateId), unitOfWork);
     }
 
     @Retryable(
@@ -186,7 +186,7 @@ public class CourseExecutionService {
         CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).anonymize();
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
-        unitOfWork.addEvent(new AnonymizeStudentEvent(executionAggregateId, "ANONYMOUS", "ANONYMOUS", userAggregateId));
+        unitOfWorkService.registerEvent(new AnonymizeStudentEvent(executionAggregateId, "ANONYMOUS", "ANONYMOUS", userAggregateId), unitOfWork);
     }
 
     @Retryable(
@@ -201,7 +201,7 @@ public class CourseExecutionService {
         CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setName(name);
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
-        unitOfWork.addEvent(new UpdateStudentNameEvent(executionAggregateId, userAggregateId, name));
+        unitOfWorkService.registerEvent(new UpdateStudentNameEvent(executionAggregateId, userAggregateId, name), unitOfWork);
     }
 
     /************************************************ EVENT PROCESSING ************************************************/
@@ -215,7 +215,7 @@ public class CourseExecutionService {
         CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setState(Aggregate.AggregateState.INACTIVE);
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
-        unitOfWork.addEvent(new DisenrollStudentFromCourseExecutionEvent(executionAggregateId, userAggregateId));
+        unitOfWorkService.registerEvent(new DisenrollStudentFromCourseExecutionEvent(executionAggregateId, userAggregateId), unitOfWork);
         return newExecution;
     }
 }
