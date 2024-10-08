@@ -87,6 +87,11 @@ public abstract class QuizAnswer extends Aggregate {
     }
 
     @Override
+    public void remove() {
+        super.remove();
+    }
+
+    @Override
     public Set<EventSubscription> getEventSubscriptions() {
         //return Set.of(REMOVE_USER, UNENROLL_STUDENT, INVALIDATE_QUIZ/*, REMOVE_QUIZ*/);
         Set<EventSubscription> eventSubscriptions = new HashSet<>();

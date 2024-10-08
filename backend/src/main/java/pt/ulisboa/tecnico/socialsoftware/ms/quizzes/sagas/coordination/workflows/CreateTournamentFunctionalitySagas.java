@@ -101,6 +101,12 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             this.setQuizDto(quizResultDto);
         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
 
+        generateQuizStep.registerCompensation(() -> {
+            if (this.getQuizDto() != null) {
+                quizService.removeQuiz(this.getQuizDto().getAggregateId(), unitOfWork);
+            }
+        }, unitOfWork);
+
     //        NUMBER_OF_QUESTIONS
     //            this.numberOfQuestions == Quiz(tournamentQuiz.id).quizQuestions.size
     //            Quiz(this.tournamentQuiz.id) DEPENDS ON this.numberOfQuestions

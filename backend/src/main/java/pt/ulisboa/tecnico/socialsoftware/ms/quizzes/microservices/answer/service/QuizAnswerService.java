@@ -27,6 +27,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.Erro
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
@@ -129,6 +130,17 @@ public class QuizAnswerService {
 
         newQuizAnswer.setCompleted(true);
         unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
+    }
+
+    @Retryable(
+            value = { SQLException.class },
+            backoff = @Backoff(delay = 5000))
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void removeQuizAnswer(Integer quizAnswerAggregateId, UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
+        QuizAnswer newQuizAnsewer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
+        newQuizAnsewer.remove();
+        unitOfWorkService.registerChanged(newQuizAnsewer, unitOfWork);
     }
 
     /************************************************ EVENT PROCESSING ************************************************/

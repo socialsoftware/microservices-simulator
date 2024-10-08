@@ -104,6 +104,11 @@ public abstract class Quiz extends Aggregate {
     }
 
     @Override
+    public void remove() {
+        super.remove();
+    }
+
+    @Override
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (getState() == ACTIVE) {

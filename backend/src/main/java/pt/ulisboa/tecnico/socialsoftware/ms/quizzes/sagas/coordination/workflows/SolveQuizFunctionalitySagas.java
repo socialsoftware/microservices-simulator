@@ -74,7 +74,7 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
         
         startQuizAnswerStep.registerCompensation(() -> {
             if (this.getQuizAnswerDto() != null) {
-                unitOfWorkService.registerSagaState(this.getQuizAnswerDto().getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+                quizAnswerService.removeQuizAnswer(this.getQuizAnswerDto().getAggregateId(), unitOfWork);
             }
         }, unitOfWork);
         
