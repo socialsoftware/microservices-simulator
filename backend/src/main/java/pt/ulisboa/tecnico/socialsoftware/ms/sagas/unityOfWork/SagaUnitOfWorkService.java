@@ -180,7 +180,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     @Override
     public void registerEvent(Event event, SagaUnitOfWork unitOfWork) {
-        unitOfWork.getEventsToEmit().add(event);
         Integer commitVersion = versionService.incrementAndGetVersionNumber();
         event.setPublisherAggregateVersion(commitVersion);
         eventRepository.save(event);
