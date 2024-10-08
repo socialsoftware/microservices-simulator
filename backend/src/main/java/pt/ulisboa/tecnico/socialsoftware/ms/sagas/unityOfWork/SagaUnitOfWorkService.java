@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA;
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_DELETED;
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_NOT_FOUND;
 
@@ -22,11 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityManager;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
@@ -127,8 +124,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commit(SagaUnitOfWork unitOfWork) {
-        Map<Integer, Aggregate> aggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
-
         unitOfWork.getAggregatesInSaga().stream().forEach(a -> {
             a.setSagaState(GenericSagaState.NOT_IN_SAGA);
             entityManager.persist(a);
@@ -138,14 +133,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         Integer commitVersion = versionService.incrementAndGetVersionNumber();
         unitOfWork.setVersion(commitVersion);
 
-        aggregatesToCommit.values().stream().forEach(a -> {
-                                ((SagaAggregate)a).setSagaState(GenericSagaState.NOT_IN_SAGA);
-                                if (a.getState() != AggregateState.DELETED && a.getState() != AggregateState.INACTIVE) {
-                                    a.setState(AggregateState.ACTIVE);
-                                }
-                            });
-
-        commitAllObjects(commitVersion, aggregatesToCommit);
+        commitAllObjects(commitVersion, unitOfWork.getAggregatesToCommit());
 
         logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
     }
@@ -155,6 +143,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             backoff = @Backoff(delay = 5000))
     public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
         aggregateMap.values().forEach(aggregateToWrite -> {
+            ((SagaAggregate)aggregateToWrite).setSagaState(GenericSagaState.NOT_IN_SAGA);
             aggregateToWrite.setVersion(commitVersion);
             aggregateToWrite.setCreationTs(DateHandler.now());
             entityManager.persist(aggregateToWrite);
@@ -165,32 +154,9 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         unitOfWork.compensate();
     }
 
-    private Aggregate getConcurrentAggregate(Aggregate aggregate) {
-        Aggregate concurrentAggregate;
-
-        /* if the prev aggregate is null it means this is a creation functionality*/
-        if (aggregate.getPrev() == null) {
-            return null;
-        }
-
-        concurrentAggregate = sagaAggregateRepository.findConcurrentVersions(aggregate.getAggregateId(), aggregate.getPrev().getVersion())
-                .orElse(null);
-
-        // if a concurrent version is deleted it means the object has been deleted in the meanwhile
-        if (concurrentAggregate != null && (concurrentAggregate.getState() == Aggregate.AggregateState.DELETED || concurrentAggregate.getState() == Aggregate.AggregateState.INACTIVE)) {
-            throw new TutorException(ErrorMessage.AGGREGATE_DELETED, concurrentAggregate.getAggregateType().toString(), concurrentAggregate.getAggregateId());
-        }
-
-        return concurrentAggregate;
-    }
-
     @Override
     public void abort(SagaUnitOfWork unitOfWork) {
         this.compensate(unitOfWork);
-    }
-
-    public void throwException(Integer aggregateId) {
-        throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, aggregateId);
     }
 
     @Override
