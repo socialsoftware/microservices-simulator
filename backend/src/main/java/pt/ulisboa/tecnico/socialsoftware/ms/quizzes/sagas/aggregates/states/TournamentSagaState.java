@@ -4,6 +4,18 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaSt
 
 public enum TournamentSagaState implements SagaState {
     // TODO change to more generic states
+    IN_UPDATE_TOURNAMENT {
+        @Override
+        public String getStateName() {
+            return "IN_UPDATE_TOURNAMENT";
+        }
+    },
+    IN_ADD_PARTICIPANT {
+        @Override
+        public String getStateName() {
+            return "IN_ADD_PARTICIPANT";
+        }
+    },
     READ_TOURNAMENT {
         @Override
         public String getStateName() {

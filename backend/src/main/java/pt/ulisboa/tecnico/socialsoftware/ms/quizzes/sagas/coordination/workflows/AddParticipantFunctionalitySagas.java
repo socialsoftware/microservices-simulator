@@ -51,13 +51,36 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
             SagaTournamentDto tournamentDto = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+
             //TODO check this if since registerSagaState already blocks there
             if (tournamentDto.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)) {
-                unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
+                unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.IN_ADD_PARTICIPANT, unitOfWork);
                 setTournamentDto(tournamentDto);
             }
             else {
-                throw new TutorException(ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+                switch ((TournamentSagaState) tournamentDto.getSagaState()) {
+                    case IN_ADD_PARTICIPANT -> {
+                        throw new TutorException(ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+                        /* real case
+                        while (!tournamentDto.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)) {
+                            tournamentDto = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+                            unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.IN_ADD_PARTICIPANT, unitOfWork);
+                            setTournamentDto(tournamentDto);
+                        }
+                        */
+                    }
+                    case IN_UPDATE_TOURNAMENT -> {
+                        throw new TutorException(ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+                        /* real case
+                        while (!tournamentDto.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)) {
+                            tournamentDto = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+                            unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.IN_ADD_PARTICIPANT, unitOfWork);
+                            setTournamentDto(tournamentDto);
+                        }
+                        */
+                    }
+                    default -> throw new TutorException(ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+                }
             }
         });
 
