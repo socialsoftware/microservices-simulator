@@ -408,13 +408,22 @@ class NewTest extends SpockTest {
         then: 'the name is updated in course execution'
         def courseExecutionDtoResult1 = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult1.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
-        and: 'the creator is added as participant with new name'
+        and: 'the creator is not added as participant with new name'
         def tournamentDtoResult1 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult1.creator.name == UPDATED_NAME //name updated
         tournamentDtoResult1.getParticipants().size() == 0 //creator not added
         
         when:
         addParticipantFunctionality.resumeWorkflow(unitOfWork2) 
+        then: 'fails because invariant breaks'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.INVARIANT_BREAK
+
+        then:
+        def unitOfWork3 = unitOfWorkService.createUnitOfWork(functionalityName1)
+        def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork3)
+        addParticipantFunctionality2.executeWorkflow(unitOfWork1) 
+
         tournamentEventHandling.handleUpdateStudentNameEvent() 
 
 

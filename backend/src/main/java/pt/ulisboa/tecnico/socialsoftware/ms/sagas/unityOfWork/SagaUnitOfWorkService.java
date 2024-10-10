@@ -59,7 +59,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) {
-        Aggregate aggregate = sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
+        Aggregate aggregate = sagaAggregateRepository.findSagaAggregate(aggregateId)
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
 
         logger.info("Loaded and registered read for aggregate ID: {}", aggregateId);
@@ -67,7 +67,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     public Aggregate aggregateLoad(Integer aggregateId, SagaUnitOfWork unitOfWork) {
-        Aggregate aggregate = sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
+        Aggregate aggregate = sagaAggregateRepository.findSagaAggregate(aggregateId)
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (aggregate.getState() == Aggregate.AggregateState.DELETED) {
@@ -92,10 +92,10 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void registerSagaState(Integer aggregateId, SagaState state, SagaUnitOfWork unitOfWork) {
-        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
+        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
         while (!aggregate.getSagaState().equals(GenericSagaState.NOT_IN_SAGA) && !state.equals(GenericSagaState.NOT_IN_SAGA)) {
-            aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
+            aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
         }
         aggregate.setSagaState(state);
@@ -108,10 +108,10 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void registerSagaState(Integer aggregateId, SagaState state, ArrayList<SagaState> allowedStates, SagaUnitOfWork unitOfWork) {
-        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
+        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
         while (!aggregate.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)  && !state.equals(GenericSagaState.NOT_IN_SAGA) && !allowedStates.contains(aggregate.getSagaState())) {
-            aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId, unitOfWork.getVersion())
+            aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
         }
         aggregate.setSagaState(state);

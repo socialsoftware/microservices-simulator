@@ -12,8 +12,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 @Repository
 @Transactional
 public interface SagaAggregateRepository extends JpaRepository<Aggregate, Integer> {
-    @Query(value = "select a1 from Aggregate a1 where a1.aggregateId = :aggregateId and a1.state <> 'DELETED' and a1.version = (select max(a2.version) from Aggregate a2 where a2.aggregateId = :aggregateId and a2.version < :unitOfWorkVersion)")
-    Optional<Aggregate> findSagaAggregate(Integer aggregateId, Integer unitOfWorkVersion);
+    @Query(value = "select a1 from Aggregate a1 where a1.aggregateId = :aggregateId and a1.state <> 'DELETED' and a1.version = (select max(a2.version) from Aggregate a2 where a2.aggregateId = :aggregateId)")
+    Optional<Aggregate> findSagaAggregate(Integer aggregateId);
 
     @Query(value = "select a1 from Aggregate a1 where a1.aggregateId = :aggregateId and a1.version = (select max(a2.version) from Aggregate a2 where a2.aggregateId = :aggregateId and a2.version > :version)")
     Optional<Aggregate> findConcurrentVersions(Integer aggregateId, Integer version);

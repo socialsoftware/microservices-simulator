@@ -33,6 +33,18 @@ public abstract class WorkflowFunctionality {
     }
 
     public void resumeWorkflow(UnitOfWork unitOfWork) {
-        workflow.resume(unitOfWork);
+        try {
+            workflow.resume(unitOfWork).join();
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof TutorException) {
+                throw (TutorException) cause;
+            } else {
+                throw e;
+            }
+        } catch (TutorException e) {
+            throw e;
+        }
+        
     }
 }
