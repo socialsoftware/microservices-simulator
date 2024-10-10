@@ -32,8 +32,8 @@ public class TournamentController {
     }
 
     @PostMapping(value = "/tournaments/{tournamentAggregateId}/join")
-    public void joinTournament(@PathVariable Integer tournamentAggregateId, @RequestParam Integer userAggregateId) throws Exception {
-        tournamentFunctionalities.addParticipant(tournamentAggregateId, userAggregateId);
+    public void joinTournament(@PathVariable Integer tournamentAggregateId, @RequestParam Integer executionAggregateId, @RequestParam Integer userAggregateId) throws Exception {
+        tournamentFunctionalities.addParticipant(tournamentAggregateId, executionAggregateId, userAggregateId);
     }
 
     @GetMapping(value = "/tournaments/{tournamentAggregateId}")

@@ -24,10 +24,10 @@ class PlanOrderTest extends SpockTest {
     def unitOfWork = new SagaUnitOfWork(0, "TEST")
     def workflowFunctionality = Mock(WorkflowFunctionality)
     def workflow = new SagaWorkflow(workflowFunctionality, unitOfWorkService, unitOfWork)
-    def step1 = new SagaSyncStep({ System.out.println("Step 1 executed") })
-    def step2 = new SagaSyncStep({ System.out.println("Step 2 executed") })
-    def step3 = new SagaSyncStep({ System.out.println("Step 3 executed") })
-    def step4 = new SagaSyncStep({ System.out.println("Step 4 executed") })
+    def step1 = new SagaSyncStep("step1", { System.out.println("Step 1 executed") })
+    def step2 = new SagaSyncStep("step2", { System.out.println("Step 2 executed") })
+    def step3 = new SagaSyncStep("step3", { System.out.println("Step 3 executed") })
+    def step4 = new SagaSyncStep("step4", { System.out.println("Step 4 executed") })
     def asyncStep1 = new SagaAsyncStep("SagaAsyncStep1", () -> CompletableFuture.runAsync(() -> {
         try { TimeUnit.MILLISECONDS.sleep(200); } catch (InterruptedException e) { e.printStackTrace(); }
         System.out.println("Async Step 1 executed");

@@ -129,14 +129,14 @@ public class TournamentFunctionalities {
         }
     }
 
-    public void addParticipant(Integer tournamentAggregateId, Integer userAggregateId) {
+    public void addParticipant(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         if ("sagas".equals(workflowType)) {
             SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
             AddParticipantFunctionalitySagas functionality = new AddParticipantFunctionalitySagas(
                     eventService, tournamentEventHandling, tournamentService, courseExecutionService, sagaUnitOfWorkService, 
-                    tournamentAggregateId, userAggregateId, unitOfWork);
+                    tournamentAggregateId, executionAggregateId, userAggregateId, unitOfWork);
 
             functionality.executeWorkflow(unitOfWork);
         } else {

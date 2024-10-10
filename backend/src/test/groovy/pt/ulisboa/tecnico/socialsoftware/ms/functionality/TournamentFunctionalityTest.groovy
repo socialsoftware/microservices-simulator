@@ -146,7 +146,7 @@ class TournamentFunctionalityTest extends SpockTest {
         courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userDto.getAggregateId(), updateNameDto)
 
         when: 'student is added to tournament'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'the name is updated in course execution'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
@@ -158,7 +158,7 @@ class TournamentFunctionalityTest extends SpockTest {
 
     def 'sequential add student as tournament participant and then update name in course execution' () {
         given: 'student is added to tournament'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
         and: 'student name is updated'
         def updateNameDto = new UserDto()
         updateNameDto.setName(UPDATED_NAME)
@@ -177,7 +177,7 @@ class TournamentFunctionalityTest extends SpockTest {
 
     def 'concurrent add student as tournament participant and update name in course execution - add student finishes first' () {
         given: 'student is added to tournament'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
         and: 'the version number is decreased to simulate concurrency'
         versionService.decrementVersionNumber()
         and: 'student name is updated and the commit does not require merge'
@@ -206,7 +206,7 @@ class TournamentFunctionalityTest extends SpockTest {
         and: 'the version number is decreased to simulate concurrency'
         versionService.decrementVersionNumber()
         and: 'student is added to tournament but uses the version without update'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         when: 'update name event is processed such that the participant is updated in tournament'
         tournamentEventHandling.handleUpdateStudentNameEvent();
@@ -228,7 +228,7 @@ class TournamentFunctionalityTest extends SpockTest {
         courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
 
         when: 'add creator as participant where the creator in tournament still has the old name'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
 
         then: 'fails because course execution emitted the update event but it was not processed by the tournament'
         def error = thrown(TutorException)
@@ -236,7 +236,7 @@ class TournamentFunctionalityTest extends SpockTest {
         and: 'when event is finally processed it updates the creator name'
         tournamentEventHandling.handleUpdateStudentNameEvent()
         and: 'creator can be added as participant because tournament has processed all events it subscribes from course execution'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
         and: 'the name is updated in course execution'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
@@ -250,7 +250,7 @@ class TournamentFunctionalityTest extends SpockTest {
 
     def 'sequential add creator as tournament participant and update creator name in course execution' () {
         given: 'add creator as participant'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
         and: 'creator name is updated'
         def updateNameDto = new UserDto()
         updateNameDto.setName(UPDATED_NAME)
@@ -281,7 +281,7 @@ class TournamentFunctionalityTest extends SpockTest {
         versionService.decrementVersionNumber()
 
         when: 'trying to add creator as participant using the version of the user before update'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
 
         then: 'fails because the event tournament subscribes an event that it has not processed, ' +
                 'the course execution emitted the event and it is subscribed due to the participant which of a older version'
@@ -305,7 +305,7 @@ class TournamentFunctionalityTest extends SpockTest {
         and: 'the version number is decreased to simulate concurrency'
         versionService.decrementVersionNumber()
         and: 'add creator as participant which uses a previous version of the name, creator and participant have the same info'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
         and: 'the version number is decreased to simulate concurrency'
         versionService.decrementVersionNumber()
 
@@ -331,7 +331,7 @@ class TournamentFunctionalityTest extends SpockTest {
 
     def 'concurrent add creator as tournament participant and update name in course execution: add creator finishes first' () {
         given: 'add creator as participant'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userCreatorDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
         and: 'the version number is decreased to simulate concurrency'
         versionService.decrementVersionNumber()
         and: 'creator name is updated'
@@ -362,7 +362,7 @@ class TournamentFunctionalityTest extends SpockTest {
         tournamentEventHandling.handleAnonymizeStudentEvents()
 
         when: 'a student is added to a tournament'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'fails during commit because tournament is inactive due to anonymous creator'
         def error = thrown(TutorException)
@@ -385,7 +385,7 @@ class TournamentFunctionalityTest extends SpockTest {
         courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
 
         when: 'a student is added to a tournament'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'fails because it is not possible to get a causal snapshot, ' +
                 'course execution emitted an event that is not processed by tournament'
@@ -416,7 +416,7 @@ class TournamentFunctionalityTest extends SpockTest {
 
         when: 'another student is concurrently added to a tournament where the creator was anonymized in the course execution' +
                 'but not in the tournament'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'fails during merge because course execution emitted an event that was not processed by the tournament version'
         def error = thrown(TutorException)
@@ -441,7 +441,7 @@ class TournamentFunctionalityTest extends SpockTest {
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
 
         when: 'a student is added to a tournament that is removed'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'fails because the the tournament is not found'
         def error = thrown(TutorException)
@@ -455,7 +455,7 @@ class TournamentFunctionalityTest extends SpockTest {
         versionService.decrementVersionNumber()
 
         when: 'a student is concurrently added to a tournament that is not deleted'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'fails during merge because the most recent version of the tournament is deleted'
         def error = thrown(TutorException)
@@ -464,7 +464,7 @@ class TournamentFunctionalityTest extends SpockTest {
 
     def 'concurrent remove tournament and add student: add student finishes first' () {
         given: 'add student'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), userDto.getAggregateId())
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
         and: 'the version number is decreased to simulate concurrency'
         versionService.decrementVersionNumber()
 
