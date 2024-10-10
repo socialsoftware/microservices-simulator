@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork;
 
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA;
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_DELETED;
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_NOT_FOUND;
 
@@ -117,6 +118,24 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         aggregate.setSagaState(state);
         entityManager.persist(aggregate);
         unitOfWork.addToAggregatesInSaga(aggregate);
+    }
+
+    @Retryable(
+            value = { SQLException.class },
+            backoff = @Backoff(delay = 5000))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void verifyAndSetSagaState(Integer aggregateId, SagaState state, ArrayList<SagaState> forbiddenStates, SagaUnitOfWork unitOfWork) {
+        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+        
+        if (forbiddenStates.contains(aggregate.getSagaState())) {
+            throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+        }
+        else if (state != null){
+            aggregate.setSagaState(state);
+            entityManager.persist(aggregate);
+            unitOfWork.addToAggregatesInSaga(aggregate);
+        }
     }
 
     @Retryable(
