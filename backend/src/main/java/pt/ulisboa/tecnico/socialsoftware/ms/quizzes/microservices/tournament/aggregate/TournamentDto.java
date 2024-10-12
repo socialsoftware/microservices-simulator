@@ -1,13 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate;
 
+import java.io.Serializable;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
-
-import java.io.Serializable;
-import java.util.Set;
-import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
 
 public class TournamentDto implements Serializable {
     private Integer aggregateId;
@@ -29,8 +30,8 @@ public class TournamentDto implements Serializable {
     public TournamentDto(Tournament tournament) {
         setAggregateId(tournament.getAggregateId());
         setVersion(tournament.getVersion());
-        setStartTime(tournament.getStartTime().toString());
-        setEndTime(tournament.getEndTime().toString());
+        setStartTime(DateHandler.toISOString(tournament.getStartTime()));
+        setEndTime(DateHandler.toISOString(tournament.getEndTime()));
         setNumberOfQuestions(tournament.getNumberOfQuestions());
         setCancelled(tournament.isCancelled());
         setCreator(tournament.getTournamentCreator().buildDto());

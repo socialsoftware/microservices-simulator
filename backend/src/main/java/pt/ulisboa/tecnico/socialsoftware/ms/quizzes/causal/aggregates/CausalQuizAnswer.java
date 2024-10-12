@@ -1,14 +1,19 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates;
 
-import jakarta.persistence.Entity;
-import org.apache.commons.collections4.SetUtils;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.*;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.commons.collections4.SetUtils;
+
+import jakarta.persistence.Entity;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.AnswerCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.AnswerStudent;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.AnsweredQuiz;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuestionAnswer;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswer;
 
 @Entity
 public class CausalQuizAnswer extends QuizAnswer implements CausalAggregate {
@@ -36,14 +41,13 @@ public class CausalQuizAnswer extends QuizAnswer implements CausalAggregate {
 
     @Override
     public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
-        CausalQuizAnswer toCommitQuizAnswer = new CausalQuizAnswer(this);
-        CausalQuizAnswer committedQuizAnswer = (CausalQuizAnswer) committedVersion;
-        mergeCourseExecution(toCommitQuizAnswer, committedQuizAnswer);
-        mergeUser(toCommitQuizAnswer, committedQuizAnswer);
-        mergeQuiz(toCommitQuizAnswer, committedQuizAnswer);
-        mergeAnswerDate(toCommitVersionChangedFields, toCommitQuizAnswer, committedQuizAnswer);
-        mergeQuestionAnswers((QuizAnswer)getPrev(), this, committedQuizAnswer, toCommitQuizAnswer);
-        return toCommitQuizAnswer;
+        QuizAnswer committedQuizAnswer = (QuizAnswer) committedVersion;
+        mergeCourseExecution(this, committedQuizAnswer);
+        mergeUser(this, committedQuizAnswer);
+        mergeQuiz(this, committedQuizAnswer);
+        mergeAnswerDate(toCommitVersionChangedFields, this, committedQuizAnswer);
+        mergeQuestionAnswers((QuizAnswer)getPrev(), this, committedQuizAnswer, this);
+        return this;
     }
 
     private void mergeCourseExecution(QuizAnswer toCommitQuizAnswer, QuizAnswer committedQuizAnswer) {

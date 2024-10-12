@@ -1,12 +1,18 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate;
 
+import java.time.LocalDateTime;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
-
-import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
-
-import java.time.LocalDateTime;
 
 @Entity
 public class TournamentParticipant {
@@ -26,7 +32,7 @@ public class TournamentParticipant {
     private Tournament tournament;
 
     public TournamentParticipant() {
-        setEnrollTime(LocalDateTime.now());
+        setEnrollTime(DateHandler.now());
     }
 
     public TournamentParticipant(UserDto userDto) {

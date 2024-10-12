@@ -1,16 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates;
 
-import jakarta.persistence.Entity;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizQuestion;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizType;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
-
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import jakarta.persistence.Entity;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizQuestion;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizType;
 
 @Entity
 public class CausalQuiz extends Quiz implements CausalAggregate {
@@ -25,11 +25,13 @@ public class CausalQuiz extends Quiz implements CausalAggregate {
         super(other);
     }
 
+    @Override
     public Set<String> getMutableFields() {
         // we dont add the courseExecution because it can only change through events and the only events that comes from it is the delete which deletes the quiz
         return Set.of("availableDate", "conclusionDate", "resultsDate", "title" ,"quizQuestions");
     }
 
+    @Override
     public Set<String[]> getIntentions() {
         return Set.of(
                 new String[]{"availableDate", "conclusionDate"},
@@ -39,15 +41,14 @@ public class CausalQuiz extends Quiz implements CausalAggregate {
 
     @Override
     public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
-        CausalQuiz committedQuiz = (CausalQuiz) committedVersion;
-        CausalQuiz mergedQuiz = new CausalQuiz(this);
+        Quiz committedQuiz = (Quiz) committedVersion;
 
-        mergeAvailableDate(toCommitVersionChangedFields, committedQuiz, mergedQuiz);
-        mergeConclusionDate(toCommitVersionChangedFields, committedQuiz, mergedQuiz);
-        mergeResultsDate(toCommitVersionChangedFields, committedQuiz, mergedQuiz);
-        mergeTitle(toCommitVersionChangedFields, committedQuiz, mergedQuiz);
-        mergeQuizQuestions(toCommitVersionChangedFields, committedQuiz, mergedQuiz);
-        return mergedQuiz;
+        mergeAvailableDate(toCommitVersionChangedFields, committedQuiz, this);
+        mergeConclusionDate(toCommitVersionChangedFields, committedQuiz, this);
+        mergeResultsDate(toCommitVersionChangedFields, committedQuiz, this);
+        mergeTitle(toCommitVersionChangedFields, committedQuiz, this);
+        mergeQuizQuestions(toCommitVersionChangedFields, committedQuiz, this);
+        return this;
     }
 
     private void mergeAvailableDate(Set<String> toCommitVersionChangedFields, Quiz committedQuiz, Quiz mergedQuiz) {

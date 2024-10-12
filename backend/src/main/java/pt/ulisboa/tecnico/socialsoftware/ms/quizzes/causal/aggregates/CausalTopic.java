@@ -1,13 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates;
 
-import jakarta.persistence.Entity;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.Topic;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicCourse;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import jakarta.persistence.Entity;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.Topic;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicCourse;
 
 @Entity
 public class CausalTopic extends Topic implements CausalAggregate {
@@ -35,10 +35,9 @@ public class CausalTopic extends Topic implements CausalAggregate {
 
     @Override
     public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
-        CausalTopic mergedTopic = new CausalTopic(this);
-        CausalTopic committedTopic = (CausalTopic) committedVersion;
-        mergeName(toCommitVersionChangedFields, mergedTopic, committedTopic);
-        return mergedTopic;
+        Topic committedTopic = (Topic) committedVersion;
+        mergeName(toCommitVersionChangedFields, this, committedTopic);
+        return this;
     }
 
     private void mergeName(Set<String> toCommitVersionChangedFields, Topic mergedTopic, Topic committedTopic) {

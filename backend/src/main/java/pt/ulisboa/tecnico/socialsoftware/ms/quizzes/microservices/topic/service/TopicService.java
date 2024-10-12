@@ -1,25 +1,26 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.events.publish.DeleteTopicEvent;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.events.publish.UpdateTopicEvent;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicRepository;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalTopic;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.Topic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicCourse;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.events.publish.DeleteTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.events.publish.UpdateTopicEvent;
 
 @Service
 public class TopicService {
@@ -27,36 +28,42 @@ public class TopicService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    @Autowired
-    private CausalUnitOfWorkService unitOfWorkService;
+    private final TopicRepository topicRepository;
+
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     @Autowired
-    private TopicRepository topicRepository;
-
-    @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
-    public TopicDto getTopicById(Integer topicAggregateId, CausalUnitOfWork unitOfWork) {
-        return new TopicDto((Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork));
+    private TopicFactory topicFactory;
+    
+    public TopicService(UnitOfWorkService unitOfWorkService, TopicRepository topicRepository) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.topicRepository = topicRepository;
     }
 
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public TopicDto createTopic(TopicDto topicDto, TopicCourse course, CausalUnitOfWork unitOfWorkWorkService) {
-        Topic topic = new CausalTopic(aggregateIdGeneratorService.getNewAggregateId(),
+    public TopicDto getTopicById(Integer topicAggregateId, UnitOfWork unitOfWork) {
+        return topicFactory.createTopicDto((Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork));
+    }
+
+    @Retryable(
+            value = { SQLException.class },
+            backoff = @Backoff(delay = 5000))
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public TopicDto createTopic(TopicDto topicDto, TopicCourse course, UnitOfWork unitOfWork) { //TODO check this
+        Topic topic = topicFactory.createTopic(aggregateIdGeneratorService.getNewAggregateId(),
                 topicDto.getName(), course);
-        unitOfWorkWorkService.registerChanged(topic);
-        return new TopicDto(topic);
+        unitOfWorkService.registerChanged(topic, unitOfWork);
+        return topicFactory.createTopicDto(topic);
     }
 
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public List<TopicDto> findTopicsByCourseId(Integer courseAggregateId, CausalUnitOfWork unitOfWork) {
+    public List<TopicDto> findTopicsByCourseId(Integer courseAggregateId, UnitOfWork unitOfWork) {
         return topicRepository.findAll().stream()
                 .filter(t -> courseAggregateId == t.getTopicCourse().getCourseAggregateId())
                 .map(Topic::getAggregateId)
@@ -70,23 +77,23 @@ public class TopicService {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void updateTopic(TopicDto topicDto, CausalUnitOfWork unitOfWork) {
+    public void updateTopic(TopicDto topicDto, UnitOfWork unitOfWork) {
         Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
-        Topic newTopic = new CausalTopic((CausalTopic) oldTopic);
+        Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
         newTopic.setName(topicDto.getName());
-        unitOfWork.registerChanged(newTopic);
-        unitOfWork.addEvent(new UpdateTopicEvent(newTopic.getAggregateId(), newTopic.getName()));
+        unitOfWorkService.registerChanged(newTopic, unitOfWork);
+        unitOfWorkService.registerEvent(new UpdateTopicEvent(newTopic.getAggregateId(), newTopic.getName()), unitOfWork);
     }
 
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void deleteTopic(Integer topicAggregateId, CausalUnitOfWork unitOfWork) {
+    public void deleteTopic(Integer topicAggregateId, UnitOfWork unitOfWork) {
         Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
-        Topic newTopic = new CausalTopic((CausalTopic) oldTopic);
+        Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
         newTopic.remove();
-        unitOfWork.registerChanged(newTopic);
-        unitOfWork.addEvent(new DeleteTopicEvent(newTopic.getAggregateId()));
+        unitOfWorkService.registerChanged(newTopic, unitOfWork);
+        unitOfWorkService.registerEvent(new DeleteTopicEvent(newTopic.getAggregateId()), unitOfWork);
     }
 }

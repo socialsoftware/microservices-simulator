@@ -1,17 +1,24 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate;
 
+import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.subscribe.QuestionSubscribesDeleteTopic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.subscribe.QuestionSubscribesUpdateTopic;
-
-import jakarta.persistence.*;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
 
 /*
     INTRA-INVARIANTS:
@@ -42,7 +49,7 @@ public abstract class Question extends Aggregate {
         setAggregateType(getClass().getSimpleName());
         setTitle(questionDto.getTitle());
         setContent(questionDto.getContent());
-        setCreationDate(LocalDateTime.now());
+        setCreationDate(DateHandler.now());
         setQuestionCourse(questionCourse);
         setOptions(questionDto.getOptionDtos().stream().map(Option::new).collect(Collectors.toList()));
 

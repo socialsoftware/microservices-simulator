@@ -1,6 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
 
@@ -98,7 +103,7 @@ public class TournamentTopic {
         topicDto.setAggregateId(getTopicAggregateId());
         topicDto.setVersion(getTopicVersion());
         topicDto.setName(getTopicName());
-        topicDto.setState(getState().toString());
+        topicDto.setState(getState());
         return topicDto;
     }
 

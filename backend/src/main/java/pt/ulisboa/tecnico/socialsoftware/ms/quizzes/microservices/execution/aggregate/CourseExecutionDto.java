@@ -1,12 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionStudent;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
-
 import java.io.Serializable;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 
 public class CourseExecutionDto implements Serializable {
     private Integer aggregateId;
@@ -20,6 +18,7 @@ public class CourseExecutionDto implements Serializable {
     private Integer version;
     private Integer courseVersion;
     private Set<UserDto> students;
+    private String state;
 
     public CourseExecutionDto() {
     }
@@ -35,6 +34,7 @@ public class CourseExecutionDto implements Serializable {
         setVersion(courseExecution.getVersion());
         setEndDate(courseExecution.getEndDate().toString());
         setStudents(courseExecution.getStudents().stream().map(CourseExecutionStudent::buildDto).collect(Collectors.toSet()));
+        setState(courseExecution.getState().toString());
     }
 
     public Integer getAggregateId() {
@@ -123,5 +123,13 @@ public class CourseExecutionDto implements Serializable {
 
     public void setStudents(Set<UserDto> students) {
         this.students = students;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 }

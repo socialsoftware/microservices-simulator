@@ -1,15 +1,15 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.Topic;
-
 import java.io.Serializable;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 public class TopicDto implements Serializable {
     private Integer aggregateId;
     private Integer version;
     private Integer courseId;
     private String name;
-    private String state;
+    private AggregateState state;
 
     public TopicDto() {
     }
@@ -19,6 +19,7 @@ public class TopicDto implements Serializable {
         setVersion(topic.getVersion());
         setCourseId(topic.getTopicCourse().getCourseAggregateId());
         setName(topic.getName());
+        setState(topic.getState());
     }
 
     public Integer getAggregateId() {
@@ -61,11 +62,11 @@ public class TopicDto implements Serializable {
         this.name = name;
     }
 
-    public String getState() {
+    public AggregateState getState() {
         return state;
     }
 
-    public void setState(String state) {
+    public void setState(AggregateState state) {
         this.state = state;
     }
 }

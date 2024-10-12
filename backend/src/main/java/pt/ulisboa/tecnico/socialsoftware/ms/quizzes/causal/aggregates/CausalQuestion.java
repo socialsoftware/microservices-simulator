@@ -1,16 +1,18 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates;
 
-import jakarta.persistence.Entity;
-import org.apache.commons.collections4.SetUtils;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.Question;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionCourse;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionTopic;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.collections4.SetUtils;
+
+import jakarta.persistence.Entity;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.Question;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionCourse;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionTopic;
 
 @Entity
 public class CausalQuestion extends Question implements CausalAggregate {
@@ -24,7 +26,7 @@ public class CausalQuestion extends Question implements CausalAggregate {
 
     public CausalQuestion(CausalQuestion other) {
         super(other);
-     }
+    }
 
     @Override
     public Set<String> getMutableFields() {
@@ -137,5 +139,4 @@ public class CausalQuestion extends Question implements CausalAggregate {
             }
         }
     }
-
 }

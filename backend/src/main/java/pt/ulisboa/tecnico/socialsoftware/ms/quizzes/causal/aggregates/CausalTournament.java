@@ -1,25 +1,26 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates;
 
-import jakarta.persistence.Entity;
-import org.apache.commons.collections4.SetUtils;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentParticipant;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentParticipantQuizAnswer;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentTopic;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_MERGE_FAILURE;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_MERGE_FAILURE;
+import org.apache.commons.collections4.SetUtils;
+
+import jakarta.persistence.Entity;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.Tournament;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentParticipant;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentParticipantQuizAnswer;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentTopic;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 
 @Entity
 public class CausalTournament extends Tournament implements CausalAggregate {
@@ -36,7 +37,7 @@ public class CausalTournament extends Tournament implements CausalAggregate {
     public CausalTournament(CausalTournament other) {
         super(other);
     }
-
+    
     @Override
     public Set<String> getMutableFields()  {
         return Set.of("startTime", "endTime", "numberOfQuestions", "tournamentTopics", "tournamentParticipants", "cancelled", "tournamentCourseExecution", "tournamentCreator");
@@ -53,27 +54,26 @@ public class CausalTournament extends Tournament implements CausalAggregate {
 
     @Override
     public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields){
-        if (!(committedVersion instanceof CausalTournament)) {
+        if (!(committedVersion instanceof Tournament)) {
             throw new TutorException(AGGREGATE_MERGE_FAILURE, getAggregateId());
         }
 
-        CausalTournament committedTournament = (CausalTournament) committedVersion;
-        CausalTournament mergedTournament = new CausalTournament(this);
+        Tournament committedTournament = (Tournament) committedVersion;
 
         // merge of creator is built in the participants dont know yet
-        mergeCreator(committedTournament, mergedTournament);
-        //mergeCourseExecution(committedTournament, mergedTournament);
-        mergeCourseExecution(committedTournament, mergedTournament);
-        mergeQuiz(committedTournament, mergedTournament);
-        mergeCancelled(toCommitVersionChangedFields, committedTournament, mergedTournament);
-        mergeStartTime(toCommitVersionChangedFields, committedTournament, mergedTournament);
-        mergeEndTime(toCommitVersionChangedFields, committedTournament, mergedTournament);
-        mergeNumberOfQuestions(toCommitVersionChangedFields, committedTournament, mergedTournament);
-        mergeParticipants((Tournament) getPrev(), this, committedTournament, mergedTournament);
-        //mergeTopics((Tournament) getPrev(), this, committedTournament, mergedTournament);
-        mergeTopics(toCommitVersionChangedFields, committedTournament, mergedTournament);
+        mergeCreator(committedTournament, this);
+        //mergeCourseExecution(committedTournament, this);
+        mergeCourseExecution(committedTournament, this);
+        mergeQuiz(committedTournament, this);
+        mergeCancelled(toCommitVersionChangedFields, committedTournament, this);
+        mergeStartTime(toCommitVersionChangedFields, committedTournament, this);
+        mergeEndTime(toCommitVersionChangedFields, committedTournament, this);
+        mergeNumberOfQuestions(toCommitVersionChangedFields, committedTournament, this);
+        mergeParticipants((Tournament) getPrev(), this, committedTournament, this);
+        //mergeTopics((Tournament) getPrev(), this, committedTournament, this);
+        mergeTopics(toCommitVersionChangedFields, committedTournament, this);
 
-        return mergedTournament;
+        return this;
     }
 
     private void mergeCreator(Tournament committedTournament, Tournament mergedTournament) {
@@ -240,5 +240,4 @@ public class CausalTournament extends Tournament implements CausalAggregate {
             mergedTournament.setTournamentTopics(committedTournament.getTournamentTopics().stream().map(TournamentTopic::new).collect(Collectors.toSet()));
         }
     }
-
 }

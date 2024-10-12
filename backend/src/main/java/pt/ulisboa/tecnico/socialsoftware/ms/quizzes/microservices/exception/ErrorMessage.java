@@ -1,6 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception;
 
 public enum ErrorMessage {
+    AGGREGATE_BEING_USED_IN_OTHER_SAGA("Aggregate %s is being used in other saga"),
+
     INVALID_AGGREGATE_TYPE("Aggregate type %s does not exist"),
 
     AGGREGATE_DELETED("Aggregate %s with aggregate id %d already deleted."),
@@ -28,10 +30,12 @@ public enum ErrorMessage {
     PARTICIPANT_NOT_STUDENT("User %d must be a student to be added as participant to tournament %d."),
     PARTICIPANT_NOT_ENROLLED_IN_TOURNAMENT_EXECUTION("User %d not enrolled in tournament's %d course execution."),
     TOURNAMENT_PARTICIPANT_ADDING_ANSWER_WITH_WRONG_QUIZ_ANSWER_ID("Tournament participant is being added a wrong quiz answer id %d"),
+    TOURNAMENT_IN_SAGA("Tournament is already in a saga."),
 
-
+    COURSE_EXECUTION_STUDENT_ALREADY_ENROLLED("Student with aggregate id %d is already enrolled in course execution %d."),
 
     USER_IS_ANONYMOUS("Cant add anonymous user %d."),
+    CREATOR_IS_ANONYMOUS("Cant add user %d because creator is anonymous."),
 
     QUIZ_DELETED("Quiz with aggregate id %d already deleted."),
     NOT_ENOUGH_QUESTIONS("Not enough questions to generate quiz."),

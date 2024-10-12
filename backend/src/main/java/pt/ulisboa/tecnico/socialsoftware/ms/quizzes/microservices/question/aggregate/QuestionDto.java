@@ -1,12 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
 
 public class QuestionDto implements Serializable {
     private Integer aggregateId;
@@ -18,6 +20,7 @@ public class QuestionDto implements Serializable {
     private Set<TopicDto> topicDto;
     private List<OptionDto> optionDtos;
     private Integer sequence;
+    private Aggregate.AggregateState state;
 
     public QuestionDto() {}
 
@@ -106,5 +109,13 @@ public class QuestionDto implements Serializable {
 
     public void setSequence(Integer sequence) {
         this.sequence = sequence;
+    }
+
+    public Aggregate.AggregateState getState() {
+        return state;
+    }
+
+    public void setState(AggregateState aggregateState) {
+        this.state = aggregateState;
     }
 }

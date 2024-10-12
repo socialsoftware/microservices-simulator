@@ -1,20 +1,28 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate;
 
+import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.CANNOT_UPDATE_QUIZ;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.INVARIANT_BREAK;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.events.subscribe.QuizSubscribesDeleteCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.events.subscribe.QuizSubscribesDeleteQuestion;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.events.subscribe.QuizSubscribesUpdateQuestion;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
-
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
 
 /*
     INTRA-INVARIANTS
@@ -61,7 +69,7 @@ public abstract class Quiz extends Aggregate {
         setQuizCourseExecution(quizCourseExecution);
         setQuizQuestions(quizQuestions);
         setTitle(quizDto.getTitle());
-        this.creationDate = LocalDateTime.now();
+        this.creationDate = DateHandler.now();
         setAvailableDate(DateHandler.toLocalDateTime(quizDto.getAvailableDate()));
         setConclusionDate(DateHandler.toLocalDateTime(quizDto.getConclusionDate()));
         setResultsDate(DateHandler.toLocalDateTime(quizDto.getResultsDate()));
@@ -93,6 +101,11 @@ public abstract class Quiz extends Aggregate {
         if (!(invariantDateOrdering())) {
             throw new TutorException(INVARIANT_BREAK, getAggregateId());
         }
+    }
+
+    @Override
+    public void remove() {
+        super.remove();
     }
 
     @Override
@@ -209,9 +222,9 @@ public abstract class Quiz extends Aggregate {
 
     public void update(QuizDto quizDto) {
         setTitle(quizDto.getTitle());
-        setAvailableDate(LocalDateTime.parse(quizDto.getAvailableDate()));
-        setConclusionDate(LocalDateTime.parse(quizDto.getConclusionDate()));
-        setResultsDate(LocalDateTime.parse(quizDto.getResultsDate()));
+        setAvailableDate(DateHandler.toLocalDateTime(quizDto.getAvailableDate()));
+        setConclusionDate(DateHandler.toLocalDateTime(quizDto.getConclusionDate()));
+        setResultsDate(DateHandler.toLocalDateTime(quizDto.getResultsDate()));
     }
 
     public QuizQuestion findQuestion(Integer questionAggregateId) {

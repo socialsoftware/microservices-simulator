@@ -1,13 +1,15 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-
-import jakarta.persistence.*;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /*
     INTRA-INVARIANTS:
@@ -62,5 +64,4 @@ public abstract class Course extends Aggregate {
     public String getName() {
         return name;
     }
-
 }

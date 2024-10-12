@@ -1,22 +1,36 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.subscribe.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
-
-import jakarta.persistence.*;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.CANNOT_ADD_PARTICIPANT;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.CANNOT_DELETE_TOURNAMENT;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.CANNOT_UPDATE_TOURNAMENT;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.INVARIANT_BREAK;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesAnonymizeStudent;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesAnswerQuestion;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesDeleteCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesDeleteTopic;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesDisenrollStudentFromCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesInvalidateQuiz;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesUpdateStudentName;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesUpdateTopic;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
 
 /* each version of the tournament is a new instance of the tournament*/
 /*
@@ -467,7 +481,7 @@ public abstract class Tournament extends Aggregate {
          */
         Tournament prev = (Tournament) getPrev();
         if (prev != null) {
-            if ((prev.getStartTime() != null && LocalDateTime.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
+            if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
                 throw new TutorException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
             }
         }

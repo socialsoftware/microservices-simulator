@@ -1,12 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import jakarta.transaction.Transactional;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
-import java.util.Optional;
+import jakarta.transaction.Transactional;
 
 @Repository
 @Transactional

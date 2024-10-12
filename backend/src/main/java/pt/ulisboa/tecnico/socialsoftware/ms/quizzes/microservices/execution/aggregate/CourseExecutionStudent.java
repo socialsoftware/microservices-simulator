@@ -1,11 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate;
 
-import jakarta.persistence.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentParticipant;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
-
 import java.util.Set;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentParticipant;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 
 @Entity
 public class CourseExecutionStudent {
@@ -30,7 +33,7 @@ public class CourseExecutionStudent {
         setName(userDto.getName());
         setUsername(userDto.getUsername());
         setActive(userDto.isActive());
-        setState(Aggregate.AggregateState.valueOf(userDto.getState()));
+        setState(userDto.getState());
     }
 
     public CourseExecutionStudent(CourseExecutionStudent other) {
@@ -117,6 +120,7 @@ public class CourseExecutionStudent {
         userDto.setVersion(getUserVersion());
         userDto.setName(getName());
         userDto.setUsername(getUsername());
+        userDto.setState(getState());
         return userDto;
     }
 

@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
-
 import java.io.Serializable;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 public class UserDto implements Serializable {
     private Integer aggregateId;
@@ -14,7 +14,7 @@ public class UserDto implements Serializable {
     private Integer answerAggregateId;
     private Integer numberAnswered;
     private Integer numberCorrect;
-    private String state;
+    private AggregateState state;
 
     public UserDto() {
     }
@@ -26,7 +26,7 @@ public class UserDto implements Serializable {
         this.username = user.getUsername();
         this.version = user.getVersion();
         setActive(user.isActive());
-        setState(user.getState().toString());
+        setState(user.getState());
     }
 
     public Integer getAggregateId() {
@@ -101,11 +101,11 @@ public class UserDto implements Serializable {
         this.numberCorrect = numberCorrect;
     }
 
-    public String getState() {
+    public AggregateState getState() {
         return state;
     }
 
-    public void setState(String state) {
-        this.state = state;
+    public void setState(AggregateState aggregateState) {
+        this.state = aggregateState;
     }
 }

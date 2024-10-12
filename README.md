@@ -55,12 +55,12 @@ docker compose up unit-tests
 ```
 sudo service postgresql start
 sudo su -l postgres
-dropdb blcmdb
-createdb blcmdb
+dropdb msdb
+createdb msdb
 ```
 * Create user to access db
 ```
-psql blcmdb
+psql msdb
 CREATE USER your-username WITH SUPERUSER LOGIN PASSWORD 'yourpassword';
 \q
 exit

@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.Course;
 
 import java.io.Serializable;
 

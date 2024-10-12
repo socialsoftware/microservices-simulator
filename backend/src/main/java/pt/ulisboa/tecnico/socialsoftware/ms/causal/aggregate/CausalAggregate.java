@@ -1,14 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_DELETED;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_MERGE_FAILURE;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_MERGE_FAILURE_DUE_TO_INTENSIONS_CONFLICT;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.DELETED;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 
 public interface CausalAggregate {
     Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields);
@@ -27,7 +29,7 @@ public interface CausalAggregate {
         }*/
         /* take the state into account because we don't want to override a deleted object*/
 
-        if (committedVersion.getState() == DELETED) {
+        if (committedVersion.getState() == AggregateState.DELETED) {
             throw new TutorException(AGGREGATE_DELETED, committedVersion.getAggregateType().toString(), committedVersion.getAggregateId());
         }
 
@@ -76,5 +78,4 @@ public interface CausalAggregate {
             }
         }
     }
-
 }

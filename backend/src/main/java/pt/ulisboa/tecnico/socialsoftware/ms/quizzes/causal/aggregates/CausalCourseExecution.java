@@ -1,16 +1,17 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates;
 
-import jakarta.persistence.Entity;
-import org.apache.commons.collections4.SetUtils;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionCourse;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionStudent;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.commons.collections4.SetUtils;
+
+import jakarta.persistence.Entity;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionCourse;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionStudent;
 
 @Entity
 public class CausalCourseExecution extends CourseExecution implements CausalAggregate {
@@ -38,10 +39,9 @@ public class CausalCourseExecution extends CourseExecution implements CausalAggr
 
     @Override
     public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
-        CausalCourseExecution mergedCourseExecution = new CausalCourseExecution(this);
-        CausalCourseExecution committedCourseExecution = (CausalCourseExecution) committedVersion;
-        mergeQuizQuestions((CourseExecution) getPrev(), this, committedCourseExecution, mergedCourseExecution);
-        return mergedCourseExecution;
+        CourseExecution committedCourseExecution = (CourseExecution) committedVersion;
+        mergeQuizQuestions((CourseExecution) getPrev(), this, committedCourseExecution, this);
+        return this;
     }
 
     private void mergeQuizQuestions(CourseExecution prev, CourseExecution toCommitQuiz, CourseExecution committedQuiz, CourseExecution mergedCourseExecution) {

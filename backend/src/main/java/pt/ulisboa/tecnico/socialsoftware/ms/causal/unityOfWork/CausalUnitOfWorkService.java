@@ -1,32 +1,39 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork;
 
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_DELETED;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_NOT_FOUND;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE;
+
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregateRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregateRepository;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.version.VersionService;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
 
-import jakarta.persistence.EntityManager;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
-
+@Profile("tcc")
 @Service
-public class CausalUnitOfWorkService {
+public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork> {
     private static final Logger logger = LoggerFactory.getLogger(CausalUnitOfWorkService.class);
 
     @Autowired
@@ -148,7 +155,6 @@ public class CausalUnitOfWorkService {
         logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
     }
 
-
     // Must be serializable in order to ensure no other commits are made between the checking of concurrent versions and the actual persist
     @Retryable(
             value = { SQLException.class },
@@ -157,7 +163,7 @@ public class CausalUnitOfWorkService {
     public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
         aggregateMap.values().forEach(aggregateToWrite -> {
             aggregateToWrite.setVersion(commitVersion);
-            aggregateToWrite.setCreationTs(LocalDateTime.now());
+            aggregateToWrite.setCreationTs(DateHandler.now());
             entityManager.persist(aggregateToWrite);
         });
     }
@@ -179,6 +185,23 @@ public class CausalUnitOfWorkService {
         }
 
         return concurrentAggregate;
+    }
+
+    @Override
+    public void abort(CausalUnitOfWork unitOfWork) {
+        // Not needed
+    }
+
+    @Override
+    public void registerChanged(Aggregate aggregate, CausalUnitOfWork unitOfWork) {
+        // the id set to null to force a new entry in the db
+        aggregate.setId(null);
+        unitOfWork.getAggregatesToCommit().put(aggregate.getAggregateId(), aggregate);
+    }
+
+    @Override
+    public void registerEvent(Event event, CausalUnitOfWork unitOfWork) {
+        unitOfWork.addEvent(event);
     }
 
 }

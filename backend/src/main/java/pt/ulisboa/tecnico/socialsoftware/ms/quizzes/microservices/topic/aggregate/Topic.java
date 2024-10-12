@@ -1,11 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-
-import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToOne;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
 /*
     INTRA-INVARIANTS:
@@ -60,5 +63,4 @@ public abstract class Topic extends Aggregate {
         this.topicCourse = course;
         this.topicCourse.setTopic(this);
     }
-
 }
