@@ -42,11 +42,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.ser
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
 
 
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizFactory;
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -68,9 +70,14 @@ class FunctionalityTestSagas extends SpockTest {
     @Autowired
     private TournamentService tournamentService
     @Autowired
+    private TopicService topicService
+    @Autowired
     private CourseExecutionFactory courseExecutionFactory
     @Autowired
     private TournamentFactory tournamentFactory
+    @Autowired
+    private QuizFactory quizFactory
+
 
     @Autowired
     private CourseExecutionFunctionalities courseExecutionFunctionalities
@@ -469,18 +476,24 @@ class FunctionalityTestSagas extends SpockTest {
         error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
-    def 'concurrent remove tournament and update start time: update start time finishes first' () {
+    def 'concurrent remove tournament and update start time: remoce finishes first' () {
         given: 'update start time'
+        def functionalityName1 = UpdateTournamentFunctionalitySagas.class.getSimpleName()
+        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         def updateTournamentDto = new TournamentDto()
         updateTournamentDto.setAggregateId(tournamentDto.aggregateId)
         updateTournamentDto.setStartTime(DateHandler.toISOString(TIME_2))
         def topics =  new HashSet<>(Arrays.asList(topicDto1.aggregateId,topicDto2.aggregateId))
-        tournamentFunctionalities.updateTournament(updateTournamentDto, topics)
 
-        //TODO use executeUntil
+        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, 
+                                tournamentFactory, quizFactory,
+                                updateTournamentDto, topics, unitOfWork1)
+
+        updateTournamentFunctionality.executeUntilStep("getOriginalTournamentStep", unitOfWork1) 
+        
         when: 'remove tournament'
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
-        tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        updateTournamentFunctionality.resumeWorkflow(unitOfWork1) 
 
         then: 'fails because tournament is deleted'
         def error = thrown(TutorException)
@@ -510,7 +523,7 @@ class FunctionalityTestSagas extends SpockTest {
         tournamentDtoResult.quiz.aggregateId == tournamentDto.quiz.aggregateId
     }
 
-    // TODO reviw this since it is probably obsolete
+    // TODO reviw this
     def 'concurrent add two participants to tournament'() {
         given: 'two new users'
         def userDto1 = new UserDto()
