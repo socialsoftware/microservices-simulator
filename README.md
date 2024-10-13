@@ -72,18 +72,37 @@ exit
 
 ```
 cd backend
-mvn clean spring-boot:run
 ```
+#### For Sagas
+```
+mvn clean spring-boot:run -P sagas
+```
+#### For TCC
+```
+mvn clean spring-boot:run -P tcc
+```
+
 ### Running Spock tests
 
 ```
 cd backend
-mvn clean -Ptest test
+```
+#### Sagas Tests
+```
+mvn clean test -Ptest,sagas -Dtest="FunctionalityTestSagas"
+mvn clean test -Ptest,sagas -Dtest="PlanOrderTest"
+```
+#### TCC Tests
+```
+mvn clean test -Ptest,tcc -Dtest="TournamentFunctionalityTest"
+mvn clean test -Ptest,tcc -Dtest="MergeUnitTest"
 ```
 
 * Some test cases:
   * [Tournament Merge Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/domain/tournament/MergeUnitTest.groovy)
   * [Tournament Functionality Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/TournamentFunctionalityTest.groovy)
+  * [Sagas Functionalities Test](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/FunctionalityTestSagas.groovy)
+  * [Sagas Workflow Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/sagas/workflow/PlanOrderTest.groovy)
 
 ## Running JMeter tests
 
