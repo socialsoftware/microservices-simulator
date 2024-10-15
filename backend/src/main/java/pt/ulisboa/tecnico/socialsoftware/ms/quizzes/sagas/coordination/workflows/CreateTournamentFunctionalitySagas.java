@@ -21,7 +21,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTo
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.CourseExecutionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TopicSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.UserSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
@@ -61,10 +60,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             unitOfWorkService.registerSagaState(executionId, CourseExecutionSagaState.READ_COURSE, unitOfWork);
             this.setCourseExecutionDto(courseExecutionDto);
         });
-        
-        getCourseExecutionStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(executionId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);
+    
         
         SagaSyncStep getCreatorStep = new SagaSyncStep("getCreatorStep", () -> {
             // by making this call locks regarding the role of the creator are guaranteed
@@ -74,9 +70,6 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             this.setUserDto(creatorDto);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
         
-        getCreatorStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(userId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);
 
         SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> {
             topicsId.stream().forEach(topicId -> {
@@ -85,12 +78,6 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
                 this.addTopicDto(topic);
             });
         });
-
-        getTopicsStep.registerCompensation(() -> {
-            this.getTopicsDtos().stream().forEach(t -> {
-                unitOfWorkService.registerSagaState(t.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            });
-        }, unitOfWork);
 
         SagaSyncStep generateQuizStep = new SagaSyncStep("generateQuizStep", () -> {
             QuizDto quizDto = new QuizDto();

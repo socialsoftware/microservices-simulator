@@ -99,6 +99,9 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
         }
+
+        unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
+
         aggregate.setSagaState(state);
         entityManager.persist(aggregate);
         unitOfWork.addToAggregatesInSaga(aggregate);
@@ -115,6 +118,9 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
         }
+
+        unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
+
         aggregate.setSagaState(state);
         entityManager.persist(aggregate);
         unitOfWork.addToAggregatesInSaga(aggregate);
@@ -132,6 +138,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA);
         }
         else if (state != null){
+            unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
             aggregate.setSagaState(state);
             entityManager.persist(aggregate);
             unitOfWork.addToAggregatesInSaga(aggregate);
@@ -173,8 +180,20 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         unitOfWork.compensate();
     }
 
+    @Retryable(
+            value = { SQLException.class },
+            backoff = @Backoff(delay = 5000))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void abort(SagaUnitOfWork unitOfWork) {
+        for (Map.Entry<Integer, SagaState> entry : unitOfWork.getPreviousStates().entrySet()) {
+            Integer aggregateId = entry.getKey();
+            SagaState previousState = entry.getValue();
+            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+            aggregate.setSagaState(previousState);
+            entityManager.persist(aggregate);
+        }
         this.compensate(unitOfWork);
     }
 
