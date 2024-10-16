@@ -1,20 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow
 
-import org.springframework.boot.test.context.SpringBootTest
-
 import pt.ulisboa.tecnico.socialsoftware.ms.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.ExecutionPlan
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaAsyncStep
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality
-
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit
 
