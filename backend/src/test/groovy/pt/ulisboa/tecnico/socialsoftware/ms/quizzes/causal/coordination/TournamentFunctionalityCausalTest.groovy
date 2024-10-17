@@ -25,7 +25,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler
 
 @DataJpaTest
-class TournamentFunctionalityTest extends SpockTest {
+class TournamentFunctionalityCausalTest extends SpockTest {
     public static final String UPDATED_NAME = "UpdatedName"
 
     @Autowired
