@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates
 
 import org.springframework.boot.test.context.SpringBootTest
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto
@@ -18,31 +19,7 @@ import spock.lang.Shared
 import spock.lang.Unroll
 
 @SpringBootTest
-class TournamentMergeUnitTest extends SpockTest {
-    public static final Integer COURSE_EXECUTION_AGGREGATE_ID_1 = 1
-    public static final Integer TOPIC_AGGREGATE_ID_1 = 4
-    public static final Integer TOPIC_AGGREGATE_ID_2 = 5
-    public static final Integer TOPIC_AGGREGATE_ID_3 = 6
-    public static final Integer USER_AGGREGATE_ID_1 = 7
-    public static final Integer USER_AGGREGATE_ID_2 = 8
-    public static final Integer USER_AGGREGATE_ID_3 = 9
-    public static final Integer TOURNAMENT_AGGREGATE_ID_1 = 10
-    public static final Integer QUIZ_AGGREGATE_ID_1 = 13
-
-    public static final String USER_NAME_1 = "USER_NAME_1"
-    public static final String USER_NAME_2 = "USER_NAME_2"
-    public static final String USER_NAME_3 = "USER_NAME_3"
-
-    public static final String USER_USERNAME_1 = "USER_USERNAME_1"
-    public static final String USER_USERNAME_2 = "USER_USERNAME_2"
-    public static final String USER_USERNAME_3 = "USER_USERNAME_3"
-
-    public static final String ACRONYM_1 = "ACRONYM_1"
-
-    public static final String TOPIC_NAME_1 = "TOPIC_NAME_1"
-    public static final String TOPIC_NAME_2 = "TOPIC_NAME_2"
-    public static final String TOPIC_NAME_3 = "TOPIC_NAME_3"
-
+class TournamentMergeUnitTest extends QuizzesSpockTest {
     Tournament tournament1, tournament2, tournament3
     TournamentTopic topic1, topic2, topic3
     TournamentParticipant participant1, participant2, participant3

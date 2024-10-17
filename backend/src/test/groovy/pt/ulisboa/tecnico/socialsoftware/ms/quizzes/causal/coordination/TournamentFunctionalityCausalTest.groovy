@@ -4,38 +4,28 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.BeanConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.CourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.QuestionFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.OptionDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.QuizFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.TopicFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.UserFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler
 
 @DataJpaTest
-class TournamentFunctionalityCausalTest extends SpockTest {
+class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
     public static final String UPDATED_NAME = "UpdatedName"
 
     @Autowired
     private CourseExecutionFunctionalities courseExecutionFunctionalities
-    @Autowired
-    private UserFunctionalities userFunctionalities
-    @Autowired
-    private TopicFunctionalities topicFunctionalities
-    @Autowired
-    private QuestionFunctionalities questionFunctionalities
     @Autowired
     private QuizFunctionalities quizFunctionalities
     @Autowired
@@ -55,82 +45,28 @@ class TournamentFunctionalityCausalTest extends SpockTest {
 
     def setup() {
         given: 'a course execution'
-        courseExecutionDto = new CourseExecutionDto()
-        courseExecutionDto.setName('BLCM')
-        courseExecutionDto.setType('TECNICO')
-        courseExecutionDto.setAcronym('TESTBLCM')
-        courseExecutionDto.setAcademicTerm('2022/2023')
-        courseExecutionDto.setEndDate(DateHandler.toISOString(TIME_4))
-        courseExecutionDto = courseExecutionFunctionalities.createCourseExecution(courseExecutionDto)
+        courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
 
-        userCreatorDto = new UserDto()
-        userCreatorDto.setName('Name' + 1)
-        userCreatorDto.setUsername('Username' + 1)
-        userCreatorDto.setRole('STUDENT')
-        userCreatorDto = userFunctionalities.createUser(userCreatorDto)
-
-        userFunctionalities.activateUser(userCreatorDto.getAggregateId())
-
+        and: 'a user to enroll in the course execution'
+        userCreatorDto = createUser(USER_NAME_1, USER_USERNAME_1, STUDENT_ROLE)
         courseExecutionFunctionalities.addStudent(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
 
-        userDto = new UserDto()
-        userDto.setName('Name' + 2)
-        userDto.setUsername('Username' + 2)
-        userDto.setRole('STUDENT')
-        userDto = userFunctionalities.createUser(userDto)
-
-        userFunctionalities.activateUser(userDto.aggregateId)
-
+        and: 'another user to enroll in the course execution'
+        userDto = createUser(USER_NAME_2, USER_USERNAME_2, STUDENT_ROLE)
         courseExecutionFunctionalities.addStudent(courseExecutionDto.aggregateId, userDto.aggregateId)
 
-        topicDto1 = new TopicDto()
-        topicDto1.setName('Topic' + 1)
-        topicDto1 = topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto1)
-        topicDto2 = new TopicDto()
-        topicDto2.setName('Topic' + 2)
-        topicDto2 = topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto2)
-        topicDto3 = new TopicDto()
-        topicDto3.setName('Topic' + 3)
-        topicDto3 = topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto3)
+        and: 'three topics'
+        topicDto1 = createTopic(courseExecutionDto, TOPIC_NAME_1)
+        topicDto2 = createTopic(courseExecutionDto, TOPIC_NAME_2)
+        topicDto3 = createTopic(courseExecutionDto, TOPIC_NAME_3)
 
-        questionDto1 = new QuestionDto()
-        questionDto1.setTitle('Title' + 1)
-        questionDto1.setContent('Content' + 1)
-        def set =  new HashSet<>(Arrays.asList(topicDto1));
-        questionDto1.setTopicDto(set)
-        def optionDto1 = new OptionDto()
-        optionDto1.setSequence(1)
-        optionDto1.setCorrect(true)
-        optionDto1.setContent("Option" + 1)
-        def optionDto2 = new OptionDto()
-        optionDto2.setSequence(2)
-        optionDto2.setCorrect(false)
-        optionDto2.setContent("Option" + 2)
-        questionDto1.setOptionDtos([optionDto1,optionDto2])
-        questionDto1 = questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto1)
+        and: 'three questions'
+        questionDto1 = createQuestion(courseExecutionDto, new HashSet<>(Arrays.asList(topicDto1)), TITLE_1, CONTENT_1, OPTION_1, OPTION_2)
+        questionDto2 = createQuestion(courseExecutionDto, new HashSet<>(Arrays.asList(topicDto2)), TITLE_2, CONTENT_2, OPTION_3, OPTION_4)
+        questionDto3 = createQuestion(courseExecutionDto, new HashSet<>(Arrays.asList(topicDto3)), TITLE_3, CONTENT_3, OPTION_1, OPTION_3)
 
-        questionDto2 = new QuestionDto()
-        questionDto2.setTitle('Title' + 2)
-        questionDto2.setContent('Content' + 2)
-        set =  new HashSet<>(Arrays.asList(topicDto2));
-        questionDto2.setTopicDto(set)
-        questionDto2.setOptionDtos([optionDto1,optionDto2])
-        questionDto2 = questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto2)
-
-        questionDto3 = new QuestionDto()
-        questionDto3.setTitle('Title' + 2)
-        questionDto3.setContent('Content' + 2)
-        set =  new HashSet<>(Arrays.asList(topicDto3));
-        questionDto3.setTopicDto(set)
-        questionDto3.setOptionDtos([optionDto1,optionDto2])
-        questionDto3 = questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto3)
-
-        tournamentDto = new TournamentDto()
-        tournamentDto.setStartTime(DateHandler.toISOString(TIME_1))
-        tournamentDto.setEndTime(DateHandler.toISOString(TIME_3))
-        tournamentDto.setNumberOfQuestions(2)
-        tournamentDto = tournamentFunctionalities.createTournament(userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(),
-                [topicDto1.getAggregateId(),topicDto2.getAggregateId()], tournamentDto)
+        and: 'a tournament where the first user is the creator'
+        tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(),  courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(),topicDto2.getAggregateId()])
     }
 
     def cleanup() {
