@@ -7,21 +7,29 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
+import pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.AnswerQuestionFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.ConcludeQuizFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.CreateTournamentFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.StartQuizFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuestionAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.AnswerQuestionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.ConcludeQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.CreateTournamentFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.StartQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.TCC;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
 
 @Service
 public class QuizAnswerFunctionalities {
@@ -41,66 +49,77 @@ public class QuizAnswerFunctionalities {
     @Autowired
     private Environment env;
 
-    private String workflowType;
+    private MicroservicesSimulator.TransactionalModel workflowType;
 
     @PostConstruct
     public void init() {
-        // Determine the workflow type based on active profiles
         String[] activeProfiles = env.getActiveProfiles();
-        if (Arrays.asList(activeProfiles).contains("sagas")) {
-            workflowType = "sagas";
-        } else if (Arrays.asList(activeProfiles).contains("tcc")) {
-            workflowType = "tcc";
+        if (Arrays.asList(activeProfiles).contains(SAGAS.getValue())) {
+            workflowType = SAGAS;
+        } else if (Arrays.asList(activeProfiles).contains(TCC.getValue())) {
+            workflowType = TCC;
         } else {
-            workflowType = "unknown"; // Default or fallback value
+            throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void answerQuestion(Integer quizAggregateId, Integer userAggregateId, QuestionAnswerDto userQuestionAnswerDto) throws Exception {
+    public void answerQuestion(Integer quizAggregateId, Integer userAggregateId, QuestionAnswerDto userQuestionAnswerDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            AnswerQuestionFunctionalitySagas functionality = new AnswerQuestionFunctionalitySagas(
-                    quizAnswerService, questionService, sagaUnitOfWorkService, quizAnswerFactory, quizAggregateId, userAggregateId, userQuestionAnswerDto, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            AnswerQuestionFunctionalityTCC functionality = new AnswerQuestionFunctionalityTCC(
-                    quizAnswerService, questionService, causalUnitOfWorkService, quizAnswerFactory, quizAggregateId, userAggregateId, userQuestionAnswerDto, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AnswerQuestionFunctionalitySagas answerQuestionFunctionalitySagas = new AnswerQuestionFunctionalitySagas(
+                        quizAnswerService, questionService, sagaUnitOfWorkService, quizAnswerFactory, quizAggregateId, userAggregateId, userQuestionAnswerDto, sagaUnitOfWork);
+                answerQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                AnswerQuestionFunctionalityTCC answerQuestionFunctionalityTCC = new AnswerQuestionFunctionalityTCC(
+                        quizAnswerService, questionService, causalUnitOfWorkService, quizAnswerFactory, quizAggregateId, userAggregateId, userQuestionAnswerDto, causalUnitOfWork);
+                answerQuestionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void startQuiz(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId) throws Exception {
+    public void startQuiz(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            StartQuizFunctionalitySagas functionality = new StartQuizFunctionalitySagas(
-                    quizAnswerService, quizService, sagaUnitOfWorkService, quizAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            StartQuizFunctionalityTCC functionality = new StartQuizFunctionalityTCC(
-                    quizAnswerService, quizService, causalUnitOfWorkService, quizAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                StartQuizFunctionalitySagas startQuizFunctionalitySagas = new StartQuizFunctionalitySagas(
+                        quizAnswerService, quizService, sagaUnitOfWorkService, quizAggregateId, courseExecutionAggregateId, userAggregateId, sagaUnitOfWork);
+                startQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                StartQuizFunctionalityTCC startQuizFunctionalityTCC = new StartQuizFunctionalityTCC(
+                        quizAnswerService, quizService, causalUnitOfWorkService, quizAggregateId, courseExecutionAggregateId, userAggregateId, causalUnitOfWork);
+                startQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void concludeQuiz(Integer quizAggregateId, Integer userAggregateId) throws Exception {
+    public void concludeQuiz(Integer quizAggregateId, Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            ConcludeQuizFunctionalitySagas functionality = new ConcludeQuizFunctionalitySagas(
-                    quizAnswerService, sagaUnitOfWorkService, quizAggregateId, userAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            ConcludeQuizFunctionalityTCC functionality = new ConcludeQuizFunctionalityTCC(
-                    quizAnswerService, causalUnitOfWorkService, quizAggregateId, userAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                ConcludeQuizFunctionalitySagas concludeQuizFunctionalitySagas = new ConcludeQuizFunctionalitySagas(
+                        quizAnswerService, sagaUnitOfWorkService, quizAggregateId, userAggregateId, sagaUnitOfWork);
+                concludeQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                ConcludeQuizFunctionalityTCC concludeQuizFunctionalityTCC = new ConcludeQuizFunctionalityTCC(
+                        quizAnswerService, causalUnitOfWorkService, quizAggregateId, userAggregateId, causalUnitOfWork);
+                concludeQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

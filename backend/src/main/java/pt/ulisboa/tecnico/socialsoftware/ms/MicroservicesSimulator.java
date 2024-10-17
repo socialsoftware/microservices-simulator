@@ -17,12 +17,31 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 @EnableJpaAuditing
 @SpringBootApplication
 @EnableScheduling
-public class Application implements InitializingBean {
+public class MicroservicesSimulator implements InitializingBean {
+	public enum TransactionalModel {
+		SAGAS("sagas"),
+		TCC("tcc");
+
+		private String value;
+
+		TransactionalModel(String value) {
+			this.value = value;
+		}
+
+		public String getValue() {
+			return this.value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+		}
+	}
+
 	@Autowired
 	private EventService eventService;
 
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
+		SpringApplication.run(MicroservicesSimulator.class, args);
 	}
 
 	@Override

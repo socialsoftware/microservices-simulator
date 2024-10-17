@@ -8,12 +8,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
+import pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.CreateQuizFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.FindQuizFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.GetAvailableQuizzesFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.UpdateQuizFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
@@ -25,6 +27,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.UpdateQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.TCC;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
 
 @Service
 public class QuizFunctionalities {
@@ -44,90 +50,97 @@ public class QuizFunctionalities {
     @Autowired
     private Environment env;
 
-    private String workflowType;
+    private MicroservicesSimulator.TransactionalModel workflowType;
 
     @PostConstruct
     public void init() {
-        // Determine the workflow type based on active profiles
         String[] activeProfiles = env.getActiveProfiles();
-        if (Arrays.asList(activeProfiles).contains("sagas")) {
-            workflowType = "sagas";
-        } else if (Arrays.asList(activeProfiles).contains("tcc")) {
-            workflowType = "tcc";
+        if (Arrays.asList(activeProfiles).contains(SAGAS.getValue())) {
+            workflowType = SAGAS;
+        } else if (Arrays.asList(activeProfiles).contains(TCC.getValue())) {
+            workflowType = TCC;
         } else {
-            workflowType = "unknown"; // Default or fallback value
+            throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     public QuizDto createQuiz(Integer courseExecutionId, QuizDto quizDto) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            CreateQuizFunctionalitySagas functionality = new CreateQuizFunctionalitySagas(
-                    courseExecutionService, quizService, questionService, sagaUnitOfWorkService, courseExecutionId, quizDto, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getCreatedQuizDto();
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            CreateQuizFunctionalityTCC functionality = new CreateQuizFunctionalityTCC(
-                    courseExecutionService, quizService, questionService, causalUnitOfWorkService, courseExecutionId, quizDto, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getCreatedQuizDto();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                CreateQuizFunctionalitySagas createQuizFunctionalitySagas = new CreateQuizFunctionalitySagas(
+                        courseExecutionService, quizService, questionService, sagaUnitOfWorkService, courseExecutionId, quizDto, sagaUnitOfWork);
+                createQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return createQuizFunctionalitySagas.getCreatedQuizDto();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                CreateQuizFunctionalityTCC createQuizFunctionalityTCC = new CreateQuizFunctionalityTCC(
+                        courseExecutionService, quizService, questionService, causalUnitOfWorkService, courseExecutionId, quizDto, causalUnitOfWork);
+                createQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return createQuizFunctionalityTCC.getCreatedQuizDto();
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     public QuizDto findQuiz(Integer quizAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            FindQuizFunctionalitySagas functionality = new FindQuizFunctionalitySagas(
-                    quizService, sagaUnitOfWorkService, quizAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getQuizDto();
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            FindQuizFunctionalityTCC functionality = new FindQuizFunctionalityTCC(
-                    quizService, causalUnitOfWorkService, quizAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getQuizDto();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                FindQuizFunctionalitySagas findQuizFunctionalitySagas = new FindQuizFunctionalitySagas(
+                        quizService, sagaUnitOfWorkService, quizAggregateId, sagaUnitOfWork);
+                findQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return findQuizFunctionalitySagas.getQuizDto();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                FindQuizFunctionalityTCC findQuizFunctionalityTCC = new FindQuizFunctionalityTCC(
+                        quizService, causalUnitOfWorkService, quizAggregateId, causalUnitOfWork);
+                findQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return findQuizFunctionalityTCC.getQuizDto();
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     public List<QuizDto> getAvailableQuizzes(Integer userAggregateId, Integer courseExecutionAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            GetAvailableQuizzesFunctionalitySagas functionality = new GetAvailableQuizzesFunctionalitySagas(
-                    quizService, sagaUnitOfWorkService, courseExecutionAggregateId, courseExecutionAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getAvailableQuizzes();
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            GetAvailableQuizzesFunctionalityTCC functionality = new GetAvailableQuizzesFunctionalityTCC(
-                    quizService, causalUnitOfWorkService, courseExecutionAggregateId, courseExecutionAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getAvailableQuizzes();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetAvailableQuizzesFunctionalitySagas getAvailableQuizzesFunctionalitySagas = new GetAvailableQuizzesFunctionalitySagas(
+                        quizService, sagaUnitOfWorkService, courseExecutionAggregateId, courseExecutionAggregateId, sagaUnitOfWork);
+                getAvailableQuizzesFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getAvailableQuizzesFunctionalitySagas.getAvailableQuizzes();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetAvailableQuizzesFunctionalityTCC getAvailableQuizzesFunctionalityTCC = new GetAvailableQuizzesFunctionalityTCC(
+                        quizService, causalUnitOfWorkService, courseExecutionAggregateId, courseExecutionAggregateId, causalUnitOfWork);
+                getAvailableQuizzesFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return getAvailableQuizzesFunctionalityTCC.getAvailableQuizzes();
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     public QuizDto updateQuiz(QuizDto quizDto) throws Exception {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            UpdateQuizFunctionalitySagas functionality = new UpdateQuizFunctionalitySagas(
-                    quizService, sagaUnitOfWorkService, quizFactory, quizDto, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getUpdatedQuizDto();
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            UpdateQuizFunctionalityTCC functionality = new UpdateQuizFunctionalityTCC(
-                    quizService, causalUnitOfWorkService, quizFactory, quizDto, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getUpdatedQuizDto();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateQuizFunctionalitySagas updateQuizFunctionalitySagas = new UpdateQuizFunctionalitySagas(
+                        quizService, sagaUnitOfWorkService, quizFactory, quizDto, sagaUnitOfWork);
+                updateQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return updateQuizFunctionalitySagas.getUpdatedQuizDto();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateQuizFunctionalityTCC updateQuizFunctionalityTCC = new UpdateQuizFunctionalityTCC(
+                        quizService, causalUnitOfWorkService, quizFactory, quizDto, causalUnitOfWork);
+                updateQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return updateQuizFunctionalityTCC.getUpdatedQuizDto();
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

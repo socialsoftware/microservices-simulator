@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.COURSE_EXECUTION_MISSING_ACADEMIC_TERM;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.COURSE_EXECUTION_MISSING_ACRONYM;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.COURSE_EXECUTION_MISSING_END_DATE;
+import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.TCC;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,6 +13,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
+import pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.AddStudentFunctionalityTCC;
@@ -58,174 +59,201 @@ public class CourseExecutionFunctionalities {
     @Autowired
     private Environment env;
 
-    private String workflowType;
+    private MicroservicesSimulator.TransactionalModel workflowType;
 
     @PostConstruct
     public void init() {
-        // Determine the workflow type based on active profiles
         String[] activeProfiles = env.getActiveProfiles();
-        if (Arrays.asList(activeProfiles).contains("sagas")) {
-            workflowType = "sagas";
-        } else if (Arrays.asList(activeProfiles).contains("tcc")) {
-            workflowType = "tcc";
+        if (Arrays.asList(activeProfiles).contains(SAGAS.getValue())) {
+            workflowType = SAGAS;
+        } else if (Arrays.asList(activeProfiles).contains(TCC.getValue())) {
+            workflowType = TCC;
         } else {
-            workflowType = "unknown"; // Default or fallback value
+            throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public CourseExecutionDto createCourseExecution(CourseExecutionDto courseExecutionDto) throws Exception {
+    public CourseExecutionDto createCourseExecution(CourseExecutionDto courseExecutionDto) throws TutorException {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            checkInput(courseExecutionDto);
-            CreateCourseExecutionFunctionalitySagas functionality = new CreateCourseExecutionFunctionalitySagas(
-                    courseExecutionService, sagaUnitOfWorkService, courseExecutionDto, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            
-            return functionality.getCreatedCourseExecution();
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            checkInput(courseExecutionDto);
-            CreateCourseExecutionFunctionalityTCC functionality = new CreateCourseExecutionFunctionalityTCC(
-                    courseExecutionService, causalUnitOfWorkService, courseExecutionDto, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(courseExecutionDto);
+                CreateCourseExecutionFunctionalitySagas createCourseExecutionFunctionalitySagas = new CreateCourseExecutionFunctionalitySagas(
+                        courseExecutionService, sagaUnitOfWorkService, courseExecutionDto, sagaUnitOfWork);
+                createCourseExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
 
-            return functionality.getCreatedCourseExecution();
+                return createCourseExecutionFunctionalitySagas.getCreatedCourseExecution();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(courseExecutionDto);
+                CreateCourseExecutionFunctionalityTCC createCourseExecutionFunctionalityTCC = new CreateCourseExecutionFunctionalityTCC(
+                        courseExecutionService, causalUnitOfWorkService, courseExecutionDto, causalUnitOfWork);
+                createCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+
+                return createCourseExecutionFunctionalityTCC.getCreatedCourseExecution();
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     public CourseExecutionDto getCourseExecutionByAggregateId(Integer executionAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            GetCourseExecutionByIdFunctionalitySagas functionality = new GetCourseExecutionByIdFunctionalitySagas(
-                    courseExecutionService, sagaUnitOfWorkService, executionAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getCourseExecutionDto();
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            GetCourseExecutionByIdFunctionalityTCC functionality = new GetCourseExecutionByIdFunctionalityTCC(
-                    courseExecutionService, causalUnitOfWorkService, executionAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getCourseExecutionDto();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetCourseExecutionByIdFunctionalitySagas getCourseExecutionByIdFunctionalitySagas = new GetCourseExecutionByIdFunctionalitySagas(
+                        courseExecutionService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork);
+                getCourseExecutionByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getCourseExecutionByIdFunctionalitySagas.getCourseExecutionDto();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetCourseExecutionByIdFunctionalityTCC getCourseExecutionByIdFunctionalityTCC = new GetCourseExecutionByIdFunctionalityTCC(
+                        courseExecutionService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork);
+                getCourseExecutionByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return getCourseExecutionByIdFunctionalityTCC.getCourseExecutionDto();
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     public List<CourseExecutionDto> getCourseExecutions() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            GetCourseExecutionsFunctionalitySagas functionality = new GetCourseExecutionsFunctionalitySagas(
-                    courseExecutionService, sagaUnitOfWorkService, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getCourseExecutions();
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            GetCourseExecutionsFunctionalityTCC functionality = new GetCourseExecutionsFunctionalityTCC(
-                    courseExecutionService, causalUnitOfWorkService, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getCourseExecutions();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetCourseExecutionsFunctionalitySagas functionality = new GetCourseExecutionsFunctionalitySagas(
+                        courseExecutionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                functionality.executeWorkflow(sagaUnitOfWork);
+                return functionality.getCourseExecutions();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetCourseExecutionsFunctionalityTCC getCourseExecutionsFunctionalityTCC = new GetCourseExecutionsFunctionalityTCC(
+                        courseExecutionService, causalUnitOfWorkService, causalUnitOfWork);
+                getCourseExecutionsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return getCourseExecutionsFunctionalityTCC.getCourseExecutions();
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void removeCourseExecution(Integer executionAggregateId) throws Exception {
+    public void removeCourseExecution(Integer executionAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            RemoveCourseExecutionFunctionalitySagas functionality = new RemoveCourseExecutionFunctionalitySagas(
-                    courseExecutionService, sagaUnitOfWorkService, executionAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            RemoveCourseExecutionFunctionalityTCC functionality = new RemoveCourseExecutionFunctionalityTCC(
-                    courseExecutionService, causalUnitOfWorkService, executionAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveCourseExecutionFunctionalitySagas removeCourseExecutionFunctionalitySagas = new RemoveCourseExecutionFunctionalitySagas(
+                        courseExecutionService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork);
+                removeCourseExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveCourseExecutionFunctionalityTCC removeCourseExecutionFunctionalityTCC = new RemoveCourseExecutionFunctionalityTCC(
+                        courseExecutionService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork);
+                removeCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void addStudent(Integer executionAggregateId, Integer userAggregateId) throws Exception {
+    public void addStudent(Integer executionAggregateId, Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            AddStudentFunctionalitySagas functionality = new AddStudentFunctionalitySagas(
-                    courseExecutionService, userService, sagaUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            AddStudentFunctionalityTCC functionality = new AddStudentFunctionalityTCC(
-                    courseExecutionService, userService, causalUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AddStudentFunctionalitySagas addStudentFunctionalitySagas = new AddStudentFunctionalitySagas(
+                        courseExecutionService, userService, sagaUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, sagaUnitOfWork);
+                addStudentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                AddStudentFunctionalityTCC addStudentFunctionalityTCC = new AddStudentFunctionalityTCC(
+                        courseExecutionService, userService, causalUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, causalUnitOfWork);
+                addStudentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     public Set<CourseExecutionDto> getCourseExecutionsByUser(Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            GetCourseExecutionsByUserFunctionalitySagas functionality = new GetCourseExecutionsByUserFunctionalitySagas(
-                    courseExecutionService, sagaUnitOfWorkService, userAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getCourseExecutions();
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            GetCourseExecutionsByUserFunctionalityTCC functionality = new GetCourseExecutionsByUserFunctionalityTCC(
-                    courseExecutionService, causalUnitOfWorkService, userAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getCourseExecutions();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetCourseExecutionsByUserFunctionalitySagas getCourseExecutionsByUserFunctionalitySagas = new GetCourseExecutionsByUserFunctionalitySagas(
+                        courseExecutionService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
+                getCourseExecutionsByUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getCourseExecutionsByUserFunctionalitySagas.getCourseExecutions();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetCourseExecutionsByUserFunctionalityTCC getCourseExecutionsByUserFunctionalityTCC = new GetCourseExecutionsByUserFunctionalityTCC(
+                        courseExecutionService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork);
+                getCourseExecutionsByUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return getCourseExecutionsByUserFunctionalityTCC.getCourseExecutions();
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void removeStudentFromCourseExecution(Integer courseExecutionAggregateId, Integer userAggregateId) throws Exception {
+    public void removeStudentFromCourseExecution(Integer courseExecutionAggregateId, Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            RemoveStudentFromCourseExecutionFunctionalitySagas functionality = new RemoveStudentFromCourseExecutionFunctionalitySagas(
-                    courseExecutionService, sagaUnitOfWorkService, courseExecutionFactory, courseExecutionAggregateId, userAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            RemoveStudentFromCourseExecutionFunctionalityTCC functionality = new RemoveStudentFromCourseExecutionFunctionalityTCC(
-                    courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, courseExecutionAggregateId, userAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveStudentFromCourseExecutionFunctionalitySagas removeStudentFromCourseExecutionFunctionalitySagas = new RemoveStudentFromCourseExecutionFunctionalitySagas(
+                        courseExecutionService, sagaUnitOfWorkService, courseExecutionFactory, courseExecutionAggregateId, userAggregateId, sagaUnitOfWork);
+                removeStudentFromCourseExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveStudentFromCourseExecutionFunctionalityTCC removeStudentFromCourseExecutionFunctionalityTCC = new RemoveStudentFromCourseExecutionFunctionalityTCC(
+                        courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, courseExecutionAggregateId, userAggregateId, causalUnitOfWork);
+                removeStudentFromCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void anonymizeStudent(Integer executionAggregateId, Integer userAggregateId) throws Exception {
+    public void anonymizeStudent(Integer executionAggregateId, Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            AnonymizeStudentFunctionalitySagas functionality = new AnonymizeStudentFunctionalitySagas(
-                    courseExecutionService, sagaUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            AnonymizeStudentFunctionalityTCC functionality = new AnonymizeStudentFunctionalityTCC(
-                    courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AnonymizeStudentFunctionalitySagas anonymizeStudentFunctionalitySagas = new AnonymizeStudentFunctionalitySagas(
+                        courseExecutionService, sagaUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, sagaUnitOfWork);
+                anonymizeStudentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                AnonymizeStudentFunctionalityTCC anonymizeStudentFunctionalityTCC = new AnonymizeStudentFunctionalityTCC(
+                        courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, causalUnitOfWork);
+                anonymizeStudentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void updateStudentName(Integer executionAggregateId, Integer userAggregateId, UserDto userDto) throws Exception {
+    public void updateStudentName(Integer executionAggregateId, Integer userAggregateId, UserDto userDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            UpdateStudentNameFunctionalitySagas functionality = new UpdateStudentNameFunctionalitySagas(
-                    courseExecutionService, courseExecutionFactory, sagaUnitOfWorkService, executionAggregateId, userAggregateId, userDto, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            UpdateStudentNameFunctionalityTCC functionality = new UpdateStudentNameFunctionalityTCC(
-                    courseExecutionService, courseExecutionFactory, causalUnitOfWorkService, executionAggregateId, userAggregateId, userDto, unitOfWork);
-            functionality.executeWorkflow(unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateStudentNameFunctionalitySagas updateStudentNameFunctionalitySagas = new UpdateStudentNameFunctionalitySagas(
+                        courseExecutionService, courseExecutionFactory, sagaUnitOfWorkService, executionAggregateId, userAggregateId, userDto, sagaUnitOfWork);
+                updateStudentNameFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateStudentNameFunctionalityTCC updateStudentNameFunctionalityTCC = new UpdateStudentNameFunctionalityTCC(
+                        courseExecutionService, courseExecutionFactory, causalUnitOfWorkService, executionAggregateId, userAggregateId, userDto, causalUnitOfWork);
+                updateStudentNameFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
     

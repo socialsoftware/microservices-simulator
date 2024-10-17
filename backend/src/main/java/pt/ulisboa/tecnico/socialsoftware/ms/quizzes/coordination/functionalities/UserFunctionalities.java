@@ -8,26 +8,21 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
+import pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.ActivateUserFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.CreateUserFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.DeleteUserFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.FindUserByIdFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.GetStudentsFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.GetTeachersFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.ActivateUserFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.CreateUserFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.DeleteUserFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.FindUserByIdFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.GetStudentsFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.GetTeachersFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.TCC;
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
 
 @Service
 public class UserFunctionalities {
@@ -41,138 +36,153 @@ public class UserFunctionalities {
     @Autowired
     private Environment env;
 
-    private String workflowType;
+    private MicroservicesSimulator.TransactionalModel workflowType;
 
     @PostConstruct
     public void init() {
-        // Determine the workflow type based on active profiles
         String[] activeProfiles = env.getActiveProfiles();
-        if (Arrays.asList(activeProfiles).contains("sagas")) {
-            workflowType = "sagas";
-        } else if (Arrays.asList(activeProfiles).contains("tcc")) {
-            workflowType = "tcc";
+        if (Arrays.asList(activeProfiles).contains(SAGAS.getValue())) {
+            workflowType = SAGAS;
+        } else if (Arrays.asList(activeProfiles).contains(TCC.getValue())) {
+            workflowType = TCC;
         } else {
-            workflowType = "unknown"; // Default or fallback value
+            throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public UserDto createUser(UserDto userDto) throws Exception {
+    public UserDto createUser(UserDto userDto) throws TutorException {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            checkInput(userDto);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(userDto);
 
-            CreateUserFunctionalitySagas functionality = new CreateUserFunctionalitySagas(
-                    userService, sagaUnitOfWorkService, userDto, unitOfWork);
+                CreateUserFunctionalitySagas createUserFunctionalitySagas = new CreateUserFunctionalitySagas(
+                        userService, sagaUnitOfWorkService, userDto, sagaUnitOfWork);
 
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getCreatedUserDto();
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            checkInput(userDto);
+                createUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return createUserFunctionalitySagas.getCreatedUserDto();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(userDto);
 
-            CreateUserFunctionalityTCC functionality = new CreateUserFunctionalityTCC(
-                    userService, causalUnitOfWorkService, userDto, unitOfWork);
+                CreateUserFunctionalityTCC createUserFunctionalityTCC = new CreateUserFunctionalityTCC(
+                        userService, causalUnitOfWorkService, userDto, causalUnitOfWork);
 
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getCreatedUserDto();
+                createUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return createUserFunctionalityTCC.getCreatedUserDto();
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     public UserDto findByUserId(Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            FindUserByIdFunctionalitySagas functionality = new FindUserByIdFunctionalitySagas(
-                    userService, sagaUnitOfWorkService, userAggregateId, unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                FindUserByIdFunctionalitySagas findUserByIdFunctionalitySagas = new FindUserByIdFunctionalitySagas(
+                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
 
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getUserDto();
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            FindUserByIdFunctionalityTCC functionality = new FindUserByIdFunctionalityTCC(
-                    userService, causalUnitOfWorkService, userAggregateId, unitOfWork);
+                findUserByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return findUserByIdFunctionalitySagas.getUserDto();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                FindUserByIdFunctionalityTCC findUserByIdFunctionalityTCC = new FindUserByIdFunctionalityTCC(
+                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork);
 
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getUserDto();
+                findUserByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return findUserByIdFunctionalityTCC.getUserDto();
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void activateUser(Integer userAggregateId) throws Exception {
+    public void activateUser(Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            ActivateUserFunctionalitySagas functionality = new ActivateUserFunctionalitySagas(
-                    userService, sagaUnitOfWorkService, userAggregateId, unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                ActivateUserFunctionalitySagas activateUserFunctionalitySagas = new ActivateUserFunctionalitySagas(
+                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
 
-            functionality.executeWorkflow(unitOfWork);
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            ActivateUserFunctionalityTCC functionality = new ActivateUserFunctionalityTCC(
-                    userService, causalUnitOfWorkService, userAggregateId, unitOfWork);
+                activateUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                ActivateUserFunctionalityTCC activateUserFunctionalityTCC = new ActivateUserFunctionalityTCC(
+                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork);
 
-            functionality.executeWorkflow(unitOfWork);
+                activateUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void deleteUser(Integer userAggregateId) throws Exception {
+    public void deleteUser(Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            DeleteUserFunctionalitySagas functionality = new DeleteUserFunctionalitySagas(
-                    userService, sagaUnitOfWorkService, userAggregateId, unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeleteUserFunctionalitySagas deleteUserFunctionalitySagas = new DeleteUserFunctionalitySagas(
+                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
 
-            functionality.executeWorkflow(unitOfWork);
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            DeleteUserFunctionalityTCC functionality = new DeleteUserFunctionalityTCC(
-                    userService, causalUnitOfWorkService, userAggregateId, unitOfWork);
+                deleteUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeleteUserFunctionalityTCC deleteUserFunctionalityTCC = new DeleteUserFunctionalityTCC(
+                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork);
 
-            functionality.executeWorkflow(unitOfWork);
+                deleteUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     public List<UserDto> getStudents() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            GetStudentsFunctionalitySagas functionality = new GetStudentsFunctionalitySagas(
-                    userService, sagaUnitOfWorkService, unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetStudentsFunctionalitySagas getStudentsFunctionalitySagas = new GetStudentsFunctionalitySagas(
+                        userService, sagaUnitOfWorkService, sagaUnitOfWork);
 
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getStudents();
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            GetStudentsFunctionalityTCC functionality = new GetStudentsFunctionalityTCC(
-                    userService, causalUnitOfWorkService, unitOfWork);
+                getStudentsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getStudentsFunctionalitySagas.getStudents();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetStudentsFunctionalityTCC getStudentsFunctionalityTCC = new GetStudentsFunctionalityTCC(
+                        userService, causalUnitOfWorkService, causalUnitOfWork);
 
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getStudents();
+                getStudentsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return getStudentsFunctionalityTCC.getStudents();
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     public List<UserDto> getTeachers() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
-        if ("sagas".equals(workflowType)) {
-            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-            GetTeachersFunctionalitySagas functionality = new GetTeachersFunctionalitySagas(
-                    userService, sagaUnitOfWorkService, unitOfWork);
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetTeachersFunctionalitySagas getTeachersFunctionalitySagas = new GetTeachersFunctionalitySagas(
+                        userService, sagaUnitOfWorkService, sagaUnitOfWork);
 
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getTeachers();
-        } else {
-            CausalUnitOfWork unitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            GetTeachersFunctionalityTCC functionality = new GetTeachersFunctionalityTCC(
-                    userService, causalUnitOfWorkService, unitOfWork);
+                getTeachersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getTeachersFunctionalitySagas.getTeachers();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetTeachersFunctionalityTCC getTeachersFunctionalityTCC = new GetTeachersFunctionalityTCC(
+                        userService, causalUnitOfWorkService, causalUnitOfWork);
 
-            functionality.executeWorkflow(unitOfWork);
-            return functionality.getTeachers();
+                getTeachersFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return getTeachersFunctionalityTCC.getTeachers();
+            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
