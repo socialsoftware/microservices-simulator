@@ -16,7 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.Erro
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 

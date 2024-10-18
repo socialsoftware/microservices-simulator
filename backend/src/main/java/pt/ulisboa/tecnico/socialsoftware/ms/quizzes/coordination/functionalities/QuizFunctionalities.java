@@ -21,10 +21,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.servi
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.CreateQuizFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.FindQuizFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.GetAvailableQuizzesFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.UpdateQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.CreateQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.FindQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.GetAvailableQuizzesFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.UpdateQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 

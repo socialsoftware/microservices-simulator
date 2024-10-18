@@ -31,7 +31,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.eve
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 

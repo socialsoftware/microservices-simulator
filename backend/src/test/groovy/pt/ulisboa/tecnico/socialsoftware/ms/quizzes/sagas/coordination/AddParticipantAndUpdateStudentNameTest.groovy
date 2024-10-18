@@ -19,8 +19,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.AddParticipantFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.UpdateStudentNameFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
 
 @DataJpaTest

@@ -12,7 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.AnswerQuestionFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.ConcludeQuizFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.CreateTournamentFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.StartQuizFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuestionAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
@@ -20,10 +19,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.AnswerQuestionFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.ConcludeQuizFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.CreateTournamentFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.StartQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.AnswerQuestionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.ConcludeQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.StartQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 

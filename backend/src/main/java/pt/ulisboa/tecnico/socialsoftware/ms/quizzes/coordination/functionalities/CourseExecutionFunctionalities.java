@@ -31,15 +31,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggr
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.AddStudentFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.AnonymizeStudentFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.CreateCourseExecutionFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.GetCourseExecutionByIdFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.GetCourseExecutionsByUserFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.GetCourseExecutionsFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.RemoveCourseExecutionFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.RemoveStudentFromCourseExecutionFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflows.UpdateStudentNameFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.AddStudentFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.AnonymizeStudentFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.CreateCourseExecutionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.GetCourseExecutionByIdFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.GetCourseExecutionsByUserFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.GetCourseExecutionsFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.RemoveCourseExecutionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.RemoveStudentFromCourseExecutionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.UpdateStudentNameFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
