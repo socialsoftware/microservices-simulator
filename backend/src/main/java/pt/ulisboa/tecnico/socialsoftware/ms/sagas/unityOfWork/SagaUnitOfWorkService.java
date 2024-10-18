@@ -7,6 +7,7 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.excepti
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -130,18 +131,31 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void verifyAndSetSagaState(Integer aggregateId, SagaState state, ArrayList<SagaState> forbiddenStates, SagaUnitOfWork unitOfWork) {
+    public void verifyAndSetSagaState(Integer aggregateId, SagaState state, List<SagaState> forbiddenStates, SagaUnitOfWork unitOfWork) {
         SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
         
         if (forbiddenStates.contains(aggregate.getSagaState())) {
-            throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+            throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, aggregate.getSagaState().getStateName());
         }
         else if (state != null){
             unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
             aggregate.setSagaState(state);
             entityManager.persist(aggregate);
             unitOfWork.addToAggregatesInSaga(aggregate);
+        }
+    }
+
+    @Retryable(
+            value = { SQLException.class },
+            backoff = @Backoff(delay = 5000))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void verifySagaState(Integer aggregateId, List<SagaState> forbiddenStates) {
+        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+
+        if (forbiddenStates.contains(aggregate.getSagaState())) {
+            throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, aggregate.getSagaState().getStateName());
         }
     }
 

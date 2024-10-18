@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception;
 public enum ErrorMessage {
     UNDEFINED_TRANSACTIONAL_MODEL("Undefined transactional model"),
 
-    AGGREGATE_BEING_USED_IN_OTHER_SAGA("Aggregate %s is being used in other saga"),
+    AGGREGATE_BEING_USED_IN_OTHER_SAGA("Aggregate is being used in %s saga"),
 
     INVALID_AGGREGATE_TYPE("Aggregate type %s does not exist"),
 

@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.workflow
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
@@ -11,6 +12,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
@@ -43,6 +46,9 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {
             TournamentParticipant participant = new TournamentParticipant(this.getUserDto());
+            List<SagaAggregate.SagaState> states = new ArrayList<>();
+            states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
+            unitOfWorkService.verifySagaState(tournamentAggregateId, states);
             tournamentService.addParticipant(tournamentAggregateId, participant, userDto.getRole(), unitOfWork);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 

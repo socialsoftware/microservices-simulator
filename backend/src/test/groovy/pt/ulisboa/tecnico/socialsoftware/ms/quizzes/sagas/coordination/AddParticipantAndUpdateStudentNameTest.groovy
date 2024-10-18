@@ -91,7 +91,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
 
     // add student other than creator
 
-    def 'sequential update name in course execution and then add student as tournament participant' () {
+    def 'sequential: update; add' () {
         given: 'student name is updated'
         def updateNameDto = new UserDto()
         updateNameDto.setName(UPDATED_NAME)
@@ -108,7 +108,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         tournamentDtoResult.getParticipants().find { it.aggregateId == userDto.aggregateId }.name == UPDATED_NAME
     }
 
-    def 'sequential add student as tournament participant and then update name in course execution' () {
+    def 'sequential: add; update' () {
         given: 'student is added to tournament'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
@@ -135,7 +135,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         tournamentDtoResult2.getParticipants().find{it.aggregateId == userDto.aggregateId}.name == UPDATED_NAME
     }
 
-    def 'concurrent add student as tournament participant and update name in course execution - update name finishes first' () {
+    def 'concurrent: add(1); update; add(2); event' () {
         given: 'add participant executes the first step'
         def addParticipantFunctionality = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2)
         addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2);
@@ -165,9 +165,9 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         tournamentDtoResult2.getParticipants().find{it.aggregateId == userDto.aggregateId}.name == UPDATED_NAME
     }
 
-    // update creator name in course execution and add creator in tournament
+    // update creator name in course execution and add creator as participant in tournament
 
-    def 'sequential update creator name in course execution and add creator as tournament participant: fails because when creator is added tournament have not process the event yet' () {
+    def 'sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet' () {
         given: 'creator name is updated'
         def updateNameDto = new UserDto()
         updateNameDto.setName(UPDATED_NAME)
@@ -175,16 +175,15 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
 
         when: 'add creator as participant where the creator in tournament still has the old name'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
-
         then: 'fails because invariant breaks'
         def error = thrown(TutorException)
         error.errorMessage == ErrorMessage.INVARIANT_BREAK
 
-        then: 'when event is finally processed it updates the creator name'
+        when: 'event is finally processed it updates the creator name'
         tournamentEventHandling.handleUpdateStudentNameEvent()
-        and: 'creator can be added as participant because tournament has processed all events it subscribes from course execution'
+        and: 'creator is added as participant because tournament has processed all events it subscribes from course execution'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
-        and: 'the name is updated in course execution'
+        then: 'the name is updated in course execution'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
         and: 'the creator is update in tournament'
@@ -195,7 +194,32 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
     }
 
-    def 'sequential add creator as tournament participant and update creator name in course execution' () {
+    def 'sequential - add creator: update; event; add' () {
+        given: 'a update name dto'
+        def updateNameDto = new UserDto()
+        updateNameDto.setName(UPDATED_NAME)
+
+        when: 'name is updated'
+        courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
+        then: 'the student name is updated'
+        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+
+        when: 'event is processed'
+        tournamentEventHandling.handleUpdateStudentNameEvent()
+        then: 'it updates the creator name'
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult.getCreator().getName() == UPDATED_NAME
+
+        when: 'add creator as participant'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
+        then: 'the creator is participant with updated name'
+        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult2.getParticipants().size() == 1
+        tournamentDtoResult2.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+    }
+
+    def 'sequential - add creator: add; update; event' () {
         given: 'add creator as participant'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
         and: 'creator name is updated'
@@ -217,71 +241,91 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
     }
 
-    def 'concurrent add creator as tournament participant and update name in course execution: update name finishes first and event processing is during addParticipant' () {
+    def 'concurrent - add creator: update; add-s1; event; add-s2' () {
         given: 'creator name is updated'
         def updateNameDto = new UserDto()
         updateNameDto.setName(UPDATED_NAME)
-
-        def updateStudentNameFunctionality = new UpdateStudentNameFunctionalitySagas(courseExecutionService, courseExecutionFactory, unitOfWorkService, courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto, unitOfWork1)
-        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
-
-        addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2) 
-        updateStudentNameFunctionality.executeWorkflow(unitOfWork1) 
-        
-        when:
-        tournamentEventHandling.handleUpdateStudentNameEvent() 
-        then: 'the name is updated in course execution'
-        def courseExecutionDtoResult1 = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
-        courseExecutionDtoResult1.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
-        and: 'the creator is not added as participant with new name'
-        def tournamentDtoResult1 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult1.creator.name == UPDATED_NAME //name updated
-        tournamentDtoResult1.getParticipants().size() == 0 //creator not added
-        
-        when:
-        addParticipantFunctionality.resumeWorkflow(unitOfWork2) 
-        then: 'fails because invariant breaks'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.INVARIANT_BREAK
-
-        then:
-        def unitOfWork3 = unitOfWorkService.createUnitOfWork(UpdateStudentNameFunctionalitySagas.class.getSimpleName())
-        def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork3)
-        addParticipantFunctionality2.executeWorkflow(unitOfWork1) 
-
-        tournamentEventHandling.handleUpdateStudentNameEvent() 
-
-
-        then: 'the name is updated in course execution'
-        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
-        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
-        and: 'the creator is added as participant with new name'
-        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult.creator.name == UPDATED_NAME
-        tournamentDtoResult.getParticipants().size() == 1
-        tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
-    }
-
-    def 'concurrent add creator as tournament participant and update name in course execution: add creator finishes first' () {
-        given: 'add creator as participant'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
-        and: 'creator name is updated'
-        def updateNameDto = new UserDto()
-        updateNameDto.setName(UPDATED_NAME)
         courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
+        and: 'creator is read for to be added as participant'
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
+        addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2)
 
         when: 'the event is processed'
         tournamentEventHandling.handleUpdateStudentNameEvent()
-
         then: 'the name is updated in course execution'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
         and: 'the creator is update in tournament'
         def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult.creator.name == UPDATED_NAME
-        and: 'the creator is a participant with the correct name'
+
+        when: 'creator is added as participant'
+        addParticipantFunctionality.resumeWorkflow(unitOfWork2)
+        then: 'the creator is added as participant with new name'
+        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult2.getParticipants().size() == 1
+        tournamentDtoResult2.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+    }
+
+    def 'concurrent - add creator: add-s1; update; event; add-s2' () {
+        given: 'creator is read from course to be added'
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
+        addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2)
+        and: 'creator name is updated'
+        def updateNameDto = new UserDto()
+        updateNameDto.setName(UPDATED_NAME)
+        courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
+
+        when: 'event is processed'
+        tournamentEventHandling.handleUpdateStudentNameEvent() 
+        then: 'the name is updated in course execution'
+        def courseExecutionDtoResult1 = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult1.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+        and: 'the creator is not added as participant with new name'
+        def tournamentDtoResult1 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult1.creator.name == UPDATED_NAME
+        tournamentDtoResult1.getParticipants().size() == 0
+        
+        when: 'the read creator is added'
+        addParticipantFunctionality.resumeWorkflow(unitOfWork2) 
+        then: 'fails because invariant breaks'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.INVARIANT_BREAK
+
+        when: 'the functionality is retried'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
+        then: 'the creator is added as participant with new name'
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult.getParticipants().size() == 1
         tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+    }
+
+    def 'concurrent - add creator: add-s1; update; add-s2; event' () {
+        given: 'creator is read from course to be added'
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
+        addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2)
+        and: 'creator name is updated'
+        def updateNameDto = new UserDto()
+        updateNameDto.setName(UPDATED_NAME)
+        courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
+
+        when: 'the read creator is added'
+        addParticipantFunctionality.resumeWorkflow(unitOfWork2)
+        then: 'the name is updated in course execution'
+        def courseExecutionDtoResult1 = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult1.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+        and: 'the creator still has the old name and it is add with old name'
+        def tournamentDtoResult1 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult1.creator.name == USER_NAME_1
+        tournamentDtoResult1.getParticipants().size() == 1
+        tournamentDtoResult1.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == USER_NAME_1
+
+        when: 'event is processed'
+        tournamentEventHandling.handleUpdateStudentNameEvent()
+        then: 'the names are updated for both, as creator and as participant'
+        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult2.creator.name == UPDATED_NAME
+        tournamentDtoResult2.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
     }
 
     @TestConfiguration
