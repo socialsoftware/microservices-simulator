@@ -33,10 +33,6 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
     private TournamentService tournamentService
     @Autowired
     private TopicService topicService
-    @Autowired
-    private TournamentFactory tournamentFactory
-    @Autowired
-    private QuizFactory quizFactory
 
     @Autowired
     private CourseExecutionFunctionalities courseExecutionFunctionalities
@@ -89,7 +85,6 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         def topics =  new HashSet<>(Arrays.asList(topicDto1.aggregateId,topicDto2.aggregateId))
 
         def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService,
-                                tournamentFactory, quizFactory,
                                 updateTournamentDto, topics, unitOfWork1)
 
         updateTournamentFunctionality.executeUntilStep("getOriginalTournamentStep", unitOfWork1) 
