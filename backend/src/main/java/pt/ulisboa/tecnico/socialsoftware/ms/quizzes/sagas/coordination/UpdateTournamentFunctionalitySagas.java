@@ -1,9 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
@@ -25,6 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.Quiz
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TopicSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
@@ -43,20 +41,21 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
     private final SagaUnitOfWorkService unitOfWorkService;
 
     public UpdateTournamentFunctionalitySagas(TournamentService tournamentService, TopicService topicService, QuizService quizService, SagaUnitOfWorkService unitOfWorkService, 
-                                TournamentFactory tournamentFactory, QuizFactory quizFactory,
                                 TournamentDto tournamentDto, Set<Integer> topicsAggregateIds, SagaUnitOfWork unitOfWork) {
         this.tournamentService = tournamentService;
         this.topicService = topicService;
         this.quizService = quizService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(tournamentDto, topicsAggregateIds, tournamentFactory, quizFactory, unitOfWork);
+        this.buildWorkflow(tournamentDto, topicsAggregateIds, unitOfWork);
     }
 
-    public void buildWorkflow(TournamentDto tournamentDto, Set<Integer> topicsAggregateIds, TournamentFactory tournamentFactory, QuizFactory quizFactory, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(TournamentDto tournamentDto, Set<Integer> topicsAggregateIds, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
     
         SagaSyncStep getOriginalTournamentStep = new SagaSyncStep("getOriginalTournamentStep", () -> {
-            unitOfWorkService.registerSagaState(tournamentDto.getAggregateId(), TournamentSagaState.IN_UPDATE_TOURNAMENT, unitOfWork);
+            List<SagaAggregate.SagaState> states = new ArrayList<>();
+            states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
+            unitOfWorkService.verifyAndSetSagaState(tournamentDto.getAggregateId(), TournamentSagaState.IN_UPDATE_TOURNAMENT, states, unitOfWork);
             SagaTournamentDto originalTournamentDto = (SagaTournamentDto) tournamentService.getTournamentById(tournamentDto.getAggregateId(), unitOfWork);
             this.setOriginalTournamentDto(originalTournamentDto);
         });

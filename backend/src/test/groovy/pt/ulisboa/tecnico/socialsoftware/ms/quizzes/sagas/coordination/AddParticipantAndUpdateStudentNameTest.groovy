@@ -79,6 +79,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         and: 'a tournament where the first user is the creator'
         tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(),  courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(),topicDto2.getAggregateId()])
 
+        and: 'two units of work'
         def functionalityName1 = UpdateStudentNameFunctionalitySagas.class.getSimpleName()
         def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
         unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)

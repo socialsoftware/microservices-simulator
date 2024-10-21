@@ -138,7 +138,7 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateTournamentFunctionalitySagas updateTournamentFunctionalitySagas = new UpdateTournamentFunctionalitySagas(
-                        tournamentService, topicService, quizService, sagaUnitOfWorkService, tournamentFactory, quizFactory,
+                        tournamentService, topicService, quizService, sagaUnitOfWorkService,
                         tournamentDto, topicsAggregateIds, sagaUnitOfWork);
 
                 updateTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
 
 public class QuizDto implements Serializable {
     private Integer aggregateId;
@@ -25,8 +26,8 @@ public class QuizDto implements Serializable {
     public QuizDto(Quiz quiz) {
         setAggregateId(quiz.getAggregateId());
         setTitle(quiz.getTitle());
-        setAvailableDate(quiz.getAvailableDate().toString());
-        setConclusionDate(quiz.getConclusionDate().toString());
+        setAvailableDate(DateHandler.toISOString(quiz.getAvailableDate()));
+        setConclusionDate(DateHandler.toISOString(quiz.getConclusionDate()));
         setResultsDate(quiz.getResultsDate().toString());
         setVersion(quiz.getVersion());
         setQuestionDtos(quiz.getQuizQuestions().stream()
