@@ -109,7 +109,7 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
-    def 'concurrent remove tournament and update start time: remove finishes after getOriginalTournamentStep' () {
+    def 'concurrent: update - getOriginalTournamentStep; remove; update - resume' () {
         given: 'update start time until first step'
         updateTournamentFunctionality.executeUntilStep("getOriginalTournamentStep", unitOfWork1)
         and: 'remove tournament'
@@ -128,9 +128,9 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         error2.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
-    def 'concurrent remove tournament and update start time: remove finishes after getTopicsStep' () {
+    def 'concurrent: update - getTopicsStep; remove; update - resume' () {
         given: 'update start time until first step'
-        updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
+        updateTournamentFunctionality.executeUntilStep("getTopicsStep", unitOfWork1)
         and: 'remove tournament'
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
 
@@ -147,7 +147,7 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         error2.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
-    def 'concurrent remove tournament and update start time: remove finishes after updateTournamentStep' () {
+    def 'concurrent: update - updateTournamentStep; remove; update - resume' () {
         given: 'update start time until first step'
         updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
         and: 'remove tournament'
