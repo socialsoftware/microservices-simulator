@@ -30,10 +30,10 @@ public class SagaSyncStep extends SyncStep implements SagaStep {
     @Override
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         try {
+            getSyncOperation().run();
             if (getCompensation() != null) {
                 ((SagaUnitOfWork)unitOfWork).registerCompensation(getCompensation());
             }
-            getSyncOperation().run();
             return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
             throw e;

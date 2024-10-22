@@ -41,16 +41,16 @@ public class SagaAsyncStep extends AsyncStep implements SagaStep {
     @Override
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         try {
+            CompletableFuture<Void> result = CompletableFuture.supplyAsync(getAsyncOperation(), getExecutorService())
+                .thenCompose(Function.identity())
+                .exceptionallyCompose(ex -> {
+                    return ((SagaUnitOfWork) unitOfWork).compensateAsync(getExecutorService())
+                    .thenCompose(v -> CompletableFuture.failedFuture(ex)); // Rethrow the original exception
+                });
             if (getCompensation() != null) {
                 ((SagaUnitOfWork)unitOfWork).registerCompensation(getCompensation());
             }
-            
-            return CompletableFuture.supplyAsync(getAsyncOperation(), getExecutorService())
-                    .thenCompose(Function.identity())
-                    .exceptionallyCompose(ex -> {
-                        return ((SagaUnitOfWork) unitOfWork).compensateAsync(getExecutorService())
-                                .thenCompose(v -> CompletableFuture.failedFuture(ex)); // Rethrow the original exception
-                    });
+            return result;
         } catch (Exception e) {
             return CompletableFuture.failedFuture(e);
         }
