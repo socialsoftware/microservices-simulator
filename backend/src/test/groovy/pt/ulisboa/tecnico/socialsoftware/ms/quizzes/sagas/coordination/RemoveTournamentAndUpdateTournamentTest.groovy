@@ -11,12 +11,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.Erro
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizFactory
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler
@@ -42,8 +40,12 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
     private TopicDto topicDto1, topicDto2, topicDto3
+    private Set<Integer> topics
     private QuestionDto questionDto1, questionDto2, questionDto3
     private TournamentDto tournamentDto
+
+    def unitOfWork1
+    def updateTournamentFunctionality
 
     def setup() {
         given: 'a course execution'
@@ -69,33 +71,99 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
 
         and: 'a tournament where the first user is the creator'
         tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(),  courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(),topicDto2.getAggregateId()])
-    }
 
-    def cleanup() {
-
-    }
-
-    def 'concurrent remove tournament and update start time: remove finishes first' () {
-        given: 'update start time'
+        and: 'information required to update tournament'
         def functionalityName1 = UpdateTournamentFunctionalitySagas.class.getSimpleName()
-        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
+        unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         def updateTournamentDto = new TournamentDto()
         updateTournamentDto.setAggregateId(tournamentDto.aggregateId)
         updateTournamentDto.setStartTime(DateHandler.toISOString(TIME_2))
-        def topics =  new HashSet<>(Arrays.asList(topicDto1.aggregateId,topicDto2.aggregateId))
+        topics =  new HashSet<>(Arrays.asList(topicDto1.aggregateId,topicDto2.aggregateId))
+        updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService,
+                updateTournamentDto, topics, unitOfWork1)
+    }
 
-        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService,
-                                updateTournamentDto, topics, unitOfWork1)
+    def cleanup() {}
 
-        updateTournamentFunctionality.executeUntilStep("getOriginalTournamentStep", unitOfWork1) 
-        
-        when: 'remove tournament'
+    def 'sequential: update; remove' () {
+        given: 'a tournament update'
+        tournamentFunctionalities.updateTournament(tournamentDto, topics)
+        and: 'the tournament is deleted'
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
-        updateTournamentFunctionality.resumeWorkflow(unitOfWork1) 
 
-        then: 'fails because tournament is deleted'
+        when: 'try to get tournament'
+        tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        then: 'tournament does not exist'
         def error = thrown(TutorException)
         error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+    }
+
+    def 'sequential: remove; update' () {
+        given: 'the tournament is deleted'
+        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
+
+        when: 'a tournament update'
+        tournamentFunctionalities.updateTournament(tournamentDto, topics)
+        then: 'tournament does not exist'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+    }
+
+    def 'concurrent remove tournament and update start time: remove finishes after getOriginalTournamentStep' () {
+        given: 'update start time until first step'
+        updateTournamentFunctionality.executeUntilStep("getOriginalTournamentStep", unitOfWork1)
+        and: 'remove tournament'
+        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
+
+        when: 'try to get tournament'
+        tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        then: 'tournament does not exist'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+
+        when: 'try to finish update'
+        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
+        then: 'fails because tournament is deleted'
+        def error2 = thrown(TutorException)
+        error2.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+    }
+
+    def 'concurrent remove tournament and update start time: remove finishes after getTopicsStep' () {
+        given: 'update start time until first step'
+        updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
+        and: 'remove tournament'
+        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
+
+        when: 'try to get tournament'
+        tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        then: 'tournament does not exist'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+
+        when: 'try to finish update'
+        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
+        then: 'fails because tournament is deleted'
+        def error2 = thrown(TutorException)
+        error2.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+    }
+
+    def 'concurrent remove tournament and update start time: remove finishes after updateTournamentStep' () {
+        given: 'update start time until first step'
+        updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
+        and: 'remove tournament'
+        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
+
+        when: 'try to get tournament'
+        tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        then: 'tournament does not exist'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+
+        when: 'try to finish update'
+        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
+        then: 'fails because tournament is deleted'
+        def error2 = thrown(TutorException)
+        error2.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
     @TestConfiguration

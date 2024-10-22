@@ -14,17 +14,14 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
     private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
-    private String currentStep = "";
-
-    public RemoveTournamentFunctionalitySagas(EventService eventService, TournamentService tournamentService,SagaUnitOfWorkService unitOfWorkService, 
-                                TournamentFactory tournamentFactory,
+    public RemoveTournamentFunctionalitySagas(TournamentService tournamentService,SagaUnitOfWorkService unitOfWorkService,
                                 Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(tournamentFactory, tournamentAggregateId, unitOfWork);
+        this.buildWorkflow(tournamentAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
     
         SagaSyncStep removeTournamentStep = new SagaSyncStep("removeTournamentStep", () -> {
