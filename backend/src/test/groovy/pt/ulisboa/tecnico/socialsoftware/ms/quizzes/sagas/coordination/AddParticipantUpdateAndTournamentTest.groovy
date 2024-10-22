@@ -22,7 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.Q
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
 
 @DataJpaTest
-class AddParticipantUpdateTournamentTest extends QuizzesSpockTest {
+class AddParticipantAndUpdateTournamentTest extends QuizzesSpockTest {
     @Autowired
     private SagaUnitOfWorkService unitOfWorkService
 
