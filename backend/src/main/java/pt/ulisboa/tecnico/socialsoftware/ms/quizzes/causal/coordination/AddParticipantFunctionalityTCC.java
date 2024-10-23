@@ -39,7 +39,7 @@ public class AddParticipantFunctionalityTCC extends WorkflowFunctionality {
             // by making this call the invariants regarding the course execution and the role of the participant are guaranteed
             UserDto userDto = courseExecutionService.getStudentByExecutionIdAndUserId(tournamentDto.getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
             TournamentParticipant participant = new TournamentParticipant(userDto);
-            tournamentService.addParticipant(tournamentAggregateId, participant, userDto.getRole(), unitOfWork);
+            tournamentService.addParticipant(tournamentAggregateId, participant, unitOfWork);
         });
 
 

@@ -1,9 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_DELETED;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_NOT_FOUND;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +28,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregateRepository;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
 
 @Profile("sagas")
 @Service
@@ -202,6 +200,10 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     @Override
     public void registerChanged(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
+        if (aggregate.getPrev() != null && aggregate.getPrev().getState() == Aggregate.AggregateState.INACTIVE) {
+            throw new TutorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregate.getAggregateId());
+        }
+
         if (aggregate.getId() == null) {
             ((SagaAggregate)aggregate).setSagaState(GenericSagaState.NOT_IN_SAGA);
         }

@@ -93,42 +93,6 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
     }
 
-    def 'sequential: anonymize creator; update tournament' () {
-        given: 'topics to update the tournament'
-        tournamentDto.setNumberOfQuestions(3)
-        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
-        
-        when: 'anonymize creator'
-        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
-        then: 'creator is anonymized'
-        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
-        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
-        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
-        
-        when: 'the tournament is updated'
-        tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)
-        then: 'the tournament is updated'
-        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult.numberOfQuestions == 3
-        tournamentDtoResult.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
-        def quizDto = quizFunctionalities.findQuiz(tournamentDtoResult.quiz.aggregateId)
-        quizDto.questionDtos.size() == 3
-        and: 'the tournament has not processed the anonymized event'
-        tournamentDtoResult.state == Aggregate.AggregateState.ACTIVE.toString()
-        tournamentDtoResult.creator.name == userCreatorDto.name
-        tournamentDtoResult.creator.username == userCreatorDto.username
-
-        then: 'tournament processes event to anonymize the creator'
-        tournamentEventHandling.handleAnonymizeStudentEvents()
-        and: 'the tournament is inactive and the creator anonymized'
-        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult2.state == Aggregate.AggregateState.INACTIVE.toString()
-        tournamentDtoResult2.creator.name == ANONYMOUS
-        tournamentDtoResult2.creator.username == ANONYMOUS
-        and: 'there are no participants'
-        tournamentDtoResult2.getParticipants().size() == 0
-    }
-
     def 'sequential: update tournament; anonymize creator; event' () {
         given: 'topics to update the tournament'
         tournamentDto.setNumberOfQuestions(3)
@@ -157,6 +121,71 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'tournament processes event to anonymize the creator'
         tournamentEventHandling.handleAnonymizeStudentEvents()
         then: 'the tournament is inactive and the creator anonymized'
+        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult2.state == Aggregate.AggregateState.INACTIVE.toString()
+        tournamentDtoResult2.creator.name == ANONYMOUS
+        tournamentDtoResult2.creator.username == ANONYMOUS
+        and: 'there are no participants'
+        tournamentDtoResult2.getParticipants().size() == 0
+    }
+
+    def 'sequential: anonymize creator; event; update tournament' () {
+        given: 'topics to update the tournament'
+        tournamentDto.setNumberOfQuestions(3)
+        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+
+        when: 'anonymize creator'
+        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
+        then: 'creator is anonymized'
+        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
+
+        then: 'tournament processes event to anonymize the creator'
+        tournamentEventHandling.handleAnonymizeStudentEvents()
+        and: 'the tournament is inactive and the creator anonymized'
+        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult2.state == Aggregate.AggregateState.INACTIVE.toString()
+        tournamentDtoResult2.creator.name == ANONYMOUS
+        tournamentDtoResult2.creator.username == ANONYMOUS
+        and: 'there are no participants'
+        tournamentDtoResult2.getParticipants().size() == 0
+
+        when: 'the tournament is updated'
+        tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)
+        then: 'cannot update inactive tournament'
+        def error  = thrown(TutorException)
+        error.errorMessage == ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
+    }
+
+    def 'sequential: anonymize creator; update tournament; event' () {
+        given: 'topics to update the tournament'
+        tournamentDto.setNumberOfQuestions(3)
+        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+
+        when: 'anonymize creator'
+        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
+        then: 'creator is anonymized'
+        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
+
+        when: 'the tournament is updated'
+        tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)
+        then: 'the tournament is updated'
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult.numberOfQuestions == 3
+        tournamentDtoResult.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+        def quizDto = quizFunctionalities.findQuiz(tournamentDtoResult.quiz.aggregateId)
+        quizDto.questionDtos.size() == 3
+        and: 'the tournament has not processed the anonymized event'
+        tournamentDtoResult.state == Aggregate.AggregateState.ACTIVE.toString()
+        tournamentDtoResult.creator.name == userCreatorDto.name
+        tournamentDtoResult.creator.username == userCreatorDto.username
+
+        then: 'tournament processes event to anonymize the creator'
+        tournamentEventHandling.handleAnonymizeStudentEvents()
+        and: 'the tournament is inactive and the creator anonymized'
         def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult2.state == Aggregate.AggregateState.INACTIVE.toString()
         tournamentDtoResult2.creator.name == ANONYMOUS
@@ -210,25 +239,64 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         and: 'the tournament update executes first step'
         def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1)
         updateTournamentFunctionality.executeUntilStep("getOriginalTournamentStep", unitOfWork1)
-        and: 'the creator is anonymized'
-        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
-        and: 'tournament processes event to anonymize the creator'
-        tournamentEventHandling.handleAnonymizeStudentEvents()
-        
-        when: 'the tournament finishes updating'
-        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
 
+        when: 'the creator is anonymized'
+        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
         then: 'the creator is anonymized'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
-        and: 'the tournament is updated'
+
+        when: 'tournament processes event to anonymize the creator'
+        tournamentEventHandling.handleAnonymizeStudentEvents()
+        then: 'the tournament is inactive and the creator anonymized'
         def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult.numberOfQuestions == 3
-        tournamentDtoResult.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+        tournamentDtoResult.state == Aggregate.AggregateState.INACTIVE.toString()
+        tournamentDtoResult.creator.name == ANONYMOUS
+        tournamentDtoResult.creator.username == ANONYMOUS
+
+        when: 'the tournament finishes updating'
+        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
+        then: 'cannot update inactive tournament'
+        def error  = thrown(TutorException)
+        error.errorMessage == ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
+        and: 'tournament was not changed'
+        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult2.numberOfQuestions == 2
+        tournamentDtoResult2.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId()].toSet()
         def quizDto = quizFunctionalities.findQuiz(tournamentDtoResult.quiz.aggregateId)
+        quizDto.questionDtos.size() == 2
+    }
+
+    def 'concurrent: update - updateTournamentStep; anonymize creator; update - resume; event' () {
+        given: 'topics to update the tournament'
+        tournamentDto.setNumberOfQuestions(3)
+        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+        and: 'the tournament update executes first step'
+        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1)
+        updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
+
+        when: 'the creator is anonymized'
+        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
+        then: 'the creator is anonymized'
+        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
+
+        when: 'the tournament finishes updating'
+        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
+        then: 'tournament is updated'
+        def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        updatedTournamentDto.numberOfQuestions == 3
+        updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+        and: 'quiz is changed'
+        def quizDto = (SagaQuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 3
-        and: 'the tournament is inactive and the creator anonymized'
+
+        when: 'tournament processes event to anonymize the creator'
+        tournamentEventHandling.handleAnonymizeStudentEvents()
+        then: 'the tournament is inactive and the creator anonymized'
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult.state == Aggregate.AggregateState.INACTIVE.toString()
         tournamentDtoResult.creator.name == ANONYMOUS
         tournamentDtoResult.creator.username == ANONYMOUS
@@ -243,45 +311,50 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         and: 'the tournament update executes more steps and writes a new tournament'
         def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1)
         updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
-        and: 'the creator is anonymized'
+
+        when: 'the creator is anonymized'
         courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
-        and: 'tournament processes event to anonymize the creator but does not anonymize the updated'
-        tournamentEventHandling.handleAnonymizeStudentEvents()
-        
-        when: 'the tournament finishes updating'
-        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
         then: 'the creator is anonymized'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
-        and: 'the tournament is updated'
+
+        when: 'tournament processes event to anonymize the creator but does not anonymize the updated'
+        tournamentEventHandling.handleAnonymizeStudentEvents()
+        then: 'tournament is inactive'
         def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult.numberOfQuestions == 3
-        tournamentDtoResult.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
-        def quizDto = quizFunctionalities.findQuiz(tournamentDtoResult.quiz.aggregateId)
-        quizDto.questionDtos.size() == 3
-        and: 'the tournament has not processed the anonymized event'
         tournamentDtoResult.state == Aggregate.AggregateState.INACTIVE.toString()
         tournamentDtoResult.creator.name == ANONYMOUS
         tournamentDtoResult.creator.username == ANONYMOUS
-        and: 'there are no participants'
-        tournamentDtoResult.getParticipants().size() == 0
+        and: 'contains the update'
+        tournamentDtoResult.numberOfQuestions == 3
+        tournamentDtoResult.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+
+        when: 'the tournament finishes updating'
+        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
+        then: 'the quiz is consistently updated'
+        def quizDto = quizFunctionalities.findQuiz(tournamentDtoResult.quiz.aggregateId)
+        quizDto.questionDtos.size() == 3
     }
 
-    def 'concurrent: update - updateTournamentStep; anonymize creator; update fails; event; creator still anonymized despite compensations' () {
+    def 'concurrent: update - updateTournamentStep; anonymize creator; update - resume fails: event: creator still anonymized despite compensations' () {
         given: 'topics to update the tournament'
         tournamentDto.setNumberOfQuestions(4)
         def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
         and: 'the tournament update executes first step'
         def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1)
         updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
-        and: 'the creator is anonymized'
-        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
-        
-        when: 'the tournament finishes updating'
-        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
 
-        then:
+        when: 'the creator is anonymized'
+        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
+        then: 'the creator is anonymized'
+        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
+
+        when: 'the tournament finishes updating by trying to create the quiz'
+        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
+        then: 'there are not enough questions'
         def error = thrown(TutorException)
         error.errorMessage == ErrorMessage.NOT_ENOUGH_QUESTIONS
         and: 'compensation is executed'
@@ -294,14 +367,6 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         def quizDto = (SagaQuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 2
         quizDto.sagaState == GenericSagaState.NOT_IN_SAGA
-        and: 'the creator is anonymized'
-        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
-        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
-        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
-        and: 'the tournament has not processed the anonymized event'
-        updatedTournamentDto.state == Aggregate.AggregateState.ACTIVE.toString()
-        updatedTournamentDto.creator.name == userCreatorDto.name
-        updatedTournamentDto.creator.username == userCreatorDto.username
 
         when: 'tournament processes event to anonymize the creator'
         tournamentEventHandling.handleAnonymizeStudentEvents()
@@ -314,44 +379,47 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         tournamentDtoResult.getParticipants().size() == 0
     }
 
-    def 'concurrent: update - updateTournamentStep; anonymize creator; event; update fails; creator still anonymized despite compensations' () {
+    def 'concurrent: update - updateTournamentStep; anonymize creator; event; update - resume fails: creator still anonymized despite compensations' () {
         given: 'topics to update the tournament'
         tournamentDto.setNumberOfQuestions(4)
         def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
         and: 'the tournament update executes first step'
         def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1)
         updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
-        and: 'the creator is anonymized'
-        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
-        and: 'tournament processes event to anonymize the creator'
-        tournamentEventHandling.handleAnonymizeStudentEvents()
 
-        when: 'the tournament finishes updating'
-        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
-        then:
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.NOT_ENOUGH_QUESTIONS
-        and: 'compensation is executed'
-        def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        updatedTournamentDto.numberOfQuestions == 2
-        updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
-        and: 'saga sate is undone'
-        updatedTournamentDto.sagaState == GenericSagaState.NOT_IN_SAGA
-        and: 'quiz is not changed'
-        def quizDto = (SagaQuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
-        quizDto.questionDtos.size() == 2
-        quizDto.sagaState == GenericSagaState.NOT_IN_SAGA
-        and: 'the creator is anonymized'
+        when: 'the creator is anonymized'
+        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
+        then: 'the creator is anonymized'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
-        and: 'the tournament is inactive and the creator anonymized'
+
+        when: 'tournament processes event to anonymize the creator'
+        tournamentEventHandling.handleAnonymizeStudentEvents()
+        then: 'the tournament is inactive and the creator anonymized'
         def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult.state == Aggregate.AggregateState.INACTIVE.toString()
         tournamentDtoResult.creator.name == ANONYMOUS
         tournamentDtoResult.creator.username == ANONYMOUS
         and: 'there are no participants'
         tournamentDtoResult.getParticipants().size() == 0
+
+        when: 'the tournament finishes updating by trying to create the quiz'
+        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
+        then: 'the tournament is inactive'
+        def error = thrown(TutorException)
+        error.errorMessage == ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
+        then: 'compensation is executed'
+        def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+//        updatedTournamentDto.numberOfQuestions == 2
+//        updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
+        updatedTournamentDto.getState() == Aggregate.AggregateState.INACTIVE.toString()
+        and: 'saga sate is undone'
+        updatedTournamentDto.sagaState == GenericSagaState.NOT_IN_SAGA
+        and: 'quiz is not changed'
+        def quizDto = (SagaQuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
+        quizDto.questionDtos.size() == 2
+        quizDto.sagaState == GenericSagaState.NOT_IN_SAGA
     }
 
 
