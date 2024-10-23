@@ -62,7 +62,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) {
         Aggregate aggregate = sagaAggregateRepository.findSagaAggregate(aggregateId)
-                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         logger.info("Loaded and registered read for aggregate ID: {}", aggregateId);
         return aggregate;
@@ -169,12 +169,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             entityManager.persist(a);
         });
 
-        // The commit is done with the last commited version plus one
-        Integer commitVersion = versionService.incrementAndGetVersionNumber();
-        unitOfWork.setVersion(commitVersion);
-
-        commitAllObjects(commitVersion, unitOfWork.getAggregatesToCommit());
-
         logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
     }
 
@@ -182,12 +176,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
     public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
-        aggregateMap.values().forEach(aggregateToWrite -> {
-            ((SagaAggregate)aggregateToWrite).setSagaState(GenericSagaState.NOT_IN_SAGA);
-            aggregateToWrite.setVersion(commitVersion);
-            aggregateToWrite.setCreationTs(DateHandler.now());
-            entityManager.persist(aggregateToWrite);
-        });
+        // aggregates are committed at the end of each service
     }
 
     public void compensate(SagaUnitOfWork unitOfWork) {
@@ -213,22 +202,18 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     @Override
     public void registerChanged(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
-        // the id set to null to force a new entry in the db
-        //aggregate.setId(null);
-        unitOfWork.getAggregatesToCommit().put(aggregate.getAggregateId(), aggregate);
-
-        Map<Integer, Aggregate> aggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
+        if (aggregate.getId() == null) {
+            ((SagaAggregate)aggregate).setSagaState(GenericSagaState.NOT_IN_SAGA);
+        }
 
         Integer commitVersion = versionService.incrementAndGetVersionNumber();
 
-        aggregatesToCommit.values().forEach(aggregateToWrite -> {
-            aggregateToWrite.verifyInvariants();
-            aggregateToWrite.setVersion(commitVersion);
-            aggregateToWrite.setCreationTs(DateHandler.now());
-            entityManager.persist(aggregateToWrite);
-        });
+        aggregate.verifyInvariants();
+        aggregate.setVersion(commitVersion);
+        aggregate.setCreationTs(DateHandler.now());
+        entityManager.persist(aggregate);
         
-        unitOfWork.setVersion(unitOfWork.getVersion()+1);
+        unitOfWork.setVersion(commitVersion);
     }
 
     @Override

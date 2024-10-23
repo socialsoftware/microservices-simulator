@@ -26,7 +26,7 @@ public class CreateUserFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep createUserStep = new SagaSyncStep("createUserStep", () -> {
             UserDto createdUserDto = userService.createUser(userDto, unitOfWork);
-            this.setCreatedUserDto(createdUserDto);
+            setCreatedUserDto(createdUserDto);
         });
 
         workflow.addStep(createUserStep);

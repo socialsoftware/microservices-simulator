@@ -38,7 +38,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggr
         @Retryable(
                 value = { SQLException.class },
                 backoff = @Backoff(delay = 5000))
-        @Transactional(isolation = Isolation.READ_COMMITTED)
+        @Transactional(isolation = Isolation.SERIALIZABLE)
         public CourseDto getCourseById(Integer aggregateId, UnitOfWork unitOfWorkWorkService) {
             return courseFactory.createCourseDto((Course) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWorkWorkService));
         }
@@ -46,7 +46,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggr
         @Retryable(
                 value = { SQLException.class },
                 backoff = @Backoff(delay = 5000))
-        @Transactional(isolation = Isolation.READ_COMMITTED)
+        @Transactional(isolation = Isolation.SERIALIZABLE)
         public CourseExecutionDto getAndOrCreateCourseRemote(CourseExecutionDto courseExecutionDto, UnitOfWork unitOfWork) {
             Course course = getCourseByName(courseExecutionDto.getName(), unitOfWork);
             if (course == null) {

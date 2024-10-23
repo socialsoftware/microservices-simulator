@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException
@@ -36,6 +37,8 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
     private CourseExecutionFunctionalities courseExecutionFunctionalities
     @Autowired
     private TournamentFunctionalities tournamentFunctionalities
+    @Autowired
+    private QuizFunctionalities quizFunctionalities
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
@@ -110,7 +113,7 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
     }
 
     def 'concurrent: update - getOriginalTournamentStep; remove; update - resume' () {
-        given: 'update start time until first step'
+        given: 'update start time until getOriginalTournamentStep'
         updateTournamentFunctionality.executeUntilStep("getOriginalTournamentStep", unitOfWork1)
         and: 'remove tournament'
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
@@ -129,7 +132,7 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
     }
 
     def 'concurrent: update - getTopicsStep; remove; update - resume' () {
-        given: 'update start time until first step'
+        given: 'update start time until getTopicsStep'
         updateTournamentFunctionality.executeUntilStep("getTopicsStep", unitOfWork1)
         and: 'remove tournament'
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
@@ -140,15 +143,15 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         def error = thrown(TutorException)
         error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
 
-        when: 'try to finish update'
-        updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
+        when: 'try update tournament'
+        updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
         then: 'fails because tournament is deleted'
         def error2 = thrown(TutorException)
         error2.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
     def 'concurrent: update - updateTournamentStep; remove; update - resume' () {
-        given: 'update start time until first step'
+        given: 'update start time until updateTournamentStep'
         updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
         and: 'remove tournament'
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
@@ -161,7 +164,13 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
 
         when: 'try to finish update'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
-        then: 'fails because tournament is deleted'
+        then: 'the quiz is consistently updated'
+        def quizDto = quizFunctionalities.findQuiz(tournamentDto.getQuiz().aggregateId)
+        quizDto.availableDate == DateHandler.toISOString(TIME_2)
+
+        when: 'trying to get tournament'
+        tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        then: 'tournament does not exist'
         def error2 = thrown(TutorException)
         error2.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }

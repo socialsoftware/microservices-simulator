@@ -164,7 +164,7 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 AddStudentFunctionalitySagas addStudentFunctionalitySagas = new AddStudentFunctionalitySagas(
-                        courseExecutionService, userService, sagaUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, sagaUnitOfWork);
+                        courseExecutionService, userService, sagaUnitOfWorkService, executionAggregateId, userAggregateId, sagaUnitOfWork);
                 addStudentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:

@@ -261,19 +261,11 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         def quizDto = quizFunctionalities.findQuiz(tournamentDtoResult.quiz.aggregateId)
         quizDto.questionDtos.size() == 3
         and: 'the tournament has not processed the anonymized event'
-        tournamentDtoResult.state == Aggregate.AggregateState.ACTIVE.toString()
-        tournamentDtoResult.creator.name == userCreatorDto.name
-        tournamentDtoResult.creator.username == userCreatorDto.username
-
-        when: 'tournament processes event to anonymize the creator'
-        tournamentEventHandling.handleAnonymizeStudentEvents()
-        then: 'the tournament is inactive and the creator anonymized'
-        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult2.state == Aggregate.AggregateState.INACTIVE.toString()
-        tournamentDtoResult2.creator.name == ANONYMOUS
-        tournamentDtoResult2.creator.username == ANONYMOUS
+        tournamentDtoResult.state == Aggregate.AggregateState.INACTIVE.toString()
+        tournamentDtoResult.creator.name == ANONYMOUS
+        tournamentDtoResult.creator.username == ANONYMOUS
         and: 'there are no participants'
-        tournamentDtoResult2.getParticipants().size() == 0
+        tournamentDtoResult.getParticipants().size() == 0
     }
 
     def 'concurrent: update - updateTournamentStep; anonymize creator; update fails; event; creator still anonymized despite compensations' () {

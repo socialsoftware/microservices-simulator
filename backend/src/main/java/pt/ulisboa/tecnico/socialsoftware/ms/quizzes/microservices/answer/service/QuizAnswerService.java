@@ -83,7 +83,7 @@ public class QuizAnswerService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public QuizAnswerDto startQuiz(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
         QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
@@ -109,7 +109,7 @@ public class QuizAnswerService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void answerQuestion(Integer quizAggregateId, Integer userAggregateId, QuestionAnswerDto userAnswerDto, QuestionDto questionDto, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
         QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
@@ -123,7 +123,7 @@ public class QuizAnswerService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void concludeQuiz(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
         QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
@@ -135,7 +135,7 @@ public class QuizAnswerService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeQuizAnswer(Integer quizAnswerAggregateId, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
         QuizAnswer newQuizAnsewer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
@@ -148,7 +148,7 @@ public class QuizAnswerService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateUserName(Integer answerAggregateId, Integer executionAggregateId, Integer eventVersion, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId, unitOfWork);
         QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
@@ -167,7 +167,7 @@ public class QuizAnswerService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public QuizAnswer removeUser(Integer answerAggregateId, Integer userAggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId, unitOfWork);
         if (oldQuizAnswer != null && oldQuizAnswer.getStudent().getStudentAggregateId().equals(userAggregateId) && oldQuizAnswer.getVersion() >= aggregateVersion) {

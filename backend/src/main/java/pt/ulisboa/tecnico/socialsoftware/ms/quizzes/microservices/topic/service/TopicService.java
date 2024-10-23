@@ -43,7 +43,7 @@ public class TopicService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public TopicDto getTopicById(Integer topicAggregateId, UnitOfWork unitOfWork) {
         return topicFactory.createTopicDto((Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork));
     }
@@ -51,7 +51,7 @@ public class TopicService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public TopicDto createTopic(TopicDto topicDto, TopicCourse course, UnitOfWork unitOfWork) { //TODO check this
         Topic topic = topicFactory.createTopic(aggregateIdGeneratorService.getNewAggregateId(),
                 topicDto.getName(), course);
@@ -62,7 +62,7 @@ public class TopicService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<TopicDto> findTopicsByCourseId(Integer courseAggregateId, UnitOfWork unitOfWork) {
         return topicRepository.findAll().stream()
                 .filter(t -> courseAggregateId == t.getTopicCourse().getCourseAggregateId())
@@ -76,7 +76,7 @@ public class TopicService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateTopic(TopicDto topicDto, UnitOfWork unitOfWork) {
         Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
         Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
@@ -88,7 +88,7 @@ public class TopicService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void deleteTopic(Integer topicAggregateId, UnitOfWork unitOfWork) {
         Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
         Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);

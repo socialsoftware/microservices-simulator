@@ -46,7 +46,7 @@ public class UserService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public UserDto getUserById(Integer aggregateId, UnitOfWork unitOfWork) {
         return userFactory.createUserDto((User) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
@@ -55,18 +55,18 @@ public class UserService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public UserDto createUser(UserDto userDto, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
         User user = userFactory.createUser(aggregateId, userDto);
-        unitOfWork.registerChanged(user);
+        unitOfWorkService.registerChanged(user, unitOfWork);
         return userFactory.createUserDto(user);
     }
 
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void activateUser(Integer userAggregateId, UnitOfWork unitOfWork) {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
         if (oldUser.isActive()) {
@@ -74,25 +74,25 @@ public class UserService {
         }
         User newUser = userFactory.createUserFromExisting(oldUser);
         newUser.setActive(true);
-        unitOfWork.registerChanged(newUser);
+        unitOfWorkService.registerChanged(newUser, unitOfWork);
     }
 
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void deleteUser(Integer userAggregateId, UnitOfWork unitOfWork) {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
         User newUser = userFactory.createUserFromExisting(oldUser);
         newUser.remove();
-        unitOfWork.registerChanged(newUser);
+        unitOfWorkService.registerChanged(newUser, unitOfWork);
         unitOfWorkService.registerEvent(new DeleteUserEvent(newUser.getAggregateId()), unitOfWork);
     }
 
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<UserDto> getStudents(UnitOfWork unitOfWork) {
         Set<Integer> studentsIds = userRepository.findAll().stream()
                 .filter(u -> u.getRole().equals(Role.STUDENT))
@@ -107,7 +107,7 @@ public class UserService {
     @Retryable(
             value = { SQLException.class },
             backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<UserDto> getTeachers(UnitOfWork unitOfWork) {
         Set<Integer> teacherIds = userRepository.findAll().stream()
                 .filter(u -> u.getRole().equals(Role.TEACHER))

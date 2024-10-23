@@ -6,7 +6,6 @@ import java.util.Arrays;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
@@ -28,15 +27,15 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
-    public AddStudentFunctionalitySagas(CourseExecutionService courseExecutionService, UserService userService, SagaUnitOfWorkService unitOfWorkService, CourseExecutionFactory courseExecutionFactory, 
+    public AddStudentFunctionalitySagas(CourseExecutionService courseExecutionService, UserService userService, SagaUnitOfWorkService unitOfWorkService,
                                     Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.courseExecutionService = courseExecutionService;
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(executionAggregateId, userAggregateId, courseExecutionFactory, unitOfWork);
+        this.buildWorkflow(executionAggregateId, userAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, CourseExecutionFactory courseExecutionFactory, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
@@ -46,7 +45,7 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
                 this.setUserDto(user);
             }
             else {
-                throw new TutorException(ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA);
+                throw new TutorException(ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA, user.getSagaState().getStateName());
             }
         });
     
