@@ -14,6 +14,6 @@ ARG PROFILE=tcc,dev
 RUN mvn clean -P$PROFILE -Dmaven.test.skip=true package
 
 FROM openjdk:21-jdk-slim
-COPY --from=run target/MicroservicesSimulator-1.1.4-SNAPSHOT.jar ./
-CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar", "./MicroservicesSimulator-1.1.4-SNAPSHOT.jar"]
+COPY --from=run target/MicroservicesSimulator-2.0.0-SNAPSHOT.jar ./
+CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar", "./MicroservicesSimulator-2.0.0-SNAPSHOT.jar"]
 

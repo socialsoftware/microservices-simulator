@@ -19,8 +19,28 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-      
-  backend:
+
+  backend-sagas:
+    build:
+      context: ./backend/
+      args:
+        PROFILE: sagas,dev
+    image: backend
+    container_name: backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=sagas,dev
+      - SPRING.DATASOURCE.USERNAME=postgres
+      - SPRING.DATASOURCE.PASSWORD=postgres
+      - SPRING.JPA.DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
+
+  backend-tcc:
     build:
       context: ./backend/
       args:
@@ -40,7 +60,18 @@ services:
       - SPRING.JPA.DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
 
-  unit-tests:
+  test-sagas:
+    image: maven:3.9.7-eclipse-temurin-21-alpine
+    stop_signal: SIGKILL
+    stdin_open: true
+    tty: true
+    working_dir: $PWD/backend/
+    volumes:
+      - $PWD:$PWD
+      #      - ~/.m2:/root/.m2
+    command: mvn -Ptest-sagas test
+
+  test-tcc:
     image: maven:3.9.7-eclipse-temurin-21-alpine
     stop_signal: SIGKILL
     stdin_open: true
@@ -49,7 +80,7 @@ services:
     volumes:
       - $PWD:$PWD
 #      - ~/.m2:/root/.m2
-    command: mvn -Ptest -Ptcc test
+    command: mvn -Ptest-tcc test
 
   test-fig3a:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -60,7 +91,7 @@ services:
     volumes:
       - $PWD:$PWD
 #      - ~/.m2:/root/.m2
-    command: mvn -Ptest -Ptcc test -Dtest=TournamentFunctionalityTest#'sequential update name in course execution and then add student as tournament participant'
+    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'sequential update name in course execution and then add student as tournament participant'
 
   test-fig3b:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -71,7 +102,7 @@ services:
     volumes:
       - $PWD:$PWD
 #      - ~/.m2:/root/.m2
-    command: mvn -Ptest -Ptcc test -Dtest=TournamentFunctionalityTest#'sequential add student as tournament participant and then update name in course execution'
+    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'sequential add student as tournament participant and then update name in course execution'
 
   test-fig3c:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -82,7 +113,7 @@ services:
     volumes:
       - $PWD:$PWD
 #      - ~/.m2:/root/.m2
-    command: mvn -Ptest -Ptcc test -Dtest=TournamentFunctionalityTest#'concurrent add student as tournament participant and update name in course execution - add student finishes first'
+    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add student as tournament participant and update name in course execution - add student finishes first'
 
   test-fig3d:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -93,7 +124,7 @@ services:
     volumes:
       - $PWD:$PWD
 #      - ~/.m2:/root/.m2
-    command: mvn -Ptest -Ptcc test -Dtest=TournamentFunctionalityTest#'concurrent add student as tournament participant and update name in course execution - update name finishes first'
+    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add student as tournament participant and update name in course execution - update name finishes first'
 
   test-fig4:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -104,4 +135,4 @@ services:
     volumes:
       - $PWD:$PWD
 #      - ~/.m2:/root/.m2
-    command: mvn -Ptest -Ptcc test -Dtest=TournamentFunctionalityTest#'concurrent add creator as tournament participant and update name in course execution - update name finishes first and event processing starts before add creator finishes'
+    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add creator as tournament participant and update name in course execution - update name finishes first and event processing starts before add creator finishes'

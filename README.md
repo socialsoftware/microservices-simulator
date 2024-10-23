@@ -25,18 +25,15 @@ docker compose build
 
 * Running the application
 ```
-docker compose up backend
+docker compose up backend-sagas
+docker compose up backend-tcc
 ```
 
 * Running Spock Tests
 ```
-docker compose up unit-tests
+docker compose up test-sagas
+docker compose up test-tcc
 ```
-
-* Some test cases:
-  * [Tournament Merge Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/domain/tournament/MergeUnitTest.groovy)
-  * [Tournament Functionality Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/TournamentFunctionalityTest.groovy)
-
 
 ## Run Using Maven
 
@@ -75,11 +72,11 @@ cd backend
 ```
 #### For Sagas
 ```
-mvn clean spring-boot:run -P sagas
+mvn clean -Psagas spring-boot:run
 ```
 #### For TCC
 ```
-mvn clean spring-boot:run -P tcc
+mvn clean -Ptcc spring-boot:run
 ```
 
 ### Running Spock tests
@@ -89,24 +86,27 @@ cd backend
 ```
 #### Sagas Tests
 ```
-mvn clean test -Ptest,sagas -Dtest="FunctionalityTestSagas"
-mvn clean test -Ptest,sagas -Dtest="PlanOrderTest"
+mvn clean -Ptest-sagas test
 ```
 #### TCC Tests
 ```
-mvn clean test -Ptest,tcc -Dtest="TournamentFunctionalityTest"
-mvn clean test -Ptest,tcc -Dtest="MergeUnitTest"
+mvn clean -Ptest-tcc test
 ```
 
-* Some test cases:
-  * [Tournament Merge Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/domain/tournament/MergeUnitTest.groovy)
-  * [Tournament Functionality Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/TournamentFunctionalityTest.groovy)
-  * [Sagas Functionalities Test](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/FunctionalityTestSagas.groovy)
-  * [Sagas Workflow Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/sagas/workflow/PlanOrderTest.groovy)
+* Some Sagas test cases:
+  * [Workflow Test Plan](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/sagas/workflow/PlanOrderTest.groovy)
+  * [Tournament Functionality Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/sagas/coordination/)
+
+
+* Some TCC test cases:
+  * [Tournament Merge Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/aggregates/TournamentMergeUnitTest.groovy)
+  * [Tournament Functionality Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy)
+
+
 
 ## Running JMeter tests
 
-* After starting application, either using Docker or Maven, and installing JMeter
+* After starting application with the tcc profile, either using Docker or Maven, and installing JMeter
 
 ```
 cd backend/jmeter/tournament/thesis-cases/
@@ -173,35 +173,35 @@ To reproduce the paper results follow the steps:
 
 
 ### Figure 3(a)
-* [Test code](https://github.com/socialsoftware/business-logic-consistency-models/blob/master/backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/TournamentFunctionalityTest.groovy#L142-L157) 
+* [Test code](https://github.com/socialsoftware/business-logic-consistency-models/blob/master/backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy#L142-L157) 
 * Run:
 ```
 docker-compose up test-fig3a
 ```
 
 ### Figure 3(b)
-* [Test code](https://github.com/socialsoftware/business-logic-consistency-models/blob/master/backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/TournamentFunctionalityTest.groovy#L159-L176)
+* [Test code](https://github.com/socialsoftware/business-logic-consistency-models/blob/master/backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy#L159-L176)
 * Run: 
 ```
 docker-compose up test-fig3b
 ```
 
 ### Figure 3(c)
-* [Test code](https://github.com/socialsoftware/business-logic-consistency-models/blob/master/backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/TournamentFunctionalityTest.groovy#L178-L197)
+* [Test code](https://github.com/socialsoftware/business-logic-consistency-models/blob/master/backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovyy#L178-L197)
 * Run: 
 ```
 docker-compose up test-fig3c
 ```
 
 ### Figure 3(d)
-* [Test code](https://github.com/socialsoftware/business-logic-consistency-models/blob/master/backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/TournamentFunctionalityTest.groovy#L199-L220)
+* [Test code](https://github.com/socialsoftware/business-logic-consistency-models/blob/master/backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy#L199-L220)
 * Run: 
 ```
 docker-compose up test-fig3d
 ```
 
 ### Figure 4
-* [Test code](https://github.com/socialsoftware/business-logic-consistency-models/blob/master/backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/TournamentFunctionalityTest.groovy#L300-L330)
+* [Test code](https://github.com/socialsoftware/business-logic-consistency-models/blob/master/backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy#L300-L330)
 * Run: 
 ```
 docker-compose up test-fig4
