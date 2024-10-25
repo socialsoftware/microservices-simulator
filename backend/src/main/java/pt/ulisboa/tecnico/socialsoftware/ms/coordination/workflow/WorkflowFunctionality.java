@@ -24,10 +24,6 @@ public abstract class WorkflowFunctionality {
         
     }
 
-    public void executeStepByName(String stepName, UnitOfWork unitOfWork) {
-        workflow.executeStepByName(stepName, unitOfWork);
-    }
-
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
         workflow.executeUntilStep(stepName, unitOfWork);
     }

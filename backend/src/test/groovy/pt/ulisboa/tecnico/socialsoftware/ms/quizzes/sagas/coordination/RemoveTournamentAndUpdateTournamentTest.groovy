@@ -50,6 +50,8 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
 
     def unitOfWork1
     def updateTournamentFunctionality
+    def functionalityName1
+    def updateTournamentDto
 
     def setup() {
         given: 'a course execution'
@@ -77,9 +79,9 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(),  courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(),topicDto2.getAggregateId()])
 
         and: 'information required to update tournament'
-        def functionalityName1 = UpdateTournamentFunctionalitySagas.class.getSimpleName()
+        functionalityName1 = UpdateTournamentFunctionalitySagas.class.getSimpleName()
         unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
-        def updateTournamentDto = new TournamentDto()
+        updateTournamentDto = new TournamentDto()
         updateTournamentDto.setAggregateId(tournamentDto.aggregateId)
         updateTournamentDto.setStartTime(DateHandler.toISOString(TIME_2))
         topics =  new HashSet<>(Arrays.asList(topicDto1.aggregateId,topicDto2.aggregateId))
@@ -145,7 +147,10 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
 
         when: 'try update tournament'
-        updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
+        def unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName1)
+        def updateTournamentFunctionalityRetry = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService,
+                updateTournamentDto, topics, unitOfWork)
+        updateTournamentFunctionalityRetry.executeUntilStep("updateTournamentStep", unitOfWork)
         then: 'fails because tournament is deleted'
         def error2 = thrown(TutorException)
         error2.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND

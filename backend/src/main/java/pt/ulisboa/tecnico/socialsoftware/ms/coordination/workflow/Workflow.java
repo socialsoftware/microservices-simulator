@@ -1,13 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
@@ -50,18 +50,14 @@ public abstract class Workflow {
         this.stepsWithDependencies.put(step, step.getDependencies());
         stepNameMap.put(step.getName(), step);
     }
-
-    public void executeStepByName(String stepName, UnitOfWork unitOfWork) {
-        logger.info("EXECUTE FUNCTIONALITY: {} with version {} until step {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion(), stepName);
-
-        FlowStep step = getStepByName(stepName);
-        executionPlan.executeSteps(Collections.singletonList(step), unitOfWork).join();
-    }
     
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
         logger.info("EXECUTE FUNCTIONALITY: {} with version {} until step {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion(), stepName);
 
-        this.executionPlan = planOrder(this.stepsWithDependencies);
+        if (this.executionPlan == null) {
+            this.executionPlan = planOrder(this.stepsWithDependencies);
+        }
+        
         FlowStep targetStep = getStepByName(stepName);
         executionPlan.executeUntilStep(targetStep, unitOfWork).join();
     }

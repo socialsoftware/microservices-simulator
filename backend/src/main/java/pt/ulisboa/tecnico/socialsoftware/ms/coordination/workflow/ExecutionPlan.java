@@ -70,16 +70,7 @@ public class ExecutionPlan {
         // Wait for all steps to complete
         return CompletableFuture.allOf(this.stepFutures.values().toArray(new CompletableFuture[0]));
     }
-    
-    public CompletableFuture<Void> executeNextStep(UnitOfWork unitOfWork) {
-        for (FlowStep step : plan) {
-            if (!executedSteps.get(step) && dependencies.get(step).stream().allMatch(dep -> executedSteps.get(dep))) {
-                executedSteps.put(step, true);
-                return step.execute(unitOfWork).thenRun(() -> { /* Next step will be executed in test case */ });
-            }
-        }
-        return CompletableFuture.completedFuture(null);
-    }
+
 
     public CompletableFuture<Void> executeSteps(List<FlowStep> steps, UnitOfWork unitOfWork) {
 
@@ -110,7 +101,11 @@ public class ExecutionPlan {
     public CompletableFuture<Void> executeUntilStep(FlowStep targetStep, UnitOfWork unitOfWork) {
         ArrayList<FlowStep> stepsToExecute = new ArrayList<>();
         for (FlowStep step : plan) {
-            stepsToExecute.add(step);
+            if (!executedSteps.get(step)) {
+                stepsToExecute.add(step);
+            }
+    
+            // Stop collecting steps once the target step is added to the list
             if (step.equals(targetStep)) {
                 break;
             }
