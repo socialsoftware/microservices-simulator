@@ -16,13 +16,13 @@ import jakarta.annotation.PostConstruct;
 import pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 

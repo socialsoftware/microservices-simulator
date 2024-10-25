@@ -2,7 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,9 +50,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     public SagaUnitOfWork createUnitOfWork(String functionalityName) {
         Integer lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
 
-        SagaUnitOfWork unitOfWork = new SagaUnitOfWork(lastCommittedAggregateVersionNumber+1, functionalityName);
-
-        logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", functionalityName, unitOfWork.getVersion());
+        SagaUnitOfWork unitOfWork = new SagaUnitOfWork(lastCommittedAggregateVersionNumber + 1, functionalityName);
 
         return unitOfWork;
     }
@@ -136,12 +133,11 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         if (forbiddenStates.contains(aggregate.getSagaState())) {
             throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, aggregate.getSagaState().getStateName());
         }
-        else if (state != null){
-            unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
-            aggregate.setSagaState(state);
-            entityManager.persist(aggregate);
-            unitOfWork.addToAggregatesInSaga(aggregate);
-        }
+
+        unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
+        aggregate.setSagaState(state);
+        entityManager.persist(aggregate);
+        unitOfWork.addToAggregatesInSaga(aggregate);
     }
 
     @Retryable(
@@ -163,11 +159,11 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commit(SagaUnitOfWork unitOfWork) {
         unitOfWork.getAggregatesInSaga().stream().forEach(a -> {
-            a.setSagaState(GenericSagaState.NOT_IN_SAGA);
+            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(((Aggregate)a).getAggregateId())
+                    .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+            aggregate.setSagaState(GenericSagaState.NOT_IN_SAGA);
             entityManager.persist(a);
         });
-
-        logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
     }
 
     @Retryable(
@@ -191,7 +187,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             Integer aggregateId = entry.getKey();
             SagaState previousState = entry.getValue();
             SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
-                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
             aggregate.setSagaState(previousState);
             entityManager.persist(aggregate);
         }
@@ -202,10 +198,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     public void registerChanged(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
         if (aggregate.getPrev() != null && aggregate.getPrev().getState() == Aggregate.AggregateState.INACTIVE) {
             throw new TutorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregate.getAggregateId());
-        }
-
-        if (aggregate.getId() == null) {
-            ((SagaAggregate)aggregate).setSagaState(GenericSagaState.NOT_IN_SAGA);
         }
 
         Integer commitVersion = versionService.incrementAndGetVersionNumber();

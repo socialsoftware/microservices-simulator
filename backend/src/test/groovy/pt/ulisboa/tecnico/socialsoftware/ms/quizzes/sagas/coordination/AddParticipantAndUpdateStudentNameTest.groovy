@@ -19,6 +19,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
 
 @DataJpaTest
@@ -136,7 +138,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
 
     def 'concurrent: add(1); update; add(2); event' () {
         given: 'add participant executes the first step'
-        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2)
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2)
         addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2);
         and: 'student name is updated'
         def updateNameDto = new UserDto()
@@ -246,7 +248,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         updateNameDto.setName(UPDATED_NAME)
         courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
         and: 'creator is read for to be added as participant'
-        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
         addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2)
 
         when: 'the event is processed'
@@ -268,7 +270,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
 
     def 'concurrent - add creator: add-s1; update; event; add-s2' () {
         given: 'creator is read from course to be added'
-        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
         addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2)
         and: 'creator name is updated'
         def updateNameDto = new UserDto()
@@ -301,7 +303,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
 
     def 'concurrent - add creator: add-s1; update; add-s2; event' () {
         given: 'creator is read from course to be added'
-        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2)
         addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2)
         and: 'creator name is updated'
         def updateNameDto = new UserDto()

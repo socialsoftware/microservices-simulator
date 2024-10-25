@@ -17,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
 
 
@@ -106,10 +107,8 @@ class AddParticipantTest extends QuizzesSpockTest {
         def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
         and: 'two functionalities to add participants'
-        def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, 
-                courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork1)
-        def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(eventService, tournamentEventHandling, tournamentService, 
-                courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto3.getAggregateId(), unitOfWork2)
+        def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork1)
+        def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto3.getAggregateId(), unitOfWork2)
         and: 'the first functionality reads one student'
         addParticipantFunctionality1.executeUntilStep("getUserStep", unitOfWork1)
         and: 'the second functionality read the other student'

@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.BeanConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.BeanConfigurationCausal
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.QuizzesSpockTest
@@ -462,5 +462,5 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
     }
 
     @TestConfiguration
-    static class LocalBeanConfiguration extends BeanConfiguration {}
+    static class LocalBeanConfigurationCausal extends BeanConfigurationCausal {}
 }

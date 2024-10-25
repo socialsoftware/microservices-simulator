@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
@@ -80,7 +81,7 @@ public class ExecutionPlan {
         return CompletableFuture.completedFuture(null);
     }
 
-    public CompletableFuture<Void> executeSteps(ArrayList<FlowStep> steps, UnitOfWork unitOfWork) {
+    public CompletableFuture<Void> executeSteps(List<FlowStep> steps, UnitOfWork unitOfWork) {
 
         for (FlowStep step : steps) {
             if (dependencies.get(step).isEmpty()) {

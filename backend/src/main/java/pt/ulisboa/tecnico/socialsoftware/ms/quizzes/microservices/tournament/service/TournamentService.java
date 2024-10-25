@@ -32,6 +32,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentTopic;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
 
@@ -106,27 +107,24 @@ public class TournamentService {
 
         if (tournamentDto.getStartTime() != null ) {
             newTournament.setStartTime(DateHandler.toLocalDateTime(tournamentDto.getStartTime()));
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
         if (tournamentDto.getEndTime() != null ) {
             newTournament.setEndTime(DateHandler.toLocalDateTime(tournamentDto.getEndTime()));
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
         if (tournamentDto.getNumberOfQuestions() != null ) {
             newTournament.setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
         if (topicDtos != null && !topicDtos.isEmpty() ) {
             Set<TournamentTopic> tournamentTopics = topicDtos.stream()
                     .map(TournamentTopic::new)
                     .collect(Collectors.toSet());
-
             newTournament.setTournamentTopics(tournamentTopics);
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
+
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
 
         return tournamentFactory.createTournamentDto(newTournament);
     }

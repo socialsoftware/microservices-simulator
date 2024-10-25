@@ -19,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.tournament.UpdateTournamentFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
 
 @DataJpaTest
@@ -164,13 +165,7 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
 
         when: 'try to finish update'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
-        then: 'the quiz is consistently updated'
-        def quizDto = quizFunctionalities.findQuiz(tournamentDto.getQuiz().aggregateId)
-        quizDto.availableDate == DateHandler.toISOString(TIME_2)
-
-        when: 'trying to get tournament'
-        tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
-        then: 'tournament does not exist'
+        then: 'fails because tournament is deleted'
         def error2 = thrown(TutorException)
         error2.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }

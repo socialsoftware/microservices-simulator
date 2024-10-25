@@ -17,7 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.tournament.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
@@ -31,7 +31,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.eve
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.tournament.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
@@ -114,7 +114,7 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 AddParticipantFunctionalitySagas addParticipantFunctionalitySagas = new AddParticipantFunctionalitySagas(
-                        eventService, tournamentEventHandling, tournamentService, courseExecutionService, sagaUnitOfWorkService,
+                        tournamentService, courseExecutionService, sagaUnitOfWorkService,
                         tournamentAggregateId, executionAggregateId, userAggregateId, sagaUnitOfWork);
 
                 addParticipantFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
