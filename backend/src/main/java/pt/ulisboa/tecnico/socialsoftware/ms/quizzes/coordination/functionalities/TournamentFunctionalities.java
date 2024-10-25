@@ -298,7 +298,7 @@ public class TournamentFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
 
                 RemoveTournamentFunctionalitySagas removeTournamentFunctionalitySagas = new RemoveTournamentFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, tournamentAggregateId, sagaUnitOfWork);
+                        tournamentService, quizService, sagaUnitOfWorkService, tournamentAggregateId, sagaUnitOfWork);
 
                 removeTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;

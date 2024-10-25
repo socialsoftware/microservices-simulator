@@ -162,7 +162,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(((Aggregate)a).getAggregateId())
                     .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
             aggregate.setSagaState(GenericSagaState.NOT_IN_SAGA);
-            entityManager.persist(a);
+            entityManager.persist(aggregate);
         });
     }
 

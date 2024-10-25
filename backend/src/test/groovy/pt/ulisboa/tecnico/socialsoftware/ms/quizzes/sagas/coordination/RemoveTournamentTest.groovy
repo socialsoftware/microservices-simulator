@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException
@@ -25,6 +26,8 @@ class RemoveTournamentTest extends QuizzesSpockTest {
     private CourseExecutionFunctionalities courseExecutionFunctionalities
     @Autowired
     private TournamentFunctionalities tournamentFunctionalities
+    @Autowired
+    private QuizFunctionalities quizFunctionalities
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
@@ -58,9 +61,7 @@ class RemoveTournamentTest extends QuizzesSpockTest {
         tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(),  courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(),topicDto2.getAggregateId()])
     }
 
-    def cleanup() {
-
-    }
+    def cleanup() {}
 
     def "remove tournament successfully"() {
         given: 'tournament is deleted'
@@ -71,6 +72,12 @@ class RemoveTournamentTest extends QuizzesSpockTest {
         then: 'the tournament is removed, not found'
         def error = thrown(TutorException)
         error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+
+        when: 'find quiz'
+        quizFunctionalities.findQuiz(tournamentDto.getQuiz().aggregateId)
+        then: 'the quiz is removed, not found'
+        def error1 = thrown(TutorException)
+        error1.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
     }
 
     @TestConfiguration
