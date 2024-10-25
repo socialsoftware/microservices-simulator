@@ -161,7 +161,7 @@ where each service interacts with the unit of work to register changes and publi
 9. **Define Test Cases**: Define deterministic tests cases for the concurrent execution of functionalities using services to decrement the system version number, 
 which defines functionalities execution order, and to force the deterministic processing of events, like in the [Concurrent Execution of Update Name and Add Participant](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/TournamentFunctionalityTest.groovy#L178).
 
-##  Spock Tests in [DAIS2023](https://docs.docker.com/compose/install/) paper - 23nd International Conference on Distributed Applications and Interoperable Systems
+##  Spock Tests in [DAIS2023](https://link.springer.com/chapter/10.1007/978-3-031-35260-7_4) paper - 23nd International Conference on Distributed Applications and Interoperable Systems
 
 To reproduce the paper results follow the steps:
 

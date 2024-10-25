@@ -1,5 +1,5 @@
 ## Datasource
-spring.datasource.url=jdbc:postgresql://{localhost:5432/blcmdb
+spring.datasource.url=jdbc:postgresql://localhost:5432/blcmdb
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.datasource.username={DB_USERNAME}
 spring.datasource.password={DB_PASSWORD}
