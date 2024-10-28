@@ -51,20 +51,11 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
             this.setTournament(tournament);
         });
     
-        getTournamentStep.registerCompensation(() -> {
-            SagaTournament tournament = (SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(tournament, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);
-    
         SagaSyncStep startQuizStep = new SagaSyncStep("startQuizStep", () -> {
             SagaQuizDto quiz = (SagaQuizDto) quizService.startTournamentQuiz(userAggregateId, this.getTournamentDto().getQuiz().getAggregateId(), unitOfWork);
             unitOfWorkService.registerSagaState(quiz.getAggregateId(), QuizSagaState.STARTED_TOURNAMENT_QUIZ, unitOfWork);
             this.setQuizDto(quiz);
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
-    
-        startQuizStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(this.getQuizDto().getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);
     
         SagaSyncStep startQuizAnswerStep = new SagaSyncStep("startQuizAnswerStep", () -> {
             SagaQuizAnswerDto quizAnswerDto = (SagaQuizAnswerDto) quizAnswerService.startQuiz(this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);

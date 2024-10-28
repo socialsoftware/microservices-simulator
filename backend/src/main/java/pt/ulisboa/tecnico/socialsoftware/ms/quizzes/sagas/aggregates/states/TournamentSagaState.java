@@ -10,6 +10,12 @@ public enum TournamentSagaState implements SagaState {
             return "IN_UPDATE_TOURNAMENT";
         }
     },
+    IN_DELETE_TOURNAMENT {
+        @Override
+        public String getStateName() {
+            return "IN_DELETE_TOURNAMENT";
+        }
+    },
     IN_ADD_PARTICIPANT {
         @Override
         public String getStateName() {

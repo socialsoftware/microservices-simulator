@@ -4,6 +4,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuizSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
@@ -11,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
     private final TournamentService tournamentService;
@@ -31,6 +35,9 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
+            List<SagaAggregate.SagaState> states = new ArrayList<>();
+            states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
+            unitOfWorkService.verifyAndRegisterSagaState(tournamentAggregateId, TournamentSagaState.IN_DELETE_TOURNAMENT, states, unitOfWork);
             TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
             setTournamentDto(tournamentDto);
         });

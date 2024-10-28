@@ -56,7 +56,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) {
-        Aggregate aggregate = sagaAggregateRepository.findSagaAggregate(aggregateId)
+        Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         logger.info("Loaded and registered read for aggregate ID: {}", aggregateId);
@@ -64,7 +64,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     public Aggregate aggregateLoad(Integer aggregateId, SagaUnitOfWork unitOfWork) {
-        Aggregate aggregate = sagaAggregateRepository.findSagaAggregate(aggregateId)
+        Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (aggregate.getState() == Aggregate.AggregateState.DELETED) {
@@ -74,14 +74,15 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return aggregate;
     }
 
-    public Aggregate registerRead(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
+    public Aggregate aggregateDeletedLoad(Integer aggregateId) {
+        Aggregate aggregate = sagaAggregateRepository.findDeletedSagaAggregate(aggregateId)
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
+
         return aggregate;
     }
 
-    public void registerSagaState(SagaAggregate aggregate, SagaState state, SagaUnitOfWork unitOfWork) {
-        aggregate.setSagaState(state);
-        entityManager.persist(aggregate);
-        unitOfWork.addToAggregatesInSaga(aggregate);
+    public Aggregate registerRead(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
+        return aggregate;
     }
 
     @Retryable(
@@ -89,31 +90,8 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void registerSagaState(Integer aggregateId, SagaState state, SagaUnitOfWork unitOfWork) {
-        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
-                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
-        while (!aggregate.getSagaState().equals(GenericSagaState.NOT_IN_SAGA) && !state.equals(GenericSagaState.NOT_IN_SAGA)) {
-            aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
-                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
-        }
-
-        unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
-
-        aggregate.setSagaState(state);
-        entityManager.persist(aggregate);
-        unitOfWork.addToAggregatesInSaga(aggregate);
-    }
-
-    @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void registerSagaState(Integer aggregateId, SagaState state, ArrayList<SagaState> allowedStates, SagaUnitOfWork unitOfWork) {
-        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
-                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
-        while (!aggregate.getSagaState().equals(GenericSagaState.NOT_IN_SAGA)  && !state.equals(GenericSagaState.NOT_IN_SAGA) && !allowedStates.contains(aggregate.getSagaState())) {
-            aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
-                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
-        }
+        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
 
@@ -127,14 +105,15 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void verifyAndRegisterSagaState(Integer aggregateId, SagaState state, List<SagaState> forbiddenStates, SagaUnitOfWork unitOfWork) {
-        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
-                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
         
         if (forbiddenStates.contains(aggregate.getSagaState())) {
             throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, aggregate.getSagaState().getStateName());
         }
 
         unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
+
         aggregate.setSagaState(state);
         entityManager.persist(aggregate);
         unitOfWork.addToAggregatesInSaga(aggregate);
@@ -145,8 +124,8 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void verifySagaState(Integer aggregateId, List<SagaState> forbiddenStates) {
-        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
-                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
+                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (forbiddenStates.contains(aggregate.getSagaState())) {
             throw new TutorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, aggregate.getSagaState().getStateName());
@@ -159,8 +138,8 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commit(SagaUnitOfWork unitOfWork) {
         unitOfWork.getAggregatesInSaga().stream().forEach(a -> {
-            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(((Aggregate)a).getAggregateId())
-                    .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND));
+            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findAnySagaAggregate(((Aggregate)a).getAggregateId())
+                    .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, ((Aggregate)a).getAggregateId()));
             aggregate.setSagaState(GenericSagaState.NOT_IN_SAGA);
             entityManager.persist(aggregate);
         });
@@ -186,12 +165,12 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         for (Map.Entry<Integer, SagaState> entry : unitOfWork.getPreviousStates().entrySet()) {
             Integer aggregateId = entry.getKey();
             SagaState previousState = entry.getValue();
-            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findSagaAggregate(aggregateId)
+            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
             aggregate.setSagaState(previousState);
             entityManager.persist(aggregate);
         }
-        this.compensate(unitOfWork);
+        compensate(unitOfWork);
     }
 
     @Override
