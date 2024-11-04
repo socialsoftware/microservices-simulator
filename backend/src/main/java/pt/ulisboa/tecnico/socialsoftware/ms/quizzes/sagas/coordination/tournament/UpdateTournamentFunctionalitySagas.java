@@ -18,7 +18,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.QuizSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
@@ -67,8 +66,7 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
         }, new ArrayList<>(Arrays.asList(getOriginalTournamentStep)));
 
         SagaSyncStep updateTournamentStep = new SagaSyncStep("updateTournamentStep", () -> {
-            SagaTournamentDto newTournamentDto = (SagaTournamentDto) tournamentService.updateTournament(tournamentDto, this.getTopicsDtos(), unitOfWork);
-            this.setNewTournamentDto(newTournamentDto);
+            this.newTournamentDto = tournamentService.updateTournament(tournamentDto, this.getTopicsDtos(), unitOfWork);
         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
     
         updateTournamentStep.registerCompensation(() -> {
@@ -81,15 +79,15 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality{
             quizDto.setAvailableDate(getNewTournamentDto().getStartTime());
             quizDto.setConclusionDate(getNewTournamentDto().getEndTime());
             quizDto.setResultsDate(getNewTournamentDto().getEndTime());
-            this.setQuizDto(quizDto);
+            setQuizDto(quizDto);
             
             if (topicsAggregateIds != null || getNewTournamentDto().getNumberOfQuestions() != null) {
                 if (topicsAggregateIds == null) {
                     quizService.updateGeneratedQuiz(quizDto, getTopics().stream()
                             .map(SagaTopicDto::getAggregateId)
-                            .collect(Collectors.toSet()), getNewTournamentDto().getNumberOfQuestions(), unitOfWork);
+                            .collect(Collectors.toSet()), this.newTournamentDto.getNumberOfQuestions(), unitOfWork);
                 } else {
-                    quizService.updateGeneratedQuiz(quizDto, topicsAggregateIds, this.getNewTournamentDto().getNumberOfQuestions(), unitOfWork);
+                    quizService.updateGeneratedQuiz(quizDto, topicsAggregateIds, this.newTournamentDto.getNumberOfQuestions(), unitOfWork);
                 }
             }
         }, new ArrayList<>(Arrays.asList(updateTournamentStep)));

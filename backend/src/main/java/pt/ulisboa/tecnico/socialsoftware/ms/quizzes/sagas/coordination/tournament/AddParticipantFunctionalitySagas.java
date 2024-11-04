@@ -42,7 +42,7 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
         });
 
         SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {
-            TournamentParticipant participant = new TournamentParticipant(this.getUserDto());
+            TournamentParticipant participant = new TournamentParticipant(this.userDto);
             List<SagaAggregate.SagaState> states = new ArrayList<>();
             states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
             unitOfWorkService.verifySagaState(tournamentAggregateId, states);

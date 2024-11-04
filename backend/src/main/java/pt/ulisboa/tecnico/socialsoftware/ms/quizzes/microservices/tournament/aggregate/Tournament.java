@@ -268,16 +268,11 @@ public abstract class Tournament extends Aggregate {
      */
 
     private boolean invariantCreatorParticipantConsistency() {
-        for (TournamentParticipant participant : this.tournamentParticipants) {
-            if (participant.getParticipantAggregateId().equals(this.tournamentCreator.getCreatorAggregateId())) {
-                if (!participant.getParticipantVersion().equals(this.tournamentCreator.getCreatorVersion())
-                        || !participant.getParticipantName().equals(this.tournamentCreator.getCreatorName())
-                        || !participant.getParticipantUsername().equals(this.tournamentCreator.getCreatorUsername())) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return this.tournamentParticipants.stream()
+                .noneMatch(p -> p.getParticipantAggregateId().equals(this.tournamentCreator.getCreatorAggregateId())
+                        && (!p.getParticipantVersion().equals(this.tournamentCreator.getCreatorVersion())
+                        || !p.getParticipantName().equals(this.tournamentCreator.getCreatorName())
+                        || !p.getParticipantUsername().equals(this.tournamentCreator.getCreatorUsername())));
     }
 
     private boolean invariantCreatorIsNotAnonymous() {
