@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 
@@ -59,13 +61,13 @@ public abstract class Workflow {
         }
         
         FlowStep targetStep = getStepByName(stepName);
-        executionPlan.executeUntilStep(targetStep, unitOfWork).join();
+        executionPlan.executeUntilStep(targetStep, unitOfWork,true).join();
     }
 
     public CompletableFuture<Void> resume(UnitOfWork unitOfWork) {
         logger.info("EXECUTE FUNCTIONALITY: {} with version {} until end", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
         try {
-            return executionPlan.resume(unitOfWork)
+            return executionPlan.resume(unitOfWork,true)
                 .thenRun(() -> {
                     unitOfWorkService.commit(unitOfWork);
                 })
@@ -101,7 +103,7 @@ public abstract class Workflow {
 
         this.executionPlan = planOrder(this.stepsWithDependencies);
         try {
-            return executionPlan.execute(unitOfWork)
+            return executionPlan.execute(unitOfWork,true)
                 .thenRun(() -> {
                     unitOfWorkService.commit(unitOfWork);
                     logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
@@ -124,4 +126,41 @@ public abstract class Workflow {
             throw e;
         }
     }
+
+    public void executeUntilErrorWithRecovery(String stepName, UnitOfWork unitOfWork) {
+        logger.info("EXECUTE FUNCTIONALITY WITH FAILURE: {} with version {} until step {}", 
+                    unitOfWork.getFunctionalityName(), unitOfWork.getVersion(), stepName);
+    
+        if (this.executionPlan == null) {
+            this.executionPlan = planOrder(this.stepsWithDependencies);
+        }
+    
+        FlowStep targetStep = getStepByName(stepName);
+        
+        // Execute until the specified step
+        executionPlan.executeUntilStep(targetStep, unitOfWork,true).join();
+        
+        // Simulate an error by throwing a TutorException
+        throw new TutorException(ErrorMessage.CRASH);
+    }
+
+    public void executeUntilError(String stepName, UnitOfWork unitOfWork) {
+        logger.info("EXECUTE FUNCTIONALITY WITH FAILURE: {} with version {} until step {}", 
+                    unitOfWork.getFunctionalityName(), unitOfWork.getVersion(), stepName);
+        
+        // Simulate an error by throwing a TutorException
+        throw new TutorException(ErrorMessage.CRASH);
+    }
+
+    
+
+    public void executeWithOmission(UnitOfWork unitOfWork) {
+        logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+
+        if (this.executionPlan == null) {
+            this.executionPlan = planOrder(this.stepsWithDependencies);
+        }
+        
+        executionPlan.executeWithOmission(unitOfWork,false).join();
+    }       
 }

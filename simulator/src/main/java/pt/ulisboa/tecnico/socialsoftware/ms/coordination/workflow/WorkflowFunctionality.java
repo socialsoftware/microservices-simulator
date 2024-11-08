@@ -43,4 +43,38 @@ public abstract class WorkflowFunctionality {
         }
         
     }
+
+    public void executeUntilErrorWithRecovery(String stepName, UnitOfWork unitOfWork){
+        try {
+            workflow.executeUntilErrorWithRecovery(stepName,unitOfWork);
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof TutorException) {
+                throw (TutorException) cause;
+            } else {
+                throw e;
+            }
+        } catch (TutorException e) {
+            throw e;
+        }
+        
+    }
+    public void executeUntilError(String stepName, UnitOfWork unitOfWork){
+        try {
+            workflow.executeUntilError(stepName,unitOfWork);
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof TutorException) {
+                throw (TutorException) cause;
+            } else {
+                throw e;
+            }
+        } catch (TutorException e) {
+            throw e;
+        }
+        
+    }
+    public void executeWithOmission(UnitOfWork unitOfWork){
+        workflow.executeWithOmission(unitOfWork);
+    }
 }

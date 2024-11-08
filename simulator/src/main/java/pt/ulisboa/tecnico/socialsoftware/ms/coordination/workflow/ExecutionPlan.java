@@ -46,13 +46,13 @@ public class ExecutionPlan {
         return stepFutures.keySet().containsAll(step.getDependencies());
     }
 
-    public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
+    public CompletableFuture<Void> execute(UnitOfWork unitOfWork, Boolean noOmission ) {
 
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
             if (dependencies.get(step).isEmpty()) {
                 this.stepFutures.put(step, step.execute(unitOfWork)); // execute and save the steps with no dependencies
-                executedSteps.put(step, true);
+                executedSteps.put(step, noOmission);
             }
         }
 
@@ -72,7 +72,7 @@ public class ExecutionPlan {
     }
 
 
-    public CompletableFuture<Void> executeSteps(List<FlowStep> steps, UnitOfWork unitOfWork) {
+    public CompletableFuture<Void> executeSteps(List<FlowStep> steps, UnitOfWork unitOfWork, Boolean noOmission ) {
 
         for (FlowStep step : steps) {
             if (dependencies.get(step).isEmpty()) {
@@ -93,12 +93,12 @@ public class ExecutionPlan {
         return CompletableFuture.allOf(this.stepFutures.values().toArray(new CompletableFuture[0]))
                 .thenRun(() -> {
                     for (FlowStep step : steps) {
-                        executedSteps.put(step, true);
+                        executedSteps.put(step, noOmission);
                     }
                 });
     }
 
-    public CompletableFuture<Void> executeUntilStep(FlowStep targetStep, UnitOfWork unitOfWork) {
+    public CompletableFuture<Void> executeUntilStep(FlowStep targetStep, UnitOfWork unitOfWork, Boolean noOmission ) {
         ArrayList<FlowStep> stepsToExecute = new ArrayList<>();
         for (FlowStep step : plan) {
             if (!executedSteps.get(step)) {
@@ -110,17 +110,17 @@ public class ExecutionPlan {
                 break;
             }
         }
-        return executeSteps(stepsToExecute, unitOfWork);
+        return executeSteps(stepsToExecute, unitOfWork, noOmission);
     }
 
-    public CompletableFuture<Void> resume(UnitOfWork unitOfWork) {
+    public CompletableFuture<Void> resume(UnitOfWork unitOfWork, Boolean noOmission) {
         ArrayList<FlowStep> remainingSteps = new ArrayList<>();
         for (FlowStep step : plan) {
             if (!executedSteps.get(step)) {
                 remainingSteps.add(step);
             }
         }
-        return executeSteps(remainingSteps, unitOfWork);
+        return executeSteps(remainingSteps, unitOfWork, noOmission);
     }
 
     public FlowStep getStepByName(String stepName) {
@@ -130,5 +130,17 @@ public class ExecutionPlan {
             }
         }
         throw new IllegalArgumentException("Step with name: " + stepName + " not found.");
+    }
+
+    public CompletableFuture<Void> executeWithOmission( UnitOfWork unitOfWork, Boolean noOmission ) {
+        ArrayList<FlowStep> stepsToExecute = new ArrayList<>();
+        for (FlowStep step : plan) {
+            if (!executedSteps.get(step)) {
+                stepsToExecute.add(step);
+            }
+    
+            // Stop collecting steps once the target step is added to the list
+        }
+        return executeSteps(stepsToExecute, unitOfWork, noOmission);
     }
 }
