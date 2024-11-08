@@ -2,14 +2,26 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
 import java.util.concurrent.CompletionException;
 
+import org.codehaus.groovy.runtime.dgmimpl.arrays.BooleanArrayGetAtMetaMethod;
+
+import groovyjarjarantlr4.v4.codegen.model.ExceptionClause;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 public abstract class WorkflowFunctionality {
     protected Workflow workflow;
+    public Boolean crashed = false;
+
+      // Method to check if crashed flag is true
+      private void checkIfCrashed() {
+        if (crashed) {
+            throw new IllegalStateException("Workflow has crashed and cannot be executed further.");
+        }
+    }
 
     public void executeWorkflow(UnitOfWork unitOfWork) {
         try {
+            checkIfCrashed();
             workflow.execute(unitOfWork).join();
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
@@ -25,11 +37,17 @@ public abstract class WorkflowFunctionality {
     }
 
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
+        try {
+            checkIfCrashed();
+            workflow.executeUntilStep(stepName, unitOfWork);
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     public void resumeWorkflow(UnitOfWork unitOfWork) {
         try {
+            checkIfCrashed();
             workflow.resume(unitOfWork).join();
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
@@ -40,12 +58,15 @@ public abstract class WorkflowFunctionality {
             }
         } catch (SimulatorException e) {
             throw e;
+        } catch (Exception e) {
+            throw e;
         }
         
     }
 
     public void executeUntilErrorWithRecovery(String stepName, UnitOfWork unitOfWork){
         try {
+            checkIfCrashed();
             workflow.executeUntilErrorWithRecovery(stepName,unitOfWork);
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
@@ -61,7 +82,9 @@ public abstract class WorkflowFunctionality {
     }
     public void executeUntilError(String stepName, UnitOfWork unitOfWork){
         try {
-            workflow.executeUntilError(stepName,unitOfWork);
+            checkIfCrashed();
+            crashed = true;
+            workflow.executeUntilErrorWithRecovery(stepName,unitOfWork);
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
             if (cause instanceof TutorException) {
@@ -75,6 +98,16 @@ public abstract class WorkflowFunctionality {
         
     }
     public void executeWithOmission(UnitOfWork unitOfWork){
-        workflow.executeWithOmission(unitOfWork);
+        try {
+            checkIfCrashed();
+            workflow.executeWithOmission(unitOfWork);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    public void compensate(UnitOfWork unitOfWork){
+        crashed = false;
+        workflow.compensate(unitOfWork);
     }
 }

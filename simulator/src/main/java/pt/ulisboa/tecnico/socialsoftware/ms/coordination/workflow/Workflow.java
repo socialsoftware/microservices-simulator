@@ -61,13 +61,13 @@ public abstract class Workflow {
         }
         
         FlowStep targetStep = getStepByName(stepName);
-        executionPlan.executeUntilStep(targetStep, unitOfWork,true).join();
+        executionPlan.executeUntilStep(targetStep, unitOfWork).join();
     }
 
     public CompletableFuture<Void> resume(UnitOfWork unitOfWork) {
         logger.info("EXECUTE FUNCTIONALITY: {} with version {} until end", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
         try {
-            return executionPlan.resume(unitOfWork,true)
+            return executionPlan.resume(unitOfWork)
                 .thenRun(() -> {
                     unitOfWorkService.commit(unitOfWork);
                 })
@@ -103,7 +103,7 @@ public abstract class Workflow {
 
         this.executionPlan = planOrder(this.stepsWithDependencies);
         try {
-            return executionPlan.execute(unitOfWork,true)
+            return executionPlan.execute(unitOfWork)
                 .thenRun(() -> {
                     unitOfWorkService.commit(unitOfWork);
                     logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
@@ -138,21 +138,12 @@ public abstract class Workflow {
         FlowStep targetStep = getStepByName(stepName);
         
         // Execute until the specified step
-        executionPlan.executeUntilStep(targetStep, unitOfWork,true).join();
+        executionPlan.executeUntilStep(targetStep, unitOfWork).join();
         
         // Simulate an error by throwing a TutorException
         throw new TutorException(ErrorMessage.CRASH);
     }
 
-    public void executeUntilError(String stepName, UnitOfWork unitOfWork) {
-        logger.info("EXECUTE FUNCTIONALITY WITH FAILURE: {} with version {} until step {}", 
-                    unitOfWork.getFunctionalityName(), unitOfWork.getVersion(), stepName);
-        
-        // Simulate an error by throwing a TutorException
-        throw new TutorException(ErrorMessage.CRASH);
-    }
-
-    
 
     public void executeWithOmission(UnitOfWork unitOfWork) {
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
@@ -161,6 +152,13 @@ public abstract class Workflow {
             this.executionPlan = planOrder(this.stepsWithDependencies);
         }
         
-        executionPlan.executeWithOmission(unitOfWork,false).join();
-    }       
+        executionPlan.executeWithOmission(unitOfWork).join();
+    }     
+
+    public void compensate(UnitOfWork unitOfWork) {
+        logger.info("COMPENSATE FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+        unitOfWorkService.abort(unitOfWork);
+    }
+    
+    
 }

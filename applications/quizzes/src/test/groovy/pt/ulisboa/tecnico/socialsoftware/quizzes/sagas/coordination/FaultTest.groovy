@@ -121,20 +121,26 @@ class FaultTest extends QuizzesSpockTest {
         error.errorMessage == ErrorMessage.CRASH
         def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult2.getParticipants().size() == 0
+        addParticipantFunctionality.crashed == true;
         
         when: 'Try to resume the workflow'
         addParticipantFunctionality.resumeWorkflow(unitOfWork2)
         then: 'Its not possible because of crash'
-        thrown(NullPointerException)
+        thrown(IllegalStateException)
 
         when: 'Retry the workflow execution to the same step'
         addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2)
 
-        then: 'No exception'
-        notThrown(TutorException)
-        
-        when: 'creator is added as participant'
-        addParticipantFunctionality.resumeWorkflow(unitOfWork2)
+        then: 'Its not possible because of crash'
+        thrown(IllegalStateException)
+
+        when: 'Compensate the workflow'
+        addParticipantFunctionality.compensate(unitOfWork2)
+        then: 'no exception is thrown'
+        notThrown(IllegalStateException)
+
+        when: 'retry the workflow'
+        addParticipantFunctionality.executeWorkflow(unitOfWork2)
         then: 'the creator is added as participant with new name'
         def tournamentDtoResult3 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult3.getParticipants().size() == 1
