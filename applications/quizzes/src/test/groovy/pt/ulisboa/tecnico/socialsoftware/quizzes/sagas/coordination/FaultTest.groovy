@@ -121,7 +121,6 @@ class FaultTest extends QuizzesSpockTest {
         error.errorMessage == ErrorMessage.CRASH
         def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult2.getParticipants().size() == 0
-        addParticipantFunctionality.crashed == true;
         
         when: 'Try to resume the workflow'
         addParticipantFunctionality.resumeWorkflow(unitOfWork2)
@@ -172,7 +171,7 @@ class FaultTest extends QuizzesSpockTest {
 
     def 'Omission-fault' () {
 
-        when: 'remove tournament until removeQuizStep'
+        when: 'Omission error on remove tournament'
         removeTournamentFunctionality.executeWithOmission(unitOfWork2)
         then: 'it is being updated'
 
@@ -188,6 +187,28 @@ class FaultTest extends QuizzesSpockTest {
         error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
 
        
+    }
+
+
+    def'OmissionCrash-Fault' () {
+        given: 'add participant executes the first step'
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2)
+
+        when: 'Simulate a omited failure then try to execute the workflow'
+        addParticipantFunctionality.omissionError()
+        addParticipantFunctionality.executeWorkflow(unitOfWork2)
+        then: 'Its not possible because of crash'
+        notThrown(Exception)
+        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult2.getParticipants().size() == 0
+
+        when: 'Compensate the workflow and retry'
+        addParticipantFunctionality.compensate(unitOfWork2)
+        addParticipantFunctionality.executeWorkflow(unitOfWork2)
+        then: 'the creator is added as participant with new name'
+        def tournamentDtoResult3 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult3.getParticipants().size() == 1
+        
     }
 
 

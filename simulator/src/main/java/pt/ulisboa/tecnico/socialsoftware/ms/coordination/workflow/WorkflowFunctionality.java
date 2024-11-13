@@ -10,7 +10,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 public abstract class WorkflowFunctionality {
     protected Workflow workflow;
-    public Boolean crashed = false;
+    private Boolean crashed = false;
+    private Boolean omitedError = false;
 
       // Method to check if crashed flag is true
       private void checkIfCrashed() {
@@ -20,6 +21,7 @@ public abstract class WorkflowFunctionality {
     }
 
     public void executeWorkflow(UnitOfWork unitOfWork) {
+        if(omitedError) return;
         try {
             checkIfCrashed();
             workflow.execute(unitOfWork).join();
@@ -37,6 +39,7 @@ public abstract class WorkflowFunctionality {
     }
 
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
+        if(omitedError) return;
         try {
             checkIfCrashed();
             workflow.executeUntilStep(stepName, unitOfWork);
@@ -46,6 +49,7 @@ public abstract class WorkflowFunctionality {
     }
 
     public void resumeWorkflow(UnitOfWork unitOfWork) {
+        if(omitedError) return;
         try {
             checkIfCrashed();
             workflow.resume(unitOfWork).join();
@@ -65,6 +69,7 @@ public abstract class WorkflowFunctionality {
     }
 
     public void executeUntilErrorWithRecovery(String stepName, UnitOfWork unitOfWork){
+        if(omitedError) return;
         try {
             checkIfCrashed();
             workflow.executeUntilErrorWithRecovery(stepName,unitOfWork);
@@ -81,6 +86,7 @@ public abstract class WorkflowFunctionality {
         
     }
     public void executeUntilError(String stepName, UnitOfWork unitOfWork){
+        if(omitedError) return;
         try {
             checkIfCrashed();
             crashed = true;
@@ -98,6 +104,7 @@ public abstract class WorkflowFunctionality {
         
     }
     public void executeWithOmission(UnitOfWork unitOfWork){
+        if(omitedError) return;
         try {
             checkIfCrashed();
             workflow.executeWithOmission(unitOfWork);
@@ -106,8 +113,13 @@ public abstract class WorkflowFunctionality {
         }
     }
 
+    public void omissionError() {
+        omitedError = true;
+    }
+
     public void compensate(UnitOfWork unitOfWork){
         crashed = false;
+        omitedError = false;
         workflow.compensate(unitOfWork);
     }
 }
