@@ -1,10 +1,12 @@
 # Microservices Simulator
 
-The artifact supports the test of business logic of a microservices application designed on the concept of Domain-Driven Design Aggregate and using several transactional models. The current implementations are: 
+The artifact supports the test of business logic of a microservices application designed on the concept of Domain-Driven Design Aggregate and using several transactional models. 
 
-* Transactional Causal Consistency
+The currently supported transactional models are: 
+
 * Eventual Consistency
   * Sagas applying the Orchestration variant
+* Transactional Causal Consistency
 
 The system allows testing the interleaving of functionalities execution in a deterministic context, such that it is possible to evaluate the resulting behavior.
 
@@ -102,6 +104,63 @@ mvn clean -Ptest-tcc test
   * [Tournament Merge Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/aggregates/TournamentMergeUnitTest.groovy)
   * [Tournament Functionality Tests](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy)
 
+## Code structure
+
+The code is structured into:
+* The core concepts of [Domain-Driven Design](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/domain)
+* The core concepts for the distributed functionalities [Coordination](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination)
+* The core concepts for management of [Sagas](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/sagas)
+* The core concepts for management of [TCC](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/causal)
+* A case study for [Quizzes Tutor](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes)
+    * The transactional model independent [Microservices](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices)
+    * The Sagas implementation for
+      * [Aggregates](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/sagas/aggregates)
+      * [Coordination](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/sagas/coordination)
+    * The TCC implementation for
+      * [Aggregates](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/aggregates)
+      * [Coordination](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination)
+* The tests of the [Quizzes Tutor](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes) for
+  * [Sagas](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/sagas/coordination)
+  * [TCC](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination)
+
+## How to implement and test your own business logic for Sagas
+
+The figure shows the main classes to be extended for aggregates, their events and services. The classes in red belong to 
+the domain-driven design concepts cores, and the classes green corresponds to the transaction model specific classes. 
+Classes in blue are the domain-specific extensions, in this case for the quizzes case study, and the classes in orange 
+it is their transactional model specific extension.
+
+![Aggregate Model](data/figs/sagas-aggregate-extension.png)
+
+Apply the following steps to define a domain-specific aggregate, its events and services, here illustrated with
+the Quizzes Tutor system and its Tournament aggregate.
+
+For the transactional model independent part:
+1. **Define Aggregate**: Each microservice is modeled as an aggregate. The first step is to define the aggregates.
+   The simulator uses Spring-Boot and JPA, so the domain entities definition uses the JPA notation.
+   In [Tournament](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/aggregate/Tournament.java#L75)
+   aggregate we can see the aggregate root entity and the reference to its internal entities.
+2. **Specify Invariants**: The aggregate invariants are defined by overriding method [verifyInvariants()](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/aggregate/Tournament.java#L283).
+3. **Define Events**: Define the events published by upstream aggregates and subscribed by downstream aggregates, like [UpdateStudentNameEvent](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/execution/events/publish/UpdateStudentNameEvent.java#L6).
+4. **Subscribe Events**: The events published by upstream aggregates can be subscribed by overriding method [getEventSubscriptions()](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/aggregate/Tournament.java#L156).
+5. **Define Event Subscriptions**: Events can be subscribed depending on its data. Therefore, define subscription classes like [TournamentSubscribesUpdateStudentName](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/events/subscribe/TournamentSubscribesUpdateStudentName.java#L10).
+6. **Define Event Handlers**: For each subscribed event define an event handler that delegates the handling in a handling functionality, like [UpdateStudentNameEventHandler](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/events/handling/handlers/UpdateStudentNameEventHandler.java#L8)
+   and its handling functionality [processUpdateStudentNameEvent(...)](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/coordination/eventProcessing/TournamentEventProcessing.java#L108).
+7. **Define Aggregate Services**: Define the microservice API, whose implementation interact with the unit of work to register changes and publish events, like service [updateExecutionStudentName(...)](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/execution/service/CourseExecutionService.java#L196).
+
+For the transactional model dependent part:
+1. **Define Saga Aggregates**: Extend aggregates with the information required for semantic locks, like [SagaTournament](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/sagas/aggregates/SagaTournament.java).
+
+To define the system functionalities, it is necessary to extend the simulator part for coordination. 
+
+![Functionality Model](data/figs/sagas-functionality-extension.png)
+
+For the functionalities:
+1. **Define Functionalities**: Functionalities coordinate the execution of aggregate services using sagas, like functionality [AddParticipantFunctionalitySagas(...)](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/sagas/coordination/tournament/AddParticipantFunctionalitySagas.java#L22)
+
+To write tests:
+1. **Design Test Cases**: Define tests cases for the concurrent execution of functionalities deterministically enforcing execution orders, like in the [Concurrent Execution of Update Name and Add Participant](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/sagas/coordination/AddParticipantAndUpdateStudentNameTest.groovy#L27). Directory [coordination](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/sagas/coordination/) contains the test of more complex interleavings using the sagas transactional model. 
+
 
 
 ## Running JMeter tests
@@ -133,7 +192,7 @@ jmeter
 * The command launches JMeter GUI. By clicking `File > Open` and selecting a test file it is possible to observe the test structure.
 * Tests can also be run using the GUI, by clicking on the `Start` button.
 
-## How to implement and test your own business logic
+## How to implement and test your own business logic for TCC
 
 The code follows the structure in the figure, where the packages in blue and orange contain, respectively, the microservices domain specific code and the transactional causal consistency domain specific code.
 
@@ -147,19 +206,19 @@ Apply the following steps:
 
 1. **Define Aggregate**: Each microservice is modeled as an aggregate. The first step is to define the aggregates. 
 The simulator uses Spring-Boot and JPA, so the domain entities definition uses the JPA notation. 
-In [Tournament](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/aggregate/Tournament.java#L60)
+In [Tournament](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/aggregate/Tournament.java#L75)
 aggregate we can see the aggregate root entity and the reference to its internal entities.
-2. **Specify Invariants**: The aggregate invariants are defined by overriding method [verifyInvariants()](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/aggregate/Tournament.java#L273).
-3. **Define Causal Aggregates**: Extend aggregates with the information required to process merges, like [CausalTournament](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/aggregates/CausalTournament.java#L24).
+2. **Specify Invariants**: The aggregate invariants are defined by overriding method [verifyInvariants()](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/aggregate/Tournament.java#L283).
+3. **Define Causal Aggregates**: Extend aggregates with the information required to process merges, like [CausalTournament](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/aggregates/CausalTournament.java#L26).
 4. **Define Events**: Define the events published by upstream aggregates and subscribed by downstream aggregates, like [UpdateStudentNameEvent](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/execution/events/publish/UpdateStudentNameEvent.java#L6).
-5. **Subscribe Events**: The events published by upstream aggregates can be subscribed by overriding method [getEventSubscriptions()](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/aggregate/Tournament.java#L141).
+5. **Subscribe Events**: The events published by upstream aggregates can be subscribed by overriding method [getEventSubscriptions()](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/aggregate/Tournament.java#L156).
 6. **Define Event Subscriptions**: Events can be subscribed depending on its data. Therefore, define subscription classes like [TournamentSubscribesUpdateStudentName](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/events/subscribe/TournamentSubscribesUpdateStudentName.java#L10).
 7. **Define Event Handlers**: For each subscribed event define an event handler that delegates the handling in a handling functionality, like [UpdateStudentNameEventHandler](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/events/handling/handlers/UpdateStudentNameEventHandler.java#L8)
-and its handling functionality [processUpdateStudentNameEvent(...)](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/tournament/events/handling/TournamentEventHandling.java#L59).
-8. **Define Functionalities**: Functionalities coordinate the execution of aggregate services using TCC, like functionality [updateStudentName(...)](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination/functionalities/CourseExecutionFunctionalities.java#L81), 
-where each service interacts with the unit of work to register changes and publish events, like service [updateExecutionStudentName(...)](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/execution/service/CourseExecutionService.java#L175).
+and its handling functionality [processUpdateStudentNameEvent(...)](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/coordination/eventProcessing/TournamentEventProcessing.java#L108).
+8. **Define Functionalities**: Functionalities coordinate the execution of aggregate services using TCC, like functionality [updateStudentName(...)](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination/execution/UpdateStudentNameFunctionalityTCC.java#L14), 
+where each service interacts with the unit of work to register changes and publish events, like service [updateExecutionStudentName(...)](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/execution/service/CourseExecutionService.java#L196).
 9. **Define Test Cases**: Define deterministic tests cases for the concurrent execution of functionalities using services to decrement the system version number, 
-which defines functionalities execution order, and to force the deterministic processing of events, like in the [Concurrent Execution of Update Name and Add Participant](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/functionality/TournamentFunctionalityTest.groovy#L178).
+which defines functionalities execution order, and to force the deterministic processing of events, like in the [Concurrent Execution of Update Name and Add Participant](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy#L114).
 
 ##  Spock Tests in [DAIS2023](https://link.springer.com/chapter/10.1007/978-3-031-35260-7_4) paper - 23nd International Conference on Distributed Applications and Interoperable Systems
 

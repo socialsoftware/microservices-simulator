@@ -23,17 +23,20 @@ public class TournamentSubscribesUpdateStudentName extends EventSubscription {
     }
 
     private boolean checkTournamentInfo(UpdateStudentNameEvent updateStudentNameEvent) {
-        if (tournamentDto.getCreator().getAggregateId().equals(updateStudentNameEvent.getStudentAggregateId())) {
-            return true;
-        }
+        return tournamentDto.getCreator().getAggregateId().equals(updateStudentNameEvent.getStudentAggregateId()) ||
+                tournamentDto.getParticipants().stream()
+                        .anyMatch(participant -> participant.getAggregateId().equals(updateStudentNameEvent.getStudentAggregateId()));
+//        if (tournamentDto.getCreator().getAggregateId().equals(updateStudentNameEvent.getStudentAggregateId())) {
+//            return true;
+//        }
+//
+//        for (UserDto tournamentParticipant : tournamentDto.getParticipants()) {
+//            if (tournamentParticipant.getAggregateId().equals(updateStudentNameEvent.getStudentAggregateId())) {
+//                return true;
+//            }
+//        }
 
-        for (UserDto tournamentParticipant : tournamentDto.getParticipants()) {
-            if (tournamentParticipant.getAggregateId().equals(updateStudentNameEvent.getStudentAggregateId())) {
-                return true;
-            }
-        }
-
-        return false;
+//        return false;
     }
 
 }
