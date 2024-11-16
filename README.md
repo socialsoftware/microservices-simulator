@@ -121,12 +121,13 @@ The code is structured into:
       * [Coordination](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination)
 * The tests of the [Quizzes Tutor](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes) for
   * [Sagas](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/sagas/coordination)
-  * [TCC](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination)
+  * [TCC Aggregates](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/aggregates)
+  * [TCC Coordination](backend/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/causal/coordination)
 
 ## How to implement and test your own business logic for Sagas
 
 The figure shows the main classes to be extended for aggregates, their events and services. The classes in red belong to 
-the domain-driven design concepts cores, and the classes green corresponds to the transaction model specific classes. 
+the domain-driven design concepts, and the classes green corresponds to the transaction model specific classes. 
 Classes in blue are the domain-specific extensions, in this case for the quizzes case study, and the classes in orange 
 it is their transactional model specific extension.
 
@@ -149,7 +150,7 @@ For the transactional model independent part:
 7. **Define Aggregate Services**: Define the microservice API, whose implementation interact with the unit of work to register changes and publish events, like service [updateExecutionStudentName(...)](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/microservices/execution/service/CourseExecutionService.java#L196).
 
 For the transactional model dependent part:
-1. **Define Saga Aggregates**: Extend aggregates with the information required for semantic locks, like [SagaTournament](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/sagas/aggregates/SagaTournament.java).
+1. **Define Saga Aggregates**: Extend aggregates with the information required for semantic locks, like [SagaTournament](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/sagas/aggregates/SagaTournament.java#L16) and its [Semantic Lock](backend/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/quizzes/sagas/aggregates/states/TournamentSagaState.java#L5).
 
 To define the system functionalities, it is necessary to extend the simulator part for coordination. 
 
