@@ -127,7 +127,24 @@ public abstract class Workflow {
         }
     }
 
-    public void executeUntilErrorWithRecovery(String stepName, UnitOfWork unitOfWork) {
+    public void executeUntilCrash(String stepName, UnitOfWork unitOfWork) {
+        logger.info("EXECUTE FUNCTIONALITY WITH FAILURE: {} with version {} until step {}", 
+                    unitOfWork.getFunctionalityName(), unitOfWork.getVersion(), stepName);
+    
+        if (this.executionPlan == null) {
+            this.executionPlan = planOrder(this.stepsWithDependencies);
+        }
+    
+        FlowStep targetStep = getStepByName(stepName);
+        
+        // Execute until the specified step
+        executionPlan.executeUntilCrash(targetStep, unitOfWork).join();
+        
+        // Simulate an error by throwing a TutorException
+        throw new TutorException(ErrorMessage.CRASH);
+    }
+
+    public void executeUntilCrashWithRecovery(String stepName, UnitOfWork unitOfWork) {
         logger.info("EXECUTE FUNCTIONALITY WITH FAILURE: {} with version {} until step {}", 
                     unitOfWork.getFunctionalityName(), unitOfWork.getVersion(), stepName);
     

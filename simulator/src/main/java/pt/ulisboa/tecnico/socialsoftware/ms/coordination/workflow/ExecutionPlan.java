@@ -143,4 +143,20 @@ public class ExecutionPlan {
         }
         return executeSteps(stepsToExecute, unitOfWork, false);
     }
+
+    public CompletableFuture<Void> executeUntilCrash(FlowStep targetStep, UnitOfWork unitOfWork) {
+        ArrayList<FlowStep> stepsToExecute = new ArrayList<>();
+        for (FlowStep step : plan) {
+            if (!executedSteps.get(step)) {
+                stepsToExecute.add(step);
+            }
+    
+            // Stop collecting steps once the target step is added to the list
+            if (step.equals(targetStep)) {
+                break;
+            }
+        }
+        this.setPlan(stepsToExecute);
+        return executeSteps(stepsToExecute, unitOfWork, true);
+    }
 }

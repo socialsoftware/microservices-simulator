@@ -114,7 +114,7 @@ class FaultTest extends QuizzesSpockTest {
         def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2)
 
         when: 'Simulate a failure at "getUserStep" step'
-        addParticipantFunctionality.executeUntilError("getUserStep", unitOfWork2)
+        addParticipantFunctionality.executeUntilCrash("getUserStep", unitOfWork2)
 
         then: 'Receive exception'
         def error = thrown(TutorException)
@@ -152,7 +152,7 @@ class FaultTest extends QuizzesSpockTest {
         def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2)
 
         when: 'Simulate a failure at "getUserStep" step'
-        addParticipantFunctionality.executeUntilErrorWithRecovery("getUserStep", unitOfWork2)
+        addParticipantFunctionality.executeUntilCrashWithRecovery("getUserStep", unitOfWork2)
 
         then: 'Receive exception'
         def error = thrown(TutorException)
@@ -180,7 +180,7 @@ class FaultTest extends QuizzesSpockTest {
         then: 'is deleted'
         sagaQuiz.state == Aggregate.AggregateState.DELETED
 
-        when: 'remove is retried'
+        when: 'resume the workflow'
         removeTournamentFunctionality.resumeWorkflow(unitOfWork2)
         then: 'already deleted'
         def error = thrown(TutorException)

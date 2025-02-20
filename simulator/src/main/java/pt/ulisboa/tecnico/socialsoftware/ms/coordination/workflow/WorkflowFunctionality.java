@@ -68,11 +68,11 @@ public abstract class WorkflowFunctionality {
         
     }
 
-    public void executeUntilErrorWithRecovery(String stepName, UnitOfWork unitOfWork){
+    public void executeUntilCrashWithRecovery(String stepName, UnitOfWork unitOfWork){
         if(omitedError) return;
         try {
             checkIfCrashed();
-            workflow.executeUntilErrorWithRecovery(stepName,unitOfWork);
+            workflow.executeUntilCrashWithRecovery(stepName,unitOfWork);
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
             if (cause instanceof TutorException) {
@@ -85,12 +85,12 @@ public abstract class WorkflowFunctionality {
         }
         
     }
-    public void executeUntilError(String stepName, UnitOfWork unitOfWork){
+    public void executeUntilCrash(String stepName, UnitOfWork unitOfWork){
         if(omitedError) return;
         try {
             checkIfCrashed();
             crashed = true;
-            workflow.executeUntilErrorWithRecovery(stepName,unitOfWork);
+            workflow.executeUntilCrash(stepName,unitOfWork);
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
             if (cause instanceof TutorException) {
