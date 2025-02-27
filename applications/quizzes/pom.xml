@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.3.4</version>
+		<relativePath/>
+	</parent>
+	<groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
+	<artifactId>MicroservicesSimulator</artifactId>
+	<version>2.0.0-SNAPSHOT</version>
+	<name>MicroservicesSimulator</name>
+	<description>Microservices Simulator</description>
+	<properties>
+		<java.version>21</java.version>
+	</properties>
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<properties>
+				<activatedProperties>dev</activatedProperties>
+			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+		<profile>
+			<id>sagas</id>
+			<properties>
+				<activatedProperties>sagas</activatedProperties>
+			</properties>
+		</profile>
+		<profile>
+			<id>tcc</id>
+			<properties>
+				<activatedProperties>tcc</activatedProperties>
+			</properties>
+		</profile>
+		<profile>
+			<id>test-sagas</id>
+			<properties>
+				<activatedProperties>test</activatedProperties>
+				<activatedProperties>sagas</activatedProperties>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<!-- The gmavenplus plugin is used to compile Groovy code. To learn
+                            more about this plugin, visit https://github.com/groovy/GMavenPlus/wiki -->
+						<groupId>org.codehaus.gmavenplus</groupId>
+						<artifactId>gmavenplus-plugin</artifactId>
+						<version>4.0.1</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>addTestSources</goal>
+									<goal>compileTests</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>3.5.1</version>
+						<configuration>
+							<includes>
+								<include>**/quizzes/sagas/**</include>
+								<include>**/sagas/**</include>
+							</includes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>test-tcc</id>
+			<properties>
+				<activatedProperties>test</activatedProperties>
+				<activatedProperties>tcc</activatedProperties>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<!-- The gmavenplus plugin is used to compile Groovy code. To learn
+                            more about this plugin, visit https://github.com/groovy/GMavenPlus/wiki -->
+						<groupId>org.codehaus.gmavenplus</groupId>
+						<artifactId>gmavenplus-plugin</artifactId>
+						<version>4.0.1</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>addTestSources</goal>
+									<goal>compileTests</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>3.5.1</version>
+						<configuration>
+							<includes>
+								<include>**/quizzes/causal/**</include>
+							</includes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.retry</groupId>
+			<artifactId>spring-retry</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
+			<version>4.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- In memory database for tests -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Spock testing framework -->
+		<dependency>
+			<groupId>org.spockframework</groupId>
+			<artifactId>spock-spring</artifactId>
+			<version>2.4-M4-groovy-4.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.spockframework</groupId>
+			<artifactId>spock-core</artifactId>
+			<version>2.4-M4-groovy-4.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Specific Groovy version rather than the one specified by spock-core -->
+		<dependency>
+			<groupId>org.apache.groovy</groupId>
+			<artifactId>groovy</artifactId>
+			<version>4.0.23</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<version>4.0.23</version>
+			<type>pom</type>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

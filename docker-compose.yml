@@ -22,7 +22,7 @@ services:
 
   backend-sagas:
     build:
-      context: ./backend/
+      context: simulator/
       args:
         PROFILE: sagas,dev
     image: backend
@@ -42,7 +42,7 @@ services:
 
   backend-tcc:
     build:
-      context: ./backend/
+      context: simulator/
       args:
         PROFILE: tcc,dev
     image: backend
