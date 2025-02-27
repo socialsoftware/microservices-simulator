@@ -1,11 +1,11 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate;
 
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.OptionDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.OptionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 
 @Entity
 public class QuestionAnswer {

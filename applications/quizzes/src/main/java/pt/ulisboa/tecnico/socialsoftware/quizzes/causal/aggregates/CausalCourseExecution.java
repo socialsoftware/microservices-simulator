@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -8,10 +8,10 @@ import org.apache.commons.collections4.SetUtils;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionCourse;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionStudent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionCourse;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionStudent;
 
 @Entity
 public class CausalCourseExecution extends CourseExecution implements CausalAggregate {

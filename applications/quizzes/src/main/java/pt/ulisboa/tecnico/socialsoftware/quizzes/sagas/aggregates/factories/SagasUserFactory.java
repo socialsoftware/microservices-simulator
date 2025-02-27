@@ -1,13 +1,13 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.factories;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.factories;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaUser;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaUserDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.User;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaUser;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaUserDto;
 
 @Service
 @Profile("sagas")

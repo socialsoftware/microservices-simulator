@@ -1,8 +1,8 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.SAGAS;
-import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.TCC;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,25 +13,25 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator;
+import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.tournament.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.tournament.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.tournament.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
@@ -65,7 +65,7 @@ public class TournamentFunctionalities {
     @Autowired
     private Environment env;
 
-    private MicroservicesSimulator.TransactionalModel workflowType;
+    private TransactionalModel workflowType;
 
     @PostConstruct
     public void init() {

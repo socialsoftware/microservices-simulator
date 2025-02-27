@@ -1,9 +1,9 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.SAGAS;
-import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.TCC;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.TOPIC_MISSING_NAME;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.TOPIC_MISSING_NAME;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,16 +13,16 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator;
+import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.topic.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.service.CourseService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.topic.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.topic.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
@@ -42,7 +42,7 @@ public class TopicFunctionalities {
     @Autowired
     private Environment env;
 
-    private MicroservicesSimulator.TransactionalModel workflowType;
+    private TransactionalModel workflowType;
 
     @PostConstruct
     public void init() {

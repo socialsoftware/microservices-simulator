@@ -1,19 +1,22 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates;
 
 import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizQuestion;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.Quiz;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizQuestion;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizType;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 @Entity
 public class SagaQuiz extends Quiz implements SagaAggregate {
-    @Column
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition="JSON")
     private SagaState sagaState;
     
     public SagaQuiz() {

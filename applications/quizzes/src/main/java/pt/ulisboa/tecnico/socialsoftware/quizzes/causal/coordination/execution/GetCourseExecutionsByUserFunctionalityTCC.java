@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.execution;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution;
 
 import java.util.Set;
 
@@ -7,8 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkS
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 
 public class GetCourseExecutionsByUserFunctionalityTCC extends WorkflowFunctionality {
     private Set<CourseExecutionDto> courseExecutions;

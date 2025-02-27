@@ -1,6 +1,6 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.OptionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.OptionDto;
 
 import jakarta.persistence.Embeddable;
 

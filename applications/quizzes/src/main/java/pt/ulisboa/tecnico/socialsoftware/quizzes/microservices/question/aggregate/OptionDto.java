@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate;
 
 import java.io.Serializable;
 

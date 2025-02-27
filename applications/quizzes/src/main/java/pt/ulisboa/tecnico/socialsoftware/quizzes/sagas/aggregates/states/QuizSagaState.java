@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 

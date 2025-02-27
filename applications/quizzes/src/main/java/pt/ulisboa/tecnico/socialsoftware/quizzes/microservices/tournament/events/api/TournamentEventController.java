@@ -1,10 +1,10 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.api;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.api;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling;
 
 @RestController
 public class TournamentEventController {

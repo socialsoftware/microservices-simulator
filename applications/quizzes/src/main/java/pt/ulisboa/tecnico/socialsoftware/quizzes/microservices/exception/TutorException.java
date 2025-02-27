@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate;
 
 public enum Role {STUDENT, TEACHER, ADMIN}
 

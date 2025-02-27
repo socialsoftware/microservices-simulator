@@ -1,13 +1,13 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.factories;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionCourse;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.CausalCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionCourse;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 
 @Service
 @Profile("tcc")

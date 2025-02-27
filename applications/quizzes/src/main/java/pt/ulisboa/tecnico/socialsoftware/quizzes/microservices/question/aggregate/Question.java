@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
 
@@ -16,9 +16,9 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.subscribe.QuestionSubscribesDeleteTopic;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.subscribe.QuestionSubscribesUpdateTopic;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.subscribe.QuestionSubscribesDeleteTopic;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.subscribe.QuestionSubscribesUpdateTopic;
 
 /*
     INTRA-INVARIANTS:

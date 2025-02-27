@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.topic;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.topic;
 
 import java.util.List;
 
@@ -7,8 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkS
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 
 public class FindTopicsByCourseFunctionalityTCC extends WorkflowFunctionality {
     private List<TopicDto> topics;

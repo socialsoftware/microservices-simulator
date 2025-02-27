@@ -1,8 +1,8 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.Quiz;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.Quiz;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaQuiz;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public class SagaQuizDto extends QuizDto {

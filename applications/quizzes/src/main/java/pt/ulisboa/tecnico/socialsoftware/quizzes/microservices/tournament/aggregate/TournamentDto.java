@@ -1,14 +1,14 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
 import java.io.Serializable;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 public class TournamentDto implements Serializable {
     private Integer aggregateId;

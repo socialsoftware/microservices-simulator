@@ -1,29 +1,29 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.BeanConfigurationSagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.QuizzesSpockTest
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.CourseExecutionFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.QuizFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.TournamentFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.service.TopicService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.tournament.RemoveTournamentFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.tournament.UpdateTournamentFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.QuizFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
+
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaQuiz
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaTournament
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
 
 

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
 
@@ -14,10 +14,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.events.subscribe.CourseExecutionSubscribesRemoveUser;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.subscribe.CourseExecutionSubscribesRemoveUser;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 
 /*
     INTRA-INVARIANTS

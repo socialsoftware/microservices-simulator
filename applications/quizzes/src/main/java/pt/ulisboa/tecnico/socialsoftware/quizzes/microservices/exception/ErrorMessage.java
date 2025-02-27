@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception;
 
 public enum ErrorMessage {
     UNDEFINED_TRANSACTIONAL_MODEL("Undefined transactional model"),

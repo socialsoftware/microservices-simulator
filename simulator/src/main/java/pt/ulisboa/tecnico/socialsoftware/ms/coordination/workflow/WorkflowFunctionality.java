@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 import java.util.concurrent.CompletionException;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 public abstract class WorkflowFunctionality {
     protected Workflow workflow;
@@ -13,12 +13,12 @@ public abstract class WorkflowFunctionality {
             workflow.execute(unitOfWork).join();
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
-            if (cause instanceof TutorException) {
-                throw (TutorException) cause;
+            if (cause instanceof SimulatorException) {
+                throw (SimulatorException) cause;
             } else {
                 throw e;
             }
-        } catch (TutorException e) {
+        } catch (SimulatorException e) {
             throw e;
         }
         
@@ -33,12 +33,12 @@ public abstract class WorkflowFunctionality {
             workflow.resume(unitOfWork).join();
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
-            if (cause instanceof TutorException) {
-                throw (TutorException) cause;
+            if (cause instanceof SimulatorException) {
+                throw (SimulatorException) cause;
             } else {
                 throw e;
             }
-        } catch (TutorException e) {
+        } catch (SimulatorException e) {
             throw e;
         }
         

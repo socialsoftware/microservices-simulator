@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
 import java.util.Set;
 

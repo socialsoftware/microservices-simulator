@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate;
 
 import jakarta.persistence.*;
 

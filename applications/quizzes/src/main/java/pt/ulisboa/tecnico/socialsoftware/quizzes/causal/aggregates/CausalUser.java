@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -6,8 +6,8 @@ import java.util.Set;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.User;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 @Entity
 public class CausalUser extends User implements CausalAggregate {

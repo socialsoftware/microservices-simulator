@@ -1,7 +1,7 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate;
 
 import jakarta.persistence.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseType;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseType;
 
 @Entity
 public class CourseExecutionCourse {

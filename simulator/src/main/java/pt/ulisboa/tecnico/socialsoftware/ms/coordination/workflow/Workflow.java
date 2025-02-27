@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 
 public abstract class Workflow {
@@ -74,13 +74,13 @@ public abstract class Workflow {
     
                     unitOfWorkService.abort(unitOfWork);
     
-                    if (cause instanceof TutorException) {
-                        throw (TutorException) cause;
+                    if (cause instanceof SimulatorException) {
+                        throw (SimulatorException) cause;
                     } else {
                         throw new RuntimeException(cause);  
                     }
                 });
-        } catch (TutorException e) {
+        } catch (SimulatorException e) {
             unitOfWorkService.abort(unitOfWork);
             throw e;
         }
@@ -113,13 +113,13 @@ public abstract class Workflow {
                     unitOfWorkService.abort(unitOfWork);
                     logger.info("ABORT EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
 
-                    if (cause instanceof TutorException) {
-                        throw (TutorException) cause;
+                    if (cause instanceof SimulatorException) {
+                        throw (SimulatorException) cause;
                     } else {
                         throw new RuntimeException(cause);  
                     }
                 });
-        } catch (TutorException e) {
+        } catch (SimulatorException e) {
             unitOfWorkService.abort(unitOfWork);
             throw e;
         }

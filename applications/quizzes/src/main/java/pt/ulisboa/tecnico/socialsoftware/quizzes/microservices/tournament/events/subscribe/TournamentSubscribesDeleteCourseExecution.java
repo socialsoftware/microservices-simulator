@@ -1,9 +1,9 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.subscribe;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.subscribe;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.events.publish.DeleteCourseExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.DeleteCourseExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentCourseExecution;
 
 public class TournamentSubscribesDeleteCourseExecution extends EventSubscription {
     public TournamentSubscribesDeleteCourseExecution(TournamentCourseExecution tournamentCourseExecution) {

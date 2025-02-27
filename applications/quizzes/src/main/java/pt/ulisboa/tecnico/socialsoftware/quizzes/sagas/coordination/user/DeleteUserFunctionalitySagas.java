@@ -1,12 +1,12 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.user;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.user;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.dtos.SagaUserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.states.UserSagaState;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaUserDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.UserSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;

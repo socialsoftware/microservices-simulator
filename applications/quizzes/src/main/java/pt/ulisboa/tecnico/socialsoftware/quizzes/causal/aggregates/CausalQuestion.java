@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates;
 
 import java.util.HashSet;
 import java.util.List;
@@ -9,10 +9,10 @@ import org.apache.commons.collections4.SetUtils;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.Question;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionCourse;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionTopic;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.Question;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionCourse;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionTopic;
 
 @Entity
 public class CausalQuestion extends Question implements CausalAggregate {

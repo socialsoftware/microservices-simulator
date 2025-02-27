@@ -9,10 +9,10 @@
 		<relativePath/>
 	</parent>
 	<groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
-	<artifactId>MicroservicesSimulator</artifactId>
+	<artifactId>QuizzesTutor</artifactId>
 	<version>2.0.0-SNAPSHOT</version>
-	<name>MicroservicesSimulator</name>
-	<description>Microservices Simulator</description>
+	<name>QuizzesTutor</name>
+	<description>Quizzes Tutor</description>
 	<properties>
 		<java.version>21</java.version>
 	</properties>
@@ -113,6 +113,12 @@
 		</profile>
 	</profiles>
 	<dependencies>
+		<dependency>
+			<groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
+			<artifactId>MicroservicesSimulator</artifactId>
+			<version>2.0.0-SNAPSHOT</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>

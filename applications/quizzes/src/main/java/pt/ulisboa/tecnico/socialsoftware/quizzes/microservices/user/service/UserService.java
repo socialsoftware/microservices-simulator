@@ -1,6 +1,6 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.USER_ACTIVE;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.USER_ACTIVE;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -17,13 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.Role;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.User;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserRepository;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.events.publish.DeleteUserEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.Role;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.User;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserRepository;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.events.publish.DeleteUserEvent;
 
 @Service
 public class UserService {

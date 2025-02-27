@@ -1,10 +1,10 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate;
 
 import java.io.Serializable;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 public class CourseExecutionDto implements Serializable {
     private Integer aggregateId;

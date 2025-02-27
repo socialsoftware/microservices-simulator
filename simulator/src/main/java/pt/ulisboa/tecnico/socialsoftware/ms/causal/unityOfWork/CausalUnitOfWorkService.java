@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_DELETED;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.AGGREGATE_NOT_FOUND;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.AGGREGATE_DELETED;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.AGGREGATE_NOT_FOUND;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -27,9 +27,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 
 @Profile("tcc")
 @Service
@@ -62,10 +62,10 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, CausalUnitOfWork unitOfWork) {
         Aggregate aggregate = causalAggregateRepository.findCausal(aggregateId, unitOfWork.getVersion())
-                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
+                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (aggregate.getState() == Aggregate.AggregateState.DELETED) {
-            throw new TutorException(AGGREGATE_DELETED, aggregate.getAggregateType().toString(), aggregate.getAggregateId());
+            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType().toString(), aggregate.getAggregateId());
         }
 
         List<Event> allEvents = eventRepository.findAll();
@@ -77,10 +77,10 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Aggregate aggregateLoad(Integer aggregateId, CausalUnitOfWork unitOfWork) {
         Aggregate aggregate = causalAggregateRepository.findCausal(aggregateId, unitOfWork.getVersion())
-                .orElseThrow(() -> new TutorException(AGGREGATE_NOT_FOUND, aggregateId));
+                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (aggregate.getState() == Aggregate.AggregateState.DELETED) {
-            throw new TutorException(AGGREGATE_DELETED, aggregate.getAggregateType().toString(), aggregate.getAggregateId());
+            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType().toString(), aggregate.getAggregateId());
         }
 
         return aggregate;
@@ -118,7 +118,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
             for (Integer aggregateId : originalAggregatesToCommit.keySet()) {
                 Aggregate aggregateToWrite = originalAggregatesToCommit.get(aggregateId);
                 if (aggregateToWrite.getPrev() != null && aggregateToWrite.getPrev().getState() == Aggregate.AggregateState.INACTIVE) {
-                    throw new TutorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregateToWrite.getAggregateId());
+                    throw new SimulatorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregateToWrite.getAggregateId());
                 }
                 aggregateToWrite.verifyInvariants();
                 Aggregate concurrentAggregate = getConcurrentAggregate(aggregateToWrite);
@@ -181,7 +181,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
 
         // if a concurrent version is deleted it means the object has been deleted in the meanwhile
         if (concurrentAggregate != null && (concurrentAggregate.getState() == Aggregate.AggregateState.DELETED || concurrentAggregate.getState() == Aggregate.AggregateState.INACTIVE)) {
-            throw new TutorException(ErrorMessage.AGGREGATE_DELETED, concurrentAggregate.getAggregateType().toString(), concurrentAggregate.getAggregateId());
+            throw new SimulatorException(ErrorMessage.AGGREGATE_DELETED, concurrentAggregate.getAggregateType().toString(), concurrentAggregate.getAggregateId());
         }
 
         return concurrentAggregate;

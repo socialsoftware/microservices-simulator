@@ -1,12 +1,12 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.question;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.question;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalQuestion;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.CausalQuestion;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
 
 public class RemoveQuestionFunctionalityTCC extends WorkflowFunctionality {
     private CausalQuestion question;

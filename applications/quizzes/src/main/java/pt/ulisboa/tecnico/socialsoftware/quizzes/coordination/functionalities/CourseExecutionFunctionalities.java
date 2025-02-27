@@ -1,8 +1,8 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.SAGAS;
-import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.TCC;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.*;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,33 +13,33 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator;
+import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.execution.AddStudentFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.execution.AnonymizeStudentFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.execution.CreateCourseExecutionFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.execution.GetCourseExecutionByIdFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.execution.GetCourseExecutionsByUserFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.execution.GetCourseExecutionsFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.execution.RemoveCourseExecutionFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.execution.RemoveStudentFromCourseExecutionFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.execution.UpdateStudentNameFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.execution.AddStudentFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.execution.AnonymizeStudentFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.execution.CreateCourseExecutionFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.execution.GetCourseExecutionByIdFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.execution.GetCourseExecutionsByUserFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.execution.GetCourseExecutionsFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.execution.RemoveCourseExecutionFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.execution.RemoveStudentFromCourseExecutionFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.AddStudentFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.AnonymizeStudentFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.CreateCourseExecutionFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.GetCourseExecutionByIdFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.GetCourseExecutionsByUserFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.GetCourseExecutionsFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.RemoveCourseExecutionFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.RemoveStudentFromCourseExecutionFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.UpdateStudentNameFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.AddStudentFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.AnonymizeStudentFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.CreateCourseExecutionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.GetCourseExecutionByIdFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.GetCourseExecutionsByUserFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.GetCourseExecutionsFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.RemoveCourseExecutionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.RemoveStudentFromCourseExecutionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
@@ -59,7 +59,7 @@ public class CourseExecutionFunctionalities {
     @Autowired
     private Environment env;
 
-    private MicroservicesSimulator.TransactionalModel workflowType;
+    private TransactionalModel workflowType;
 
     @PostConstruct
     public void init() {

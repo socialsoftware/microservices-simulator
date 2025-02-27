@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate;
 
 import java.util.HashSet;
 import java.util.Set;

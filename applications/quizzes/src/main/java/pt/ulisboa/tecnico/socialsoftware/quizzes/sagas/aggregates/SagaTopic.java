@@ -1,14 +1,17 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.Topic;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicCourse;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.Topic;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicCourse;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 @Entity
 public class SagaTopic extends Topic implements SagaAggregate {
-    @Column
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition="JSON")
     private SagaState sagaState;
     
     public SagaTopic() {

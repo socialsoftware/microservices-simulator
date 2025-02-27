@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate;
 
 public interface UserFactory {
     User createUser(Integer aggregateId, UserDto userDto);

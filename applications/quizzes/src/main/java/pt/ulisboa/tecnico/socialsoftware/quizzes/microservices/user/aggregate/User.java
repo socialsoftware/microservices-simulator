@@ -1,7 +1,7 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.INVARIANT_BREAK;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.USER_ACTIVE;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.INVARIANT_BREAK;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.USER_ACTIVE;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,7 +12,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
 
 /*
     INTRA-INVARIANTS:

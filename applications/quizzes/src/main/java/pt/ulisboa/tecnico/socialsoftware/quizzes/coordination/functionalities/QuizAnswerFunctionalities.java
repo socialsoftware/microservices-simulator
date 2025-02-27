@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities;
 
 import java.util.Arrays;
 
@@ -7,27 +7,27 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator;
+import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.answer.AnswerQuestionFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.answer.ConcludeQuizFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.coordination.answer.StartQuizFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuestionAnswerDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.service.QuizAnswerService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.service.QuestionService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.answer.AnswerQuestionFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.answer.ConcludeQuizFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.answer.StartQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.answer.AnswerQuestionFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.answer.ConcludeQuizFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.answer.StartQuizFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuestionAnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.AnswerQuestionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.ConcludeQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.StartQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.SAGAS;
-import static pt.ulisboa.tecnico.socialsoftware.ms.MicroservicesSimulator.TransactionalModel.TCC;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
 
 @Service
 public class QuizAnswerFunctionalities {
@@ -47,7 +47,7 @@ public class QuizAnswerFunctionalities {
     @Autowired
     private Environment env;
 
-    private MicroservicesSimulator.TransactionalModel workflowType;
+    private TransactionalModel workflowType;
 
     @PostConstruct
     public void init() {

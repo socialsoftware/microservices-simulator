@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities;
 
 import org.springframework.stereotype.Service;
 

@@ -1,15 +1,15 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.factories;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.CausalQuizAnswer;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.AnswerCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.AnswerStudent;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.AnsweredQuiz;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswer;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.CausalQuizAnswer;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.AnswerCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.AnswerStudent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.AnsweredQuiz;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
 
 @Service
 @Profile("tcc")

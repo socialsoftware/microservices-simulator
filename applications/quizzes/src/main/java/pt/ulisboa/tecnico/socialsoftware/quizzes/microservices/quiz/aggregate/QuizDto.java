@@ -1,11 +1,11 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 
 public class QuizDto implements Serializable {
     private Integer aggregateId;

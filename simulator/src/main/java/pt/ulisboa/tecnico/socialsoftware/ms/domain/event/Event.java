@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.event;
 
 import jakarta.persistence.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 
 import java.time.LocalDateTime;
 

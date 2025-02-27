@@ -1,7 +1,7 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate;
 
 import jakarta.persistence.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.course.aggregate.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
 
 @Entity
 public class QuestionCourse {

@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.utils.DateHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 
 import java.time.LocalDateTime
 

@@ -1,7 +1,7 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.QUESTION_ALREADY_ANSWERED;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.QUESTION_ALREADY_ANSWERED;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,12 +17,12 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesAnonymizeStudent;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesInvalidateQuiz;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesRemoveCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesUnerollStudentFromCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesUpdateStudentName;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesAnonymizeStudent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesInvalidateQuiz;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesRemoveCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesUnerollStudentFromCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesUpdateStudentName;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
 
 /*
     INTRA-INVARIANTS:

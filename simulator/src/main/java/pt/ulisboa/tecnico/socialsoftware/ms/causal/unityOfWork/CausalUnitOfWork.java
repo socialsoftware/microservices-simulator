@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.CANNOT_PERFORM_CAUSAL_READ;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.CANNOT_PERFORM_CAUSAL_READ;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 @Profile("tcc")
 public class CausalUnitOfWork extends UnitOfWork {
@@ -49,7 +49,7 @@ public class CausalUnitOfWork extends UnitOfWork {
                 // if there are events in those situations we verify whether they are relevant or not for the subscription
                 for (Event snapshotAggregateEmittedEvent : snapshotAggregateEmittedEvents) {
                     if (es.subscribesEvent(snapshotAggregateEmittedEvent)) {
-                        throw new TutorException(CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED, aggregate.getClass().getSimpleName(), snapshotAggregateEmittedEvent.getClass().getSimpleName());
+                        throw new SimulatorException(CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED, aggregate.getClass().getSimpleName(), snapshotAggregateEmittedEvent.getClass().getSimpleName());
                     }
                 }
             }
@@ -67,7 +67,7 @@ public class CausalUnitOfWork extends UnitOfWork {
                         .collect(Collectors.toList());
                 for (Event snapshotAggregateEmittedEvent : aggregateEmittedEvents) {
                     if (es.subscribesEvent(snapshotAggregateEmittedEvent)) {
-                        throw new TutorException(CANNOT_PERFORM_CAUSAL_READ, aggregate.getAggregateId(), getVersion());
+                        throw new SimulatorException(CANNOT_PERFORM_CAUSAL_READ, aggregate.getAggregateId(), getVersion());
                     }
                 }
             }
@@ -90,7 +90,7 @@ public class CausalUnitOfWork extends UnitOfWork {
                                 .toList();
                         for (Event eventBetweenAggregates : eventsBetweenAggregates) {
                             if(es1.subscribesEvent(eventBetweenAggregates) && es2.subscribesEvent(eventBetweenAggregates)) {
-                                throw new TutorException(CANNOT_PERFORM_CAUSAL_READ, aggregate.getAggregateId(), getVersion());
+                                throw new SimulatorException(CANNOT_PERFORM_CAUSAL_READ, aggregate.getAggregateId(), getVersion());
                             }
                         }
                     }

@@ -1,16 +1,16 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.handling;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.handling;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.eventProcessing.QuestionEventProcessing;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionRepository;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.handling.handlers.DeleteTopicEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.events.handling.handlers.UpdateTopicEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.events.publish.DeleteTopicEvent;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.events.publish.UpdateTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.eventProcessing.QuestionEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionRepository;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.handling.handlers.DeleteTopicEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.handling.handlers.UpdateTopicEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publish.DeleteTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publish.UpdateTopicEvent;
 
 @Component
 public class QuestionEventHandling {

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.webapi;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.webapi;
 
 import org.springframework.web.bind.annotation.RestController;
 

@@ -1,8 +1,8 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.CANNOT_UPDATE_QUIZ;
-import static pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage.INVARIANT_BREAK;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.CANNOT_UPDATE_QUIZ;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.INVARIANT_BREAK;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -18,11 +18,11 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.events.subscribe.QuizSubscribesDeleteCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.events.subscribe.QuizSubscribesDeleteQuestion;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.events.subscribe.QuizSubscribesUpdateQuestion;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesDeleteCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesDeleteQuestion;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesUpdateQuestion;
 
 /*
     INTRA-INVARIANTS

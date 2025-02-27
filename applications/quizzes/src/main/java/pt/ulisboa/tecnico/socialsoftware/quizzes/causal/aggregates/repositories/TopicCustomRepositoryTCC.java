@@ -1,11 +1,11 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.causal.aggregates.repositories;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.repositories;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicCustomRepository;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicRepository;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicCustomRepository;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicRepository;
 
 
 @Service

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.events.publish;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publish;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 
