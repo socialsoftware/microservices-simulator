@@ -16,8 +16,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 @Entity
 public class SagaTournament extends Tournament implements SagaAggregate {
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition="JSON")
     private SagaState sagaState;
     
     public SagaTournament() {

@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.4</version>
+		<version>3.3.9</version>
 		<relativePath/>
 	</parent>
 	<groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
@@ -19,25 +19,13 @@
 	</properties>
 	<profiles>
 		<profile>
-			<id>dev</id>
-			<properties>
-				<activatedProperties>dev</activatedProperties>
-			</properties>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-		</profile>
-		<profile>
 			<id>sagas</id>
 			<properties>
 				<activatedProperties>sagas</activatedProperties>
 			</properties>
-		</profile>
-		<profile>
-			<id>tcc</id>
-			<properties>
-				<activatedProperties>tcc</activatedProperties>
-			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 		</profile>
 		<profile>
 			<id>test-sagas</id>
@@ -68,44 +56,7 @@
 						<version>3.5.1</version>
 						<configuration>
 							<includes>
-								<include>**/quizzes/sagas/**</include>
 								<include>**/sagas/**</include>
-							</includes>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>test-tcc</id>
-			<properties>
-				<activatedProperties>test</activatedProperties>
-				<activatedProperties>tcc</activatedProperties>
-			</properties>
-			<build>
-				<plugins>
-					<plugin>
-						<!-- The gmavenplus plugin is used to compile Groovy code. To learn
-                            more about this plugin, visit https://github.com/groovy/GMavenPlus/wiki -->
-						<groupId>org.codehaus.gmavenplus</groupId>
-						<artifactId>gmavenplus-plugin</artifactId>
-						<version>4.0.1</version>
-						<executions>
-							<execution>
-								<goals>
-									<goal>addTestSources</goal>
-									<goal>compileTests</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<version>3.5.1</version>
-						<configuration>
-							<includes>
-								<include>**/quizzes/causal/**</include>
 							</includes>
 						</configuration>
 					</plugin>
@@ -114,6 +65,14 @@
 		</profile>
 	</profiles>
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-autoconfigure</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>

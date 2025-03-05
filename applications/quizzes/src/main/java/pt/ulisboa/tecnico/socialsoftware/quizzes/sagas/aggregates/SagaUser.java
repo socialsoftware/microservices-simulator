@@ -11,8 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 
 @Entity
 public class SagaUser extends User implements SagaAggregate {
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition="JSON")
     private SagaState sagaState;
     
     public SagaUser() {

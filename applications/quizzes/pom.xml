@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.4</version>
+		<version>3.3.9</version>
 		<relativePath/>
 	</parent>
 	<groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
@@ -68,7 +68,6 @@
 						<configuration>
 							<includes>
 								<include>**/quizzes/sagas/**</include>
-								<include>**/sagas/**</include>
 							</includes>
 						</configuration>
 					</plugin>

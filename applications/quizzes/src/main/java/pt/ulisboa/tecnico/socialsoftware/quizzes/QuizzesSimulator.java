@@ -4,6 +4,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -12,11 +13,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 
 @PropertySource({"classpath:application.properties"})
-@EnableJpaRepositories
+@EnableJpaRepositories(basePackages = {"pt.ulisboa.tecnico.socialsoftware.ms.*", "pt.ulisboa.tecnico.socialsoftware.quizzes.*"})
+@EntityScan(basePackages = {"pt.ulisboa.tecnico.socialsoftware.ms.*", "pt.ulisboa.tecnico.socialsoftware.quizzes.*"})
 @EnableTransactionManagement
 @EnableJpaAuditing
-@SpringBootApplication
 @EnableScheduling
+@SpringBootApplication(scanBasePackages = {"pt.ulisboa.tecnico.socialsoftware.ms.*", "pt.ulisboa.tecnico.socialsoftware.quizzes.*"})
 public class QuizzesSimulator implements InitializingBean {
 	@Autowired
 	private EventService eventService;

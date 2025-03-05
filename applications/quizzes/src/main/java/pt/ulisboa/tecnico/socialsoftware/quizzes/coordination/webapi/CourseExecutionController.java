@@ -33,6 +33,7 @@ public class CourseExecutionController {
 
     @GetMapping(value = "/executions")
     public List<CourseExecutionDto> getCourseExecutions() {
+        System.out.println("getCourseExecutions");
         return courseExecutionFunctionalities.getCourseExecutions();
     }
 
