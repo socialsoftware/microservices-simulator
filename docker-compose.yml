@@ -25,7 +25,7 @@ services:
       args:
         PROFILE: sagas,dev
     image: quizzes
-    container_name: quizzes
+    container_name: quizzes-sagas
     depends_on:
       postgres:
         condition: service_healthy
@@ -46,7 +46,7 @@ services:
       args:
         PROFILE: tcc,dev
     image: quizzes
-    container_name: quizzes
+    container_name: quizzes-tcc
     depends_on:
       postgres:
         condition: service_healthy
