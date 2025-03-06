@@ -12,8 +12,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.user.*;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.user.*;
@@ -22,7 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkServ
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
 
 @Service
 public class UserFunctionalities {
@@ -46,11 +46,11 @@ public class UserFunctionalities {
         } else if (Arrays.asList(activeProfiles).contains(TCC.getValue())) {
             workflowType = TCC;
         } else {
-            throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public UserDto createUser(UserDto userDto) throws TutorException {
+    public UserDto createUser(UserDto userDto) throws QuizzesException {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -72,7 +72,7 @@ public class UserFunctionalities {
 
                 createUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return createUserFunctionalityTCC.getCreatedUserDto();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -94,7 +94,7 @@ public class UserFunctionalities {
 
                 findUserByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findUserByIdFunctionalityTCC.getUserDto();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -116,7 +116,7 @@ public class UserFunctionalities {
 
                 activateUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -138,7 +138,7 @@ public class UserFunctionalities {
 
                 deleteUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -160,7 +160,7 @@ public class UserFunctionalities {
 
                 getStudentsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getStudentsFunctionalityTCC.getStudents();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -182,19 +182,19 @@ public class UserFunctionalities {
 
                 getTeachersFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getTeachersFunctionalityTCC.getTeachers();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     private void checkInput(UserDto userDto) {
         if (userDto.getName() == null) {
-            throw new TutorException(ErrorMessage.USER_MISSING_NAME);
+            throw new QuizzesException(QuizzesErrorMessage.USER_MISSING_NAME);
         }
         if (userDto.getUsername() == null) {
-            throw new TutorException(ErrorMessage.USER_MISSING_USERNAME);
+            throw new QuizzesException(QuizzesErrorMessage.USER_MISSING_USERNAME);
         }
         if (userDto.getRole() == null) {
-            throw new TutorException(ErrorMessage.USER_MISSING_ROLE);
+            throw new QuizzesException(QuizzesErrorMessage.USER_MISSING_ROLE);
         }
     }
 }

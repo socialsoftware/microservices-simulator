@@ -14,8 +14,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.To
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
@@ -372,8 +372,8 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'the tournament finishes updating by trying to create the quiz'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
         then: 'there are not enough questions'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.NOT_ENOUGH_QUESTIONS
+        def error = thrown(QuizzesException)
+        error.errorMessage == QuizzesErrorMessage.NOT_ENOUGH_QUESTIONS
         and: 'compensation is executed'
         def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto.numberOfQuestions == 2
@@ -420,8 +420,8 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'the tournament finishes updating by trying to create the quiz'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
         then: 'there are not enough questions'
-        def error2 = thrown(TutorException)
-        error2.errorMessage == ErrorMessage.NOT_ENOUGH_QUESTIONS
+        def error2 = thrown(QuizzesException)
+        error2.errorMessage == QuizzesErrorMessage.NOT_ENOUGH_QUESTIONS
         and: 'compensation is executed'
         def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto.numberOfQuestions == 2

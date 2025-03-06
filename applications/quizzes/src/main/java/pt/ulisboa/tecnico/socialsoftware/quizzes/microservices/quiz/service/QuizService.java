@@ -24,8 +24,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
@@ -80,7 +80,7 @@ public class QuizService {
         List<QuestionDto> questionDtos = questionService.findQuestionsByTopicIds(topicIds, unitOfWork);
 
         if (questionDtos.size() < numberOfQuestions) {
-            throw new TutorException(ErrorMessage.NOT_ENOUGH_QUESTIONS);
+            throw new QuizzesException(QuizzesErrorMessage.NOT_ENOUGH_QUESTIONS);
         }
 
         Set<Integer> questionPositions = new HashSet<>();
@@ -150,7 +150,7 @@ public class QuizService {
             List<QuestionDto> questionDtos = questionService.findQuestionsByTopicIds(new ArrayList<>(topicsAggregateIds), unitOfWork);
 
             if (questionDtos.size() < numberOfQuestions) {
-                throw new TutorException(ErrorMessage.NOT_ENOUGH_QUESTIONS);
+                throw new QuizzesException(QuizzesErrorMessage.NOT_ENOUGH_QUESTIONS);
             }
 
             Set<QuizQuestion> quizQuestions = questionDtos.stream()

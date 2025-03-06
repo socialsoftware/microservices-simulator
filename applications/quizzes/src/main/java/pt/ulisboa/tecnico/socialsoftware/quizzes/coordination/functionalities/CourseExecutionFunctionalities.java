@@ -2,7 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.*;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +25,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.G
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.RemoveCourseExecutionFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.RemoveStudentFromCourseExecutionFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.UpdateStudentNameFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
@@ -69,11 +69,11 @@ public class CourseExecutionFunctionalities {
         } else if (Arrays.asList(activeProfiles).contains(TCC.getValue())) {
             workflowType = TCC;
         } else {
-            throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public CourseExecutionDto createCourseExecution(CourseExecutionDto courseExecutionDto) throws TutorException {
+    public CourseExecutionDto createCourseExecution(CourseExecutionDto courseExecutionDto) throws QuizzesException {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -93,7 +93,7 @@ public class CourseExecutionFunctionalities {
                 createCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
 
                 return createCourseExecutionFunctionalityTCC.getCreatedCourseExecution();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -113,7 +113,7 @@ public class CourseExecutionFunctionalities {
                         courseExecutionService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork);
                 getCourseExecutionByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getCourseExecutionByIdFunctionalityTCC.getCourseExecutionDto();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -133,7 +133,7 @@ public class CourseExecutionFunctionalities {
                         courseExecutionService, causalUnitOfWorkService, causalUnitOfWork);
                 getCourseExecutionsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getCourseExecutionsFunctionalityTCC.getCourseExecutions();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -153,7 +153,7 @@ public class CourseExecutionFunctionalities {
                         courseExecutionService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork);
                 removeCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -173,7 +173,7 @@ public class CourseExecutionFunctionalities {
                         courseExecutionService, userService, causalUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, causalUnitOfWork);
                 addStudentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -193,7 +193,7 @@ public class CourseExecutionFunctionalities {
                         courseExecutionService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork);
                 getCourseExecutionsByUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getCourseExecutionsByUserFunctionalityTCC.getCourseExecutions();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -213,7 +213,7 @@ public class CourseExecutionFunctionalities {
                         courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, courseExecutionAggregateId, userAggregateId, causalUnitOfWork);
                 removeStudentFromCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -233,7 +233,7 @@ public class CourseExecutionFunctionalities {
                         courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, causalUnitOfWork);
                 anonymizeStudentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -253,20 +253,20 @@ public class CourseExecutionFunctionalities {
                         courseExecutionService, courseExecutionFactory, causalUnitOfWorkService, executionAggregateId, userAggregateId, userDto, causalUnitOfWork);
                 updateStudentNameFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
     
 
     private void checkInput(CourseExecutionDto courseExecutionDto) {
         if (courseExecutionDto.getAcronym() == null) {
-            throw new TutorException(COURSE_EXECUTION_MISSING_ACRONYM);
+            throw new QuizzesException(COURSE_EXECUTION_MISSING_ACRONYM);
         }
         if (courseExecutionDto.getAcademicTerm() == null) {
-            throw new TutorException(COURSE_EXECUTION_MISSING_ACADEMIC_TERM);
+            throw new QuizzesException(COURSE_EXECUTION_MISSING_ACADEMIC_TERM);
         }
         if (courseExecutionDto.getEndDate() == null) {
-            throw new TutorException(COURSE_EXECUTION_MISSING_END_DATE);
+            throw new QuizzesException(COURSE_EXECUTION_MISSING_END_DATE);
         }
 
     }

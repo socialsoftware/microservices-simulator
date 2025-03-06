@@ -8,45 +8,45 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class SimulatorException extends RuntimeException {
     private static final Logger logger = LoggerFactory.getLogger(SimulatorException.class);
-    private final SimulatorErrorMessage simulatorErrorMessage;
+    private final String simulatorErrorMessage;
 
-    public SimulatorException(SimulatorErrorMessage simulatorErrorMessage) {
-        super(simulatorErrorMessage.label);
-        logger.info(simulatorErrorMessage.label);
+    public SimulatorException(String simulatorErrorMessage) {
+        super(simulatorErrorMessage);
+        logger.info(simulatorErrorMessage);
         this.simulatorErrorMessage = simulatorErrorMessage;
     }
 
-    public SimulatorException(SimulatorErrorMessage simulatorErrorMessage, String value) {
-        super(String.format(simulatorErrorMessage.label, value));
-        logger.info(String.format(simulatorErrorMessage.label, value));
+    public SimulatorException(String simulatorErrorMessage, String value) {
+        super(String.format(simulatorErrorMessage, value));
+        logger.info(String.format(simulatorErrorMessage, value));
         this.simulatorErrorMessage = simulatorErrorMessage;
     }
 
-    public SimulatorException(SimulatorErrorMessage simulatorErrorMessage, String value1, String value2) {
-        super(String.format(simulatorErrorMessage.label, value1, value2));
-        logger.info(String.format(simulatorErrorMessage.label, value1, value2));
+    public SimulatorException(String simulatorErrorMessage, String value1, String value2) {
+        super(String.format(simulatorErrorMessage, value1, value2));
+        logger.info(String.format(simulatorErrorMessage, value1, value2));
         this.simulatorErrorMessage = simulatorErrorMessage;
     }
 
-    public SimulatorException(SimulatorErrorMessage simulatorErrorMessage, int value) {
-        super(String.format(simulatorErrorMessage.label, value));
-        logger.info(String.format(simulatorErrorMessage.label, value));
+    public SimulatorException(String simulatorErrorMessage, int value) {
+        super(String.format(simulatorErrorMessage, value));
+        logger.info(String.format(simulatorErrorMessage, value));
         this.simulatorErrorMessage = simulatorErrorMessage;
     }
 
-    public SimulatorException(SimulatorErrorMessage simulatorErrorMessage, int value1, int value2) {
-        super(String.format(simulatorErrorMessage.label, value1, value2));
-        logger.info(String.format(simulatorErrorMessage.label, value1, value2));
+    public SimulatorException(String simulatorErrorMessage, int value1, int value2) {
+        super(String.format(simulatorErrorMessage, value1, value2));
+        logger.info(String.format(simulatorErrorMessage, value1, value2));
         this.simulatorErrorMessage = simulatorErrorMessage;
     }
 
-    public SimulatorException(SimulatorErrorMessage simulatorErrorMessage, String value1, int value2) {
-        super(String.format(simulatorErrorMessage.label, value1, value2));
-        logger.info(String.format(simulatorErrorMessage.label, value1, value2));
+    public SimulatorException(String simulatorErrorMessage, String value1, int value2) {
+        super(String.format(simulatorErrorMessage, value1, value2));
+        logger.info(String.format(simulatorErrorMessage, value1, value2));
         this.simulatorErrorMessage = simulatorErrorMessage;
     }
 
-    public SimulatorErrorMessage getErrorMessage() {
+    public String getErrorMessage() {
         return simulatorErrorMessage;
     }
 }

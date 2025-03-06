@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates;
 
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.AGGREGATE_MERGE_FAILURE;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.AGGREGATE_MERGE_FAILURE;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -11,7 +11,7 @@ import org.apache.commons.collections4.SetUtils;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
@@ -55,7 +55,7 @@ public class CausalTournament extends Tournament implements CausalAggregate {
     @Override
     public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields){
         if (!(committedVersion instanceof Tournament)) {
-            throw new TutorException(AGGREGATE_MERGE_FAILURE, getAggregateId());
+            throw new QuizzesException(AGGREGATE_MERGE_FAILURE, getAggregateId());
         }
 
         Tournament committedTournament = (Tournament) committedVersion;

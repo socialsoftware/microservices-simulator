@@ -18,8 +18,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
@@ -32,7 +32,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentTopic;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.*;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.*;
 
 @Service
 public class TournamentService {
@@ -84,7 +84,7 @@ public class TournamentService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void addParticipant(Integer tournamentAggregateId, TournamentParticipant tournamentParticipant, UnitOfWork unitOfWork) {
         if (tournamentParticipant.getParticipantName().equals("ANONYMOUS") || tournamentParticipant.getParticipantUsername().equals("ANONYMOUS")) {
-            throw new TutorException(ErrorMessage.USER_IS_ANONYMOUS, tournamentParticipant.getParticipantAggregateId());
+            throw new QuizzesException(QuizzesErrorMessage.USER_IS_ANONYMOUS, tournamentParticipant.getParticipantAggregateId());
         }
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
 
@@ -178,7 +178,7 @@ public class TournamentService {
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         TournamentParticipant participantToRemove = newTournament.findParticipant(userAggregateId);
         if (participantToRemove == null) {
-            throw new TutorException(TOURNAMENT_PARTICIPANT_NOT_FOUND, userAggregateId, tournamentAggregateId);
+            throw new QuizzesException(TOURNAMENT_PARTICIPANT_NOT_FOUND, userAggregateId, tournamentAggregateId);
         }
         newTournament.removeParticipant(participantToRemove);
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
@@ -193,7 +193,7 @@ public class TournamentService {
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         TournamentParticipant participant = newTournament.findParticipant(userAggregateId);
         if (participant == null) {
-            throw new TutorException(TOURNAMENT_PARTICIPANT_NOT_FOUND, userAggregateId, tournamentAggregateId);
+            throw new QuizzesException(TOURNAMENT_PARTICIPANT_NOT_FOUND, userAggregateId, tournamentAggregateId);
         }
         participant.answerQuiz();
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
@@ -307,7 +307,7 @@ public class TournamentService {
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         TournamentTopic topic = newTournament.findTopic(topicAggregateId);
         if (topic == null) {
-            throw new TutorException(TOURNAMENT_TOPIC_NOT_FOUND, topicAggregateId, tournamentAggregateId);
+            throw new QuizzesException(TOURNAMENT_TOPIC_NOT_FOUND, topicAggregateId, tournamentAggregateId);
         }
         topic.setTopicName(topicName);
         topic.setTopicVersion(eventVersion);
@@ -329,7 +329,7 @@ public class TournamentService {
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         TournamentTopic tournamentTopic  = newTournament.findTopic(topicAggregateId);
         if (tournamentTopic == null) {
-            throw new TutorException(TOURNAMENT_TOPIC_NOT_FOUND, topicAggregateId, tournamentAggregateId);
+            throw new QuizzesException(TOURNAMENT_TOPIC_NOT_FOUND, topicAggregateId, tournamentAggregateId);
         }
         newTournament.removeTopic(tournamentTopic);
         QuizDto quizDto = new QuizDto();
@@ -339,7 +339,7 @@ public class TournamentService {
         quizDto.setResultsDate(newTournament.getEndTime().toString());
         try {
             quizService.updateGeneratedQuiz(quizDto, newTournament.getTournamentTopics().stream().filter(t -> t.getState() == Aggregate.AggregateState.ACTIVE).map(TournamentTopic::getTopicAggregateId).collect(Collectors.toSet()), newTournament.getNumberOfQuestions(), unitOfWork);
-        } catch (TutorException e) {
+        } catch (QuizzesException e) {
             newTournament.setState(Aggregate.AggregateState.INACTIVE);
         }
 
@@ -360,7 +360,7 @@ public class TournamentService {
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         TournamentParticipant tournamentParticipant = newTournament.findParticipant(studentAggregateId);
         if (tournamentParticipant == null) {
-            throw new TutorException(TOURNAMENT_PARTICIPANT_NOT_FOUND, studentAggregateId, tournamentAggregateId);
+            throw new QuizzesException(TOURNAMENT_PARTICIPANT_NOT_FOUND, studentAggregateId, tournamentAggregateId);
         }
         /*
             AFTER_END
@@ -370,7 +370,7 @@ public class TournamentService {
         */
         if (oldTournament != null) {
             if ((oldTournament.getStartTime() != null && DateHandler.now().isAfter(oldTournament.getStartTime())) || oldTournament.isCancelled()) {
-                throw new TutorException(CANNOT_UPDATE_TOURNAMENT, oldTournament.getAggregateId());
+                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, oldTournament.getAggregateId());
             }
         }
         tournamentParticipant.updateAnswerWithQuestion(quizAnswerAggregateId, quizAnswerAggregateId, isCorrect, eventVersion);
@@ -395,7 +395,7 @@ public class TournamentService {
         QuizDto quizDto1 = null;
         try {
             quizDto1 = quizService.generateQuiz(newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId(), quizDto, topicsIds, newTournament.getNumberOfQuestions(), unitOfWork);
-        } catch (TutorException e) {
+        } catch (QuizzesException e) {
             newTournament.setState(Aggregate.AggregateState.INACTIVE);
         }
 

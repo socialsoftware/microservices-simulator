@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.TOPIC_MISSING_NAME;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.TOPIC_MISSING_NAME;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
@@ -52,7 +52,7 @@ public class TopicFunctionalities {
         } else if (Arrays.asList(activeProfiles).contains(TCC.getValue())) {
             workflowType = TCC;
         } else {
-            throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -72,7 +72,7 @@ public class TopicFunctionalities {
                         topicService, causalUnitOfWorkService, courseAggregateId, causalUnitOfWork);
                 findTopicsByCourseFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findTopicsByCourseFunctionalityTCC.getTopics();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -92,11 +92,11 @@ public class TopicFunctionalities {
                         topicService, causalUnitOfWorkService, topicAggregateId, causalUnitOfWork);
                 getTopicByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getTopicByIdFunctionalityTCC.getTopicDto();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public TopicDto createTopic(Integer courseAggregateId, TopicDto topicDto) throws TutorException {
+    public TopicDto createTopic(Integer courseAggregateId, TopicDto topicDto) throws QuizzesException {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -114,7 +114,7 @@ public class TopicFunctionalities {
                         topicService, courseService, causalUnitOfWorkService, courseAggregateId, topicDto, causalUnitOfWork);
                 createTopicFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return createTopicFunctionalityTCC.getCreatedTopicDto();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -136,7 +136,7 @@ public class TopicFunctionalities {
                         topicService, causalUnitOfWorkService, topicDto, topicFactory, causalUnitOfWork);
                 updateTopicFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -156,13 +156,13 @@ public class TopicFunctionalities {
                         topicService, causalUnitOfWorkService, topicAggregateId, causalUnitOfWork);
                 deleteTopicFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     private void checkInput(TopicDto topicDto) {
         if (topicDto.getName() == null) {
-            throw new TutorException(TOPIC_MISSING_NAME);
+            throw new QuizzesException(TOPIC_MISSING_NAME);
         }
     }
 }

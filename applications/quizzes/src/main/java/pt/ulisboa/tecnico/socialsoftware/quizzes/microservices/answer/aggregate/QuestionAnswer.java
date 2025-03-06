@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate
 
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.OptionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 
@@ -39,7 +39,7 @@ public class QuestionAnswer {
         setOptionKey(questionAnswerDto.getOptionKey());
 
         if(getOptionKey() < 1 || getOptionKey() > questionDto.getOptionDtos().size()) {
-            throw new TutorException(ErrorMessage.INVALID_OPTION_SELECTED, getOptionKey(), getQuestionAggregateId());
+            throw new QuizzesException(QuizzesErrorMessage.INVALID_OPTION_SELECTED, getOptionKey(), getQuestionAggregateId());
         }
 
         for(OptionDto o : questionDto.getOptionDtos()) {

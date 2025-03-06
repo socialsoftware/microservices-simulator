@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.CANNOT_UPDATE_QUIZ;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.INVARIANT_BREAK;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.CANNOT_UPDATE_QUIZ;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.INVARIANT_BREAK;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -19,7 +19,7 @@ import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesDeleteCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesDeleteQuestion;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesUpdateQuestion;
@@ -99,7 +99,7 @@ public abstract class Quiz extends Aggregate {
     @Override
     public void verifyInvariants() {
         if (!(invariantDateOrdering())) {
-            throw new TutorException(INVARIANT_BREAK, getAggregateId());
+            throw new QuizzesException(INVARIANT_BREAK, getAggregateId());
         }
     }
 
@@ -143,7 +143,7 @@ public abstract class Quiz extends Aggregate {
          */
         Quiz prev = (Quiz) getPrev();
         if (prev != null && (DateHandler.now()).isAfter(prev.getAvailableDate())) {
-            throw new TutorException(CANNOT_UPDATE_QUIZ, getAggregateId());
+            throw new QuizzesException(CANNOT_UPDATE_QUIZ, getAggregateId());
         }
         this.availableDate = availableDate;
     }
@@ -158,7 +158,7 @@ public abstract class Quiz extends Aggregate {
          */
         Quiz prev = (Quiz) getPrev();
         if (prev != null && (DateHandler.now()).isAfter(prev.getAvailableDate())) {
-            throw new TutorException(CANNOT_UPDATE_QUIZ, getAggregateId());
+            throw new QuizzesException(CANNOT_UPDATE_QUIZ, getAggregateId());
         }
         this.conclusionDate = conclusionDate;
     }
@@ -173,7 +173,7 @@ public abstract class Quiz extends Aggregate {
          */
         Quiz prev = (Quiz) getPrev();
         if(prev != null && (DateHandler.now()).isAfter(prev.getAvailableDate())) {
-            throw new TutorException(CANNOT_UPDATE_QUIZ, getAggregateId());
+            throw new QuizzesException(CANNOT_UPDATE_QUIZ, getAggregateId());
         }
         this.resultsDate = resultsDate;
     }
@@ -197,7 +197,7 @@ public abstract class Quiz extends Aggregate {
          */
         Quiz prev = (Quiz) getPrev();
         if (prev != null && DateHandler.now().isAfter(prev.getAvailableDate())) {
-            throw new TutorException(CANNOT_UPDATE_QUIZ, getAggregateId());
+            throw new QuizzesException(CANNOT_UPDATE_QUIZ, getAggregateId());
         }
         this.quizQuestions = quizQuestions;
         this.quizQuestions.forEach(quizQuestion -> quizQuestion.setQuiz(this));

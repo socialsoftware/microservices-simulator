@@ -2,7 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.*;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkS
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.tournament.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizFactory;
@@ -75,7 +75,7 @@ public class TournamentFunctionalities {
         } else if (Arrays.asList(activeProfiles).contains(TCC.getValue())) {
             workflowType = TCC;
         } else {
-            throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -103,7 +103,7 @@ public class TournamentFunctionalities {
 
                 createTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return createTournamentFunctionalityTCC.getTournamentDto();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -127,7 +127,7 @@ public class TournamentFunctionalities {
 
                 addParticipantFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -151,7 +151,7 @@ public class TournamentFunctionalities {
 
                 updateTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -174,7 +174,7 @@ public class TournamentFunctionalities {
 
                 getTournamentsForCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getTournamentsForCourseExecutionFunctionalityTCC.getTournaments();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -196,7 +196,7 @@ public class TournamentFunctionalities {
 
                 getOpenedTournamentsForCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getOpenedTournamentsForCourseExecutionFunctionalityTCC.getOpenedTournaments();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -218,7 +218,7 @@ public class TournamentFunctionalities {
 
                 getClosedTournamentsForCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getClosedTournamentsForCourseExecutionFunctionalityTCC.getClosedTournaments();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -240,7 +240,7 @@ public class TournamentFunctionalities {
 
                 leaveTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -264,7 +264,7 @@ public class TournamentFunctionalities {
 
                 solveQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return solveQuizFunctionalityTCC.getQuizDto();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -286,7 +286,7 @@ public class TournamentFunctionalities {
 
                 cancelTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -310,11 +310,11 @@ public class TournamentFunctionalities {
 
                 removeTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public TournamentDto findTournament(Integer tournamentAggregateId) throws TutorException {
+    public TournamentDto findTournament(Integer tournamentAggregateId) throws QuizzesException {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -333,11 +333,11 @@ public class TournamentFunctionalities {
 
                 findTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findTournamentFunctionalityTCC.getTournamentDto();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public UserDto findParticipant(Integer tournamentAggregateId, Integer userAggregateId) throws TutorException {
+    public UserDto findParticipant(Integer tournamentAggregateId, Integer userAggregateId) throws QuizzesException {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -356,7 +356,7 @@ public class TournamentFunctionalities {
 
                 findParticipantFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findParticipantFunctionalityTCC.getParticipant();
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -373,25 +373,25 @@ public class TournamentFunctionalities {
                 tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, causalUnitOfWork);
                 userDto = userService.getUserById(userAggregateId, causalUnitOfWork);
                 break;
-            default: throw new TutorException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
     private void checkInput(Integer userId, List<Integer> topicsId, TournamentDto tournamentDto) {
         if (userId == null) {
-            throw new TutorException(TOURNAMENT_MISSING_USER);
+            throw new QuizzesException(TOURNAMENT_MISSING_USER);
         }
         if (topicsId == null) {
-            throw new TutorException(TOURNAMENT_MISSING_TOPICS);
+            throw new QuizzesException(TOURNAMENT_MISSING_TOPICS);
         }
         if (tournamentDto.getStartTime() == null) {
-            throw new TutorException(TOURNAMENT_MISSING_START_TIME);
+            throw new QuizzesException(TOURNAMENT_MISSING_START_TIME);
         }
         if (tournamentDto.getEndTime() == null) {
-            throw new TutorException(TOURNAMENT_MISSING_END_TIME);
+            throw new QuizzesException(TOURNAMENT_MISSING_END_TIME);
         }
         if (tournamentDto.getNumberOfQuestions() == null) {
-            throw new TutorException(TOURNAMENT_MISSING_NUMBER_OF_QUESTIONS);
+            throw new QuizzesException(TOURNAMENT_MISSING_NUMBER_OF_QUESTIONS);
         }
     }
 

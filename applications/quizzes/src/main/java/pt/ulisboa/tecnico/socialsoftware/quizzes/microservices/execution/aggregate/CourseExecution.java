@@ -14,8 +14,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.subscribe.CourseExecutionSubscribesRemoveUser;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 
@@ -145,7 +145,7 @@ public abstract class CourseExecution extends Aggregate {
     @Override
     public void verifyInvariants() {
         if (!(removedNoStudents() && allStudentsAreActive())) {
-            throw new TutorException(ErrorMessage.INVARIANT_BREAK, getAggregateId());
+            throw new QuizzesException(QuizzesErrorMessage.INVARIANT_BREAK, getAggregateId());
         }
     }
 
@@ -157,7 +157,7 @@ public abstract class CourseExecution extends Aggregate {
         if (getStudents().size() > 0) {
             super.remove();
         } else {
-            throw new TutorException(ErrorMessage.CANNOT_DELETE_COURSE_EXECUTION, getAggregateId());
+            throw new QuizzesException(QuizzesErrorMessage.CANNOT_DELETE_COURSE_EXECUTION, getAggregateId());
         }
     }
 
@@ -192,7 +192,7 @@ public abstract class CourseExecution extends Aggregate {
     public void removeStudent(Integer userAggregateId) {
         CourseExecutionStudent studentToRemove = null;
         if (!hasStudent(userAggregateId)) {
-            throw new TutorException(ErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, getAggregateId());
+            throw new QuizzesException(QuizzesErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, getAggregateId());
         }
         for (CourseExecutionStudent student : this.students) {
             if (student.getUserAggregateId().equals(userAggregateId)) {

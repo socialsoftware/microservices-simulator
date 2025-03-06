@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate;
 
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.INVARIANT_BREAK;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.USER_ACTIVE;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.INVARIANT_BREAK;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.USER_ACTIVE;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,7 +12,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 
 /*
     INTRA-INVARIANTS:
@@ -68,13 +68,13 @@ public abstract class User extends Aggregate {
     @Override
     public void verifyInvariants() {
         if (!(deletedState())) {
-            throw new TutorException(INVARIANT_BREAK, getAggregateId());
+            throw new QuizzesException(INVARIANT_BREAK, getAggregateId());
         }
     }
 
     public void remove() {
         if (isActive()) {
-            throw new TutorException(USER_ACTIVE, this.getAggregateId());
+            throw new QuizzesException(USER_ACTIVE, this.getAggregateId());
         }
         setState(AggregateState.DELETED);
     }

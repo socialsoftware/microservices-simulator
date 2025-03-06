@@ -1,9 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.CANNOT_ADD_PARTICIPANT;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.CANNOT_DELETE_TOURNAMENT;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.CANNOT_UPDATE_TOURNAMENT;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.CANNOT_ADD_PARTICIPANT;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.CANNOT_DELETE_TOURNAMENT;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.CANNOT_UPDATE_TOURNAMENT;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -19,7 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
@@ -148,7 +148,7 @@ public abstract class Tournament extends Aggregate {
 		    this.state == DELETED => this.participants.empty
          */
         if (getTournamentParticipants().size() > 0) {
-            throw new TutorException(CANNOT_DELETE_TOURNAMENT, getAggregateId());
+            throw new QuizzesException(CANNOT_DELETE_TOURNAMENT, getAggregateId());
         }
         super.remove();
     }
@@ -311,7 +311,7 @@ public abstract class Tournament extends Aggregate {
         Tournament prev = (Tournament) getPrev();
         if (prev != null) {
             if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                throw new TutorException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
+                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
             }
         }
         this.startTime = startTime;
@@ -332,7 +332,7 @@ public abstract class Tournament extends Aggregate {
         Tournament prev = (Tournament) getPrev();
         if (prev != null) {
             if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                throw new TutorException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
+                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
             }
         }
         this.endTime = endTime;
@@ -352,7 +352,7 @@ public abstract class Tournament extends Aggregate {
         Tournament prev = (Tournament) getPrev();
         if (prev != null) {
             if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                throw new TutorException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
+                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
             }
         }
         this.numberOfQuestions = numberOfQuestions;
@@ -372,7 +372,7 @@ public abstract class Tournament extends Aggregate {
         Tournament prev = (Tournament) getPrev();
         if (prev != null) {
             if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                throw new TutorException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
+                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
             }
         }
         this.cancelled = cancelled;
@@ -398,7 +398,7 @@ public abstract class Tournament extends Aggregate {
          */
         /*Tournament prev = (Tournament) getPrev();
         if(prev != null && prev.isCancelled()) {
-            throw new TutorException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
+            throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
         }*/
         this.tournamentParticipants = tournamentParticipants;
         this.tournamentParticipants.forEach(tournamentParticipant -> tournamentParticipant.setTournament(this));
@@ -408,14 +408,14 @@ public abstract class Tournament extends Aggregate {
         // INV: tournamentParticipants is final after start time
         Tournament prev = (Tournament) getPrev();
         if (DateHandler.now().isAfter(prev.getStartTime())) {
-            throw new TutorException(CANNOT_ADD_PARTICIPANT, getAggregateId());
+            throw new QuizzesException(CANNOT_ADD_PARTICIPANT, getAggregateId());
         }
         /*
         IS_CANCELED
 		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
          */
         if (prev != null && prev.isCancelled()) {
-            throw new TutorException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
+            throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
         }
         this.tournamentParticipants.add(participant);
         participant.setTournament(this);
@@ -444,7 +444,7 @@ public abstract class Tournament extends Aggregate {
         Tournament prev = (Tournament) getPrev();
         if (prev != null) {
             if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                throw new TutorException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
+                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
             }
         }
 
@@ -478,7 +478,7 @@ public abstract class Tournament extends Aggregate {
         Tournament prev = (Tournament) getPrev();
         if (prev != null) {
             if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                throw new TutorException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
+                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
             }
         }
         return this.tournamentParticipants.remove(participant);

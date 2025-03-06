@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
 import jakarta.persistence.*;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 
 @Entity
 public class TournamentParticipantQuizAnswer {
@@ -41,7 +41,7 @@ public class TournamentParticipantQuizAnswer {
         }
 
         if (!this.quizAnswerAggregateId.equals(quizAnswerAggregateId)) {
-            throw new TutorException(ErrorMessage.TOURNAMENT_PARTICIPANT_ADDING_ANSWER_WITH_WRONG_QUIZ_ANSWER_ID, quizAnswerAggregateId);
+            throw new QuizzesException(QuizzesErrorMessage.TOURNAMENT_PARTICIPANT_ADDING_ANSWER_WITH_WRONG_QUIZ_ANSWER_ID, quizAnswerAggregateId);
         }
 
         this.quizAnswerVersion = version;

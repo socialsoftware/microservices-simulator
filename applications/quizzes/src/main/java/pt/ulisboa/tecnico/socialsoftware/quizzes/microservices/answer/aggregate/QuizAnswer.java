@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.QUESTION_ALREADY_ANSWERED;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.QUESTION_ALREADY_ANSWERED;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.sub
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesRemoveCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesUnerollStudentFromCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesUpdateStudentName;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 
 /*
     INTRA-INVARIANTS:
@@ -188,7 +188,7 @@ public abstract class QuizAnswer extends Aggregate {
                 .map(QuestionAnswer::getQuestionAggregateId)
                 .collect(Collectors.toList());
         if (answeredQuestionIds.contains(questionAnswer.getQuestionAggregateId())) {
-            throw new TutorException(QUESTION_ALREADY_ANSWERED, questionAnswer.getQuestionAggregateId(), this.getQuiz().getQuizAggregateId());
+            throw new QuizzesException(QUESTION_ALREADY_ANSWERED, questionAnswer.getQuestionAggregateId(), this.getQuiz().getQuizAggregateId());
         }
         this.questionAnswers.add(questionAnswer);
         questionAnswer.setQuizAnswer(this);
