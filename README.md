@@ -25,16 +25,17 @@ The description of the examples for Transactional Causal Consistency are in [Tra
 docker compose build
 ```
 
-* Running the application
+* Running Quizzes Microservices Simulator: Sagas and TCC
 ```
-docker compose up backend-sagas
-docker compose up backend-tcc
+docker compose up quizzes-sagas
+docker compose up quizzes-tcc
 ```
 
-* Running Spock Tests
+* Running Tests: Simulator Sagas, Quizzes Sagas, Quizzes TCC
 ```
-docker compose up test-sagas
-docker compose up test-tcc
+docker compose up test-simulator-sagas
+docker compose up test-quizzes-sagas
+docker compose up test-quizzes-tcc
 ```
 
 ## Run Using Maven

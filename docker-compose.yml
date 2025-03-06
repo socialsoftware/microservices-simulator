@@ -70,7 +70,7 @@ services:
       - ./simulator:/simulator
     command: mvn -Ptest-sagas test
 
-  test-sagas:
+  test-quizzes-sagas:
     image: maven:3.9.7-eclipse-temurin-21-alpine
     stop_signal: SIGKILL
     stdin_open: true
@@ -81,7 +81,7 @@ services:
       - ./simulator:/simulator
     command: sh -c "mvn -f /simulator/pom.xml clean install && mvn -Ptest-sagas test"
 
-  test-tcc:
+  test-quizzes-tcc:
     image: maven:3.9.7-eclipse-temurin-21-alpine
     stop_signal: SIGKILL
     stdin_open: true
