@@ -1,9 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.CANNOT_ADD_PARTICIPANT;
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.CANNOT_DELETE_TOURNAMENT;
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.CANNOT_UPDATE_TOURNAMENT;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage.INVARIANT_BREAK;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -17,6 +17,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
@@ -288,7 +289,7 @@ public abstract class Tournament extends Aggregate {
                 && invariantDeleteWhenNoParticipants()
                 && invariantCreatorParticipantConsistency())
                 && invariantCreatorIsNotAnonymous()) {
-            throw new TutorException(INVARIANT_BREAK, getAggregateId());
+            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
         }
     }
 

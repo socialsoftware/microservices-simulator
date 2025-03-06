@@ -1,6 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates
 
 import org.springframework.boot.test.context.SpringBootTest
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException
@@ -209,8 +212,8 @@ class TournamentMergeUnitTest extends QuizzesSpockTest {
         toCommit.merge(toCommit, committed)
 
         then:
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_MERGE_FAILURE_DUE_TO_INTENSIONS_CONFLICT
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_MERGE_FAILURE_DUE_TO_INTENSIONS_CONFLICT
 
         where:
 //      Prev values

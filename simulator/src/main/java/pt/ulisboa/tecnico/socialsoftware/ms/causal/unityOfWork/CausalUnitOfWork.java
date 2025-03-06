@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.CANNOT_PERFORM_CAUSAL_READ;
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED;
 
 import java.util.HashMap;
 import java.util.List;

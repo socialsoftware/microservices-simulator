@@ -3,14 +3,15 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
@@ -113,14 +114,14 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'try to get tournament'
         tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
         then: 'tournament does not exist'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
 
         when: 'find quiz'
         quizFunctionalities.findQuiz(tournamentDto.getQuiz().aggregateId)
         then: 'the quiz is removed, not found'
-        def error1 = thrown(TutorException)
-        error1.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+        def error1 = thrown(SimulatorException)
+        error1.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
 
         when: 'get the deleted tournament'
         SagaTournament sagaTournament = unitOfWorkService.aggregateDeletedLoad(tournamentDto.aggregateId)
@@ -142,8 +143,8 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'a tournament update'
         tournamentFunctionalities.updateTournament(tournamentDto, topics)
         then: 'tournament does not exist'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
 
         when: 'get the deleted tournament'
         SagaTournament sagaTournament = unitOfWorkService.aggregateDeletedLoad(tournamentDto.aggregateId)
@@ -165,8 +166,8 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'remove tournament'
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
         then: 'tournament does not exist'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
 
         when: 'try to finish update'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
@@ -197,8 +198,8 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'remove tournament until removeQuizStep'
         removeTournamentFunctionality.executeUntilStep("removeQuizStep", unitOfWork2)
         then: 'it is being updated'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
 
         when: 'try to finish update'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
@@ -229,8 +230,8 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'remove tournament'
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
         then: 'it is being updated'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
 
         when: 'try to finish update'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
@@ -261,8 +262,8 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'remove tournament until removeQuizStep'
         removeTournamentFunctionality.executeUntilStep("removeQuizStep", unitOfWork2)
         then: 'it is being updated'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
 
         when: 'try to finish update'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
@@ -293,8 +294,8 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'remove tournament'
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
         then: 'it is being updated'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
 
         when: 'try to finish update'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
@@ -325,8 +326,8 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'remove tournament until removeQuizStep'
         removeTournamentFunctionality.executeUntilStep("removeQuizStep", unitOfWork2)
         then: 'it is being updated'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
 
         when: 'try to finish update'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
@@ -357,8 +358,8 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'tournament is updated'
         tournamentFunctionalities.updateTournament(tournamentDto, topics)
         then: 'it is being deleted'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
 
         when: 'remove finishes'
         removeTournamentFunctionality.resumeWorkflow(unitOfWork2)
@@ -382,8 +383,8 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'update start time until updateTournamentStep'
         updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
         then: 'it is being deleted'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
 
         and: 'remove finishes'
         removeTournamentFunctionality.resumeWorkflow(unitOfWork2)

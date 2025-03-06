@@ -3,13 +3,13 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService
@@ -177,8 +177,8 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         when: 'add creator as participant where the creator in tournament still has the old name'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
         then: 'fails because invariant breaks'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.INVARIANT_BREAK
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
 
         when: 'event is finally processed it updates the creator name'
         tournamentEventHandling.handleUpdateStudentNameEvent()
@@ -290,8 +290,8 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         when: 'the read creator is added'
         addParticipantFunctionality.resumeWorkflow(unitOfWork2) 
         then: 'fails because invariant breaks'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.INVARIANT_BREAK
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
 
         when: 'the functionality is retried'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())

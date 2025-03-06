@@ -3,12 +3,13 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationCausal
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
@@ -166,8 +167,8 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
 
         then: 'fails because course execution emitted the update event but it was not processed by the tournament'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED
         and: 'when event is finally processed it updates the creator name'
         tournamentEventHandling.handleUpdateStudentNameEvent()
         and: 'creator can be added as participant because tournament has processed all events it subscribes from course execution'
@@ -220,8 +221,8 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
 
         then: 'fails because the event tournament subscribes an event that it has not processed, ' +
                 'the course execution emitted the event and it is subscribed due to the participant which of a older version'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED
         and: 'the name is updated in course execution'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
@@ -249,8 +250,8 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
         tournamentEventHandling.handleUpdateStudentNameEvent()
 
         then: 'fails because invariant about same info for creator and participant, if the creator, breaks'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.INVARIANT_BREAK
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
         and: 'process update name event using tournament version that has the creator and the participant'
         tournamentEventHandling.handleUpdateStudentNameEvent();
         and: 'the name is updated in course execution'
@@ -300,8 +301,8 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'fails during commit because tournament is inactive due to anonymous creator'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
         and: 'creator is anonymized'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
@@ -324,8 +325,8 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
 
         then: 'fails because it is not possible to get a causal snapshot, ' +
                 'course execution emitted an event that is not processed by tournament'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED
         and: 'tournament processes event to anonymize the creator'
         tournamentEventHandling.handleAnonymizeStudentEvents()
         and: 'creator is anonymized'
@@ -354,8 +355,8 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'fails during merge because course execution emitted an event that was not processed by the tournament version'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED
         and: 'creator is anonymized'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
@@ -379,8 +380,8 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'fails because the the tournament is not found'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
     }
 
     def 'concurrent remove tournament and add student: remove finishes first' () {
@@ -393,8 +394,8 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'fails during merge because the most recent version of the tournament is deleted'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_DELETED
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_DELETED
     }
 
     def 'concurrent remove tournament and add student: add student finishes first' () {
@@ -407,8 +408,8 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
 
         then: 'fails during merge because breaks invariant that forbids to delete a tournament with participants'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.INVARIANT_BREAK
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
     }
 
     // delete tournament and update start time
@@ -429,8 +430,8 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
         tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
 
         then: 'after merge the tournament is removed, not found'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
     }
 
     // update topics in tournament and update topics in tournament

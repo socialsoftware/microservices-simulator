@@ -27,7 +27,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregateRepository;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.*;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.*;
 
 @Profile("sagas")
 @Service

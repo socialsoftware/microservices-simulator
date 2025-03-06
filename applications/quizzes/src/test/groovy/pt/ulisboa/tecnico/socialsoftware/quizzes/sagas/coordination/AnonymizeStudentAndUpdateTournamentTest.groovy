@@ -3,6 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
@@ -156,8 +158,8 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'the tournament is updated'
         tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)
         then: 'cannot update inactive tournament'
-        def error  = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
+        def error  = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
     }
 
     def 'sequential: anonymize creator; update tournament; event' () {
@@ -252,8 +254,8 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'tournament processes event to anonymize the creator'
         tournamentEventHandling.handleAnonymizeStudentEvents()
         then: 'the tournament is being updated'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
 
         when: 'the tournament finishes updating'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
@@ -327,8 +329,8 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'tournament processes event to anonymize the creator but does not anonymize the updated'
         tournamentEventHandling.handleAnonymizeStudentEvents()
         then: 'the tournament is being updated'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
 
         when: 'the tournament finishes updating'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
@@ -412,8 +414,8 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'tournament processes event to anonymize the creator'
         tournamentEventHandling.handleAnonymizeStudentEvents()
         then: 'the tournament is being updated'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
 
         when: 'the tournament finishes updating by trying to create the quiz'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)

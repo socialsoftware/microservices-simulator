@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.AGGREGATE_DELETED;
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.AGGREGATE_MERGE_FAILURE;
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.AGGREGATE_MERGE_FAILURE_DUE_TO_INTENSIONS_CONFLICT;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.AGGREGATE_DELETED;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.AGGREGATE_MERGE_FAILURE;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.AGGREGATE_MERGE_FAILURE_DUE_TO_INTENSIONS_CONFLICT;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;

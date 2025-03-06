@@ -3,6 +3,9 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
@@ -119,8 +122,8 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)
 
         then:
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.INVARIANT_BREAK
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
         and: 'tournament is not changed'
         def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto.numberOfQuestions == 2
@@ -168,8 +171,8 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         when: 'the second execution occurs'
         tournamentFunctionalities.updateTournament(tournamentDto2, topicsAggregateIds)
         then:
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA
 
         when: 'first functionality finishes'
         updateTournamentFunctionalityOne.resumeWorkflow(unitOfWork1)

@@ -3,6 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
@@ -85,8 +87,8 @@ class AddParticipantAndAnonymizeStudentTest extends QuizzesSpockTest {
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'fails because tournament is inactive'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
 
         then: 'creator is anonymized'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
@@ -147,8 +149,8 @@ class AddParticipantAndAnonymizeStudentTest extends QuizzesSpockTest {
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'fails because tournament is inactive'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE
 
         then: 'creator is anonymized'
         def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())

@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.AGGREGATE_DELETED;
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.AGGREGATE_NOT_FOUND;
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.AGGREGATE_DELETED;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.AGGREGATE_NOT_FOUND;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.CANNOT_MODIFY_INACTIVE_AGGREGATE;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 
@@ -181,7 +181,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
 
         // if a concurrent version is deleted it means the object has been deleted in the meanwhile
         if (concurrentAggregate != null && (concurrentAggregate.getState() == Aggregate.AggregateState.DELETED || concurrentAggregate.getState() == Aggregate.AggregateState.INACTIVE)) {
-            throw new SimulatorException(ErrorMessage.AGGREGATE_DELETED, concurrentAggregate.getAggregateType().toString(), concurrentAggregate.getAggregateId());
+            throw new SimulatorException(SimulatorErrorMessage.AGGREGATE_DELETED, concurrentAggregate.getAggregateType().toString(), concurrentAggregate.getAggregateId());
         }
 
         return concurrentAggregate;

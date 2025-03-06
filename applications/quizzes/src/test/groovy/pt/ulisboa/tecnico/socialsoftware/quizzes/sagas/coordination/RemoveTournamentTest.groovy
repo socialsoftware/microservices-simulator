@@ -3,13 +3,13 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.ErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.TutorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
@@ -70,14 +70,14 @@ class RemoveTournamentTest extends QuizzesSpockTest {
         when: 'find the tournament'
         tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         then: 'the tournament is removed, not found'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
 
         when: 'find quiz'
         quizFunctionalities.findQuiz(tournamentDto.getQuiz().aggregateId)
         then: 'the quiz is removed, not found'
-        def error1 = thrown(TutorException)
-        error1.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+        def error1 = thrown(SimulatorException)
+        error1.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
     }
 
     @TestConfiguration

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.ErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 @Service
@@ -45,7 +45,7 @@ public class VersionService {
             backoff = @Backoff(delay = 5000))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public Integer incrementAndGetVersionNumber() {
-        Version version = versionRepository.findAll().stream().findAny().orElseThrow(() -> new SimulatorException(ErrorMessage.VERSION_MANAGER_DOES_NOT_EXIST));
+        Version version = versionRepository.findAll().stream().findAny().orElseThrow(() -> new SimulatorException(SimulatorErrorMessage.VERSION_MANAGER_DOES_NOT_EXIST));
         version.incrementVersion();
         return version.getVersionNumber();
     }
@@ -53,7 +53,7 @@ public class VersionService {
     // It is only in tests to simulate concurrent execution of functionalities
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void decrementVersionNumber() {
-        Version version = versionRepository.findAll().stream().findAny().orElseThrow(() -> new SimulatorException(ErrorMessage.VERSION_MANAGER_DOES_NOT_EXIST));
+        Version version = versionRepository.findAll().stream().findAny().orElseThrow(() -> new SimulatorException(SimulatorErrorMessage.VERSION_MANAGER_DOES_NOT_EXIST));
         version.decrementVersion();
     }
 }

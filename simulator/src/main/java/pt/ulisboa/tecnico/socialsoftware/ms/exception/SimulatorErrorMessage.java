@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.exception;
 
-public enum ErrorMessage {
+public enum SimulatorErrorMessage {
     UNDEFINED_TRANSACTIONAL_MODEL("Undefined transactional model"),
 
     AGGREGATE_BEING_USED_IN_OTHER_SAGA("Aggregate is being used in %s saga"),
@@ -27,7 +27,7 @@ public enum ErrorMessage {
 
     public final String label;
 
-    ErrorMessage(String label) {
+    SimulatorErrorMessage(String label) {
         this.label = label;
     }
 }
