@@ -41,13 +41,13 @@ docker compose up test-tcc
 
 ### Technology Requirements
 
-- [Maven 3.9.6](https://archive.apache.org/dist/maven/maven-3/3.9.6/)
+- [Maven 3.9.9](https://archive.apache.org/dist/maven/maven-3/3.9.9/)
 
-- [Java 17+](https://openjdk.org/projects/jdk/17/)
+- [Java 21+](https://openjdk.org/projects/jdk/21/)
 
 - [PSQL 14](https://www.postgresql.org/download/)
 
-- [JMeter 5.5](https://jmeter.apache.org/download_jmeter.cgi)
+- [JMeter 5.6](https://jmeter.apache.org/download_jmeter.cgi)
 
 ### Setting up the database
 * Start db
@@ -67,50 +67,59 @@ exit
 * Copy `backend/src/main/resources/application-dev.properties.example` to `application-dev.properties` and fill the placeholder fields.
 * If you have run the unit-test using docker, `backend/target` directory may be with root owner and group, do: `sudo rm -rf backend/target`.
 
-### Running the application
-
+### Simulator
 ```
-cd backend
+cd simulator
 ```
-#### For Sagas
-```
-mvn clean -Psagas spring-boot:run
-```
-#### For TCC
-```
-mvn clean -Ptcc spring-boot:run
-```
-
-### Running Spock tests
-
-```
-cd backend
-```
-#### Sagas Tests
+#### Run simulator tests
 ```
 mvn clean -Ptest-sagas test
 ```
-#### TCC Tests
+#### Install simulator library
+```
+mvn clean install
+```
+### Quizzes Microservice System Simulation
+```
+cd applications/quizzes
+```
+#### Launch simulator for Sagas
+```
+mvn clean -Psagas spring-boot:run
+```
+#### Launch simulator for TCC
+```
+mvn clean -Ptcc spring-boot:run
+```
+#### Running Sagas Tests
+```
+mvn clean -Ptest-sagas test
+```
+##### Running TCC Tests
 ```
 mvn clean -Ptest-tcc test
 ```
 
 * Some Sagas test cases:
-  * [Workflow Test Plan](simulator/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/sagas/workflow/PlanOrderTest.groovy)
-  * [Tournament Functionality Tests](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/)
+  * [Workflow Test Plan (Simulator)](simulator/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/sagas/workflow/PlanOrderTest.groovy)
+  * [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/)
 
 
 * Some TCC test cases:
-  * [Tournament Merge Tests](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/aggregates/TournamentMergeUnitTest.groovy)
-  * [Tournament Functionality Tests](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy)
+  * [Tournament Merge Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/aggregates/TournamentMergeUnitTest.groovy)
+  * [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy)
 
 ## Code structure
 
-The code is structured into:
+### Simulator
+
 * The core concepts of [Domain-Driven Design](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/domain)
 * The core concepts for the distributed functionalities [Coordination](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination)
 * The core concepts for management of [Sagas](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/sagas)
 * The core concepts for management of [TCC](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/causal)
+
+### Quizzes Microservice System
+
 * A case study for [Quizzes Tutor](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes)
     * The transactional model independent [Microservices](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices)
     * The Sagas implementation for
@@ -124,7 +133,7 @@ The code is structured into:
   * [TCC Aggregates](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/aggregates)
   * [TCC Coordination](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination)
 
-## How to implement and test your own business logic for Sagas
+## How to implement and test your own business logic for Sagas (Illustrated with Quizzes Microservice System)
 
 The figure shows the main classes to be extended for aggregates, their events and services. The classes in red belong to 
 the domain-driven design concepts, and the classes green corresponds to the transaction model specific classes. 
@@ -174,20 +183,20 @@ jmeter -n -t TEST.jmx
 ```
 
 * Some test cases:
-  * [5a-updateStudentName-addParticipant-processUpdateNameEvent.jmx](simulator/jmeter/tournament/thesis-cases/5a-updateStudentName-addParticipant-processUpdateNameEvent.jmx)
-  * [5b-addParticipant-updateStudentName-processUpdateNameEvent.jmx](simulator/jmeter/tournament/thesis-cases/5b-addParticipant-updateStudentName-processUpdateNameEvent.jmx)
-  * [5c-updateStudentName1-addParticipant-updateStudentName2-processUpdateNameEvent.jmx](simulator/jmeter/tournament/thesis-cases/5c-updateStudentName1-addParticipant-updateStudentName2-processUpdateNameEvent.jmx)
-  * [5d-addParticipant1-updateStudentName-processUpdateNameEvent1-addParticipant2-processUpdateNameEvent2.jmx](simulator/jmeter/tournament/thesis-cases/5d-addParticipant1-updateStudentName-processUpdateNameEvent1-addParticipant2-processUpdateNameEvent2.jmx)
-  * [8-5-update-tournament-concurrent-intention-pass.jmx](simulator/jmeter/tournament/thesis-cases/8-5-update-tournament-concurrent-intention-pass.jmx)
-  * [8-6-add-participant-concurrent-update-execution-student-name-processing-ends-first.jmx](simulator/jmeter/tournament/thesis-cases/8-6-add-participant-concurrent-update-execution-student-name-processing-ends-first.jmx)
-  * [8-7-add-participant-concurrent-anonymize-event-processing-processing-ends-last.jmx](simulator/jmeter/tournament/thesis-cases/8-7-add-participant-concurrent-anonymize-event-processing-processing-ends-last.jmx)
-  * [8-8-update-execution-student-add-participant-process-event-add-participant.jmx](simulator/jmeter/tournament/thesis-cases/8-8-update-execution-student-add-participant-process-event-add-participant.jmx) 
-  * [8-9-add-participant-concurrent-anonymize-event-processing-processing-ends-first.jmx](simulator/jmeter/tournament/thesis-cases/8-9-add-participant-concurrent-anonymize-event-processing-processing-ends-first.jmx)
-  * [8-10-concurrent-delete-tournament-add-participant.jmx](simulator/jmeter/tournament/thesis-cases/8-10-concurrent-delete-tournament-add-participant.jmx)
+  * [5a-updateStudentName-addParticipant-processUpdateNameEvent.jmx](applications/quizzes/jmeter/tournament/thesis-cases/5a-updateStudentName-addParticipant-processUpdateNameEvent.jmx)
+  * [5b-addParticipant-updateStudentName-processUpdateNameEvent.jmx](applications/quizzes/jmeter/tournament/thesis-cases/5b-addParticipant-updateStudentName-processUpdateNameEvent.jmx)
+  * [5c-updateStudentName1-addParticipant-updateStudentName2-processUpdateNameEvent.jmx](applications/quizzes/jmeter/tournament/thesis-cases/5c-updateStudentName1-addParticipant-updateStudentName2-processUpdateNameEvent.jmx)
+  * [5d-addParticipant1-updateStudentName-processUpdateNameEvent1-addParticipant2-processUpdateNameEvent2.jmx](applications/quizzes/jmeter/tournament/thesis-cases/5d-addParticipant1-updateStudentName-processUpdateNameEvent1-addParticipant2-processUpdateNameEvent2.jmx)
+  * [8-5-update-tournament-concurrent-intention-pass.jmx](applications/quizzes/jmeter/tournament/thesis-cases/8-5-update-tournament-concurrent-intention-pass.jmx)
+  * [8-6-add-participant-concurrent-update-execution-student-name-processing-ends-first.jmx](applications/quizzes/jmeter/tournament/thesis-cases/8-6-add-participant-concurrent-update-execution-student-name-processing-ends-first.jmx)
+  * [8-7-add-participant-concurrent-anonymize-event-processing-processing-ends-last.jmx](applications/quizzes/jmeter/tournament/thesis-cases/8-7-add-participant-concurrent-anonymize-event-processing-processing-ends-last.jmx)
+  * [8-8-update-execution-student-add-participant-process-event-add-participant.jmx](applications/quizzes/jmeter/tournament/thesis-cases/8-8-update-execution-student-add-participant-process-event-add-participant.jmx) 
+  * [8-9-add-participant-concurrent-anonymize-event-processing-processing-ends-first.jmx](applications/quizzes/jmeter/tournament/thesis-cases/8-9-add-participant-concurrent-anonymize-event-processing-processing-ends-first.jmx)
+  * [8-10-concurrent-delete-tournament-add-participant.jmx](applications/quizzes/jmeter/tournament/thesis-cases/8-10-concurrent-delete-tournament-add-participant.jmx)
 ### Viewing JMeter tests structure
 
 ```
-cd backend/jmeter/tournament/thesis-cases/
+cd applications/quizzes/jmeter/tournament/thesis-cases/
 jmeter
 ```
 * The command launches JMeter GUI. By clicking `File > Open` and selecting a test file it is possible to observe the test structure.
