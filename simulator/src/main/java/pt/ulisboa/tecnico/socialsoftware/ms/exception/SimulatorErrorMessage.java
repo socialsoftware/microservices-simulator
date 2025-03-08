@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.exception;
 public final class SimulatorErrorMessage {
     private SimulatorErrorMessage() {}
 
+    public static final String CRASH = "Crashed";
     public static final String UNDEFINED_TRANSACTIONAL_MODEL = "Undefined transactional model.";
 
     public static final String AGGREGATE_BEING_USED_IN_OTHER_SAGA = "Aggregate is being used in %s saga.";

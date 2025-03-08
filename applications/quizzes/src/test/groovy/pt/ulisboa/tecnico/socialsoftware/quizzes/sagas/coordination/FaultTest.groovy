@@ -1,31 +1,31 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.BeanConfigurationSagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.QuizzesSpockTest
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.CourseExecutionFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.coordination.functionalities.TournamentFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.aggregate.CourseExecutionFactory
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.execution.service.CourseExecutionService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.question.aggregate.QuestionDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.topic.aggregate.TopicDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.aggregate.TournamentDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.events.handling.TournamentEventHandling
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.tournament.service.TournamentService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.coordination.tournament.RemoveTournamentFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaQuiz
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.sagas.aggregates.SagaTournament
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.quiz.service.QuizService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaQuiz
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaTournament
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
 
 @DataJpaTest
@@ -117,8 +117,8 @@ class FaultTest extends QuizzesSpockTest {
         addParticipantFunctionality.executeUntilCrash("getUserStep", unitOfWork2)
 
         then: 'Receive exception'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CRASH
+        def error = thrown(SimulatorException)
+        error.SimulatorErrorMessage == SimulatorErrorMessage.CRASH
         def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult2.getParticipants().size() == 0
         
@@ -155,8 +155,8 @@ class FaultTest extends QuizzesSpockTest {
         addParticipantFunctionality.executeUntilCrashWithRecovery("getUserStep", unitOfWork2)
 
         then: 'Receive exception'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.CRASH
+        def error = thrown(SimulatorException)
+        error.SimulatorErrorMessage == SimulatorErrorMessage.CRASH
         def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult2.getParticipants().size() == 0
         
@@ -183,8 +183,8 @@ class FaultTest extends QuizzesSpockTest {
         when: 'resume the workflow'
         removeTournamentFunctionality.resumeWorkflow(unitOfWork2)
         then: 'already deleted'
-        def error = thrown(TutorException)
-        error.errorMessage == ErrorMessage.AGGREGATE_NOT_FOUND
+        def error = thrown(SimulatorException)
+        error.SimulatorErrorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
 
        
     }

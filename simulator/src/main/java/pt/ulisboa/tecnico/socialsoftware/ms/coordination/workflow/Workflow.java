@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.ErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.ms.quizzes.microservices.exception.TutorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 
@@ -140,8 +140,8 @@ public abstract class Workflow {
         // Execute until the specified step
         executionPlan.executeUntilCrash(targetStep, unitOfWork).join();
         
-        // Simulate an error by throwing a TutorException
-        throw new TutorException(ErrorMessage.CRASH);
+        // Simulate an error by throwing a SimulatorException
+        throw new SimulatorException(SimulatorErrorMessage.CRASH);
     }
 
     public void executeUntilCrashWithRecovery(String stepName, UnitOfWork unitOfWork) {
@@ -157,8 +157,8 @@ public abstract class Workflow {
         // Execute until the specified step
         executionPlan.executeUntilStep(targetStep, unitOfWork).join();
         
-        // Simulate an error by throwing a TutorException
-        throw new TutorException(ErrorMessage.CRASH);
+        // Simulate an error by throwing a SimulatorException
+        throw new SimulatorException(SimulatorErrorMessage.CRASH);
     }
 
 

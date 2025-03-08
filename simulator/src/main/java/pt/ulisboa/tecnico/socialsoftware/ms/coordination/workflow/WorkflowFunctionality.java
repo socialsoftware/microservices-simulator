@@ -75,12 +75,12 @@ public abstract class WorkflowFunctionality {
             workflow.executeUntilCrashWithRecovery(stepName,unitOfWork);
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
-            if (cause instanceof TutorException) {
-                throw (TutorException) cause;
+            if (cause instanceof SimulatorException) {
+                throw (SimulatorException) cause;
             } else {
                 throw e;
             }
-        } catch (TutorException e) {
+        } catch (SimulatorException e) {
             throw e;
         }
         
@@ -93,12 +93,12 @@ public abstract class WorkflowFunctionality {
             workflow.executeUntilCrash(stepName,unitOfWork);
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
-            if (cause instanceof TutorException) {
-                throw (TutorException) cause;
+            if (cause instanceof SimulatorException) {
+                throw (SimulatorException) cause;
             } else {
                 throw e;
             }
-        } catch (TutorException e) {
+        } catch (SimulatorException e) {
             throw e;
         }
         
