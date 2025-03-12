@@ -14,7 +14,7 @@ services:
       - POSTGRES_PASSWORD=postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      interval: 20s
       timeout: 5s
       retries: 5
 
@@ -38,6 +38,7 @@ services:
       - SPRING.DATASOURCE.PASSWORD=postgres
       - SPRING.JPA.DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
 
   quizzes-tcc:
     build:
@@ -70,16 +71,27 @@ services:
       - ./simulator:/simulator
     command: mvn -Ptest-sagas test
 
+  build-simulator:
+    image: maven:3.9.7-eclipse-temurin-21-alpine
+    stop_signal: SIGKILL
+    working_dir: /simulator
+    volumes:
+      - ./simulator:/simulator
+      - mavencache:/root/.m2
+    command: mvn install -DskipTests
+
   test-quizzes-sagas:
     image: maven:3.9.7-eclipse-temurin-21-alpine
     stop_signal: SIGKILL
     stdin_open: true
     tty: true
     working_dir: /quizzes
+    depends_on:
+      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
-      - ./simulator:/simulator
-    command: sh -c "mvn -f /simulator/pom.xml clean install && mvn -Ptest-sagas test"
+      - mavencache:/root/.m2
+    command: mvn -Ptest-sagas test
 
   test-quizzes-tcc:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -87,10 +99,12 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
+    depends_on:
+      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
-      - ./simulator:/simulator
-    command: sh -c "mvn -f /simulator/pom.xml clean install && mvn -Ptest-tcc test"
+      - mavencache:/root/.m2
+    command: mvn -Ptest-tcc test
 
   test-fig3a:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -98,10 +112,12 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
+    depends_on:
+      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
-      - ./simulator:/simulator
-    command: sh -c "mvn -f /simulator/pom.xml clean install && mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'sequential update name in course execution and then add student as tournament participant'"
+      - mavencache:/root/.m2
+    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'sequential update name in course execution and then add student as tournament participant'
 
   test-fig3b:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -109,10 +125,12 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
+    depends_on:
+      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
-      - ./simulator:/simulator
-    command: sh -c "mvn -f /simulator/pom.xml clean install && mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'sequential add student as tournament participant and then update name in course execution'"
+      - mavencache:/root/.m2
+    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'sequential add student as tournament participant and then update name in course execution'
 
   test-fig3c:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -120,10 +138,12 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
+    depends_on:
+      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
-      - ./simulator:/simulator
-    command: sh -c "mvn -f /simulator/pom.xml clean install && mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add student as tournament participant and update name in course execution - add student finishes first'"
+      - mavencache:/root/.m2
+    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add student as tournament participant and update name in course execution - add student finishes first'
 
   test-fig3d:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -131,10 +151,12 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
+    depends_on:
+      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
-      - ./simulator:/simulator
-    command: sh -c "mvn -f /simulator/pom.xml clean install && mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add student as tournament participant and update name in course execution - update name finishes first'"
+      - mavencache:/root/.m2
+    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add student as tournament participant and update name in course execution - update name finishes first'
 
   test-fig4:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -142,7 +164,12 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
+    depends_on:
+      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
-      - ./simulator:/simulator
-    command: sh -c "mvn -f /simulator/pom.xml clean install && mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add creator as tournament participant and update name in course execution - update name finishes first and event processing starts before add creator finishes'"
+      - mavencache:/root/.m2
+    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add creator as tournament participant and update name in course execution - update name finishes first and event processing starts before add creator finishes'
+
+volumes:
+  mavencache:
