@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
@@ -131,4 +132,41 @@ public class ExecutionPlan {
         }
         throw new IllegalArgumentException("Step with name: " + stepName + " not found.");
     }
+
+  public CompletableFuture<Void> executeWithControl(UnitOfWork unitOfWork, int[] steps) {
+    int planSize = plan.size();
+    int stepCount = steps.length;
+
+    // Initialize futures for steps with no dependencies
+    for (int i = 0; i < planSize; i++) {
+        FlowStep step = plan.get(i);
+        if (steps[i % stepCount] == 1) { // Execute only if allowed by steps mask
+            if (dependencies.get(step).isEmpty()) {
+                this.stepFutures.put(step, step.execute(unitOfWork));
+                executedSteps.put(step, true);
+            }
+        }
+    }
+
+    // Execute steps based on dependencies
+    for (int i = 0; i < planSize; i++) {
+        FlowStep step = plan.get(i);
+        if (!this.stepFutures.containsKey(step) && steps[i % stepCount] == 1) { // Only execute if enabled
+            ArrayList<FlowStep> deps = dependencies.get(step);
+            CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(
+                deps.stream()
+                    .map(this.stepFutures::get)
+                    .filter(Objects::nonNull) // Ensure dependencies exist
+                    .toArray(CompletableFuture[]::new)
+            );
+            this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork)));
+        }
+    }
+
+    // Wait for all executed steps to complete
+    return CompletableFuture.allOf(
+        this.stepFutures.values().toArray(new CompletableFuture[0])
+    );
+}
+
 }

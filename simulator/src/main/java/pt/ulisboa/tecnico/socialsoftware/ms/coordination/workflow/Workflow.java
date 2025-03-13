@@ -124,4 +124,33 @@ public abstract class Workflow {
             throw e;
         }
     }
+
+    public CompletableFuture<Void> executeWithControl(UnitOfWork unitOfWork, int[] steps){
+        logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+
+        this.executionPlan = planOrder(this.stepsWithDependencies);
+        try {
+            return executionPlan.executeWithControl(unitOfWork, steps)
+                .thenRun(() -> {
+                    unitOfWorkService.commit(unitOfWork);
+                    logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+
+                })
+                .exceptionally(ex -> {
+                    Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
+    
+                    unitOfWorkService.abort(unitOfWork);
+                    logger.info("ABORT EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+
+                    if (cause instanceof SimulatorException) {
+                        throw (SimulatorException) cause;
+                    } else {
+                        throw new RuntimeException(cause);  
+                    }
+                });
+        } catch (SimulatorException e) {
+            unitOfWorkService.abort(unitOfWork);
+            throw e;
+        }
+    }
 }
