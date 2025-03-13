@@ -32,6 +32,11 @@ docker compose up quizzes-tcc
 ```
 
 * Running Tests: Simulator Sagas, Quizzes Sagas, Quizzes TCC
+
+  * Run build-simulator first
+  ```
+  docker compose up build-simulator
+  ```
 ```
 docker compose up test-simulator-sagas
 docker compose up test-quizzes-sagas

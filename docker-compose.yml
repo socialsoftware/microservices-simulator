@@ -86,8 +86,6 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
-    depends_on:
-      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
       - mavencache:/root/.m2
@@ -99,8 +97,6 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
-    depends_on:
-      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
       - mavencache:/root/.m2
@@ -112,8 +108,6 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
-    depends_on:
-      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
       - mavencache:/root/.m2
@@ -125,8 +119,6 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
-    depends_on:
-      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
       - mavencache:/root/.m2
@@ -138,8 +130,6 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
-    depends_on:
-      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
       - mavencache:/root/.m2
@@ -151,8 +141,6 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
-    depends_on:
-      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
       - mavencache:/root/.m2
@@ -164,8 +152,6 @@ services:
     stdin_open: true
     tty: true
     working_dir: /quizzes
-    depends_on:
-      - build-simulator
     volumes:
       - ./applications/quizzes:/quizzes
       - mavencache:/root/.m2
