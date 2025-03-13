@@ -117,7 +117,7 @@ public class TournamentFunctionalities {
                         tournamentService, courseExecutionService, sagaUnitOfWorkService,
                         tournamentAggregateId, executionAggregateId, userAggregateId, sagaUnitOfWork);
 
-                addParticipantFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                addParticipantFunctionalitySagas.executeWorkflowWithControl(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
@@ -125,7 +125,7 @@ public class TournamentFunctionalities {
                         eventService, tournamentEventHandling, tournamentService, courseExecutionService, causalUnitOfWorkService,
                         tournamentAggregateId, userAggregateId, causalUnitOfWork);
 
-                addParticipantFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                addParticipantFunctionalityTCC.executeWorkflowWithControl(causalUnitOfWork);
                 break;
             default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
@@ -323,7 +323,7 @@ public class TournamentFunctionalities {
 
                 FindTournamentFunctionalitySagas findTournamentFunctionalitySagas = new FindTournamentFunctionalitySagas(tournamentService, sagaUnitOfWorkService, tournamentAggregateId, sagaUnitOfWork);
 
-                findTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                findTournamentFunctionalitySagas.executeWorkflowWithControl(sagaUnitOfWork);
                 return findTournamentFunctionalitySagas.getTournamentDto();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
@@ -331,7 +331,7 @@ public class TournamentFunctionalities {
                 FindTournamentFunctionalityTCC findTournamentFunctionalityTCC = new FindTournamentFunctionalityTCC(
                         tournamentService, causalUnitOfWorkService, tournamentAggregateId, causalUnitOfWork);
 
-                findTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                findTournamentFunctionalityTCC.executeWorkflowWithControl(causalUnitOfWork);
                 return findTournamentFunctionalityTCC.getTournamentDto();
             default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }

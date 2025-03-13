@@ -125,12 +125,12 @@ public abstract class Workflow {
         }
     }
 
-    public CompletableFuture<Void> executeWithControl(UnitOfWork unitOfWork, int[] steps){
+    public CompletableFuture<Void> executeWithControl(UnitOfWork unitOfWork){
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
 
         this.executionPlan = planOrder(this.stepsWithDependencies);
         try {
-            return executionPlan.executeWithControl(unitOfWork, steps)
+            return executionPlan.executeWithControl(unitOfWork)
                 .thenRun(() -> {
                     unitOfWorkService.commit(unitOfWork);
                     logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());

@@ -133,9 +133,10 @@ public class ExecutionPlan {
         throw new IllegalArgumentException("Step with name: " + stepName + " not found.");
     }
 
-  public CompletableFuture<Void> executeWithControl(UnitOfWork unitOfWork, int[] steps) {
+  public CompletableFuture<Void> executeWithControl(UnitOfWork unitOfWork) {
     int planSize = plan.size();
     int stepCount = steps.length;
+    int[] steps = {1, 1};
 
     // Initialize futures for steps with no dependencies
     for (int i = 0; i < planSize; i++) {
@@ -145,6 +146,16 @@ public class ExecutionPlan {
                 this.stepFutures.put(step, step.execute(unitOfWork));
                 executedSteps.put(step, true);
             }
+            else {
+                ArrayList<FlowStep> deps = dependencies.get(step);
+                CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(
+                    deps.stream()
+                        .map(this.stepFutures::get)
+                        .filter(Objects::nonNull) // Ensure dependencies exist
+                        .toArray(CompletableFuture[]::new)
+                );
+                this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork)));
+            }    
         }
     }
 
