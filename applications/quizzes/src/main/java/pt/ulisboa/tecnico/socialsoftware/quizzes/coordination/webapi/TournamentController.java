@@ -41,6 +41,18 @@ public class TournamentController {
         return tournamentFunctionalities.findTournament(tournamentAggregateId);
     }
 
+    /* 
+    @PostMapping(value = "/tournaments/{tournamentAggregateId}/join")
+    public void joinTournament(@PathVariable Integer tournamentAggregateId, @RequestParam Integer executionAggregateId, @RequestParam Integer userAggregateId, @RequestParam int[] steps) throws Exception {
+        tournamentFunctionalities.addParticipant(tournamentAggregateId, executionAggregateId, userAggregateId, steps);
+    }
+
+    @GetMapping(value = "/tournaments/{tournamentAggregateId}")
+    public TournamentDto findTournament(@PathVariable Integer tournamentAggregateId, @RequestParam int[] steps) {
+        return tournamentFunctionalities.findTournament(tournamentAggregateId, steps);
+    }
+    */
+    
     @PostMapping(value = "/tournaments/{tournamentAggregateId}/solveQuiz")
     public QuizDto solveQuiz(@PathVariable Integer tournamentAggregateId, @RequestParam Integer userAggregateId) throws Exception {
         return tournamentFunctionalities.solveQuiz(tournamentAggregateId, userAggregateId);

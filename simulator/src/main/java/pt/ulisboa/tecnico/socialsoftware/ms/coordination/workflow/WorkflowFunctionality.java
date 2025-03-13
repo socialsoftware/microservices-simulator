@@ -44,9 +44,9 @@ public abstract class WorkflowFunctionality {
         
     }
 
-    public void executeWorkflowWithControl(UnitOfWork unitOfWork) {
+    public void executeWorkflowWithControl(UnitOfWork unitOfWork, int[] steps) {
         try {
-            workflow.executeWithControl(unitOfWork).join();
+            workflow.executeWithControl(unitOfWork,steps).join();
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
             if (cause instanceof SimulatorException) {

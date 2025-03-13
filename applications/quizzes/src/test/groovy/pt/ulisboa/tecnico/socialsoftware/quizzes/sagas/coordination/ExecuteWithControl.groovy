@@ -83,6 +83,7 @@ class ExecuteWithControlTest extends QuizzesSpockTest {
         tournamentEventHandling.handleAnonymizeStudentEvents()
 
         when: 'a student is added to a tournament'
+        def list = [1, 1, 1]
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
         then: 'fails because tournament is inactive'
