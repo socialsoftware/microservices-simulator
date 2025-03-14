@@ -83,8 +83,8 @@ class ExecuteWithControlTest extends QuizzesSpockTest {
         tournamentEventHandling.handleAnonymizeStudentEvents()
 
         when: 'a student is added to a tournament'
-        def list = [1, 1, 1]
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
+        def list = [1, 1, 1] as int[]
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), list)
 
         then: 'fails because tournament is inactive'
         def error = thrown(SimulatorException)
@@ -95,7 +95,7 @@ class ExecuteWithControlTest extends QuizzesSpockTest {
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == ANONYMOUS
         courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.username == ANONYMOUS
         and: 'the tournament is inactive and the creator anonymized'
-        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId(), list)
         tournamentDtoResult.state == Aggregate.AggregateState.INACTIVE.toString()
         tournamentDtoResult.creator.name == ANONYMOUS
         tournamentDtoResult.creator.username == ANONYMOUS

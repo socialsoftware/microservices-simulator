@@ -107,9 +107,9 @@ public class TournamentFunctionalities {
         }
     }
 
-    public void addParticipant(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId) {
+    public void addParticipant(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId, int[] steps) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        int[] steps = new int[]{1, 1, 1};
+        //int[] steps = new int[]{1, 1, 1};
 
         switch (workflowType) {
             case SAGAS:
@@ -315,9 +315,9 @@ public class TournamentFunctionalities {
         }
     }
 
-    public TournamentDto findTournament(Integer tournamentAggregateId) throws QuizzesException {
+    public TournamentDto findTournament(Integer tournamentAggregateId, int[] steps) throws QuizzesException {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        int[] steps = new int[]{1, 1, 1};
+        //int[] steps = new int[]{1, 1, 1};
 
         switch (workflowType) {
             case SAGAS:

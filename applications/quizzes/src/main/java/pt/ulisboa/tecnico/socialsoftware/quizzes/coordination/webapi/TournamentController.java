@@ -30,7 +30,7 @@ public class TournamentController {
     public void updateTournament(@RequestParam Set<Integer> topicsId, @RequestBody TournamentDto tournamentDto) throws Exception {
         tournamentFunctionalities.updateTournament(tournamentDto, topicsId);
     }
-
+    /* 
     @PostMapping(value = "/tournaments/{tournamentAggregateId}/join")
     public void joinTournament(@PathVariable Integer tournamentAggregateId, @RequestParam Integer executionAggregateId, @RequestParam Integer userAggregateId) throws Exception {
         tournamentFunctionalities.addParticipant(tournamentAggregateId, executionAggregateId, userAggregateId);
@@ -41,7 +41,7 @@ public class TournamentController {
         return tournamentFunctionalities.findTournament(tournamentAggregateId);
     }
 
-    /* 
+    */ 
     @PostMapping(value = "/tournaments/{tournamentAggregateId}/join")
     public void joinTournament(@PathVariable Integer tournamentAggregateId, @RequestParam Integer executionAggregateId, @RequestParam Integer userAggregateId, @RequestParam int[] steps) throws Exception {
         tournamentFunctionalities.addParticipant(tournamentAggregateId, executionAggregateId, userAggregateId, steps);
@@ -51,7 +51,7 @@ public class TournamentController {
     public TournamentDto findTournament(@PathVariable Integer tournamentAggregateId, @RequestParam int[] steps) {
         return tournamentFunctionalities.findTournament(tournamentAggregateId, steps);
     }
-    */
+    
     
     @PostMapping(value = "/tournaments/{tournamentAggregateId}/solveQuiz")
     public QuizDto solveQuiz(@PathVariable Integer tournamentAggregateId, @RequestParam Integer userAggregateId) throws Exception {
