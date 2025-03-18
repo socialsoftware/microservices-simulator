@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.ExecutionPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Workflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 
 public class SagaWorkflow extends Workflow {
     public SagaWorkflow(WorkflowFunctionality functionality, UnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {

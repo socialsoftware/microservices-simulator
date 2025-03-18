@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork;
+package pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ;
 import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED;

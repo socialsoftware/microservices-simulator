@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.answer.AnswerQuestionFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.answer.ConcludeQuizFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.answer.StartQuizFunctionalityTCC;
@@ -22,8 +22,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.Quiz
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.AnswerQuestionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.ConcludeQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.StartQuizFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;

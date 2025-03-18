@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork;
+package pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork;
 
 import java.util.ArrayList;
 import java.util.Collections;

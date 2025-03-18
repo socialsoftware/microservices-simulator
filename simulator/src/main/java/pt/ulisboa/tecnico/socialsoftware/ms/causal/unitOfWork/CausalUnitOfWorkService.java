@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork;
+package pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.AGGREGATE_DELETED;
 import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.AGGREGATE_NOT_FOUND;

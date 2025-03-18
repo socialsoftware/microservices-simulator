@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unityOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.AddStudentFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.AnonymizeStudentFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.CreateCourseExecutionFunctionalityTCC;
@@ -40,8 +40,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.Ge
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.RemoveCourseExecutionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.RemoveStudentFromCourseExecutionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 
 @Service
 public class CourseExecutionFunctionalities {

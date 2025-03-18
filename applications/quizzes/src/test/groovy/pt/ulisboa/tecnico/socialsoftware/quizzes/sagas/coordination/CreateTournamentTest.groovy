@@ -20,7 +20,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.Us
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaCourseExecution
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaTopic
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

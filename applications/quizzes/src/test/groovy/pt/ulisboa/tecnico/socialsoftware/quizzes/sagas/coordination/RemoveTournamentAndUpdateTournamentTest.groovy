@@ -25,7 +25,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaQuiz
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaTournament
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 
 
 @DataJpaTest

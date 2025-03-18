@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.AsyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unityOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 
 public class SagaAsyncStep extends AsyncStep implements SagaStep {
     private Runnable compensationLogic;
