@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
@@ -100,8 +101,16 @@ public abstract class Workflow {
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
 
         this.executionPlan = planOrder(this.stepsWithDependencies);
+        boolean hasBehaviorFiles = checkForBehaviorFiles();
+        CompletableFuture<Void> executionFuture;
+
         try {
-            return executionPlan.execute(unitOfWork)
+            if (hasBehaviorFiles)
+                executionFuture = executionPlan.executeWithBehavior(unitOfWork);
+            else
+                executionFuture = executionPlan.execute(unitOfWork);
+
+            return executionFuture
                 .thenRun(() -> {
                     unitOfWorkService.commit(unitOfWork);
                     logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
@@ -123,5 +132,10 @@ public abstract class Workflow {
             unitOfWorkService.abort(unitOfWork);
             throw e;
         }
+    }
+
+    private boolean checkForBehaviorFiles() {
+        File behaviorDir = new File("simulator/src/main/resources/behaviour");
+        return behaviorDir.exists() && behaviorDir.isDirectory() && behaviorDir.list().length > 0;
     }
 }

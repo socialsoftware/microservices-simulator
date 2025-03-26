@@ -78,17 +78,29 @@ public class ExecutionPlan {
         
         Map<String, List<Integer>> behaviour = readStepsFile("behaviour/BehaviourTest.csv");
         System.out.println(behaviour);
+        String stepName;
+
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
-            if (dependencies.get(step).isEmpty()) {
-                this.stepFutures.put(step, step.execute(unitOfWork)); // execute and save the steps with no dependencies
-                executedSteps.put(step, true);
+            stepName = step.getName();
+
+            if (behaviour.containsKey(stepName) && !behaviour.get(stepName).isEmpty() && behaviour.get(stepName).get(0) == 1) {
+                if (dependencies.get(step).isEmpty()) {
+                    this.stepFutures.put(step, step.execute(unitOfWork)); // execute and save the steps with no dependencies
+                    executedSteps.put(step, true);
+                }
             }
         }
 
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
-            if (!this.stepFutures.containsKey(step)) { // if the step has dependencies
+            stepName = step.getName();
+
+            if (!this.stepFutures.containsKey(step) && 
+                behaviour.containsKey(stepName) && 
+                !behaviour.get(stepName).isEmpty() && 
+                behaviour.get(stepName).get(0) == 1) { // if the step has dependencies
+                    
                 ArrayList<FlowStep> deps = dependencies.get(step); // get all dependencies
                 CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
                     deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
@@ -100,6 +112,7 @@ public class ExecutionPlan {
         // Wait for all steps to complete
         return CompletableFuture.allOf(this.stepFutures.values().toArray(new CompletableFuture[0]));
     }
+    
     
 
     public CompletableFuture<Void> executeSteps(List<FlowStep> steps, UnitOfWork unitOfWork) {
@@ -166,7 +179,7 @@ public class ExecutionPlan {
         Map<String, List<Integer>> stepsMap = new LinkedHashMap<>();
 
         // Load file from resources
-        try (InputStream inputStream = ResourceFileReader.class.getClassLoader().getResourceAsStream(fileName);
+        try (InputStream inputStream = ExecutionPlan.class.getClassLoader().getResourceAsStream(fileName);
              BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(inputStream)))) {
 
             String line;
@@ -179,14 +192,14 @@ public class ExecutionPlan {
                             Integer.parseInt(parts[2]),
                             Integer.parseInt(parts[3])
                     );
-                    dataMap.put(key, values);
+                    stepsMap.put(key, values);
                 }
             }
         } catch (IOException | NullPointerException e) {
             e.printStackTrace();
         }
 
-        return dataMap;
+        return stepsMap;
     }
 }
 

@@ -8,9 +8,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.user.CreateUserFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.user.*
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.FunctionalityFactory
 
 @DataJpaTest
 class SimpleTest extends QuizzesSpockTest {
@@ -21,8 +20,6 @@ class SimpleTest extends QuizzesSpockTest {
 
     @Autowired
     private UserService userService
-    
-    private FunctionalityFactory functionalityFactory
     
     private UserDto userDto
 
@@ -36,20 +33,18 @@ class SimpleTest extends QuizzesSpockTest {
         userDto.setRole("STUDENT")
 
         and: 'a unit of work for adding participant'
-        def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
+        def functionalityName2 = CreateUserFunctionalitySagas.class.getSimpleName()
         unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
-        and: 'functionality factory'
-        functionalityFactory = new FunctionalityFactory()
     }
     def 'add participant' () {
 
         when: 'execute createuser functionality'
         def CreateUserFunctionality = new CreateUserFunctionalitySagas(userService, unitOfWorkService, userDto, unitOfWork2);
-        CreateUserFunctionality.execute();
+        CreateUserFunctionality.executeWorkflow(unitOfWork2);
         
-        then: 'check for any exception and capture details'
-        def exception = notThrown(Exception)
+        then: 'no exceptions occur (just to verify it runs)'
+        notThrown(Exception);
     }
 
    @TestConfiguration
