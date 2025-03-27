@@ -84,7 +84,7 @@ public class ExecutionPlan {
             stepName = step.getName();
             System.out.println("Step: " + stepName +","+ behaviour.get(stepName));
 
-            if ((behaviour.containsKey(stepName) && behaviour.get(stepName).get(0) == 1) || !behaviour.containsKey(stepName)) {
+            if (!behaviour.containsKey(stepName) || behaviour.get(stepName).get(0) == 1) {
                 
                 if (dependencies.get(step).isEmpty()) {
                     System.out.println("Executing step: " + step.getName());
@@ -98,7 +98,7 @@ public class ExecutionPlan {
         for (FlowStep step: plan) {
             stepName = step.getName();
             System.out.println("Step: " + stepName +","+ behaviour.get(stepName));
-            if((behaviour.containsKey(stepName) && behaviour.get(stepName).get(0) == 1) || !behaviour.containsKey(stepName)){
+            if (!behaviour.containsKey(stepName) || behaviour.get(stepName).get(0) == 1) {
                 if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies      
                     
                     System.out.println("Executing step: " + step.getName());       
