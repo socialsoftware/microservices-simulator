@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
@@ -135,7 +136,7 @@ public abstract class Workflow {
     }
 
     private boolean checkForBehaviorFiles() {
-        File behaviorDir = new File("simulator/src/main/resources/behaviour");
-        return behaviorDir.exists() && behaviorDir.isDirectory() && behaviorDir.list().length > 0;
+        InputStream is = getClass().getClassLoader().getResourceAsStream("behaviour/BehaviourTest.csv");
+        return is != null;
     }
 }
