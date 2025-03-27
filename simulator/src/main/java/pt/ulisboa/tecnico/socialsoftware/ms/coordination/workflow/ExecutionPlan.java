@@ -87,10 +87,8 @@ public class ExecutionPlan {
                 if (!behaviour.containsKey(stepName) || behaviour.get(stepName).get(0) == 1) {
                     
                     if (dependencies.get(step).isEmpty()) {
-                        System.out.println("Executing delay " + behaviour.get(stepName).get(1) + " before Step: " + stepName +","+ behaviour.get(stepName));
                         Thread.sleep(behaviour.get(stepName).get(1)); // Delay before execution
                         this.stepFutures.put(step, step.execute(unitOfWork)); // Execute and save the steps with no dependencies
-                        System.out.println("Executing delay " + behaviour.get(stepName).get(2) + " after Step: " + stepName +","+ behaviour.get(stepName));
                         Thread.sleep(behaviour.get(stepName).get(2)); // Delay after execution
                         executedSteps.put(step, true);
                     }
@@ -107,11 +105,8 @@ public class ExecutionPlan {
                         CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
                             deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
                         );
-                        
-                        System.out.println("Executing delay " + behaviour.get(stepName).get(1) + " before Step: " + stepName +","+ behaviour.get(stepName));
                         Thread.sleep(behaviour.get(stepName).get(1)); // Delay before execution
                         this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // only executes after all dependencies are completed
-                        System.out.println("Executing delay " + behaviour.get(stepName).get(2) + " after Step: " + stepName +","+ behaviour.get(stepName));
                         Thread.sleep(behaviour.get(stepName).get(2)); // Delay after execution
                         executedSteps.put(step, true);
                     }
