@@ -94,6 +94,7 @@ class SimpleTest extends QuizzesSpockTest {
         given: 'add participant executes the first step'
         def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2)
         addParticipantFunctionality.executeWorkflow(unitOfWork2);
+        
         and: 'student name is updated'
         def updateNameDto = new UserDto()
         updateNameDto.setName(UPDATED_NAME)
