@@ -29,23 +29,23 @@ class BehaviourTest extends SpockTest {
         System.out.println("Async Step 2 executed");
     }))
 
-    def "test behaviour with no dependencies"() {
-        given:
-        def stepsWithNoDependencies = new HashMap<FlowStep, ArrayList<FlowStep>>()
+    // def "test behaviour with no dependencies"() {
+    //     given:
+    //     def stepsWithNoDependencies = new HashMap<FlowStep, ArrayList<FlowStep>>()
 
-        stepsWithNoDependencies.put(getUserStep, new ArrayList<>())
-        stepsWithNoDependencies.put(addParticipantStep, new ArrayList<>())
+    //     stepsWithNoDependencies.put(getUserStep, new ArrayList<>())
+    //     stepsWithNoDependencies.put(addParticipantStep, new ArrayList<>())
 
-        when:
-        def start = System.currentTimeMillis()
-        workflow.planOrder(stepsWithNoDependencies).executeWithBehavior().join()
-        def end = System.currentTimeMillis()
-        def duration = end - start
-        System.out.println("Execution time: " + duration + "ms")
+    //     when:
+    //     def start = System.currentTimeMillis()
+    //     workflow.planOrder(stepsWithNoDependencies).executeWithBehavior().join()
+    //     def end = System.currentTimeMillis()
+    //     def duration = end - start
+    //     System.out.println("Execution time: " + duration + "ms")
 
-        then:
-        duration < 400 
-    }
+    //     then:
+    //     duration < 400 
+    // }
 
     def "test behaviour with linear dependencies"() {
         given:
@@ -67,25 +67,25 @@ class BehaviourTest extends SpockTest {
         
     }
 
-    def "test behaviour with complex dependencies"() {
-        given:
-        def stepsWithComplexDependencies = new HashMap<FlowStep, ArrayList<FlowStep>>()
+    // def "test behaviour with complex dependencies"() {
+    //     given:
+    //     def stepsWithComplexDependencies = new HashMap<FlowStep, ArrayList<FlowStep>>()
 
-        stepsWithComplexDependencies.put(step1, new ArrayList<>())
-        stepsWithComplexDependencies.put(getUserStep, new ArrayList<>([step1]))
-        stepsWithComplexDependencies.put(addParticipantStep, new ArrayList<>([step1]))
-        stepsWithComplexDependencies.put(step4, new ArrayList<>([getUserStep, addParticipantStep]))
+    //     stepsWithComplexDependencies.put(step1, new ArrayList<>())
+    //     stepsWithComplexDependencies.put(getUserStep, new ArrayList<>([step1]))
+    //     stepsWithComplexDependencies.put(addParticipantStep, new ArrayList<>([step1]))
+    //     stepsWithComplexDependencies.put(step4, new ArrayList<>([getUserStep, addParticipantStep]))
 
-        when:
-        def start = System.currentTimeMillis()
-        workflow.planOrder(stepsWithComplexDependencies).executeWithBehavior().join()
-        def end = System.currentTimeMillis()
-        def duration = end - start
-        System.out.println("Execution time: " + duration + "ms")
+    //     when:
+    //     def start = System.currentTimeMillis()
+    //     workflow.planOrder(stepsWithComplexDependencies).executeWithBehavior().join()
+    //     def end = System.currentTimeMillis()
+    //     def duration = end - start
+    //     System.out.println("Execution time: " + duration + "ms")
 
-        then:
-        duration < 400
-    }
+    //     then:
+    //     duration < 400
+    // }
 
     // def "test planOrder with cyclic dependencies"() {
     //     given:

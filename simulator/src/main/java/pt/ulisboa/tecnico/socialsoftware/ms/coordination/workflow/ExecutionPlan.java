@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 
@@ -84,12 +85,16 @@ public class ExecutionPlan {
             for (FlowStep step: plan) {
                 stepName = step.getName();
 
-                if (!behaviour.containsKey(stepName) || behaviour.get(stepName).get(0) == 1) {
-                    
+                // Check if the step is in the behaviour map
+                final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : 1;
+                final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : 0;
+                final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : 0;
+
+                if(faultValue == 1) {   
                     if (dependencies.get(step).isEmpty()) {
-                        Thread.sleep(behaviour.get(stepName).get(1)); // Delay before execution
+                        Thread.sleep(delayBeforeValue); // Delay before execution
                         this.stepFutures.put(step, step.execute(unitOfWork)); // Execute and save the steps with no dependencies
-                        Thread.sleep(behaviour.get(stepName).get(2)); // Delay after execution
+                        Thread.sleep(delayAfterValue); // Delay after execution
                         executedSteps.put(step, true);
                     }
                 }
@@ -98,16 +103,25 @@ public class ExecutionPlan {
             // Execute steps based on dependencies
             for (FlowStep step: plan) {
                 stepName = step.getName();
-                if (!behaviour.containsKey(stepName) || behaviour.get(stepName).get(0) == 1) {
+                final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : 1;
+                final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : 0;
+                final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : 0;
+
+                if (faultValue == 1) {
                     if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies      
                         
                         ArrayList<FlowStep> deps = dependencies.get(step); // get all dependencies
                         CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
                             deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
                         );
-                        Thread.sleep(behaviour.get(stepName).get(1)); // Delay before execution
-                        this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // only executes after all dependencies are completed
-                        Thread.sleep(behaviour.get(stepName).get(2)); // Delay after execution
+                        this.stepFutures.put(step, combinedFuture
+                                .thenCompose(ignored -> CompletableFuture.runAsync(() -> {}, 
+                                    CompletableFuture.delayedExecutor(delayBeforeValue, TimeUnit.MILLISECONDS)))
+                                .thenCompose(ignored -> step.execute(unitOfWork))
+                                .thenCompose(result -> CompletableFuture.runAsync(() -> {}, 
+                                    CompletableFuture.delayedExecutor(delayAfterValue, TimeUnit.MILLISECONDS)))
+                        );
+                       
                         executedSteps.put(step, true);
                     }
                 }
