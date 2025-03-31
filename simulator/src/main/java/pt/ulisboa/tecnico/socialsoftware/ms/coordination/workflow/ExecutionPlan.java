@@ -92,7 +92,6 @@ public class ExecutionPlan {
                 final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : 1;
                 final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : 0;
                 final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : 0;
-
                 if(faultValue == 1) {   
                     if (dependencies.get(step).isEmpty()) {
                         Thread.sleep(delayBeforeValue); // Delay before execution
@@ -109,7 +108,6 @@ public class ExecutionPlan {
                 final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : 1;
                 final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : 0;
                 final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : 0;
-
                 if (faultValue == 1) {
                     if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies      
                         
@@ -117,13 +115,18 @@ public class ExecutionPlan {
                         CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
                             deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
                         );
+                        Thread.sleep(delayBeforeValue); // Delay before execution
+                        this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // only executes after all dependencies are completed
+                        Thread.sleep(delayAfterValue); // Delay after execution
+
+                        /* 
                         this.stepFutures.put(step, combinedFuture
                                 .thenCompose(ignored -> CompletableFuture.runAsync(() -> {}, 
                                     CompletableFuture.delayedExecutor(delayBeforeValue, TimeUnit.MILLISECONDS)))
                                 .thenCompose(ignored -> step.execute(unitOfWork))
                                 .thenCompose(result -> CompletableFuture.runAsync(() -> {}, 
                                     CompletableFuture.delayedExecutor(delayAfterValue, TimeUnit.MILLISECONDS)))
-                        );
+                        );*/
                        
                         executedSteps.put(step, true);
                     }
