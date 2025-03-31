@@ -17,6 +17,7 @@ public class ExecutionPlan {
     private HashMap<FlowStep, Boolean> executedSteps = new HashMap<>();
     private HashMap<FlowStep, CompletableFuture<Void>> stepFutures = new HashMap<>();
     private WorkflowFunctionality functionality;
+    private String functionalityName;
 
     public ExecutionPlan(ArrayList<FlowStep> plan, HashMap<FlowStep, ArrayList<FlowStep>> dependencies, WorkflowFunctionality functionality) {
         this.plan = plan;
@@ -25,6 +26,8 @@ public class ExecutionPlan {
             executedSteps.put(step, false);
         }
         this.functionality = functionality;
+        this.functionalityName = functionality.getClass().getSimpleName();
+
     }
 
     public ArrayList<FlowStep> getPlan() {
