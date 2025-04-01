@@ -23,6 +23,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.Up
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.ExecutionParametersService
+
 @DataJpaTest
 class SimpleTest extends QuizzesSpockTest {
     public static final String UPDATED_NAME = "UpdatedName"
@@ -86,6 +88,11 @@ class SimpleTest extends QuizzesSpockTest {
         def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
         unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
+
+        and: 'load execution parameters'
+        def executionParameters = new ExecutionParametersService()
+        def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
+        executionParameters.LoadDir(mavenBaseDir)
     }
 
     def cleanup() {}

@@ -133,8 +133,5 @@ public abstract class Workflow {
         }
     }
 
-    private boolean checkForBehaviorFiles() {
-        InputStream is = getClass().getClassLoader().getResourceAsStream("behaviour/BehaviourTest.csv");
-        return is != null;
-    }
+    
 }

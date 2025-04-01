@@ -10,6 +10,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.ReadStepsFile;
+
 
 public class ExecutionPlan {
     private ArrayList<FlowStep> plan;
@@ -55,7 +57,8 @@ public class ExecutionPlan {
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
 
-        Map<String, List<Integer>> behaviour = readStepsFile("behaviour/BehaviourTest.csv");
+        Map<String, List<Integer>> behaviour = ReadStepsFile.getInstance().loadStepsFile("/" + functionalityName + ".csv");
+    
         String stepName;
 
         // Initialize futures for steps with no dependencies
@@ -178,35 +181,7 @@ public class ExecutionPlan {
         throw new IllegalArgumentException("Step with name: " + stepName + " not found.");
     }
 
-    private static Map<String, List<Integer>> readStepsFile(String fileName) {
-        Map<String, List<Integer>> stepsMap = new LinkedHashMap<>();
-    
-        // Load file from resources
-        InputStream inputStream = ExecutionPlan.class.getClassLoader().getResourceAsStream(fileName);
-        if (inputStream == null) {
-            return stepsMap; // Return empty map if file is not found
-        }
-    
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(","); // Split by commas
-                if (parts.length == 4) {
-                    String key = parts[0];
-                    List<Integer> values = Arrays.asList(
-                            Integer.parseInt(parts[1]),
-                            Integer.parseInt(parts[2]),
-                            Integer.parseInt(parts[3])
-                    );
-                    stepsMap.put(key, values);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    
-        return stepsMap;
-    }
+   
     
 }
 
