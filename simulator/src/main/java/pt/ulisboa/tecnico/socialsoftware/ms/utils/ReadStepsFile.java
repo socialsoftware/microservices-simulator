@@ -1,6 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.utils;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class ReadStepsFile {
@@ -22,13 +25,16 @@ public class ReadStepsFile {
     
     public Map<String, List<Integer>> loadStepsFile(String fileName) {
         Map<String, List<Integer>> map = new LinkedHashMap<>();
-        InputStream inputStream = ReadStepsFile.class.getClassLoader().getResourceAsStream(directory+fileName);
-        if (inputStream == null) {
-            System.err.println(directory + fileName + " not found");
+        Path filePath = Paths.get(directory, fileName);
+        
+        if (!Files.exists(filePath)) {
+            System.out.println("File not found: " + filePath);
             return map;
         }
         
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+        // Read file
+        try (BufferedReader reader = Files.newBufferedReader(filePath)) {
+            System.out.println("Reading file: " + filePath);
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
@@ -45,6 +51,7 @@ public class ReadStepsFile {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         return map;
     }
 }

@@ -57,6 +57,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.servic
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.UserFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService
 
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.ExecutionParametersService
+
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
 class BeanConfigurationSagas {
@@ -269,4 +271,9 @@ class BeanConfigurationSagas {
     TournamentEventHandling tournamentEventDetection() {
         return new TournamentEventHandling()
     }
+
+    @Bean
+    ExecutionParametersService executionParametersService() {
+    return new ExecutionParametersService();
+}
 }

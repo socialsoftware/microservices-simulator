@@ -56,9 +56,10 @@ public class ExecutionPlan {
     }
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-
         Map<String, List<Integer>> behaviour = ReadStepsFile.getInstance().loadStepsFile("/" + functionalityName + ".csv");
-    
+        if (!behaviour.isEmpty()) {
+            behaviour.forEach((key, value) -> System.out.println(key + " -> " + value));
+        }
         String stepName;
 
         // Initialize futures for steps with no dependencies
