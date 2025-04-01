@@ -102,14 +102,12 @@ public abstract class Workflow {
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
 
         this.executionPlan = planOrder(this.stepsWithDependencies);
-        boolean hasBehaviorFiles = checkForBehaviorFiles();
+        
         CompletableFuture<Void> executionFuture;
 
         try {
-            if (hasBehaviorFiles)
-                executionFuture = executionPlan.executeWithBehavior(unitOfWork);
-            else
-                executionFuture = executionPlan.execute(unitOfWork);
+            
+            executionFuture = executionPlan.execute(unitOfWork);
 
             return executionFuture
                 .thenRun(() -> {
