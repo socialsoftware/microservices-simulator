@@ -56,7 +56,7 @@ public class ExecutionPlan {
     }
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-        Map<String, List<Integer>> behaviour = ReadStepsFile.getInstance().loadStepsFile("/" + functionalityName + ".csv");
+        Map<String, List<Integer>> behaviour = ReadStepsFile.getInstance().loadStepsFile(functionalityName);
         if (!behaviour.isEmpty()) {
             behaviour.forEach((key, value) -> System.out.println(key + " -> " + value));
         }

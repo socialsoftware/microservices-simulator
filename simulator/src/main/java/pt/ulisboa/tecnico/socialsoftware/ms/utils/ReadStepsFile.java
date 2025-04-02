@@ -8,7 +8,7 @@ import java.util.*;
 
 public class ReadStepsFile {
     private static ReadStepsFile instance;
-    private static Map<String, Integer> funcCounter;
+    private static Map<String, Integer> funcCounter = new HashMap<>();
     private static String directory;
 
 
@@ -22,36 +22,68 @@ public class ReadStepsFile {
     public static void setDirectory(String dir) {
         directory = dir;
     }
+
     
-    public Map<String, List<Integer>> loadStepsFile(String fileName) {
+    public Map<String, List<Integer>> loadStepsFile(String funcName) {
         Map<String, List<Integer>> map = new LinkedHashMap<>();
-        Path filePath = Paths.get(directory, fileName);
-        
+        Path filePath = Paths.get(directory, funcName + ".csv");
         if (!Files.exists(filePath)) {
             System.out.println("File not found: " + filePath);
             return map;
         }
-        
-        // Read file
-        try (BufferedReader reader = Files.newBufferedReader(filePath)) {
-            System.out.println("Reading file: " + filePath);
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length == 4) {
-                    String key = parts[0];
+        int functionalityCounter = getFuncionalityCounter(funcName);
+        try {
+            List<String[]> block = parseCSVForBlock(filePath, functionalityCounter);
+            if (block.isEmpty()) {
+                System.out.println("Block " + functionalityCounter + " not found.");
+            } else {
+                System.out.println("Selected Block " + functionalityCounter + " for functionality " + funcName + ":");
+                for (String[] row : block) {
+                    String key = row[0];
                     List<Integer> values = Arrays.asList(
-                        Integer.parseInt(parts[1]),
-                        Integer.parseInt(parts[2]),
-                        Integer.parseInt(parts[3])
-                    );
-                    map.put(key, values);
+                        Integer.parseInt(row[1]),
+                        Integer.parseInt(row[2]),
+                        Integer.parseInt(row[3])
+                        );
+                        map.put(key, values);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }     
+        return map;
+    }
+    
+    private synchronized int getFuncionalityCounter(String functionality) {
+        return funcCounter.compute(functionality, (k, v) -> (v == null) ? 1 : v + 1);
+    }
+
+    public static List<String[]> parseCSVForBlock(Path filePath, int targetBlock) throws IOException {
+        List<String[]> currentBlock = new ArrayList<>();
+
+        int blockNumber = 1; // Track block numbers
+
+        try (BufferedReader br = Files.newBufferedReader(filePath)) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+
+                if (line.isEmpty()) { 
+                    if (!currentBlock.isEmpty()) {
+                        if (blockNumber == targetBlock) {
+                            return new ArrayList<>(currentBlock);
+                        }
+                        currentBlock.clear();
+                        blockNumber++;
+                    }
+                } else {
+                    currentBlock.add(line.split(","));
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+            if (!currentBlock.isEmpty() && blockNumber == targetBlock) {
+                return currentBlock;
+            }
         }
-
-        return map;
+        return new ArrayList<>(); // Return an empty list if the block is not found
     }
 }

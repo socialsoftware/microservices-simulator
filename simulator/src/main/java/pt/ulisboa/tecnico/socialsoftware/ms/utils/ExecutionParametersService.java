@@ -7,7 +7,7 @@ public class ExecutionParametersService {
     private static String directory;
 
     public void LoadDir(String dir) {
-        directory = dir + "/src/test/resources";
+        directory = dir + "/src/test/resources/";
         ReadStepsFile.getInstance();
         ReadStepsFile.setDirectory(directory);
     }
