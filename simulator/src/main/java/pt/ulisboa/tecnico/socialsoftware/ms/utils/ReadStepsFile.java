@@ -32,6 +32,7 @@ public class ReadStepsFile {
             return map;
         }
         int functionalityCounter = getFuncionalityCounter(funcName);
+        System.out.println("Functionality " + funcName + " has been called " + functionalityCounter + " times.");
         try {
             List<String[]> block = parseCSVForBlock(filePath, functionalityCounter);
             if (block.isEmpty()) {
@@ -85,5 +86,9 @@ public class ReadStepsFile {
             }
         }
         return new ArrayList<>(); // Return an empty list if the block is not found
+    }
+
+    public void cleanUp() {
+        funcCounter.clear();
     }
 }
