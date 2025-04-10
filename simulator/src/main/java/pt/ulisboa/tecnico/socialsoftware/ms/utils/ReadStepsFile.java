@@ -26,6 +26,10 @@ public class ReadStepsFile {
     
     public Map<String, List<Integer>> loadStepsFile(String funcName) {
         Map<String, List<Integer>> map = new LinkedHashMap<>();
+        if (directory == null) {
+            System.out.println("Directory not set. Please set the directory first. Directory: " + directory);
+            return map;
+        }
         Path filePath = Paths.get(directory, funcName + ".csv");
         if (!Files.exists(filePath)) {
             System.out.println("File not found: " + filePath);
