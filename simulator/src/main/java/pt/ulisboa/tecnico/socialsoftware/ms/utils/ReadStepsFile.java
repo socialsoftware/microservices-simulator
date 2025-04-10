@@ -65,32 +65,32 @@ public class ReadStepsFile {
 
     public static List<String[]> parseCSVForBlock(Path filePath, int targetBlock) throws IOException {
         List<String[]> currentBlock = new ArrayList<>();
-
-        int blockNumber = 1; // Track block numbers
-
+        int blockNumber = 0;
+    
         try (BufferedReader br = Files.newBufferedReader(filePath)) {
             String line;
             while ((line = br.readLine()) != null) {
                 line = line.trim();
+    
+                if (line.equalsIgnoreCase("run")) {
+                    blockNumber++;
 
-                if (line.isEmpty()) { 
-                    if (!currentBlock.isEmpty()) {
-                        if (blockNumber == targetBlock) {
-                            return new ArrayList<>(currentBlock);
-                        }
-                        currentBlock.clear();
-                        blockNumber++;
-                    }
                 } else {
-                    currentBlock.add(line.split(","));
+                    if (blockNumber == targetBlock && !line.isEmpty()) {
+                        currentBlock.add(line.split(","));
+                    }
+        
+                    if (blockNumber > targetBlock) {
+                        break; 
+                    }
                 }
             }
-            if (!currentBlock.isEmpty() && blockNumber == targetBlock) {
-                return currentBlock;
-            }
         }
-        return new ArrayList<>(); // Return an empty list if the block is not found
+    
+        return currentBlock;
     }
+    
+    
 
     public void cleanUp() {
         funcCounter.clear();
