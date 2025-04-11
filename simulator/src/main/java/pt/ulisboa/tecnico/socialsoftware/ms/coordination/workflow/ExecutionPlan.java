@@ -56,10 +56,12 @@ public class ExecutionPlan {
     }
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
+
         Map<String, List<Integer>> behaviour = ReadStepsFile.getInstance().loadStepsFile(functionalityName);
         if (!behaviour.isEmpty()) {
             behaviour.forEach((key, value) -> System.out.println(key + " -> " + value));
         }
+        reportSteps(behaviour);
         String stepName;
 
         // Initialize futures for steps with no dependencies
@@ -97,16 +99,6 @@ public class ExecutionPlan {
                         Thread.sleep(delayBeforeValue); // Delay before execution
                         this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // only executes after all dependencies are completed
                         Thread.sleep(delayAfterValue); // Delay after execution
-
-                        /* 
-                        this.stepFutures.put(step, combinedFuture
-                                .thenCompose(ignored -> CompletableFuture.runAsync(() -> {}, 
-                                    CompletableFuture.delayedExecutor(delayBeforeValue, TimeUnit.MILLISECONDS)))
-                                .thenCompose(ignored -> step.execute(unitOfWork))
-                                .thenCompose(result -> CompletableFuture.runAsync(() -> {}, 
-                                    CompletableFuture.delayedExecutor(delayAfterValue, TimeUnit.MILLISECONDS)))
-                        );*/
-                       
                         executedSteps.put(step, true);
                     }
                 }
@@ -117,6 +109,26 @@ public class ExecutionPlan {
 
         // Wait for all steps to complete
         return CompletableFuture.allOf(this.stepFutures.values().toArray(new CompletableFuture[0]));
+    }
+
+    private void reportSteps(Map<String, List<Integer>> behaviour) {
+        List<String> commonSteps = new ArrayList<>();
+        List<String> misMatchSteps = new ArrayList<>();
+        for (FlowStep step : plan) {
+            String stepName = step.getName();
+            if (behaviour.containsKey(stepName))
+                commonSteps.add(stepName);
+        }
+        for (String step: behaviour.keySet()) {
+            if (!commonSteps.contains(step)) {
+                misMatchSteps.add(step);
+            }
+        }
+        System.out.println("Functionality: " + functionalityName);
+        System.out.println("Behaviour: " + behaviour);
+        System.out.println("Steps: " + plan.stream().map(FlowStep::getName).collect(Collectors.toList()));
+        System.out.println("Common Steps: " + commonSteps);
+        System.out.println("Mismatch Steps: " + misMatchSteps);
     }
     
     

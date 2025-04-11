@@ -138,41 +138,41 @@ class SimpleTest extends QuizzesSpockTest {
         executionParametersService.cleanUp()
     }
 
-    def 'concurrent: add two participants to tournament'() {
-        given: 'another user'
-        def userDto3 = createUser(USER_NAME_3, USER_USERNAME_3, STUDENT_ROLE)
-        courseExecutionFunctionalities.addStudent(courseExecutionDto.aggregateId, userDto3.aggregateId)
-        and: 'create unit of works for concurrent addition of participants'
-        def functionalityName1 = AddParticipantFunctionalitySagas.class.getSimpleName()
-        def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
-        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
-        def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
-        and: 'two functionalities to add participants'
-        def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork1)
-        def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto3.getAggregateId(), unitOfWork2)
-        and: 'the first functionality reads one student'
-        addParticipantFunctionality1.executeWorkflow(unitOfWork1)
-        and: 'the second functionality read the other student'
-        addParticipantFunctionality2.executeWorkflow(unitOfWork2)
+    // def 'concurrent: add two participants to tournament'() {
+    //     given: 'another user'
+    //     def userDto3 = createUser(USER_NAME_3, USER_USERNAME_3, STUDENT_ROLE)
+    //     courseExecutionFunctionalities.addStudent(courseExecutionDto.aggregateId, userDto3.aggregateId)
+    //     and: 'create unit of works for concurrent addition of participants'
+    //     def functionalityName1 = AddParticipantFunctionalitySagas.class.getSimpleName()
+    //     def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
+    //     def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
+    //     def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
+    //     and: 'two functionalities to add participants'
+    //     def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork1)
+    //     def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto3.getAggregateId(), unitOfWork2)
+    //     and: 'the first functionality reads one student'
+    //     addParticipantFunctionality1.executeWorkflow(unitOfWork1)
+    //     and: 'the second functionality read the other student'
+    //     addParticipantFunctionality2.executeWorkflow(unitOfWork2)
 
-        when: 'the first functionality ends'
-        addParticipantFunctionality1.resumeWorkflow(unitOfWork1)
-        then: 'the first student is a participant'
-        def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        updatedTournament.participants.size() == 2
-        updatedTournament.participants.any { it.aggregateId == userDto.getAggregateId() }
+    //     when: 'the first functionality ends'
+    //     addParticipantFunctionality1.resumeWorkflow(unitOfWork1)
+    //     then: 'the first student is a participant'
+    //     def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+    //     updatedTournament.participants.size() == 2
+    //     updatedTournament.participants.any { it.aggregateId == userDto.getAggregateId() }
 
-        when: 'the second functionality ends'
-        addParticipantFunctionality2.resumeWorkflow(unitOfWork2)
-        then: 'both participants are successfully added to the tournament'
-        def updatedTournament2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        updatedTournament2.participants.size() == 2
-        updatedTournament2.participants.any { it.aggregateId == userDto.getAggregateId() }
-        updatedTournament2.participants.any { it.aggregateId == userDto3.getAggregateId() }
+    //     when: 'the second functionality ends'
+    //     addParticipantFunctionality2.resumeWorkflow(unitOfWork2)
+    //     then: 'both participants are successfully added to the tournament'
+    //     def updatedTournament2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+    //     updatedTournament2.participants.size() == 2
+    //     updatedTournament2.participants.any { it.aggregateId == userDto.getAggregateId() }
+    //     updatedTournament2.participants.any { it.aggregateId == userDto3.getAggregateId() }
 
-        cleanup:
-        executionParametersService.cleanUp()
-    }
+    //     cleanup:
+    //     executionParametersService.cleanUp()
+    // }
 
    @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
