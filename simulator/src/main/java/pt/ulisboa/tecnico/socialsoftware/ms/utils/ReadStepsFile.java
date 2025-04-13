@@ -98,6 +98,10 @@ public class ReadStepsFile {
             System.out.println("Directory not set. Please set the directory first.");
             return;
         }
+        if(content == null || content.isEmpty()) {
+            System.out.println("Content is null or empty. Not appending to report.");
+            return;
+        }
     
         Path filePath = Paths.get(directory, ReportFile);
         try (BufferedWriter writer = Files.newBufferedWriter(filePath, 
@@ -116,7 +120,6 @@ public class ReadStepsFile {
     public void cleanUp() {
         funcCounter.clear();
         appendToReport("Test finished\n");
-        System.out.println("Test finished");
 
     }
 

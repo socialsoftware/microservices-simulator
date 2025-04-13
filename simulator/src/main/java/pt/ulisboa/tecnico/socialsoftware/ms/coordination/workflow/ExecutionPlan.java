@@ -124,19 +124,15 @@ public class ExecutionPlan {
                 misMatchSteps.add(step);
             }
         }
-        System.out.println("Functionality: " + functionalityName);
-        System.out.println("Behaviour: " + behaviour);
-        System.out.println("Steps: " + plan.stream().map(FlowStep::getName).collect(Collectors.toList()));
-        System.out.println("Common Steps: " + commonSteps);
-        System.out.println("Mismatch Steps: " + misMatchSteps);
-
-        StringBuilder report = new StringBuilder();
-        report.append("Functionality: ").append(functionalityName).append("\n");
-        report.append("Behaviour: ").append(behaviour).append("\n");
-        report.append("Steps: ").append(plan.stream().map(FlowStep::getName).collect(Collectors.toList())).append("\n");
-        report.append("Common Steps: ").append(commonSteps).append("\n");
-        report.append("Mismatch Steps: ").append(misMatchSteps).append("\n");
         
+        StringBuilder report = new StringBuilder();
+        if(!behaviour.isEmpty()) {
+            report.append("Functionality: ").append(functionalityName).append("\n");
+            report.append("Behaviour: ").append(behaviour).append("\n");
+            report.append("Steps: ").append(plan.stream().map(FlowStep::getName).collect(Collectors.toList())).append("\n");
+            report.append("Common Steps: ").append(commonSteps).append("\n");
+            report.append("Mismatch Steps: ").append(misMatchSteps).append("\n");
+        }
         return report.toString();
     }
     
