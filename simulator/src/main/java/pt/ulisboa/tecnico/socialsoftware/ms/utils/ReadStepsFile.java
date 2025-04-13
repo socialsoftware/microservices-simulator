@@ -115,7 +115,7 @@ public class ReadStepsFile {
 
     public void cleanUp() {
         funcCounter.clear();
-        appendToFile("Test finished\n");
+        appendToReport("Test finished\n");
         System.out.println("Test finished");
 
     }
