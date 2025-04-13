@@ -10,6 +10,7 @@ public class ReadStepsFile {
     private static ReadStepsFile instance;
     private static Map<String, Integer> funcCounter = new HashMap<>();
     private static String directory;
+    private static String ReportFile = "BehaviourReport.txt"; 
 
 
     public static synchronized ReadStepsFile getInstance() {
@@ -91,8 +92,45 @@ public class ReadStepsFile {
     }
     
     
+    public void appendToReport(String content) {
+        
+        if (directory == null) {
+            System.out.println("Directory not set. Please set the directory first.");
+            return;
+        }
+    
+        Path filePath = Paths.get(directory, ReportFile);
+        try (BufferedWriter writer = Files.newBufferedWriter(filePath, 
+                java.nio.file.StandardOpenOption.CREATE, 
+                java.nio.file.StandardOpenOption.APPEND)) {
+            writer.write(content);
+            writer.newLine(); 
+        } catch (IOException e) {
+            System.err.println("Failed to write to file: " + filePath);
+            e.printStackTrace();
+        }
+    }
+    
+
 
     public void cleanUp() {
         funcCounter.clear();
+        appendToFile("Test finished\n");
+        System.out.println("Test finished");
+
+    }
+
+    public void cleanReportFile() {
+        if (directory == null) {
+            System.out.println("Directory not set. Please set the directory first.");
+            return;
+        }
+        Path filePath = Paths.get(directory, ReportFile);
+        try {
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            System.err.println("Failed to delete file: " + filePath);
+            e.printStackTrace();
+        }
     }
 }

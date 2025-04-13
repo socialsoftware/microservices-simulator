@@ -61,7 +61,7 @@ public class ExecutionPlan {
         if (!behaviour.isEmpty()) {
             behaviour.forEach((key, value) -> System.out.println(key + " -> " + value));
         }
-        reportSteps(behaviour);
+        ReadStepsFile.getInstance().appendToReport(reportSteps(behaviour));
         String stepName;
 
         // Initialize futures for steps with no dependencies
@@ -111,7 +111,7 @@ public class ExecutionPlan {
         return CompletableFuture.allOf(this.stepFutures.values().toArray(new CompletableFuture[0]));
     }
 
-    private void reportSteps(Map<String, List<Integer>> behaviour) {
+    private String reportSteps(Map<String, List<Integer>> behaviour) {
         List<String> commonSteps = new ArrayList<>();
         List<String> misMatchSteps = new ArrayList<>();
         for (FlowStep step : plan) {
@@ -129,6 +129,15 @@ public class ExecutionPlan {
         System.out.println("Steps: " + plan.stream().map(FlowStep::getName).collect(Collectors.toList()));
         System.out.println("Common Steps: " + commonSteps);
         System.out.println("Mismatch Steps: " + misMatchSteps);
+
+        StringBuilder report = new StringBuilder();
+        report.append("Functionality: ").append(functionalityName).append("\n");
+        report.append("Behaviour: ").append(behaviour).append("\n");
+        report.append("Steps: ").append(plan.stream().map(FlowStep::getName).collect(Collectors.toList())).append("\n");
+        report.append("Common Steps: ").append(commonSteps).append("\n");
+        report.append("Mismatch Steps: ").append(misMatchSteps).append("\n");
+        
+        return report.toString();
     }
     
     

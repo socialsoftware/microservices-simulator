@@ -17,5 +17,10 @@ public class ExecutionParametersService {
         ReadStepsFile.getInstance().cleanUp();
     }
 
-    
+    public void cleanReportFile() {
+        ReadStepsFile.getInstance().cleanReportFile();
+        
+    }
+
+
 }
