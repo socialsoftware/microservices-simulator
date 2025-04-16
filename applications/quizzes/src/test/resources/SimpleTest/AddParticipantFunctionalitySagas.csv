@@ -1,6 +1,5 @@
 run
-getUserStep,1,50,30
-addParticipantStep,1,30,20
+addParticipantStp,1,30,20
 run
 getUserStep,1,40,0
 addParticipantStep,1,0,30

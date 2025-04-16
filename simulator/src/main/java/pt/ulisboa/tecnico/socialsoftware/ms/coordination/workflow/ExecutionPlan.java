@@ -12,6 +12,9 @@ import java.util.concurrent.TimeUnit;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.ReadStepsFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class ExecutionPlan {
     private ArrayList<FlowStep> plan;
@@ -20,6 +23,8 @@ public class ExecutionPlan {
     private HashMap<FlowStep, CompletableFuture<Void>> stepFutures = new HashMap<>();
     private WorkflowFunctionality functionality;
     private String functionalityName;
+
+    private static final Logger logger = LoggerFactory.getLogger(ExecutionPlan.class);
 
     public ExecutionPlan(ArrayList<FlowStep> plan, HashMap<FlowStep, ArrayList<FlowStep>> dependencies, WorkflowFunctionality functionality) {
         this.plan = plan;
@@ -114,6 +119,7 @@ public class ExecutionPlan {
     private String reportSteps(Map<String, List<Integer>> behaviour) {
         List<String> commonSteps = new ArrayList<>();
         List<String> misMatchSteps = new ArrayList<>();
+        List <String> planSteps = plan.stream().map(FlowStep::getName).collect(Collectors.toList());
         for (FlowStep step : plan) {
             String stepName = step.getName();
             if (behaviour.containsKey(stepName))
@@ -129,9 +135,21 @@ public class ExecutionPlan {
         if(!behaviour.isEmpty()) {
             report.append("Functionality: ").append(functionalityName).append("\n");
             report.append("Behaviour: ").append(behaviour).append("\n");
-            report.append("Steps: ").append(plan.stream().map(FlowStep::getName).collect(Collectors.toList())).append("\n");
+            report.append("Steps: ").append(planSteps).append("\n");
             report.append("Common Steps: ").append(commonSteps).append("\n");
             report.append("Mismatch Steps: ").append(misMatchSteps).append("\n");
+            
+            String reportString = report.toString();
+
+            logger.info( "\u001B[34m" + reportString + "\u001B[0m");
+            if (!misMatchSteps.isEmpty()) {
+                logger.error("\u001B[31m" + "Mismatch detected\n" + "\u001B[0m");
+            } if (!new HashSet<>(commonSteps).equals(new HashSet<>(planSteps))) {
+                logger.warn("\u001B[33m" + "Common steps differ from expected plan\n" + "\u001B[0m");
+            } if (misMatchSteps.isEmpty() && new HashSet<>(commonSteps).equals(new HashSet<>(planSteps))) {
+                logger.info("\u001B[32m" + "Behaviour matches expectations\n" + "\u001B[0m");
+            }
+
         }
         return report.toString();
     }
