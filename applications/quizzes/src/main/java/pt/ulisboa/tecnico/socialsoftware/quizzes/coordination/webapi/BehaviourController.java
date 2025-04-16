@@ -18,7 +18,7 @@ public class BehaviourController {
     @GetMapping(value = "/behaviour/load")
     public String load() {
         System.out.println("Behaviour load started");
-        executionParametersService.LoadDir(mavenBaseDir);
+        //executionParametersService.LoadDir(mavenBaseDir);
         System.out.println("Maven base dir: " + mavenBaseDir);
         return "OK";
     }

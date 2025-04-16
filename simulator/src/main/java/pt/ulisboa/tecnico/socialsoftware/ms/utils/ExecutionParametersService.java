@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 public class ExecutionParametersService {
     private static String directory;
 
-    public void LoadDir(String dir) {
-        directory = dir + "/src/test/resources/";
+    public void LoadDir(String dir, String testNameFile) {
+        directory = dir + "/src/test/resources/" + testNameFile + "/";
         ReadStepsFile.getInstance();
         ReadStepsFile.setDirectory(directory);
     }
