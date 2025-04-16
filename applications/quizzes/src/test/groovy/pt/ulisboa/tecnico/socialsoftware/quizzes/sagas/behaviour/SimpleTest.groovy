@@ -66,7 +66,7 @@ class SimpleTest extends QuizzesSpockTest {
         given:
         'load behaviour directory'
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
-        executionParametersService.LoadDir(mavenBaseDir, this.class.simpleName)
+        executionParametersService.LoadDir(mavenBaseDir, "groovy/" + this.class.simpleName)
         if (!initialized) {
             executionParametersService.cleanReportFile()
             initialized = true
