@@ -23,7 +23,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.Up
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.ExecutionParametersService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 
 @DataJpaTest
 class SimpleTest extends QuizzesSpockTest {
@@ -51,7 +51,7 @@ class SimpleTest extends QuizzesSpockTest {
     private TournamentEventHandling tournamentEventHandling
 
     @Autowired
-    private ExecutionParametersService executionParametersService
+    private BehaviourService behaviourService
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
@@ -65,7 +65,7 @@ class SimpleTest extends QuizzesSpockTest {
         given:
         'load behaviour directory'
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
-        executionParametersService.LoadDir(mavenBaseDir, "groovy/" + this.class.simpleName)
+        behaviourService.LoadDir(mavenBaseDir, "groovy/" + this.class.simpleName)
         
         and: 'a course execution'
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
@@ -105,7 +105,7 @@ class SimpleTest extends QuizzesSpockTest {
 
     def 'test' () {
         given: 'a clear report'
-        executionParametersService.cleanReportFile()
+        behaviourService.cleanReportFile()
 
         and:'add participant executes the first step'
         def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2)
@@ -137,7 +137,7 @@ class SimpleTest extends QuizzesSpockTest {
         tournamentDtoResult2.getParticipants().find{it.aggregateId == userDto.aggregateId}.name == UPDATED_NAME
 
         cleanup:
-        executionParametersService.cleanUpCounter()
+        behaviourService.cleanUpCounter()
     }
 
     def 'concurrent: add two participants to tournament'() {
@@ -173,7 +173,7 @@ class SimpleTest extends QuizzesSpockTest {
         updatedTournament2.participants.any { it.aggregateId == userDto3.getAggregateId() }
 
         cleanup:
-        executionParametersService.cleanUpCounter()
+        behaviourService.cleanUpCounter()
     }
 
    @TestConfiguration

@@ -4,7 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourHandler;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ExecutionParametersService {
+public class BehaviourService {
     private static String directory;
 
     public void LoadDir(String dir, String testNameFile) {

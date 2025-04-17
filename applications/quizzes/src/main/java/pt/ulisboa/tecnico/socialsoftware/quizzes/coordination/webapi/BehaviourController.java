@@ -9,19 +9,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.ExecutionParametersService;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService;
 
 @RestController
 public class BehaviourController {
     private static final String mavenBaseDir = System.getProperty("maven.basedir", new File(".").getAbsolutePath());
 
     @Autowired
-    private ExecutionParametersService executionParametersService;
+    private BehaviourService behaviourService;
 
    @PostMapping("/behaviour/load/{dir}")
     public String load(@PathVariable String dir) {
         System.out.println("Behaviour load started");
-        executionParametersService.LoadDir(mavenBaseDir, dir);
+        behaviourService.LoadDir(mavenBaseDir, dir);
         System.out.println("Provided dir: " + dir);
         return "OK";
     }
@@ -30,7 +30,7 @@ public class BehaviourController {
     @GetMapping(value = "/behaviour/clean")
     public String clean() {
         System.out.println("Report clean started");
-        executionParametersService.cleanReportFile();
+        behaviourService.cleanReportFile();
         return "OK";
     }
 }
