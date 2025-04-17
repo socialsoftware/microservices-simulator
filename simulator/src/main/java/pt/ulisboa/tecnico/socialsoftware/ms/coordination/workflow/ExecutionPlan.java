@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.ReadStepsFile;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +62,8 @@ public class ExecutionPlan {
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         String stepName;
-        Map<String, List<Integer>> behaviour = ReadStepsFile.getInstance().loadStepsFile(functionalityName);
-        ReadStepsFile.getInstance().appendToReport(reportSteps(behaviour));
+        Map<String, List<Integer>> behaviour = BehaviourHandler.getInstance().loadStepsFile(functionalityName);
+        BehaviourHandler.getInstance().appendToReport(reportSteps(behaviour));
         List<Integer> behaviourValues = new ArrayList<>();
         
         // Initialize futures for steps with no dependencies

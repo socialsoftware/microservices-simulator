@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.utils;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.ReadStepsFile;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourHandler;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -9,16 +9,16 @@ public class ExecutionParametersService {
 
     public void LoadDir(String dir, String testNameFile) {
         directory = dir + "/src/test/resources/" + testNameFile + "/";
-        ReadStepsFile.getInstance();
-        ReadStepsFile.setDirectory(directory);
+        BehaviourHandler.getInstance();
+        BehaviourHandler.setDirectory(directory);
     }
 
     public void cleanUpCounter() {
-        ReadStepsFile.getInstance().cleanUpCounter();
+        BehaviourHandler.getInstance().cleanUpCounter();
     }
 
     public void cleanReportFile() {
-        ReadStepsFile.getInstance().cleanReportFile();
+        BehaviourHandler.getInstance().cleanReportFile();
         
     }
 

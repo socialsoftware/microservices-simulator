@@ -6,16 +6,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class ReadStepsFile {
-    private static ReadStepsFile instance;
+public class BehaviourHandler {
+    private static BehaviourHandler instance;
     private static Map<String, Integer> funcCounter = new HashMap<>();
     private static String directory;
     private static String ReportFile = "BehaviourReport.txt"; 
 
 
-    public static synchronized ReadStepsFile getInstance() {
+    public static synchronized BehaviourHandler getInstance() {
         if (instance == null) {
-            instance = new ReadStepsFile();
+            instance = new BehaviourHandler();
         }
         return instance;
     }
@@ -37,13 +37,9 @@ public class ReadStepsFile {
             return map;
         }
         int functionalityCounter = getFuncionalityCounter(funcName);
-        System.out.println("Functionality " + funcName + " has been called " + functionalityCounter + " times.");
         try {
             List<String[]> block = parseCSVForBlock(filePath, functionalityCounter);
-            if (block.isEmpty()) {
-                System.out.println("Block " + functionalityCounter + " not found.");
-            } else {
-                System.out.println("Selected Block " + functionalityCounter + " for functionality " + funcName + ":");
+            if (!block.isEmpty()) {
                 for (String[] row : block) {
                     String key = row[0];
                     List<Integer> values = Arrays.asList(
