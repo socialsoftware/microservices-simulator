@@ -140,7 +140,7 @@ class SimpleTest extends QuizzesSpockTest {
         tournamentDtoResult2.getParticipants().find{it.aggregateId == userDto.aggregateId}.name == UPDATED_NAME
 
         cleanup:
-        executionParametersService.cleanUp()
+        executionParametersService.cleanUpCounter()
     }
 
     def 'concurrent: add two participants to tournament'() {
@@ -176,7 +176,7 @@ class SimpleTest extends QuizzesSpockTest {
         updatedTournament2.participants.any { it.aggregateId == userDto3.getAggregateId() }
 
         cleanup:
-        executionParametersService.cleanUp()
+        executionParametersService.cleanUpCounter()
     }
 
    @TestConfiguration

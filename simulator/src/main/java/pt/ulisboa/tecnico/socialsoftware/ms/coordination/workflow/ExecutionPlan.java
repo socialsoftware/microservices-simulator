@@ -133,12 +133,16 @@ public class ExecutionPlan {
             
             String reportString = report.toString();
 
+            // Print the report in blue
             logger.info( "\u001B[34m" + reportString + "\u001B[0m");
             if (!misMatchSteps.isEmpty()) {
+                // Print the mismatch steps in red
                 logger.error("\u001B[31m" + "Mismatch detected\n" + "\u001B[0m");
             } if (!new HashSet<>(commonSteps).equals(new HashSet<>(planSteps))) {
+                // print the common steps in yellow
                 logger.warn("\u001B[33m" + "Common steps differ from expected plan\n" + "\u001B[0m");
             } if (misMatchSteps.isEmpty() && new HashSet<>(commonSteps).equals(new HashSet<>(planSteps))) {
+                // Print the behaviour matches expectations in green
                 logger.info("\u001B[32m" + "Behaviour matches expectations\n" + "\u001B[0m");
             }
 

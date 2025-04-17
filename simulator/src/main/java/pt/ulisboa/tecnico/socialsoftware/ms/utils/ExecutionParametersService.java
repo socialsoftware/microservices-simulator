@@ -13,8 +13,8 @@ public class ExecutionParametersService {
         ReadStepsFile.setDirectory(directory);
     }
 
-    public void cleanUp() {
-        ReadStepsFile.getInstance().cleanUp();
+    public void cleanUpCounter() {
+        ReadStepsFile.getInstance().cleanUpCounter();
     }
 
     public void cleanReportFile() {
