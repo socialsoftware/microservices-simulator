@@ -28,12 +28,10 @@ public class BehaviourHandler {
     public Map<String, List<Integer>> loadStepsFile(String funcName) {
         Map<String, List<Integer>> map = new LinkedHashMap<>();
         if (directory == null) {
-            System.out.println("Directory not set. Please set the directory first. Directory: " + directory);
             return map;
         }
         Path filePath = Paths.get(directory, funcName + ".csv");
         if (!Files.exists(filePath)) {
-            System.out.println("File not found: " + filePath);
             return map;
         }
         int functionalityCounter = getFuncionalityCounter(funcName);
@@ -91,11 +89,9 @@ public class BehaviourHandler {
     public void appendToReport(String content) {
         
         if (directory == null) {
-            System.out.println("Directory not set. Please set the directory first.");
             return;
         }
-        if(content == null || content.isEmpty()) {
-            System.out.println("Content is null or empty. Not appending to report.");
+        if (content == null || content.isEmpty()) {
             return;
         }
     
