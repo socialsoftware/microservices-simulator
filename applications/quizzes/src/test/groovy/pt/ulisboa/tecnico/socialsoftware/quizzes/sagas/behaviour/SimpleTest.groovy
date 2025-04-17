@@ -58,7 +58,6 @@ class SimpleTest extends QuizzesSpockTest {
     private TopicDto topicDto1, topicDto2, topicDto3
     private QuestionDto questionDto1, questionDto2, questionDto3
     private TournamentDto tournamentDto
-    private static boolean initialized = false
 
     def unitOfWork1, unitOfWork2
 
@@ -67,10 +66,6 @@ class SimpleTest extends QuizzesSpockTest {
         'load behaviour directory'
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
         executionParametersService.LoadDir(mavenBaseDir, "groovy/" + this.class.simpleName)
-        if (!initialized) {
-            executionParametersService.cleanReportFile()
-            initialized = true
-        }
         
         and: 'a course execution'
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
@@ -108,9 +103,11 @@ class SimpleTest extends QuizzesSpockTest {
 
     def cleanup() {}
 
-
     def 'test' () {
-        given: 'add participant executes the first step'
+        given: 'a clear report'
+        executionParametersService.cleanReportFile()
+
+        and:'add participant executes the first step'
         def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2)
         addParticipantFunctionality.executeWorkflow(unitOfWork2);
         

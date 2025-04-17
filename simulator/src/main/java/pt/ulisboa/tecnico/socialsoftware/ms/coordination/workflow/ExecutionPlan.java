@@ -61,23 +61,19 @@ public class ExecutionPlan {
     }
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-
-        Map<String, List<Integer>> behaviour = ReadStepsFile.getInstance().loadStepsFile(functionalityName);
-        if (!behaviour.isEmpty()) {
-            behaviour.forEach((key, value) -> System.out.println(key + " -> " + value));
-        }
-        ReadStepsFile.getInstance().appendToReport(reportSteps(behaviour));
         String stepName;
-
+        Map<String, List<Integer>> behaviour = ReadStepsFile.getInstance().loadStepsFile(functionalityName);
+        ReadStepsFile.getInstance().appendToReport(reportSteps(behaviour));
+        List<Integer> behaviourValues = new ArrayList<>();
+        
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
             stepName = step.getName();
 
             // Check if the step is in the behaviour map
-            final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : 1;
-            final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : 0;
-            final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : 0;
-            if(faultValue == 1) {   
+            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(1,0,0);
+            System.out.println("Step: " + stepName + " Behaviour: " + behaviourValues);
+            if (behaviourValues.get(0) == 1) {   
                 if (dependencies.get(step).isEmpty()) {
                     this.stepFutures.put(step, step.execute(unitOfWork)); // Execute and save the steps with no dependencies
                     executedSteps.put(step, true);
@@ -88,10 +84,8 @@ public class ExecutionPlan {
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
             stepName = step.getName();
-            final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : 1;
-            final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : 0;
-            final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : 0;
-            if (faultValue == 1) {
+            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(1,0,0);
+            if (behaviourValues.get(0) == 1) { 
                 if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies      
                     
                     ArrayList<FlowStep> deps = dependencies.get(step); // get all dependencies
