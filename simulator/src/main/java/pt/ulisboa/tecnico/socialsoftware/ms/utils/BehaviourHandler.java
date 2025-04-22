@@ -10,8 +10,8 @@ public class BehaviourHandler {
     private static BehaviourHandler instance;
     private static Map<String, Integer> funcCounter = new HashMap<>();
     private static String directory;
-    private static String ReportFile = "BehaviourReport.txt"; 
-
+    private static final String REPORT_FILE = "BehaviourReport.txt";
+ 
 
     public static synchronized BehaviourHandler getInstance() {
         if (instance == null) {
@@ -95,7 +95,7 @@ public class BehaviourHandler {
             return;
         }
     
-        Path filePath = Paths.get(directory, ReportFile);
+        Path filePath = Paths.get(directory, REPORT_FILE);
         try (BufferedWriter writer = Files.newBufferedWriter(filePath, 
                 java.nio.file.StandardOpenOption.CREATE, 
                 java.nio.file.StandardOpenOption.APPEND)) {
@@ -120,7 +120,7 @@ public class BehaviourHandler {
             System.out.println("Directory not set. Please set the directory first.");
             return;
         }
-        Path filePath = Paths.get(directory, ReportFile);
+        Path filePath = Paths.get(directory, REPORT_FILE);
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException e) {

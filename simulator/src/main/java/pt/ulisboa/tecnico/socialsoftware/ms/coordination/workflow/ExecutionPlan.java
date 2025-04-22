@@ -72,7 +72,6 @@ public class ExecutionPlan {
 
             // Check if the step is in the behaviour map
             behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(1,0,0);
-            System.out.println("Step: " + stepName + " Behaviour: " + behaviourValues);
             if (behaviourValues.get(0) == 1) {   
                 if (dependencies.get(step).isEmpty()) {
                     this.stepFutures.put(step, step.execute(unitOfWork)); // Execute and save the steps with no dependencies
@@ -205,10 +204,5 @@ public class ExecutionPlan {
             }
         }
         throw new IllegalArgumentException("Step with name: " + stepName + " not found.");
-    }
-
-   
-    
+    }    
 }
-
-
