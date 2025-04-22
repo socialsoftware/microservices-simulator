@@ -15,6 +15,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
+
 import java.time.LocalDateTime
 
 class QuizzesSpockTest extends SpockTest {
@@ -68,6 +70,8 @@ class QuizzesSpockTest extends SpockTest {
     public static final String OPTION_3 = "Option Three"
     public static final String OPTION_4 = "Option Four"
 
+    public static final String mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
+
     @Autowired
     private CourseExecutionFunctionalities courseExecutionFunctionalities
     @Autowired
@@ -78,6 +82,16 @@ class QuizzesSpockTest extends SpockTest {
     private QuestionFunctionalities questionFunctionalities
     @Autowired
     private TournamentFunctionalities tournamentFunctionalities
+    @Autowired
+    public BehaviourService behaviourService
+
+
+    def loadBehaviorScripts() {
+        def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
+        def scriptDir = "groovy/" + this.class.simpleName
+        behaviourService.LoadDir(mavenBaseDir, scriptDir)
+    }
+
 
     def createCourseExecution(name, type, acronym, term, endDate) {
         def courseExecutionDto = new CourseExecutionDto()

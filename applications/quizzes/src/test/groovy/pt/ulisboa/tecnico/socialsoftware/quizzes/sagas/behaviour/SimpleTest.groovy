@@ -50,8 +50,6 @@ class SimpleTest extends QuizzesSpockTest {
     @Autowired
     private TournamentEventHandling tournamentEventHandling
 
-    @Autowired
-    private BehaviourService behaviourService
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
@@ -63,9 +61,8 @@ class SimpleTest extends QuizzesSpockTest {
 
     def setup() {
         given:
-        'load behaviour directory'
-        def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
-        behaviourService.LoadDir(mavenBaseDir, "groovy/" + this.class.simpleName)
+        'load a behavior specification'
+        loadBehaviorScripts()
         
         and: 'a course execution'
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
@@ -101,7 +98,9 @@ class SimpleTest extends QuizzesSpockTest {
         
     }
 
-    def cleanup() {}
+    def cleanup() {
+        behaviourService.cleanUpCounter()
+    }
 
     def 'test' () {
         given: 'a clear report'
@@ -135,9 +134,7 @@ class SimpleTest extends QuizzesSpockTest {
         and: 'the name is updated in tournament'
         def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult2.getParticipants().find{it.aggregateId == userDto.aggregateId}.name == UPDATED_NAME
-
-        cleanup:
-        behaviourService.cleanUpCounter()
+        
     }
 
     def 'concurrent: add two participants to tournament'() {
@@ -172,8 +169,6 @@ class SimpleTest extends QuizzesSpockTest {
         updatedTournament2.participants.any { it.aggregateId == userDto.getAggregateId() }
         updatedTournament2.participants.any { it.aggregateId == userDto3.getAggregateId() }
 
-        cleanup:
-        behaviourService.cleanUpCounter()
     }
 
    @TestConfiguration
