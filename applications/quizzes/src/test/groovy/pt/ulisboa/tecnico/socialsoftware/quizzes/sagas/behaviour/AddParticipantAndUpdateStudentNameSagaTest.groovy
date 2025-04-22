@@ -26,7 +26,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 
 @DataJpaTest
-class SimpleTest extends QuizzesSpockTest {
+class AddParticipantAndUpdateStudentNameSagaTest extends QuizzesSpockTest {
     public static final String UPDATED_NAME = "UpdatedName"
 
     @Autowired
@@ -88,9 +88,11 @@ class SimpleTest extends QuizzesSpockTest {
         and: 'a tournament where the first user is the creator'
         tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(),  courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(),topicDto2.getAggregateId()])
 
-        and: 'two units of work'
+        and: 'two units of Functionalities'
         def functionalityName1 = UpdateStudentNameFunctionalitySagas.class.getSimpleName()
         def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
+
+        and: 'two unit of works'
         unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
@@ -102,7 +104,7 @@ class SimpleTest extends QuizzesSpockTest {
         behaviourService.cleanUpCounter()
     }
 
-    def 'test' () {
+    def 'add one participant to tournament' () {
         given: 'a clear report'
         behaviourService.cleanReportFile()
 
