@@ -40,6 +40,4 @@ application-prod.properties
 jmeter.log
 
 
-applications/quizzes/src/test/resources/jmeter/BehaviourReport.txt
-
-applications/quizzes/src/test/resources/groovy/SimpleTest/BehaviourReport.txt
+**/test/resources/**/BehaviourReport.txt

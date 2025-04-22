@@ -131,7 +131,5 @@ public abstract class Workflow {
             unitOfWorkService.abort(unitOfWork);
             throw e;
         }
-    }
-
-    
+    } 
 }
