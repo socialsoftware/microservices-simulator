@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.concurrent.CompletableFuture;
@@ -108,44 +110,66 @@ public class ExecutionPlan {
     }
 
     private String reportSteps(Map<String, List<Integer>> behaviour) {
-        List<String> commonSteps = new ArrayList<>();
+        List<String> nonCommonSteps = new ArrayList<>();
         List<String> misMatchSteps = new ArrayList<>();
         List <String> planSteps = plan.stream().map(FlowStep::getName).collect(Collectors.toList());
         for (FlowStep step : plan) {
             String stepName = step.getName();
-            if (behaviour.containsKey(stepName))
-                commonSteps.add(stepName);
+            if (!behaviour.containsKey(stepName))
+                nonCommonSteps.add(stepName);
         }
         for (String step: behaviour.keySet()) {
-            if (!commonSteps.contains(step)) {
+            if (!planSteps.contains(step)) {
                 misMatchSteps.add(step);
             }
         }
         
-        StringBuilder report = new StringBuilder();
-        if(!behaviour.isEmpty()) {
-            report.append("Functionality: ").append(functionalityName).append("\n");
-            report.append("Behaviour: ").append(behaviour).append("\n");
-            report.append("Steps: ").append(planSteps).append("\n");
-            report.append("Common Steps: ").append(commonSteps).append("\n");
-            report.append("Mismatch Steps: ").append(misMatchSteps).append("\n");
-            
-            String reportString = report.toString();
+        StringBuilder report = new StringBuilder(); // For file (plain)
+        StringBuilder colorReport = new StringBuilder(); // For terminal (with color)
 
-            // Print the report in blue
-            logger.info( "\u001B[34m" + reportString + "\u001B[0m");
-            if (!misMatchSteps.isEmpty()) {
-                // Print the mismatch steps in red
-                logger.error("\u001B[31m" + "Mismatch detected\n" + "\u001B[0m");
-            } if (!new HashSet<>(commonSteps).equals(new HashSet<>(planSteps))) {
-                // print the common steps in yellow
-                logger.warn("\u001B[33m" + "Common steps differ from expected plan\n" + "\u001B[0m");
-            } if (misMatchSteps.isEmpty() && new HashSet<>(commonSteps).equals(new HashSet<>(planSteps))) {
-                // Print the behaviour matches expectations in green
-                logger.info("\u001B[32m" + "Behaviour matches expectations\n" + "\u001B[0m");
+        if (!behaviour.isEmpty()) {
+            report.append("Functionality: ").append(functionalityName).append("\n");
+            colorReport.append("Functionality: ").append(functionalityName).append("\n");
+
+            report.append("Behaviour: ").append(behaviour).append("\n");
+            colorReport.append("Behaviour: ").append(behaviour).append("\n");
+
+            report.append("Steps: ").append(planSteps).append("\n");
+            colorReport.append("Steps: ").append(planSteps).append("\n");
+
+            boolean mismatchExists = !misMatchSteps.isEmpty();
+            boolean nonCommonDiffers = !nonCommonSteps.isEmpty();
+
+            // Non Defined Steps
+            report.append("Non Defined Steps: ").append(nonCommonSteps).append("\n");
+            if (nonCommonDiffers) {
+                colorReport.append("\u001B[33m").append("Non Defined Steps: ").append(nonCommonSteps).append("\u001B[0m").append("\n");
+            } else {
+                colorReport.append("Non Defined Steps: ").append(nonCommonSteps).append("\n");
+            }
+
+            // Mismatch Steps
+            report.append("Mismatch Steps: ").append(misMatchSteps).append("\n");
+            if (mismatchExists) {
+                colorReport.append("\u001B[31m").append("Mismatch Steps: ").append(misMatchSteps).append("\u001B[0m").append("\n");
+            } else {
+                colorReport.append("Mismatch Steps: ").append(misMatchSteps).append("\n");
+            }
+
+            // Log colored version
+            logger.info(colorReport.toString());
+
+            // Optional terminal summary
+            if (mismatchExists) {
+                logger.error("\u001B[31mMismatch detected\u001B[0m");
+            } if (nonCommonDiffers) {
+                logger.warn("\u001B[33mCommon steps differ from expected plan\u001B[0m");
+            } else {
+                logger.info("\u001B[32mBehaviour matches expectations\u001B[0m");
             }
 
         }
+
         return report.toString();
     }
     
