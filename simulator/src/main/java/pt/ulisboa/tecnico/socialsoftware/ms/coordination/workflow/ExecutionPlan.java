@@ -27,6 +27,9 @@ public class ExecutionPlan {
     private HashMap<FlowStep, CompletableFuture<Void>> stepFutures = new HashMap<>();
     private WorkflowFunctionality functionality;
     private String functionalityName;
+    private Map<String, List<Integer>> behaviour;
+    private static final int DEFAULT_VALUE = 0;
+    private static final int THROW_EXCEPTION = 1;
 
     private static final Logger logger = LoggerFactory.getLogger(ExecutionPlan.class);
 
@@ -38,6 +41,9 @@ public class ExecutionPlan {
         }
         this.functionality = functionality;
         this.functionalityName = functionality.getClass().getSimpleName();
+
+        behaviour = BehaviourHandler.getInstance().loadStepsFile(functionalityName);
+        BehaviourHandler.getInstance().appendToReport(reportSteps(behaviour));
 
     }
 
@@ -66,8 +72,6 @@ public class ExecutionPlan {
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         String stepName;
-        Map<String, List<Integer>> behaviour = BehaviourHandler.getInstance().loadStepsFile(functionalityName);
-        BehaviourHandler.getInstance().appendToReport(reportSteps(behaviour));
         List<Integer> behaviourValues = new ArrayList<>();
         
         // Initialize futures for steps with no dependencies
@@ -75,8 +79,8 @@ public class ExecutionPlan {
             stepName = step.getName();
 
             // Check if the step is in the behaviour map
-            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(0,0,0);
-            if (behaviourValues.get(0) == 1) {   
+            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
+            if (behaviourValues.get(0) == THROW_EXCEPTION) {   
                 throw new SimulatorException(stepName + " Microservice not available");
 
             }
@@ -90,8 +94,8 @@ public class ExecutionPlan {
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
             stepName = step.getName();
-            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(0,0,0);
-            if (behaviourValues.get(0) == 1) {   
+            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
+            if (behaviourValues.get(0) == THROW_EXCEPTION) {   
                 throw new SimulatorException(stepName + " Microservice not available");
             }
             if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies         
