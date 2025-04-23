@@ -40,4 +40,4 @@ application-prod.properties
 jmeter.log
 
 
-**/test/resources/**/BehaviourReport.txt
+**/BehaviourReport.txt

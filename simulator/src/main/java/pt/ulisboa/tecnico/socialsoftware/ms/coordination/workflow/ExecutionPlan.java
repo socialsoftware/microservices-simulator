@@ -7,9 +7,11 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourHandler;
 
 import org.slf4j.Logger;
@@ -71,30 +73,34 @@ public class ExecutionPlan {
             stepName = step.getName();
 
             // Check if the step is in the behaviour map
-            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(1,0,0);
+            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(0,0,0);
             if (behaviourValues.get(0) == 1) {   
-                if (dependencies.get(step).isEmpty()) {
-                    this.stepFutures.put(step, step.execute(unitOfWork)); // Execute and save the steps with no dependencies
-                    executedSteps.put(step, true);
-                }
+                throw new SimulatorException(stepName + " Microservice not available");
+
             }
+            if (dependencies.get(step).isEmpty()) {
+                this.stepFutures.put(step, step.execute(unitOfWork)); // Execute and save the steps with no dependencies
+                executedSteps.put(step, true);
+            }
+            
         }
 
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
             stepName = step.getName();
-            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(1,0,0);
-            if (behaviourValues.get(0) == 1) { 
-                if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies      
-                    
-                    ArrayList<FlowStep> deps = dependencies.get(step); // get all dependencies
-                    CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
-                        deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
-                    );
-                    this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // only executes after all dependencies are completed
-                    executedSteps.put(step, true);
-                }
+            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(0,0,0);
+            if (behaviourValues.get(0) == 1) {   
+                throw new SimulatorException(stepName + " Microservice not available");
             }
+            if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies         
+                ArrayList<FlowStep> deps = dependencies.get(step); // get all dependencies
+                CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
+                    deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
+                );
+                this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // only executes after all dependencies are completed
+                executedSteps.put(step, true);
+            }
+            
         }
 
         // Wait for all steps to complete
