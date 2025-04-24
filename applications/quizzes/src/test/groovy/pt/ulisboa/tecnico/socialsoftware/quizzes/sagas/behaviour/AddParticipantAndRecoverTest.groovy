@@ -25,7 +25,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 
 @DataJpaTest
-class AddParticipantAndUpdateStudentNameSagaTest extends QuizzesSpockTest {
+class AddParticipantAndRecoverTest extends QuizzesSpockTest {
     public static final String UPDATED_NAME = "UpdatedName"
 
     @Autowired
@@ -173,6 +173,7 @@ class AddParticipantAndUpdateStudentNameSagaTest extends QuizzesSpockTest {
         } else {
             assert updatedTournament.participants.size() == 2
         }
+        behaviourService.cleanDirectory()
     }
 
     @TestConfiguration

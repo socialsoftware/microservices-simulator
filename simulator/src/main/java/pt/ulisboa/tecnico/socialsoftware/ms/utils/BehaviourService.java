@@ -22,5 +22,9 @@ public class BehaviourService {
         
     }
 
+    public void cleanDirectory() {
+        BehaviourHandler.getInstance().setDirectory("");
+    }
+
 
 }
