@@ -123,6 +123,7 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
         then: 'check number of participants accordingly'
         def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         if (exceptionThrown) {
+            println "\u001B[31mEntered the exceptionThrown branch\u001B[0m"
             assert updatedTournament.participants.size() == 0
         } else {
             assert updatedTournament.participants.size() == 1
@@ -153,23 +154,27 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
         )
 
         when: 'executing both workflows, capturing exceptions if any'
-        boolean exceptionThrown = false
+        Integer exceptionThrown = 0
         try {
             addParticipantFunctionality1.executeWorkflow(unitOfWork1)
         } catch (Exception e) {
-            exceptionThrown = true
+            exceptionThrown += 1
         }
 
         try {
             addParticipantFunctionality2.executeWorkflow(unitOfWork2)
         } catch (Exception e) {
-            exceptionThrown = true
+            exceptionThrown += 1
         }
 
         then: 'check number of participants accordingly'
         def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        if (exceptionThrown) {
+        if (exceptionThrown == 1) {
+            println "\u001B[31mEntered the exceptionThrown branch. Just 1 participant added\u001B[0m"
             assert updatedTournament.participants.size() == 1
+        } else if (exceptionThrown == 2) {
+            println "\u001B[31mEntered the exceptionThrown branch. No participants added\u001B[0m"
+            assert updatedTournament.participants.size() == 0
         } else {
             assert updatedTournament.participants.size() == 2
         }
