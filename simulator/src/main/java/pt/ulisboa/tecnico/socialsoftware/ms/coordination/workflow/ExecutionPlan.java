@@ -79,13 +79,33 @@ public class ExecutionPlan {
             stepName = step.getName();
 
             // Check if the step is in the behaviour map
-            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
-            if (behaviourValues.get(0) == THROW_EXCEPTION) {   
+            final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : 0;
+            final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : 0;
+            final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : 0;
+            if (faultValue == THROW_EXCEPTION) { 
                 throw new SimulatorException(stepName + " Microservice not available");
 
             }
             if (dependencies.get(step).isEmpty()) {
-                this.stepFutures.put(step, step.execute(unitOfWork)); // Execute and save the steps with no dependencies
+                this.stepFutures.put(step, CompletableFuture.completedFuture(null)
+                .thenAccept(ignored -> {
+                    try {
+                        Thread.sleep(delayBeforeValue);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new CompletionException(e);
+                    }
+                })
+                .thenCompose(ignored -> step.execute(unitOfWork))
+                .thenAccept(ignored -> {
+                    try {
+                        Thread.sleep(delayAfterValue);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new CompletionException(e);
+                    }
+                })
+            ); // Execute and save the steps with no dependencies
                 executedSteps.put(step, true);
             }
             
@@ -94,8 +114,11 @@ public class ExecutionPlan {
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
             stepName = step.getName();
-            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
-            if (behaviourValues.get(0) == THROW_EXCEPTION) {   
+            final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : 0;
+            final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : 0;
+            final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : 0;
+
+            if (faultValue == THROW_EXCEPTION) {   
                 throw new SimulatorException(stepName + " Microservice not available");
             }
             if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies         
@@ -103,7 +126,25 @@ public class ExecutionPlan {
                 CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
                     deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
                 );
-                this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // only executes after all dependencies are completed
+                this.stepFutures.put(step,combinedFuture
+                    .thenAccept(ignored -> {
+                        try {
+                            Thread.sleep(delayBeforeValue);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw new CompletionException(e);
+                        }
+                    })
+                    .thenCompose(ignored -> step.execute(unitOfWork))
+                    .thenAccept(ignored -> {
+                        try {
+                            Thread.sleep(delayAfterValue);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw new CompletionException(e);
+                        }
+                    })
+                );
                 executedSteps.put(step, true);
             }
             
