@@ -275,5 +275,5 @@ class BeanConfigurationSagas {
     @Bean
     BehaviourService executionParametersService() {
     return new BehaviourService();
-}
+    }
 }

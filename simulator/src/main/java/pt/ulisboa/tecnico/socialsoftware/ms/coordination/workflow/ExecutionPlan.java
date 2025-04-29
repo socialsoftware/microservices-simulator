@@ -79,9 +79,9 @@ public class ExecutionPlan {
             stepName = step.getName();
 
             // Check if the step is in the behaviour map
-            final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : 0;
-            final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : 0;
-            final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : 0;
+            final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
+            final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
+            final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
             if (faultValue == THROW_EXCEPTION) { 
                 throw new SimulatorException(stepName + " Microservice not available");
 
@@ -114,9 +114,9 @@ public class ExecutionPlan {
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
             stepName = step.getName();
-            final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : 0;
-            final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : 0;
-            final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : 0;
+            final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
+            final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
+            final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
 
             if (faultValue == THROW_EXCEPTION) {   
                 throw new SimulatorException(stepName + " Microservice not available");
