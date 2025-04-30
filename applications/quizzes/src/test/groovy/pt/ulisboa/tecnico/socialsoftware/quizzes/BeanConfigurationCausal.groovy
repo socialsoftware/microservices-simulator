@@ -272,7 +272,7 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    BehaviourService executionParametersService() {
+    BehaviourService BehaviourService() {
     return new BehaviourService();
     }
 }
