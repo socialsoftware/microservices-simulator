@@ -39,3 +39,5 @@ application-prod.properties
 ### jmeter ###
 jmeter.log
 
+
+**/BehaviourReport.txt

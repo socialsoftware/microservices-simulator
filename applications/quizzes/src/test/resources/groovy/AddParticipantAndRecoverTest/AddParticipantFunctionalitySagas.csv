@@ -1,0 +1,6 @@
+run
+getUserStep,0,40,0
+addParticipantStep,0,0,30
+run
+gtsertep,0,40,0
+addParticipantStep,1,0,30

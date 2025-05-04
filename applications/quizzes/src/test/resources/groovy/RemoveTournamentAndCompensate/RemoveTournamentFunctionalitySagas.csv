@@ -1,0 +1,4 @@
+run
+getTournamentStep,0,40,0
+removeQuizStep,0,0,30
+removeTournamentStep,1,0,30

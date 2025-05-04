@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
+import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
@@ -100,8 +102,14 @@ public abstract class Workflow {
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
 
         this.executionPlan = planOrder(this.stepsWithDependencies);
+        
+        CompletableFuture<Void> executionFuture;
+
         try {
-            return executionPlan.execute(unitOfWork)
+            
+            executionFuture = executionPlan.execute(unitOfWork);
+
+            return executionFuture
                 .thenRun(() -> {
                     unitOfWorkService.commit(unitOfWork);
                     logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
@@ -123,5 +131,5 @@ public abstract class Workflow {
             unitOfWorkService.abort(unitOfWork);
             throw e;
         }
-    }
+    } 
 }
