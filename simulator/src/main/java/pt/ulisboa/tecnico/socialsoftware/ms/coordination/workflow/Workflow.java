@@ -132,4 +132,8 @@ public abstract class Workflow {
             throw e;
         }
     } 
+
+    public int getTotalDelay() {
+        return this.executionPlan.getTotalDelay();
+    }
 }

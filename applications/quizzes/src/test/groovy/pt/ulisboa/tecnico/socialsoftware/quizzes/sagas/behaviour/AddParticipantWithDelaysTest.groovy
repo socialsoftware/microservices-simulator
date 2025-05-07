@@ -98,7 +98,7 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
         behaviourService.cleanUpCounter()
     }
 
-    def 'add one participant to tournament'() {
+    def 'add one participant with a delay to tournament'() {
         given: 'a clear report'
         behaviourService.cleanReportFile()
         
@@ -118,12 +118,14 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
         addParticipantFunctionality1.executeWorkflow(unitOfWork1)
         def end = System.currentTimeMillis()
         def duration = end - start
-        println "Duration: ${duration}ms"
+        def experctedDelay = addParticipantFunctionality1.getWorkflowTotalDelay()
+        println "Duration: ${duration}ms and delay ${experctedDelay}ms"
 
         then: 'check number of participants accordingly'
         def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournament.participants.size() == 1
         updatedTournament.participants.any { it.aggregateId == userDto.getAggregateId() }
+        duration > experctedDelay
         
     }
 
@@ -151,7 +153,7 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
             userDto3.getAggregateId(), unitOfWork2
         )
 
-        when: 'executing both workflows, capturing exceptions if any'
+        when: 'executing both workflows, capturing the time taken to execute each'
         def start1 = System.currentTimeMillis()
         addParticipantFunctionality1.executeWorkflow(unitOfWork1)
         def end1 = System.currentTimeMillis()
@@ -160,12 +162,14 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
         addParticipantFunctionality2.executeWorkflow(unitOfWork2)
         def end2 = System.currentTimeMillis()
         def duration2 = end2 - start2
+        def expectedDelay = addParticipantFunctionality1.getWorkflowTotalDelay()
 
-        then: 'check number of participants accordingly'
+        then: 'check number of participants accordingly and comparing the time taken with the expected delay'
         def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournament.participants.size() == 2
         updatedTournament.participants.any { it.aggregateId == userDto.getAggregateId() }
-        duration1 > duration2 + 70
+        duration1 > duration2 + expectedDelay
+
         behaviourService.cleanDirectory()
     }
 
