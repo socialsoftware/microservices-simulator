@@ -98,7 +98,7 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
         given: 'a clear report'
         behaviourService.cleanReportFile()
 
-        and: 'one functionality to add participants'
+        and: 'one functionality to add a participant'
         def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
             tournamentService, courseExecutionService, unitOfWorkService,
             tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
@@ -118,6 +118,8 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
         def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournament.participants.size() == 1
         updatedTournament.participants.any { it.aggregateId == userDto.getAggregateId() }
+
+        and: 'the execution duration of AddParticipantFunctionality is bigger than the defined delay'
         duration > definedDelay
     }
 
@@ -160,8 +162,11 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
         def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournament.participants.size() == 2
         updatedTournament.participants.any { it.aggregateId == userDto.getAggregateId() }
+
+        and: 'the execution duration of AddParticipantFunctionality1 is bigger than the execution duration of AddParticipantFunctionality2 + defined delay for func1'
         duration1 > duration2 + definedDelayFunc1
 
+        cleanup: 'remove all generated artifacts after test execution'
         behaviourService.cleanDirectory()
     }
 
