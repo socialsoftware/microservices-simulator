@@ -1,6 +1,6 @@
 run
-getUserStep,0,40,0
-addParticipantStep,0,0,30
+getUserStep,0,1000,0
+addParticipantStep,0,0,2000
 run
-gtsertep,0,0,0
+getUserStep,0,0,0
 addParticipantStep,0,0,0
