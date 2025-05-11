@@ -117,29 +117,42 @@ class AbortAndRetryTest extends QuizzesSpockTest {
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
 
 
-         when: 'remove finishes'
-        boolean exceptionThrown = false
+        when: 'remove finishes'
         try {
             updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
         } catch (Exception e) {
-            exceptionThrown = true
             println e.message
         }
 
 
         then: 'verify tournament state depending on the outcome of the resume operation'
-        if (exceptionThrown) {
-            println "\u001B[31mEntered the exceptionThrown branch\u001B[0m"
-            def updatedTournamentDto1 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-            assert updatedTournamentDto1 != null
-            assert updatedTournamentDto1.numberOfQuestions == 2
-            assert updatedTournamentDto1.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId()].toSet()
-        } else {
-            def quizDto = quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
-            assert quizDto.availableDate == DateHandler.toISOString(TIME_2)
-            assert quizDto.conclusionDate == DateHandler.toISOString(TIME_4)
-            assert quizDto.questionDtos.size() == 3
+        def updatedTournamentDto1 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        assert updatedTournamentDto1 != null
+        assert updatedTournamentDto1.numberOfQuestions == 2
+        assert updatedTournamentDto1.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId()].toSet()
+
+        when: 'retry'
+        def retries = behaviourService.getRetryValue("UpdateTournamentFunctionalitySagas")
+        println "\u001B[34mRetries: $retries\u001B[0m"
+
+        boolean success = false
+        while (retries > 0 && !success) {
+            try {
+                updateTournamentFunctionality.executeWorkflow(unitOfWork1)
+                success = true  // If no exception, mark as successful
+            } catch (Exception e) {
+                retries--
+            }
         }
+        
+
+        then: 'verify tournament state depending on the outcome of the resume operation'
+        def quizDto = quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
+        assert quizDto.availableDate == DateHandler.toISOString(TIME_2)
+        assert quizDto.conclusionDate == DateHandler.toISOString(TIME_4)
+        assert quizDto.questionDtos.size() == 3
+
+       
         
 
 

@@ -10,6 +10,7 @@ public class BehaviourHandler {
     private static BehaviourHandler instance;
     private static Map<String, Integer> funcCounter = new HashMap<>();
     private static String directory;
+    private static Map<String, Integer> funcRetry = new HashMap<>();
     private static final String REPORT_FILE = "BehaviourReport.txt";
  
 
@@ -36,7 +37,7 @@ public class BehaviourHandler {
         }
         int functionalityCounter = getFuncionalityCounter(funcName);
         try {
-            List<String[]> block = parseCSVForBlock(filePath, functionalityCounter);
+            List<String[]> block = parseCSVForBlock(filePath,funcName, functionalityCounter);
             if (!block.isEmpty()) {
                 for (String[] row : block) {
                     String key = row[0];
@@ -58,7 +59,7 @@ public class BehaviourHandler {
         return funcCounter.compute(functionality, (k, v) -> (v == null) ? 1 : v + 1);
     }
 
-    public static List<String[]> parseCSVForBlock(Path filePath, int targetBlock) throws IOException {
+    public static List<String[]> parseCSVForBlock(Path filePath, String funcName, int targetBlock) throws IOException {
         List<String[]> currentBlock = new ArrayList<>();
         int blockNumber = 0;
     
@@ -66,6 +67,9 @@ public class BehaviourHandler {
             String line;
             while ((line = br.readLine()) != null) {
                 line = line.trim();
+
+                if(line.contains("retry"))
+                    funcRetry.put(funcName, Integer.parseInt(line.split(",")[1]));
     
                 if (line.equalsIgnoreCase("run")) {
                     blockNumber++;
@@ -127,5 +131,10 @@ public class BehaviourHandler {
             System.err.println("Failed to delete file: " + filePath);
             e.printStackTrace();
         }
+    }
+
+    public int getRetryValue(String funcName) {
+        System.out.println("\u001B[33mRetry value for " + funcName + ": " + funcRetry.getOrDefault(funcName, 0) + "\u001B[0m");
+        return funcRetry.getOrDefault(funcName, 0);
     }
 }

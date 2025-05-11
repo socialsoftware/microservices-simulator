@@ -26,5 +26,9 @@ public class BehaviourService {
         BehaviourHandler.getInstance().setDirectory("");
     }
 
+    public int getRetryValue(String funcName) {
+        return BehaviourHandler.getInstance().getRetryValue(funcName);
+    }
+
 
 }
