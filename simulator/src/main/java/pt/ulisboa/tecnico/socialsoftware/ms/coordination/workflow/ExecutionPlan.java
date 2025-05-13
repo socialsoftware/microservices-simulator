@@ -55,6 +55,18 @@ public class ExecutionPlan {
         this.plan = plan;
     }
 
+    public int getTotalDelay() {
+        int totalDelay = 0;
+        int delayBeforeValue = 1;
+        int delayAfterValue = 2;
+        for (FlowStep step : plan) {
+            if (behaviour.containsKey(step.getName())) {
+                totalDelay += behaviour.get(step.getName()).get(delayBeforeValue) + behaviour.get(step.getName()).get(delayAfterValue);
+            }
+        }
+        return totalDelay;
+    }   
+
     /* 
      * while not plan.isempty
      *      do: step = getplan.first / getplan.next

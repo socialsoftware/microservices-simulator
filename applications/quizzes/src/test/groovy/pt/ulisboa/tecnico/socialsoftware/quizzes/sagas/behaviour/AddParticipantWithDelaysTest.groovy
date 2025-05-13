@@ -55,7 +55,7 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
     private QuestionDto questionDto1, questionDto2, questionDto3
     private TournamentDto tournamentDto
 
-    def unitOfWork1, unitOfWork2
+    def unitOfWork1
 
     def setup() {
         given: 'load a behavior specification'
@@ -85,58 +85,52 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
         and: 'a tournament where the first user is the creator'
         tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()])
 
-        and: 'two units of Functionalities'
-        def functionalityName1 = UpdateStudentNameFunctionalitySagas.class.getSimpleName()
-        def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
-
-        and: 'two unit of works'
+        and: 'one unit of work for AddParticipantFunctionality'
+        def functionalityName1 = AddParticipantFunctionalitySagas.class.getSimpleName()
         unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
-        unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
     }
 
     def cleanup() {
         behaviourService.cleanUpCounter()
     }
 
-    def 'add one participant to tournament'() {
+    def 'add one participant with a delay to tournament'() {
         given: 'a clear report'
         behaviourService.cleanReportFile()
-        
-        and: 'create unit of works for concurrent addition of participants'
-        def functionalityName1 = AddParticipantFunctionalitySagas.class.getSimpleName()
-        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
 
-        and: 'one functionalities to add participants'
+        and: 'one functionality to add a participant'
         def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
             tournamentService, courseExecutionService, unitOfWorkService,
             tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
             userDto.getAggregateId(), unitOfWork1
         )
 
-        when: 'adding a participant'
+        when: 'adding a participant measure the time taken to execute the workflow'
         def start = System.currentTimeMillis()
         addParticipantFunctionality1.executeWorkflow(unitOfWork1)
         def end = System.currentTimeMillis()
         def duration = end - start
-        println "Duration: ${duration}ms"
 
-        then: 'check number of participants accordingly'
+        and: 'get the defined delay'
+        def definedDelay = addParticipantFunctionality1.getWorkflowTotalDelay()
+
+        then: 'check number of participants accordingly and comparing the time taken with the expected delay'
         def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournament.participants.size() == 1
         updatedTournament.participants.any { it.aggregateId == userDto.getAggregateId() }
-        
+
+        and: 'the execution duration of AddParticipantFunctionality is bigger than the defined delay'
+        duration > definedDelay
     }
 
 
-    def 'concurrent: add two participants to tournament'() {
+    def 'concurrent: add two participants to tournament, where one of the functionalities has a delay'() {
         given: 'another user'
         def userDto3 = createUser(USER_NAME_3, USER_USERNAME_3, STUDENT_ROLE)
         courseExecutionFunctionalities.addStudent(courseExecutionDto.aggregateId, userDto3.aggregateId)
 
-        and: 'create unit of works for concurrent addition of participants'
-        def functionalityName1 = AddParticipantFunctionalitySagas.class.getSimpleName()
+        and: 'create another unit of work for concurrent addition of participants'
         def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
-        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
         and: 'two functionalities to add participants'
@@ -151,7 +145,7 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
             userDto3.getAggregateId(), unitOfWork2
         )
 
-        when: 'executing both workflows, capturing exceptions if any'
+        when: 'executing both workflows, capture the time taken to execute each functionality\'s workflow'
         def start1 = System.currentTimeMillis()
         addParticipantFunctionality1.executeWorkflow(unitOfWork1)
         def end1 = System.currentTimeMillis()
@@ -161,11 +155,18 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
         def end2 = System.currentTimeMillis()
         def duration2 = end2 - start2
 
-        then: 'check number of participants accordingly'
+        and: 'get the defined delay of the first functionality'
+        def definedDelayFunc1 = addParticipantFunctionality1.getWorkflowTotalDelay()
+
+        then: 'check number of participants accordingly and comparing the time taken with the expected delay'
         def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournament.participants.size() == 2
         updatedTournament.participants.any { it.aggregateId == userDto.getAggregateId() }
-        duration1 > duration2 + 70
+
+        and: 'the execution duration of AddParticipantFunctionality1 is bigger than the execution duration of AddParticipantFunctionality2 + defined delay for func1'
+        duration1 > duration2 + definedDelayFunc1
+
+        cleanup: 'remove all generated artifacts after test execution'
         behaviourService.cleanDirectory()
     }
 
