@@ -24,11 +24,11 @@ public class BehaviourGenerator {
 
     public BehaviourGenerator(String dir, Path inputFile) {
         directory = dir;
-        // Parse the input file by functionality
-        Map<String, Map<String, List<List<String>>>> parsed = parseFunctionalitySteps(inputFile);
-
         // Prepare a map to store step combinations per functionality
         Map<String, List<Map<String, List<String>>>> allFunctionalityCombinations = new LinkedHashMap<>();
+
+        // Parse the input file by functionality
+        Map<String, Map<String, List<List<String>>>> parsed = parseFunctionalitySteps(inputFile);
 
         // Generate combinations for each functionality
         parsed.forEach((functionality, stepsMap) -> {
@@ -36,13 +36,16 @@ public class BehaviourGenerator {
             allFunctionalityCombinations.put(functionality, combinations);
         });
 
-        System.out.println("Parsed functionality map: " + allFunctionalityCombinations);
+        // Write the combinations to each functionality's CSV file
+        writeCombinationsToCsvFiles(allFunctionalityCombinations);
     }
 
     public static void writeCombinationsToCsvFiles(Map<String, List<Map<String, List<String>>>> allFunctionalityCombinations) {
         allFunctionalityCombinations.forEach((functionality, combinations) -> {
-            Path file = Paths.get(directory + functionality + "_combinations.csv");
-
+            Path file = Paths.get(directory + functionality + ".csv");
+        int fault = 0;
+        int delayBefore = 1;
+        int delayAfter = 2;
             try (BufferedWriter writer = Files.newBufferedWriter(file)) {
 
                 for (Map<String, List<String>> combo : combinations) {
@@ -55,7 +58,7 @@ public class BehaviourGenerator {
                         if (values.size() != 3) {
                             throw new IllegalStateException("Each step must have exactly 3 values (fault, delayBefore, delayAfter)");
                         }
-                        writer.write(String.format("%s,%s,%s,%s", stepName, values.get(0), values.get(1), values.get(2)));
+                        writer.write(String.format("%s,%s,%s,%s", stepName, values.get(fault), values.get(delayBefore), values.get(delayAfter)));
                         writer.newLine();
                     }
                 }
