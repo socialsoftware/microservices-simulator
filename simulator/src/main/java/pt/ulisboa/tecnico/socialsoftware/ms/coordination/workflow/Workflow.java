@@ -79,6 +79,7 @@ public abstract class Workflow {
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
     
                     unitOfWorkService.abort(unitOfWork);
+                    logger.info("ABORT EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
     
                     if (cause instanceof SimulatorException) {
                         throw (SimulatorException) cause;
@@ -88,6 +89,7 @@ public abstract class Workflow {
                 });
         } catch (SimulatorException e) {
             unitOfWorkService.abort(unitOfWork);
+            logger.info("ABORT EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
             throw e;
         }
     }
@@ -133,6 +135,7 @@ public abstract class Workflow {
                 });
         } catch (SimulatorException e) {
             unitOfWorkService.abort(unitOfWork);
+            logger.info("ABORT EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
             throw e;
         }
     } 
