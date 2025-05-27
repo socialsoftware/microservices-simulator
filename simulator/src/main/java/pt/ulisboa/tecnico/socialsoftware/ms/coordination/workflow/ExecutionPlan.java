@@ -83,12 +83,12 @@ public class ExecutionPlan {
     }
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-        String stepName;
         List<Integer> behaviourValues = new ArrayList<>();
         
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
-            stepName = step.getName();
+            final String stepName = step.getName();
+            final String funcName = functionalityName;
 
             // Check if the step is in the behaviour map
             final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
@@ -103,6 +103,7 @@ public class ExecutionPlan {
                 .thenAccept(ignored -> {
                     try {
                         Thread.sleep(delayBeforeValue);
+                        logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         throw new CompletionException(e);
@@ -111,6 +112,7 @@ public class ExecutionPlan {
                 .thenCompose(ignored -> step.execute(unitOfWork))
                 .thenAccept(ignored -> {
                     try {
+                        logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
                         Thread.sleep(delayAfterValue);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
@@ -125,7 +127,8 @@ public class ExecutionPlan {
 
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
-            stepName = step.getName();
+            final String stepName = step.getName();
+            final String funcName = functionalityName;
             final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
             final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
             final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
@@ -142,6 +145,7 @@ public class ExecutionPlan {
                     .thenAccept(ignored -> {
                         try {
                             Thread.sleep(delayBeforeValue);
+                            logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             throw new CompletionException(e);
@@ -150,6 +154,7 @@ public class ExecutionPlan {
                     .thenCompose(ignored -> step.execute(unitOfWork))
                     .thenAccept(ignored -> {
                         try {
+                            logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
                             Thread.sleep(delayAfterValue);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
