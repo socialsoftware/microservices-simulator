@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <timestamp key="currentDate" datePattern="yyyy-MM-dd_HH-mm-ss" />
-    <property name="LOG_FILE" value="logs/app-test-${currentDate}.log" />
+    <property name="LOG_FILE" value="./logs/app-test-${currentDate}.log" />
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>${LOG_FILE}</file>
@@ -37,5 +37,6 @@
     <root level="INFO">
         <appender-ref ref="FILE" />
         <appender-ref ref="CONSOLE" />
+        <appender-ref ref="LOKI" />
     </root>
 </configuration>
