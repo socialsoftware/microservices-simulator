@@ -98,7 +98,7 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
         given: 'a clear report'
         behaviourService.cleanReportFile()
 
-        behaviourService.generateTestBehaviour("functionalities.txt")
+        //behaviourService.generateTestBehaviour("functionalities.txt")
 
         and: 'one functionality to add a participant'
         def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
