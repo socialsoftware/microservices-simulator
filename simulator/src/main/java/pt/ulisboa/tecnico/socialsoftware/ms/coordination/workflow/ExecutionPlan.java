@@ -95,7 +95,7 @@ public class ExecutionPlan {
             final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
             final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
             if (faultValue == THROW_EXCEPTION) {
-                logger.info("EXCEPTION THROWN:: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+                logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
                 throw new SimulatorException(stepName + " Microservice not available");
 
             }
@@ -135,7 +135,7 @@ public class ExecutionPlan {
             final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
 
             if (faultValue == THROW_EXCEPTION) {  
-                logger.info("EXCEPTION THROWN:: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion()); 
+                logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion()); 
                 throw new SimulatorException(stepName + " Microservice not available");
             }
             if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies         
@@ -252,7 +252,7 @@ public class ExecutionPlan {
             // Check if the step is in the behaviour map
             behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
             if (behaviourValues.get(0) == THROW_EXCEPTION) {  
-                logger.info("EXCEPTION THROWN:: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion()); 
+                logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion()); 
                 throw new SimulatorException(stepName + " Microservice not available");
 
             }
@@ -266,7 +266,7 @@ public class ExecutionPlan {
             stepName = step.getName();
             behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
             if (behaviourValues.get(0) == THROW_EXCEPTION) {   
-                logger.info("EXCEPTION THROWN:: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+                logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
                 throw new SimulatorException(stepName + " Microservice not available");
             }
             if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies         

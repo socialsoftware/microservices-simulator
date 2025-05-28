@@ -75,32 +75,32 @@ class LogViewerApp:
                 functionality_name = start_match.group(1).strip()
                 version = start_match.group(2)
                 event_type = "START"
-                if f"{functionality_name} v{version}" not in functionality_order:
-                    functionality_order.append(f"{functionality_name} v{version}")
+                if f"{functionality_name}" not in functionality_order:
+                    functionality_order.append(f"{functionality_name}")
             elif end_match:
                 functionality_name = end_match.group(1).strip()
                 version = end_match.group(2)
                 event_type = "END"
-                if f"{functionality_name} v{version}" not in functionality_order:
-                    functionality_order.append(f"{functionality_name} v{version}")
+                if f"{functionality_name}" not in functionality_order:
+                    functionality_order.append(f"{functionality_name}")
             elif abort_match:
                 functionality_name = abort_match.group(1).strip()
                 version = abort_match.group(2)
                 event_type = "ABORT"
-                if f"{functionality_name} v{version}" not in functionality_order:
-                    functionality_order.append(f"{functionality_name} v{version}")
+                if f"{functionality_name}" not in functionality_order:
+                    functionality_order.append(f"{functionality_name}")
             
             elif exception_match:
                 functionality_name = exception_match.group(1).strip()
                 version = exception_match.group(2)
                 event_type = "EXCEPTION"
-                if f"{functionality_name} v{version}" not in functionality_order:
-                    functionality_order.append(f"{functionality_name} v{version}")
+                if f"{functionality_name}" not in functionality_order:
+                    functionality_order.append(f"{functionality_name}")
 
             
 
             if event_type != "UNKNOWN":
-                display_name = f"{functionality_name} v{version}" if version != "N/A" else functionality_name
+                display_name = f"{functionality_name}" if version != "N/A" else functionality_name
                 all_events.append({
                     "timestamp": timestamp,
                     "event_type": event_type,

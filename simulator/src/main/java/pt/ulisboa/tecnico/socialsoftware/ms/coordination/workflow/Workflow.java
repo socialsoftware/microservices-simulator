@@ -58,7 +58,8 @@ public abstract class Workflow {
     }
     
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
-        logger.info("EXECUTE FUNCTIONALITY: {} with version {} until step {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion(), stepName);
+         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+
 
         if (this.executionPlan == null) {
             this.executionPlan = planOrder(this.stepsWithDependencies);
@@ -69,11 +70,11 @@ public abstract class Workflow {
     }
 
     public CompletableFuture<Void> resume(UnitOfWork unitOfWork) {
-        logger.info("EXECUTE FUNCTIONALITY: {} with version {} until end", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
         try {
             return executionPlan.resume(unitOfWork)
                 .thenRun(() -> {
                     unitOfWorkService.commit(unitOfWork);
+                    logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
                 })
                 .exceptionally(ex -> {
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
