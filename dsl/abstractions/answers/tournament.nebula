@@ -1,0 +1,106 @@
+Aggregate Tournament {
+    Root Entity Tournament { 
+       LocalDateTime startTime;
+       LocalDateTime endTime;
+       Integer numberOfQuestions;
+       Boolean cancelled;
+       TournamentCreator tournamentCreator;
+       Set<TournamentParticipant> tournamentParticipants;
+       TournamentCourseExecution tournamentCourseExecution;
+       Set<TournamentTopic> tournamentTopics;
+       TournamentQuiz tournamentQuiz;
+
+       invariants {
+           check startTimeBeforeEndTime {
+               startTime.isBefore(endTime);
+           }
+
+           check uniqueParticipant {
+               tournamentParticipants.unique(participantAggregateId);
+           }
+
+           check validNumberOfQuestions {
+               numberOfQuestions > 0;
+           }
+
+           check hasTopics {
+               tournamentTopics != null;
+           }
+
+           check hasCreator {
+               tournamentCreator != null;
+           }
+
+           check hasCourseExecution {
+               tournamentCourseExecution != null;
+           }
+       }
+    }
+
+    Entity TournamentCourseExecution {
+        Long id key;
+        Integer courseExecutionAggregateId;
+        Integer courseExecutionCourseId;
+        String courseExecutionAcronym;
+        String courseExecutionStatus;
+        Integer courseExecutionVersion;
+        Tournament tournament;
+
+        invariants {
+            check validStatus {
+                courseExecutionStatus != null;
+            }
+        }
+    }
+
+    Entity TournamentCreator {
+        Long id key;
+        Integer creatorAggregateId;
+        String creatorName;
+        String creatorUsername;
+        Integer creatorVersion;
+        AggregateState creatorState;
+        Tournament tournament;
+    }
+
+    Entity TournamentParticipant {
+
+        Long id key;
+        Integer participantAggregateId;
+        String participantName;
+        String participantUsername;
+        LocalDateTime enrollTime;
+        TournamentParticipantQuizAnswer participantAnswer;
+        Integer participantVersion;
+        AggregateState state;
+        Tournament tournament;
+    }
+
+    Entity TournamentParticipantQuizAnswer {
+
+        Long id key;
+        Integer quizAnswerAggregateId;
+        Integer quizAnswerVersion;
+        Boolean answered;
+        Integer numberOfAnswered;
+        Integer numberOfCorrect;
+        TournamentParticipant tournamentParticipant;
+    }
+
+    Entity TournamentTopic {
+        Long id key;
+        Integer topicAggregateId;
+        String topicName;
+        Integer topicCourseAggregateId;
+        Integer topicVersion;
+        AggregateState state;
+        Tournament tournament;
+    }
+
+    Entity TournamentQuiz {
+        Long id key;
+        Integer quizAggregateId;
+        Integer quizVersion;
+        Tournament tournament;
+    }
+}

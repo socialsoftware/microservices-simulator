@@ -1,0 +1,166 @@
+Aggregate Tournament {
+    Root Entity Tournament { 
+       LocalDateTime startTime;
+       LocalDateTime endTime;
+       Integer numberOfQuestions;
+       Boolean cancelled;
+       TournamentCreator tournamentCreator;
+       Set<TournamentParticipant> tournamentParticipants;
+       TournamentCourseExecution tournamentCourseExecution;
+       Set<TournamentTopic> tournamentTopics;
+       TournamentQuiz tournamentQuiz;
+
+       invariants {
+           check startTimeBeforeEndTime {
+               startTime.isBefore(endTime);
+           }
+
+           check uniqueParticipant {
+               tournamentParticipants.unique(participantAggregateId);
+           }
+
+           check validNumberOfQuestions {
+               numberOfQuestions > 0;
+           }
+
+           check hasTopics {
+               tournamentTopics != null;
+           }
+
+           check hasCreator {
+               tournamentCreator != null;
+           }
+
+           check hasCourseExecution {
+               tournamentCourseExecution != null;
+           }
+       }
+    }
+
+    Entity TournamentCourseExecution {
+        Long id key;
+        Integer courseExecutionAggregateId;
+        Integer courseExecutionCourseId;
+        String courseExecutionAcronym;
+        String courseExecutionStatus;
+        Integer courseExecutionVersion;
+        Tournament tournament;
+
+        invariants {
+            check validStatus {
+                courseExecutionStatus != null;
+            }
+        }
+    }
+
+    Entity TournamentCreator {
+        Long id key;
+        Integer creatorAggregateId;
+        String creatorName;
+        String creatorUsername;
+        Integer creatorVersion;
+        AggregateState creatorState;
+        Tournament tournament;
+    }
+
+    Entity TournamentParticipant {
+
+        Long id key;
+        Integer participantAggregateId;
+        String participantName;
+        String participantUsername;
+        LocalDateTime enrollTime;
+        TournamentParticipantQuizAnswer participantAnswer;
+        Integer participantVersion;
+        AggregateState state;
+        Tournament tournament;
+    }
+
+    Entity TournamentParticipantQuizAnswer {
+
+        Long id key;
+        Integer quizAnswerAggregateId;
+        Integer quizAnswerVersion;
+        Boolean answered;
+        Integer numberOfAnswered;
+        Integer numberOfCorrect;
+        TournamentParticipant tournamentParticipant;
+    }
+
+    Entity TournamentTopic {
+        Long id key;
+        Integer topicAggregateId;
+        String topicName;
+        Integer topicCourseAggregateId;
+        Integer topicVersion;
+        AggregateState state;
+        Tournament tournament;
+    }
+
+    Entity TournamentQuiz {
+        Long id key;
+        Integer quizAggregateId;
+        Integer quizVersion;
+        Tournament tournament;
+    }
+
+    Service TournamentService {
+        aggregate: Tournament;
+
+        operations {
+            createTournament {
+                description "Creates a new tournament and assigns a quiz if needed" // Maybe it is not needed
+                transactional true   
+                retryable {
+                    delay = 5000
+                    exceptions = [SQLException]
+                }
+                input {
+                    TournamentDto tournamentDto
+                    UserDto creatorDto
+                    CourseExecutionDto courseExecutionDto
+                    Set<TopicDto> topicDtos
+                    QuizDto quizDto
+                }
+                output {
+                    TournamentDto
+                }
+                // logic would be to use the TournamentFactory to create and register a new Tournament in the UnitOfWork
+            }
+
+            addParticipant {
+                description "Adds a participant to an existing tournament"
+                transactional true
+                retryable {
+                    delay = 5000
+                    exceptions = [SQLException]
+                }
+                input {
+                    Integer tournamentAggregateId
+                    TournamentParticipant participantDto
+                }
+                output "void"
+                preconditions {
+                    check notAnonymous {
+                        participantDto.participantName != "ANONYMOUS"
+                        participantDto.participantUsername != "ANONYMOUS"
+                    }
+                }
+                logic "Load existing Tournament from UoW, create a copy via the factory, and call newTournament.addParticipant(...)"
+            }
+
+            getTournamentById {
+                description "Retrieves a tournament by aggregateId"
+                transactional true  
+                input {
+                    Integer aggregateId
+                }
+                output {
+                    TournamentDto
+                }
+                logic "Load from repository using aggregateId, map to TournamentDto."
+            }
+
+        }
+    }
+}

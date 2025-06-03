@@ -1,0 +1,27 @@
+Aggregate Test {
+    Root Entity TestEntity {
+        Integer value1;
+        Integer value2;
+        String name;
+        Boolean active;
+        LocalDateTime creationDate;
+        LocalDateTime expiryDate;
+        Set<TestChild> children;
+
+        invariants {
+            check basicComparison {
+                value1 > 0;
+            }
+
+            check uniqueCheck {
+                children.unique(id);
+            }
+        }
+    }
+
+    Entity TestChild {
+        Integer id key;
+        String name;
+        TestEntity parent;
+    }
+} 

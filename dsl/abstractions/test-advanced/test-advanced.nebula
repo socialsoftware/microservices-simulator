@@ -1,0 +1,52 @@
+Aggregate TestAdvanced {
+    Root Entity AdvancedEntity {
+        Integer value1;
+        Integer value2;
+        String name;
+        Boolean active;
+        LocalDateTime creationDate;
+        LocalDateTime expiryDate;
+        Set<ChildItem> items;
+
+        invariants {
+            check basicComparison {
+                value1 > 0;
+            }
+
+            check logicalOperators {
+                value1 > 0 && value2 < 100;
+            }
+
+            check timeComparison {
+                creationDate.isBefore(expiryDate);
+            }
+
+            check uniqueCheck {
+                items.unique(id);
+            }
+
+            check collectionSize {
+                items.size > 0;
+            }
+
+            check negationExpression {
+                !(value1 == 0);
+            }
+
+            check arithmeticExpression {
+                value1 + value2 > 10;
+            }
+
+            check forallExpression {
+                items.allMatch(item -> item.price > 0);
+            }
+        }
+    }
+
+    Entity ChildItem {
+        Integer id key;
+        String name;
+        Integer price;
+        AdvancedEntity parent;
+    }
+} 
