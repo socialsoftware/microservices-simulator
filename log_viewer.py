@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import filedialog, scrolledtext, messagebox
+from tkinter import filedialog, scrolledtext, messagebox, simpledialog
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from dateutil import parser
@@ -7,6 +7,7 @@ import re
 import pandas as pd
 from datetime import datetime
 from collections import Counter
+import os # Import os module for path operations
 
 class LogViewerApp:
     def __init__(self, root):
@@ -18,7 +19,8 @@ class LogViewerApp:
         root.config(menu=menu)
         file_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="Open...", command=self.open_file)
+        # Change this line to call the new select_log_file method
+        file_menu.add_command(label="List logs", command=self.select_log_file_from_directory)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=root.quit)
 
@@ -30,22 +32,65 @@ class LogViewerApp:
         button_frame = tk.Frame(root)
         button_frame.pack(pady=5)
 
-        tk.Button(button_frame, text="🚀 Functionality Events Plot", command=self.plot_functionality_events).pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text="Functionality Events Plot", command=self.plot_functionality_events).pack(side=tk.LEFT, padx=5)
 
         # Log data
         self.log_lines = []
 
-    def open_file(self):
-        file_path = filedialog.askopenfilename(
-            title="Open Log File",
-            filetypes=[("Log files", "*.log *.txt"), ("All files", "*.*")]
-        )
+    def select_log_file_from_directory(self):
+        log_directory = os.path.join(os.getcwd(), "applications", "quizzes", "logs") # Construct the full path
+        
+        if not os.path.exists(log_directory):
+            messagebox.showerror("Directory Not Found", f"The directory '{log_directory}' does not exist.")
+            return
+
+        log_files = [f for f in os.listdir(log_directory) if f.endswith(('.log', '.txt')) and os.path.isfile(os.path.join(log_directory, f))]
+
+        if not log_files:
+            messagebox.showinfo("No Log Files", f"No .log or .txt files found in '{log_directory}'.")
+            return
+
+        # Create a Toplevel window for file selection
+        selection_win = tk.Toplevel(self.root)
+        selection_win.title("Select a Log File")
+
+        listbox_frame = tk.Frame(selection_win)
+        listbox_frame.pack(pady=10, padx=10, fill='both', expand=True)
+
+        scrollbar = tk.Scrollbar(listbox_frame, orient="vertical")
+        listbox = tk.Listbox(listbox_frame, yscrollcommand=scrollbar.set, selectmode=tk.SINGLE, width=50, height=15)
+        scrollbar.config(command=listbox.yview)
+
+        listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        for log_file in log_files:
+            listbox.insert(tk.END, log_file)
+
+        def on_file_select():
+            selected_index = listbox.curselection()
+            if selected_index:
+                selected_file_name = listbox.get(selected_index[0])
+                file_path = os.path.join(log_directory, selected_file_name)
+                selection_win.destroy() # Close the selection window
+                self.open_file(file_path) # Open the selected file
+            else:
+                messagebox.showwarning("No Selection", "Please select a file to open.")
+
+        select_button = tk.Button(selection_win, text="Open Selected File", command=on_file_select)
+        select_button.pack(pady=5)
+
+    def open_file(self, file_path):
+        # This method now directly receives the file_path
         if file_path:
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                self.log_lines = f.readlines()
-            self.text_area.delete('1.0', tk.END)
-            self.text_area.insert(tk.END, ''.join(self.log_lines))
-            self.root.title(f"Log Viewer - {file_path}")
+            try:
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    self.log_lines = f.readlines()
+                self.text_area.delete('1.0', tk.END)
+                self.text_area.insert(tk.END, ''.join(self.log_lines))
+                self.root.title(f"Log Viewer - {file_path}")
+            except Exception as e:
+                messagebox.showerror("Error Opening File", f"Could not open file {file_path}:\n{e}")
 
     def plot_functionality_events(self):
         if not self.log_lines:
