@@ -191,15 +191,6 @@
 			<scope>test</scope>
 		</dependency>
 
-<<<<<<< HEAD
-=======
-		<!-- Loki Logback Appender -->
-		<dependency>
-			<groupId>com.github.loki4j</groupId>
-			<artifactId>loki-logback-appender</artifactId>
-			<version>1.5.1</version>
-		</dependency>
->>>>>>> 279b7f8 (Added Grafana Loki framework)
 	</dependencies>
 
 	<build>
