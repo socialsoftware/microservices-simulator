@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.publish.QuizAnswerQuestionAnswerEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.AnonymizeStudentEvent;
@@ -19,6 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publ
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publish.UpdateTopicEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeUserTournamentFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateUserNameFunctionalitySagas;
 
 import java.util.Arrays;
 
@@ -30,6 +33,9 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
 public class TournamentEventProcessing {
     @Autowired
     private TournamentService tournamentService;
+
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
     
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
@@ -104,8 +110,26 @@ public class TournamentEventProcessing {
         unitOfWorkService.commit(unitOfWork);
     }
     public void processUpdateStudentNameEvent(Integer subscriberAggregateId, UpdateStudentNameEvent updateStudentNameEvent) {
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        tournamentService.updateUserName(subscriberAggregateId, updateStudentNameEvent.getPublisherAggregateId(), updateStudentNameEvent.getPublisherAggregateVersion(), updateStudentNameEvent.getStudentAggregateId(), updateStudentNameEvent.getUpdatedName(), unitOfWork);
-        unitOfWorkService.commit(unitOfWork);
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+
+                UpdateUserNameFunctionalitySagas updateUserNameFunctionalitySagas =
+                        new UpdateUserNameFunctionalitySagas(tournamentService, sagaUnitOfWorkService,updateStudentNameEvent.getPublisherAggregateVersion(), subscriberAggregateId ,updateStudentNameEvent.getPublisherAggregateId() ,updateStudentNameEvent.getStudentAggregateId() ,sagaUnitOfWork, updateStudentNameEvent.getUpdatedName());
+                                                      
+                updateUserNameFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+                tournamentService.updateUserName(subscriberAggregateId, updateStudentNameEvent.getPublisherAggregateId(), updateStudentNameEvent.getPublisherAggregateVersion(), updateStudentNameEvent.getStudentAggregateId(), updateStudentNameEvent.getUpdatedName(), unitOfWork);
+                unitOfWorkService.commit(unitOfWork);
+                break;
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+
+        
     }
 }
