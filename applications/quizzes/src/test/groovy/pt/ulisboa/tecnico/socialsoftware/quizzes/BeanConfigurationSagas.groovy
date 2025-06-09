@@ -59,6 +59,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.User
 
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.utils.DatabaseService
+
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
 class BeanConfigurationSagas {
@@ -274,6 +276,11 @@ class BeanConfigurationSagas {
 
     @Bean
     BehaviourService BehaviourService() {
-    return new BehaviourService();
+        return new BehaviourService();
+    }
+
+    @Bean
+    DatabaseService databaseService() {
+        return new DatabaseService();
     }
 }
