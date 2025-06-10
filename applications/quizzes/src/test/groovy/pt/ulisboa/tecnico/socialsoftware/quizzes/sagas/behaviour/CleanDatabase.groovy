@@ -91,38 +91,51 @@ class CleanDatabase extends QuizzesSpockTest {
         unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
     }
-
+    /*
     def cleanup() {
     }
+    def 'sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet' () {
+        
+        when: 'creator name is updated'
+        def updateNameDto = new UserDto()
+        updateNameDto.setName(UPDATED_NAME)
+        courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
+        tournamentEventHandling.handleUpdateStudentNameEvent()
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
+        then: 'the tournament fails to add the creator as a participant'
+        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult.creator.name == UPDATED_NAME
+        tournamentDtoResult.getParticipants().size() == 1
+        tournamentDtoResult.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
 
-    // def 'sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet' () {
+        when: 'database is cleaned'
+        println "Clean database"
+        databaseService.cleanDatabase()
 
-    //     given: 'creator name is updated'
-    //     def updateNameDto = new UserDto()
-    //     updateNameDto.setName(UPDATED_NAME)
-    //     courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
+        then: 'the user table has the new user and all other tables are empty'
+        def courseExecutionDtoResult2 = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult2.getStudents().isEmpty()
 
-    //     when: 'event is finally processed it updates the creator name'
-    //     tournamentEventHandling.handleUpdateStudentNameEvent()
-    //     then: ''
-    //     def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
-    //     courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+        when: ''
+        def updateNameDto1 = new UserDto()
+        updateNameDto1.setName(UPDATED_NAME)
+        courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
+        tournamentEventHandling.handleUpdateStudentNameEvent()
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
+        
+        then: 'the name is updated in course execution'
 
-    //     when: ''
-    //     databaseService.showDatabaseInfo()
-    //     println "Clean database after updating creator name:"
-    //     databaseService.cleanDatabase()
+        def courseExecutionDtoResult1 = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionDtoResult1.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+        def tournamentDtoResult1 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult1.creator.name == UPDATED_NAME
+        tournamentDtoResult1.getParticipants().size() == 1
+        tournamentDtoResult1.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
 
-    //     then: "if a new user is created"
-    //     createUser(USER_NAME_3, USER_USERNAME_3, STUDENT_ROLE)
-    //     println "Clean database after creating a new user:"
-    //     databaseService.showDatabaseInfo()
-
-    //     then: 'the database is clean'
-    //     def courseExecutionDtoResult1 = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
-    //     courseExecutionDtoResult1.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
-    // }
-
+    }
+    */
     def 'clean database tables' () {
 
         given: 'a database with users, topics, questions and a tournament'
@@ -140,7 +153,6 @@ class CleanDatabase extends QuizzesSpockTest {
         println "Clean database after creating a new user:"
         databaseService.showDatabaseInfo()
     }
-
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 }

@@ -31,23 +31,23 @@ public class DatabaseService {
 
     @Transactional
     public void cleanDatabase() {
-        if (tableExists("saga_course_execution")) {
-            //entityManager.createNativeQuery("DELETE FROM saga_course_execution").executeUpdate();
-        }
-        if (tableExists("saga_user")) {
-            entityManager.createNativeQuery("DELETE FROM saga_user").executeUpdate();
-        }  
-        if (tableExists("saga_quiz")) {
-            entityManager.createNativeQuery("DELETE FROM saga_quiz").executeUpdate();
-        }
-        if (tableExists("saga_question")) {
-            entityManager.createNativeQuery("DELETE FROM saga_question").executeUpdate();
-        }
         if (tableExists("saga_tournament")) {
             entityManager.createNativeQuery("DELETE FROM saga_tournament").executeUpdate();
         }
+        if (tableExists("saga_question")) {
+            entityManager.createNativeQuery("DELETE FROM saga_question").executeUpdate();
+        }  
         if (tableExists("saga_topic")) {
             entityManager.createNativeQuery("DELETE FROM saga_topic").executeUpdate();
+        }
+        if (tableExists("saga_quiz")) {
+            entityManager.createNativeQuery("DELETE FROM saga_quiz").executeUpdate();
+        }
+        if (tableExists("saga_user")) {
+            entityManager.createNativeQuery("DELETE FROM saga_user").executeUpdate();
+        }
+        if (tableExists("saga_course_execution")) {
+            entityManager.createNativeQuery("DELETE FROM saga_course_execution").executeUpdate();
         }
         entityManager.clear();
     }
@@ -63,6 +63,21 @@ public class DatabaseService {
             // }
             
         }
+        if (tableExists("saga_tournament")) {
+            entityManager.createNativeQuery("SELECT * FROM saga_tournament").getResultList();
+            System.out.println("saga_tournament table exists, printing contents:");
+            printFullTable("saga_tournament");
+        }
+        if (tableExists("saga_question")) {
+            entityManager.createNativeQuery("SELECT * FROM saga_question").getResultList();
+            System.out.println("saga_question table exists, printing contents:");
+            printFullTable("saga_question");
+        }
+        if (tableExists("saga_topic")) {
+            entityManager.createNativeQuery("SELECT * FROM saga_topic").getResultList();
+            System.out.println("saga_topic table exists, printing contents:");
+            printFullTable("saga_topic");
+        }
         if (tableExists("saga_user")) {
             entityManager.createNativeQuery("SELECT * FROM saga_user").getResultList();
             System.out.println("saga_user table exists, printing contents:");
@@ -74,20 +89,10 @@ public class DatabaseService {
             System.out.println("saga_quiz table exists, printing contents:");
             printFullTable("saga_quiz");
         }
-        if (tableExists("saga_question")) {
-            entityManager.createNativeQuery("SELECT * FROM saga_question").getResultList();
-            System.out.println("saga_question table exists, printing contents:");
-            printFullTable("saga_question");
-        }
-        if (tableExists("saga_tournament")) {
-            entityManager.createNativeQuery("SELECT * FROM saga_tournament").getResultList();
-            System.out.println("saga_tournament table exists, printing contents:");
-            printFullTable("saga_tournament");
-        }
-        if (tableExists("saga_topic")) {
-            entityManager.createNativeQuery("SELECT * FROM saga_topic").getResultList();
-            System.out.println("saga_topic table exists, printing contents:");
-            printFullTable("saga_topic");
+        if (tableExists("saga_course_execution")) {
+            entityManager.createNativeQuery("SELECT * FROM saga_course_execution").getResultList();
+            System.out.println("saga_course_execution table exists, printing contents:");
+            printFullTable("saga_course_execution");
         }
     }
 
