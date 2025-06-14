@@ -152,6 +152,7 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
         assert quizDto.questionDtos.size() == 3
 
         cleanup: 'remove all generated artifacts after test execution'
+        behaviourService.flush()
         behaviourService.cleanDirectory()
     }
 

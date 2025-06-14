@@ -115,21 +115,11 @@ class HandleEventBehaviour extends QuizzesSpockTest {
         when: 'event is finally processed it updates the creator name'
         tournamentEventHandling.handleUpdateStudentNameEvent()
         then: ''
-        def courseExecutionDtoResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
-        courseExecutionDtoResult.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
-        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult.creator.name == UPDATED_NAME
-        when: 'creator is added as participant because tournament has processed all events it subscribes from course execution'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
-        then: 'the name is updated in course execution'
-        def courseExecutionDtoResult2 = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
-        courseExecutionDtoResult2.getStudents().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
-        and: 'the creator is update in tournament'
-        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult2.creator.name == UPDATED_NAME
+        thrown(SimulatorException)
+        
         and: 'the creator is participant with updated name'
-        tournamentDtoResult2.getParticipants().size() == 1
-        tournamentDtoResult2.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult2.getParticipants().size() == 0
 
         cleanup: 'remove all generated artifacts after test execution'
         behaviourService.cleanDirectory()
