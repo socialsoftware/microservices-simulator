@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import org.springframework.stereotype.Service;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourGenerator;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceManager;
 
 @Service
 public class BehaviourService {
@@ -46,5 +47,9 @@ public class BehaviourService {
             return;
         }
         new BehaviourGenerator(directory, filePath);
+    }
+
+    public void flush() {
+        TraceManager.getInstance().forceFlush();
     }
 }

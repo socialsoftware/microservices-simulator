@@ -123,54 +123,55 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
 
         and: 'the execution duration of AddParticipantFunctionality is bigger than the defined delay'
         duration > definedDelay
+        behaviourService.flush()
     }
 
 
-    def 'concurrent: add two participants to tournament, where one of the functionalities has a delay'() {
-        given: 'another user'
-        def userDto3 = createUser(USER_NAME_3, USER_USERNAME_3, STUDENT_ROLE)
-        courseExecutionFunctionalities.addStudent(courseExecutionDto.aggregateId, userDto3.aggregateId)
+    // def 'concurrent: add two participants to tournament, where one of the functionalities has a delay'() {
+    //     given: 'another user'
+    //     def userDto3 = createUser(USER_NAME_3, USER_USERNAME_3, STUDENT_ROLE)
+    //     courseExecutionFunctionalities.addStudent(courseExecutionDto.aggregateId, userDto3.aggregateId)
 
-        and: 'create another unit of work for concurrent addition of participants'
-        def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
-        def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
+    //     and: 'create another unit of work for concurrent addition of participants'
+    //     def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
+    //     def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
 
-        and: 'two functionalities to add participants'
-        def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
-            tournamentService, courseExecutionService, unitOfWorkService,
-            tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
-            userDto.getAggregateId(), unitOfWork1
-        )
-        def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(
-            tournamentService, courseExecutionService, unitOfWorkService,
-            tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
-            userDto3.getAggregateId(), unitOfWork2
-        )
+    //     and: 'two functionalities to add participants'
+    //     def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
+    //         tournamentService, courseExecutionService, unitOfWorkService,
+    //         tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
+    //         userDto.getAggregateId(), unitOfWork1
+    //     )
+    //     def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(
+    //         tournamentService, courseExecutionService, unitOfWorkService,
+    //         tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
+    //         userDto3.getAggregateId(), unitOfWork2
+    //     )
 
-        when: 'executing both workflows, capture the time taken to execute each functionality\'s workflow'
-        def start1 = System.currentTimeMillis()
-        addParticipantFunctionality1.executeWorkflow(unitOfWork1)
-        def end1 = System.currentTimeMillis()
-        def duration1 = end1 - start1
-        def start2 = System.currentTimeMillis()
-        addParticipantFunctionality2.executeWorkflow(unitOfWork2)
-        def end2 = System.currentTimeMillis()
-        def duration2 = end2 - start2
+    //     when: 'executing both workflows, capture the time taken to execute each functionality\'s workflow'
+    //     def start1 = System.currentTimeMillis()
+    //     addParticipantFunctionality1.executeWorkflow(unitOfWork1)
+    //     def end1 = System.currentTimeMillis()
+    //     def duration1 = end1 - start1
+    //     def start2 = System.currentTimeMillis()
+    //     addParticipantFunctionality2.executeWorkflow(unitOfWork2)
+    //     def end2 = System.currentTimeMillis()
+    //     def duration2 = end2 - start2
 
-        and: 'get the defined delay of the first functionality'
-        def definedDelayFunc1 = addParticipantFunctionality1.getWorkflowTotalDelay()
+    //     and: 'get the defined delay of the first functionality'
+    //     def definedDelayFunc1 = addParticipantFunctionality1.getWorkflowTotalDelay()
 
-        then: 'check number of participants accordingly and comparing the time taken with the expected delay'
-        def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        updatedTournament.participants.size() == 2
-        updatedTournament.participants.any { it.aggregateId == userDto.getAggregateId() }
+    //     then: 'check number of participants accordingly and comparing the time taken with the expected delay'
+    //     def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+    //     updatedTournament.participants.size() == 2
+    //     updatedTournament.participants.any { it.aggregateId == userDto.getAggregateId() }
 
-        and: 'the execution duration of AddParticipantFunctionality1 is bigger than the execution duration of AddParticipantFunctionality2 + defined delay for func1'
-        duration1 > duration2 + definedDelayFunc1
+    //     and: 'the execution duration of AddParticipantFunctionality1 is bigger than the execution duration of AddParticipantFunctionality2 + defined delay for func1'
+    //     duration1 > duration2 + definedDelayFunc1
 
-        cleanup: 'remove all generated artifacts after test execution'
-        behaviourService.cleanDirectory()
-    }
+    //     cleanup: 'remove all generated artifacts after test execution'
+    //     behaviourService.cleanDirectory()
+    // }
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}

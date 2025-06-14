@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceManager;
 
 public abstract class Workflow {
     private static final Logger logger = LoggerFactory.getLogger(SagaSyncStep.class);
@@ -24,11 +25,13 @@ public abstract class Workflow {
     protected HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies = new HashMap<>();
     private ExecutionPlan executionPlan; // redefined for each transaction model
     private HashMap<String, FlowStep> stepNameMap = new HashMap<>();
+    private TraceManager traceManager;
 
     public Workflow(WorkflowFunctionality functionality, UnitOfWorkService unitOfWorkService, UnitOfWork unitOfWork) {
         this.functionality = functionality;
         this.unitOfWorkService = unitOfWorkService;
         this.unitOfWork = unitOfWork;
+        this.traceManager = TraceManager.getInstance();
     }
 
     public Workflow(UnitOfWorkService unitOfWorkService, UnitOfWork unitOfWork) {
@@ -107,6 +110,7 @@ public abstract class Workflow {
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+        this.traceManager.startSpanForFunctionality(unitOfWork.getFunctionalityName());
 
         this.executionPlan = planOrder(this.stepsWithDependencies);
         
@@ -120,14 +124,14 @@ public abstract class Workflow {
                 .thenRun(() -> {
                     unitOfWorkService.commit(unitOfWork);
                     logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-
+                    this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
                 })
                 .exceptionally(ex -> {
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
     
                     unitOfWorkService.abort(unitOfWork);
                     logger.info("ABORT EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-
+                    
                     if (cause instanceof SimulatorException) {
                         throw (SimulatorException) cause;
                     } else {
@@ -137,6 +141,7 @@ public abstract class Workflow {
         } catch (SimulatorException e) {
             unitOfWorkService.abort(unitOfWork);
             logger.info("ABORT EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+            this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
             throw e;
         }
     } 

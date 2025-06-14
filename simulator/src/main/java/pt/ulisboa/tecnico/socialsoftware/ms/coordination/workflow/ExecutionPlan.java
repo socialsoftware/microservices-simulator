@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ public class ExecutionPlan {
     private Map<String, List<Integer>> behaviour;
     private static final int DEFAULT_VALUE = 0;
     private static final int THROW_EXCEPTION = 1;
+    private TraceManager traceManager;
 
     private static final Logger logger = LoggerFactory.getLogger(ExecutionPlan.class);
 
@@ -45,6 +47,7 @@ public class ExecutionPlan {
         behaviour = BehaviourHandler.getInstance().loadStepsFile(functionalityName);
         BehaviourHandler.getInstance().appendToReport(reportSteps(behaviour));
 
+        this.traceManager = TraceManager.getInstance();
     }
 
     public ArrayList<FlowStep> getPlan() {
@@ -88,7 +91,7 @@ public class ExecutionPlan {
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
             final String stepName = step.getName();
-            final String funcName = functionalityName;
+            final String funcName = unitOfWork.getFunctionalityName();
 
             // Check if the step is in the behaviour map
             final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
@@ -96,6 +99,7 @@ public class ExecutionPlan {
             final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
             if (faultValue == THROW_EXCEPTION) {
                 logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+
                 throw new SimulatorException(stepName + " Microservice not available");
 
             }
@@ -105,6 +109,7 @@ public class ExecutionPlan {
                     try {
                         Thread.sleep(delayBeforeValue);
                         logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
+                        TraceManager.getInstance().startStepSpan(funcName, stepName);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         throw new CompletionException(e);
@@ -114,6 +119,7 @@ public class ExecutionPlan {
                 .thenAccept(ignored -> {
                     try {
                         logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
+                        TraceManager.getInstance().endStepSpan(funcName, stepName);
                         Thread.sleep(delayAfterValue);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
@@ -129,7 +135,7 @@ public class ExecutionPlan {
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
             final String stepName = step.getName();
-            final String funcName = functionalityName;
+            final String funcName = unitOfWork.getFunctionalityName();
             final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
             final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
             final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
@@ -148,6 +154,7 @@ public class ExecutionPlan {
                         try {
                             Thread.sleep(delayBeforeValue);
                             logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
+                            TraceManager.getInstance().startStepSpan(funcName, stepName);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             throw new CompletionException(e);
@@ -157,6 +164,7 @@ public class ExecutionPlan {
                     .thenAccept(ignored -> {
                         try {
                             logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
+                            TraceManager.getInstance().endStepSpan(funcName, stepName);
                             Thread.sleep(delayAfterValue);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
