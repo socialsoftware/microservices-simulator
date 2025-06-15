@@ -23,6 +23,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.Up
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
 
 @DataJpaTest
 class AddParticipantWithDelaysTest extends QuizzesSpockTest {
@@ -49,6 +50,9 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
     @Autowired
     private TournamentEventHandling tournamentEventHandling
 
+    @Autowired
+    public TraceService traceService
+
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
     private TopicDto topicDto1, topicDto2, topicDto3
@@ -60,6 +64,7 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
     def setup() {
         given: 'load a behavior specification'
         loadBehaviorScripts()
+        traceService.startRootSpan()
 
         and: 'a course execution'
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
@@ -123,7 +128,8 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
 
         and: 'the execution duration of AddParticipantFunctionality is bigger than the defined delay'
         duration > definedDelay
-        behaviourService.flush()
+        traceService.endRootSpan()
+        traceService.spanFlush()
     }
 
 

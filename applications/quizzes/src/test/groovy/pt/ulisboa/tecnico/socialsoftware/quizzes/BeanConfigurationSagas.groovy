@@ -58,6 +58,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.Us
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService
 
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
 
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.utils.DatabaseService
 
@@ -277,6 +278,11 @@ class BeanConfigurationSagas {
     @Bean
     BehaviourService BehaviourService() {
         return new BehaviourService();
+    }
+
+    @Bean
+    TraceService TraceService() {
+        return new TraceService();
     }
 
     @Bean

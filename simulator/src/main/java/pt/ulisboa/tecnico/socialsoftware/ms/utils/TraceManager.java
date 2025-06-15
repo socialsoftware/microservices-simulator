@@ -24,6 +24,7 @@ public class TraceManager {
     private static final TraceManager INSTANCE = new TraceManager();
     private final Tracer tracer;
     private final SdkTracerProvider tracerProvider;
+    private static Span rootSpan;
 
      // Map to store active spans by functionality
     private final Map<String, Span> functionalitySpans = new ConcurrentHashMap<>();
@@ -64,19 +65,40 @@ public class TraceManager {
         return functionalitySpans.get(func);
     }
 
-    public void startSpanForFunctionality(String func) {
-        Span span = tracer.spanBuilder(func)
+    public void startRootSpan() {
+        Span span = tracer.spanBuilder("root")
                         .setSpanKind(SpanKind.INTERNAL)
                         .startSpan();
-                        functionalitySpans.put(func, span);
-                    }
+        rootSpan = span;
+    }
+
+    public void endRootSpan() {
+        if (rootSpan != null) {
+            rootSpan.end();
+            rootSpan = null;
+        } else {
+            throw new IllegalStateException("Root span has not been started");
+        }
+    }
+
+    public void startSpanForFunctionality(String func) {
+        if(rootSpan == null) {
+            throw new IllegalStateException("Root span must be started before starting functionality spans");
+        }
+        Span span = tracer.spanBuilder(func)
+                        .setParent(Context.current().with(rootSpan))
+                        .setSpanKind(SpanKind.INTERNAL)
+                        .startSpan();
+        
+        functionalitySpans.put(func, span); 
+    }
+        
                     
     public void endSpanForFunctionality(String func) {
         functionalitySpans.computeIfPresent(func, (f, span) -> {
-
             span.end();
             return null;
-        }
+            }
         );
     }
 
@@ -91,13 +113,6 @@ public class TraceManager {
     
     // Start a step span as child of its functionality
     public void startStepSpan(String func, String stepName) {
-        System.out.println("Starting step span for functionality: " + func + ", step: " + stepName);
-        functionalitySpans.forEach((funct, span) -> 
-            System.out.println("Functionality: " + funct + ", Span: " + span)
-        );
-        stepSpans.forEach((funct, span) -> 
-            System.out.println("Step: " + funct + ", Span: " + span)
-        );
         Span parentSpan = functionalitySpans.get(func);
         if (parentSpan == null) {
             throw new IllegalStateException("Functionality span not started: " + func);
