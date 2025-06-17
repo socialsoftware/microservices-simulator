@@ -91,9 +91,10 @@ class CleanDatabase extends QuizzesSpockTest {
         unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
     }
-    /*
+    
     def cleanup() {
     }
+
     def 'sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet' () {
         
         when: 'creator name is updated'
@@ -112,7 +113,7 @@ class CleanDatabase extends QuizzesSpockTest {
 
         when: 'database is cleaned'
         println "Clean database"
-        databaseService.cleanDatabase()
+        databaseService.reset()
 
         then: 'the user table has the new user and all other tables are empty'
         def courseExecutionDtoResult2 = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
@@ -135,24 +136,7 @@ class CleanDatabase extends QuizzesSpockTest {
         tournamentDtoResult1.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
 
     }
-    */
-    def 'clean database tables' () {
-
-        given: 'a database with users, topics, questions and a tournament'
-        databaseService.showDatabaseInfo()
-
-
-        when: 'database is cleaned'
-        println "Clean database"
-        databaseService.cleanDatabase()
-
-        and: "a new user is created"
-        createUser(USER_NAME_3, USER_USERNAME_3, STUDENT_ROLE)
-
-        then: 'the user table has the new user and all other tables are empty'
-        println "Clean database after creating a new user:"
-        databaseService.showDatabaseInfo()
-    }
+    
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 }
