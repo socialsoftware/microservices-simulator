@@ -251,6 +251,7 @@ public class ExecutionPlan {
     public CompletableFuture<Void> executeSteps(List<FlowStep> steps, UnitOfWork unitOfWork) {
 
         String stepName;
+        final String funcName = unitOfWork.getFunctionalityName();
         List<Integer> behaviourValues = new ArrayList<>();
 
 
@@ -265,7 +266,9 @@ public class ExecutionPlan {
 
             }
             if (dependencies.get(step).isEmpty()) {
+                TraceManager.getInstance().startStepSpan(funcName, stepName);
                 this.stepFutures.put(step, step.execute(unitOfWork)); // Execute and save the steps with no dependencies
+                TraceManager.getInstance().endStepSpan(funcName, stepName);
             }
         }
             
@@ -277,11 +280,13 @@ public class ExecutionPlan {
                 logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
                 throw new SimulatorException(stepName + " Microservice not available");
             }
-            if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies         
+            if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies
+                TraceManager.getInstance().startStepSpan(funcName, stepName);         
                 ArrayList<FlowStep> deps = dependencies.get(step); // get all dependencies
                 CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
                     deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
                 );
+                TraceManager.getInstance().endStepSpan(funcName, stepName);
                 this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // only executes after all dependencies are completed
             }
             

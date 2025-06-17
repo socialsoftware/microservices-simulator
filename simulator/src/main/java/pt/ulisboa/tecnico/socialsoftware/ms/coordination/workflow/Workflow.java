@@ -62,7 +62,7 @@ public abstract class Workflow {
     
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
          logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-
+         this.traceManager.startSpanForFunctionality(unitOfWork.getFunctionalityName()); 
 
         if (this.executionPlan == null) {
             this.executionPlan = planOrder(this.stepsWithDependencies);
@@ -78,6 +78,7 @@ public abstract class Workflow {
                 .thenRun(() -> {
                     unitOfWorkService.commit(unitOfWork);
                     logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+                    this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
                 })
                 .exceptionally(ex -> {
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
@@ -94,6 +95,7 @@ public abstract class Workflow {
         } catch (SimulatorException e) {
             unitOfWorkService.abort(unitOfWork);
             logger.info("ABORT EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+            this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
             throw e;
         }
     }

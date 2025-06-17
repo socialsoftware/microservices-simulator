@@ -55,10 +55,19 @@ public class BehaviourHandler {
         return map;
     }
     
-    private synchronized int getFuncionalityCounter(String functionality) {
+    private static synchronized int getFuncionalityCounter(String functionality) {
         return funcCounter.compute(functionality, (k, v) -> (v == null) ? 1 : v + 1);
     }
 
+    public static synchronized int getFuncCounter(String functionality) {
+    Integer current = funcCounter.get(functionality);
+    if (current == null) {
+        return 1; 
+    } else {
+        return current + 1;
+    }
+}
+    
     public static List<String[]> parseCSVForBlock(Path filePath, String funcName, int targetBlock) throws IOException {
         List<String[]> currentBlock = new ArrayList<>();
         int blockNumber = 0;

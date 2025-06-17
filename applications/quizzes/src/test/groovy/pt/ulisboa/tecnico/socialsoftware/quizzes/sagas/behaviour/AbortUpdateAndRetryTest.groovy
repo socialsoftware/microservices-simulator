@@ -27,6 +27,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTourn
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
 
 
 @DataJpaTest
@@ -48,6 +49,9 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
     @Autowired
     private QuizService quizService
 
+    @Autowired
+    public TraceService traceService
+
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
     private TopicDto topicDto1, topicDto2, topicDto3
@@ -59,6 +63,7 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
     def setup() {
         given: 'load a behavior specification'
         loadBehaviorScripts()
+        traceService.startRootSpan()
 
         and: 'a course execution'
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
@@ -152,7 +157,8 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
         assert quizDto.questionDtos.size() == 3
 
         cleanup: 'remove all generated artifacts after test execution'
-        behaviourService.flush()
+        traceService.endRootSpan()
+        traceService.spanFlush()
         behaviourService.cleanDirectory()
     }
 

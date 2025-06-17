@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.utils;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -83,9 +85,11 @@ public class TraceManager {
 
     public void startSpanForFunctionality(String func) {
         if(rootSpan == null) {
-            throw new IllegalStateException("Root span must be started before starting functionality spans");
+            return; // or throw an exception if you want to enforce starting root span first
+            //throw new IllegalStateException("Root span must be started before starting functionality spans");
         }
-        Span span = tracer.spanBuilder(func)
+        String name = func + "::" + BehaviourService.getFuncCounter(func);
+        Span span = tracer.spanBuilder(name)
                         .setParent(Context.current().with(rootSpan))
                         .setSpanKind(SpanKind.INTERNAL)
                         .startSpan();
@@ -115,7 +119,8 @@ public class TraceManager {
     public void startStepSpan(String func, String stepName) {
         Span parentSpan = functionalitySpans.get(func);
         if (parentSpan == null) {
-            throw new IllegalStateException("Functionality span not started: " + func);
+            //throw new IllegalStateException("Functionality span not started: " + func);
+            return; // or handle as needed
         }
 
         Span stepSpan = tracer.spanBuilder(stepName)
