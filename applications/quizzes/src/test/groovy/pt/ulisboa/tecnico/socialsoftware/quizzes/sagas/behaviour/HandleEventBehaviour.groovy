@@ -22,6 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.Us
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
 
 @DataJpaTest
 class HandleEventBehaviour extends QuizzesSpockTest {
@@ -45,6 +46,10 @@ class HandleEventBehaviour extends QuizzesSpockTest {
     @Autowired
     private EventService eventService;
 
+
+    @Autowired
+    public TraceService traceService
+
     @Autowired
     private TournamentEventHandling tournamentEventHandling
 
@@ -59,6 +64,7 @@ class HandleEventBehaviour extends QuizzesSpockTest {
     def setup() {
         given: 'load a behavior specification'
         loadBehaviorScripts()
+        traceService.startRootSpan()
 
         and: 'a course execution'
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
@@ -122,6 +128,8 @@ class HandleEventBehaviour extends QuizzesSpockTest {
         tournamentDtoResult2.getParticipants().size() == 0
 
         cleanup: 'remove all generated artifacts after test execution'
+        traceService.endRootSpan()
+        traceService.spanFlush()
         behaviourService.cleanDirectory()
     }
 

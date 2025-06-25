@@ -20,6 +20,7 @@ import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.trace.StatusCode;
 
 public class TraceManager {
 
@@ -72,6 +73,8 @@ public class TraceManager {
                         .setSpanKind(SpanKind.INTERNAL)
                         .startSpan();
         rootSpan = span;
+        span.setAttribute("root", "root");
+        span.setAttribute("visual.color", "white");
     }
 
     public void endRootSpan() {
@@ -94,7 +97,11 @@ public class TraceManager {
                         .setSpanKind(SpanKind.INTERNAL)
                         .startSpan();
         
-        functionalitySpans.put(func, span); 
+        span.setAttribute("func.name", name);
+        span.setAttribute("functionality", func);
+        span.setAttribute("visual.color", "green");
+
+        functionalitySpans.put(func, span);
     }
         
                     
@@ -128,6 +135,10 @@ public class TraceManager {
                 .setSpanKind(SpanKind.INTERNAL)
                 .startSpan();
 
+        stepSpan.setAttribute("step.name", stepName);
+        stepSpan.setAttribute("functionality", func);
+        stepSpan.setAttribute("visual.color", "blue");
+
         stepSpans.put(key(func, stepName), stepSpan);
     }
 
@@ -142,4 +153,29 @@ public class TraceManager {
     public void forceFlush() {
         tracerProvider.forceFlush().join(10, TimeUnit.SECONDS);
     }
+
+    public void recordException(String func, Throwable e, String message) {
+    Span span = getSpanForFunctionality(func);
+
+    if (span == null) return;
+
+    span.recordException(e);
+    span.setStatus(StatusCode.ERROR, message != null ? message : e.getMessage());
+    span.addEvent("exception.caught", Attributes.of(
+        AttributeKey.stringKey("exception.type"), e.getClass().getSimpleName(),
+        AttributeKey.stringKey("exception.message"), e.getMessage()
+    ));
+    }
+
+    public void recordWarning(String func, Exception e, String message) {
+    Span span = getSpanForFunctionality(func);
+
+    if (span == null) return;
+
+    span.addEvent("warning", Attributes.of(
+        AttributeKey.stringKey("exception.type"), e.getClass().getSimpleName(),
+        AttributeKey.stringKey("message"), message
+    ));
+    }
+
 }
