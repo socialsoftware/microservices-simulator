@@ -114,12 +114,13 @@ public abstract class Workflow {
     public abstract ExecutionPlan planOrder(HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies);
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-        logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-        this.traceManager.startSpanForFunctionality(unitOfWork.getFunctionalityName());
-
-        this.executionPlan = planOrder(this.stepsWithDependencies);
-        
         CompletableFuture<Void> executionFuture;
+        logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+        this.executionPlan = planOrder(this.stepsWithDependencies);
+        this.traceManager.startSpanForFunctionality(unitOfWork.getFunctionalityName());
+        this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "behaviour", this.executionPlan.getBehaviour());
+        String hasBehaviour = this.executionPlan.getBehaviour() != "{}" ? "true" : "false";
+        this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "hasBehaviour", hasBehaviour);
 
         try {
             

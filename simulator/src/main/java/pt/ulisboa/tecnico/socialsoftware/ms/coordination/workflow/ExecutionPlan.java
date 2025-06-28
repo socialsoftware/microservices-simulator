@@ -46,7 +46,7 @@ public class ExecutionPlan {
 
         behaviour = BehaviourHandler.getInstance().loadStepsFile(functionalityName);
         BehaviourHandler.getInstance().appendToReport(reportSteps(behaviour));
-
+        
         this.traceManager = TraceManager.getInstance();
     }
 
@@ -70,6 +70,9 @@ public class ExecutionPlan {
         return totalDelay;
     }   
 
+    public String getBehaviour() {
+        return behaviour.toString();
+    }
     /* 
      * while not plan.isempty
      *      do: step = getplan.first / getplan.next

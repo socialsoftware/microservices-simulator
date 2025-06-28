@@ -150,6 +150,7 @@ public class TraceManager {
     // Start a step span as child of its functionality
     public void startStepSpan(String func, String stepName) {
         Span parentSpan = functionalitySpans.get(func);
+
         if (parentSpan == null) {
             //throw new IllegalStateException("Functionality span not started: " + func);
             return; // or handle as needed
@@ -200,6 +201,13 @@ public class TraceManager {
         AttributeKey.stringKey("exception.type"), e.getClass().getSimpleName(),
         AttributeKey.stringKey("message"), message
     ));
+    }
+
+    public void setSpanAttribute(String func, String key, String value) {
+        Span span = getSpanForFunctionality(func);
+        if (span != null) {
+            span.setAttribute(key, value);
+        }
     }
 
 }
