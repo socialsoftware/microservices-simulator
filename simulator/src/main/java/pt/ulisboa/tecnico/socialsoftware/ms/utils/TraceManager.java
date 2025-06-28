@@ -74,7 +74,6 @@ public class TraceManager {
                         .startSpan();
         rootSpan = span;
         span.setAttribute("root", "root");
-        span.setAttribute("visual.color", "white");
     }
 
     public void endRootSpan() {
@@ -99,7 +98,6 @@ public class TraceManager {
         
         span.setAttribute("func.name", name);
         span.setAttribute("functionality", func);
-        span.setAttribute("visual.color", "green");
 
         functionalitySpans.put(func, span);
     }
@@ -107,6 +105,33 @@ public class TraceManager {
                     
     public void endSpanForFunctionality(String func) {
         functionalitySpans.computeIfPresent(func, (f, span) -> {
+            span.end();
+            return null;
+            }
+        );
+    }
+
+    public void startSpanForCompensation(String func) {
+        if(rootSpan == null) {
+            return; // or throw an exception if you want to enforce starting root span first
+            //throw new IllegalStateException("Root span must be started before starting functionality spans");
+        }
+        String name = "[COMPENSATE] "+ func + "::" + (BehaviourService.getFuncCounter(func) - 1);
+        Span span = tracer.spanBuilder(name)
+                        .setParent(Context.current().with(rootSpan))
+                        .setSpanKind(SpanKind.INTERNAL)
+                        .startSpan();
+        
+        span.setAttribute("func.name", name);
+        span.setAttribute("functionality", func);
+
+
+        functionalitySpans.put(func+"Compensate", span);
+    }
+        
+                    
+    public void endSpanForCompensation(String func) {
+        functionalitySpans.computeIfPresent(func+"Compensate", (f, span) -> {
             span.end();
             return null;
             }
@@ -137,7 +162,6 @@ public class TraceManager {
 
         stepSpan.setAttribute("step.name", stepName);
         stepSpan.setAttribute("functionality", func);
-        stepSpan.setAttribute("visual.color", "blue");
 
         stepSpans.put(key(func, stepName), stepSpan);
     }

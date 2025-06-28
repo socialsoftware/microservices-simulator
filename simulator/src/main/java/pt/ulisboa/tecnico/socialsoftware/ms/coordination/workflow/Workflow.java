@@ -83,10 +83,10 @@ public abstract class Workflow {
                 .exceptionally(ex -> {
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
     
-                    unitOfWorkService.abort(unitOfWork);
-                    logger.info("ABORT(1) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
                     this.traceManager.recordException(unitOfWork.getFunctionalityName(), ex, ex.getMessage());
                     this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
+                    unitOfWorkService.abort(unitOfWork);
+                    logger.info("ABORT(1) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
 
                     if (cause instanceof SimulatorException) {
                         throw (SimulatorException) cause;
@@ -95,10 +95,10 @@ public abstract class Workflow {
                     }
                 });
         } catch (SimulatorException e) {
-            unitOfWorkService.abort(unitOfWork);
-            logger.info("ABORT(2) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
             this.traceManager.recordWarning(unitOfWork.getFunctionalityName(), e, e.getMessage());
             this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
+            unitOfWorkService.abort(unitOfWork);
+            logger.info("ABORT(2) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
             throw e;
         }
     }
@@ -134,10 +134,10 @@ public abstract class Workflow {
                 .exceptionally(ex -> {
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
     
-                    unitOfWorkService.abort(unitOfWork);
-                    logger.info("ABORT(1) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
                     this.traceManager.recordException(unitOfWork.getFunctionalityName(), ex, ex.getMessage());
                     this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
+                    unitOfWorkService.abort(unitOfWork);
+                    logger.info("ABORT(1) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
                     
                     if (cause instanceof SimulatorException) {
                         throw (SimulatorException) cause;
@@ -146,10 +146,10 @@ public abstract class Workflow {
                     }
                 });
         } catch (SimulatorException e) {
-            unitOfWorkService.abort(unitOfWork);
-            logger.info("ABORT(2) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
             this.traceManager.recordWarning(unitOfWork.getFunctionalityName(), e, e.getMessage());
             this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
+            unitOfWorkService.abort(unitOfWork);
+            logger.info("ABORT(2) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
             throw e;
         }
     } 

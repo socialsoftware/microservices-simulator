@@ -100,7 +100,7 @@ public class ExecutionPlan {
             if (faultValue == THROW_EXCEPTION) {
                 logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
 
-                throw new SimulatorException(stepName + " Microservice not available");
+                throw new SimulatorException("Fault on " + stepName );
 
             }
             if (dependencies.get(step).isEmpty()) {
@@ -142,7 +142,7 @@ public class ExecutionPlan {
 
             if (faultValue == THROW_EXCEPTION) {  
                 logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion()); 
-                throw new SimulatorException(stepName + " Microservice not available");
+                throw new SimulatorException("Fault on " + stepName );
             }
             if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies         
                 ArrayList<FlowStep> deps = dependencies.get(step); // get all dependencies
@@ -262,7 +262,7 @@ public class ExecutionPlan {
             behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
             if (behaviourValues.get(0) == THROW_EXCEPTION) {  
                 logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion()); 
-                throw new SimulatorException(stepName + " Microservice not available");
+                throw new SimulatorException("Fault on " + stepName );
 
             }
             if (dependencies.get(step).isEmpty()) {
@@ -278,7 +278,7 @@ public class ExecutionPlan {
             behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
             if (behaviourValues.get(0) == THROW_EXCEPTION) {   
                 logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-                throw new SimulatorException(stepName + " Microservice not available");
+                throw new SimulatorException("Fault on " + stepName );
             }
             if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies
                 TraceManager.getInstance().startStepSpan(funcName, stepName);         
