@@ -110,6 +110,11 @@ class HandleEventBehaviour extends QuizzesSpockTest {
         updateNameDto.setName(UPDATED_NAME)
         courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
 
+        when: 'event is finally processed it updates the creator name'
+        tournamentEventHandling.handleUpdateStudentNameEvent()
+        then: ''
+        thrown(SimulatorException)
+
         when: 'add creator as participant where the creator in tournament still has the old name'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
         
@@ -117,11 +122,6 @@ class HandleEventBehaviour extends QuizzesSpockTest {
         then: 'fails because invariant breaks'
         def error = thrown(SimulatorException)
         error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
-
-        when: 'event is finally processed it updates the creator name'
-        tournamentEventHandling.handleUpdateStudentNameEvent()
-        then: ''
-        thrown(SimulatorException)
         
         and: 'the creator is participant with updated name'
         def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())

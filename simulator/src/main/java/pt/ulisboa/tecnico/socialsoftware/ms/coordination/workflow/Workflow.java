@@ -61,12 +61,15 @@ public abstract class Workflow {
     }
     
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
-         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-         this.traceManager.startSpanForFunctionality(unitOfWork.getFunctionalityName()); 
-
+        logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+        this.traceManager.startSpanForFunctionality(unitOfWork.getFunctionalityName()); 
+        
         if (this.executionPlan == null) {
             this.executionPlan = planOrder(this.stepsWithDependencies);
         }
+        this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "behaviour", this.executionPlan.getBehaviour());
+        String hasBehaviour = this.executionPlan.getBehaviour() != "{}" ? "true" : "false";
+        this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "hasBehaviour", hasBehaviour);
         
         FlowStep targetStep = getStepByName(stepName);
         executionPlan.executeUntilStep(targetStep, unitOfWork).join();
@@ -116,8 +119,8 @@ public abstract class Workflow {
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         CompletableFuture<Void> executionFuture;
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-        this.executionPlan = planOrder(this.stepsWithDependencies);
         this.traceManager.startSpanForFunctionality(unitOfWork.getFunctionalityName());
+        this.executionPlan = planOrder(this.stepsWithDependencies);
         this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "behaviour", this.executionPlan.getBehaviour());
         String hasBehaviour = this.executionPlan.getBehaviour() != "{}" ? "true" : "false";
         this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "hasBehaviour", hasBehaviour);

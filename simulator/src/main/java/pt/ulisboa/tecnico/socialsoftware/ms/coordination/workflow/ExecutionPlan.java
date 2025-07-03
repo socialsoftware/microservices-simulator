@@ -110,23 +110,26 @@ public class ExecutionPlan {
                 this.stepFutures.put(step, CompletableFuture.completedFuture(null)
                 .thenAccept(ignored -> {
                     try {
+                        TraceManager.getInstance().startStepSpan(funcName, stepName);
                         Thread.sleep(delayBeforeValue);
                         logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                        TraceManager.getInstance().startStepSpan(funcName, stepName);
                     } catch (InterruptedException e) {
+                        TraceManager.getInstance().endStepSpan(funcName, stepName);
                         Thread.currentThread().interrupt();
                         throw new CompletionException(e);
                     }
+                    
                 })
                 .thenCompose(ignored -> step.execute(unitOfWork))
                 .thenAccept(ignored -> {
                     try {
                         logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                        TraceManager.getInstance().endStepSpan(funcName, stepName);
                         Thread.sleep(delayAfterValue);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         throw new CompletionException(e);
+                    } finally {
+                        TraceManager.getInstance().endStepSpan(funcName, stepName);
                     }
                 })
             ); // Execute and save the steps with no dependencies
@@ -155,10 +158,11 @@ public class ExecutionPlan {
                 this.stepFutures.put(step,combinedFuture
                     .thenAccept(ignored -> {
                         try {
+                            TraceManager.getInstance().startStepSpan(funcName, stepName);
                             Thread.sleep(delayBeforeValue);
                             logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                            TraceManager.getInstance().startStepSpan(funcName, stepName);
                         } catch (InterruptedException e) {
+                            TraceManager.getInstance().endStepSpan(funcName, stepName);
                             Thread.currentThread().interrupt();
                             throw new CompletionException(e);
                         }
@@ -172,6 +176,8 @@ public class ExecutionPlan {
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             throw new CompletionException(e);
+                        } finally {
+                            TraceManager.getInstance().endStepSpan(funcName, stepName);
                         }
                     })
                 );
