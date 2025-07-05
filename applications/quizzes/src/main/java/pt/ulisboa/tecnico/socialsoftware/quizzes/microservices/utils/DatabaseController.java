@@ -16,7 +16,7 @@ public class DatabaseController {
 
    @PostMapping("/database/clean")
     public void clean() {
-        databaseService.reset();
+        databaseService.resetAndRebuild();
     }
 
 

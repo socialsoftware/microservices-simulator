@@ -28,6 +28,7 @@ public class TraceManager {
     private final Tracer tracer;
     private final SdkTracerProvider tracerProvider;
     private static Span rootSpan;
+    private static int rootSpanId = 1;
 
      // Map to store active spans by functionality
     private final Map<String, Span> functionalitySpans = new ConcurrentHashMap<>();
@@ -69,11 +70,13 @@ public class TraceManager {
     }
 
     public void startRootSpan() {
-        Span span = tracer.spanBuilder("root")
+        String rootSpanName = "root" + rootSpanId;
+        Span span = tracer.spanBuilder(rootSpanName)
                         .setSpanKind(SpanKind.INTERNAL)
                         .startSpan();
         rootSpan = span;
         span.setAttribute("root", "root");
+        rootSpanId++;
     }
 
     public void endRootSpan() {

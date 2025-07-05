@@ -9,12 +9,8 @@ import org.springframework.util.StreamUtils;
 
 import javax.sql.DataSource;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
-import java.sql.SQLException;
 
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -45,12 +41,22 @@ public class DatabaseService {
     }
 
     public void resetAndRebuild() {
-        try (Connection conn = dataSource.getConnection();
-             Statement statement = conn.createStatement()) {
-            statement.execute("DROP ALL OBJECTS");
-            runSqlScript(statement, "schema.sql");
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to reset and rebuild database", e);
+        String url = "jdbc:postgresql://localhost/postgres";  // Connect to 'postgres' db, not msdb
+        String user = null;
+        String password = null;
+
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+            Statement stmt = conn.createStatement()) {
+
+            System.out.println("Drop Started.");
+            stmt.executeUpdate("DROP DATABASE IF EXISTS msdb");
+            System.out.println("Drop completed.");
+            stmt.executeUpdate("CREATE DATABASE msdb");
+            
+            System.out.println("Database reset via JDBC completed.");
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to reset database via JDBC", e);
         }
     }
 
