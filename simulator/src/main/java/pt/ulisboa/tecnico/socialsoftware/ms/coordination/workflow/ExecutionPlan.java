@@ -19,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.opentelemetry.api.trace.Span;
 
 
 public class ExecutionPlan {
@@ -111,7 +112,9 @@ public class ExecutionPlan {
                 .thenAccept(ignored -> {
                     try {
                         TraceManager.getInstance().startStepSpan(funcName, stepName);
+                        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayBeforeValue, true);
                         Thread.sleep(delayBeforeValue);
+                        TraceManager.getInstance().endDelaySpan(delaySpan);
                         logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
                     } catch (InterruptedException e) {
                         TraceManager.getInstance().endStepSpan(funcName, stepName);
@@ -124,7 +127,9 @@ public class ExecutionPlan {
                 .thenAccept(ignored -> {
                     try {
                         logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
+                        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayAfterValue, true);
                         Thread.sleep(delayAfterValue);
+                        TraceManager.getInstance().endDelaySpan(delaySpan);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         throw new CompletionException(e);
@@ -159,7 +164,9 @@ public class ExecutionPlan {
                     .thenAccept(ignored -> {
                         try {
                             TraceManager.getInstance().startStepSpan(funcName, stepName);
+                            Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayBeforeValue, true);
                             Thread.sleep(delayBeforeValue);
+                            TraceManager.getInstance().endDelaySpan(delaySpan);
                             logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
                         } catch (InterruptedException e) {
                             TraceManager.getInstance().endStepSpan(funcName, stepName);
@@ -171,8 +178,9 @@ public class ExecutionPlan {
                     .thenAccept(ignored -> {
                         try {
                             logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                            TraceManager.getInstance().endStepSpan(funcName, stepName);
+                            Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayAfterValue, true);
                             Thread.sleep(delayAfterValue);
+                            TraceManager.getInstance().endDelaySpan(delaySpan);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             throw new CompletionException(e);

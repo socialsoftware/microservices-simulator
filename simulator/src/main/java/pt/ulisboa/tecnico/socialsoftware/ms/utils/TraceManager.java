@@ -2,9 +2,11 @@ package pt.ulisboa.tecnico.socialsoftware.ms.utils;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
@@ -88,6 +90,21 @@ public class TraceManager {
         }
     }
 
+    private void forceEndAllActiveStepsSpans(String func) {
+        String prefix = func + "::";
+        List<String> stepSpansList = stepSpans.keySet().stream()
+                .filter(key -> key.startsWith(prefix))
+                .collect(Collectors.toList());
+        for (String key : stepSpansList) {
+            Span stepSpan = getStepSpan(func, key.substring(prefix.length()));
+            stepSpan.setStatus(StatusCode.ERROR, "Forced end step span");
+            stepSpan.addEvent("forced-end", Attributes.of(
+                AttributeKey.stringKey("reason"), "Functionality was aborted!"
+            ));
+            endStepSpan(func, key.substring(prefix.length()));
+        }
+    }
+
     public void startSpanForFunctionality(String func) {
         if(rootSpan == null) {
             return; // or throw an exception if you want to enforce starting root span first
@@ -107,6 +124,7 @@ public class TraceManager {
         
                     
     public void endSpanForFunctionality(String func) {
+        forceEndAllActiveStepsSpans(func);
         functionalitySpans.computeIfPresent(func, (f, span) -> {
             span.end();
             return null;
@@ -178,7 +196,32 @@ public class TraceManager {
         }
     }
 
+    public Span startDelaySpan(String func, String step, int delay, boolean isBefore) {
+        if (delay <= 0) {
+            return null; // No delay, no span needed
+        }
+        Span parentSpan = getStepSpan(func, step);
+        String spanName = (isBefore ? "before" : "after");
+        Span span = tracer.spanBuilder(spanName)
+                        .setParent(Context.current().with(parentSpan))
+                        .setSpanKind(SpanKind.INTERNAL)
+                        .startSpan();
+        
+        span.setAttribute("functionality", func);
+        span.setAttribute("step", step);
+        span.setAttribute("value", Integer.toString(delay)+ " ms");
+
+        return span;
+    }
+
+    public void endDelaySpan(Span delaySpan) {
+        if (delaySpan != null) {
+            delaySpan.end();
+        }
+    }
+
     public void forceFlush() {
+
         tracerProvider.forceFlush().join(10, TimeUnit.SECONDS);
     }
 
