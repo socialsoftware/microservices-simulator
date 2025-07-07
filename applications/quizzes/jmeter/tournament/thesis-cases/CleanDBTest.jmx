@@ -145,6 +145,49 @@
           </HTTPSamplerProxy>
           <hashTree/>
         </hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="JSR223 Sampler">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">def dumpCommand = &quot;pg_dump -U postgres -h localhost -d msdb -f msdb_dump.sql&quot;
+
+def proc = [&quot;/bin/bash&quot;, &quot;-c&quot;, dumpCommand].execute()
+proc.waitFor()
+
+log.info(&quot;Dump exit code: ${proc.exitValue()}&quot;)
+log.info(&quot;STDOUT: ${proc.in.text}&quot;)
+log.info(&quot;STDERR: ${proc.err.text}&quot;)
+log.info(&quot;Running dump&quot;)
+
+if (proc.exitValue() != 0) {
+    throw new Exception(&quot;Database dump failed&quot;)
+}
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223Sampler>
+        <hashTree>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor dump">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="script">def dumpCommand = &quot;pg_dump -U postgres -h localhost -d msdb -f msdb_dump.sql&quot;
+
+def proc = [&quot;/bin/bash&quot;, &quot;-c&quot;, dumpCommand].execute()
+proc.waitFor()
+
+log.info(&quot;Dump exit code: ${proc.exitValue()}&quot;)
+log.info(&quot;STDOUT: ${proc.in.text}&quot;)
+log.info(&quot;STDERR: ${proc.err.text}&quot;)
+log.info(&quot;Running dump&quot;)
+
+if (proc.exitValue() != 0) {
+    throw new Exception(&quot;Database dump failed&quot;)
+}
+</stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+        </hashTree>
         <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Trace Requests">
           <boolProp name="LoopController.continue_forever">true</boolProp>
           <stringProp name="LoopController.loops">1</stringProp>
@@ -193,49 +236,6 @@
               <collectionProp name="Arguments.arguments"/>
             </elementProp>
           </HTTPSamplerProxy>
-          <hashTree/>
-        </hashTree>
-        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="JSR223 Sampler">
-          <stringProp name="cacheKey">true</stringProp>
-          <stringProp name="filename"></stringProp>
-          <stringProp name="parameters"></stringProp>
-          <stringProp name="script">def dumpCommand = &quot;pg_dump -U postgres -h localhost -d msdb -f msdb_dump.sql&quot;
-
-def proc = [&quot;/bin/bash&quot;, &quot;-c&quot;, dumpCommand].execute()
-proc.waitFor()
-
-log.info(&quot;Dump exit code: ${proc.exitValue()}&quot;)
-log.info(&quot;STDOUT: ${proc.in.text}&quot;)
-log.info(&quot;STDERR: ${proc.err.text}&quot;)
-log.info(&quot;Running dump&quot;)
-
-if (proc.exitValue() != 0) {
-    throw new Exception(&quot;Database dump failed&quot;)
-}
-</stringProp>
-          <stringProp name="scriptLanguage">groovy</stringProp>
-        </JSR223Sampler>
-        <hashTree>
-          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor dump">
-            <stringProp name="cacheKey">true</stringProp>
-            <stringProp name="filename"></stringProp>
-            <stringProp name="parameters"></stringProp>
-            <stringProp name="script">def dumpCommand = &quot;pg_dump -U postgres -h localhost -d msdb -f msdb_dump.sql&quot;
-
-def proc = [&quot;/bin/bash&quot;, &quot;-c&quot;, dumpCommand].execute()
-proc.waitFor()
-
-log.info(&quot;Dump exit code: ${proc.exitValue()}&quot;)
-log.info(&quot;STDOUT: ${proc.in.text}&quot;)
-log.info(&quot;STDERR: ${proc.err.text}&quot;)
-log.info(&quot;Running dump&quot;)
-
-if (proc.exitValue() != 0) {
-    throw new Exception(&quot;Database dump failed&quot;)
-}
-</stringProp>
-            <stringProp name="scriptLanguage">groovy</stringProp>
-          </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
         <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Course execution Requests" enabled="true">
