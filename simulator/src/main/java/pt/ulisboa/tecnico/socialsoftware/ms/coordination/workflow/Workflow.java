@@ -139,6 +139,9 @@ public abstract class Workflow {
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
     
                     this.traceManager.recordException(unitOfWork.getFunctionalityName(), ex, ex.getMessage());
+                    if(ex.getMessage() != null && ex.getMessage().contains("invariant")) 
+                        this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "invariantBreak", "true");
+                    
                     this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
                     unitOfWorkService.abort(unitOfWork);
                     logger.info("ABORT(1) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
