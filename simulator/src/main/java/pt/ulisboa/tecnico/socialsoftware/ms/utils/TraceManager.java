@@ -97,7 +97,7 @@ public class TraceManager {
                 .collect(Collectors.toList());
         for (String key : stepSpansList) {
             Span stepSpan = getStepSpan(func, key.substring(prefix.length()));
-            stepSpan.setStatus(StatusCode.ERROR, "Forced end step span");
+            stepSpan.setAttribute("Warning", "Forced end step span");
             stepSpan.addEvent("forced-end", Attributes.of(
                 AttributeKey.stringKey("reason"), "Functionality was aborted!"
             ));
@@ -221,8 +221,7 @@ public class TraceManager {
     }
 
     public void forceFlush() {
-
-        tracerProvider.forceFlush().join(10, TimeUnit.SECONDS);
+        tracerProvider.forceFlush().join(2, TimeUnit.SECONDS);
     }
 
     public void recordException(String func, Throwable e, String message) {
