@@ -1,8 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes
 
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 
@@ -14,7 +16,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGenerato
 
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.CourseCustomRepositorySagas   
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.commandHandler.GetStudentByExecutionIdAndUserIdCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.CourseCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.QuizAnswerCustomRepositorySagas   
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.TournamentCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.CourseExecutionCustomRepositorySagas;
@@ -276,4 +279,15 @@ class BeanConfigurationSagas {
     BehaviourService BehaviourService() {
     return new BehaviourService();
     }
+
+    @Bean
+    CommandGateway commandGateway(ApplicationContext applicationContext) {
+        return new CommandGateway(applicationContext);
+    }
+
+    @Bean
+    GetStudentByExecutionIdAndUserIdCommandHandler getStudentByExecutionIdAndUserIdCommandHandler(CourseExecutionService courseExecutionService) {
+        return new GetStudentByExecutionIdAndUserIdCommandHandler(courseExecutionService)
+    }
+
 }

@@ -4,9 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.command.GetStudentByExecutionIdAndUserIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentParticipant;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
@@ -23,11 +27,13 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
     private CourseExecutionService courseExecutionService;
     private SagaUnitOfWorkService unitOfWorkService;
     private UserDto userDto;
+    private CommandGateway commandGateway;
 
-    public AddParticipantFunctionalitySagas(TournamentService tournamentService, CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public AddParticipantFunctionalitySagas(TournamentService tournamentService, CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentAggregateId, executionAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -35,8 +41,8 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, courseExecutionService, executionAggregateId, userAggregateId);
-            CommandGateway.getInstance().send(getStudentCommand);
+            GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, executionAggregateId, userAggregateId);
+            commandGateway.send(getStudentCommand);
             this.userDto = getStudentCommand.getUserDto();
         });
 

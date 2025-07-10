@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
@@ -48,6 +49,9 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
 
     @Autowired
     private TournamentEventHandling tournamentEventHandling
+
+    @Autowired
+    private CommandGateway commandGateway
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
@@ -110,7 +114,7 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
         def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
             tournamentService, courseExecutionService, unitOfWorkService,
             tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
-            userDto.getAggregateId(), unitOfWork1
+            userDto.getAggregateId(), unitOfWork1, commandGateway
         )
 
         when: 'adding a participant'
@@ -143,12 +147,12 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
         def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
             tournamentService, courseExecutionService, unitOfWorkService,
             tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
-            userDto.getAggregateId(), unitOfWork1
+            userDto.getAggregateId(), unitOfWork1, commandGateway
         )
         def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(
             tournamentService, courseExecutionService, unitOfWorkService,
             tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
-            userDto3.getAggregateId(), unitOfWork2
+            userDto3.getAggregateId(), unitOfWork2, commandGateway
         )
 
         when: 'executing both workflows, capturing exceptions if any'

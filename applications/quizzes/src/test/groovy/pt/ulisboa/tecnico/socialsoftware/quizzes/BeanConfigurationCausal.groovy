@@ -1,11 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes
 
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
-
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.QuizAnswerFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.QuizAnswerEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.eventProcessing.QuizAnswerEventProcessing
@@ -57,6 +59,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.Us
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService
 
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.CourseCustomRepositorySagas
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -274,5 +277,10 @@ class BeanConfigurationCausal {
     @Bean
     BehaviourService BehaviourService() {
     return new BehaviourService();
+    }
+
+    @Bean
+    CommandGateway commandGateway(ApplicationContext applicationContext) {
+        return new CommandGateway(applicationContext);
     }
 }
