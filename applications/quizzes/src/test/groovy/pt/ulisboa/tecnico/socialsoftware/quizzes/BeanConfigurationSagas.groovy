@@ -60,7 +60,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.User
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
 
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.utils.DatabaseService
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -285,8 +284,4 @@ class BeanConfigurationSagas {
         return new TraceService();
     }
 
-    @Bean
-    DatabaseService databaseService() {
-        return new DatabaseService();
-    }
 }
