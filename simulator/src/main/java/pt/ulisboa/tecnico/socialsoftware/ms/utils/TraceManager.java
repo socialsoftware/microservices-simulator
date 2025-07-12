@@ -222,7 +222,11 @@ public class TraceManager {
     }
 
     public void forceFlush() {
-        tracerProvider.forceFlush().join(2, TimeUnit.SECONDS);
+        try {
+            tracerProvider.forceFlush().join(2, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            return;
+        }
     }
 
     public void recordException(String func, Throwable e, String message) {

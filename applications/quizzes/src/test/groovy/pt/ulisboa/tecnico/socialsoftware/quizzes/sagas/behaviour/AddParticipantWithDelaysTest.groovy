@@ -127,7 +127,7 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
         and: 'the execution duration of AddParticipantFunctionality is bigger than the defined delay'
         duration > definedDelay
         traceService.endRootSpan()
-        traceService.spanFlush()
+        // traceService.spanFlush()
     }
 
 
