@@ -201,6 +201,7 @@ public class TraceManager {
             return null; // No delay, no span needed
         }
         Span parentSpan = getStepSpan(func, step);
+        if (parentSpan == null) return null;
         String spanName = (isBefore ? "before" : "after");
         Span span = tracer.spanBuilder(spanName)
                         .setParent(Context.current().with(parentSpan))

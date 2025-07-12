@@ -95,14 +95,16 @@ public class ExecutionPlan {
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
             final String stepName = step.getName();
-            final String funcName = unitOfWork.getFunctionalityName();
+            final String funcName = (unitOfWork != null)
+                ? unitOfWork.getFunctionalityName()
+                : this.functionalityName;
 
             // Check if the step is in the behaviour map
             final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
             final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
             final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
             if (faultValue == THROW_EXCEPTION) {
-                logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+                logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork.getVersion());
 
                 throw new SimulatorException("Fault on " + stepName );
 
@@ -146,13 +148,15 @@ public class ExecutionPlan {
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
             final String stepName = step.getName();
-            final String funcName = unitOfWork.getFunctionalityName();
+            final String funcName = (unitOfWork != null)
+                ? unitOfWork.getFunctionalityName()
+                : this.functionalityName;
             final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
             final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
             final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
 
             if (faultValue == THROW_EXCEPTION) {  
-                logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion()); 
+                logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork.getVersion()); 
                 throw new SimulatorException("Fault on " + stepName );
             }
             if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies         
