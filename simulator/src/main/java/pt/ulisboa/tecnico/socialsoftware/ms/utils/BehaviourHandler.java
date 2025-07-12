@@ -77,7 +77,7 @@ public class BehaviourHandler {
             while ((line = br.readLine()) != null) {
                 line = line.trim();
 
-                if(line.contains("retry"))
+                if (line.contains("retry"))
                     funcRetry.put(funcName, Integer.parseInt(line.split(",")[1]));
     
                 if (line.equalsIgnoreCase("run")) {

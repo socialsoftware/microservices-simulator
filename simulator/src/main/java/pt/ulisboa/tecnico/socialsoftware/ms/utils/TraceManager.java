@@ -106,7 +106,7 @@ public class TraceManager {
     }
 
     public void startSpanForFunctionality(String func) {
-        if(rootSpan == null) {
+        if (rootSpan == null) {
             return; // or throw an exception if you want to enforce starting root span first
             //throw new IllegalStateException("Root span must be started before starting functionality spans");
         }
@@ -133,7 +133,7 @@ public class TraceManager {
     }
 
     public void startSpanForCompensation(String func) {
-        if(rootSpan == null) {
+        if (rootSpan == null) {
             return; // or throw an exception if you want to enforce starting root span first
             //throw new IllegalStateException("Root span must be started before starting functionality spans");
         }

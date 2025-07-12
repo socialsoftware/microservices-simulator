@@ -142,7 +142,7 @@ public abstract class Workflow {
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
     
                     this.traceManager.recordException(functionalityName, ex, ex.getMessage());
-                    if(ex.getMessage() != null && ex.getMessage().contains("invariant")) 
+                    if (ex.getMessage() != null && ex.getMessage().contains("invariant")) 
                         this.traceManager.setSpanAttribute(functionalityName, "invariantBreak", "true");
                     
                     this.traceManager.endSpanForFunctionality(functionalityName);
