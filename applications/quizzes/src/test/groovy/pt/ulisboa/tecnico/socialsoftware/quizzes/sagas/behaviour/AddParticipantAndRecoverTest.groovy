@@ -186,7 +186,7 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
             assert updatedTournament.participants.size() == 2
         }
         traceService.endRootSpan()
-        traceService.spanFlush()
+        // traceService.spanFlush()
         behaviourService.cleanDirectory()
     }
 

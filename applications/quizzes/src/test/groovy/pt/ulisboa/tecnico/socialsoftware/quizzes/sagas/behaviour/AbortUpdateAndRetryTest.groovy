@@ -158,7 +158,7 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
 
         cleanup: 'remove all generated artifacts after test execution'
         traceService.endRootSpan()
-        traceService.spanFlush()
+        // traceService.spanFlush()
         behaviourService.cleanDirectory()
     }
 
