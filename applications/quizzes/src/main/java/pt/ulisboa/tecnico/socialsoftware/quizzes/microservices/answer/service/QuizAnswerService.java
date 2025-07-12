@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+
+import org.springframework.dao.CannotAcquireLockException;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
@@ -80,8 +83,12 @@ public class QuizAnswerService {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public QuizAnswerDto startQuiz(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
@@ -106,8 +113,12 @@ public class QuizAnswerService {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void answerQuestion(Integer quizAggregateId, Integer userAggregateId, QuestionAnswerDto userAnswerDto, QuestionDto questionDto, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
@@ -120,8 +131,12 @@ public class QuizAnswerService {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void concludeQuiz(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
@@ -132,8 +147,12 @@ public class QuizAnswerService {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeQuizAnswer(Integer quizAnswerAggregateId, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
@@ -145,8 +164,12 @@ public class QuizAnswerService {
     /************************************************ EVENT PROCESSING ************************************************/
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateUserName(Integer answerAggregateId, Integer executionAggregateId, Integer eventVersion, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId, unitOfWork);
@@ -164,8 +187,12 @@ public class QuizAnswerService {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public QuizAnswer removeUser(Integer answerAggregateId, Integer userAggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId, unitOfWork);

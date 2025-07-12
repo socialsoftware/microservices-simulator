@@ -44,8 +44,12 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     private EventRepository eventRepository;
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     public SagaUnitOfWork createUnitOfWork(String functionalityName) {
         Integer lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
 
@@ -85,8 +89,12 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void registerSagaState(Integer aggregateId, SagaState state, SagaUnitOfWork unitOfWork) {
         SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
@@ -100,8 +108,12 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void verifyAndRegisterSagaState(Integer aggregateId, SagaState state, List<SagaState> forbiddenStates, SagaUnitOfWork unitOfWork) {
         SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
@@ -119,8 +131,12 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void verifySagaState(Integer aggregateId, List<SagaState> forbiddenStates) {
         SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
@@ -132,8 +148,12 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commit(SagaUnitOfWork unitOfWork) {
         unitOfWork.getAggregatesInSaga().stream().forEach(a -> {
@@ -145,8 +165,12 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
         // aggregates are committed at the end of each service
     }
@@ -156,8 +180,12 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void abort(SagaUnitOfWork unitOfWork) {

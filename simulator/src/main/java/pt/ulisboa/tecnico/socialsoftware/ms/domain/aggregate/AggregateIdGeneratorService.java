@@ -14,8 +14,12 @@ public class AggregateIdGeneratorService {
     @Autowired
     private AggregateIdRepository aggregateIdRepository;
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Integer getNewAggregateId() {
         AggregateIdGenerator aggregateId = new AggregateIdGenerator();
