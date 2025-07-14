@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.retry.annotation.Backoff;
@@ -53,6 +55,8 @@ public class CourseExecutionService {
 
     @Autowired
     private CourseExecutionFactory courseExecutionFactory;
+
+    private static final Logger logger = LoggerFactory.getLogger(CourseExecutionService.class);
 
     public CourseExecutionService(UnitOfWorkService unitOfWorkService, CourseExecutionRepository courseExecutionRepository, CourseExecutionCustomRepository courseExecutionCustomRepository) {
         this.unitOfWorkService = unitOfWorkService;
@@ -236,6 +240,9 @@ public class CourseExecutionService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateExecutionStudentName(Integer executionAggregateId, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
         CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+        
+        logger.info("Updating student name for user {} in execution {}", userAggregateId, executionAggregateId);
+
         if (!oldExecution.hasStudent(userAggregateId)) {
             throw new QuizzesException(COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, executionAggregateId);
         }
