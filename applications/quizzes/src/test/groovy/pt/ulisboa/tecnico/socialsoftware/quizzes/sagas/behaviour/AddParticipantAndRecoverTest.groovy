@@ -23,6 +23,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.Up
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
 
 @DataJpaTest
 class AddParticipantAndRecoverTest extends QuizzesSpockTest {
@@ -47,6 +48,9 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
     private EventService eventService
 
     @Autowired
+    public TraceService traceService
+
+    @Autowired
     private TournamentEventHandling tournamentEventHandling
 
     private CourseExecutionDto courseExecutionDto
@@ -60,6 +64,7 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
     def setup() {
         given: 'load a behavior specification'
         loadBehaviorScripts()
+        traceService.startRootSpan()
 
         and: 'a course execution'
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
@@ -128,6 +133,8 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
         } else {
             assert updatedTournament.participants.size() == 1
         }
+        traceService.endRootSpan()
+        traceService.spanFlush()
     }
 
     def 'concurrent: add two participants to tournament'() {
@@ -178,6 +185,8 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
         } else {
             assert updatedTournament.participants.size() == 2
         }
+        traceService.endRootSpan()
+        // traceService.spanFlush()
         behaviourService.cleanDirectory()
     }
 

@@ -9,6 +9,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.CannotAcquireLockException;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
@@ -22,8 +23,12 @@ public class VersionService {
     /* cannot allow two transactions to get the same version number*/
     // Get version number of new transaction which is the last version of the last committed transaction + 1.
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public Integer getVersionNumber() {
         Optional<Version> versionOp = versionRepository.findAll().stream().findAny();
@@ -41,8 +46,12 @@ public class VersionService {
     // If a functionality has started and committed in the meanwhile this one will get a new version number to commit
     // If non has committed in between we commit with the same version as the functionality started
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public Integer incrementAndGetVersionNumber() {
         Version version = versionRepository.findAll().stream().findAny().orElseThrow(() -> new SimulatorException(SimulatorErrorMessage.VERSION_MANAGER_DOES_NOT_EXIST));

@@ -18,8 +18,8 @@ public class BehaviourController {
     @Autowired
     private BehaviourService behaviourService;
 
-   @PostMapping("/behaviour/load/{dir}")
-    public String load(@PathVariable String dir) {
+   @PostMapping("/behaviour/load")
+    public String load(@RequestParam String dir) {
         System.out.println("Behaviour load started");
         behaviourService.LoadDir(mavenBaseDir, dir);
         System.out.println("Provided dir: " + dir);

@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
@@ -18,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 @EnableTransactionManagement
 @EnableJpaAuditing
 @EnableScheduling
+@EnableRetry
 @SpringBootApplication(scanBasePackages = {"pt.ulisboa.tecnico.socialsoftware.ms.*", "pt.ulisboa.tecnico.socialsoftware.quizzes.*"})
 public class QuizzesSimulator implements InitializingBean {
 	@Autowired

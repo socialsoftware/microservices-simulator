@@ -37,7 +37,11 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggrega
 
         @Retryable(
                 value = { SQLException.class },
-                backoff = @Backoff(delay = 5000))
+                maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
         @Transactional(isolation = Isolation.SERIALIZABLE)
         public CourseDto getCourseById(Integer aggregateId, UnitOfWork unitOfWorkWorkService) {
             return courseFactory.createCourseDto((Course) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWorkWorkService));
@@ -45,7 +49,11 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggrega
 
         @Retryable(
                 value = { SQLException.class },
-                backoff = @Backoff(delay = 5000))
+                maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
         @Transactional(isolation = Isolation.SERIALIZABLE)
         public CourseExecutionDto getAndOrCreateCourseRemote(CourseExecutionDto courseExecutionDto, UnitOfWork unitOfWork) {
             Course course = getCourseByName(courseExecutionDto.getName(), unitOfWork);

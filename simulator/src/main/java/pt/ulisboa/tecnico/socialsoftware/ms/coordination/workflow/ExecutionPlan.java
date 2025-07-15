@@ -15,9 +15,11 @@ import java.util.concurrent.TimeUnit;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.opentelemetry.api.trace.Span;
 
 
 public class ExecutionPlan {
@@ -30,6 +32,7 @@ public class ExecutionPlan {
     private Map<String, List<Integer>> behaviour;
     private static final int DEFAULT_VALUE = 0;
     private static final int THROW_EXCEPTION = 1;
+    private TraceManager traceManager;
 
     private static final Logger logger = LoggerFactory.getLogger(ExecutionPlan.class);
 
@@ -44,7 +47,8 @@ public class ExecutionPlan {
 
         behaviour = BehaviourHandler.getInstance().loadStepsFile(functionalityName);
         BehaviourHandler.getInstance().appendToReport(reportSteps(behaviour));
-
+        
+        this.traceManager = TraceManager.getInstance();
     }
 
     public ArrayList<FlowStep> getPlan() {
@@ -55,6 +59,21 @@ public class ExecutionPlan {
         this.plan = plan;
     }
 
+    public int getTotalDelay() {
+        int totalDelay = 0;
+        int delayBeforeValue = 1;
+        int delayAfterValue = 2;
+        for (FlowStep step : plan) {
+            if (behaviour.containsKey(step.getName())) {
+                totalDelay += behaviour.get(step.getName()).get(delayBeforeValue) + behaviour.get(step.getName()).get(delayAfterValue);
+            }
+        }
+        return totalDelay;
+    }   
+
+    public String getBehaviour() {
+        return behaviour.toString();
+    }
     /* 
      * while not plan.isempty
      *      do: step = getplan.first / getplan.next
@@ -71,38 +90,53 @@ public class ExecutionPlan {
     }
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-        String stepName;
         List<Integer> behaviourValues = new ArrayList<>();
         
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
-            stepName = step.getName();
+            final String stepName = step.getName();
+            final String funcName = (unitOfWork != null)
+                ? unitOfWork.getFunctionalityName()
+                : this.functionalityName;
 
             // Check if the step is in the behaviour map
             final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
             final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
             final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
-            if (faultValue == THROW_EXCEPTION) { 
-                throw new SimulatorException(stepName + " Microservice not available");
+            if (faultValue == THROW_EXCEPTION) {
+                logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork.getVersion());
+
+                throw new SimulatorException("Fault on " + stepName );
 
             }
             if (dependencies.get(step).isEmpty()) {
                 this.stepFutures.put(step, CompletableFuture.completedFuture(null)
                 .thenAccept(ignored -> {
                     try {
+                        TraceManager.getInstance().startStepSpan(funcName, stepName);
+                        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayBeforeValue, true);
                         Thread.sleep(delayBeforeValue);
+                        TraceManager.getInstance().endDelaySpan(delaySpan);
+                        logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
                     } catch (InterruptedException e) {
+                        TraceManager.getInstance().endStepSpan(funcName, stepName);
                         Thread.currentThread().interrupt();
                         throw new CompletionException(e);
                     }
+                    
                 })
                 .thenCompose(ignored -> step.execute(unitOfWork))
                 .thenAccept(ignored -> {
                     try {
+                        logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
+                        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayAfterValue, true);
                         Thread.sleep(delayAfterValue);
+                        TraceManager.getInstance().endDelaySpan(delaySpan);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         throw new CompletionException(e);
+                    } finally {
+                        TraceManager.getInstance().endStepSpan(funcName, stepName);
                     }
                 })
             ); // Execute and save the steps with no dependencies
@@ -113,13 +147,17 @@ public class ExecutionPlan {
 
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
-            stepName = step.getName();
+            final String stepName = step.getName();
+            final String funcName = (unitOfWork != null)
+                ? unitOfWork.getFunctionalityName()
+                : this.functionalityName;
             final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
             final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
             final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
 
-            if (faultValue == THROW_EXCEPTION) {   
-                throw new SimulatorException(stepName + " Microservice not available");
+            if (faultValue == THROW_EXCEPTION) {  
+                logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork.getVersion()); 
+                throw new SimulatorException("Fault on " + stepName );
             }
             if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies         
                 ArrayList<FlowStep> deps = dependencies.get(step); // get all dependencies
@@ -129,8 +167,13 @@ public class ExecutionPlan {
                 this.stepFutures.put(step,combinedFuture
                     .thenAccept(ignored -> {
                         try {
+                            TraceManager.getInstance().startStepSpan(funcName, stepName);
+                            Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayBeforeValue, true);
                             Thread.sleep(delayBeforeValue);
+                            TraceManager.getInstance().endDelaySpan(delaySpan);
+                            logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
                         } catch (InterruptedException e) {
+                            TraceManager.getInstance().endStepSpan(funcName, stepName);
                             Thread.currentThread().interrupt();
                             throw new CompletionException(e);
                         }
@@ -138,10 +181,15 @@ public class ExecutionPlan {
                     .thenCompose(ignored -> step.execute(unitOfWork))
                     .thenAccept(ignored -> {
                         try {
+                            logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
+                            Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayAfterValue, true);
                             Thread.sleep(delayAfterValue);
+                            TraceManager.getInstance().endDelaySpan(delaySpan);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             throw new CompletionException(e);
+                        } finally {
+                            TraceManager.getInstance().endStepSpan(funcName, stepName);
                         }
                     })
                 );
@@ -224,6 +272,7 @@ public class ExecutionPlan {
     public CompletableFuture<Void> executeSteps(List<FlowStep> steps, UnitOfWork unitOfWork) {
 
         String stepName;
+        final String funcName = unitOfWork.getFunctionalityName();
         List<Integer> behaviourValues = new ArrayList<>();
 
 
@@ -232,12 +281,15 @@ public class ExecutionPlan {
 
             // Check if the step is in the behaviour map
             behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
-            if (behaviourValues.get(0) == THROW_EXCEPTION) {   
-                throw new SimulatorException(stepName + " Microservice not available");
+            if (behaviourValues.get(0) == THROW_EXCEPTION) {  
+                logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion()); 
+                throw new SimulatorException("Fault on " + stepName );
 
             }
             if (dependencies.get(step).isEmpty()) {
+                TraceManager.getInstance().startStepSpan(funcName, stepName);
                 this.stepFutures.put(step, step.execute(unitOfWork)); // Execute and save the steps with no dependencies
+                TraceManager.getInstance().endStepSpan(funcName, stepName);
             }
         }
             
@@ -246,13 +298,16 @@ public class ExecutionPlan {
             stepName = step.getName();
             behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
             if (behaviourValues.get(0) == THROW_EXCEPTION) {   
-                throw new SimulatorException(stepName + " Microservice not available");
+                logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+                throw new SimulatorException("Fault on " + stepName );
             }
-            if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies         
+            if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies
+                TraceManager.getInstance().startStepSpan(funcName, stepName);         
                 ArrayList<FlowStep> deps = dependencies.get(step); // get all dependencies
                 CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
                     deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
                 );
+                TraceManager.getInstance().endStepSpan(funcName, stepName);
                 this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // only executes after all dependencies are completed
             }
             

@@ -8,22 +8,34 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.context.annotation.Profile;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceManager;
 
 @Profile("sagas")
 public class SagaUnitOfWork extends UnitOfWork {
+
+    private static final Logger logger = LoggerFactory.getLogger(SagaUnitOfWork.class);
+
     private ArrayList<Runnable> compensatingActions;
     private ArrayList<SagaAggregate> aggregatesInSaga;
     private HashMap<Integer, SagaState> previousStates = new HashMap<>();
+
+    private TraceManager traceManager;
 
     public SagaUnitOfWork(Integer version, String functionalityName) {
         super(version, functionalityName);
         this.compensatingActions = new ArrayList<>();
         this.aggregatesInSaga = new ArrayList<>();
+        this.traceManager = TraceManager.getInstance();
     }
 
     public void registerCompensation(Runnable compensationAction) {
@@ -32,9 +44,12 @@ public class SagaUnitOfWork extends UnitOfWork {
 
     public void compensate() {
         Collections.reverse(this.compensatingActions);
+        this.traceManager.startSpanForCompensation(this.getFunctionalityName()); 
         for (Runnable action: compensatingActions) {
+            logger.info("COMPENSATE: {}", action.getClass().getSimpleName());
             action.run();
         }
+        this.traceManager.endSpanForCompensation(this.getFunctionalityName());
     }
 
     public CompletableFuture<Void> compensateAsync(ExecutorService executorService) {
