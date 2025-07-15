@@ -4,6 +4,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CausalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
@@ -280,7 +281,7 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    CommandGateway commandGateway(ApplicationContext applicationContext) {
-        return new CommandGateway(applicationContext);
+    CausalCommandGateway commandGateway(ApplicationContext applicationContext) {
+        return new CausalCommandGateway(applicationContext);
     }
 }

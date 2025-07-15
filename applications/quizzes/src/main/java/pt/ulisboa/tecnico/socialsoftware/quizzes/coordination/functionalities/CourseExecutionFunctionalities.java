@@ -16,6 +16,8 @@ import jakarta.annotation.PostConstruct;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.AddStudentFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.AnonymizeStudentFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.execution.CreateCourseExecutionFunctionalityTCC;
@@ -60,6 +62,9 @@ public class CourseExecutionFunctionalities {
     private Environment env;
 
     private TransactionalModel workflowType;
+    @Autowired
+    private CommandGateway commandGateway;
+
 
     @PostConstruct
     public void init() {

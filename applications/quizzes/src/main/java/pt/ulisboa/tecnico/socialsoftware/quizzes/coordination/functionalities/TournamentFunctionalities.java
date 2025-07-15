@@ -17,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.tournament.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
@@ -62,8 +63,10 @@ public class TournamentFunctionalities {
     private TournamentEventHandling tournamentEventHandling;
     @Autowired
     private EventService eventService;
-    @Autowired
+    @Autowired(required = false)
     private CommandGateway commandGateway;
+    @Autowired(required = false)
+    private SagasCommandGateway sagasCommandGateway;
 
     @Autowired
     private Environment env;
@@ -118,7 +121,7 @@ public class TournamentFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 AddParticipantFunctionalitySagas addParticipantFunctionalitySagas = new AddParticipantFunctionalitySagas(
                         tournamentService, courseExecutionService, sagaUnitOfWorkService,
-                        tournamentAggregateId, executionAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
+                        tournamentAggregateId, executionAggregateId, userAggregateId, sagaUnitOfWork, sagasCommandGateway);
 
                 addParticipantFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;

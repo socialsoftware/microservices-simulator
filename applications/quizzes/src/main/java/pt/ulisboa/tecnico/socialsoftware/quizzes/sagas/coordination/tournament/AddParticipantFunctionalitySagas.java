@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
@@ -27,9 +28,9 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
     private CourseExecutionService courseExecutionService;
     private SagaUnitOfWorkService unitOfWorkService;
     private UserDto userDto;
-    private CommandGateway commandGateway;
+    private SagasCommandGateway commandGateway;
 
-    public AddParticipantFunctionalitySagas(TournamentService tournamentService, CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public AddParticipantFunctionalitySagas(TournamentService tournamentService, CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork, SagasCommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
@@ -41,9 +42,8 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, executionAggregateId, userAggregateId);
-            commandGateway.send(getStudentCommand);
-            this.userDto = getStudentCommand.getUserDto();
+            GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, "courseExecutionService", executionAggregateId, userAggregateId);
+            this.userDto = (UserDto) commandGateway.send(getStudentCommand);
         });
 
         SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {

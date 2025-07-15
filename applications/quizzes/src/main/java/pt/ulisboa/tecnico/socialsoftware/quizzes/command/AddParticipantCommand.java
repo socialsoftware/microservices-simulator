@@ -7,21 +7,14 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
-public class AddParticipantCommand implements Command {
-    private final UnitOfWork unitOfWork;
-    private TournamentService tournamentService;
+public class AddParticipantCommand extends Command {
     private Integer tournamentAggregateId;
     private TournamentParticipant participant;
 
-    public AddParticipantCommand(UnitOfWork unitOfWork, TournamentService tournamentService, Integer tournamentAggregateId, TournamentParticipant participant) {
-        this.unitOfWork = unitOfWork;
-        this.tournamentService = tournamentService;
+    public AddParticipantCommand(UnitOfWork unitOfWork, String serviceName, Integer tournamentAggregateId, TournamentParticipant participant) {
+        super(unitOfWork, serviceName);
         this.tournamentAggregateId = tournamentAggregateId;
         this.participant = participant;
     }
 
-//    @Override
-//    public void execute() {
-//        tournamentService.addParticipant(tournamentAggregateId, participant, unitOfWork);
-//    }
 }

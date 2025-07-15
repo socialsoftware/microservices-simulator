@@ -5,6 +5,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 
@@ -16,7 +17,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGenerato
 
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.commandHandler.GetStudentByExecutionIdAndUserIdCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.CourseCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.QuizAnswerCustomRepositorySagas   
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.TournamentCustomRepositorySagas
@@ -281,13 +281,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    CommandGateway commandGateway(ApplicationContext applicationContext) {
-        return new CommandGateway(applicationContext);
-    }
-
-    @Bean
-    GetStudentByExecutionIdAndUserIdCommandHandler getStudentByExecutionIdAndUserIdCommandHandler(CourseExecutionService courseExecutionService) {
-        return new GetStudentByExecutionIdAndUserIdCommandHandler(courseExecutionService)
+    SagasCommandGateway commandGateway(ApplicationContext applicationContext, SagaUnitOfWorkService unitOfWorkService) {
+        return new SagasCommandGateway(applicationContext, unitOfWorkService);
     }
 
 }

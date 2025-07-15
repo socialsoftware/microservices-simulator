@@ -5,26 +5,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
-public class GetStudentByExecutionIdAndUserIdCommand implements Command {
-    private final UnitOfWork unitOfWork;
+public class GetStudentByExecutionIdAndUserIdCommand extends Command {
     private final Integer executionAggregateId;
     private final Integer userAggregateId;
-    private Command command; // for saga state methods
     private UserDto userDto;
 
-    public GetStudentByExecutionIdAndUserIdCommand(UnitOfWork unitOfWork, Integer executionAggregateId, Integer userAggregateId) {
-        this.unitOfWork = unitOfWork;
+    public GetStudentByExecutionIdAndUserIdCommand(UnitOfWork unitOfWork, String serviceName, Integer executionAggregateId, Integer userAggregateId) {
+        super(unitOfWork, serviceName);
         this.executionAggregateId = executionAggregateId;
         this.userAggregateId = userAggregateId;
-    }
-
-    public GetStudentByExecutionIdAndUserIdCommand(UnitOfWork unitOfWork, Integer executionAggregateId, Integer userAggregateId, Command command) {
-        this(unitOfWork, executionAggregateId, userAggregateId);
-        this.command = command;
-    }
-
-    public UnitOfWork getUnitOfWork() {
-        return unitOfWork;
     }
 
     public Integer getExecutionAggregateId() {
@@ -35,10 +24,6 @@ public class GetStudentByExecutionIdAndUserIdCommand implements Command {
         return userAggregateId;
     }
 
-    public Command getCommand() {
-        return command;
-    }
-
     public void setUserDto(UserDto userDto) {
         this.userDto = userDto;
     }
@@ -46,13 +31,4 @@ public class GetStudentByExecutionIdAndUserIdCommand implements Command {
     public UserDto getUserDto() {
         return userDto;
     }
-
-    //    @Override
-//    public void execute() {
-//        this.userDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionAggregateId, userAggregateId, unitOfWork);
-//    }
-//
-//    public UserDto getUserDto() {
-//        return userDto;
-//    }
 }
