@@ -8,7 +8,7 @@ public class GetUserByIdCommand extends Command {
     private Integer userAggregateId;
 
     public GetUserByIdCommand(UnitOfWork unitOfWork, String serviceName, Integer userAggregateId) {
-        super(unitOfWork, serviceName);
+        super(unitOfWork, serviceName, userAggregateId);
         this.userAggregateId = userAggregateId;
     }
 

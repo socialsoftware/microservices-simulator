@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.AddParticipantCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentParticipant;
@@ -50,8 +51,11 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
             TournamentParticipant participant = new TournamentParticipant(this.userDto);
             List<SagaAggregate.SagaState> states = new ArrayList<>();
             states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
-            unitOfWorkService.verifySagaState(tournamentAggregateId, states);
-            tournamentService.addParticipant(tournamentAggregateId, participant, unitOfWork);
+//            unitOfWorkService.verifySagaState(tournamentAggregateId, states);
+//            tournamentService.addParticipant(tournamentAggregateId, participant, unitOfWork);
+            AddParticipantCommand addParticipantCommand = new AddParticipantCommand(unitOfWork, "tournamentService", tournamentAggregateId, participant);
+            addParticipantCommand.setForbiddenStates(states);
+            commandGateway.send(addParticipantCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
         this.workflow.addStep(getUserStep);

@@ -12,7 +12,7 @@ public class AddParticipantCommand extends Command {
     private TournamentParticipant participant;
 
     public AddParticipantCommand(UnitOfWork unitOfWork, String serviceName, Integer tournamentAggregateId, TournamentParticipant participant) {
-        super(unitOfWork, serviceName);
+        super(unitOfWork, serviceName, tournamentAggregateId);
         this.tournamentAggregateId = tournamentAggregateId;
         this.participant = participant;
     }

@@ -11,7 +11,7 @@ public class GetStudentByExecutionIdAndUserIdCommand extends Command {
     private UserDto userDto;
 
     public GetStudentByExecutionIdAndUserIdCommand(UnitOfWork unitOfWork, String serviceName, Integer executionAggregateId, Integer userAggregateId) {
-        super(unitOfWork, serviceName);
+        super(unitOfWork, serviceName, executionAggregateId);
         this.executionAggregateId = executionAggregateId;
         this.userAggregateId = userAggregateId;
     }
