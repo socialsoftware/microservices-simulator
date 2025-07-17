@@ -17,4 +17,12 @@ public class AddParticipantCommand extends Command {
         this.participant = participant;
     }
 
+    public Integer getTournamentAggregateId() {
+        return tournamentAggregateId;
+    }
+
+    public TournamentParticipant getParticipant() {
+        return participant;
+    }
+
 }

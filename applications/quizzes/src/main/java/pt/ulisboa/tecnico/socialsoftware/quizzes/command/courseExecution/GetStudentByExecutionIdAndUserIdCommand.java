@@ -1,13 +1,11 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzes.command;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 public class GetStudentByExecutionIdAndUserIdCommand extends Command {
-    private final Integer executionAggregateId;
-    private final Integer userAggregateId;
+    private Integer executionAggregateId;
+    private Integer userAggregateId;
 
     public GetStudentByExecutionIdAndUserIdCommand(UnitOfWork unitOfWork, String serviceName, Integer executionAggregateId, Integer userAggregateId) {
         super(unitOfWork, serviceName, executionAggregateId);
@@ -22,5 +20,4 @@ public class GetStudentByExecutionIdAndUserIdCommand extends Command {
     public Integer getUserAggregateId() {
         return userAggregateId;
     }
-
 }
