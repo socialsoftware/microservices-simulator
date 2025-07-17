@@ -109,7 +109,7 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseExecutionByIdFunctionalitySagas getCourseExecutionByIdFunctionalitySagas = new GetCourseExecutionByIdFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork);
+                        courseExecutionService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork, sagasCommandGateway);
                 getCourseExecutionByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getCourseExecutionByIdFunctionalitySagas.getCourseExecutionDto();
             case TCC:
@@ -129,7 +129,7 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseExecutionsFunctionalitySagas functionality = new GetCourseExecutionsFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                        courseExecutionService, sagaUnitOfWorkService, sagaUnitOfWork, sagasCommandGateway);
                 functionality.executeWorkflow(sagaUnitOfWork);
                 return functionality.getCourseExecutions();
             case TCC:
@@ -149,7 +149,7 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 RemoveCourseExecutionFunctionalitySagas removeCourseExecutionFunctionalitySagas = new RemoveCourseExecutionFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork);
+                        courseExecutionService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork, sagasCommandGateway);
                 removeCourseExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
@@ -169,7 +169,7 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 AddStudentFunctionalitySagas addStudentFunctionalitySagas = new AddStudentFunctionalitySagas(
-                        courseExecutionService, userService, sagaUnitOfWorkService, executionAggregateId, userAggregateId, sagaUnitOfWork);
+                        courseExecutionService, userService, sagaUnitOfWorkService, executionAggregateId, userAggregateId, sagaUnitOfWork, sagasCommandGateway);
                 addStudentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
@@ -189,7 +189,7 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseExecutionsByUserFunctionalitySagas getCourseExecutionsByUserFunctionalitySagas = new GetCourseExecutionsByUserFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
+                        courseExecutionService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, sagasCommandGateway);
                 getCourseExecutionsByUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getCourseExecutionsByUserFunctionalitySagas.getCourseExecutions();
             case TCC:

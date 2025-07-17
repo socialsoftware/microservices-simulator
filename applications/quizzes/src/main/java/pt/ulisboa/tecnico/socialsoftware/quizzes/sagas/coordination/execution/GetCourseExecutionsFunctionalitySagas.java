@@ -2,7 +2,9 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution;
 
 import java.util.List;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetAllCourseExecutionsCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
@@ -14,11 +16,13 @@ public class GetCourseExecutionsFunctionalitySagas extends WorkflowFunctionality
     private List<CourseExecutionDto> courseExecutions;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
+    private final SagasCommandGateway sagasCommandGateway;
 
     public GetCourseExecutionsFunctionalitySagas(CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService, 
-                                    SagaUnitOfWork unitOfWork) {
+                                    SagaUnitOfWork unitOfWork, SagasCommandGateway sagasCommandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
+        this.sagasCommandGateway = sagasCommandGateway;
         this.buildWorkflow(unitOfWork);
     }
 
@@ -26,7 +30,9 @@ public class GetCourseExecutionsFunctionalitySagas extends WorkflowFunctionality
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseExecutionsStep = new SagaSyncStep("getCourseExecutionsStep", () -> {
-            List<CourseExecutionDto> courseExecutions = courseExecutionService.getAllCourseExecutions(unitOfWork);
+            // List<CourseExecutionDto> courseExecutions = courseExecutionService.getAllCourseExecutions(unitOfWork);
+            GetAllCourseExecutionsCommand getAllCourseExecutionsCommand = new GetAllCourseExecutionsCommand(unitOfWork, "courseExecutionService");
+            List<CourseExecutionDto> courseExecutions = (List<CourseExecutionDto>) sagasCommandGateway.send(getAllCourseExecutionsCommand);
             this.setCourseExecutions(courseExecutions);
         });
     
