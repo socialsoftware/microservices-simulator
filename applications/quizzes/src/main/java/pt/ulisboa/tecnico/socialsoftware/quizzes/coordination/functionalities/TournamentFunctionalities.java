@@ -64,8 +64,6 @@ public class TournamentFunctionalities {
     @Autowired
     private EventService eventService;
     @Autowired(required = false)
-    private CommandGateway commandGateway;
-    @Autowired(required = false)
     private SagasCommandGateway sagasCommandGateway;
 
     @Autowired

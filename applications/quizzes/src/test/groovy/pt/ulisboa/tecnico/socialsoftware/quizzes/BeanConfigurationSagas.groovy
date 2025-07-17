@@ -4,7 +4,6 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
@@ -281,7 +280,7 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    SagasCommandGateway commandGateway(ApplicationContext applicationContext, SagaUnitOfWorkService unitOfWorkService) {
+    SagasCommandGateway sagasCommandGateway(ApplicationContext applicationContext, SagaUnitOfWorkService unitOfWorkService) {
         return new SagasCommandGateway(applicationContext, unitOfWorkService);
     }
 

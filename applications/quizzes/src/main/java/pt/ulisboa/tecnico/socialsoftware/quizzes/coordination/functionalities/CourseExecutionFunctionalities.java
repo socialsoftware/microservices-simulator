@@ -62,8 +62,8 @@ public class CourseExecutionFunctionalities {
     private Environment env;
 
     private TransactionalModel workflowType;
-    @Autowired
-    private CommandGateway commandGateway;
+    @Autowired(required = false)
+    private SagasCommandGateway sagasCommandGateway;
 
 
     @PostConstruct
@@ -86,7 +86,7 @@ public class CourseExecutionFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(courseExecutionDto);
                 CreateCourseExecutionFunctionalitySagas createCourseExecutionFunctionalitySagas = new CreateCourseExecutionFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, courseExecutionDto, sagaUnitOfWork);
+                        courseExecutionService, sagaUnitOfWorkService, courseExecutionDto, sagaUnitOfWork, sagasCommandGateway);
                 createCourseExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
 
                 return createCourseExecutionFunctionalitySagas.getCreatedCourseExecution();

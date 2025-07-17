@@ -5,7 +5,6 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CausalCommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
@@ -281,7 +280,7 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    CausalCommandGateway commandGateway(ApplicationContext applicationContext) {
+    CausalCommandGateway causalCommandGateway(ApplicationContext applicationContext) {
         return new CausalCommandGateway(applicationContext);
     }
 }

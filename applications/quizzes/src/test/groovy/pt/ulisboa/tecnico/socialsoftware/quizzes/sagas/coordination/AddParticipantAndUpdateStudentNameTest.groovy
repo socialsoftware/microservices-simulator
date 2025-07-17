@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
@@ -50,7 +50,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
     private TournamentEventHandling tournamentEventHandling
 
     @Autowired
-    private CommandGateway commandGateway
+    private SagasCommandGateway commandGateway
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto

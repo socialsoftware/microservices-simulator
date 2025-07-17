@@ -1,6 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.CreateCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaCourseExecutionDto;
@@ -14,11 +16,13 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
     private SagaCourseExecutionDto createdCourseExecution;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
+    private final SagasCommandGateway sagasCommandGateway;
 
-    public CreateCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService, 
-                                    CourseExecutionDto courseExecutionDto, SagaUnitOfWork unitOfWork) {
+    public CreateCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService,
+                                    CourseExecutionDto courseExecutionDto, SagaUnitOfWork unitOfWork, SagasCommandGateway sagasCommandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
+        this.sagasCommandGateway = sagasCommandGateway;
         this.buildWorkflow(courseExecutionDto, unitOfWork);
     }
 
@@ -26,7 +30,9 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createCourseExecutionStep = new SagaSyncStep("createCourseExecutionStep", () -> {
-            SagaCourseExecutionDto createdCourseExecution = (SagaCourseExecutionDto) courseExecutionService.createCourseExecution(courseExecutionDto, unitOfWork);
+            // SagaCourseExecutionDto createdCourseExecution = (SagaCourseExecutionDto) courseExecutionService.createCourseExecution(courseExecutionDto, unitOfWork);
+            CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork, "courseExecutionService", courseExecutionDto);
+            SagaCourseExecutionDto createdCourseExecution = (SagaCourseExecutionDto) sagasCommandGateway.send(createCourseExecutionCommand);
             this.setCreatedCourseExecution(createdCourseExecution);
         });
 
