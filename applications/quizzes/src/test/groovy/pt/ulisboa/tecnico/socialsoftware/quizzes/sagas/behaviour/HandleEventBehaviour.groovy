@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
@@ -23,11 +22,10 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.Us
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
 
 @DataJpaTest
-class AddParticipantAndRecoverTest extends QuizzesSpockTest {
+class HandleEventBehaviour extends QuizzesSpockTest {
     public static final String UPDATED_NAME = "UpdatedName"
 
     @Autowired
@@ -46,16 +44,14 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
     private TournamentFunctionalities tournamentFunctionalities
 
     @Autowired
-    private EventService eventService
+    private EventService eventService;
+
 
     @Autowired
     public TraceService traceService
 
     @Autowired
     private TournamentEventHandling tournamentEventHandling
-
-    @Autowired
-    private SagasCommandGateway commandGateway;
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
@@ -92,13 +88,11 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
         questionDto3 = createQuestion(courseExecutionDto, new HashSet<>(Arrays.asList(topicDto3)), TITLE_3, CONTENT_3, OPTION_1, OPTION_3)
 
         and: 'a tournament where the first user is the creator'
-        tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()])
+        tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(),  courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(),topicDto2.getAggregateId()])
 
-        and: 'two units of Functionalities'
+        and: 'two units of work'
         def functionalityName1 = UpdateStudentNameFunctionalitySagas.class.getSimpleName()
         def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
-
-        and: 'two unit of works'
         unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
     }
@@ -107,88 +101,33 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
         behaviourService.cleanUpCounter()
     }
 
-    def 'add one participant to tournament'() {
+    def 'sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet' () {
         given: 'a clear report'
         behaviourService.cleanReportFile()
+
+        and: 'creator name is updated'
+        def updateNameDto = new UserDto()
+        updateNameDto.setName(UPDATED_NAME)
+        courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
+
+        when: 'event is finally processed it updates the creator name'
+        tournamentEventHandling.handleUpdateStudentNameEvent()
+        then: ''
+        thrown(SimulatorException)
+
+        when: 'add creator as participant where the creator in tournament still has the old name'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
         
-        and: 'create unit of works for concurrent addition of participants'
-        def functionalityName1 = AddParticipantFunctionalitySagas.class.getSimpleName()
-        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
 
-        and: 'one functionalities to add participants'
-        def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
-            tournamentService, courseExecutionService, unitOfWorkService,
-            tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
-            userDto.getAggregateId(), unitOfWork1, commandGateway
-        )
+        then: 'fails because invariant breaks'
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
+        
+        and: 'the creator is participant with updated name'
+        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournamentDtoResult2.getParticipants().size() == 0
 
-        when: 'executing both workflows, capturing exceptions if any'
-        boolean exceptionThrown = false
-        try {
-            addParticipantFunctionality1.executeWorkflow(unitOfWork1)
-        } catch (Exception e) {
-            exceptionThrown = true
-        }
-        then: 'check number of participants accordingly'
-        def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        if (exceptionThrown) {
-            println "\u001B[31mEntered the exceptionThrown branch\u001B[0m"
-            assert updatedTournament.participants.size() == 0
-        } else {
-            assert updatedTournament.participants.size() == 1
-        }
-        traceService.endRootSpan()
-        traceService.spanFlush()
-    }
-
-    def 'concurrent: add two participants to tournament'() {
-        given: 'another user'
-        def userDto3 = createUser(USER_NAME_3, USER_USERNAME_3, STUDENT_ROLE)
-        courseExecutionFunctionalities.addStudent(courseExecutionDto.aggregateId, userDto3.aggregateId)
-
-        and: 'create unit of works for concurrent addition of participants'
-        def functionalityName1 = AddParticipantFunctionalitySagas.class.getSimpleName()
-        def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
-        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
-        def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
-
-        and: 'two functionalities to add participants'
-        def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
-            tournamentService, courseExecutionService, unitOfWorkService,
-            tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
-            userDto.getAggregateId(), unitOfWork1, commandGateway
-        )
-        def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(
-            tournamentService, courseExecutionService, unitOfWorkService,
-            tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
-            userDto3.getAggregateId(), unitOfWork2, commandGateway
-        )
-
-        when: 'executing both workflows, capturing exceptions if any'
-        Integer exceptionThrown = 0
-        try {
-            addParticipantFunctionality1.executeWorkflow(unitOfWork1)
-        } catch (Exception e) {
-            exceptionThrown += 1
-        }
-
-        try {
-            addParticipantFunctionality2.executeWorkflow(unitOfWork2)
-        } catch (Exception e) {
-            exceptionThrown += 1
-        }
-
-        then: 'check number of participants accordingly'
-        def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        if (exceptionThrown == 1) {
-            println "\u001B[31mEntered the exceptionThrown branch. Just 1 participant added\u001B[0m"
-            assert updatedTournament.participants.size() == 1
-        } else if (exceptionThrown == 2) {
-            println "\u001B[31mEntered the exceptionThrown branch. No participants added\u001B[0m"
-            assert updatedTournament.participants.size() == 0
-        } else {
-            assert updatedTournament.participants.size() == 2
-        }
+        cleanup: 'remove all generated artifacts after test execution'
         traceService.endRootSpan()
         // traceService.spanFlush()
         behaviourService.cleanDirectory()

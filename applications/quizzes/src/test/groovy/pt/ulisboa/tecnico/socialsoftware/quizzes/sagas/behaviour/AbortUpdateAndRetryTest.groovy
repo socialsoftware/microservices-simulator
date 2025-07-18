@@ -7,11 +7,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
@@ -21,51 +22,48 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaQuiz
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaTournament
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuizDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
 
 
 @DataJpaTest
-class RemoveTournamentAndCompensate extends QuizzesSpockTest {
+class AbortUpdateAndRetryTest extends QuizzesSpockTest {
     @Autowired
     private SagaUnitOfWorkService unitOfWorkService
 
     @Autowired
-    private QuizService quizService
+    private CourseExecutionFunctionalities courseExecutionFunctionalities
+    @Autowired
+    private QuizFunctionalities quizFunctionalities
+    @Autowired
+    private TournamentFunctionalities tournamentFunctionalities
+
     @Autowired
     private TournamentService tournamentService
     @Autowired
     private TopicService topicService
+    @Autowired
+    private QuizService quizService
 
     @Autowired
-    private CourseExecutionFunctionalities courseExecutionFunctionalities
-    @Autowired
-    private TournamentFunctionalities tournamentFunctionalities
-    @Autowired
-    private QuizFunctionalities quizFunctionalities
+    public TraceService traceService
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
     private TopicDto topicDto1, topicDto2, topicDto3
-    private Set<Integer> topics
     private QuestionDto questionDto1, questionDto2, questionDto3
     private TournamentDto tournamentDto
 
     def unitOfWork1
-    def updateTournamentFunctionality
-    def updateTournamentDto
-    def functionalityName1
-    def unitOfWork2
-    def removeTournamentFunctionality
-    def functionalityName2
 
-
-     def setup() {
+    def setup() {
         given: 'load a behavior specification'
         loadBehaviorScripts()
+        traceService.startRootSpan()
 
         and: 'a course execution'
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
@@ -91,61 +89,76 @@ class RemoveTournamentAndCompensate extends QuizzesSpockTest {
         and: 'a tournament where the first user is the creator'
         tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(),  courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(),topicDto2.getAggregateId()])
 
-        and: 'information required to update tournament'
-        functionalityName1 = UpdateTournamentFunctionalitySagas.class.getSimpleName()
+        and: 'a unit of work'
+        def functionalityName1 = UpdateTournamentFunctionalitySagas.class.getSimpleName()
         unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
-        updateTournamentDto = new TournamentDto()
-        updateTournamentDto.setAggregateId(tournamentDto.aggregateId)
-        updateTournamentDto.setStartTime(DateHandler.toISOString(TIME_2))
-        topics =  new HashSet<>(Arrays.asList(topicDto1.aggregateId,topicDto2.aggregateId))
-        updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService,
-                updateTournamentDto, topics, unitOfWork1)
-
-        and: 'information required to remove tournament'
-        functionalityName2 = RemoveTournamentFunctionalitySagas.class.getSimpleName()
-        unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
-        removeTournamentFunctionality = new RemoveTournamentFunctionalitySagas(tournamentService, quizService, unitOfWorkService, tournamentDto.aggregateId, unitOfWork2)
     }
 
     def cleanup() {
         behaviourService.cleanUpCounter()
     }
 
-    def 'resume after partial quiz removal completes tournament deletion or fails gracefully'() {
+    def 'update tournament fault compensate retry'() {
         given: 'a clear report'
         behaviourService.cleanReportFile()
+        assert tournamentDto.numberOfQuestions == 2
 
-        and: 'remove tournament until removeQuizStep'
-        removeTournamentFunctionality.executeUntilStep("removeQuizStep", unitOfWork2)
+        and: 
+        tournamentDto.setStartTime(DateHandler.toISOString(TIME_2))
+        tournamentDto.setEndTime(DateHandler.toISOString(TIME_4))
+        tournamentDto.setNumberOfQuestions(3)
+        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
 
-        when: 'get the deleted quiz'
-        SagaQuiz sagaQuiz= unitOfWorkService.aggregateDeletedLoad(tournamentDto.quiz.aggregateId)
-        then: 'is deleted'
-        sagaQuiz.availableDate == TIME_1
-        sagaQuiz.state == Aggregate.AggregateState.DELETED
-        
+        when: 'start update tournament'
+        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1)
+        updateTournamentFunctionality.executeUntilStep("updateTournamentStep",unitOfWork1)
 
-        when: 'remove finishes'
-        boolean exceptionThrown = false
+        then: 'assert the tournament is updated'
+        def updatedTournamentDto = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        updatedTournamentDto != null
+        updatedTournamentDto.startTime == DateHandler.toISOString(TIME_2)
+        updatedTournamentDto.endTime == DateHandler.toISOString(TIME_4)
+        updatedTournamentDto.numberOfQuestions == 3
+        updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+
+
+        when: 'remove finishes with an error'
         try {
-            removeTournamentFunctionality.resumeWorkflow(unitOfWork2)
+            updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
         } catch (Exception e) {
-            exceptionThrown = true
+            println e.message
         }
 
 
-        then: 'verify tournament state depending on the outcome of the resume operation'
-        if (exceptionThrown) {
-            println "\u001B[31mEntered the exceptionThrown branch\u001B[0m"
-            sagaQuiz.state == Aggregate.AggregateState.ACTIVE
-        } else {
-            SagaTournament sagaTournament = unitOfWorkService.aggregateDeletedLoad(tournamentDto.aggregateId)
-            sagaTournament.startTime == TIME_1
-            sagaTournament.state == Aggregate.AggregateState.DELETED
+        then: 'assert the tournament is compensated'
+        def updatedTournamentDto1 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        assert updatedTournamentDto1 != null
+        assert updatedTournamentDto1.numberOfQuestions == 2
+        assert updatedTournamentDto1.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId()].toSet()
+
+        when: 'retry'
+        def retries = behaviourService.getRetryValue("UpdateTournamentFunctionalitySagas")
+        println "\u001B[34mRetries: $retries\u001B[0m"
+
+        boolean success = false
+        while (retries > 0 && !success) {
+            try {
+                updateTournamentFunctionality.executeWorkflow(unitOfWork1)
+                success = true  // If no exception, mark as successful
+            } catch (Exception e) {
+                retries--
+            }
         }
         
+        then: 'The tournament is updated again'
+        def quizDto = quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
+        assert quizDto.availableDate == DateHandler.toISOString(TIME_2)
+        assert quizDto.conclusionDate == DateHandler.toISOString(TIME_4)
+        assert quizDto.questionDtos.size() == 3
 
         cleanup: 'remove all generated artifacts after test execution'
+        traceService.endRootSpan()
+        // traceService.spanFlush()
         behaviourService.cleanDirectory()
     }
 

@@ -9,14 +9,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+
+import org.springframework.dao.CannotAcquireLockException;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 
 @Service
 public abstract class UnitOfWorkService<U extends UnitOfWork> {
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public abstract U createUnitOfWork(String functionalityName);
 
@@ -36,22 +43,34 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
     public abstract void registerEvent(Event event, U unitOfWork);
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public abstract void commit(U unitOfWork);
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public abstract void abort(U unitOfWork);
 
 
     // Must be serializable in order to ensure no other commits are made between the checking of concurrent versions and the actual persist
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public abstract void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap);
 }

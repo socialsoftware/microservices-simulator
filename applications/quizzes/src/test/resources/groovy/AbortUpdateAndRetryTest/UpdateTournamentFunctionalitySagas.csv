@@ -1,0 +1,16 @@
+retry,2
+run
+getOriginalTournamentStep,0,0,0
+getTopicsStep,0,0,0
+updateTournamentStep,0,0,0
+updateQuizStep,1,0,0
+run
+getOriginalTournamentStep,0,0,0
+getTopicsStep,1,0,0
+updateTournamentStep,0,0,0
+updateQuizStep,0,0,0
+run
+getOriginalTournamentStep,0,0,0
+getTopicsStep,0,0,0
+updateTournamentStep,0,0,0
+updateQuizStep,0,0,0

@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+
+import org.springframework.dao.CannotAcquireLockException;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
@@ -44,8 +47,12 @@ public class UserService {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public UserDto getUserById(Integer aggregateId, UnitOfWork unitOfWork) {
         return userFactory.createUserDto((User) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
@@ -53,8 +60,12 @@ public class UserService {
 
     /*simple user creation*/
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public UserDto createUser(UserDto userDto, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
@@ -64,8 +75,12 @@ public class UserService {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void activateUser(Integer userAggregateId, UnitOfWork unitOfWork) {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
@@ -78,8 +93,12 @@ public class UserService {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void deleteUser(Integer userAggregateId, UnitOfWork unitOfWork) {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
@@ -90,8 +109,12 @@ public class UserService {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<UserDto> getStudents(UnitOfWork unitOfWork) {
         Set<Integer> studentsIds = userRepository.findAll().stream()
@@ -105,8 +128,12 @@ public class UserService {
     }
 
     @Retryable(
-            value = { SQLException.class },
-            backoff = @Backoff(delay = 5000))
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<UserDto> getTeachers(UnitOfWork unitOfWork) {
         Set<Integer> teacherIds = userRepository.findAll().stream()

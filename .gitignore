@@ -42,3 +42,5 @@ jmeter.log
 
 **/BehaviourReport.txt
 .vscode/settings.json
+
+applications/quizzes/logs/

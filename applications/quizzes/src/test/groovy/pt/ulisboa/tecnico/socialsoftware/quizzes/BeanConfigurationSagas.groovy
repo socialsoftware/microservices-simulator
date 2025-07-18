@@ -60,6 +60,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.Us
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService
 
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
+
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -276,12 +278,17 @@ class BeanConfigurationSagas {
 
     @Bean
     BehaviourService BehaviourService() {
-    return new BehaviourService();
+        return new BehaviourService();
     }
 
     @Bean
     SagasCommandGateway sagasCommandGateway(ApplicationContext applicationContext, SagaUnitOfWorkService unitOfWorkService) {
         return new SagasCommandGateway(applicationContext, unitOfWorkService);
+    }
+
+    @Bean
+    TraceService TraceService() {
+        return new TraceService();
     }
 
 }
