@@ -244,7 +244,7 @@ public class ExecutionPlan {
             // Mismatch Steps
             report.append("Mismatch Steps: ").append(misMatchSteps).append("\n");
             if (mismatchExists) {
-                colorReport.append("\u001B[31m").append("Mismatch Steps: ").append(misMatchSteps).append("\u001B[0m").append("\n");
+                colorReport.append("\u001B[38;5;208m").append("Mismatch Steps: ").append(misMatchSteps).append("\u001B[0m").append("\n");
             } else {
                 colorReport.append("Mismatch Steps: ").append(misMatchSteps).append("\n");
             }
@@ -254,7 +254,7 @@ public class ExecutionPlan {
 
             // Optional terminal summary
             if (mismatchExists) {
-                logger.error("\u001B[31mMismatch detected\u001B[0m");
+                logger.error("\u001B[38;5;208mMismatch detected\u001B[0m");
             } if (nonCommonDiffers) {
                 logger.warn("\u001B[33mCommon steps differ from expected plan\u001B[0m");
             } else {
