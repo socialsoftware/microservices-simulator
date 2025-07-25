@@ -133,12 +133,6 @@ class AddParticipantTest extends QuizzesSpockTest {
         updatedTournament2.participants.any { it.aggregateId == userDto3.getAggregateId() }
     }
 
-//    def 'async: add student'() {
-//        when: 'student is added to tournament'
-//        courseExecutionFunctionalities.addStudent()
-//        then: 'student is added'
-//    }
-
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 }

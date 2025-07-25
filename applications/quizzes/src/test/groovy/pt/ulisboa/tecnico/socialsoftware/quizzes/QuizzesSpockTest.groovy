@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes
 
+import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import pt.ulisboa.tecnico.socialsoftware.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
@@ -92,7 +93,7 @@ class QuizzesSpockTest extends SpockTest {
         behaviourService.LoadDir(mavenBaseDir, scriptDir)
     }
 
-
+    @Transactional
     def createCourseExecution(name, type, acronym, term, endDate) {
         def courseExecutionDto = new CourseExecutionDto()
         courseExecutionDto.setName(name)

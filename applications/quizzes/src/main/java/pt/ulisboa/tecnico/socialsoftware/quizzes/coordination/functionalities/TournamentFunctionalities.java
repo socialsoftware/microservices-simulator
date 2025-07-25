@@ -135,6 +135,30 @@ public class TournamentFunctionalities {
         }
     }
 
+    public void addParticipantAsync(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AddParticipantAsyncFunctionalitySagas addParticipantAsyncFunctionalitySagas = new AddParticipantAsyncFunctionalitySagas(
+                        tournamentService, courseExecutionService, sagaUnitOfWorkService,
+                        tournamentAggregateId, executionAggregateId, userAggregateId, sagaUnitOfWork, sagasCommandGateway);
+
+                addParticipantAsyncFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            // case TCC:
+            //     CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+            //     AddParticipantAsyncFunctionalityTCC addParticipantAsyncFunctionalityTCC = new AddParticipantAsyncFunctionalityTCC(
+            //             tournamentService, courseExecutionService, causalUnitOfWorkService,
+            //             tournamentAggregateId, executionAggregateId, userAggregateId, causalUnitOfWork, sagasCommandGateway);
+
+            //     addParticipantAsyncFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+            //     break;
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
     public void updateTournament(TournamentDto tournamentDto, Set<Integer> topicsAggregateIds) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 

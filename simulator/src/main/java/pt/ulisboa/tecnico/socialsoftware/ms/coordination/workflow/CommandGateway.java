@@ -23,36 +23,36 @@ public abstract class CommandGateway {
     public Object send(Command command) {
 
         try {
-        String beanName = Character.toLowerCase(command.getServiceName().charAt(0)) + command.getServiceName().substring(1);
+            String beanName = Character.toLowerCase(command.getServiceName().charAt(0))
+                    + command.getServiceName().substring(1);
 
-        Object serviceBean = applicationContext.getBean(beanName);
+            Object serviceBean = applicationContext.getBean(beanName);
 
-        String methodName = command.getClass().getSimpleName().replace("Command", "");
-        methodName = Character.toLowerCase(methodName.charAt(0)) + methodName.substring(1);
+            String methodName = command.getClass().getSimpleName().replace("Command", "");
+            methodName = Character.toLowerCase(methodName.charAt(0)) + methodName.substring(1);
 
-        Method method = findMethod(serviceBean.getClass(), methodName, command.getClass());
-        if (method == null) {
-            throw new NoSuchMethodException("No method " + methodName + " found on " + serviceBean.getClass());
-        }
+            Method method = findMethod(serviceBean.getClass(), methodName, command.getClass());
+            if (method == null) {
+                throw new NoSuchMethodException("No method " + methodName + " found on " + serviceBean.getClass());
+            }
 
-        List<Object> args = new ArrayList<>();
-        for (java.lang.reflect.Field field : command.getClass().getDeclaredFields()) {
-            if (!field.getName().equals("rootAggregateId") &&
-                    !field.getName().equals("forbiddenStates") &&
-                    !field.getName().equals("semanticLock") &&
-                    !field.getName().equals("unitOfWork") &&
-                    !field.getName().equals("serviceName")) {
-                field.setAccessible(true);
-                Object fieldValue = field.get(command);
-                if (fieldValue != null) {
-                    args.add(fieldValue);
-                    Logger.getLogger(CommandGateway.class.getName()).info(field.getName());
+            List<Object> args = new ArrayList<>();
+            for (java.lang.reflect.Field field : command.getClass().getDeclaredFields()) {
+                if (!field.getName().equals("rootAggregateId") &&
+                        !field.getName().equals("forbiddenStates") &&
+                        !field.getName().equals("semanticLock") &&
+                        !field.getName().equals("unitOfWork") &&
+                        !field.getName().equals("serviceName")) {
+                    field.setAccessible(true);
+                    Object fieldValue = field.get(command);
+                    if (fieldValue != null) {
+                        args.add(fieldValue);
+                    }
                 }
             }
-        }
-        args.add(command.getUnitOfWork());
+            args.add(command.getUnitOfWork());
 
-        return method.invoke(serviceBean, args.toArray());
+            return method.invoke(serviceBean, args.toArray());
 
         } catch (java.lang.reflect.InvocationTargetException e) {
             // Unwrap the target exception

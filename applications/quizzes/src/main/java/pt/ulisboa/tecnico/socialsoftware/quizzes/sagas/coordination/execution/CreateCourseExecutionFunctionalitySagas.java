@@ -30,9 +30,9 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createCourseExecutionStep = new SagaSyncStep("createCourseExecutionStep", () -> {
-            // SagaCourseExecutionDto createdCourseExecution = (SagaCourseExecutionDto) courseExecutionService.createCourseExecution(courseExecutionDto, unitOfWork);
-            CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork, "courseExecutionService", courseExecutionDto);
-            SagaCourseExecutionDto createdCourseExecution = (SagaCourseExecutionDto) sagasCommandGateway.send(createCourseExecutionCommand);
+            SagaCourseExecutionDto createdCourseExecution = (SagaCourseExecutionDto) courseExecutionService.createCourseExecution(courseExecutionDto, unitOfWork);
+//            CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork, "courseExecutionService", courseExecutionDto);
+//            SagaCourseExecutionDto createdCourseExecution = (SagaCourseExecutionDto) sagasCommandGateway.send(createCourseExecutionCommand);
             this.setCreatedCourseExecution(createdCourseExecution);
         });
 
