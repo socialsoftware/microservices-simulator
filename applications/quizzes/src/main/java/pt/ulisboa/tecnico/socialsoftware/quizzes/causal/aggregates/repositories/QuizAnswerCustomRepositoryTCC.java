@@ -1,13 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.repositories;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerCustomRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerRepository;
+
+import java.util.Optional;
 
 @Service
 @Profile("tcc")

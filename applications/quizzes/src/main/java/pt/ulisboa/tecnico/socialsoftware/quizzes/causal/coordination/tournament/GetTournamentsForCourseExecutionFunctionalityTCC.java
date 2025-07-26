@@ -1,7 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.tournament;
 
-import java.util.List;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
@@ -9,6 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
+
+import java.util.List;
 
 public class GetTournamentsForCourseExecutionFunctionalityTCC extends WorkflowFunctionality {
     private List<TournamentDto> tournaments;

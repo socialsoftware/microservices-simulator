@@ -4,62 +4,38 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CausalCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.QuizAnswerFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.QuizAnswerEventHandling
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.eventProcessing.QuizAnswerEventProcessing
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
-
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories.*
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.repositories.CourseCustomRepositoryTCC
+import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.repositories.CourseExecutionCustomRepositoryTCC
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.repositories.QuizAnswerCustomRepositoryTCC
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.repositories.TournamentCustomRepositoryTCC
-import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.repositories.CourseExecutionCustomRepositoryTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionRepository;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicRepository;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserRepository;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizRepository
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionRepository;
-
-import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories.CausalQuizAnswerFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories.CausalCourseFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories.CausalCourseExecutionFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories.CausalQuestionFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories.CausalQuizFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories.CausalTopicFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories.CausalTournamentFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories.CausalUserFactory;
-
+import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.eventProcessing.*
+import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.*
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.QuizAnswerEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.handling.CourseExecutionEventHandling
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.eventProcessing.CourseExecutionEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.QuestionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.handling.QuestionEventHandling
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.eventProcessing.QuestionEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.QuizFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.handling.QuizEventHandling
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.eventProcessing.QuizEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TopicFunctionalities
-
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.eventProcessing.TournamentEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.UserFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService
-
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.CourseCustomRepositorySagas
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")

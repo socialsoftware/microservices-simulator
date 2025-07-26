@@ -1,10 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.factories;
 
-import java.util.Set;
-
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
@@ -14,6 +11,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaTournament;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
+
+import java.util.Set;
 
 @Service
 @Profile("sagas")

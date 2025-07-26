@@ -1,8 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,6 +7,9 @@ import jakarta.persistence.Enumerated;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /*
     INTRA-INVARIANTS:

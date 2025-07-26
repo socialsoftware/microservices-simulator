@@ -2,7 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.CausalCourse;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.Course;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;

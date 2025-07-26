@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.ha
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.eventProcessing.QuizAnswerEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerRepository;

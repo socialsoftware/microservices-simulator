@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.command.question;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
+
 import java.util.List;
 
 public class FindQuestionsByTopicIdsCommand extends Command {

@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.command.question;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionTopic;
+
 import java.util.Set;
 
 public class UpdateQuestionTopicsCommand extends Command {

@@ -1,20 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.CANNOT_ADD_PARTICIPANT;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.CANNOT_DELETE_TOURNAMENT;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.CANNOT_UPDATE_TOURNAMENT;
-
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
@@ -23,15 +9,16 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.Quizzes
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesAnonymizeStudent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesAnswerQuestion;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesDeleteCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesDeleteTopic;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesDisenrollStudentFromCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesInvalidateQuiz;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesUpdateStudentName;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.subscribe.TournamentSubscribesUpdateTopic;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.subscribe.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.*;
 
 /* each version of the tournament is a new instance of the tournament*/
 /*

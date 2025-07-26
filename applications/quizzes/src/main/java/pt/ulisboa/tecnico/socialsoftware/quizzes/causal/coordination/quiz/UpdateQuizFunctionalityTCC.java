@@ -1,8 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.quiz;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
@@ -13,6 +10,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.Qu
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizQuestion;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class UpdateQuizFunctionalityTCC extends WorkflowFunctionality {
     private Quiz oldQuiz;

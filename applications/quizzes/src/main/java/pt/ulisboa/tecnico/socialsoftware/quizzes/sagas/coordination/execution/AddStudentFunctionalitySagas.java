@@ -1,10 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.EnrollStudentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetUserByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
@@ -12,10 +13,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaUserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
     

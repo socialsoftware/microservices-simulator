@@ -1,7 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate;
 
-import java.util.Set;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -9,6 +7,8 @@ import jakarta.persistence.ManyToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentParticipant;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
+
+import java.util.Set;
 
 @Entity
 public class CourseExecutionStudent {

@@ -1,8 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.publish;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
-
 import jakarta.persistence.Entity;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 
 @Entity
 public class DeleteQuestionEvent extends Event {

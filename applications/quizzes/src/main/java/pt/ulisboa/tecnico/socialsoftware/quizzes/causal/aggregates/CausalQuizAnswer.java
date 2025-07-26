@@ -1,19 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates;
 
+import jakarta.persistence.Entity;
+import org.apache.commons.collections4.SetUtils;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.*;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.apache.commons.collections4.SetUtils;
-
-import jakarta.persistence.Entity;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.AnswerCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.AnswerStudent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.AnsweredQuiz;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuestionAnswer;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
 
 @Entity
 public class CausalQuizAnswer extends QuizAnswer implements CausalAggregate {

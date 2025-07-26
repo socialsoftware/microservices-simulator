@@ -1,6 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
 
 @Entity

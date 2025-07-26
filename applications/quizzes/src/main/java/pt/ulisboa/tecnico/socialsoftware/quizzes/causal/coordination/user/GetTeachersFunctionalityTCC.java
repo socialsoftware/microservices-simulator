@@ -1,7 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.user;
 
-import java.util.List;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
@@ -9,6 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
+
+import java.util.List;
 
 public class GetTeachersFunctionalityTCC extends WorkflowFunctionality {
     private List<UserDto> teachers;

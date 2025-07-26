@@ -1,13 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.Course;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.Course;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 @Entity
 public class SagaCourse extends Course implements SagaAggregate {
     private SagaState sagaState;

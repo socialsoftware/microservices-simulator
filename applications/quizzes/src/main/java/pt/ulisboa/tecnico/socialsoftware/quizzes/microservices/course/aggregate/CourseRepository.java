@@ -1,12 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate;
 
-import java.util.Optional;
-
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import jakarta.transaction.Transactional;
+import java.util.Optional;
 
 @Repository
 @Transactional

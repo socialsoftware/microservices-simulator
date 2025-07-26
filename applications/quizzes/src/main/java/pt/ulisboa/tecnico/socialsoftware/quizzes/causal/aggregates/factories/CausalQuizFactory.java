@@ -1,17 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.factories;
 
-import java.util.Set;
-
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.CausalQuiz;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.Quiz;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizQuestion;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizType;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.*;
+
+import java.util.Set;
 
 @Service
 @Profile("tcc")

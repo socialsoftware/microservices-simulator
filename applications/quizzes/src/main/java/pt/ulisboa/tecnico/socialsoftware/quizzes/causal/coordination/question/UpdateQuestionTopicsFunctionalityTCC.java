@@ -1,9 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.question;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
@@ -14,6 +10,10 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionTopic;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class UpdateQuestionTopicsFunctionalityTCC extends WorkflowFunctionality {
     private Set<QuestionTopic> topics;

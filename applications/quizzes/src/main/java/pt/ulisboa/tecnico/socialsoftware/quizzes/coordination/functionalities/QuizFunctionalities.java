@@ -1,16 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities;
 
-import java.util.Arrays;
-import java.util.List;
-
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import jakarta.annotation.PostConstruct;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.quiz.CreateQuizFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.quiz.FindQuizFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.quiz.GetAvailableQuizzesFunctionalityTCC;
@@ -25,8 +23,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.quiz.CreateQ
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.quiz.FindQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.quiz.GetAvailableQuizzesFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.quiz.UpdateQuizFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
