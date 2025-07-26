@@ -41,7 +41,7 @@ public class AddParticipantAsyncFunctionalitySagas extends WorkflowFunctionality
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaAsyncStep getUserStep = new SagaAsyncStep("getUserStep", () -> {
-            return CompletableFuture.supplyAsync(() -> {
+            return CompletableFuture.runAsync(() -> {
                 Logger.getLogger(AddParticipantAsyncFunctionalitySagas.class.getName()).info(
                         "Getting user: " + userAggregateId + " for course execution: " + courseExecutionAggregateId);
                 SagaUserDto user = (SagaUserDto) courseExecutionService
@@ -53,7 +53,6 @@ public class AddParticipantAsyncFunctionalitySagas extends WorkflowFunctionality
                 // userAggregateId);
                 // // getStudentCommand.setSemanticLock(UserSagaState.READ_USER);
                 // this.userDto = (UserDto) sagasCommandGateway.send(getStudentCommand);
-                return null;
             });
         });
 

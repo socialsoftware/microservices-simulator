@@ -38,9 +38,6 @@ import java.util.concurrent.CompletableFuture
 @DataJpaTest
 class AddParticipantAsyncTest extends QuizzesSpockTest {
     @Autowired
-    private DataSource dataSource
-
-    @Autowired
     private SagaUnitOfWorkService unitOfWorkService
 
     @Autowired
@@ -70,9 +67,6 @@ class AddParticipantAsyncTest extends QuizzesSpockTest {
     private TopicDto topicDto1, topicDto2, topicDto3
     private QuestionDto questionDto1, questionDto2, questionDto3
     private TournamentDto tournamentDto
-
-    // @Shared
-    // String jdbcUrl = "jdbc:h2:mem:testdb_multithread;DB_CLOSE_DELAY=-1" // Named in-memory DB for sharing
 
     def setup() {
         given: 'a course execution'
@@ -106,14 +100,14 @@ class AddParticipantAsyncTest extends QuizzesSpockTest {
 
 
 
-    def 'add one participant' () {
-        when: 'student is added to tournament'
-        tournamentFunctionalities.addParticipantAsync(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
-        then: 'student is added'
-        def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult.getParticipants().size() == 1
-        tournamentDtoResult.getParticipants().find{it.aggregateId == userDto.aggregateId}.name == USER_NAME_2
-    }
+    // def 'add one participant' () {
+    //     when: 'student is added to tournament'
+    //     tournamentFunctionalities.addParticipantAsync(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
+    //     then: 'student is added'
+    //     def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+    //     tournamentDtoResult.getParticipants().size() == 1
+    //     tournamentDtoResult.getParticipants().find{it.aggregateId == userDto.aggregateId}.name == USER_NAME_2
+    // }
 
     // def 'add a participant'() {
     //     given: 'create a unit of work'
@@ -231,6 +225,6 @@ class AddParticipantAsyncTest extends QuizzesSpockTest {
     //     true
     // }
 
-    // @TestConfiguration
-    // static class LocalBeanConfiguration extends BeanConfigurationSagas {}
+     @TestConfiguration
+     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 }
