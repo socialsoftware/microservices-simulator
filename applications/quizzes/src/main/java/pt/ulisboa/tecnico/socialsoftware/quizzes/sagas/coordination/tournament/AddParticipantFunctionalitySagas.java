@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.AddParticipantCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
@@ -26,7 +27,10 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
     private UserDto userDto;
     private SagasCommandGateway commandGateway;
 
-    public AddParticipantFunctionalitySagas(TournamentService tournamentService, CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork, SagasCommandGateway commandGateway) {
+    public AddParticipantFunctionalitySagas(TournamentService tournamentService,
+            CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService,
+            Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
+            SagaUnitOfWork unitOfWork, SagasCommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
@@ -34,11 +38,14 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
         this.buildWorkflow(tournamentAggregateId, executionAggregateId, userAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
+            SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, "courseExecutionService", executionAggregateId, userAggregateId);
+            GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(
+                    unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId,
+                    userAggregateId);
             this.userDto = (UserDto) commandGateway.send(getStudentCommand);
         });
 
@@ -46,9 +53,11 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
             TournamentParticipant participant = new TournamentParticipant(this.userDto);
             List<SagaAggregate.SagaState> states = new ArrayList<>();
             states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
-//            unitOfWorkService.verifySagaState(tournamentAggregateId, states);
-//            tournamentService.addParticipant(tournamentAggregateId, participant, unitOfWork);
-            AddParticipantCommand addParticipantCommand = new AddParticipantCommand(unitOfWork, "tournamentService", tournamentAggregateId, participant);
+            // unitOfWorkService.verifySagaState(tournamentAggregateId, states);
+            // tournamentService.addParticipant(tournamentAggregateId, participant,
+            // unitOfWork);
+            AddParticipantCommand addParticipantCommand = new AddParticipantCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),
+                    tournamentAggregateId, participant);
             addParticipantCommand.setForbiddenStates(states);
             commandGateway.send(addParticipantCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));

@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaCourseExecutionDto;
@@ -21,8 +22,9 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
     private final SagaUnitOfWorkService unitOfWorkService;
     private final SagasCommandGateway sagasCommandGateway;
 
-    public RemoveCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService,
-                                    Integer executionAggregateId, SagaUnitOfWork unitOfWork, SagasCommandGateway sagasCommandGateway) {
+    public RemoveCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService,
+            SagaUnitOfWorkService unitOfWorkService,
+            Integer executionAggregateId, SagaUnitOfWork unitOfWork, SagasCommandGateway sagasCommandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
         this.sagasCommandGateway = sagasCommandGateway;
@@ -33,25 +35,31 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {
-            // SagaCourseExecutionDto courseExecution = (SagaCourseExecutionDto) courseExecutionService.getCourseExecutionById(executionAggregateId, unitOfWork);
-            GetCourseExecutionByIdCommand getCourseExecutionCommand = new GetCourseExecutionByIdCommand(unitOfWork, "courseExecutionService", executionAggregateId);
+            // SagaCourseExecutionDto courseExecution = (SagaCourseExecutionDto)
+            // courseExecutionService.getCourseExecutionById(executionAggregateId,
+            // unitOfWork);
+            GetCourseExecutionByIdCommand getCourseExecutionCommand = new GetCourseExecutionByIdCommand(unitOfWork,
+                    ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
             getCourseExecutionCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
-            SagaCourseExecutionDto courseExecution = (SagaCourseExecutionDto) sagasCommandGateway.send(getCourseExecutionCommand);
-            // unitOfWorkService.registerSagaState(executionAggregateId, CourseExecutionSagaState.READ_COURSE, unitOfWork);
+            SagaCourseExecutionDto courseExecution = (SagaCourseExecutionDto) sagasCommandGateway
+                    .send(getCourseExecutionCommand);
+            // unitOfWorkService.registerSagaState(executionAggregateId,
+            // CourseExecutionSagaState.READ_COURSE, unitOfWork);
             this.setCourseExecution(courseExecution);
         });
-    
+
         getCourseExecutionStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(executionAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork); //TODO
+            unitOfWorkService.registerSagaState(executionAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork); // TODO
         }, unitOfWork);
-    
+
         SagaSyncStep removeCourseExecutionStep = new SagaSyncStep("removeCourseExecutionStep", () -> {
             courseExecutionService.removeCourseExecution(executionAggregateId, unitOfWork);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
-    
+
         workflow.addStep(getCourseExecutionStep);
         workflow.addStep(removeCourseExecutionStep);
     }
+
     public SagaCourseExecutionDto getCourseExecution() {
         return courseExecution;
     }

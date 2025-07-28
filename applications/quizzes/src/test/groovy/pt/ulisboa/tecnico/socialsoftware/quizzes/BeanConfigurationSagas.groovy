@@ -14,23 +14,31 @@ import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.eventProcessing.*
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.*
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.commandHandler.AnswerCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.QuizAnswerEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.commandHandler.CourseCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.commandHandler.CourseExecutionCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.handling.CourseExecutionEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.commandHandler.QuestionCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.handling.QuestionEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.commandHandler.QuizCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.handling.QuizEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.commandHandler.TopicCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.commandHandler.TournamentCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.commandHandler.UserCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.factories.*
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.CourseCustomRepositorySagas
@@ -43,27 +51,27 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.T
 class BeanConfigurationSagas {
     @Bean
     AggregateIdGeneratorService aggregateIdGeneratorService() {
-        return new AggregateIdGeneratorService();
+        return new AggregateIdGeneratorService()
     }
 
     @Bean
     VersionService versionService() {
-        return new VersionService();
+        return new VersionService()
     }
 
     @Bean
     EventApplicationService eventApplicationService() {
-        return new EventApplicationService();
+        return new EventApplicationService()
     }
 
     @Bean
     EventService eventService() {
-        return new EventService();
+        return new EventService()
     }
 
     @Bean
     SagaUnitOfWorkService unitOfWorkService() {
-        return new SagaUnitOfWorkService();
+        return new SagaUnitOfWorkService()
     }
 
     @Bean
@@ -93,7 +101,7 @@ class BeanConfigurationSagas {
 
     @Bean
     QuestionEventProcessing questionEventProcessing(SagaUnitOfWorkService unitOfWorkService) {
-        return new QuestionEventProcessing(unitOfWorkService);
+        return new QuestionEventProcessing(unitOfWorkService)
     }
 
     @Bean
@@ -103,7 +111,7 @@ class BeanConfigurationSagas {
 
     @Bean
     QuizEventProcessing quizEventProcessing(SagaUnitOfWorkService unitOfWorkService) {
-        return new QuizEventProcessing(unitOfWorkService);
+        return new QuizEventProcessing(unitOfWorkService)
     }
 
     @Bean
@@ -253,17 +261,57 @@ class BeanConfigurationSagas {
 
     @Bean
     BehaviourService BehaviourService() {
-        return new BehaviourService();
+        return new BehaviourService()
     }
 
     @Bean
     SagasCommandGateway sagasCommandGateway(ApplicationContext applicationContext, SagaUnitOfWorkService unitOfWorkService) {
-        return new SagasCommandGateway(applicationContext, unitOfWorkService);
+        return new SagasCommandGateway(applicationContext, unitOfWorkService)
     }
 
     @Bean
     TraceService TraceService() {
-        return new TraceService();
+        return new TraceService()
     }
 
+    // Command Handlers
+    @Bean
+    UserCommandHandler userCommandHandler() {
+        return new UserCommandHandler()
+    }
+
+    @Bean
+    TournamentCommandHandler tournamentCommandHandler() {
+        return new TournamentCommandHandler()
+    }
+
+    @Bean
+    QuestionCommandHandler questionCommandHandler() {
+        return new QuestionCommandHandler()
+    }
+
+    @Bean
+    TopicCommandHandler topicCommandHandler() {
+        return new TopicCommandHandler()
+    }
+
+    @Bean
+    CourseExecutionCommandHandler courseExecutionCommandHandler() {
+        return new CourseExecutionCommandHandler()
+    }
+
+    @Bean
+    CourseCommandHandler courseCommandHandler() {
+        return new CourseCommandHandler()
+    }
+
+    @Bean
+    AnswerCommandHandler answerCommandHandler() {
+        return new AnswerCommandHandler()
+    }
+
+    @Bean
+    QuizCommandHandler quizCommandHandler() {
+        return new QuizCommandHandler()
+    }
 }

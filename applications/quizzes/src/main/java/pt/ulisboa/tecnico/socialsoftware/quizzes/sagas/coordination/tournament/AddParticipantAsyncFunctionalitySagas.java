@@ -49,7 +49,8 @@ public class AddParticipantAsyncFunctionalitySagas extends WorkflowFunctionality
                 this.setUserDto(user);
                 // GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new
                 // GetStudentByExecutionIdAndUserIdCommand(
-                // unitOfWork, "courseExecutionService", courseExecutionAggregateId,
+                // unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(),
+                // courseExecutionAggregateId,
                 // userAggregateId);
                 // // getStudentCommand.setSemanticLock(UserSagaState.READ_USER);
                 // this.userDto = (UserDto) sagasCommandGateway.send(getStudentCommand);
