@@ -6,6 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 
 @Service
 public class TopicCommandHandler implements CommandHandler {
@@ -13,21 +15,33 @@ public class TopicCommandHandler implements CommandHandler {
     @Autowired
     private TopicService topicService;
 
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+
     @Override
     public Object handle(Command command) {
+        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
+            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
+        }
+        Object returnObject;
         if (command instanceof GetTopicByIdCommand) {
-            return handleGetTopicById((GetTopicByIdCommand) command);
+            returnObject = handleGetTopicById((GetTopicByIdCommand) command);
         } else if (command instanceof CreateTopicCommand) {
-            return handleCreateTopic((CreateTopicCommand) command);
+            returnObject = handleCreateTopic((CreateTopicCommand) command);
         } else if (command instanceof FindTopicsByCourseIdCommand) {
-            return handleFindTopicsByCourseId((FindTopicsByCourseIdCommand) command);
+            returnObject = handleFindTopicsByCourseId((FindTopicsByCourseIdCommand) command);
         } else if (command instanceof UpdateTopicCommand) {
-            return handleUpdateTopic((UpdateTopicCommand) command);
+            returnObject = handleUpdateTopic((UpdateTopicCommand) command);
         } else if (command instanceof DeleteTopicCommand) {
-            return handleDeleteTopic((DeleteTopicCommand) command);
+            returnObject = handleDeleteTopic((DeleteTopicCommand) command);
         } else {
             throw new UnsupportedOperationException("Command not supported: " + command.getClass().getName());
         }
+        if (command.getSemanticLock() != null) {
+            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
+                    (SagaUnitOfWork) command.getUnitOfWork());
+        }
+        return returnObject;
     }
 
     private Object handleGetTopicById(GetTopicByIdCommand command) {

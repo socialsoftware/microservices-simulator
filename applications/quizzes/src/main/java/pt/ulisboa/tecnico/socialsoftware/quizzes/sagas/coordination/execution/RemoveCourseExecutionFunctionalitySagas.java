@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
@@ -20,14 +20,14 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
     private SagaCourseExecutionDto courseExecution;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final SagasCommandGateway sagasCommandGateway;
+    private final CommandGateway commandGateway;
 
     public RemoveCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService,
             SagaUnitOfWorkService unitOfWorkService,
-            Integer executionAggregateId, SagaUnitOfWork unitOfWork, SagasCommandGateway sagasCommandGateway) {
+            Integer executionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.sagasCommandGateway = sagasCommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(executionAggregateId, unitOfWork);
     }
 
@@ -41,7 +41,7 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
             GetCourseExecutionByIdCommand getCourseExecutionCommand = new GetCourseExecutionByIdCommand(unitOfWork,
                     ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
             getCourseExecutionCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
-            SagaCourseExecutionDto courseExecution = (SagaCourseExecutionDto) sagasCommandGateway
+            SagaCourseExecutionDto courseExecution = (SagaCourseExecutionDto) commandGateway
                     .send(getCourseExecutionCommand);
             // unitOfWorkService.registerSagaState(executionAggregateId,
             // CourseExecutionSagaState.READ_COURSE, unitOfWork);

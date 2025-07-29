@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -22,17 +22,17 @@ public class AddParticipantAsyncFunctionalitySagas extends WorkflowFunctionality
     private final TournamentService tournamentService;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final SagasCommandGateway sagasCommandGateway;
+    private final CommandGateway commandGateway;
 
     public AddParticipantAsyncFunctionalitySagas(TournamentService tournamentService,
             CourseExecutionService courseExecutionService,
             SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId,
             Integer courseExecutionAggregateId, Integer userAggregateId,
-            SagaUnitOfWork unitOfWork, SagasCommandGateway sagasCommandGateway) {
+            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.sagasCommandGateway = sagasCommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -53,7 +53,7 @@ public class AddParticipantAsyncFunctionalitySagas extends WorkflowFunctionality
                 // courseExecutionAggregateId,
                 // userAggregateId);
                 // // getStudentCommand.setSemanticLock(UserSagaState.READ_USER);
-                // this.userDto = (UserDto) sagasCommandGateway.send(getStudentCommand);
+                // this.userDto = (UserDto) commandGateway.send(getStudentCommand);
             });
         });
 
@@ -75,7 +75,7 @@ public class AddParticipantAsyncFunctionalitySagas extends WorkflowFunctionality
                 // AddParticipantCommand(unitOfWork, "tournamentService",
                 // tournamentAggregateId, participant);
                 //// addParticipantCommand.setForbiddenStates(states);
-                // sagasCommandGateway.send(addParticipantCommand);
+                // commandGateway.send(addParticipantCommand);
                 tournamentService.addParticipant(tournamentAggregateId, participant, unitOfWork);
                 return null;
             });

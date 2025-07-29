@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -15,14 +15,14 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
     private SagaCourseExecutionDto createdCourseExecution;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final SagasCommandGateway sagasCommandGateway;
+    private final CommandGateway commandGateway;
 
     public CreateCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService,
             SagaUnitOfWorkService unitOfWorkService,
-            CourseExecutionDto courseExecutionDto, SagaUnitOfWork unitOfWork, SagasCommandGateway sagasCommandGateway) {
+            CourseExecutionDto courseExecutionDto, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.sagasCommandGateway = sagasCommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(courseExecutionDto, unitOfWork);
     }
 
@@ -36,7 +36,7 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
             // CreateCourseExecutionCommand(unitOfWork,
             // ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionDto);
             // SagaCourseExecutionDto createdCourseExecution = (SagaCourseExecutionDto)
-            // sagasCommandGateway.send(createCourseExecutionCommand);
+            // commandGateway.send(createCourseExecutionCommand);
             this.setCreatedCourseExecution(createdCourseExecution);
         });
 

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -61,8 +61,8 @@ public class TournamentFunctionalities {
     private TournamentEventHandling tournamentEventHandling;
     @Autowired
     private EventService eventService;
-    @Autowired(required = false)
-    private SagasCommandGateway sagasCommandGateway;
+    @Autowired
+    private CommandGateway commandGateway;
 
     @Autowired
     private Environment env;
@@ -117,7 +117,7 @@ public class TournamentFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 AddParticipantFunctionalitySagas addParticipantFunctionalitySagas = new AddParticipantFunctionalitySagas(
                         tournamentService, courseExecutionService, sagaUnitOfWorkService,
-                        tournamentAggregateId, executionAggregateId, userAggregateId, sagaUnitOfWork, sagasCommandGateway);
+                        tournamentAggregateId, executionAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 addParticipantFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
@@ -141,7 +141,7 @@ public class TournamentFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 AddParticipantAsyncFunctionalitySagas addParticipantAsyncFunctionalitySagas = new AddParticipantAsyncFunctionalitySagas(
                         tournamentService, courseExecutionService, sagaUnitOfWorkService,
-                        tournamentAggregateId, executionAggregateId, userAggregateId, sagaUnitOfWork, sagasCommandGateway);
+                        tournamentAggregateId, executionAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 addParticipantAsyncFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
@@ -149,7 +149,7 @@ public class TournamentFunctionalities {
             //     CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
             //     AddParticipantAsyncFunctionalityTCC addParticipantAsyncFunctionalityTCC = new AddParticipantAsyncFunctionalityTCC(
             //             tournamentService, courseExecutionService, causalUnitOfWorkService,
-            //             tournamentAggregateId, executionAggregateId, userAggregateId, causalUnitOfWork, sagasCommandGateway);
+            //             tournamentAggregateId, executionAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
 
             //     addParticipantAsyncFunctionalityTCC.executeWorkflow(causalUnitOfWork);
             //     break;

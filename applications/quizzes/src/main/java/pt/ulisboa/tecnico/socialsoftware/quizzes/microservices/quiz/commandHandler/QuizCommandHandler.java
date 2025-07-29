@@ -6,6 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 
 import java.util.logging.Logger;
 
@@ -16,26 +18,38 @@ public class QuizCommandHandler implements CommandHandler {
     @Autowired
     private QuizService quizService;
 
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+
     @Override
     public Object handle(Command command) {
-        if (command instanceof StartTournamentQuizCommand) {
-            return handleStartTournamentQuiz((StartTournamentQuizCommand) command);
-        } else if (command instanceof GetQuizByIdCommand) {
-            return handleGetQuizById((GetQuizByIdCommand) command);
-        } else if (command instanceof GenerateQuizCommand) {
-            return handleGenerateQuiz((GenerateQuizCommand) command);
-        } else if (command instanceof CreateQuizCommand) {
-            return handleCreateQuiz((CreateQuizCommand) command);
-        } else if (command instanceof UpdateGeneratedQuizCommand) {
-            return handleUpdateGeneratedQuiz((UpdateGeneratedQuizCommand) command);
-        } else if (command instanceof UpdateQuizCommand) {
-            return handleUpdateQuiz((UpdateQuizCommand) command);
-        } else if (command instanceof GetAvailableQuizzesCommand) {
-            return handleGetAvailableQuizzes((GetAvailableQuizzesCommand) command);
+        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
+            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
         }
-
-        logger.warning("Unknown command type: " + command.getClass().getName());
-        return null;
+        Object returnObject;
+        if (command instanceof StartTournamentQuizCommand) {
+            returnObject = handleStartTournamentQuiz((StartTournamentQuizCommand) command);
+        } else if (command instanceof GetQuizByIdCommand) {
+            returnObject = handleGetQuizById((GetQuizByIdCommand) command);
+        } else if (command instanceof GenerateQuizCommand) {
+            returnObject = handleGenerateQuiz((GenerateQuizCommand) command);
+        } else if (command instanceof CreateQuizCommand) {
+            returnObject = handleCreateQuiz((CreateQuizCommand) command);
+        } else if (command instanceof UpdateGeneratedQuizCommand) {
+            returnObject = handleUpdateGeneratedQuiz((UpdateGeneratedQuizCommand) command);
+        } else if (command instanceof UpdateQuizCommand) {
+            returnObject = handleUpdateQuiz((UpdateQuizCommand) command);
+        } else if (command instanceof GetAvailableQuizzesCommand) {
+            returnObject = handleGetAvailableQuizzes((GetAvailableQuizzesCommand) command);
+        } else {
+            logger.warning("Unknown command type: " + command.getClass().getName());
+            returnObject = null;
+        }
+        if (command.getSemanticLock() != null) {
+            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
+                    (SagaUnitOfWork) command.getUnitOfWork());
+        }
+        return returnObject;
     }
 
     private Object handleStartTournamentQuiz(StartTournamentQuizCommand command) {

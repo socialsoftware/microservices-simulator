@@ -1,19 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork;
 
-import java.sql.SQLException;
-import java.util.Map;
-
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-
-import org.springframework.dao.CannotAcquireLockException;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+
+import java.sql.SQLException;
+import java.util.Map;
 
 @Service
 public abstract class UnitOfWorkService<U extends UnitOfWork> {

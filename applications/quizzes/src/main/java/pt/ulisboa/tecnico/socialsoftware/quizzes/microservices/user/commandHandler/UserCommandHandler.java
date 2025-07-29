@@ -6,6 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 
 import java.util.logging.Logger;
 
@@ -16,24 +18,36 @@ public class UserCommandHandler implements CommandHandler {
     @Autowired
     private UserService userService;
 
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+
     @Override
     public Object handle(Command command) {
-        if (command instanceof GetUserByIdCommand) {
-            return handleGetUserById((GetUserByIdCommand) command);
-        } else if (command instanceof CreateUserCommand) {
-            return handleCreateUser((CreateUserCommand) command);
-        } else if (command instanceof ActivateUserCommand) {
-            return handleActivateUser((ActivateUserCommand) command);
-        } else if (command instanceof DeleteUserCommand) {
-            return handleDeleteUser((DeleteUserCommand) command);
-        } else if (command instanceof GetStudentsCommand) {
-            return handleGetStudents((GetStudentsCommand) command);
-        } else if (command instanceof GetTeachersCommand) {
-            return handleGetTeachers((GetTeachersCommand) command);
+        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
+            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
         }
-
-        logger.warning("Unknown command type: " + command.getClass().getName());
-        return null;
+        Object returnObject;
+        if (command instanceof GetUserByIdCommand) {
+            returnObject = handleGetUserById((GetUserByIdCommand) command);
+        } else if (command instanceof CreateUserCommand) {
+            returnObject = handleCreateUser((CreateUserCommand) command);
+        } else if (command instanceof ActivateUserCommand) {
+            returnObject = handleActivateUser((ActivateUserCommand) command);
+        } else if (command instanceof DeleteUserCommand) {
+            returnObject = handleDeleteUser((DeleteUserCommand) command);
+        } else if (command instanceof GetStudentsCommand) {
+            returnObject = handleGetStudents((GetStudentsCommand) command);
+        } else if (command instanceof GetTeachersCommand) {
+            returnObject = handleGetTeachers((GetTeachersCommand) command);
+        } else {
+            logger.warning("Unknown command type: " + command.getClass().getName());
+            returnObject = null;
+        }
+        if (command.getSemanticLock() != null) {
+            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
+                    (SagaUnitOfWork) command.getUnitOfWork());
+        }
+        return returnObject;
     }
 
     private Object handleGetUserById(GetUserByIdCommand command) {

@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -15,14 +15,14 @@ public class GetCourseExecutionByIdFunctionalitySagas extends WorkflowFunctional
     private CourseExecutionDto courseExecutionDto;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final SagasCommandGateway sagasCommandGateway;
+    private final CommandGateway commandGateway;
 
     public GetCourseExecutionByIdFunctionalitySagas(CourseExecutionService courseExecutionService,
             SagaUnitOfWorkService unitOfWorkService,
-            Integer executionAggregateId, SagaUnitOfWork unitOfWork, SagasCommandGateway sagasCommandGateway) {
+            Integer executionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.sagasCommandGateway = sagasCommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(executionAggregateId, unitOfWork);
     }
 
@@ -35,7 +35,7 @@ public class GetCourseExecutionByIdFunctionalitySagas extends WorkflowFunctional
             // unitOfWork);
             GetCourseExecutionByIdCommand getCourseExecutionCommand = new GetCourseExecutionByIdCommand(unitOfWork,
                     ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
-            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) sagasCommandGateway
+            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) commandGateway
                     .send(getCourseExecutionCommand);
             this.setCourseExecutionDto(courseExecutionDto);
         });

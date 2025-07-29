@@ -1,9 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
-
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 
 public class SyncStep extends FlowStep {
     private Runnable syncOperation;

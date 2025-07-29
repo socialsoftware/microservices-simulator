@@ -1,12 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 
 public abstract class UnitOfWork {
     private Integer id;

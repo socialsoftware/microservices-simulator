@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
@@ -25,12 +25,12 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
     private CourseExecutionService courseExecutionService;
     private SagaUnitOfWorkService unitOfWorkService;
     private UserDto userDto;
-    private SagasCommandGateway commandGateway;
+    private CommandGateway commandGateway;
 
     public AddParticipantFunctionalitySagas(TournamentService tournamentService,
             CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService,
             Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
-            SagaUnitOfWork unitOfWork, SagasCommandGateway commandGateway) {
+            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
@@ -56,7 +56,8 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
             // unitOfWorkService.verifySagaState(tournamentAggregateId, states);
             // tournamentService.addParticipant(tournamentAggregateId, participant,
             // unitOfWork);
-            AddParticipantCommand addParticipantCommand = new AddParticipantCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),
+            AddParticipantCommand addParticipantCommand = new AddParticipantCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(),
                     tournamentAggregateId, participant);
             addParticipantCommand.setForbiddenStates(states);
             commandGateway.send(addParticipantCommand);

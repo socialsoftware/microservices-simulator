@@ -1,13 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 
 public class AsyncStep extends FlowStep {
     private Supplier<CompletableFuture<Void>> asyncOperation;

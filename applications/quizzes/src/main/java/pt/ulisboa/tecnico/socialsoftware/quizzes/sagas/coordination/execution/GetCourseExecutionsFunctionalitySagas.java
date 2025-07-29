@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -17,14 +17,14 @@ public class GetCourseExecutionsFunctionalitySagas extends WorkflowFunctionality
     private List<CourseExecutionDto> courseExecutions;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final SagasCommandGateway sagasCommandGateway;
+    private final CommandGateway commandGateway;
 
     public GetCourseExecutionsFunctionalitySagas(CourseExecutionService courseExecutionService,
             SagaUnitOfWorkService unitOfWorkService,
-            SagaUnitOfWork unitOfWork, SagasCommandGateway sagasCommandGateway) {
+            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.sagasCommandGateway = sagasCommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(unitOfWork);
     }
 
@@ -36,7 +36,7 @@ public class GetCourseExecutionsFunctionalitySagas extends WorkflowFunctionality
             // courseExecutionService.getAllCourseExecutions(unitOfWork);
             GetAllCourseExecutionsCommand getAllCourseExecutionsCommand = new GetAllCourseExecutionsCommand(unitOfWork,
                     ServiceMapping.COURSE_EXECUTION.getServiceName());
-            List<CourseExecutionDto> courseExecutions = (List<CourseExecutionDto>) sagasCommandGateway
+            List<CourseExecutionDto> courseExecutions = (List<CourseExecutionDto>) commandGateway
                     .send(getAllCourseExecutionsCommand);
             this.setCourseExecutions(courseExecutions);
         });

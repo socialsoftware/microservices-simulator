@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
@@ -20,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 
 @DataJpaTest
 class AddParticipantTest extends QuizzesSpockTest {
@@ -44,7 +44,7 @@ class AddParticipantTest extends QuizzesSpockTest {
     @Autowired
     private TournamentEventHandling tournamentEventHandling
     @Autowired
-    private SagasCommandGateway commandGateway
+    private CommandGateway commandGateway
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto

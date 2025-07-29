@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
@@ -17,36 +19,51 @@ public class TournamentCommandHandler implements CommandHandler {
     @Autowired
     private TournamentService tournamentService;
 
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+
     @Override
     public Object handle(Command command) {
+
+        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
+            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
+        }
+        Object returnObject;
         if (command instanceof GetTournamentByIdCommand) {
-            return handleGetTournamentById((GetTournamentByIdCommand) command);
+            returnObject = handleGetTournamentById((GetTournamentByIdCommand) command);
         } else if (command instanceof AddParticipantCommand) {
-            return handleAddParticipant((AddParticipantCommand) command);
+            returnObject = handleAddParticipant((AddParticipantCommand) command);
         } else if (command instanceof CreateTournamentCommand) {
-            return handleCreateTournament((CreateTournamentCommand) command);
+            returnObject = handleCreateTournament((CreateTournamentCommand) command);
         } else if (command instanceof GetTournamentsByCourseExecutionIdCommand) {
-            return handleGetTournamentsByCourseExecutionId((GetTournamentsByCourseExecutionIdCommand) command);
+            returnObject = handleGetTournamentsByCourseExecutionId((GetTournamentsByCourseExecutionIdCommand) command);
         } else if (command instanceof GetOpenedTournamentsForCourseExecutionCommand) {
-            return handleGetOpenedTournamentsForCourseExecution(
+            returnObject = handleGetOpenedTournamentsForCourseExecution(
                     (GetOpenedTournamentsForCourseExecutionCommand) command);
         } else if (command instanceof GetClosedTournamentsForCourseExecutionCommand) {
-            return handleGetClosedTournamentsForCourseExecution(
+            returnObject = handleGetClosedTournamentsForCourseExecution(
                     (GetClosedTournamentsForCourseExecutionCommand) command);
         } else if (command instanceof LeaveTournamentCommand) {
-            return handleLeaveTournament((LeaveTournamentCommand) command);
+            returnObject = handleLeaveTournament((LeaveTournamentCommand) command);
         } else if (command instanceof SolveQuizCommand) {
-            return handleSolveQuiz((SolveQuizCommand) command);
+            returnObject = handleSolveQuiz((SolveQuizCommand) command);
         } else if (command instanceof RemoveTournamentCommand) {
-            return handleRemoveTournament((RemoveTournamentCommand) command);
+            returnObject = handleRemoveTournament((RemoveTournamentCommand) command);
         } else if (command instanceof UpdateTournamentCommand) {
-            return handleUpdateTournament((UpdateTournamentCommand) command);
+            returnObject = handleUpdateTournament((UpdateTournamentCommand) command);
         } else if (command instanceof CancelTournamentCommand) {
-            return handleCancelTournament((CancelTournamentCommand) command);
+            returnObject = handleCancelTournament((CancelTournamentCommand) command);
+        } else {
+            logger.warning("Unknown command type: " + command.getClass().getName());
+            returnObject = null;
         }
 
-        logger.warning("Unknown command type: " + command.getClass().getName());
-        return null;
+        if (command.getSemanticLock() != null) {
+            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
+                    (SagaUnitOfWork) command.getUnitOfWork());
+        }
+
+        return returnObject;
     }
 
     private Object handleGetTournamentById(GetTournamentByIdCommand command) {

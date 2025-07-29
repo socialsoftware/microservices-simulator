@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SagasCommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -17,14 +17,14 @@ public class GetCourseExecutionsByUserFunctionalitySagas extends WorkflowFunctio
     private Set<CourseExecutionDto> courseExecutions;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final SagasCommandGateway sagasCommandGateway;
+    private final CommandGateway commandGateway;
 
     public GetCourseExecutionsByUserFunctionalitySagas(CourseExecutionService courseExecutionService,
             SagaUnitOfWorkService unitOfWorkService,
-            Integer userAggregateId, SagaUnitOfWork unitOfWork, SagasCommandGateway sagasCommandGateway) {
+            Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.sagasCommandGateway = sagasCommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(userAggregateId, unitOfWork);
     }
 
@@ -37,7 +37,7 @@ public class GetCourseExecutionsByUserFunctionalitySagas extends WorkflowFunctio
             // unitOfWork);
             GetCourseExecutionsByUserIdCommand getCourseExecutionsByUserIdCommand = new GetCourseExecutionsByUserIdCommand(
                     unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), userAggregateId);
-            Set<CourseExecutionDto> courseExecutions = (Set<CourseExecutionDto>) sagasCommandGateway
+            Set<CourseExecutionDto> courseExecutions = (Set<CourseExecutionDto>) commandGateway
                     .send(getCourseExecutionsByUserIdCommand);
             this.setCourseExecutions(courseExecutions);
         });

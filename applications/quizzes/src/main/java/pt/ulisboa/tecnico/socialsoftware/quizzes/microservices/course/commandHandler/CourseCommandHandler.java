@@ -7,6 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 
 import java.util.logging.Logger;
 
@@ -17,14 +19,26 @@ public class CourseCommandHandler implements CommandHandler {
     @Autowired
     private CourseService courseService;
 
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+
     @Override
     public Object handle(Command command) {
-        if (command instanceof GetCourseByIdCommand) {
-            return handleGetCourseById((GetCourseByIdCommand) command);
+        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
+            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
         }
-
-        logger.warning("Unknown command type: " + command.getClass().getName());
-        return null;
+        Object returnObject;
+        if (command instanceof GetCourseByIdCommand) {
+            returnObject = handleGetCourseById((GetCourseByIdCommand) command);
+        } else {
+            logger.warning("Unknown command type: " + command.getClass().getName());
+            returnObject = null;
+        }
+        if (command.getSemanticLock() != null) {
+            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
+                    (SagaUnitOfWork) command.getUnitOfWork());
+        }
+        return returnObject;
     }
 
     private Object handleGetCourseById(GetCourseByIdCommand command) {

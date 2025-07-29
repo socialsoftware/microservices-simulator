@@ -1,11 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate;
 
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-
-import jakarta.transaction.Transactional;
 
 import java.util.Optional;
 
