@@ -13,7 +13,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggrega
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaUserDto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +45,7 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
             // unitOfWork);
             GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork,
                     ServiceMapping.USER.getServiceName(), userAggregateId);
-            SagaUserDto user = (SagaUserDto) commandGateway.send(getUserByIdCommand);
+            UserDto user = (UserDto) commandGateway.send(getUserByIdCommand);
             setUserDto(user);
         });
 

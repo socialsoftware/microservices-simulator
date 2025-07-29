@@ -21,7 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.Us
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 
 @DataJpaTest
-class AddParticipantAsyncTest extends QuizzesSpockTest {
+class AddParticipantAsyncTest /*extends QuizzesSpockTest*/ {
     @Autowired
     private SagaUnitOfWorkService unitOfWorkService
 
@@ -85,14 +85,14 @@ class AddParticipantAsyncTest extends QuizzesSpockTest {
 
 
 
-    // def 'add one participant' () {
-    //     when: 'student is added to tournament'
-    //     tournamentFunctionalities.addParticipantAsync(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
-    //     then: 'student is added'
-    //     def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-    //     tournamentDtoResult.getParticipants().size() == 1
-    //     tournamentDtoResult.getParticipants().find{it.aggregateId == userDto.aggregateId}.name == USER_NAME_2
-    // }
+     def 'add one participant' () {
+         when: 'student is added to tournament'
+         tournamentFunctionalities.addParticipantAsync(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
+         then: 'student is added'
+         def tournamentDtoResult = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+         tournamentDtoResult.getParticipants().size() == 1
+         tournamentDtoResult.getParticipants().find{it.aggregateId == userDto.aggregateId}.name == USER_NAME_2
+     }
 
     // def 'add a participant'() {
     //     given: 'create a unit of work'

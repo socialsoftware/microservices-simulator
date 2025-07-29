@@ -6,11 +6,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicCourse;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.CourseSagaState;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.Arrays;
 public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
     private TopicCourse course;
     private TopicDto createdTopicDto;
-    private SagaCourseDto courseDto;
+    private CourseDto courseDto;
     private final TopicService topicService;
     private final CourseService courseService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -36,7 +36,7 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseStep = new SagaSyncStep("getCourseStep", () -> {
-            this.courseDto = (SagaCourseDto) courseService.getCourseById(courseAggregateId, unitOfWork);
+            this.courseDto = courseService.getCourseById(courseAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(courseDto.getAggregateId(), CourseSagaState.READ_COURSE, unitOfWork);
             TopicCourse course = new TopicCourse(courseDto);
             this.setCourse(course);

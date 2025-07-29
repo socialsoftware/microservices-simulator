@@ -6,20 +6,19 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.CreateCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaCourseExecutionDto;
 
 public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
-    private SagaCourseExecutionDto courseExecutionDto;
-    private SagaCourseExecutionDto createdCourseExecution;
+    private CourseExecutionDto courseExecutionDto;
+    private CourseExecutionDto createdCourseExecution;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public CreateCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService,
-            SagaUnitOfWorkService unitOfWorkService,
-            CourseExecutionDto courseExecutionDto, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public CreateCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService, CourseExecutionDto courseExecutionDto, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -30,13 +29,10 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createCourseExecutionStep = new SagaSyncStep("createCourseExecutionStep", () -> {
-            SagaCourseExecutionDto createdCourseExecution = (SagaCourseExecutionDto) courseExecutionService
-                    .createCourseExecution(courseExecutionDto, unitOfWork);
-            // CreateCourseExecutionCommand createCourseExecutionCommand = new
-            // CreateCourseExecutionCommand(unitOfWork,
-            // ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionDto);
-            // SagaCourseExecutionDto createdCourseExecution = (SagaCourseExecutionDto)
-            // commandGateway.send(createCourseExecutionCommand);
+//            CourseExecutionDto createdCourseExecution = (CourseExecutionDto) courseExecutionService
+//                    .createCourseExecution(courseExecutionDto, unitOfWork);
+            CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionDto);
+            CourseExecutionDto createdCourseExecution = (CourseExecutionDto) commandGateway.send(createCourseExecutionCommand);
             this.setCreatedCourseExecution(createdCourseExecution);
         });
 
@@ -47,7 +43,7 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         return courseExecutionDto;
     }
 
-    public void setCourseExecutionDto(SagaCourseExecutionDto courseExecutionDto) {
+    public void setCourseExecutionDto(CourseExecutionDto courseExecutionDto) {
         this.courseExecutionDto = courseExecutionDto;
     }
 
@@ -55,7 +51,7 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         return createdCourseExecution;
     }
 
-    public void setCreatedCourseExecution(SagaCourseExecutionDto createdCourseExecution) {
+    public void setCreatedCourseExecution(CourseExecutionDto createdCourseExecution) {
         this.createdCourseExecution = createdCourseExecution;
     }
 }

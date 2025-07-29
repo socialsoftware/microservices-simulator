@@ -3,15 +3,18 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 @Component
 public class CommandGateway {
 
     private final ApplicationContext applicationContext;
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
     @Autowired
     public CommandGateway(ApplicationContext applicationContext) {
@@ -20,11 +23,6 @@ public class CommandGateway {
 
     public Object send(Command command) {
         String handlerClassName = command.getServiceName() + "CommandHandler";
-        // Log all registered CommandHandler beans
-        // System.out.println("CommandHandler beans:");
-        // applicationContext.getBeansOfType(CommandHandler.class)
-        // .forEach((name, handler) -> System.out
-        // .println(" - " + name + " (" + handler.getClass().getName() + ")"));
 
         CommandHandler handler = applicationContext.getBeansOfType(CommandHandler.class)
                 .values()
@@ -43,5 +41,15 @@ public class CommandGateway {
             Logger.getLogger(CommandGateway.class.getName()).warning(e.getMessage());
             throw e;
         }
+    }
+
+    public CompletableFuture<Object> sendAsync(Command command) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return send(command); // Reuse existing logic
+            } catch (Exception e) {
+                throw new RuntimeException(e); // Will be wrapped in CompletableFuture
+            }
+        }, executor);
     }
 }

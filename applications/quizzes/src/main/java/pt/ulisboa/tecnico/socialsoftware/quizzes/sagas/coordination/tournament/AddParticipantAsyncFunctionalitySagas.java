@@ -2,94 +2,74 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaAsyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetStudentByExecutionIdAndUserIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.AddParticipantCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentParticipant;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaUserDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.TournamentSagaState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
+import java.util.concurrent.ExecutionException;
 
 public class AddParticipantAsyncFunctionalitySagas extends WorkflowFunctionality {
-    private UserDto userDto;
-    private final TournamentService tournamentService;
-    private final CourseExecutionService courseExecutionService;
-    private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private TournamentService tournamentService;
+    private CourseExecutionService courseExecutionService;
+    private SagaUnitOfWorkService unitOfWorkService;
+    private CompletableFuture<UserDto> userDto;
+    private CommandGateway commandGateway;
 
     public AddParticipantAsyncFunctionalitySagas(TournamentService tournamentService,
-            CourseExecutionService courseExecutionService,
-            SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId,
-            Integer courseExecutionAggregateId, Integer userAggregateId,
-            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+                                            CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService,
+                                            Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
+                                            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(tournamentAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
+        this.buildWorkflow(tournamentAggregateId, executionAggregateId, userAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(Integer tournamentAggregateId, Integer courseExecutionAggregateId,
-            Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
+                              SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaAsyncStep getUserStep = new SagaAsyncStep("getUserStep", () -> {
-            return CompletableFuture.runAsync(() -> {
-                Logger.getLogger(AddParticipantAsyncFunctionalitySagas.class.getName()).info(
-                        "Getting user: " + userAggregateId + " for course execution: " + courseExecutionAggregateId);
-                SagaUserDto user = (SagaUserDto) courseExecutionService
-                        .getStudentByExecutionIdAndUserId(courseExecutionAggregateId, userAggregateId, unitOfWork);
-                this.setUserDto(user);
-                // GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new
-                // GetStudentByExecutionIdAndUserIdCommand(
-                // unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(),
-                // courseExecutionAggregateId,
-                // userAggregateId);
-                // // getStudentCommand.setSemanticLock(UserSagaState.READ_USER);
-                // this.userDto = (UserDto) commandGateway.send(getStudentCommand);
-            });
+        SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
+            GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(
+                    unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId,
+                    userAggregateId);
+            this.userDto = commandGateway.sendAsync(getStudentCommand).thenApply(dto -> (UserDto) dto);
         });
 
-        // getUserStep.registerCompensation(() -> {
-        // unitOfWorkService.registerSagaState(userAggregateId,
-        // GenericSagaState.NOT_IN_SAGA, unitOfWork);
-        // }, unitOfWork);
+        SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {
+            TournamentParticipant participant = null;
+            try {
+                participant = new TournamentParticipant(this.userDto.get());
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+            List<SagaAggregate.SagaState> states = new ArrayList<>();
+            states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
 
-        SagaAsyncStep addParticipantStep = new SagaAsyncStep("addParticipantStep", () -> {
-            return CompletableFuture.supplyAsync(() -> {
-                Logger.getLogger(AddParticipantAsyncFunctionalitySagas.class.getName())
-                        .info("Adding participant to tournament: " + tournamentAggregateId + " for user: "
-                                + this.userDto.getUsername());
-                TournamentParticipant participant = new TournamentParticipant(this.userDto);
-                // List<SagaAggregate.SagaState> states = new ArrayList<>();
-                // states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
-
-                // AddParticipantCommand addParticipantCommand = new
-                // AddParticipantCommand(unitOfWork, "tournamentService",
-                // tournamentAggregateId, participant);
-                //// addParticipantCommand.setForbiddenStates(states);
-                // commandGateway.send(addParticipantCommand);
-                tournamentService.addParticipant(tournamentAggregateId, participant, unitOfWork);
-                return null;
-            });
+            AddParticipantCommand addParticipantCommand = new AddParticipantCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(),
+                    tournamentAggregateId, participant);
+            addParticipantCommand.setForbiddenStates(states);
+            commandGateway.send(addParticipantCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
-        workflow.addStep(getUserStep);
-        workflow.addStep(addParticipantStep);
+        this.workflow.addStep(getUserStep);
+        this.workflow.addStep(addParticipantStep);
     }
 
-    public UserDto getUserDto() {
-        return userDto;
-    }
-
-    public void setUserDto(UserDto userDto) {
-        this.userDto = userDto;
-    }
 }
