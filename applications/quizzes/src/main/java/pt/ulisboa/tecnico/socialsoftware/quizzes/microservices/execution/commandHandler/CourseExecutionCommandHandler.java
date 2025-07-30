@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
@@ -17,32 +19,46 @@ public class CourseExecutionCommandHandler implements CommandHandler {
     @Autowired
     private CourseExecutionService courseExecutionService;
 
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+
     @Override
     public Object handle(Command command) {
+        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
+            logger.info("VERIFYING SAGA STATE");
+            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
+        }
+        Object returnObject;
         if (command instanceof CreateCourseExecutionCommand) {
-            return handleCreateCourseExecution((CreateCourseExecutionCommand) command);
+            returnObject = handleCreateCourseExecution((CreateCourseExecutionCommand) command);
         } else if (command instanceof RemoveCourseExecutionCommand) {
-            return handleRemoveCourseExecution((RemoveCourseExecutionCommand) command);
+            returnObject = handleRemoveCourseExecution((RemoveCourseExecutionCommand) command);
         } else if (command instanceof RemoveStudentFromCourseExecutionCommand) {
-            return handleRemoveStudentFromCourseExecution((RemoveStudentFromCourseExecutionCommand) command);
+            returnObject = handleRemoveStudentFromCourseExecution((RemoveStudentFromCourseExecutionCommand) command);
         } else if (command instanceof UpdateExecutionStudentNameCommand) {
-            return handleUpdateExecutionStudentName((UpdateExecutionStudentNameCommand) command);
+            returnObject = handleUpdateExecutionStudentName((UpdateExecutionStudentNameCommand) command);
         } else if (command instanceof GetStudentByExecutionIdAndUserIdCommand) {
-            return handleGetStudentByExecutionIdAndUserId((GetStudentByExecutionIdAndUserIdCommand) command);
+            returnObject = handleGetStudentByExecutionIdAndUserId((GetStudentByExecutionIdAndUserIdCommand) command);
         } else if (command instanceof GetCourseExecutionsByUserIdCommand) {
-            return handleGetCourseExecutionsByUserId((GetCourseExecutionsByUserIdCommand) command);
+            returnObject = handleGetCourseExecutionsByUserId((GetCourseExecutionsByUserIdCommand) command);
         } else if (command instanceof GetCourseExecutionByIdCommand) {
-            return handleGetCourseExecutionById((GetCourseExecutionByIdCommand) command);
+            returnObject = handleGetCourseExecutionById((GetCourseExecutionByIdCommand) command);
         } else if (command instanceof GetAllCourseExecutionsCommand) {
-            return handleGetAllCourseExecutions((GetAllCourseExecutionsCommand) command);
+            returnObject = handleGetAllCourseExecutions((GetAllCourseExecutionsCommand) command);
         } else if (command instanceof EnrollStudentCommand) {
-            return handleEnrollStudent((EnrollStudentCommand) command);
+            returnObject = handleEnrollStudent((EnrollStudentCommand) command);
         } else if (command instanceof AnonymizeStudentCommand) {
-            return handleAnonymizeStudent((AnonymizeStudentCommand) command);
+            returnObject = handleAnonymizeStudent((AnonymizeStudentCommand) command);
+        } else {
+            logger.warning("Unknown command type: " + command.getClass().getName());
+            returnObject = null;
+        }
+        if (command.getSemanticLock() != null) {
+            Logger.getLogger(CourseExecutionCommandHandler.class.getName()).info("Registering saga state: " + command.getSemanticLock());
+            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(), (SagaUnitOfWork) command.getUnitOfWork());
         }
 
-        logger.warning("Unknown command type: " + command.getClass().getName());
-        return null;
+        return returnObject;
     }
 
     private Object handleCreateCourseExecution(CreateCourseExecutionCommand command) {

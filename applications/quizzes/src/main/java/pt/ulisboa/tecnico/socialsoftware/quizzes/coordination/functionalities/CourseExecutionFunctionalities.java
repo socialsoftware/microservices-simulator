@@ -190,7 +190,7 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 RemoveStudentFromCourseExecutionFunctionalitySagas removeStudentFromCourseExecutionFunctionalitySagas = new RemoveStudentFromCourseExecutionFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, courseExecutionFactory, courseExecutionAggregateId, userAggregateId, sagaUnitOfWork);
+                        courseExecutionService, sagaUnitOfWorkService, courseExecutionFactory, courseExecutionAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
                 removeStudentFromCourseExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
@@ -210,7 +210,7 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 AnonymizeStudentFunctionalitySagas anonymizeStudentFunctionalitySagas = new AnonymizeStudentFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, sagaUnitOfWork);
+                        courseExecutionService, sagaUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
                 anonymizeStudentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
@@ -230,7 +230,7 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateStudentNameFunctionalitySagas updateStudentNameFunctionalitySagas = new UpdateStudentNameFunctionalitySagas(
-                        courseExecutionService, courseExecutionFactory, sagaUnitOfWorkService, executionAggregateId, userAggregateId, userDto, sagaUnitOfWork);
+                        courseExecutionService, courseExecutionFactory, sagaUnitOfWorkService, executionAggregateId, userAggregateId, userDto, sagaUnitOfWork, commandGateway);
                 updateStudentNameFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:

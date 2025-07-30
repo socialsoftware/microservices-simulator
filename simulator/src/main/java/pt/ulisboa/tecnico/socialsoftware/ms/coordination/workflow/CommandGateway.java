@@ -46,9 +46,9 @@ public class CommandGateway {
     public CompletableFuture<Object> sendAsync(Command command) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return send(command); // Reuse existing logic
+                return send(command);
             } catch (Exception e) {
-                throw new RuntimeException(e); // Will be wrapped in CompletableFuture
+                throw new RuntimeException(e);
             }
         }, executor);
     }

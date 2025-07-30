@@ -9,6 +9,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.Top
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 
+import java.util.logging.Logger;
+
 @Service
 public class TopicCommandHandler implements CommandHandler {
 
@@ -35,7 +37,8 @@ public class TopicCommandHandler implements CommandHandler {
         } else if (command instanceof DeleteTopicCommand) {
             returnObject = handleDeleteTopic((DeleteTopicCommand) command);
         } else {
-            throw new UnsupportedOperationException("Command not supported: " + command.getClass().getName());
+            Logger.getLogger(TopicCommandHandler.class.getName()).warning("Unknown command type: " + command.getClass().getName());
+            returnObject = null;
         }
         if (command.getSemanticLock() != null) {
             sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),

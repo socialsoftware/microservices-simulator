@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
@@ -18,34 +20,42 @@ public class AnswerCommandHandler implements CommandHandler {
     @Autowired
     private QuizAnswerService quizAnswerService;
 
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+
     @Override
     public Object handle(Command command) {
+        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
+            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
+        }
+        Object returnObject;
         if (command instanceof GetQuizAnswerByQuizIdAndUserIdCommand) {
-            return handleGetQuizAnswerByQuizIdAndUserId((GetQuizAnswerByQuizIdAndUserIdCommand) command);
+            returnObject = handleGetQuizAnswerByQuizIdAndUserId((GetQuizAnswerByQuizIdAndUserIdCommand) command);
         } else if (command instanceof GetQuizAnswerDtoByQuizIdAndUserIdCommand) {
-            return handleGetQuizAnswerDtoByQuizIdAndUserId((GetQuizAnswerDtoByQuizIdAndUserIdCommand) command);
+            returnObject = handleGetQuizAnswerDtoByQuizIdAndUserId((GetQuizAnswerDtoByQuizIdAndUserIdCommand) command);
         } else if (command instanceof StartQuizCommand) {
-            return handleStartQuiz((StartQuizCommand) command);
+            returnObject = handleStartQuiz((StartQuizCommand) command);
         } else if (command instanceof ConcludeQuizCommand) {
-            return handleConcludeQuiz((ConcludeQuizCommand) command);
+            returnObject = handleConcludeQuiz((ConcludeQuizCommand) command);
         } else if (command instanceof AnswerQuestionCommand) {
-            return handleAnswerQuestion((AnswerQuestionCommand) command);
+            returnObject = handleAnswerQuestion((AnswerQuestionCommand) command);
         } else if (command instanceof RemoveQuizAnswerCommand) {
-            return handleRemoveQuizAnswer((RemoveQuizAnswerCommand) command);
+            returnObject = handleRemoveQuizAnswer((RemoveQuizAnswerCommand) command);
+        } else {
+            logger.warning("Unknown command type: " + command.getClass().getName());
+            returnObject = null;
+        }
+        if (command.getSemanticLock() != null) {
+            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(), (SagaUnitOfWork) command.getUnitOfWork());
         }
 
-        logger.warning("Unknown command type: " + command.getClass().getName());
-        return null;
+        return returnObject;
     }
 
     private Object handleGetQuizAnswerByQuizIdAndUserId(GetQuizAnswerByQuizIdAndUserIdCommand command) {
-        logger.info("Getting quiz answer by quiz ID and user ID: " + command.getQuizAggregateId() + ", "
-                + command.getUserAggregateId());
+        logger.info("Getting quiz answer by quiz ID and user ID: " + command.getQuizAggregateId() + ", " + command.getUserAggregateId());
         try {
-            QuizAnswer quizAnswerDto = quizAnswerService.getQuizAnswerByQuizIdAndUserId(
-                    command.getQuizAggregateId(),
-                    command.getUserAggregateId(),
-                    command.getUnitOfWork());
+            QuizAnswer quizAnswerDto = quizAnswerService.getQuizAnswerByQuizIdAndUserId(command.getQuizAggregateId(), command.getUserAggregateId(), command.getUnitOfWork());
             return quizAnswerDto;
         } catch (Exception e) {
             logger.severe("Failed to get quiz answer: " + e.getMessage());
@@ -54,13 +64,9 @@ public class AnswerCommandHandler implements CommandHandler {
     }
 
     private Object handleGetQuizAnswerDtoByQuizIdAndUserId(GetQuizAnswerDtoByQuizIdAndUserIdCommand command) {
-        logger.info("Getting quiz answer DTO by quiz ID and user ID: " + command.getQuizAggregateId() + ", "
-                + command.getUserAggregateId());
+        logger.info("Getting quiz answer DTO by quiz ID and user ID: " + command.getQuizAggregateId() + ", " + command.getUserAggregateId());
         try {
-            QuizAnswerDto quizAnswerDto = quizAnswerService.getQuizAnswerDtoByQuizIdAndUserId(
-                    command.getQuizAggregateId(),
-                    command.getUserAggregateId(),
-                    command.getUnitOfWork());
+            QuizAnswerDto quizAnswerDto = quizAnswerService.getQuizAnswerDtoByQuizIdAndUserId(command.getQuizAggregateId(), command.getUserAggregateId(), command.getUnitOfWork());
             return quizAnswerDto;
         } catch (Exception e) {
             logger.severe("Failed to get quiz answer DTO: " + e.getMessage());
@@ -71,11 +77,7 @@ public class AnswerCommandHandler implements CommandHandler {
     private Object handleStartQuiz(StartQuizCommand command) {
         logger.info("Starting quiz: " + command.getQuizAggregateId());
         try {
-            QuizAnswerDto quizAnswerDto = quizAnswerService.startQuiz(
-                    command.getQuizAggregateId(),
-                    command.getCourseExecutionAggregateId(),
-                    command.getUserAggregateId(),
-                    command.getUnitOfWork());
+            QuizAnswerDto quizAnswerDto = quizAnswerService.startQuiz(command.getQuizAggregateId(), command.getCourseExecutionAggregateId(), command.getUserAggregateId(), command.getUnitOfWork());
             return quizAnswerDto;
         } catch (Exception e) {
             logger.severe("Failed to start quiz: " + e.getMessage());
@@ -86,10 +88,7 @@ public class AnswerCommandHandler implements CommandHandler {
     private Object handleConcludeQuiz(ConcludeQuizCommand command) {
         logger.info("Concluding quiz: " + command.getQuizAggregateId());
         try {
-            quizAnswerService.concludeQuiz(
-                    command.getQuizAggregateId(),
-                    command.getUserAggregateId(),
-                    command.getUnitOfWork());
+            quizAnswerService.concludeQuiz(command.getQuizAggregateId(), command.getUserAggregateId(), command.getUnitOfWork());
             return null;
         } catch (Exception e) {
             logger.severe("Failed to conclude quiz: " + e.getMessage());
@@ -100,12 +99,7 @@ public class AnswerCommandHandler implements CommandHandler {
     private Object handleAnswerQuestion(AnswerQuestionCommand command) {
         logger.info("Answering question for quiz: " + command.getQuizAggregateId());
         try {
-            quizAnswerService.answerQuestion(
-                    command.getQuizAggregateId(),
-                    command.getUserAggregateId(),
-                    command.getUserAnswerDto(),
-                    command.getQuestionDto(),
-                    command.getUnitOfWork());
+            quizAnswerService.answerQuestion(command.getQuizAggregateId(), command.getUserAggregateId(), command.getUserAnswerDto(), command.getQuestionDto(), command.getUnitOfWork());
             return null;
         } catch (Exception e) {
             logger.severe("Failed to answer question: " + e.getMessage());
@@ -116,9 +110,7 @@ public class AnswerCommandHandler implements CommandHandler {
     private Object handleRemoveQuizAnswer(RemoveQuizAnswerCommand command) {
         logger.info("Removing quiz answer: " + command.getQuizAnswerAggregateId());
         try {
-            quizAnswerService.removeQuizAnswer(
-                    command.getQuizAnswerAggregateId(),
-                    command.getUnitOfWork());
+            quizAnswerService.removeQuizAnswer(command.getQuizAnswerAggregateId(), command.getUnitOfWork());
             return null;
         } catch (Exception e) {
             logger.severe("Failed to remove quiz answer: " + e.getMessage());

@@ -5,13 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 
 import java.util.List;
 
-public abstract class Command {
+public class Command {
     private final Integer rootAggregateId;
     private List<SagaAggregate.SagaState> forbiddenStates; // sagas
     private SagaAggregate.SagaState semanticLock; // sagas
     private final UnitOfWork unitOfWork;
     private final String serviceName;
-    private Object response;
 
     public Command(UnitOfWork unitOfWork, String serviceName, Integer rootAggregateId) {
         this.unitOfWork = unitOfWork;
@@ -54,11 +53,4 @@ public abstract class Command {
         this.semanticLock = semanticLock;
     }
 
-    public Object getResponse() {
-        return response;
-    }
-
-    public void setResponse(Object response) {
-        this.response = response;
-    }
 }

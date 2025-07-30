@@ -24,7 +24,6 @@ public class TournamentCommandHandler implements CommandHandler {
 
     @Override
     public Object handle(Command command) {
-
         if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
             sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
         }

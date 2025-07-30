@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
@@ -17,26 +19,37 @@ public class QuestionCommandHandler implements CommandHandler {
     @Autowired
     private QuestionService questionService;
 
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+
     @Override
     public Object handle(Command command) {
-        if (command instanceof CreateQuestionCommand) {
-            return handleCreateQuestion((CreateQuestionCommand) command);
-        } else if (command instanceof UpdateQuestionCommand) {
-            return handleUpdateQuestion((UpdateQuestionCommand) command);
-        } else if (command instanceof RemoveQuestionCommand) {
-            return handleRemoveQuestion((RemoveQuestionCommand) command);
-        } else if (command instanceof FindQuestionsByTopicIdsCommand) {
-            return handleFindQuestionsByTopicIds((FindQuestionsByTopicIdsCommand) command);
-        } else if (command instanceof UpdateQuestionTopicsCommand) {
-            return handleUpdateQuestionTopics((UpdateQuestionTopicsCommand) command);
-        } else if (command instanceof GetQuestionByIdCommand) {
-            return handleGetQuestionById((GetQuestionByIdCommand) command);
-        } else if (command instanceof FindQuestionsByCourseAggregateIdCommand) {
-            return handleFindQuestionsByCourseAggregateId((FindQuestionsByCourseAggregateIdCommand) command);
+        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
+            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
         }
-
-        logger.warning("Unknown command type: " + command.getClass().getName());
-        return null;
+        Object returnObject;
+        if (command instanceof CreateQuestionCommand) {
+            returnObject = handleCreateQuestion((CreateQuestionCommand) command);
+        } else if (command instanceof UpdateQuestionCommand) {
+            returnObject = handleUpdateQuestion((UpdateQuestionCommand) command);
+        } else if (command instanceof RemoveQuestionCommand) {
+            returnObject = handleRemoveQuestion((RemoveQuestionCommand) command);
+        } else if (command instanceof FindQuestionsByTopicIdsCommand) {
+            returnObject = handleFindQuestionsByTopicIds((FindQuestionsByTopicIdsCommand) command);
+        } else if (command instanceof UpdateQuestionTopicsCommand) {
+            returnObject = handleUpdateQuestionTopics((UpdateQuestionTopicsCommand) command);
+        } else if (command instanceof GetQuestionByIdCommand) {
+            returnObject = handleGetQuestionById((GetQuestionByIdCommand) command);
+        } else if (command instanceof FindQuestionsByCourseAggregateIdCommand) {
+            returnObject = handleFindQuestionsByCourseAggregateId((FindQuestionsByCourseAggregateIdCommand) command);
+        } else {
+            logger.warning("Unknown command type: " + command.getClass().getName());
+            returnObject = null;
+        }
+        if (command.getSemanticLock() != null) {
+            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(), (SagaUnitOfWork) command.getUnitOfWork());
+        }
+        return returnObject;
     }
 
     private Object handleCreateQuestion(CreateQuestionCommand command) {

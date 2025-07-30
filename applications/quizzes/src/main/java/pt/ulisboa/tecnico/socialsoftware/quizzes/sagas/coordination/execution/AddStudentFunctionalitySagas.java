@@ -41,8 +41,6 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            // SagaUserDto user = (SagaUserDto) userService.getUserById(userAggregateId,
-            // unitOfWork);
             GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork,
                     ServiceMapping.USER.getServiceName(), userAggregateId);
             UserDto user = (UserDto) commandGateway.send(getUserByIdCommand);
@@ -50,8 +48,6 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
         });
 
         SagaSyncStep enrollStudentStep = new SagaSyncStep("enrollStudentStep", () -> {
-            // courseExecutionService.enrollStudent(executionAggregateId, this.getUserDto(),
-            // unitOfWork);
             EnrollStudentCommand enrollStudentCommand = new EnrollStudentCommand(unitOfWork,
                     ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, this.getUserDto());
             CourseExecutionDto courseExecution = (CourseExecutionDto) commandGateway.send(enrollStudentCommand);
