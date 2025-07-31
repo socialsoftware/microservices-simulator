@@ -1,11 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.question;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateQuestionTopicsCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionTopic;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
@@ -29,13 +34,15 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
     private final QuestionService questionService;
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
 
-    public UpdateQuestionTopicsFunctionalitySagas(QuestionService questionService, TopicService topicService, 
-                                QuestionFactory questionFactory, SagaUnitOfWorkService unitOfWorkService,  
-                                Integer courseAggregateId, List<Integer> topicIds, SagaUnitOfWork unitOfWork) {
+    public UpdateQuestionTopicsFunctionalitySagas(QuestionService questionService, TopicService topicService,
+                                                  QuestionFactory questionFactory, SagaUnitOfWorkService unitOfWorkService,
+                                                  Integer courseAggregateId, List<Integer> topicIds, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.questionService = questionService;
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(courseAggregateId, topicIds, questionFactory, unitOfWork);
     }
 
@@ -45,8 +52,11 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
         SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> {
             Set<QuestionTopic> topics = topicIds.stream()
                 .map(topicId -> {
-                    SagaTopicDto topic = (SagaTopicDto) topicService.getTopicById(topicId, unitOfWork);
-                    unitOfWorkService.registerSagaState(topic.getAggregateId(), TopicSagaState.READ_TOPIC, unitOfWork);
+//                    SagaTopicDto topic = (SagaTopicDto) topicService.getTopicById(topicId, unitOfWork);
+//                    unitOfWorkService.registerSagaState(topic.getAggregateId(), TopicSagaState.READ_TOPIC, unitOfWork);
+                    GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId);
+                    getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
+                    SagaTopicDto topic = (SagaTopicDto) commandGateway.send(getTopicByIdCommand);
                     return topic;
                 })
                 .map(QuestionTopic::new)
@@ -56,7 +66,10 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
 
         getTopicsStep.registerCompensation(() -> {
             topicIds.forEach(topicId -> {
-                unitOfWorkService.registerSagaState(topicId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+//                unitOfWorkService.registerSagaState(topicId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+                Command command = new Command(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId);
+                command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+                commandGateway.send(command);
             });
         }, unitOfWork);
     
@@ -69,11 +82,16 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
         });
     
         getQuestionStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(question.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+//            unitOfWorkService.registerSagaState(question.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            Command command = new Command(unitOfWork, ServiceMapping.QUESTION.getServiceName(), question.getAggregateId());
+            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(command);
         }, unitOfWork);
     
         SagaSyncStep updateQuestionTopicsStep = new SagaSyncStep("updateQuestionTopicsStep", () -> {
-            questionService.updateQuestionTopics(courseAggregateId, this.getTopics(), unitOfWork);
+//            questionService.updateQuestionTopics(courseAggregateId, this.getTopics(), unitOfWork); // TODO IMPORTANT -> CALLING AGGREGATE ID IN THE WRONG SERVICE
+            UpdateQuestionTopicsCommand updateQuestionTopicsCommand = new UpdateQuestionTopicsCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), courseAggregateId, this.getTopics());
+            commandGateway.send(updateQuestionTopicsCommand);
         }, new ArrayList<>(Arrays.asList(getTopicsStep, getQuestionStep)));
     
         workflow.addStep(getTopicsStep);

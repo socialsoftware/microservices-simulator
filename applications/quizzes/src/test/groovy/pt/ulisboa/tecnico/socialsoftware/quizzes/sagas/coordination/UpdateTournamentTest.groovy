@@ -86,6 +86,11 @@ class UpdateTournamentTest extends QuizzesSpockTest {
 
     def cleanup() {}
 
+    def "only run setup"() {
+        expect:
+        true // or just leave it blank if using Spock 2+
+    }
+
     def 'update tournament successfully'() {
         given:
         tournamentDto.setStartTime(DateHandler.toISOString(TIME_2))

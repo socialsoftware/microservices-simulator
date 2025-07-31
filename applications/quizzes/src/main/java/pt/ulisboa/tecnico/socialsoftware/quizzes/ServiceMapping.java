@@ -5,6 +5,7 @@ public enum ServiceMapping {
     QUIZ("quiz"),
     USER("user"),
     COURSE_EXECUTION("courseExecution"),
+    COURSE("course"),
     QUESTION("question"),
     TOPIC("topic");
 
