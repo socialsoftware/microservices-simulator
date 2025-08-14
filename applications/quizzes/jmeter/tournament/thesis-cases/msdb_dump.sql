@@ -399,7 +399,7 @@ ALTER TABLE public.course_execution_student_seq OWNER TO tomasnascimento;
 --
 
 CREATE TABLE public.event (
-    dtype character varying(31) NOT NULL,
+    dtype character varying(100) NOT NULL,
     id integer NOT NULL,
     publisher_aggregate_id integer,
     publisher_aggregate_version integer,
