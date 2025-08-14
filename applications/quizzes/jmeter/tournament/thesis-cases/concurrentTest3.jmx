@@ -5,6 +5,8 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
@@ -67,7 +69,7 @@
         </collectionProp>
       </Arguments>
       <hashTree/>
-      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group" enabled="true">
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -454,9 +456,9 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
             <hashTree/>
           </hashTree>
         </hashTree>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="User Requests" enabled="true">
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="User Requests">
           <boolProp name="LoopController.continue_forever">true</boolProp>
-          <stringProp name="LoopController.loops">9</stringProp>
+          <stringProp name="LoopController.loops">3</stringProp>
         </LoopController>
         <hashTree>
           <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
@@ -741,7 +743,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
           </HTTPSamplerProxy>
           <hashTree/>
         </hashTree>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Tournament Requests" enabled="true">
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Tournament Requests">
           <boolProp name="LoopController.continue_forever">true</boolProp>
           <stringProp name="LoopController.loops">1</stringProp>
         </LoopController>
@@ -829,7 +831,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
             <hashTree/>
           </hashTree>
         </hashTree>
-        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -866,7 +868,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
+        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -991,7 +993,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
             <hashTree/>
           </hashTree>
         </hashTree>
-        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -1153,7 +1155,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
             <hashTree/>
           </hashTree>
         </hashTree>
-        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -1390,7 +1392,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
         </ResultCollector>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) ">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) " enabled="false">
         <stringProp name="TestPlan.comments">${__property(user_aggregate_id)}</stringProp>
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
@@ -1552,7 +1554,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
         </ResultCollector>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) " enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) " enabled="false">
         <stringProp name="TestPlan.comments">${__property(user_aggregate_id)}</stringProp>
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
@@ -1714,7 +1716,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
         </ResultCollector>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) ">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) " enabled="false">
         <stringProp name="TestPlan.comments">${__property(user_aggregate_id)}</stringProp>
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
@@ -1876,7 +1878,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
         </ResultCollector>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) " enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) " enabled="false">
         <stringProp name="TestPlan.comments">${__property(user_aggregate_id)}</stringProp>
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
@@ -2038,7 +2040,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
         </ResultCollector>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) ">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) " enabled="false">
         <stringProp name="TestPlan.comments">${__property(user_aggregate_id)}</stringProp>
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
@@ -2200,7 +2202,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
         </ResultCollector>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) ">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) " enabled="false">
         <stringProp name="TestPlan.comments">${__property(user_aggregate_id)}</stringProp>
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
@@ -2212,7 +2214,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="flush processing delay">
+        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="flush processing delay" enabled="true">
           <stringProp name="ConstantTimer.delay">1000</stringProp>
         </ConstantTimer>
         <hashTree/>
@@ -2373,16 +2375,16 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Event processing delay">
+        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Event processing delay" enabled="true">
           <stringProp name="ConstantTimer.delay">2000</stringProp>
         </ConstantTimer>
         <hashTree/>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Requests">
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Requests" enabled="true">
           <boolProp name="LoopController.continue_forever">true</boolProp>
           <stringProp name="LoopController.loops">1</stringProp>
         </LoopController>
         <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="Accept-Language" elementType="Header">
                 <stringProp name="Header.name">Accept-Language</stringProp>
@@ -2411,7 +2413,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
             </collectionProp>
           </HeaderManager>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Request Tournament">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Request Tournament" enabled="true">
             <stringProp name="HTTPSampler.domain">${server}</stringProp>
             <stringProp name="HTTPSampler.port">${port}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -2426,7 +2428,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Check participant name">
+            <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Check participant name" enabled="true">
               <stringProp name="JSON_PATH">$..participants.length()</stringProp>
               <stringProp name="EXPECTED_VALUE">9</stringProp>
               <boolProp name="JSONVALIDATION">true</boolProp>
@@ -2512,7 +2514,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
         </ResultCollector>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="CleanUp Group" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="CleanUp Group">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>

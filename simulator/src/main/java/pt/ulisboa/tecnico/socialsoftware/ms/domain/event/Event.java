@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "type", length = 50) // increase size if needed
+@DiscriminatorColumn(name = "dtype", length = 50) // increase size if needed
 public abstract class Event {
     @Id
     @GeneratedValue
