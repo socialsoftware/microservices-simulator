@@ -131,13 +131,13 @@ public class UserFunctionalities {
 
                 deactivateUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
-            // case TCC:
-            //     CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            //     DeactivateUserFunctionalityTCC deactivateUserFunctionalityTCC = new DeactivateUserFunctionalityTCC(
-            //             userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork);
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeactivateUserFunctionalityTCC deactivateUserFunctionalityTCC = new DeactivateUserFunctionalityTCC(
+                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork);
 
-            //     deactivateUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
-            //     break;
+                deactivateUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
             default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
