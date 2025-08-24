@@ -1041,7 +1041,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
         </ResultCollector>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update execution student 2 name" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update execution student 2 name">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -1247,7 +1247,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
         </ResultCollector>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) ">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Tournament update (add participant) " enabled="true">
         <stringProp name="TestPlan.comments">${__property(user_aggregate_id)}</stringProp>
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
@@ -1259,8 +1259,8 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Event processing delay">
-          <stringProp name="ConstantTimer.delay">1000</stringProp>
+        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Event processing delay" enabled="true">
+          <stringProp name="ConstantTimer.delay">1100</stringProp>
         </ConstantTimer>
         <hashTree/>
         <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Requests" enabled="true">
@@ -1954,7 +1954,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
             <hashTree/>
           </hashTree>
         </hashTree>
-        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -1991,7 +1991,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report">
+        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
