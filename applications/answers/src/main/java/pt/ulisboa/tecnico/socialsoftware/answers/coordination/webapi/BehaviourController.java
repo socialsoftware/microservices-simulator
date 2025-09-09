@@ -1,0 +1,44 @@
+package com.generated.microservices.answers.coordination.webapi;
+
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.generated.microservices.ms.BehaviourService;
+
+@RestController
+@RequestMapping("/api/behaviour")
+public class BehaviourController {
+
+@Autowired
+private BehaviourService behaviourService;
+
+@PostMapping("/start")
+public ResponseEntity<String> startBehaviour(@RequestBody String behaviourSpec) {
+    try {
+    String result = behaviourService.startBehaviour(behaviourSpec);
+    return ResponseEntity.ok(result);
+    } catch (Exception e) {
+    return ResponseEntity.badRequest().body("Error starting behaviour: " + e.getMessage());
+    }
+    }
+
+    @PostMapping("/stop")
+    public ResponseEntity<String> stopBehaviour() {
+        try {
+        behaviourService.stopBehaviour();
+        return ResponseEntity.ok("Behaviour stopped successfully");
+        } catch (Exception e) {
+        return ResponseEntity.badRequest().body("Error stopping behaviour: " + e.getMessage());
+        }
+        }
+
+        @GetMapping("/status")
+        public ResponseEntity<String> getBehaviourStatus() {
+            try {
+            String status = behaviourService.getStatus();
+            return ResponseEntity.ok(status);
+            } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error getting behaviour status: " + e.getMessage());
+            }
+            }
+            }

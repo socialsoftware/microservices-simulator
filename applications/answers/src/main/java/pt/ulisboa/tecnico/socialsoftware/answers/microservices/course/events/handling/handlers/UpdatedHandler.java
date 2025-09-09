@@ -1,0 +1,42 @@
+package com.generated.microservices.answers.microservices.course.events;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
+
+import com.generated.microservices.answers.microservices.course.aggregate.*;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.CourseEventProcessing;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+
+@Component
+public class UpdatedHandler extends CourseEventHandler {
+
+public UpdatedHandler(CourseRepository courseRepository,
+CourseEventProcessing courseEventProcessing) {
+super(courseRepository, courseEventProcessing);
+}
+
+@EventListener
+public void handleUpdated(CourseUpdatedEvent event) {
+try {
+// Handle Updated event for Course
+courseEventProcessing.processUpdated(event);
+} catch (Exception e) {
+logger.error("Error handling CourseUpdatedEvent", e);
+throw new EventProcessingException("Failed to handle CourseUpdatedEvent: " + e.getMessage(), e);
+}
+}
+}

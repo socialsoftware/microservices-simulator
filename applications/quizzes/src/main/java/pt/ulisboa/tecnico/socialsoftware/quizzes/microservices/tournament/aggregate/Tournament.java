@@ -78,26 +78,19 @@ public abstract class Tournament extends Aggregate {
     private LocalDateTime endTime;
     private Integer numberOfQuestions;
     private boolean cancelled;
-    /*
-    CREATOR_IS_FINAL
-		final this.creator.id
-     */
+
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournament")
     private TournamentCreator tournamentCreator;
+
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "tournament")
     private Set<TournamentParticipant> tournamentParticipants = new HashSet<>();
-    /*
-    COURSE_EXECUTION_IS_FINAL
-		final this.courseExecution.id
-     */
+
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournament")
     private TournamentCourseExecution tournamentCourseExecution;
+
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "tournament")
     private Set<TournamentTopic> tournamentTopics = new HashSet<>();
-    /*
-    QUIZ_IS_FINAL
-		final this.tournamentQuiz.id
-     */
+
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournament")
     private TournamentQuiz tournamentQuiz;
 
@@ -124,20 +117,16 @@ public abstract class Tournament extends Aggregate {
         setTournamentQuiz(new TournamentQuiz(quizDto.getAggregateId(), quizDto.getVersion()));
     }
 
-    /* used to update the tournament by creating new versions */
     public Tournament(Tournament other) {
         super(other);
         setStartTime(other.getStartTime());
         setEndTime(other.getEndTime());
         setNumberOfQuestions(other.getNumberOfQuestions());
         setCancelled(other.isCancelled());
-
         setTournamentCreator(new TournamentCreator(other.getTournamentCreator()));
         setTournamentCourseExecution(new TournamentCourseExecution(other.getTournamentCourseExecution()));
         setTournamentTopics(other.getTournamentTopics().stream().map(TournamentTopic::new).collect(Collectors.toSet()));
-
         setTournamentQuiz(new TournamentQuiz(other.getTournamentQuiz()));
-
         setTournamentParticipants(other.getTournamentParticipants().stream().map(TournamentParticipant::new).collect(Collectors.toSet()));
     }
 
