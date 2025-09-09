@@ -120,6 +120,28 @@ public class UserFunctionalities {
         }
     }
 
+    public void deactivateUser(Integer userAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeactivateUserFunctionalitySagas deactivateUserFunctionalitySagas = new DeactivateUserFunctionalitySagas(
+                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
+
+                deactivateUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeactivateUserFunctionalityTCC deactivateUserFunctionalityTCC = new DeactivateUserFunctionalityTCC(
+                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork);
+
+                deactivateUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
     public void deleteUser(Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 

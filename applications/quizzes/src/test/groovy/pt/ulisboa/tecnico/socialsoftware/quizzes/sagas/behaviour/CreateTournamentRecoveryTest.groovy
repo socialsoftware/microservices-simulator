@@ -7,9 +7,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
+
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.QuizFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService
@@ -18,14 +21,17 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.T
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
 
 @DataJpaTest
-class HandleEventBehaviour extends QuizzesSpockTest {
+class CreateTournamentRecoveryTest extends QuizzesSpockTest {
     public static final String UPDATED_NAME = "UpdatedName"
 
     @Autowired
@@ -42,13 +48,20 @@ class HandleEventBehaviour extends QuizzesSpockTest {
     private CourseExecutionFunctionalities courseExecutionFunctionalities
     @Autowired
     private TournamentFunctionalities tournamentFunctionalities
+    @Autowired
+    private QuizFunctionalities quizFunctionalities
 
     @Autowired
-    private EventService eventService;
-
+    private EventService eventService
 
     @Autowired
     public TraceService traceService
+
+    @Autowired
+    private TopicService topicService
+
+    @Autowired
+    private QuizService quizService
 
     @Autowired
     private TournamentEventHandling tournamentEventHandling
@@ -87,47 +100,38 @@ class HandleEventBehaviour extends QuizzesSpockTest {
         questionDto2 = createQuestion(courseExecutionDto, new HashSet<>(Arrays.asList(topicDto2)), TITLE_2, CONTENT_2, OPTION_3, OPTION_4)
         questionDto3 = createQuestion(courseExecutionDto, new HashSet<>(Arrays.asList(topicDto3)), TITLE_3, CONTENT_3, OPTION_1, OPTION_3)
 
-        and: 'a tournament where the first user is the creator'
-        tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(),  courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(),topicDto2.getAggregateId()])
-
-        and: 'two units of work'
-        def functionalityName1 = UpdateStudentNameFunctionalitySagas.class.getSimpleName()
-        def functionalityName2 = AddParticipantFunctionalitySagas.class.getSimpleName()
-        unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
-        unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
+        and: 'a tournament '
+        tournamentDto = new TournamentDto(startTime: DateHandler.toISOString(TIME_1), endTime: DateHandler.toISOString(TIME_3), numberOfQuestions: 2)
     }
 
     def cleanup() {
         behaviourService.cleanUpCounter()
     }
 
-    def 'sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet' () {
+    def 'Check Quiz existence'() {
         given: 'a clear report'
         behaviourService.cleanReportFile()
+        
+        and: 'create unit of works for the creation of a tournament'
+        def functionalityName1 = CreateTournamentFunctionalitySagas.class.getSimpleName()
+        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
 
-        and: 'creator name is updated'
-        def updateNameDto = new UserDto()
-        updateNameDto.setName(UPDATED_NAME)
-        courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
-
-        when: 'event is finally processed it updates the creator name'
-        tournamentEventHandling.handleUpdateStudentNameEvent()
-        then: ''
-        thrown(SimulatorException)
-
-        when: 'add creator as participant where the creator in tournament still has the old name'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
+        and: 'the create tournament functionality'
+        def createTournamentFunctionality = new CreateTournamentFunctionalitySagas(
+            tournamentService, courseExecutionService, topicService, quizService, unitOfWorkService, userCreatorDto.getAggregateId(),
+             courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], tournamentDto, unitOfWork1)
         
 
-        then: 'fails because invariant breaks'
-        def error = thrown(SimulatorException)
-        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
-        
-        and: 'the creator is participant with updated name'
-        def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        tournamentDtoResult2.getParticipants().size() == 0
+        when: 'execute until the step that generates the quiz'
+        createTournamentFunctionality.executeUntilStep("generateQuizStep", unitOfWork1)
+        then: 'a quiz is created'
+        boolean exceptionThrown = false
+        try {
+            createTournamentFunctionality.resumeWorkflow(unitOfWork1)
+        } catch (Exception e) {
+            exceptionThrown = true
+        }
 
-        cleanup: 'remove all generated artifacts after test execution'
         traceService.endRootSpan()
         traceService.spanFlush()
         behaviourService.cleanDirectory()

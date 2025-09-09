@@ -32,6 +32,11 @@ public class UserController {
         userFunctionalities.activateUser(userAggregateId);
     }
 
+    @PostMapping("/users/{userAggregateId}/deactivate")
+    public void deactivateUser(@PathVariable Integer userAggregateId) throws Exception {
+        userFunctionalities.deactivateUser(userAggregateId);
+    }
+
     @PostMapping("/users/{userAggregateId}/delete")
     public void deleteUser(@PathVariable Integer userAggregateId) throws Exception {
         userFunctionalities.deleteUser(userAggregateId);

@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service;
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.USER_ACTIVE;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.USER_NOT_ACTIVE;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -89,6 +90,24 @@ public class UserService {
         }
         User newUser = userFactory.createUserFromExisting(oldUser);
         newUser.setActive(true);
+        unitOfWorkService.registerChanged(newUser, unitOfWork);
+    }
+
+    @Retryable(
+            value = { SQLException.class,  CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void deactivateUser(Integer userAggregateId, UnitOfWork unitOfWork) {
+        User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
+        if (!oldUser.isActive()) {
+            throw new QuizzesException(USER_NOT_ACTIVE);
+        }
+        User newUser = userFactory.createUserFromExisting(oldUser);
+        newUser.setActive(false);
         unitOfWorkService.registerChanged(newUser, unitOfWork);
     }
 

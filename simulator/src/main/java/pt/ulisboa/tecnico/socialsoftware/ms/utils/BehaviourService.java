@@ -53,7 +53,4 @@ public class BehaviourService {
         TraceManager.getInstance().forceFlush();
     }
 
-    public static int getFuncCounter(String funcName) {
-        return BehaviourHandler.getInstance().getFuncCounter(funcName);
-    }
 }
