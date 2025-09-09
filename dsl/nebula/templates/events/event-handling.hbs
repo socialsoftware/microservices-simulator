@@ -1,0 +1,96 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+@Component
+public class {{aggregateName}}EventHandling {
+private static final Logger logger = LoggerFactory.getLogger({{aggregateName}}EventHandling.class);
+
+private final {{aggregateName}}Service {{lowerAggregate}}Service;
+private final {{aggregateName}}Repository {{lowerAggregate}}Repository;
+
+public {{aggregateName}}EventHandling({{aggregateName}}Service {{lowerAggregate}}Service, {{aggregateName}}Repository
+{{lowerAggregate}}Repository) {
+this.{{lowerAggregate}}Service = {{lowerAggregate}}Service;
+this.{{lowerAggregate}}Repository = {{lowerAggregate}}Repository;
+}
+
+{{#each eventSubscriptions}}
+@EventListener
+public void handle{{capitalizedEventName}}({{fullEventName}} event) {
+try {
+logger.info("Processing {{eventType}} event for {{../aggregateName}} with ID: {}", event.getAggregateId());
+
+switch (event.getEventType()) {
+case "{{eventType}}":
+process{{capitalizedEventName}}Event(event);
+break;
+default:
+logger.warn("Unknown event type: {}", event.getEventType());
+}
+
+} catch (Exception e) {
+logger.error("Error processing {{fullEventName}} for aggregate ID: {}", event.getAggregateId(), e);
+throw new EventProcessingException("Failed to process {{fullEventName}}: " + e.getMessage(), e);
+}
+}
+
+@Async
+@EventListener
+public CompletableFuture<Void> handleAsync{{capitalizedEventName}}({{fullEventName}} event) {
+    return CompletableFuture.runAsync(() -> {
+    try {
+    logger.info("Async processing {{eventType}} event for {{../aggregateName}} with ID: {}", event.getAggregateId());
+    processAsync{{capitalizedEventName}}Event(event);
+    } catch (Exception e) {
+    logger.error("Error in async processing of {{fullEventName}} for aggregate ID: {}", event.getAggregateId(), e);
+    }
+    });
+    }
+
+    {{/each}}
+
+    // Event processing methods
+    {{#each eventSubscriptions}}
+    private void process{{capitalizedEventName}}Event({{fullEventName}} event) {
+    // TODO: Implement {{eventType}} event processing logic
+    logger.debug("Processing {{eventType}} event for {{../aggregateName}} ID: {}", event.getAggregateId());
+
+    // Example processing based on event type
+    {{#if (eq eventType "Created")}}
+    // Handle creation event - might trigger welcome workflows, notifications, etc.
+    handleCreationEvent(event);
+    {{else if (eq eventType "Updated")}}
+    // Handle update event - might trigger validation, sync with external systems, etc.
+    handleUpdateEvent(event);
+    {{else if (eq eventType "Deleted")}}
+    // Handle deletion event - might trigger cleanup, archival, notifications, etc.
+    handleDeletionEvent(event);
+    {{/if}}
+    }
+
+    private void processAsync{{capitalizedEventName}}Event({{fullEventName}} event) {
+    // TODO: Implement async {{eventType}} event processing logic
+    logger.debug("Async processing {{eventType}} event for {{../aggregateName}} ID: {}", event.getAggregateId());
+    }
+
+    {{/each}}
+
+    // Helper methods for specific event types
+    private void handleCreationEvent(Object event) {
+    // TODO: Implement creation-specific logic
+    logger.debug("Handling creation event");
+    }
+
+    private void handleUpdateEvent(Object event) {
+    // TODO: Implement update-specific logic
+    logger.debug("Handling update event");
+    }
+
+    private void handleDeletionEvent(Object event) {
+    // TODO: Implement deletion-specific logic
+    logger.debug("Handling deletion event");
+    }
+    }

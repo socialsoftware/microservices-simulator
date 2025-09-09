@@ -1,0 +1,36 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+@Entity
+public class Saga{{aggregateName}} extends {{aggregateName}} implements SagaAggregate {
+private SagaState sagaState;
+
+public Saga{{aggregateName}}() {
+super();
+this.sagaState = GenericSagaState.NOT_IN_SAGA;
+}
+
+public Saga{{aggregateName}}(Saga{{aggregateName}} other) {
+super();
+this.sagaState = other.getSagaState();
+}
+
+public Saga{{aggregateName}}({{rootEntityName}}Dto {{lowerAggregate}}Dto) {
+super();
+this.sagaState = GenericSagaState.NOT_IN_SAGA;
+// TODO: Initialize from DTO properties
+}
+
+@Override
+public void setSagaState(SagaState state) {
+this.sagaState = state;
+}
+
+@Override
+public SagaState getSagaState() {
+return this.sagaState;
+}
+}

@@ -1,0 +1,39 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+@PropertySource({"classpath:application.properties"})
+@EnableJpaRepositories(basePackages = {"{{basePackage}}.ms.*",
+"{{basePackage}}.{{lowerProjectName}}.*"})
+@EntityScan(basePackages = {"{{basePackage}}.ms.*",
+"{{basePackage}}.{{lowerProjectName}}.*"})
+@EnableTransactionManagement
+@EnableJpaAuditing
+{{#if hasScheduling}}
+@EnableScheduling
+{{/if}}
+{{#if hasRetry}}
+@EnableRetry
+{{/if}}
+@SpringBootApplication(scanBasePackages = {"{{basePackage}}.ms.*",
+"{{basePackage}}.{{lowerProjectName}}.*"})
+public class {{projectName}}Simulator implements InitializingBean {
+{{#if hasEventService}}
+@Autowired
+private EventService eventService;
+{{/if}}
+
+public static void main(String[] args) {
+SpringApplication.run({{projectName}}Simulator.class, args);
+}
+
+@Override
+public void afterPropertiesSet() {
+// Run on startup
+{{#if hasEventService}}
+eventService.clearEventsAtApplicationStartUp();
+{{/if}}
+}
+}

@@ -1,0 +1,9 @@
+package {{packageName}};
+
+{{imports}}
+
+{{annotations.repository}}
+{{annotations.transactional}}
+public interface {{aggregateName}}Repository extends {{repositoryType}}<{{aggregateName}}, {{idType}}> {
+    {{queryMethods}}
+    }

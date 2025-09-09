@@ -1,0 +1,30 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+@Configuration
+public class {{projectName}}Configuration {
+
+{{#each beans}}
+@Bean
+@Profile("{{profile}}")
+public {{type}} {{name}}() {
+// {{description}}
+return new {{type}}Impl();
+}
+
+{{/each}}
+{{#if hasSagas}}
+@Configuration
+@Profile("sagas")
+public static class SagasConfiguration {
+@Bean
+public SagaUnitOfWorkService sagaUnitOfWorkService() {
+return new SagaUnitOfWorkServiceImpl();
+}
+}
+{{/if}}
+
+}

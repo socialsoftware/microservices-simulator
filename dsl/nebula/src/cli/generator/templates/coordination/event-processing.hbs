@@ -1,0 +1,50 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+@Service
+public class {{aggregateName}}EventProcessing {
+@Autowired
+private {{aggregateName}}Service {{lowerAggregate}}Service;
+
+private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+
+    {{#if hasSagas}}
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+    {{/if}}
+
+    public {{aggregateName}}EventProcessing(UnitOfWorkService unitOfWorkService) {
+    this.unitOfWorkService = unitOfWorkService;
+    }
+
+    /************************************************ EVENT PROCESSING ************************************************/
+
+    {{#each eventProcessingMethods}}
+    public void {{name}}(Integer aggregateId, {{eventType}}Event {{lowerEventType}}Event) {
+    {{#if ../hasSagas}}
+    String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+    switch (workflowType) {
+    case {{transactionModel}}:
+    UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+    // TODO: Implement saga workflow for {{eventType}} event
+    // Example: {{eventType}}{{../aggregateName}}FunctionalitySagas saga = new
+    {{eventType}}{{../aggregateName}}FunctionalitySagas(...);
+    // saga.executeWorkflow(unitOfWork);
+    break;
+    default: throw new {{../ProjectName}}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
+    }
+    {{else}}
+    UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+    // Event processing implementation for {{eventType}} event
+    // TODO: Implement specific event processing logic
+    unitOfWorkService.commit(unitOfWork);
+    {{/if}}
+    }
+    {{/each}}
+
+    /************************************************ EVENT PROCESSING ************************************************/
+    }

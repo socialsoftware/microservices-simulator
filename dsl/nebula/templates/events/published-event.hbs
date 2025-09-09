@@ -1,0 +1,68 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+public class {{event.fullEventName}} extends ApplicationEvent implements Serializable {
+private static final long serialVersionUID = 1L;
+
+private final String eventId;
+private final String eventType;
+
+@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+private final LocalDateTime timestamp;
+
+private final Long aggregateId;
+
+{{#each event.properties}}
+private final {{type}} {{name}};
+{{/each}}
+
+public {{event.fullEventName}}(Object source, Long aggregateId{{#each event.properties}}, {{type}} {{name}}{{/each}}) {
+super(source);
+this.eventId = java.util.UUID.randomUUID().toString();
+this.eventType = "{{event.eventType}}";
+this.timestamp = LocalDateTime.now();
+this.aggregateId = aggregateId;
+{{#each event.properties}}
+this.{{name}} = {{name}};
+{{/each}}
+}
+
+// Getters
+public String getEventId() {
+return eventId;
+}
+
+public String getEventType() {
+return eventType;
+}
+
+public LocalDateTime getTimestamp() {
+return timestamp;
+}
+
+public Long getAggregateId() {
+return aggregateId;
+}
+
+{{#each event.properties}}
+public {{type}} {{getter}}() {
+return {{name}};
+}
+
+{{/each}}
+@Override
+public String toString() {
+return "{{event.fullEventName}}{" +
+"eventId='" + eventId + '\'' +
+", eventType='" + eventType + '\'' +
+", timestamp=" + timestamp +
+", aggregateId=" + aggregateId +
+{{#each event.properties}}
+", {{name}}=" + {{name}} +
+{{/each}}
+'}';
+}
+}

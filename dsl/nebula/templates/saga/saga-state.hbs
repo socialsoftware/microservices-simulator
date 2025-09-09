@@ -1,0 +1,20 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+public enum {{aggregateName}}SagaState implements SagaState {
+CREATED_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "CREATED_{{upperAggregateName}}";
+}
+},
+READ_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "READ_{{upperAggregateName}}";
+}
+}
+}

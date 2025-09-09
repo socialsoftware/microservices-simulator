@@ -1,0 +1,100 @@
+import * as path from 'path';
+import { ConfigBaseGenerator } from './config-base-generator.js';
+import { ConfigContext } from './config-types.js';
+
+export class LoggingConfigGenerator extends ConfigBaseGenerator {
+    async generateLoggingProperties(context: ConfigContext): Promise<void> {
+        const content = this.getLoggingPropertiesTemplate();
+        const filePath = path.join(context.resourcesDir, 'logback-spring.xml');
+        await this.writeFile(filePath, content, 'logback-spring.xml');
+    }
+
+    private getLoggingPropertiesTemplate(): string {
+        return `<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Console Appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- File Appender -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/application.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Async Appender for better performance -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!-- Spring Framework Logging -->
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.springframework.web" level="DEBUG"/>
+    <logger name="org.springframework.transaction" level="DEBUG"/>
+
+    <!-- Hibernate/JPA Logging -->
+    <logger name="org.hibernate" level="INFO"/>
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+
+    <!-- HikariCP Connection Pool Logging -->
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+
+    <!-- Application-specific Logging -->
+    <logger name="pt.ulisboa.tecnico.socialsoftware" level="DEBUG"/>
+
+    <!-- Saga and Event Processing Logging -->
+    <logger name="saga" level="DEBUG"/>
+    <logger name="events" level="DEBUG"/>
+    <logger name="coordination" level="DEBUG"/>
+
+    <!-- Security Logging -->
+    <logger name="org.springframework.security" level="INFO"/>
+
+    <!-- Root Logger -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC_FILE"/>
+    </root>
+
+    <!-- Profile-specific configurations -->
+    <springProfile name="dev">
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root level="WARN">
+            <appender-ref ref="ASYNC_FILE"/>
+        </root>
+        <!-- Disable console logging in production -->
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.springframework.web" level="WARN"/>
+    </springProfile>
+
+    <springProfile name="test">
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        <!-- Minimal logging during tests -->
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+    </springProfile>
+</configuration>`;
+    }
+}

@@ -1,0 +1,80 @@
+{
+  "name": "nebula",
+  "displayName": "Nebula Language Support",
+  "description": "Language support for Nebula DSL - A domain-specific language for defining aggregates and entities for the microservices simulator",
+  "version": "0.0.1",
+  "publisher": "ponces",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ponces/thesis-code"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
+    "watch": "concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.src.json --watch\" \"node esbuild.mjs --watch\"",
+    "lint": "eslint src --ext ts",
+    "langium:generate": "langium generate",
+    "langium:watch": "langium generate --watch",
+    "vscode:prepublish": "npm run build && npm run lint",
+    "esbuild-base": "esbuild ./src/extension/main.ts --bundle --outfile=out/extension/main.cjs --external:vscode --format=cjs --platform=node"
+  },
+  "dependencies": {
+    "@types/handlebars": "^4.0.40",
+    "chalk": "~5.3.0",
+    "commander": "~11.0.0",
+    "glob": "^11.0.3",
+    "handlebars": "^4.7.8",
+    "langium": "~3.0.0",
+    "vscode-languageclient": "~9.0.1",
+    "vscode-languageserver": "~9.0.1"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/node": "^18.0.0",
+    "@types/vscode": "~1.67.0",
+    "@typescript-eslint/eslint-plugin": "~6.4.1",
+    "@typescript-eslint/parser": "~6.4.1",
+    "concurrently": "~8.2.1",
+    "esbuild": "^0.19.12",
+    "eslint": "~8.47.0",
+    "langium-cli": "~3.0.0",
+    "typescript": "~5.1.6"
+  },
+  "engines": {
+    "vscode": "^1.67.0",
+    "node": ">=18.0.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "nebula",
+        "aliases": [
+          "Nebula",
+          "nebula"
+        ],
+        "extensions": [
+          ".nebula"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "nebula",
+        "scopeName": "source.nebula",
+        "path": "syntaxes/nebula.tmLanguage.json"
+      }
+    ]
+  },
+  "activationEvents": [
+    "onLanguage:nebula"
+  ],
+  "main": "./out/extension/main.cjs",
+  "bin": {
+    "nebula-cli": "./bin/cli.js"
+  }
+}

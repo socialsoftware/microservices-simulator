@@ -1,0 +1,24 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+@Service
+@Profile("sagas")
+public class Sagas{{aggregateName}}Factory extends {{aggregateName}}Factory {
+@Override
+public {{aggregateName}} create{{aggregateName}}(Integer aggregateId, {{rootEntityName}}Dto {{lowerAggregate}}Dto) {
+return new Saga{{aggregateName}}({{lowerAggregate}}Dto);
+}
+
+@Override
+public {{aggregateName}} create{{aggregateName}}FromExisting({{aggregateName}} existing{{aggregateName}}) {
+return new Saga{{aggregateName}}((Saga{{aggregateName}}) existing{{aggregateName}});
+}
+
+@Override
+public {{rootEntityName}}Dto create{{rootEntityName}}Dto({{aggregateName}} {{lowerAggregate}}) {
+return new Saga{{aggregateName}}Dto({{lowerAggregate}});
+}
+}

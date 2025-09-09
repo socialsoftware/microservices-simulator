@@ -1,0 +1,85 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+public enum {{aggregateName}}SagaState implements SagaState {
+// Create operation states
+IN_CREATE_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "IN_CREATE_{{upperAggregateName}}";
+}
+},
+CREATED_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "CREATED_{{upperAggregateName}}";
+}
+},
+
+// Update operation states
+IN_UPDATE_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "IN_UPDATE_{{upperAggregateName}}";
+}
+},
+UPDATED_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "UPDATED_{{upperAggregateName}}";
+}
+},
+
+// Delete operation states
+IN_DELETE_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "IN_DELETE_{{upperAggregateName}}";
+}
+},
+DELETED_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "DELETED_{{upperAggregateName}}";
+}
+},
+
+// Read operation states
+READ_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "READ_{{upperAggregateName}}";
+}
+},
+
+// Validation states
+VALIDATING_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "VALIDATING_{{upperAggregateName}}";
+}
+},
+VALIDATED_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "VALIDATED_{{upperAggregateName}}";
+}
+},
+
+// Error/rollback states
+ERROR_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "ERROR_{{upperAggregateName}}";
+}
+},
+ROLLBACK_{{upperAggregateName}} {
+@Override
+public String getStateName() {
+return "ROLLBACK_{{upperAggregateName}}";
+}
+}
+}

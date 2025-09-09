@@ -1,0 +1,33 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+{{annotations.service}}
+{{#if transactional}}
+{{annotations.transactional}}
+{{/if}}
+public class {{serviceName}} {
+
+{{annotations.autowired}}
+private {{aggregateName}}Repository {{lowerAggregate}}Repository;
+
+{{#each methods}}
+{{#each annotations}}
+{{this}}
+{{/each}}
+public {{returnType}} {{name}}({{#each parameters}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
+{{#if (eq returnType "void")}}
+// TODO: Implement {{name}} method
+{{else}}
+// TODO: Implement {{name}} method
+return null; // Placeholder
+{{/if}}
+}
+
+{{/each}}
+{{#if generateCrud}}
+// Additional CRUD utility methods can be added here
+{{/if}}
+}

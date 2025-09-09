@@ -1,0 +1,70 @@
+package {{packageName}};
+
+import org.springframework.stereotype.Service;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.time.LocalDateTime;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+/**
+* Service for managing execution traces and monitoring
+*/
+@Service
+public class TracesService {
+
+private final Queue<Map<String, Object>> traces = new ConcurrentLinkedQueue<>();
+        private final ObjectMapper objectMapper = new ObjectMapper();
+
+        public List<Map<String, Object>> getAllTraces() {
+            return new ArrayList<>(traces);
+                }
+
+                public List<Map<String, Object>> getTracesByAggregate(String aggregateName) {
+                    return traces.stream()
+                    .filter(trace -> aggregateName.equals(trace.get("aggregate")))
+                    .collect(ArrayList::new, (list, trace) -> list.add(trace), ArrayList::addAll);
+                    }
+
+                    public void addTrace(String aggregate, String operation, String status, Object data) {
+                    Map<String, Object> trace = new HashMap<>();
+                            trace.put("timestamp", LocalDateTime.now().toString());
+                            trace.put("aggregate", aggregate);
+                            trace.put("operation", operation);
+                            trace.put("status", status);
+                            trace.put("data", data);
+                            traces.offer(trace);
+
+                            // Keep only last 1000 traces to prevent memory issues
+                            while (traces.size() > 1000) {
+                            traces.poll();
+                            }
+                            }
+
+                            public void clearTraces() {
+                            traces.clear();
+                            }
+
+                            public String exportTraces(String format) {
+                            try {
+                            List<Map<String, Object>> allTraces = getAllTraces();
+                                if ("json".equalsIgnoreCase(format)) {
+                                return objectMapper.writeValueAsString(allTraces);
+                                } else if ("csv".equalsIgnoreCase(format)) {
+                                // Simple CSV export
+                                StringBuilder csv = new StringBuilder();
+                                csv.append("timestamp,aggregate,operation,status\n");
+                                for (Map<String, Object> trace : allTraces) {
+                                    csv.append(String.format("%s,%s,%s,%s\n",
+                                    trace.get("timestamp"),
+                                    trace.get("aggregate"),
+                                    trace.get("operation"),
+                                    trace.get("status")));
+                                    }
+                                    return csv.toString();
+                                    }
+                                    return objectMapper.writeValueAsString(allTraces);
+                                    } catch (Exception e) {
+                                    throw new RuntimeException("Failed to export traces: " + e.getMessage(), e);
+                                    }
+                                    }
+                                    }

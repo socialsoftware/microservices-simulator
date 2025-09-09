@@ -1,0 +1,34 @@
+package {{packageName}};
+
+{{#each imports}}
+{{{this}}}
+{{/each}}
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/{{lowerAggregate}}")
+public class {{aggregateName}}Controller {
+
+@Autowired
+private {{aggregateName}}Service {{serviceName}};
+
+{{#each endpoints}}
+@{{method}}Mapping({{#if path}}value = "{{path}}"{{/if}})
+public {{#if (eq returnType "void")}}ResponseEntity<Void>{{else}}ResponseEntity<{{returnType}}>{{/if}} {{methodName}}(
+        {{#each parameters}}
+        {{annotation}} {{type}} {{name}}{{#unless @last}},{{/unless}}
+        {{/each}}
+        ){{#if throwsException}} throws Exception{{/if}} {
+        {{#if (eq returnType "void")}}
+        {{../serviceName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
+        return ResponseEntity.ok().build();
+        {{else}}
+        {{returnType}} result = {{../serviceName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}},
+        {{/unless}}{{/each}});
+        return ResponseEntity.ok(result);
+        {{/if}}
+        }
+
+        {{/each}}
+        }

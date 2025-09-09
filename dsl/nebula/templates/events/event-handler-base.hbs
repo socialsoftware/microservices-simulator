@@ -1,0 +1,21 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+public abstract class {{aggregateName}}EventHandler extends EventHandler {
+private {{aggregateName}}Repository {{lowerAggregate}}Repository;
+protected {{aggregateName}}EventProcessing {{lowerAggregate}}EventProcessing;
+
+public {{aggregateName}}EventHandler({{aggregateName}}Repository {{lowerAggregate}}Repository,
+{{aggregateName}}EventProcessing {{lowerAggregate}}EventProcessing) {
+this.{{lowerAggregate}}Repository = {{lowerAggregate}}Repository;
+this.{{lowerAggregate}}EventProcessing = {{lowerAggregate}}EventProcessing;
+}
+
+public Set<Integer> getAggregateIds() {
+    return
+    {{lowerAggregate}}Repository.findAll().stream().map({{aggregateName}}::getAggregateId).collect(Collectors.toSet());
+    }
+    }

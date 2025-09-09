@@ -1,0 +1,25 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+@Component
+public class {{handler.capitalizedHandlerName}} extends {{aggregateName}}EventHandler {
+
+public {{handler.capitalizedHandlerName}}({{aggregateName}}Repository {{lowerAggregate}}Repository,
+{{aggregateName}}EventProcessing {{lowerAggregate}}EventProcessing) {
+super({{lowerAggregate}}Repository, {{lowerAggregate}}EventProcessing);
+}
+
+@EventListener
+public void handle{{handler.capitalizedEventName}}({{handler.fullEventName}} event) {
+try {
+// Handle {{handler.eventType}} event for {{aggregateName}}
+{{lowerAggregate}}EventProcessing.process{{handler.capitalizedEventName}}(event);
+} catch (Exception e) {
+logger.error("Error handling {{handler.fullEventName}}", e);
+throw new EventProcessingException("Failed to handle {{handler.fullEventName}}: " + e.getMessage(), e);
+}
+}
+}

@@ -1,0 +1,14 @@
+{
+  "projectName": "Nebula",
+  "languages": [
+    {
+      "id": "nebula",
+      "grammar": "src/language/nebula.langium",
+      "fileExtensions": [".nebula"],
+      "textMate": {
+        "out": "syntaxes/nebula.tmLanguage.json"
+      }
+    }
+  ],
+  "out": "src/language/generated"
+}

@@ -1,0 +1,30 @@
+package {{packageName}};
+
+{{#each imports}}
+{{{this}}}
+{{/each}}
+
+{{#each requestDtos}}
+public class {{name}} {
+{{#each fields}}
+{{#if required}}@NotNull{{/if}}
+private {{type}} {{name}};
+{{/each}}
+
+// Constructors
+public {{name}}() {}
+
+{{#each fields}}
+// Getter for {{name}}
+public {{type}} get{{capitalize name}}() {
+return {{name}};
+}
+
+// Setter for {{name}}
+public void set{{capitalize name}}({{type}} {{name}}) {
+this.{{name}} = {{name}};
+}
+{{/each}}
+}
+
+{{/each}}
