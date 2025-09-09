@@ -1,0 +1,88 @@
+import User;
+
+Aggregate CourseExecution {
+    Entity CourseExecutionCourse {
+        Integer courseAggregateId;
+        String courseName;
+        String courseAcronym;
+        String courseType;
+    }
+
+    Entity CourseExecutionStudent {
+        Integer studentAggregateId;
+        String studentName;
+        String studentUsername;
+        String studentEmail;
+        LocalDateTime enrollmentDate;
+    }
+
+    Root Entity CourseExecution {
+        String name;
+        String acronym;
+        String academicTerm;
+        LocalDateTime startDate;
+        LocalDateTime endDate;
+        CourseExecutionCourse course;
+        Set<CourseExecutionStudent> students;
+
+        invariants {
+            check startDateBeforeEndDate {
+                startDate.isBefore(endDate);
+            }
+
+            check nameNotEmpty {
+                name.length() > 0;
+            }
+
+            check acronymNotEmpty {
+                acronym.length() > 0;
+            }
+
+            check academicTermNotEmpty {
+                academicTerm.length() > 0;
+            }
+
+            check uniqueStudents {
+                students.unique(studentAggregateId);
+            }
+        }
+
+        businessRules {
+            rule "AUTO_ENROLL_STUDENT" {
+                trigger: students;
+                affectedFields: [students];
+                conditions: [
+                    "students.size() > 0"
+                ];
+                exception: "CANNOT_ENROLL_STUDENT";
+            }
+        }
+
+        methods {
+            method createCourseExecution(String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, CourseExecutionCourse course, UnitOfWork unitOfWork): void;
+            method getCourseExecutionById(Integer courseExecutionId, UnitOfWork unitOfWork): void;
+            method getAllCourseExecutions(UnitOfWork unitOfWork): void;
+            method getCourseExecutionsByCourse(Integer courseId, UnitOfWork unitOfWork): void;
+            method enrollStudent(Integer courseExecutionId, Integer studentId, UnitOfWork unitOfWork): void;
+            method unenrollStudent(Integer courseExecutionId, Integer studentId, UnitOfWork unitOfWork): void;
+            method updateCourseExecution(Integer courseExecutionId, String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, UnitOfWork unitOfWork): void;
+            method deleteCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork): void;
+        }
+    }
+
+    // Service methods
+    method getCourseExecutionsByStudent(Integer studentId, UnitOfWork unitOfWork): void;
+    method getActiveCourseExecutions(UnitOfWork unitOfWork): void;
+    method getCourseExecutionsByAcademicTerm(String academicTerm, UnitOfWork unitOfWork): void;
+    
+    // Event processing workflows
+    saga workflow removeUser(Integer userAggregateId, Integer courseExecutionId, UnitOfWork unitOfWork);
+    saga workflow anonymizeStudent(Integer studentAggregateId, Integer courseExecutionId, UnitOfWork unitOfWork);
+    saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer courseExecutionId, UnitOfWork unitOfWork);
+    saga workflow deleteCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork);
+    saga workflow disenrollStudentFromCourseExecution(Integer studentAggregateId, Integer courseExecutionId, UnitOfWork unitOfWork);
+    
+    CustomRepository {
+        Optional<Integer> findCourseExecutionIdByCourseIdAndAcademicTerm(Integer courseId, String academicTerm);
+    }
+}

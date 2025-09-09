@@ -1,0 +1,257 @@
+import User;
+
+Aggregate Tournament {
+    Root Entity Tournament { 
+       LocalDateTime startTime;
+       LocalDateTime endTime;
+       Integer numberOfQuestions;
+       Boolean cancelled;
+       TournamentCreator tournamentCreator;
+       Set<TournamentParticipant> tournamentParticipants;
+       TournamentCourseExecution tournamentCourseExecution;
+       Set<TournamentTopic> tournamentTopics;
+       TournamentQuiz tournamentQuiz;
+
+       invariants {
+           check startTimeBeforeEndTime {
+               startTime.isBefore(endTime);
+           }
+
+           check uniqueParticipant {
+               tournamentParticipants.unique(participantAggregateId);
+           }
+
+           check participantsEnrolledBeforeStartTime {
+               startTime != null;
+           }
+
+           check answerBeforeStart {
+               startTime != null;
+           }
+
+           check deleteWhenNoParticipants {
+               tournamentParticipants != null;
+           }
+
+           check creatorParticipantConsistency {
+               tournamentCreator != null;
+           }
+
+           check creatorIsNotAnonymous {
+               !tournamentCreator.creatorName.equals(ANONYMOUS) &&
+               !tournamentCreator.creatorUsername.equals(ANONYMOUS);
+           }
+       }
+
+       businessRules {
+           rule "FINAL_AFTER_START" {
+               trigger: startTime;
+               affectedFields: [startTime, endTime, numberOfQuestions, tournamentTopics, cancelled, tournamentCreator, tournamentParticipants, tournamentCourseExecution, tournamentQuiz];
+               conditions: [
+                   "DateHandler.now().isAfter(prev.getStartTime())",
+                   "prev.isCancelled()"
+               ];
+               exception: "CANNOT_UPDATE_TOURNAMENT";
+           }
+       }
+
+       methods {
+           method addParticipant(TournamentParticipant participant) {
+               "Tournament prev = (Tournament) getPrev();
+               if (DateHandler.now().isAfter(prev.getStartTime())) {
+                   throw new ProjectException(CANNOT_ADD_PARTICIPANT, getAggregateId());
+               }
+               if (prev != null && prev.isCancelled()) {
+                   throw new ProjectException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
+               }
+               this.tournamentParticipants.add(participant);
+               participant.setTournament(this);"
+           }
+
+           method findParticipant(Integer userAggregateId): TournamentParticipant {
+               "return this.tournamentParticipants.stream()
+                   .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
+                   .findFirst()
+                   .orElse(null);"
+           }
+
+           method removeParticipant(TournamentParticipant participant): Boolean {
+               "Tournament prev = (Tournament) getPrev();
+               if (prev != null) {
+                   if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
+                       throw new ProjectException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
+                   }
+               }
+               return this.tournamentParticipants.remove(participant);"
+           }
+
+           method findTopic(Integer topicAggregateId): TournamentTopic {
+               "return getTournamentTopics().stream()
+                   .filter(t -> topicAggregateId.equals(t.getTopicAggregateId()))
+                   .findFirst()
+                   .orElse(null);"
+           }
+
+           method removeTopic(TournamentTopic tournamentTopic) {
+               "this.tournamentTopics.remove(tournamentTopic);"
+           }
+
+           method cancel() {
+               "this.cancelled = true;"
+           }
+
+           method remove() {
+               "if (getTournamentParticipants().size() > 0) {
+                   throw new ProjectException(CANNOT_DELETE_TOURNAMENT, getAggregateId());
+               }
+               super.remove();"
+           }
+
+           method setVersion(Integer version) {
+               "if (this.tournamentQuiz.getQuizVersion() == null) {
+                   this.tournamentQuiz.setQuizVersion(version);
+               }
+               super.setVersion(version);"
+           }
+       }
+    }
+
+    Entity TournamentCourseExecution {
+        Long id key;
+        Integer courseExecutionAggregateId;
+        Integer courseExecutionCourseId;
+        String courseExecutionAcronym;
+        String courseExecutionStatus;
+        Integer courseExecutionVersion;
+        Tournament tournament;
+
+        invariants {
+            check validStatus {
+                courseExecutionStatus != null;
+            }
+        }
+    }
+
+    Entity TournamentCreator {
+        Long id key;
+        Integer creatorAggregateId;
+        String creatorName;
+        String creatorUsername;
+        Integer creatorVersion;
+        AggregateState creatorState;
+        Tournament tournament;
+        
+        constructor TournamentCreator(UserDto userDto) {
+            "setCreatorAggregateId(userDto.getAggregateId());
+            setCreatorName(userDto.getName());
+            setCreatorUsername(userDto.getUsername());
+            setCreatorVersion(userDto.getVersion());"
+        }
+        
+        methods {
+            method buildDto(): UserDto {
+                "UserDto userDto = new UserDto();
+                userDto.setAggregateId(getCreatorAggregateId());
+                userDto.setVersion(getCreatorVersion());
+                userDto.setName(getCreatorName());
+                userDto.setUsername(getCreatorUsername());
+                return userDto;"
+            }
+        }
+    }
+
+    Entity TournamentParticipant {
+
+        Long id key;
+        Integer participantAggregateId;
+        String participantName;
+        String participantUsername;
+        LocalDateTime enrollTime;
+        TournamentParticipantQuizAnswer participantAnswer;
+        Integer participantVersion;
+        AggregateState state;
+        Tournament tournament;
+    }
+
+    Entity TournamentParticipantQuizAnswer {
+
+        Long id key;
+        Integer quizAnswerAggregateId;
+        Integer quizAnswerVersion;
+        Boolean answered;
+        Integer numberOfAnswered;
+        Integer numberOfCorrect;
+        TournamentParticipant tournamentParticipant;
+    }
+
+    Entity TournamentTopic {
+        Long id key;
+        Integer topicAggregateId;
+        String topicName;
+        Integer topicCourseAggregateId;
+        Integer topicVersion;
+        AggregateState state;
+        Tournament tournament;
+    }
+
+    Entity TournamentQuiz {
+        Long id key;
+        Integer quizAggregateId;
+        Integer quizVersion;
+        Tournament tournament;
+    }
+
+    // Service methods (remain as regular methods)
+    method getTournamentsByCourseExecutionId(Integer courseExecutionId, UnitOfWork unitOfWork): List<TournamentDto>;
+    method getOpenedTournamentsForCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork): List<TournamentDto>;
+    method getClosedTournamentsForCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork): List<TournamentDto>;
+    method getTournamentParticipant(Integer userAggregateId): TournamentParticipant;
+    
+    // Business workflows (converted to saga workflows)
+    saga workflow addParticipant(UserDto userDto, Integer tournamentId, UnitOfWork unitOfWork);
+    saga workflow leaveTournament(Integer userAggregateId, Integer tournamentId, UnitOfWork unitOfWork);
+    saga workflow solveQuiz(Integer userAggregateId, Integer tournamentId, Integer quizAnswerId, UnitOfWork unitOfWork);
+    saga workflow cancelTournament(Integer tournamentId, UnitOfWork unitOfWork);
+    saga workflow reopenTournament(Integer tournamentId, UnitOfWork unitOfWork);
+    
+    // Event processing workflows
+    saga workflow anonymizeUser(Integer userAggregateId, Integer tournamentId, UnitOfWork unitOfWork);
+    saga workflow removeUser(Integer userAggregateId, Integer tournamentId, UnitOfWork unitOfWork);
+    saga workflow updateTopic(Integer topicAggregateId, Integer tournamentId, String topicName, AggregateState state, Integer version, UnitOfWork unitOfWork);
+    saga workflow removeTopic(Integer topicAggregateId, Integer tournamentId, UnitOfWork unitOfWork);
+    
+    CustomRepository {
+        Set<Integer> findAllRelevantTournamentIds(Integer executionAggregateId);
+    }
+    
+    WebAPIEndpoints {
+        Endpoint createTournament {
+            httpMethod: POST
+            path: "/executions/{executionId}/tournaments/create"
+            methodName: createTournament
+            parameters: [
+                executionId: Integer: "@PathVariable",
+                userId: Integer: "@RequestParam",
+                topicsId: String: "@RequestParam",
+                tournamentDto: Tournament: "@RequestBody"
+            ]
+            returnType: Tournament
+            desc: "Create tournament with execution and topics"
+            throwsException: true
+        }
+        
+        Endpoint joinTournament {
+            httpMethod: POST
+            path: "/tournaments/{tournamentAggregateId}/join"
+            methodName: joinTournament
+            parameters: [
+                tournamentAggregateId: Integer: "@PathVariable",
+                executionAggregateId: Integer: "@RequestParam",
+                userAggregateId: Integer: "@RequestParam"
+            ]
+            returnType: String
+            desc: "Join tournament"
+            throwsException: true
+        }
+    }
+}

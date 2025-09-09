@@ -1,0 +1,99 @@
+Aggregate Question {
+    Entity QuestionCourse {
+        Integer courseAggregateId;
+        String courseName;
+        String courseAcronym;
+    }
+
+    Entity QuestionTopic {
+        Integer topicId;
+        String topicName;
+    }
+
+    Entity Option {
+        Integer optionNumber;
+        String content;
+        Boolean isCorrect;
+    }
+
+    Root Entity Question {
+        String title;
+        String content;
+        Integer numberOfOptions;
+        Integer correctOption;
+        Integer order;
+        QuestionCourse course;
+        Set<QuestionTopic> topics;
+        Set<Option> options;
+
+        invariants {
+            check titleNotEmpty {
+                title.length() > 0;
+            }
+
+            check contentNotEmpty {
+                content.length() > 0;
+            }
+
+            check numberOfOptionsPositive {
+                numberOfOptions > 0;
+            }
+
+            check correctOptionValid {
+                correctOption >= 1 && correctOption <= numberOfOptions;
+            }
+
+            check orderPositive {
+                order > 0;
+            }
+
+            check uniqueTopics {
+                topics.unique(topicId);
+            }
+
+            check uniqueOptions {
+                options.unique(optionNumber);
+            }
+
+            check optionsMatchNumberOfOptions {
+                numberOfOptions > 0;
+            }
+        }
+
+        businessRules {
+            rule "AUTO_SET_ORDER" {
+                trigger: order;
+                affectedFields: [order];
+                conditions: [
+                    "order == null || order <= 0"
+                ];
+                exception: "CANNOT_SET_ORDER";
+            }
+        }
+
+        methods {
+            method createQuestion(String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, QuestionCourse course, UnitOfWork unitOfWork): void;
+            method getQuestionById(Integer questionId, UnitOfWork unitOfWork): void;
+            method getAllQuestions(UnitOfWork unitOfWork): void;
+            method getQuestionsByCourse(Integer courseId, UnitOfWork unitOfWork): void;
+            method getQuestionsByTopic(Integer topicId, UnitOfWork unitOfWork): void;
+            method updateQuestion(Integer questionId, String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, UnitOfWork unitOfWork): void;
+            method deleteQuestion(Integer questionId, UnitOfWork unitOfWork): void;
+        }
+    }
+
+    // Service methods
+    method getQuestionsByCourseAndTopic(Integer courseId, Integer topicId, UnitOfWork unitOfWork): void;
+    method searchQuestionsByTitle(String title, UnitOfWork unitOfWork): void;
+    method getQuestionsByDifficulty(Integer difficulty, UnitOfWork unitOfWork): void;
+    
+    // Event processing workflows
+    saga workflow deleteQuestion(Integer questionId, UnitOfWork unitOfWork);
+    saga workflow updateQuestion(Integer questionId, String title, String content, UnitOfWork unitOfWork);
+    saga workflow removeCourse(Integer courseId, Integer questionId, UnitOfWork unitOfWork);
+    saga workflow removeTopic(Integer topicId, Integer questionId, UnitOfWork unitOfWork);
+    
+    CustomRepository {
+        Optional<Integer> findQuestionIdByTitle(String questionTitle);
+    }
+}

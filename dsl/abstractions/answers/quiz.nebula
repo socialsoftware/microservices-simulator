@@ -1,0 +1,93 @@
+Aggregate Quiz {
+    Entity QuizCourseExecution {
+        Integer courseExecutionAggregateId;
+        String courseExecutionName;
+        String courseExecutionAcronym;
+        String courseExecutionAcademicTerm;
+    }
+
+    Entity QuizQuestion {
+        Integer questionId;
+        String questionTitle;
+        String questionContent;
+        Integer order;
+    }
+
+    Entity QuizOption {
+        Integer optionNumber;
+        String content;
+        Boolean isCorrect;
+    }
+
+    Root Entity Quiz {
+        String title;
+        String description;
+        String quizType;
+        LocalDateTime availableDate;
+        LocalDateTime conclusionDate;
+        Integer numberOfQuestions;
+        QuizCourseExecution courseExecution;
+        Set<QuizQuestion> questions;
+        Set<QuizOption> options;
+
+        invariants {
+            check titleNotEmpty {
+                title.length() > 0;
+            }
+
+            check availableDateBeforeConclusionDate {
+                availableDate.isBefore(conclusionDate);
+            }
+
+            check numberOfQuestionsPositive {
+                numberOfQuestions > 0;
+            }
+
+            check uniqueQuestions {
+                questions.unique(questionId);
+            }
+
+            check uniqueOptions {
+                options.unique(optionNumber);
+            }
+
+            check questionsMatchNumberOfQuestions {
+                numberOfQuestions > 0;
+            }
+        }
+
+        businessRules {
+            rule "AUTO_SET_AVAILABLE_DATE" {
+                trigger: availableDate;
+                affectedFields: [availableDate];
+                conditions: [
+                    "availableDate == null"
+                ];
+                exception: "CANNOT_SET_AVAILABLE_DATE";
+            }
+        }
+
+        methods {
+            method createQuiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, QuizCourseExecution courseExecution, UnitOfWork unitOfWork): void;
+            method getQuizById(Integer quizId, UnitOfWork unitOfWork): void;
+            method getAllQuizzes(UnitOfWork unitOfWork): void;
+            method getQuizzesByCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork): void;
+            method getQuizzesByType(String quizType, UnitOfWork unitOfWork): void;
+            method updateQuiz(Integer quizId, String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, UnitOfWork unitOfWork): void;
+            method deleteQuiz(Integer quizId, UnitOfWork unitOfWork): void;
+        }
+    }
+
+    // Service methods
+    method getQuizzesByStudent(Integer studentId, UnitOfWork unitOfWork): void;
+    method getAvailableQuizzes(UnitOfWork unitOfWork): void;
+    method getCompletedQuizzes(UnitOfWork unitOfWork): void;
+    method searchQuizzesByTitle(String title, UnitOfWork unitOfWork): void;
+    
+    // Event processing workflows
+    saga workflow invalidateQuiz(Integer quizId, UnitOfWork unitOfWork);
+    saga workflow removeCourseExecution(Integer courseExecutionId, Integer quizId, UnitOfWork unitOfWork);
+    saga workflow removeQuestion(Integer questionId, Integer quizId, UnitOfWork unitOfWork);
+    saga workflow updateQuestion(Integer questionId, String questionTitle, String questionContent, Integer quizId, UnitOfWork unitOfWork);
+    saga workflow removeUser(Integer userAggregateId, Integer quizId, UnitOfWork unitOfWork);
+}

@@ -1,0 +1,11 @@
+Aggregate User {
+    Root Entity User {
+        String name;
+        String username;
+        Boolean active;
+    }
+    
+    CustomRepository {
+        Optional<Integer> findUserIdByUsername(String username);
+    }
+}
