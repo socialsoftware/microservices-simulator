@@ -1,11 +1,15 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.quiz;
 
+import org.aspectj.bridge.ICommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GetQuizByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizQuestion;
@@ -19,15 +23,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
-    private SagaQuizDto quiz;
+    private QuizDto quiz;
     private QuizDto updatedQuizDto;
     private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
 
-    public UpdateQuizFunctionalitySagas(QuizService quizService, SagaUnitOfWorkService unitOfWorkService, QuizFactory quizFactory, 
-                        QuizDto quizDto, SagaUnitOfWork unitOfWork) {
+    public UpdateQuizFunctionalitySagas(QuizService quizService, SagaUnitOfWorkService unitOfWorkService, QuizFactory quizFactory,
+                                        QuizDto quizDto, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.quizService = quizService;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(quizDto, quizFactory, unitOfWork);
     }
 
@@ -35,8 +41,11 @@ public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getQuizStep = new SagaSyncStep("getQuizStep", () -> {
-            SagaQuizDto quiz = (SagaQuizDto) quizService.getQuizById(quizDto.getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(quiz.getAggregateId(), QuizSagaState.READ_QUIZ, unitOfWork);
+//            QuizDto quiz = (QuizDto) quizService.getQuizById(quizDto.getAggregateId(), unitOfWork);
+//            unitOfWorkService.registerSagaState(quiz.getAggregateId(), QuizSagaState.READ_QUIZ, unitOfWork);
+            GetQuizByIdCommand getQuizByIdCommand = new GetQuizByIdCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto.getAggregateId());
+            getQuizByIdCommand.setSemanticLock(QuizSagaState.READ_QUIZ);
+            QuizDto quiz = (QuizDto) commandGateway.send(getQuizByIdCommand);
             this.setQuiz(quiz);
         });
     
@@ -53,11 +62,11 @@ public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getQuizStep);
         workflow.addStep(updateQuizStep);
     }
-    public SagaQuizDto getQuiz() {
+    public QuizDto getQuiz() {
         return quiz;
     }
 
-    public void setQuiz(SagaQuizDto quiz) {
+    public void setQuiz(QuizDto quiz) {
         this.quiz = quiz;
     }
 

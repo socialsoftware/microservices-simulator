@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.CreateQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
@@ -93,7 +94,9 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
         }, unitOfWork);
 
         SagaSyncStep createQuizStep = new SagaSyncStep("createQuizStep", () -> {
-            QuizDto createdQuizDto = quizService.createQuiz(this.getQuizCourseExecution(), this.getQuestions(), quizDto, unitOfWork);
+//            QuizDto createdQuizDto = quizService.createQuiz(this.getQuizCourseExecution(), this.getQuestions(), quizDto, unitOfWork);
+            CreateQuizCommand createQuizCommand = new CreateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), this.getQuizCourseExecution(), this.getQuestions(), quizDto);
+            QuizDto createdQuizDto = (QuizDto) commandGateway.send(createQuizCommand);
             this.setCreatedQuizDto(createdQuizDto);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep, getQuestionsStep)));
 

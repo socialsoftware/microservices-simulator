@@ -93,7 +93,7 @@ public class QuizFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindQuizFunctionalitySagas findQuizFunctionalitySagas = new FindQuizFunctionalitySagas(
-                        quizService, sagaUnitOfWorkService, quizAggregateId, sagaUnitOfWork);
+                        quizService, sagaUnitOfWorkService, quizAggregateId, sagaUnitOfWork, commandGateway);
                 findQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findQuizFunctionalitySagas.getQuizDto();
             case TCC:
@@ -113,7 +113,7 @@ public class QuizFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetAvailableQuizzesFunctionalitySagas getAvailableQuizzesFunctionalitySagas = new GetAvailableQuizzesFunctionalitySagas(
-                        quizService, sagaUnitOfWorkService, courseExecutionAggregateId, courseExecutionAggregateId, sagaUnitOfWork);
+                        quizService, sagaUnitOfWorkService, courseExecutionAggregateId, courseExecutionAggregateId, sagaUnitOfWork, commandGateway);
                 getAvailableQuizzesFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getAvailableQuizzesFunctionalitySagas.getAvailableQuizzes();
             case TCC:
@@ -133,7 +133,7 @@ public class QuizFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuizFunctionalitySagas updateQuizFunctionalitySagas = new UpdateQuizFunctionalitySagas(
-                        quizService, sagaUnitOfWorkService, quizFactory, quizDto, sagaUnitOfWork);
+                        quizService, sagaUnitOfWorkService, quizFactory, quizDto, sagaUnitOfWork, commandGateway);
                 updateQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateQuizFunctionalitySagas.getUpdatedQuizDto();
             case TCC:

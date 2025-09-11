@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.user.*;
@@ -36,6 +37,8 @@ public class UserFunctionalities {
     private Environment env;
 
     private TransactionalModel workflowType;
+    @Autowired
+    private CommandGateway commandGateway;
 
     @PostConstruct
     public void init() {
@@ -58,7 +61,7 @@ public class UserFunctionalities {
                 checkInput(userDto);
 
                 CreateUserFunctionalitySagas createUserFunctionalitySagas = new CreateUserFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userDto, sagaUnitOfWork);
+                        userService, sagaUnitOfWorkService, userDto, sagaUnitOfWork, commandGateway);
 
                 createUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createUserFunctionalitySagas.getCreatedUserDto();
@@ -82,7 +85,7 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindUserByIdFunctionalitySagas findUserByIdFunctionalitySagas = new FindUserByIdFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
+                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 findUserByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findUserByIdFunctionalitySagas.getUserDto();
@@ -104,7 +107,7 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 ActivateUserFunctionalitySagas activateUserFunctionalitySagas = new ActivateUserFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
+                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 activateUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
@@ -126,7 +129,7 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 DeleteUserFunctionalitySagas deleteUserFunctionalitySagas = new DeleteUserFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
+                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 deleteUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
@@ -148,7 +151,7 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetStudentsFunctionalitySagas getStudentsFunctionalitySagas = new GetStudentsFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, sagaUnitOfWork);
+                        userService, sagaUnitOfWorkService, sagaUnitOfWork, commandGateway);
 
                 getStudentsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getStudentsFunctionalitySagas.getStudents();
@@ -170,7 +173,7 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetTeachersFunctionalitySagas getTeachersFunctionalitySagas = new GetTeachersFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, sagaUnitOfWork);
+                        userService, sagaUnitOfWorkService, sagaUnitOfWork, commandGateway);
 
                 getTeachersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getTeachersFunctionalitySagas.getTeachers();
