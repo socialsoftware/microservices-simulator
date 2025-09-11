@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.topic.*;
@@ -42,6 +43,8 @@ public class TopicFunctionalities {
     private Environment env;
 
     private TransactionalModel workflowType;
+    @Autowired
+    private CommandGateway commandGateway;
 
     @PostConstruct
     public void init() {
@@ -62,7 +65,7 @@ public class TopicFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindTopicsByCourseFunctionalitySagas findTopicsByCourseFunctionalitySagas = new FindTopicsByCourseFunctionalitySagas(
-                        topicService, sagaUnitOfWorkService, courseAggregateId, sagaUnitOfWork);
+                        topicService, sagaUnitOfWorkService, courseAggregateId, sagaUnitOfWork, commandGateway);
                 findTopicsByCourseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findTopicsByCourseFunctionalitySagas.getTopics();
             case TCC:
@@ -82,7 +85,7 @@ public class TopicFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetTopicByIdFunctionalitySagas getTopicByIdFunctionalitySagas = new GetTopicByIdFunctionalitySagas(
-                        topicService, sagaUnitOfWorkService, topicAggregateId, sagaUnitOfWork);
+                        topicService, sagaUnitOfWorkService, topicAggregateId, sagaUnitOfWork, commandGateway);
                 getTopicByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getTopicByIdFunctionalitySagas.getTopicDto();
             case TCC:
@@ -103,7 +106,7 @@ public class TopicFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(topicDto);
                 CreateTopicFunctionalitySagas createTopicFunctionalitySagas = new CreateTopicFunctionalitySagas(
-                        topicService, courseService, sagaUnitOfWorkService, courseAggregateId, topicDto, sagaUnitOfWork);
+                        topicService, courseService, sagaUnitOfWorkService, courseAggregateId, topicDto, sagaUnitOfWork, commandGateway);
                 createTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createTopicFunctionalitySagas.getCreatedTopicDto();
             case TCC:
@@ -125,7 +128,7 @@ public class TopicFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(topicDto);
                 UpdateTopicFunctionalitySagas updateTopicFunctionalitySagas = new UpdateTopicFunctionalitySagas(
-                        topicService, sagaUnitOfWorkService, topicDto, topicFactory, sagaUnitOfWork);
+                        topicService, sagaUnitOfWorkService, topicDto, topicFactory, sagaUnitOfWork, commandGateway);
                 updateTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
@@ -146,7 +149,7 @@ public class TopicFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 DeleteTopicFunctionalitySagas deleteTopicFunctionalitySagas = new DeleteTopicFunctionalitySagas(
-                        topicService, sagaUnitOfWorkService, topicAggregateId, sagaUnitOfWork);
+                        topicService, sagaUnitOfWorkService, topicAggregateId, sagaUnitOfWork, commandGateway);
                 deleteTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:

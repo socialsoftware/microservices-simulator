@@ -1,42 +1,51 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.RemoveQuizAnswerCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.StartQuizCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.StartTournamentQuizCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamentByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.SolveQuizCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuizAnswerDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuizDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.QuizAnswerSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.QuizSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.TournamentSagaState;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
-    private SagaTournamentDto tournament;
-    private SagaQuizDto quizDto;
-    private SagaQuizAnswerDto quizAnswerDto;
+    private TournamentDto tournament;
+    private QuizDto quizDto;
+    private QuizAnswerDto quizAnswerDto;
     private Tournament oldTournament;
     private final TournamentService tournamentService;
     private final QuizService quizService;
     private final QuizAnswerService quizAnswerService;
     private final SagaUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
 
-    public SolveQuizFunctionalitySagas(TournamentService tournamentService, QuizService quizService, QuizAnswerService quizAnswerService, SagaUnitOfWorkService unitOfWorkService, 
-                                TournamentFactory tournamentFactory,
-                                Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public SolveQuizFunctionalitySagas(TournamentService tournamentService, QuizService quizService, QuizAnswerService quizAnswerService, SagaUnitOfWorkService unitOfWorkService,
+                                       TournamentFactory tournamentFactory,
+                                       Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.quizService = quizService;
         this.quizAnswerService = quizAnswerService;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentFactory, tournamentAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -44,31 +53,44 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
-            SagaTournamentDto tournament = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
+//            TournamentDto tournament = (TournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+//            unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
+            GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            getTournamentByIdCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
+            TournamentDto tournament = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
             this.setTournament(tournament);
         });
     
         SagaSyncStep startQuizStep = new SagaSyncStep("startQuizStep", () -> {
-            SagaQuizDto quiz = (SagaQuizDto) quizService.startTournamentQuiz(userAggregateId, this.getTournamentDto().getQuiz().getAggregateId(), unitOfWork);
-            unitOfWorkService.registerSagaState(quiz.getAggregateId(), QuizSagaState.STARTED_TOURNAMENT_QUIZ, unitOfWork);
+//            QuizDto quiz = (QuizDto) quizService.startTournamentQuiz(userAggregateId, this.getTournamentDto().getQuiz().getAggregateId(), unitOfWork);
+//            unitOfWorkService.registerSagaState(quiz.getAggregateId(), QuizSagaState.STARTED_TOURNAMENT_QUIZ, unitOfWork);
+            StartTournamentQuizCommand startTournamentQuizCommand = new StartTournamentQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), userAggregateId, this.getTournamentDto().getQuiz().getAggregateId());
+            startTournamentQuizCommand.setSemanticLock(QuizSagaState.STARTED_TOURNAMENT_QUIZ);
+            QuizDto quiz = (QuizDto) commandGateway.send(startTournamentQuizCommand);
             this.setQuizDto(quiz);
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
     
         SagaSyncStep startQuizAnswerStep = new SagaSyncStep("startQuizAnswerStep", () -> {
-            SagaQuizAnswerDto quizAnswerDto = (SagaQuizAnswerDto) quizAnswerService.startQuiz(this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(quizAnswerDto.getAggregateId(), QuizAnswerSagaState.STARTED_QUIZ, unitOfWork);
+//            QuizAnswerDto quizAnswerDto = (QuizAnswerDto) quizAnswerService.startQuiz(this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
+//            unitOfWorkService.registerSagaState(quizAnswerDto.getAggregateId(), QuizAnswerSagaState.STARTED_QUIZ, unitOfWork);
+            StartQuizCommand startTournamentQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), userAggregateId);
+            startTournamentQuizCommand.setSemanticLock(QuizAnswerSagaState.STARTED_QUIZ);
+            QuizAnswerDto quizAnswerDto = (QuizAnswerDto) commandGateway.send(startTournamentQuizCommand);
             this.setQuizAnswerDto(quizAnswerDto);
         }, new ArrayList<>(Arrays.asList(startQuizStep)));
         
         startQuizAnswerStep.registerCompensation(() -> {
             if (this.getQuizAnswerDto() != null) {
-                quizAnswerService.removeQuizAnswer(this.getQuizAnswerDto().getAggregateId(), unitOfWork);
+//                quizAnswerService.removeQuizAnswer(this.getQuizAnswerDto().getAggregateId(), unitOfWork);
+                RemoveQuizAnswerCommand removeQuizAnswerCommand = new RemoveQuizAnswerCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), this.getQuizAnswerDto().getAggregateId());
+                commandGateway.send(removeQuizAnswerCommand);
             }
         }, unitOfWork);
         
         SagaSyncStep solveQuizStep = new SagaSyncStep("solveQuizStep", () -> {
-            tournamentService.solveQuiz(tournamentAggregateId, userAggregateId, this.getQuizAnswerDto().getAggregateId(), unitOfWork);
+//            tournamentService.solveQuiz(tournamentAggregateId, userAggregateId, this.getQuizAnswerDto().getAggregateId(), unitOfWork);
+            SolveQuizCommand solveQuizCommand = new SolveQuizCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, userAggregateId, this.getQuizAnswerDto().getAggregateId());
+            commandGateway.send(solveQuizCommand);
         }, new ArrayList<>(Arrays.asList(startQuizAnswerStep)));
 
         workflow.addStep(getTournamentStep);
@@ -77,27 +99,27 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(solveQuizStep);
     }    
 
-    public SagaTournamentDto getTournamentDto() {
+    public TournamentDto getTournamentDto() {
         return tournament;
     }
 
-    public void setTournament(SagaTournamentDto tournament) {
+    public void setTournament(TournamentDto tournament) {
         this.tournament = tournament;
     }
 
-    public SagaQuizDto getQuizDto() {
+    public QuizDto getQuizDto() {
         return quizDto;
     }
 
-    public void setQuizDto(SagaQuizDto quizDto) {
+    public void setQuizDto(QuizDto quizDto) {
         this.quizDto = quizDto;
     }
 
-    public SagaQuizAnswerDto getQuizAnswerDto() {
+    public QuizAnswerDto getQuizAnswerDto() {
         return quizAnswerDto;
     }
 
-    public void setQuizAnswerDto(SagaQuizAnswerDto quizAnswerDto) {
+    public void setQuizAnswerDto(QuizAnswerDto quizAnswerDto) {
         this.quizAnswerDto = quizAnswerDto;
     }
 

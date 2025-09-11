@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.quiz.CreateQuizFunctionalityTCC;
@@ -50,6 +51,8 @@ public class QuizFunctionalities {
     private Environment env;
 
     private TransactionalModel workflowType;
+    @Autowired
+    private CommandGateway commandGateway;
 
     @PostConstruct
     public void init() {
@@ -70,7 +73,7 @@ public class QuizFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 CreateQuizFunctionalitySagas createQuizFunctionalitySagas = new CreateQuizFunctionalitySagas(
-                        courseExecutionService, quizService, questionService, sagaUnitOfWorkService, courseExecutionId, quizDto, sagaUnitOfWork);
+                        courseExecutionService, quizService, questionService, sagaUnitOfWorkService, courseExecutionId, quizDto, sagaUnitOfWork, commandGateway);
                 createQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createQuizFunctionalitySagas.getCreatedQuizDto();
             case TCC:

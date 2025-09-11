@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
@@ -60,6 +61,9 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
     def removeTournamentFunctionality
     def functionalityName2
 
+    @Autowired
+    private CommandGateway commandGateway;
+
     def setup() {
         given: 'a course execution'
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
@@ -93,12 +97,12 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         updateTournamentDto.setStartTime(DateHandler.toISOString(TIME_2))
         topics =  new HashSet<>(Arrays.asList(topicDto1.aggregateId,topicDto2.aggregateId))
         updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService,
-                updateTournamentDto, topics, unitOfWork1)
+                updateTournamentDto, topics, unitOfWork1, commandGateway)
 
         and: 'information required to remove tournament'
         functionalityName2 = RemoveTournamentFunctionalitySagas.class.getSimpleName()
         unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
-        removeTournamentFunctionality = new RemoveTournamentFunctionalitySagas(tournamentService, quizService, unitOfWorkService, tournamentDto.aggregateId, unitOfWork2)
+        removeTournamentFunctionality = new RemoveTournamentFunctionalitySagas(tournamentService, quizService, unitOfWorkService, tournamentDto.aggregateId, unitOfWork2, commandGateway)
     }
 
     def cleanup() {}

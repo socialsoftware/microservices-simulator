@@ -91,7 +91,7 @@ public class TournamentFunctionalities {
 
                 CreateTournamentFunctionalitySagas createTournamentFunctionalitySagas = new CreateTournamentFunctionalitySagas(
                         tournamentService, courseExecutionService, topicService, quizService, sagaUnitOfWorkService,
-                        userId, executionId, topicsId, tournamentDto, sagaUnitOfWork);
+                        userId, executionId, topicsId, tournamentDto, sagaUnitOfWork, commandGateway);
 
                 createTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createTournamentFunctionalitySagas.getTournamentDto();
@@ -165,7 +165,7 @@ public class TournamentFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateTournamentFunctionalitySagas updateTournamentFunctionalitySagas = new UpdateTournamentFunctionalitySagas(
                         tournamentService, topicService, quizService, sagaUnitOfWorkService,
-                        tournamentDto, topicsAggregateIds, sagaUnitOfWork);
+                        tournamentDto, topicsAggregateIds, sagaUnitOfWork, commandGateway);
 
                 updateTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
@@ -189,7 +189,7 @@ public class TournamentFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
 
                 GetTournamentsForCourseExecutionFunctionalitySagas getTournamentsForCourseExecutionFunctionalitySagas = new GetTournamentsForCourseExecutionFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork);
+                        tournamentService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork, commandGateway);
 
                 getTournamentsForCourseExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getTournamentsForCourseExecutionFunctionalitySagas.getTournaments();
@@ -211,7 +211,7 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetOpenedTournamentsForCourseExecutionFunctionalitySagas getOpenedTournamentsForCourseExecutionFunctionalitySagas = new GetOpenedTournamentsForCourseExecutionFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork);
+                        tournamentService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork, commandGateway);
 
                 getOpenedTournamentsForCourseExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getOpenedTournamentsForCourseExecutionFunctionalitySagas.getOpenedTournaments();
@@ -233,7 +233,7 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetClosedTournamentsForCourseExecutionFunctionalitySagas getClosedTournamentsForCourseExecutionFunctionalitySagas = new GetClosedTournamentsForCourseExecutionFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork);
+                        tournamentService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork, commandGateway);
 
                 getClosedTournamentsForCourseExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getClosedTournamentsForCourseExecutionFunctionalitySagas.getClosedTournaments();
@@ -255,7 +255,7 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 LeaveTournamentFunctionalitySagas leaveTournamentFunctionalitySagas = new LeaveTournamentFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, tournamentFactory, tournamentAggregateId, userAggregateId, sagaUnitOfWork);
+                        tournamentService, sagaUnitOfWorkService, tournamentFactory, tournamentAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 leaveTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
@@ -278,7 +278,7 @@ public class TournamentFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 SolveQuizFunctionalitySagas solveQuizFunctionalitySagas = new SolveQuizFunctionalitySagas(
                         tournamentService, quizService, quizAnswerService, sagaUnitOfWorkService, tournamentFactory,
-                        tournamentAggregateId, userAggregateId, sagaUnitOfWork);
+                        tournamentAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 solveQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return solveQuizFunctionalitySagas.getQuizDto();
@@ -301,7 +301,7 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 CancelTournamentFunctionalitySagas cancelTournamentFunctionalitySagas = new CancelTournamentFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, tournamentFactory, tournamentAggregateId, sagaUnitOfWork);
+                        tournamentService, sagaUnitOfWorkService, tournamentFactory, tournamentAggregateId, sagaUnitOfWork, commandGateway);
 
                 cancelTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
@@ -324,7 +324,7 @@ public class TournamentFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
 
                 RemoveTournamentFunctionalitySagas removeTournamentFunctionalitySagas = new RemoveTournamentFunctionalitySagas(
-                        tournamentService, quizService, sagaUnitOfWorkService, tournamentAggregateId, sagaUnitOfWork);
+                        tournamentService, quizService, sagaUnitOfWorkService, tournamentAggregateId, sagaUnitOfWork, commandGateway);
 
                 removeTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
@@ -347,7 +347,7 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
 
-                FindTournamentFunctionalitySagas findTournamentFunctionalitySagas = new FindTournamentFunctionalitySagas(tournamentService, sagaUnitOfWorkService, tournamentAggregateId, sagaUnitOfWork);
+                FindTournamentFunctionalitySagas findTournamentFunctionalitySagas = new FindTournamentFunctionalitySagas(tournamentService, sagaUnitOfWorkService, tournamentAggregateId, sagaUnitOfWork, commandGateway);
 
                 findTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findTournamentFunctionalitySagas.getTournamentDto();
@@ -371,7 +371,7 @@ public class TournamentFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
 
                 FindParticipantFunctionalitySagas findParticipantFunctionalitySagas = new FindParticipantFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, tournamentAggregateId, userAggregateId, sagaUnitOfWork);
+                        tournamentService, sagaUnitOfWorkService, tournamentAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 findParticipantFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findParticipantFunctionalitySagas.getParticipant();

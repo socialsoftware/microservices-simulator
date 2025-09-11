@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.publish.QuizAnswerQuestionAnswerEvent;
@@ -42,6 +43,8 @@ public class TournamentEventProcessing {
     private Environment env;
 
     private TransactionalModel workflowType;
+    @Autowired
+    private CommandGateway commandGateway;
 
     @PostConstruct
     public void init() {
@@ -67,7 +70,7 @@ public class TournamentEventProcessing {
                 UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
                 AnonymizeUserTournamentFunctionalitySagas anonymizeUserTournamentFunctionalitySagas =
-                        new AnonymizeUserTournamentFunctionalitySagas(tournamentService, unitOfWorkService, aggregateId, anonymizeEvent.getPublisherAggregateId(), anonymizeEvent.getStudentAggregateId(), anonymizeEvent.getName(), anonymizeEvent.getUsername(), anonymizeEvent.getPublisherAggregateVersion(), unitOfWork);
+                        new AnonymizeUserTournamentFunctionalitySagas(tournamentService, unitOfWorkService, aggregateId, anonymizeEvent.getPublisherAggregateId(), anonymizeEvent.getStudentAggregateId(), anonymizeEvent.getName(), anonymizeEvent.getUsername(), anonymizeEvent.getPublisherAggregateVersion(), unitOfWork, commandGateway);
                 anonymizeUserTournamentFunctionalitySagas.executeWorkflow(unitOfWork);
                 break;
             case TCC:
@@ -117,7 +120,7 @@ public class TournamentEventProcessing {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
 
                 UpdateUserNameFunctionalitySagas updateUserNameFunctionalitySagas =
-                        new UpdateUserNameFunctionalitySagas(tournamentService, sagaUnitOfWorkService,updateStudentNameEvent.getPublisherAggregateVersion(), subscriberAggregateId ,updateStudentNameEvent.getPublisherAggregateId() ,updateStudentNameEvent.getStudentAggregateId() ,sagaUnitOfWork, updateStudentNameEvent.getUpdatedName());
+                        new UpdateUserNameFunctionalitySagas(tournamentService, sagaUnitOfWorkService,updateStudentNameEvent.getPublisherAggregateVersion(), subscriberAggregateId ,updateStudentNameEvent.getPublisherAggregateId() ,updateStudentNameEvent.getStudentAggregateId() ,sagaUnitOfWork, updateStudentNameEvent.getUpdatedName(), commandGateway);
                                                       
                 updateUserNameFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;

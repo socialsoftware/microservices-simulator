@@ -52,6 +52,10 @@ public class TournamentCommandHandler implements CommandHandler {
             returnObject = handleUpdateTournament((UpdateTournamentCommand) command);
         } else if (command instanceof CancelTournamentCommand) {
             returnObject = handleCancelTournament((CancelTournamentCommand) command);
+        } else if (command instanceof AnonymizeUserCommand) {
+            returnObject = handleAnonymizeUser((AnonymizeUserCommand) command);
+        } else if (command instanceof UpdateUserNameCommand) {
+            returnObject = handleUpdateUserName((UpdateUserNameCommand) command);
         } else {
             logger.warning("Unknown command type: " + command.getClass().getName());
             returnObject = null;
@@ -190,11 +194,10 @@ public class TournamentCommandHandler implements CommandHandler {
     private Object handleUpdateTournament(UpdateTournamentCommand command) {
         logger.info("Updating tournament: " + command.getTournamentDto().getAggregateId());
         try {
-            tournamentService.updateTournament(
+            return tournamentService.updateTournament(
                     command.getTournamentDto(),
                     command.getTopicDtos(),
                     command.getUnitOfWork());
-            return null;
         } catch (Exception e) {
             logger.severe("Failed to update tournament: " + e.getMessage());
             return e;
@@ -210,6 +213,40 @@ public class TournamentCommandHandler implements CommandHandler {
             return null;
         } catch (Exception e) {
             logger.severe("Failed to cancel tournament: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleAnonymizeUser(AnonymizeUserCommand command) {
+        logger.info("Anonymizing user for tournament: " + command.getTournamentAggregateId());
+        try {
+            return tournamentService.anonymizeUser(
+                    command.getTournamentAggregateId(),
+                    command.getExecutionAggregateId(),
+                    command.getUserAggregateId(),
+                    command.getName(),
+                    command.getUsername(),
+                    command.getEventVersion(),
+                    command.getUnitOfWork());
+        } catch (Exception e) {
+            logger.severe("Failed to anonymize user: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleUpdateUserName(UpdateUserNameCommand command) {
+        logger.info("Updating user name in tournament: " + command.getTournamentAggregateId());
+        try {
+            tournamentService.updateUserName(
+                    command.getTournamentAggregateId(),
+                    command.getExecutionAggregateId(),
+                    command.getEventVersion(),
+                    command.getUserAggregateId(),
+                    command.getName(),
+                    command.getUnitOfWork());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to update user name: " + e.getMessage());
             return e;
         }
     }

@@ -7,7 +7,8 @@ public enum ServiceMapping {
     COURSE_EXECUTION("courseExecution"),
     COURSE("course"),
     QUESTION("question"),
-    TOPIC("topic");
+    TOPIC("topic"),
+    ANSWER("answer");
 
     private final String serviceName;
 

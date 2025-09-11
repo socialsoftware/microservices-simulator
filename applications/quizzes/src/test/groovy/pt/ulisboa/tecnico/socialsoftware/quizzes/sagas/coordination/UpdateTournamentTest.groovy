@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState
@@ -45,6 +46,8 @@ class UpdateTournamentTest extends QuizzesSpockTest {
     private TopicService topicService
     @Autowired
     private QuizService quizService
+    @Autowired
+    private CommandGateway commandGateway;
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
@@ -168,7 +171,7 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         tournamentDto2.setStartTime(DateHandler.toISOString(TIME_2))
         tournamentDto2.setEndTime(DateHandler.toISOString(TIME_4))
         and: 'the first execution occurs until getTopicsStep'
-        def updateTournamentFunctionalityOne = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1)
+        def updateTournamentFunctionalityOne = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
         updateTournamentFunctionalityOne.executeUntilStep('getTopicsStep', unitOfWork1)
 
         when: 'the second execution occurs'

@@ -41,6 +41,8 @@ public class QuizCommandHandler implements CommandHandler {
             returnObject = handleUpdateQuiz((UpdateQuizCommand) command);
         } else if (command instanceof GetAvailableQuizzesCommand) {
             returnObject = handleGetAvailableQuizzes((GetAvailableQuizzesCommand) command);
+        } else if (command instanceof RemoveQuizCommand) {
+            returnObject = handleRemoveQuiz((RemoveQuizCommand) command);
         } else {
             logger.warning("Unknown command type: " + command.getClass().getName());
             returnObject = null;
@@ -141,6 +143,19 @@ public class QuizCommandHandler implements CommandHandler {
                     command.getUnitOfWork());
         } catch (Exception e) {
             logger.severe("Failed to get available quizzes: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleRemoveQuiz(RemoveQuizCommand command) {
+        logger.info("Removing quiz: " + command.getQuizAggregateId());
+        try {
+            quizService.removeQuiz(
+                    command.getQuizAggregateId(),
+                    command.getUnitOfWork());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to remove quiz: " + e.getMessage());
             return e;
         }
     }

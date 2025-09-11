@@ -1,11 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamentByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
@@ -15,13 +20,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
-    private SagaTournamentDto tournament;
-    private UserDto participant;    private final TournamentService tournamentService;
+    private TournamentDto tournament;
+    private UserDto participant;
+    private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
 
-    public FindParticipantFunctionalitySagas(TournamentService tournamentService, SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public FindParticipantFunctionalitySagas(TournamentService tournamentService, SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -29,13 +37,19 @@ public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
-            SagaTournamentDto tournament = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
+//            TournamentDto tournament = (TournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+//            unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
+            GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            getTournamentByIdCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
+            TournamentDto tournament = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
             this.setTournament(tournament);
         });
 
         getTournamentStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(tournamentAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+//            unitOfWorkService.registerSagaState(tournamentAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            Command command = new Command(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(command);
         }, unitOfWork);
 
         SagaSyncStep getParticipantStep = new SagaSyncStep("getParticipantStep", () -> {
@@ -49,11 +63,11 @@ public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
 
         
 
-    public void setTournament(SagaTournamentDto tournament) {
+    public void setTournament(TournamentDto tournament) {
         this.tournament = tournament;
     }
 
-    public SagaTournamentDto getTournament() {
+    public TournamentDto getTournament() {
         return tournament;
     }
 
