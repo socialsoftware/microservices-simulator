@@ -1,13 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.QuizAnswerSagaState;
 
 import java.util.ArrayList;
@@ -15,14 +18,16 @@ import java.util.Arrays;
 
 public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
     
-    private SagaQuizAnswerDto quizAnswer;
+    private QuizAnswerDto quizAnswer;
     private final QuizAnswerService quizAnswerService;
     private final SagaUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
 
     public ConcludeQuizFunctionalitySagas(QuizAnswerService quizAnswerService, SagaUnitOfWorkService unitOfWorkService,  
-                            Integer quizAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+                            Integer quizAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.quizAnswerService = quizAnswerService;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(quizAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -30,17 +35,21 @@ public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getQuizAnswerStep = new SagaSyncStep("getQuizAnswerStep", () -> {
-            SagaQuizAnswerDto quizAnswer = (SagaQuizAnswerDto) quizAnswerService.getQuizAnswerDtoByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
+            QuizAnswerDto quizAnswer = (QuizAnswerDto) quizAnswerService.getQuizAnswerDtoByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork); // TODO
             unitOfWorkService.registerSagaState(quizAnswer.getAggregateId(), QuizAnswerSagaState.READ_QUIZ_ANSWER, unitOfWork);
+            // GetQuizAnswerDtoByQuizIdAndUserIdCommand getQuizAnswerDtoByQuizIdAndUserIdCommand = new GetQuizAnswerDtoByQuizIdAndUserIdCommand(unitOfWork, quizAnswerService.getServiceName(), quizAggregateId, userAggregateId);
             this.setQuizAnswer(quizAnswer);
         });
     
         getQuizAnswerStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(this.quizAnswer.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+//            unitOfWorkService.registerSagaState(this.quizAnswer.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            Command command = new Command(unitOfWork, ServiceMapping.ANSWER.getServiceName(), this.quizAnswer.getAggregateId());
+            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(command);
         }, unitOfWork);
     
         SagaSyncStep concludeQuizStep = new SagaSyncStep("concludeQuizStep", () -> {
-            quizAnswerService.concludeQuiz(quizAggregateId, userAggregateId, unitOfWork);
+            quizAnswerService.concludeQuiz(quizAggregateId, userAggregateId, unitOfWork); // TODO
         }, new ArrayList<>(Arrays.asList(getQuizAnswerStep)));
     
         workflow.addStep(getQuizAnswerStep);
@@ -48,11 +57,11 @@ public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
     }
     
 
-    public SagaQuizAnswerDto getQuizAnswer() {
+    public QuizAnswerDto getQuizAnswer() {
         return quizAnswer;
     }
 
-    public void setQuizAnswer(SagaQuizAnswerDto quizAnswer) {
+    public void setQuizAnswer(QuizAnswerDto quizAnswer) {
         this.quizAnswer = quizAnswer;
     }
 }

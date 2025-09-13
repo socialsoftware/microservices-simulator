@@ -4,10 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.*;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 
 import java.util.logging.Logger;
 

@@ -14,14 +14,13 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.UpdateTopicComman
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.TopicSagaState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
-    private SagaTopicDto topic;
+    private TopicDto topic;
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
@@ -38,11 +37,11 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
-//            SagaTopicDto topic = (SagaTopicDto) topicService.getTopicById(topicDto.getAggregateId(), unitOfWork);
+//            TopicDto topic = (TopicDto) topicService.getTopicById(topicDto.getAggregateId(), unitOfWork);
 //            unitOfWorkService.registerSagaState(topic.getAggregateId(), TopicSagaState.READ_TOPIC, unitOfWork);
             GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId());
             getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
-            SagaTopicDto topic = (SagaTopicDto) commandGateway.send(getTopicByIdCommand);
+            TopicDto topic = (TopicDto) commandGateway.send(getTopicByIdCommand);
             this.setTopic(topic);
         });
     
@@ -64,11 +63,11 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
     }
     
 
-    public SagaTopicDto getTopic() {
+    public TopicDto getTopic() {
         return topic;
     }
 
-    public void setTopic(SagaTopicDto topic) {
+    public void setTopic(TopicDto topic) {
         this.topic = topic;
     }
 }

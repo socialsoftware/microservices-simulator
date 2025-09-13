@@ -9,7 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.QuizSagaState;
 
 import java.util.ArrayList;
@@ -17,7 +16,7 @@ import java.util.Arrays;
 
 public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
     
-    private SagaQuizDto quizDto;
+    private QuizDto quizDto;
     private final QuizAnswerService quizAnswerService;
     private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -34,7 +33,7 @@ public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getQuizStep = new SagaSyncStep("getQuizStep", () -> {
-            SagaQuizDto quizDto = (SagaQuizDto) quizService.getQuizById(quizAggregateId, unitOfWork);
+            QuizDto quizDto = (QuizDto) quizService.getQuizById(quizAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(quizAggregateId, QuizSagaState.READ_QUIZ, unitOfWork);
             this.setQuizDto(quizDto);
         });
@@ -56,7 +55,7 @@ public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
         return quizDto;
     }
 
-    public void setQuizDto(SagaQuizDto quizDto) {
+    public void setQuizDto(QuizDto quizDto) {
         this.quizDto = quizDto;
     }
 }

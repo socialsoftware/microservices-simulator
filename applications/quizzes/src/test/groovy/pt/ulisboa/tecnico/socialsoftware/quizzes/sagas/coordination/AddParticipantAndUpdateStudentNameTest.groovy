@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
@@ -22,7 +23,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.servic
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 
 @DataJpaTest
 class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {

@@ -11,8 +11,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.DeleteTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.TopicSagaState;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import java.util.Arrays;
 
 public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
 
-    private SagaTopicDto topic;
+    private TopicDto topic;
 
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -38,11 +38,11 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
-//            SagaTopicDto topicDto = (SagaTopicDto) topicService.getTopicById(topicAggregateId, unitOfWork);
+//            TopicDto topicDto = (TopicDto) topicService.getTopicById(topicAggregateId, unitOfWork);
 //            unitOfWorkService.registerSagaState(topicAggregateId, TopicSagaState.READ_TOPIC, unitOfWork);
             GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
             getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
-            SagaTopicDto topicDto = (SagaTopicDto) commandGateway.send(getTopicByIdCommand);
+            TopicDto topicDto = (TopicDto) commandGateway.send(getTopicByIdCommand);
             this.setTopic(topicDto);
         });
     
@@ -62,11 +62,11 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getTopicStep);
         workflow.addStep(deleteTopicStep);
     }
-    public SagaTopicDto getTopic() {
+    public TopicDto getTopic() {
         return topic;
     }
 
-    public void setTopic(SagaTopicDto topic) {
+    public void setTopic(TopicDto topic) {
         this.topic = topic;
     }
 }

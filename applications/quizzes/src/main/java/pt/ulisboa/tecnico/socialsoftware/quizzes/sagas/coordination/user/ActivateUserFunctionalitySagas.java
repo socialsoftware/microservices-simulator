@@ -12,7 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.ActivateUserComman
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetUserByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaUserDto;
 
 import java.util.ArrayList;
 import java.util.Arrays;

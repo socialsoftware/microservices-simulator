@@ -14,14 +14,13 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateQuestion
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.QuestionSagaState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
-    private SagaQuestionDto question;
+    private QuestionDto question;
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
@@ -38,11 +37,11 @@ public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
-//            SagaQuestionDto question = (SagaQuestionDto) questionService.getQuestionById(questionDto.getAggregateId(), unitOfWork);
+//            QuestionDto question = (QuestionDto) questionService.getQuestionById(questionDto.getAggregateId(), unitOfWork);
 //            unitOfWorkService.registerSagaState(question.getAggregateId(), QuestionSagaState.READ_QUESTION, unitOfWork);
             GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionDto.getAggregateId());
             getQuestionByIdCommand.setSemanticLock(QuestionSagaState.READ_QUESTION);
-            SagaQuestionDto question = (SagaQuestionDto) commandGateway.send(getQuestionByIdCommand);
+            QuestionDto question = (QuestionDto) commandGateway.send(getQuestionByIdCommand);
             this.setQuestion(question);
         });
     
@@ -64,11 +63,11 @@ public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
     }
     
 
-    public SagaQuestionDto getQuestion() {
+    public QuestionDto getQuestion() {
         return question;
     }
 
-    public void setQuestion(SagaQuestionDto question) {
+    public void setQuestion(QuestionDto question) {
         this.question = question;
     }
 }

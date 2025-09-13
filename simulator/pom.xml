@@ -166,6 +166,29 @@
 			<version>1.50.0</version>
 		</dependency>
 
+		<!-- Spring Cloud Stream -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-stream</artifactId>
+			<version>4.2.1</version>
+		</dependency>
+
+		<!-- Spring Cloud Function (required for StreamBridge) -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-function-context</artifactId>
+			<version>4.2.2</version>
+		</dependency>
+
+		<!-- Kafka message broker-->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-stream-binder-kafka</artifactId>
+			<version>4.2.1</version>
+		</dependency>
+
+
+
 	</dependencies>
 
 	<build>

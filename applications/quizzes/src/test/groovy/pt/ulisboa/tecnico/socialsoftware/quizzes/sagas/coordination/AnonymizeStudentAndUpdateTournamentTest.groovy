@@ -23,14 +23,13 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuizDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.AnonymizeStudentFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 
 @DataJpaTest
 class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
@@ -295,11 +294,11 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'the tournament finishes updating'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
         then: 'tournament is updated'
-        def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        def updatedTournamentDto = (TournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto.numberOfQuestions == 3
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
         and: 'quiz is changed'
-        def quizDto = (SagaQuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
+        def quizDto = (QuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 3
 
         when: 'tournament processes event to anonymize the creator'
@@ -337,11 +336,11 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         when: 'the tournament finishes updating'
         updateTournamentFunctionality.resumeWorkflow(unitOfWork1)
         then: 'the tournament is updated'
-        def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        def updatedTournamentDto = (TournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto.numberOfQuestions == 3
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
         and: 'quiz is changed'
-        def quizDto = (SagaQuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
+        def quizDto = (QuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 3
 
         when: 'tournament retry to process the event to anonymize the creator'
@@ -377,13 +376,13 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         def error = thrown(QuizzesException)
         error.errorMessage == QuizzesErrorMessage.NOT_ENOUGH_QUESTIONS
         and: 'compensation is executed'
-        def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        def updatedTournamentDto = (TournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto.numberOfQuestions == 2
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
         and: 'saga sate is undone'
         updatedTournamentDto.sagaState == GenericSagaState.NOT_IN_SAGA
         and: 'quiz is not changed'
-        def quizDto = (SagaQuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
+        def quizDto = (QuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 2
         quizDto.sagaState == GenericSagaState.NOT_IN_SAGA
 
@@ -425,13 +424,13 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         def error2 = thrown(QuizzesException)
         error2.errorMessage == QuizzesErrorMessage.NOT_ENOUGH_QUESTIONS
         and: 'compensation is executed'
-        def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        def updatedTournamentDto = (TournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto.numberOfQuestions == 2
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
         and: 'saga sate is undone'
         updatedTournamentDto.sagaState == GenericSagaState.NOT_IN_SAGA
         and: 'quiz is not changed'
-        def quizDto = (SagaQuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
+        def quizDto = (QuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 2
         quizDto.sagaState == GenericSagaState.NOT_IN_SAGA
 

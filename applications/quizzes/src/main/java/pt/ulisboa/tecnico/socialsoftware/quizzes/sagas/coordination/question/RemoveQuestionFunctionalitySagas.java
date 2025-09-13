@@ -11,8 +11,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.RemoveQuestionCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.QuestionSagaState;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import java.util.Arrays;
 
 public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
 
-    private SagaQuestionDto question;
+    private QuestionDto question;
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
@@ -37,11 +37,11 @@ public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
-//            SagaQuestionDto question = (SagaQuestionDto) questionService.getQuestionById(questionAggregateId, unitOfWork);
+//            QuestionDto question = (QuestionDto) questionService.getQuestionById(questionAggregateId, unitOfWork);
 //            unitOfWorkService.registerSagaState(questionAggregateId, QuestionSagaState.READ_QUESTION, unitOfWork);
             GetQuestionByIdCommand getQuestionByIdCommand = new  GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
             getQuestionByIdCommand.setSemanticLock(QuestionSagaState.READ_QUESTION);
-            SagaQuestionDto question = (SagaQuestionDto) commandGateway.send(getQuestionByIdCommand);
+            QuestionDto question = (QuestionDto) commandGateway.send(getQuestionByIdCommand);
             this.setQuestion(question);
         });
     
@@ -61,11 +61,11 @@ public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getQuestionStep);
         workflow.addStep(removeQuestionStep);
     }
-    public SagaQuestionDto getQuestion() {
+    public QuestionDto getQuestion() {
         return question;
     }
 
-    public void setQuestion(SagaQuestionDto question) {
+    public void setQuestion(QuestionDto question) {
         this.question = question;
     }
 }

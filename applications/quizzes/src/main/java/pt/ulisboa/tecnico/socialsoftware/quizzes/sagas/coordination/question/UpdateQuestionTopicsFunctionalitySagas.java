@@ -11,13 +11,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateQuestionTopicsCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionTopic;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.QuestionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.TopicSagaState;
 
@@ -29,7 +28,7 @@ import java.util.stream.Collectors;
 
 public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionality {
     private Set<QuestionTopic> topics;
-    private SagaQuestionDto question;
+    private QuestionDto question;
     private Set<TopicDto> topicDtos;
     private final QuestionService questionService;
     private final TopicService topicService;
@@ -52,11 +51,11 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
         SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> {
             Set<QuestionTopic> topics = topicIds.stream()
                 .map(topicId -> {
-//                    SagaTopicDto topic = (SagaTopicDto) topicService.getTopicById(topicId, unitOfWork);
+//                    TopicDto topic = (TopicDto) topicService.getTopicById(topicId, unitOfWork);
 //                    unitOfWorkService.registerSagaState(topic.getAggregateId(), TopicSagaState.READ_TOPIC, unitOfWork);
                     GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId);
                     getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
-                    SagaTopicDto topic = (SagaTopicDto) commandGateway.send(getTopicByIdCommand);
+                    TopicDto topic = (TopicDto) commandGateway.send(getTopicByIdCommand);
                     return topic;
                 })
                 .map(QuestionTopic::new)
@@ -74,7 +73,7 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
         }, unitOfWork);
     
         SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
-            SagaQuestionDto question = (SagaQuestionDto) questionService.getQuestionById(courseAggregateId, unitOfWork);
+            QuestionDto question = (QuestionDto) questionService.getQuestionById(courseAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(question.getAggregateId(), QuestionSagaState.READ_QUESTION, unitOfWork);
             Set<TopicDto> topics = question.getTopicDto();
             this.setQuestion(question);
@@ -114,11 +113,11 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
         this.topicDtos = topics;
     }
 
-    public SagaQuestionDto getQuestion() {
+    public QuestionDto getQuestion() {
         return question;
     }
 
-    public void setQuestion(SagaQuestionDto question) {
+    public void setQuestion(QuestionDto question) {
         this.question = question;
     }
 }

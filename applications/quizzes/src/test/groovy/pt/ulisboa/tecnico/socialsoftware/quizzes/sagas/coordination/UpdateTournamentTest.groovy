@@ -20,12 +20,11 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggrega
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuizDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentFunctionalitySagas
 
 @DataJpaTest
@@ -131,7 +130,7 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         def error = thrown(SimulatorException)
         error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
         and: 'tournament is not changed'
-        def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        def updatedTournamentDto = (TournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto.numberOfQuestions == 2
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
         and: 'saga sate is undone'
@@ -150,13 +149,13 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         def error = thrown(QuizzesException)
         error.errorMessage == QuizzesErrorMessage.NOT_ENOUGH_QUESTIONS
         and: 'compensation is executed'
-        def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        def updatedTournamentDto = (TournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto.numberOfQuestions == 2
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
         and: 'saga sate is undone'
         updatedTournamentDto.sagaState == GenericSagaState.NOT_IN_SAGA
         and: 'quiz is not changed'
-        def quizDto = (SagaQuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
+        def quizDto = (QuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 2
         quizDto.sagaState == GenericSagaState.NOT_IN_SAGA
     }

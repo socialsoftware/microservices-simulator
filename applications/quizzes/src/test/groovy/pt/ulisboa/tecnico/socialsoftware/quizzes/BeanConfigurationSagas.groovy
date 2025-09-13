@@ -4,6 +4,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
@@ -44,7 +45,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.C
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.CourseExecutionCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.QuizAnswerCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.TournamentCustomRepositorySagas
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")

@@ -8,7 +8,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GenerateQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.RemoveQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
@@ -22,11 +21,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.Top
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaCourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.CourseExecutionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.TopicSagaState;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.UserSagaState;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,7 +31,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
     
     private CourseExecutionDto courseExecutionDto;
     private UserDto userDto;
-    private HashSet<SagaTopicDto> topicDtos = new HashSet<SagaTopicDto>();
+    private HashSet<TopicDto> topicDtos = new HashSet<>();
     private QuizDto quizDto;
     private TournamentDto tournamentDto;
     private final TournamentService tournamentService;
@@ -76,7 +72,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             // by making this call locks regarding the role of the creator are guaranteed
             // by making this call the invariants regarding the course execution and the role of the creator are guaranteed
             UserDto creatorDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId, unitOfWork);
-            unitOfWorkService.registerSagaState(userId, UserSagaState.READ_USER, unitOfWork); // TODO calling another aggregate that is not courseExecution
+//            unitOfWorkService.registerSagaState(userId, UserSagaState.READ_USER, unitOfWork); // TODO calling another aggregate that is not courseExecution
 //            GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId, userId);
 //            getStudentByExecutionIdAndUserIdCommand.setSemanticLock(UserSagaState.READ_USER);
 //            UserDto creatorDto = (UserDto) commandGateway.send(getStudentByExecutionIdAndUserIdCommand);
@@ -86,11 +82,11 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> { // TODO EACH TOPIC IN A SEPARATE STEP??
             topicsId.stream().forEach(topicId -> {
-//                SagaTopicDto topic = (SagaTopicDto) topicService.getTopicById(topicId, unitOfWork);
+//                TopicDto topic = (TopicDto) topicService.getTopicById(topicId, unitOfWork);
 //                unitOfWorkService.registerSagaState(topicId, TopicSagaState.READ_TOPIC, unitOfWork);
                 GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId);
                 getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
-                SagaTopicDto topic = (SagaTopicDto) commandGateway.send(getTopicByIdCommand);
+                TopicDto topic = (TopicDto) commandGateway.send(getTopicByIdCommand);
                 this.addTopicDto(topic);
             });
         });
@@ -157,15 +153,15 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
 
     public Set<TopicDto> getTopicsDtos() {
         return topicDtos.stream()
-            .map(sagaTopicDto -> (TopicDto) sagaTopicDto) 
+            .map(TopicDto -> (TopicDto) TopicDto)
             .collect(Collectors.toSet());
     }
 
-    public void setTopicsDtos(HashSet<SagaTopicDto> topicDtos) {
+    public void setTopicsDtos(HashSet<TopicDto> topicDtos) {
         this.topicDtos = topicDtos;
     }
 
-    public void addTopicDto(SagaTopicDto topicDto) {
+    public void addTopicDto(TopicDto topicDto) {
         this.topicDtos.add(topicDto);
     }
 

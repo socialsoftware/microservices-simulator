@@ -11,16 +11,16 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamentByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.UpdateUserNameCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.TournamentSagaState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class UpdateUserNameFunctionalitySagas extends WorkflowFunctionality {
-    private SagaTournamentDto tournament;
+    private TournamentDto tournament;
     private UserDto participant;    
     private String name;
     private final CommandGateway commandGateway;
@@ -43,11 +43,11 @@ public class UpdateUserNameFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
-//            SagaTournamentDto tournamentDTO = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+//            TournamentDto tournamentDTO = (TournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
 //            unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
             GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             getTournamentByIdCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
-            SagaTournamentDto tournamentDTO = (SagaTournamentDto) commandGateway.send(getTournamentByIdCommand);
+            TournamentDto tournamentDTO = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
             this.setTournament(tournamentDTO);
             
         });
@@ -87,11 +87,11 @@ public class UpdateUserNameFunctionalitySagas extends WorkflowFunctionality {
 
         
 
-    public void setTournament(SagaTournamentDto tournament) {
+    public void setTournament(TournamentDto tournament) {
         this.tournament = tournament;
     }
 
-    public SagaTournamentDto getTournament() {
+    public TournamentDto getTournament() {
         return tournament;
     }
 

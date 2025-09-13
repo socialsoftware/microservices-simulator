@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.quiz;
 
-import org.aspectj.bridge.ICommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
@@ -14,7 +13,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.Qu
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizQuestion;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.QuizSagaState;
 
 import java.util.ArrayList;
