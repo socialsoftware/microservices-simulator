@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.question;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.Question;
@@ -10,6 +11,10 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionTopic;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateQuestionTopicsCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 
 import java.util.List;
 import java.util.Set;
@@ -19,16 +24,20 @@ public class UpdateQuestionTopicsFunctionalityTCC extends WorkflowFunctionality 
     private Set<QuestionTopic> topics;
     private Question oldQuestion;
     private Set<QuestionTopic> oldTopics;
+    @SuppressWarnings("unused")
     private final QuestionService questionService;
+    @SuppressWarnings("unused")
     private final TopicService topicService;
     private final CausalUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
 
     public UpdateQuestionTopicsFunctionalityTCC(QuestionService questionService, TopicService topicService, 
                                 QuestionFactory questionFactory, CausalUnitOfWorkService unitOfWorkService,  
-                                Integer courseAggregateId, List<Integer> topicIds, CausalUnitOfWork unitOfWork) {
+                                Integer courseAggregateId, List<Integer> topicIds, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.questionService = questionService;
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(courseAggregateId, topicIds, questionFactory, unitOfWork);
     }
 
@@ -36,12 +45,18 @@ public class UpdateQuestionTopicsFunctionalityTCC extends WorkflowFunctionality 
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
+//            Set<QuestionTopic> topics = topicIds.stream()
+//                        .map(id -> topicService.getTopicById(id, unitOfWork))
+//                        .map(QuestionTopic::new)
+//                        .collect(Collectors.toSet());
             Set<QuestionTopic> topics = topicIds.stream()
-                        .map(id -> topicService.getTopicById(id, unitOfWork))
+                        .map(id -> (TopicDto) commandGateway.send(new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), id)))
                         .map(QuestionTopic::new)
                         .collect(Collectors.toSet());
 
-            questionService.updateQuestionTopics(courseAggregateId, topics, unitOfWork);
+//            questionService.updateQuestionTopics(courseAggregateId, topics, unitOfWork);
+            UpdateQuestionTopicsCommand cmd = new UpdateQuestionTopicsCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), courseAggregateId, topics);
+            commandGateway.send(cmd);
         });
     
         workflow.addStep(step);

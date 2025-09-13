@@ -3,8 +3,11 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.topic;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.UpdateTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.Topic;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicFactory;
@@ -12,13 +15,16 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.Top
 
 public class UpdateTopicFunctionalityTCC extends WorkflowFunctionality {
     private Topic oldTopic;
+    @SuppressWarnings("unused")
     private final TopicService topicService;
     private final CausalUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
 
     public UpdateTopicFunctionalityTCC(TopicService topicService, CausalUnitOfWorkService unitOfWorkService,  
-                            TopicDto topicDto, TopicFactory topicFactory, CausalUnitOfWork unitOfWork) {
+                            TopicDto topicDto, TopicFactory topicFactory, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(topicDto, topicFactory, unitOfWork);
     }
 
@@ -26,7 +32,9 @@ public class UpdateTopicFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            topicService.updateTopic(topicDto, unitOfWork);
+            // topicService.updateTopic(topicDto, unitOfWork);
+            UpdateTopicCommand UpdateTopicCommand = new UpdateTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto);
+            commandGateway.send(UpdateTopicCommand);
         });
     
         workflow.addStep(step);

@@ -3,8 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.tournament
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.StartQuizCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.StartTournamentQuizCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamentByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.SolveQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
@@ -14,6 +20,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 
+@SuppressWarnings("unused")
 public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
     private TournamentDto tournamentDto;
     private QuizDto quizDto;
@@ -23,14 +30,16 @@ public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
     private final QuizService quizService;
     private final QuizAnswerService quizAnswerService;
     private final CausalUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
 
     public SolveQuizFunctionalityTCC(TournamentService tournamentService, QuizService quizService, QuizAnswerService quizAnswerService, CausalUnitOfWorkService unitOfWorkService, 
                                 TournamentFactory tournamentFactory,
-                                Integer tournamentAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+                                Integer tournamentAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.quizService = quizService;
         this.quizAnswerService = quizAnswerService;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentFactory, tournamentAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -38,10 +47,20 @@ public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
-            this.quizDto = quizService.startTournamentQuiz(userAggregateId, tournamentDto.getQuiz().getAggregateId(), unitOfWork);
-            QuizAnswerDto quizAnswerDto = quizAnswerService.startQuiz(tournamentDto.getQuiz().getAggregateId(), tournamentDto.getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
-            tournamentService.solveQuiz(tournamentAggregateId, userAggregateId, quizAnswerDto.getAggregateId(), unitOfWork);
+            // TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            TournamentDto tournamentDto = (TournamentDto) commandGateway.send(new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId));
+
+            // this.quizDto = quizService.startTournamentQuiz(userAggregateId, tournamentDto.getQuiz().getAggregateId(), unitOfWork);
+            StartTournamentQuizCommand StartTournamentQuizCommand = new StartTournamentQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), userAggregateId, tournamentDto.getQuiz().getAggregateId());
+            this.quizDto = (QuizDto) commandGateway.send(StartTournamentQuizCommand);
+
+//            QuizAnswerDto quizAnswerDto = quizAnswerService.startQuiz(tournamentDto.getQuiz().getAggregateId(), tournamentDto.getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
+            StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), quizDto.getAggregateId(), userAggregateId, tournamentDto.getCourseExecution().getAggregateId());
+            quizAnswerDto = (QuizAnswerDto) commandGateway.send(startQuizCommand);
+
+            // tournamentService.solveQuiz(tournamentAggregateId, userAggregateId, quizAnswerDto.getAggregateId(), unitOfWork);
+            SolveQuizCommand SolveQuizCommand = new SolveQuizCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, userAggregateId, quizAnswerDto.getAggregateId());
+            commandGateway.send(SolveQuizCommand);
         });
     
         workflow.addStep(step);

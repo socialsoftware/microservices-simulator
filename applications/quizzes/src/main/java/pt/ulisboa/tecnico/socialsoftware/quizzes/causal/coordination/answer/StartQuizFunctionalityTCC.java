@@ -3,8 +3,11 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.answer;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.StartQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
@@ -13,11 +16,13 @@ public class StartQuizFunctionalityTCC extends WorkflowFunctionality {
     private QuizDto quizDto;
     private final QuizAnswerService quizAnswerService;
     private final CausalUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
 
     public StartQuizFunctionalityTCC(QuizAnswerService quizAnswerService, QuizService quizService, CausalUnitOfWorkService unitOfWorkService,  
-                        Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+                        Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.quizAnswerService = quizAnswerService;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(quizAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -25,7 +30,9 @@ public class StartQuizFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            quizAnswerService.startQuiz(quizAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
+//            quizAnswerService.startQuiz(quizAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
+            StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), quizAggregateId, courseExecutionAggregateId, userAggregateId);
+            commandGateway.send(startQuizCommand);
         });
     
         workflow.addStep(step);

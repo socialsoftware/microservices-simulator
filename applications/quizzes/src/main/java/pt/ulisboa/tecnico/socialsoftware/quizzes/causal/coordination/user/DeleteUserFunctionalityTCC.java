@@ -3,20 +3,26 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.user;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.CausalUser;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.DeleteUserCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 
+@SuppressWarnings("unused")
 public class DeleteUserFunctionalityTCC extends WorkflowFunctionality {
     private CausalUser user;
     private final UserService userService;
     private final CausalUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
 
     public DeleteUserFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,  
-                            Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+                            Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(userAggregateId, unitOfWork);
     }
 
@@ -24,7 +30,9 @@ public class DeleteUserFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            userService.deleteUser(userAggregateId, unitOfWork);
+            // userService.deleteUser(userAggregateId, unitOfWork);
+            DeleteUserCommand DeleteUserCommand = new DeleteUserCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
+            commandGateway.send(DeleteUserCommand);
         });
     
         workflow.addStep(step);

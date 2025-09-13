@@ -75,7 +75,7 @@ public class CourseExecutionFunctionalities {
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(courseExecutionDto);
                 CreateCourseExecutionFunctionalityTCC createCourseExecutionFunctionalityTCC = new CreateCourseExecutionFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, courseExecutionDto, causalUnitOfWork);
+                        courseExecutionService, causalUnitOfWorkService, courseExecutionDto, causalUnitOfWork, commandGateway);
                 createCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
 
                 return createCourseExecutionFunctionalityTCC.getCreatedCourseExecution();
@@ -96,7 +96,7 @@ public class CourseExecutionFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseExecutionByIdFunctionalityTCC getCourseExecutionByIdFunctionalityTCC = new GetCourseExecutionByIdFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork);
+                        courseExecutionService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork, commandGateway);
                 getCourseExecutionByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getCourseExecutionByIdFunctionalityTCC.getCourseExecutionDto();
             default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -116,7 +116,7 @@ public class CourseExecutionFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseExecutionsFunctionalityTCC getCourseExecutionsFunctionalityTCC = new GetCourseExecutionsFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, causalUnitOfWork);
+                        courseExecutionService, causalUnitOfWorkService, causalUnitOfWork, commandGateway);
                 getCourseExecutionsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getCourseExecutionsFunctionalityTCC.getCourseExecutions();
             default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -136,7 +136,7 @@ public class CourseExecutionFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 RemoveCourseExecutionFunctionalityTCC removeCourseExecutionFunctionalityTCC = new RemoveCourseExecutionFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork);
+                        courseExecutionService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork, commandGateway);
                 removeCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -156,7 +156,7 @@ public class CourseExecutionFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 AddStudentFunctionalityTCC addStudentFunctionalityTCC = new AddStudentFunctionalityTCC(
-                        courseExecutionService, userService, causalUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, causalUnitOfWork);
+                        courseExecutionService, userService, causalUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
                 addStudentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -176,7 +176,7 @@ public class CourseExecutionFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseExecutionsByUserFunctionalityTCC getCourseExecutionsByUserFunctionalityTCC = new GetCourseExecutionsByUserFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork);
+                        courseExecutionService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
                 getCourseExecutionsByUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getCourseExecutionsByUserFunctionalityTCC.getCourseExecutions();
             default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -196,7 +196,7 @@ public class CourseExecutionFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 RemoveStudentFromCourseExecutionFunctionalityTCC removeStudentFromCourseExecutionFunctionalityTCC = new RemoveStudentFromCourseExecutionFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, courseExecutionAggregateId, userAggregateId, causalUnitOfWork);
+                        courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, courseExecutionAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
                 removeStudentFromCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -216,7 +216,7 @@ public class CourseExecutionFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 AnonymizeStudentFunctionalityTCC anonymizeStudentFunctionalityTCC = new AnonymizeStudentFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, causalUnitOfWork);
+                        courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, executionAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
                 anonymizeStudentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -236,7 +236,7 @@ public class CourseExecutionFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateStudentNameFunctionalityTCC updateStudentNameFunctionalityTCC = new UpdateStudentNameFunctionalityTCC(
-                        courseExecutionService, courseExecutionFactory, causalUnitOfWorkService, executionAggregateId, userAggregateId, userDto, causalUnitOfWork);
+                        courseExecutionService, courseExecutionFactory, causalUnitOfWorkService, executionAggregateId, userAggregateId, userDto, causalUnitOfWork, commandGateway);
                 updateStudentNameFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);

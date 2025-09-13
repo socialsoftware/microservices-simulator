@@ -3,22 +3,29 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.tournament
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetClosedTournamentsForCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 
+import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class GetClosedTournamentsForCourseExecutionFunctionalityTCC extends WorkflowFunctionality {
     private List<TournamentDto> closedTournaments;
     private final TournamentService tournamentService;
     private final CausalUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
 
     public GetClosedTournamentsForCourseExecutionFunctionalityTCC(TournamentService tournamentService,CausalUnitOfWorkService unitOfWorkService, 
-                                Integer executionAggregateId, CausalUnitOfWork unitOfWork) {
+                                Integer executionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(executionAggregateId, unitOfWork);
     }
 
@@ -26,7 +33,8 @@ public class GetClosedTournamentsForCourseExecutionFunctionalityTCC extends Work
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            this.closedTournaments = tournamentService.getClosedTournamentsForCourseExecution(executionAggregateId, unitOfWork);
+            // this.closedTournaments = tournamentService.getClosedTournamentsForCourseExecution(executionAggregateId, unitOfWork);
+            this.closedTournaments = (List<TournamentDto>) commandGateway.send(new GetClosedTournamentsForCourseExecutionCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), executionAggregateId));
         });
     
         workflow.addStep(step);
