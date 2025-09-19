@@ -1,29 +1,33 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
-public class Command {
-    private final Integer rootAggregateId;
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
+public class Command implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private Integer rootAggregateId;
     private List<SagaAggregate.SagaState> forbiddenStates; // sagas
     private SagaAggregate.SagaState semanticLock; // sagas
-    private final UnitOfWork unitOfWork;
-    private final String serviceName;
+    private UnitOfWork unitOfWork;
+    private String serviceName;
+
+    protected Command() {}
 
     public Command(UnitOfWork unitOfWork, String serviceName, Integer rootAggregateId) {
         this.unitOfWork = unitOfWork;
         this.serviceName = serviceName;
         this.rootAggregateId = rootAggregateId;
     }
-
-    // public Command(UnitOfWork unitOfWork, String serviceName, Integer rootAggregateId, List<SagaAggregate.SagaState> forbiddenStates, SagaAggregate.SagaState semanticLock) {
-    //     this(unitOfWork, serviceName, rootAggregateId);
-    //     this.rootAggregateId = rootAggregateId;
-    //     this.forbiddenStates = forbiddenStates;
-    //     this.semanticLock = semanticLock;
-    // }
 
     public Integer getRootAggregateId() {
         return rootAggregateId;
@@ -51,6 +55,19 @@ public class Command {
 
     public void setSemanticLock(SagaAggregate.SagaState semanticLock) {
         this.semanticLock = semanticLock;
+    }
+
+    // Getters and setters for JSON deserialization
+    public void setRootAggregateId(Integer rootAggregateId) {
+        this.rootAggregateId = rootAggregateId;
+    }
+
+    public void setUnitOfWork(UnitOfWork unitOfWork) {
+        this.unitOfWork = unitOfWork;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
 }

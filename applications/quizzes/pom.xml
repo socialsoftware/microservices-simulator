@@ -199,6 +199,14 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Include specific binder based on your message broker -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+            <version>4.3.0</version>
+        </dependency>
+
+
     </dependencies>
 
 	<build>

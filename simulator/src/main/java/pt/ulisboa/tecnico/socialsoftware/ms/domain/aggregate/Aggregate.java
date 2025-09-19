@@ -1,8 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,7 +15,17 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public abstract class Aggregate {
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.CLASS,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "@class",
+        defaultImpl = Aggregate.class // fallback when no @class is present
+)
+public abstract class Aggregate implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     public enum AggregateState {
         ACTIVE,
         INACTIVE,

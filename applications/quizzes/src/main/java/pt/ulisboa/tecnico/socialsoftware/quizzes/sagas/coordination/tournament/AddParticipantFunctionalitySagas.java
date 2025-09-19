@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.StreamCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
@@ -26,15 +27,17 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
     private SagaUnitOfWorkService unitOfWorkService;
     private UserDto userDto;
     private CommandGateway commandGateway;
+    private final StreamCommandGateway streamCommandGateway;
 
     public AddParticipantFunctionalitySagas(TournamentService tournamentService,
-            CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService,
-            Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
-            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+                                            CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService,
+                                            Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
+                                            SagaUnitOfWork unitOfWork, CommandGateway commandGateway, StreamCommandGateway streamCommandGateway) {
         this.tournamentService = tournamentService;
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
+        this.streamCommandGateway = streamCommandGateway;
         this.buildWorkflow(tournamentAggregateId, executionAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -43,13 +46,15 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
+            System.out.println("GETTING USER");
             GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(
                     unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId,
                     userAggregateId);
-            this.userDto = (UserDto) commandGateway.send(getStudentCommand);
+            this.userDto = (UserDto) streamCommandGateway.send(getStudentCommand);
         });
 
         SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {
+            System.out.println("ADDING PARTICIPANT");
             TournamentParticipant participant = new TournamentParticipant(this.userDto);
             List<SagaAggregate.SagaState> states = new ArrayList<>();
             states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);

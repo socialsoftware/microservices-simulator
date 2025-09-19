@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.quiz;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.StreamCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -16,12 +17,14 @@ public class FindQuizFunctionalitySagas extends WorkflowFunctionality {
     private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
+    private final StreamCommandGateway streamCommandGateway;
 
     public FindQuizFunctionalitySagas(QuizService quizService, SagaUnitOfWorkService unitOfWorkService,  
-                        Integer quizAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+                        Integer quizAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway, StreamCommandGateway streamCommandGateway) {
         this.quizService = quizService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
+        this.streamCommandGateway = streamCommandGateway;
         this.buildWorkflow(quizAggregateId, unitOfWork);
     }
 

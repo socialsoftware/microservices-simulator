@@ -180,11 +180,11 @@
 			<version>4.2.2</version>
 		</dependency>
 
-		<!-- Kafka message broker-->
+		<!-- RabbitMQ message broker-->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-stream-binder-kafka</artifactId>
-			<version>4.2.1</version>
+			<artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+            <version>4.3.0</version>
 		</dependency>
 
 

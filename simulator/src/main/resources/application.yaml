@@ -1,0 +1,61 @@
+spring:
+  cloud:
+    function:
+      definition: commandResponseChannel;answerServiceCommandChannel;courseExecutionServiceCommandChannel;questionServiceCommandChannel;quizServiceCommandChannel;topicServiceCommandChannel;tournamentServiceCommandChannel;userServiceCommandChannel;
+    stream:
+      default:
+        contentType: application/json
+      bindings:
+        # Command channels (output)
+        quiz-command-channel:
+          destination: quiz-service-commands
+        topic-command-channel:
+          destination: topic-service-commands
+        user-command-channel:
+          destination: user-service-commands
+        answer-command-channel:
+          destination: answer-service-commands
+        course-execution-command-channel:
+          destination: courseexecution-service-commands
+        question-command-channel:
+          destination: question-service-commands
+        tournament-command-channel:
+          destination: tournament-service-commands
+
+        # Command handlers (input)
+        quizServiceCommandChannel-in-0:
+          destination: quiz-service-commands
+          group: quiz-service-group
+        topicServiceCommandChannel-in-0:
+          destination: topic-service-commands
+          group: topic-service-group
+        userServiceCommandChannel-in-0:
+          destination: user-service-commands
+          group: user-service-group
+        answerServiceCommandChannel-in-0:
+          destination: answer-service-commands
+          group: answer-service-group
+        courseExecutionServiceCommandChannel-in-0:
+          destination: courseexecution-command-channel
+          group: course-execution-service-group
+        questionServiceCommandChannel-in-0:
+          destination: question-service-commands
+          group: question-service-group
+        tournamentServiceCommandChannel-in-0:
+          destination: tournament-service-commands
+          group: tournament-service-group
+
+        # Response channel (output from services)
+        commandResponseChannel-in-0:
+          destination: command-responses
+          group: response-group
+
+      # Configure your message broker (Kafka or RabbitMQ)
+      #      kafka:
+      #        binder:
+      #          brokers: localhost:9092
+      # Or for RabbitMQ
+      rabbit:
+        binder:
+          host: localhost
+          port: 5672

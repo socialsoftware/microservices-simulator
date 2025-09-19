@@ -1,10 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes
 
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandResponseAggregator
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.StreamCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
@@ -35,6 +38,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.T
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.commandHandler.TopicCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.commandHandler.TournamentCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.commandHandler.TournamentStreamCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserRepository
@@ -45,6 +49,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.C
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.CourseExecutionCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.QuizAnswerCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.repositories.TournamentCustomRepositorySagas
+import org.springframework.cloud.stream.function.StreamBridge
+import org.mockito.Mockito
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -270,6 +276,29 @@ class BeanConfigurationSagas {
     }
 
     @Bean
+    StreamBridge streamBridge() {
+        def mock = Mockito.mock(StreamBridge.class)
+        Mockito.when(mock.send(Mockito.anyString(), Mockito.any())).thenReturn(true)
+        return mock
+    }
+
+    @Bean
+    CommandResponseAggregator commandResponseAggregator() {
+        return new CommandResponseAggregator()
+    }
+
+
+    @Bean
+    StreamCommandGateway streamCommandGateway(CommandGateway commandGateway) {
+        def mock = Mockito.mock(StreamCommandGateway.class)
+
+        // Delegate basic send(command) to the in-memory CommandGateway
+        Mockito.when(mock.send(Mockito.any())).thenAnswer(inv -> commandGateway.send(inv.getArgument(0)))
+
+        return mock
+    }
+
+    @Bean
     TraceService TraceService() {
         return new TraceService()
     }
@@ -283,6 +312,11 @@ class BeanConfigurationSagas {
     @Bean
     TournamentCommandHandler tournamentCommandHandler() {
         return new TournamentCommandHandler()
+    }
+
+    @Bean
+    TournamentStreamCommandHandler tournamentStreamCommandHandler(StreamBridge streamBridge, TournamentCommandHandler tournamentCommandHandler) {
+        return new TournamentStreamCommandHandler(streamBridge, tournamentCommandHandler)
     }
 
     @Bean
