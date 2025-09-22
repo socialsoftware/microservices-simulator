@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.StreamCommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.StreamCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
@@ -26,18 +26,16 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
     private CourseExecutionService courseExecutionService;
     private SagaUnitOfWorkService unitOfWorkService;
     private UserDto userDto;
-    private CommandGateway commandGateway;
-    private final StreamCommandGateway streamCommandGateway;
+    private CommandGateway CommandGateway;
 
     public AddParticipantFunctionalitySagas(TournamentService tournamentService,
-                                            CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService,
-                                            Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
-                                            SagaUnitOfWork unitOfWork, CommandGateway commandGateway, StreamCommandGateway streamCommandGateway) {
+            CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService,
+            Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
+            SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.tournamentService = tournamentService;
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
-        this.streamCommandGateway = streamCommandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(tournamentAggregateId, executionAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -50,7 +48,7 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
             GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(
                     unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId,
                     userAggregateId);
-            this.userDto = (UserDto) streamCommandGateway.send(getStudentCommand);
+            this.userDto = (UserDto) CommandGateway.send(getStudentCommand);
         });
 
         SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {
@@ -65,7 +63,7 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
                     ServiceMapping.TOURNAMENT.getServiceName(),
                     tournamentAggregateId, participant);
             addParticipantCommand.setForbiddenStates(states);
-            commandGateway.send(addParticipantCommand);
+            CommandGateway.send(addParticipantCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
         this.workflow.addStep(getUserStep);

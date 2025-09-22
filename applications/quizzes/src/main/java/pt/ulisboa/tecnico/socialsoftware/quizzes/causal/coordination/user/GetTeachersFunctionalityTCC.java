@@ -20,8 +20,8 @@ public class GetTeachersFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public GetTeachersFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,  
-                            CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public GetTeachersFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,
+            CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -33,10 +33,11 @@ public class GetTeachersFunctionalityTCC extends WorkflowFunctionality {
 
         SyncStep step = new SyncStep(() -> {
             // this.teachers = userService.getTeachers(unitOfWork);
-            GetTeachersCommand GetTeachersCommand = new GetTeachersCommand(unitOfWork, ServiceMapping.USER.getServiceName());
+            GetTeachersCommand GetTeachersCommand = new GetTeachersCommand(unitOfWork,
+                    ServiceMapping.USER.getServiceName());
             this.teachers = (List<UserDto>) commandGateway.send(GetTeachersCommand);
         });
-    
+
         workflow.addStep(step);
     }
 

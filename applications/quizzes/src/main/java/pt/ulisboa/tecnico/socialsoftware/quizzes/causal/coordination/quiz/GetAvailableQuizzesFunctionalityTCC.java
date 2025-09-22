@@ -18,27 +18,30 @@ public class GetAvailableQuizzesFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public GetAvailableQuizzesFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,  
-                                    Integer userAggregateId, Integer courseExecutionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public GetAvailableQuizzesFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+            Integer userAggregateId, Integer courseExecutionAggregateId, CausalUnitOfWork unitOfWork,
+            CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(userAggregateId, courseExecutionAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(Integer userAggregateId, Integer courseExecutionAggregateId, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer userAggregateId, Integer courseExecutionAggregateId,
+            CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.availableQuizzes = quizService.getAvailableQuizzes(courseExecutionAggregateId, unitOfWork);
-            GetAvailableQuizzesCommand GetAvailableQuizzesCommand = new GetAvailableQuizzesCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), courseExecutionAggregateId);
+            // this.availableQuizzes =
+            // quizService.getAvailableQuizzes(courseExecutionAggregateId, unitOfWork);
+            GetAvailableQuizzesCommand GetAvailableQuizzesCommand = new GetAvailableQuizzesCommand(unitOfWork,
+                    ServiceMapping.QUIZ.getServiceName(), courseExecutionAggregateId);
             Object result = commandGateway.send(GetAvailableQuizzesCommand);
             List<?> list = (List<?>) result;
             this.availableQuizzes = list.stream().map(o -> (QuizDto) o).collect(Collectors.toList());
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public List<QuizDto> getAvailableQuizzes() {
         return availableQuizzes;

@@ -18,8 +18,8 @@ public class RemoveQuestionFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public RemoveQuestionFunctionalityTCC(QuestionService questionService, CausalUnitOfWorkService unitOfWorkService,  
-                            Integer questionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public RemoveQuestionFunctionalityTCC(QuestionService questionService, CausalUnitOfWorkService unitOfWorkService,
+            Integer questionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.questionService = questionService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -30,14 +30,14 @@ public class RemoveQuestionFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            questionService.removeQuestion(questionAggregateId, unitOfWork);
-            RemoveQuestionCommand cmd = new RemoveQuestionCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
+            // questionService.removeQuestion(questionAggregateId, unitOfWork);
+            RemoveQuestionCommand cmd = new RemoveQuestionCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(),
+                    questionAggregateId);
             commandGateway.send(cmd);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public CausalQuestion getQuestion() {
         return question;

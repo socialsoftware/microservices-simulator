@@ -22,8 +22,8 @@ public class UpdateQuizFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public UpdateQuizFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, QuizFactory quizFactory, 
-                        QuizDto quizDto, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public UpdateQuizFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, QuizFactory quizFactory,
+            QuizDto quizDto, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(quizDto, quizFactory, unitOfWork);
@@ -33,15 +33,17 @@ public class UpdateQuizFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            Set<QuizQuestion> quizQuestions = quizDto.getQuestionDtos().stream().map(QuizQuestion::new).collect(Collectors.toSet());
-            // this.updatedQuizDto = quizService.updateQuiz(quizDto, quizQuestions, unitOfWork);
-            UpdateQuizCommand UpdateQuizCommand = new UpdateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto, quizQuestions);
+            Set<QuizQuestion> quizQuestions = quizDto.getQuestionDtos().stream().map(QuizQuestion::new)
+                    .collect(Collectors.toSet());
+            // this.updatedQuizDto = quizService.updateQuiz(quizDto, quizQuestions,
+            // unitOfWork);
+            UpdateQuizCommand UpdateQuizCommand = new UpdateQuizCommand(unitOfWork,
+                    ServiceMapping.QUIZ.getServiceName(), quizDto, quizQuestions);
             this.updatedQuizDto = (QuizDto) commandGateway.send(UpdateQuizCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public Quiz getOldQuiz() {
         return oldQuiz;

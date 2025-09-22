@@ -1,13 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes
 
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandResponseAggregator
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.StreamCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.CommandResponseAggregator
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.StreamCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
@@ -271,8 +270,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    CommandGateway commandGateway(ApplicationContext applicationContext) {
-        return new CommandGateway(applicationContext)
+    LocalCommandGateway commandGateway(ApplicationContext applicationContext) {
+        return new LocalCommandGateway(applicationContext)
     }
 
     @Bean
@@ -289,7 +288,7 @@ class BeanConfigurationSagas {
 
 
     @Bean
-    StreamCommandGateway streamCommandGateway(CommandGateway commandGateway) {
+    StreamCommandGateway streamCommandGateway(LocalCommandGateway commandGateway) {
         def mock = Mockito.mock(StreamCommandGateway.class)
 
         // Delegate basic send(command) to the in-memory CommandGateway

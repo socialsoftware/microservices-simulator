@@ -24,16 +24,16 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
     private final CourseExecutionService courseExecutionService;
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
     public AddStudentFunctionalitySagas(CourseExecutionService courseExecutionService, UserService userService,
             SagaUnitOfWorkService unitOfWorkService,
             Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork,
-            CommandGateway commandGateway) {
+            CommandGateway CommandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(executionAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -43,14 +43,14 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
             GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork,
                     ServiceMapping.USER.getServiceName(), userAggregateId);
-            UserDto user = (UserDto) commandGateway.send(getUserByIdCommand);
+            UserDto user = (UserDto) CommandGateway.send(getUserByIdCommand);
             setUserDto(user);
         });
 
         SagaSyncStep enrollStudentStep = new SagaSyncStep("enrollStudentStep", () -> {
             EnrollStudentCommand enrollStudentCommand = new EnrollStudentCommand(unitOfWork,
                     ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, this.getUserDto());
-            CourseExecutionDto courseExecution = (CourseExecutionDto) commandGateway.send(enrollStudentCommand);
+            CourseExecutionDto courseExecution = (CourseExecutionDto) CommandGateway.send(enrollStudentCommand);
             this.setCourseExecution(courseExecution);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 

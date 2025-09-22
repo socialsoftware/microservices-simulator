@@ -17,14 +17,14 @@ public class GetCourseExecutionsByUserFunctionalitySagas extends WorkflowFunctio
     private Set<CourseExecutionDto> courseExecutions;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
     public GetCourseExecutionsByUserFunctionalitySagas(CourseExecutionService courseExecutionService,
             SagaUnitOfWorkService unitOfWorkService,
-            Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+            Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(userAggregateId, unitOfWork);
     }
 
@@ -37,7 +37,7 @@ public class GetCourseExecutionsByUserFunctionalitySagas extends WorkflowFunctio
             // unitOfWork);
             GetCourseExecutionsByUserIdCommand getCourseExecutionsByUserIdCommand = new GetCourseExecutionsByUserIdCommand(
                     unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), userAggregateId);
-            Set<CourseExecutionDto> courseExecutions = (Set<CourseExecutionDto>) commandGateway
+            Set<CourseExecutionDto> courseExecutions = (Set<CourseExecutionDto>) CommandGateway
                     .send(getCourseExecutionsByUserIdCommand);
             this.setCourseExecutions(courseExecutions);
         });

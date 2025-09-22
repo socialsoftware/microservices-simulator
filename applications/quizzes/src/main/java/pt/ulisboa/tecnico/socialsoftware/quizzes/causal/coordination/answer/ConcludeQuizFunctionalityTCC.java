@@ -18,7 +18,8 @@ public class ConcludeQuizFunctionalityTCC extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public ConcludeQuizFunctionalityTCC(QuizAnswerService quizAnswerService, CausalUnitOfWorkService unitOfWorkService,
-                                        Integer quizAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+            Integer quizAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork,
+            CommandGateway commandGateway) {
         this.quizAnswerService = quizAnswerService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -29,14 +30,14 @@ public class ConcludeQuizFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            quizAnswerService.concludeQuiz(quizAggregateId, userAggregateId, unitOfWork);
-            ConcludeQuizCommand concludeQuizCommand = new ConcludeQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizAggregateId, userAggregateId);
+            // quizAnswerService.concludeQuiz(quizAggregateId, userAggregateId, unitOfWork);
+            ConcludeQuizCommand concludeQuizCommand = new ConcludeQuizCommand(unitOfWork,
+                    ServiceMapping.QUIZ.getServiceName(), quizAggregateId, userAggregateId);
             commandGateway.send(concludeQuizCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public CausalQuizAnswer getQuizAnswer() {
         return quizAnswer;

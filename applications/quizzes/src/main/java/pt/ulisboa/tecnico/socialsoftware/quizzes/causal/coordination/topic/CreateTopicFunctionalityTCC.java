@@ -25,8 +25,9 @@ public class CreateTopicFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public CreateTopicFunctionalityTCC(TopicService topicService, CourseService courseService, CausalUnitOfWorkService unitOfWorkService,  
-                            Integer courseAggregateId, TopicDto topicDto, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public CreateTopicFunctionalityTCC(TopicService topicService, CourseService courseService,
+            CausalUnitOfWorkService unitOfWorkService,
+            Integer courseAggregateId, TopicDto topicDto, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.topicService = topicService;
         this.courseService = courseService;
         this.unitOfWorkService = unitOfWorkService;
@@ -38,18 +39,21 @@ public class CreateTopicFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // CourseDto courseDto = courseService.getCourseById(courseAggregateId, unitOfWork);
-            GetCourseByIdCommand GetCourseByIdCommand = new GetCourseByIdCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
+            // CourseDto courseDto = courseService.getCourseById(courseAggregateId,
+            // unitOfWork);
+            GetCourseByIdCommand GetCourseByIdCommand = new GetCourseByIdCommand(unitOfWork,
+                    ServiceMapping.COURSE.getServiceName(), courseAggregateId);
             CourseDto courseDto = (CourseDto) commandGateway.send(GetCourseByIdCommand);
             TopicCourse course = new TopicCourse(courseDto);
-            // this.createdTopicDto = topicService.createTopic(topicDto, course, unitOfWork);
-            CreateTopicCommand CreateTopicCommand = new CreateTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto, course);
+            // this.createdTopicDto = topicService.createTopic(topicDto, course,
+            // unitOfWork);
+            CreateTopicCommand CreateTopicCommand = new CreateTopicCommand(unitOfWork,
+                    ServiceMapping.TOPIC.getServiceName(), topicDto, course);
             this.createdTopicDto = (TopicDto) commandGateway.send(CreateTopicCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public TopicCourse getCourse() {
         return course;

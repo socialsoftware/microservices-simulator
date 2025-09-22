@@ -21,8 +21,8 @@ public class FindTopicsByCourseFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public FindTopicsByCourseFunctionalityTCC(TopicService topicService, CausalUnitOfWorkService unitOfWorkService,  
-                            Integer courseAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public FindTopicsByCourseFunctionalityTCC(TopicService topicService, CausalUnitOfWorkService unitOfWorkService,
+            Integer courseAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -33,16 +33,17 @@ public class FindTopicsByCourseFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.topics = topicService.findTopicsByCourseId(courseAggregateId, unitOfWork);
-            FindTopicsByCourseIdCommand FindTopicsByCourseIdCommand = new FindTopicsByCourseIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), courseAggregateId);
+            // this.topics = topicService.findTopicsByCourseId(courseAggregateId,
+            // unitOfWork);
+            FindTopicsByCourseIdCommand FindTopicsByCourseIdCommand = new FindTopicsByCourseIdCommand(unitOfWork,
+                    ServiceMapping.TOPIC.getServiceName(), courseAggregateId);
             Object result = commandGateway.send(FindTopicsByCourseIdCommand);
             List<?> list = (List<?>) result;
             this.topics = list.stream().map(o -> (TopicDto) o).collect(Collectors.toList());
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public List<TopicDto> getTopics() {
         return topics;

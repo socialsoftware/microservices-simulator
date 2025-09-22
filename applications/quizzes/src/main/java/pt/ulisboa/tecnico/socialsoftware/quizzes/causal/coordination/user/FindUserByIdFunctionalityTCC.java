@@ -18,8 +18,8 @@ public class FindUserByIdFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public FindUserByIdFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,  
-                            Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public FindUserByIdFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,
+            Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -31,14 +31,14 @@ public class FindUserByIdFunctionalityTCC extends WorkflowFunctionality {
 
         SyncStep step = new SyncStep(() -> {
             // UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
-            GetUserByIdCommand GetUserByIdCommand = new GetUserByIdCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
+            GetUserByIdCommand GetUserByIdCommand = new GetUserByIdCommand(unitOfWork,
+                    ServiceMapping.USER.getServiceName(), userAggregateId);
             UserDto userDto = (UserDto) commandGateway.send(GetUserByIdCommand);
             this.setUserDto(userDto);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public UserDto getUserDto() {
         return userDto;

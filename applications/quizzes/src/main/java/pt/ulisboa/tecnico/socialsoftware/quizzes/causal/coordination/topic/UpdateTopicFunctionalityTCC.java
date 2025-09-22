@@ -20,8 +20,8 @@ public class UpdateTopicFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public UpdateTopicFunctionalityTCC(TopicService topicService, CausalUnitOfWorkService unitOfWorkService,  
-                            TopicDto topicDto, TopicFactory topicFactory, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public UpdateTopicFunctionalityTCC(TopicService topicService, CausalUnitOfWorkService unitOfWorkService,
+            TopicDto topicDto, TopicFactory topicFactory, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -33,13 +33,13 @@ public class UpdateTopicFunctionalityTCC extends WorkflowFunctionality {
 
         SyncStep step = new SyncStep(() -> {
             // topicService.updateTopic(topicDto, unitOfWork);
-            UpdateTopicCommand UpdateTopicCommand = new UpdateTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto);
+            UpdateTopicCommand UpdateTopicCommand = new UpdateTopicCommand(unitOfWork,
+                    ServiceMapping.TOPIC.getServiceName(), topicDto);
             commandGateway.send(UpdateTopicCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public Topic getOldTopic() {
         return oldTopic;

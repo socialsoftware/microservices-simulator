@@ -18,8 +18,9 @@ public class FindQuestionByAggregateIdFunctionalityTCC extends WorkflowFunctiona
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public FindQuestionByAggregateIdFunctionalityTCC(QuestionService questionService, CausalUnitOfWorkService unitOfWorkService,  
-                            Integer aggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public FindQuestionByAggregateIdFunctionalityTCC(QuestionService questionService,
+            CausalUnitOfWorkService unitOfWorkService,
+            Integer aggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.questionService = questionService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -30,14 +31,14 @@ public class FindQuestionByAggregateIdFunctionalityTCC extends WorkflowFunctiona
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            this.questionDto = questionService.getQuestionById(aggregateId, unitOfWork);
-            GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), aggregateId);
+            // this.questionDto = questionService.getQuestionById(aggregateId, unitOfWork);
+            GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork,
+                    ServiceMapping.QUESTION.getServiceName(), aggregateId);
             this.questionDto = (QuestionDto) commandGateway.send(getQuestionByIdCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public QuestionDto getQuestionDto() {
         return questionDto;

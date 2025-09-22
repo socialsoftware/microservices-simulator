@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
+package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 

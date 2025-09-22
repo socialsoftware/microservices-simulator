@@ -18,26 +18,30 @@ public class StartQuizFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public StartQuizFunctionalityTCC(QuizAnswerService quizAnswerService, QuizService quizService, CausalUnitOfWorkService unitOfWorkService,  
-                        Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public StartQuizFunctionalityTCC(QuizAnswerService quizAnswerService, QuizService quizService,
+            CausalUnitOfWorkService unitOfWorkService,
+            Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId,
+            CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.quizAnswerService = quizAnswerService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(quizAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId,
+            CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            quizAnswerService.startQuiz(quizAggregateId, courseExecutionAggregateId, userAggregateId, unitOfWork);
-            StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), quizAggregateId, courseExecutionAggregateId, userAggregateId);
+            // quizAnswerService.startQuiz(quizAggregateId, courseExecutionAggregateId,
+            // userAggregateId, unitOfWork);
+            StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(),
+                    quizAggregateId, courseExecutionAggregateId, userAggregateId);
             commandGateway.send(startQuizCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public QuizDto getQuizDto() {
         return quizDto;

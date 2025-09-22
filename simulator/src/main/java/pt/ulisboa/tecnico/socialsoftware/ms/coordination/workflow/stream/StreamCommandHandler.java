@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
+package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import java.util.logging.Logger;
@@ -26,12 +28,6 @@ public abstract class StreamCommandHandler implements CommandHandler {
         // Create and configure ObjectMapper
         this.objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
-
-        // objectMapper.activateDefaultTyping(
-        //         objectMapper.getPolymorphicTypeValidator(),
-        //         ObjectMapper.DefaultTyping.NON_FINAL,
-        //         JsonTypeInfo.As.PROPERTY
-        // );
 
         // objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         // Use polymorphic typing for domain objects but skip container (Map/Collection) types

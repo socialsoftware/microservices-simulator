@@ -19,27 +19,29 @@ public class CancelTournamentFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public CancelTournamentFunctionalityTCC(TournamentService tournamentService,CausalUnitOfWorkService unitOfWorkService, 
-                                TournamentFactory tournamentFactory,
-                                Integer tournamentAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public CancelTournamentFunctionalityTCC(TournamentService tournamentService,
+            CausalUnitOfWorkService unitOfWorkService,
+            TournamentFactory tournamentFactory,
+            Integer tournamentAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentFactory, tournamentAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId,
+            CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
             // tournamentService.cancelTournament(tournamentAggregateId, unitOfWork);
-            CancelTournamentCommand cancelTournamentCommand = new CancelTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            CancelTournamentCommand cancelTournamentCommand = new CancelTournamentCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             commandGateway.send(cancelTournamentCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public Tournament getOldTournament() {
         return oldTournament;

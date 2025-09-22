@@ -29,15 +29,27 @@
 		<profile>
 			<id>sagas</id>
 			<properties>
-				<activatedProperties>sagas</activatedProperties>
+				<activatedProperties>sagas,local</activatedProperties>
 			</properties>
 		</profile>
+        <profile>
+            <id>sagas-stream</id>
+            <properties>
+                <activatedProperties>sagas,stream</activatedProperties>
+            </properties>
+        </profile>
 		<profile>
 			<id>tcc</id>
 			<properties>
-				<activatedProperties>tcc</activatedProperties>
+				<activatedProperties>tcc,local</activatedProperties>
 			</properties>
 		</profile>
+        <profile>
+            <id>tcc-stream</id>
+            <properties>
+                <activatedProperties>tcc,stream</activatedProperties>
+            </properties>
+        </profile>
 		<profile>
 			<id>dev-sagas</id>
 			<properties>
@@ -47,7 +59,7 @@
 		<profile>
 			<id>test-sagas</id>
 			<properties>
-				<activatedProperties>test,sagas</activatedProperties>
+				<activatedProperties>test,sagas,local</activatedProperties>
 			</properties>
 			<build>
 				<plugins>
@@ -88,7 +100,7 @@
 		<profile>
 			<id>test-tcc</id>
 			<properties>
-				<activatedProperties>test,tcc</activatedProperties>
+				<activatedProperties>test,tcc,local</activatedProperties>
 			</properties>
 			<build>
 				<plugins>

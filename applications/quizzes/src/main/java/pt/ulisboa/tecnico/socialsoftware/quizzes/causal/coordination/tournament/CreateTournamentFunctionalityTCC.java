@@ -41,9 +41,11 @@ public class CreateTournamentFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public CreateTournamentFunctionalityTCC(TournamentService tournamentService, CourseExecutionService courseExecutionService, TopicService topicService, QuizService quizService, CausalUnitOfWorkService unitOfWorkService, 
-                                Integer userId, Integer executionId, List<Integer> topicsId, TournamentDto tournamentDto, 
-                                CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public CreateTournamentFunctionalityTCC(TournamentService tournamentService,
+            CourseExecutionService courseExecutionService, TopicService topicService, QuizService quizService,
+            CausalUnitOfWorkService unitOfWorkService,
+            Integer userId, Integer executionId, List<Integer> topicsId, TournamentDto tournamentDto,
+            CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.courseExecutionService = courseExecutionService;
         this.topicService = topicService;
@@ -54,52 +56,66 @@ public class CreateTournamentFunctionalityTCC extends WorkflowFunctionality {
     }
 
     public void buildWorkflow(Integer userId, Integer executionId, List<Integer> topicsId,
-                                          TournamentDto tournamentDto, CausalUnitOfWork unitOfWork) {
+            TournamentDto tournamentDto, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
-    SyncStep step = new SyncStep(() -> {
-        // by making this call the invariants regarding the course execution and the role of the creator are guaranteed
-        // UserDto creatorDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId, unitOfWork);
-        GetStudentByExecutionIdAndUserIdCommand GetStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId, userId);
-        UserDto creatorDto = (UserDto) commandGateway.send(GetStudentByExecutionIdAndUserIdCommand);
+        SyncStep step = new SyncStep(() -> {
+            // by making this call the invariants regarding the course execution and the
+            // role of the creator are guaranteed
+            // UserDto creatorDto =
+            // courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId,
+            // unitOfWork);
+            GetStudentByExecutionIdAndUserIdCommand GetStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(
+                    unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId, userId);
+            UserDto creatorDto = (UserDto) commandGateway.send(GetStudentByExecutionIdAndUserIdCommand);
 
-        // CourseExecutionDto courseExecutionDto = courseExecutionService.getCourseExecutionById(executionId, unitOfWork);
-        GetCourseExecutionByIdCommand GetCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId);
-        CourseExecutionDto courseExecutionDto = (CourseExecutionDto) commandGateway.send(GetCourseExecutionByIdCommand);
+            // CourseExecutionDto courseExecutionDto =
+            // courseExecutionService.getCourseExecutionById(executionId, unitOfWork);
+            GetCourseExecutionByIdCommand GetCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork,
+                    ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId);
+            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) commandGateway
+                    .send(GetCourseExecutionByIdCommand);
 
-        // Set<TopicDto> topicDtos = topicsId.stream()
-        //         .map(topicId -> topicService.getTopicById(topicId, unitOfWork))
-        //         .collect(Collectors.toSet());
-        Set<TopicDto> topicDtos = topicsId.stream()
-            .map(topicId -> (TopicDto) commandGateway.send(new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId)))
-            .collect(Collectors.toSet());
+            // Set<TopicDto> topicDtos = topicsId.stream()
+            // .map(topicId -> topicService.getTopicById(topicId, unitOfWork))
+            // .collect(Collectors.toSet());
+            Set<TopicDto> topicDtos = topicsId.stream()
+                    .map(topicId -> (TopicDto) commandGateway
+                            .send(new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId)))
+                    .collect(Collectors.toSet());
 
-        QuizDto quizDto = new QuizDto();
-        quizDto.setAvailableDate(tournamentDto.getStartTime());
-        quizDto.setConclusionDate(tournamentDto.getEndTime());
-        quizDto.setResultsDate(tournamentDto.getEndTime());
-        // QuizDto quizResultDto = quizService.generateQuiz(executionId, quizDto, topicsId, tournamentDto.getNumberOfQuestions(), unitOfWork);
-        GenerateQuizCommand GenerateQuizCommand = new GenerateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), executionId, quizDto, topicsId, tournamentDto.getNumberOfQuestions());
-        QuizDto quizResultDto = (QuizDto) commandGateway.send(GenerateQuizCommand);
+            QuizDto quizDto = new QuizDto();
+            quizDto.setAvailableDate(tournamentDto.getStartTime());
+            quizDto.setConclusionDate(tournamentDto.getEndTime());
+            quizDto.setResultsDate(tournamentDto.getEndTime());
+            // QuizDto quizResultDto = quizService.generateQuiz(executionId, quizDto,
+            // topicsId, tournamentDto.getNumberOfQuestions(), unitOfWork);
+            GenerateQuizCommand GenerateQuizCommand = new GenerateQuizCommand(unitOfWork,
+                    ServiceMapping.QUIZ.getServiceName(), executionId, quizDto, topicsId,
+                    tournamentDto.getNumberOfQuestions());
+            QuizDto quizResultDto = (QuizDto) commandGateway.send(GenerateQuizCommand);
 
-        //        NUMBER_OF_QUESTIONS
-        //            this.numberOfQuestions == Quiz(tournamentQuiz.id).quizQuestions.size
-        //            Quiz(this.tournamentQuiz.id) DEPENDS ON this.numberOfQuestions
-        //        QUIZ_TOPICS
-        //            Quiz(this.tournamentQuiz.id) DEPENDS ON this.topics // the topics of the quiz questions are related to the tournament topics
-        //        START_TIME_AVAILABLE_DATE
-        //            this.startTime == Quiz(tournamentQuiz.id).availableDate
-        //        END_TIME_CONCLUSION_DATE
-        //            this.endTime == Quiz(tournamentQuiz.id).conclusionDate
+            // NUMBER_OF_QUESTIONS
+            // this.numberOfQuestions == Quiz(tournamentQuiz.id).quizQuestions.size
+            // Quiz(this.tournamentQuiz.id) DEPENDS ON this.numberOfQuestions
+            // QUIZ_TOPICS
+            // Quiz(this.tournamentQuiz.id) DEPENDS ON this.topics // the topics of the quiz
+            // questions are related to the tournament topics
+            // START_TIME_AVAILABLE_DATE
+            // this.startTime == Quiz(tournamentQuiz.id).availableDate
+            // END_TIME_CONCLUSION_DATE
+            // this.endTime == Quiz(tournamentQuiz.id).conclusionDate
 
-        // this.tournamentDto = tournamentService.createTournament(tournamentDto, creatorDto, courseExecutionDto, topicDtos, quizResultDto, unitOfWork);
-        CreateTournamentCommand CreateTournamentCommand = new CreateTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, creatorDto, courseExecutionDto, topicDtos, quizResultDto);
-        this.tournamentDto = (TournamentDto) commandGateway.send(CreateTournamentCommand);
-    });
-                                
+            // this.tournamentDto = tournamentService.createTournament(tournamentDto,
+            // creatorDto, courseExecutionDto, topicDtos, quizResultDto, unitOfWork);
+            CreateTournamentCommand CreateTournamentCommand = new CreateTournamentCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, creatorDto, courseExecutionDto,
+                    topicDtos, quizResultDto);
+            this.tournamentDto = (TournamentDto) commandGateway.send(CreateTournamentCommand);
+        });
+
         workflow.addStep(step);
     }
-    
 
     public void setCourseExecutionDto(CourseExecutionDto courseExecutionDto) {
         this.courseExecutionDto = courseExecutionDto;

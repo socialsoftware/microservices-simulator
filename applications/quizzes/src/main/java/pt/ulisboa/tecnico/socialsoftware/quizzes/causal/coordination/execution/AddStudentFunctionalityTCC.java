@@ -23,8 +23,10 @@ public class AddStudentFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public AddStudentFunctionalityTCC(CourseExecutionService courseExecutionService, UserService userService, CausalUnitOfWorkService unitOfWorkService, CourseExecutionFactory courseExecutionFactory,
-                                      Integer executionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public AddStudentFunctionalityTCC(CourseExecutionService courseExecutionService, UserService userService,
+            CausalUnitOfWorkService unitOfWorkService, CourseExecutionFactory courseExecutionFactory,
+            Integer executionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork,
+            CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
@@ -32,21 +34,24 @@ public class AddStudentFunctionalityTCC extends WorkflowFunctionality {
         this.buildWorkflow(executionAggregateId, userAggregateId, courseExecutionFactory, unitOfWork);
     }
 
-    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, CourseExecutionFactory courseExecutionFactory, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId,
+            CourseExecutionFactory courseExecutionFactory, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
-            GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
+            // UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
+            GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork,
+                    ServiceMapping.USER.getServiceName(), userAggregateId);
             UserDto userDto = (UserDto) commandGateway.send(getUserByIdCommand);
-//            courseExecutionService.enrollStudent(executionAggregateId, userDto, unitOfWork);
-            EnrollStudentCommand enrollStudentCommand = new EnrollStudentCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, userDto);
+            // courseExecutionService.enrollStudent(executionAggregateId, userDto,
+            // unitOfWork);
+            EnrollStudentCommand enrollStudentCommand = new EnrollStudentCommand(unitOfWork,
+                    ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, userDto);
             commandGateway.send(enrollStudentCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public UserDto getUserDto() {
         return userDto;

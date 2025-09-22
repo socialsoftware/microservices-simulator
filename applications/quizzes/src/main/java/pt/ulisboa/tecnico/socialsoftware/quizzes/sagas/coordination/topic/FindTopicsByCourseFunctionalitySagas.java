@@ -17,13 +17,13 @@ public class FindTopicsByCourseFunctionalitySagas extends WorkflowFunctionality 
     private List<TopicDto> topics;
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
-    public FindTopicsByCourseFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService,  
-                            Integer courseAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public FindTopicsByCourseFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService,
+            Integer courseAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(courseAggregateId, unitOfWork);
     }
 
@@ -31,15 +31,16 @@ public class FindTopicsByCourseFunctionalitySagas extends WorkflowFunctionality 
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep findTopicsStep = new SagaSyncStep("findTopicsStep", () -> {
-//            List<TopicDto> topics = topicService.findTopicsByCourseId(courseAggregateId, unitOfWork);
-            FindTopicsByCourseIdCommand findTopicsByCourseIdCommand = new FindTopicsByCourseIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), courseAggregateId);
-            List<TopicDto> topics = (List<TopicDto>) commandGateway.send(findTopicsByCourseIdCommand);
+            // List<TopicDto> topics = topicService.findTopicsByCourseId(courseAggregateId,
+            // unitOfWork);
+            FindTopicsByCourseIdCommand findTopicsByCourseIdCommand = new FindTopicsByCourseIdCommand(unitOfWork,
+                    ServiceMapping.TOPIC.getServiceName(), courseAggregateId);
+            List<TopicDto> topics = (List<TopicDto>) CommandGateway.send(findTopicsByCourseIdCommand);
             this.setTopics(topics);
         });
 
         workflow.addStep(findTopicsStep);
     }
-    
 
     public List<TopicDto> getTopics() {
         return topics;

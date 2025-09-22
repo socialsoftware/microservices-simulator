@@ -19,26 +19,32 @@ public class LeaveTournamentFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public LeaveTournamentFunctionalityTCC(TournamentService tournamentService,CausalUnitOfWorkService unitOfWorkService, 
-                                TournamentFactory tournamentFactory,
-                                Integer tournamentAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public LeaveTournamentFunctionalityTCC(TournamentService tournamentService,
+            CausalUnitOfWorkService unitOfWorkService,
+            TournamentFactory tournamentFactory,
+            Integer tournamentAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork,
+            CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentFactory, tournamentAggregateId, userAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId,
+            Integer userAggregateId, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // tournamentService.leaveTournament(tournamentAggregateId, userAggregateId, unitOfWork);
-            LeaveTournamentCommand LeaveTournamentCommand = new LeaveTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, userAggregateId);
+            // tournamentService.leaveTournament(tournamentAggregateId, userAggregateId,
+            // unitOfWork);
+            LeaveTournamentCommand LeaveTournamentCommand = new LeaveTournamentCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, userAggregateId);
             commandGateway.send(LeaveTournamentCommand);
         });
-    
+
         workflow.addStep(step);
     }
+
     public Tournament getOldTournament() {
         return oldTournament;
     }

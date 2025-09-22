@@ -23,13 +23,13 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
     private TopicDto topic;
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
-    public UpdateTopicFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService,  
-                            TopicDto topicDto, TopicFactory topicFactory, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public UpdateTopicFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService,
+            TopicDto topicDto, TopicFactory topicFactory, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(topicDto, topicFactory, unitOfWork);
     }
 
@@ -37,31 +37,35 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
-//            TopicDto topic = (TopicDto) topicService.getTopicById(topicDto.getAggregateId(), unitOfWork);
-//            unitOfWorkService.registerSagaState(topic.getAggregateId(), TopicSagaState.READ_TOPIC, unitOfWork);
-            GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId());
+            // TopicDto topic = (TopicDto)
+            // topicService.getTopicById(topicDto.getAggregateId(), unitOfWork);
+            // unitOfWorkService.registerSagaState(topic.getAggregateId(),
+            // TopicSagaState.READ_TOPIC, unitOfWork);
+            GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork,
+                    ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId());
             getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
-            TopicDto topic = (TopicDto) commandGateway.send(getTopicByIdCommand);
+            TopicDto topic = (TopicDto) CommandGateway.send(getTopicByIdCommand);
             this.setTopic(topic);
         });
-    
+
         getTopicStep.registerCompensation(() -> {
-//            unitOfWorkService.registerSagaState(topic.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            // unitOfWorkService.registerSagaState(topic.getAggregateId(),
+            // GenericSagaState.NOT_IN_SAGA, unitOfWork);
             Command command = new Command(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topic.getAggregateId());
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            CommandGateway.send(command);
         }, unitOfWork);
-    
+
         SagaSyncStep updateTopicStep = new SagaSyncStep("updateTopicStep", () -> {
-//            topicService.updateTopic(topicDto, unitOfWork);
-            UpdateTopicCommand updateTopicCommand = new UpdateTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto);
-            commandGateway.send(updateTopicCommand);
+            // topicService.updateTopic(topicDto, unitOfWork);
+            UpdateTopicCommand updateTopicCommand = new UpdateTopicCommand(unitOfWork,
+                    ServiceMapping.TOPIC.getServiceName(), topicDto);
+            CommandGateway.send(updateTopicCommand);
         }, new ArrayList<>(Arrays.asList(getTopicStep)));
-    
+
         workflow.addStep(getTopicStep);
         workflow.addStep(updateTopicStep);
     }
-    
 
     public TopicDto getTopic() {
         return topic;

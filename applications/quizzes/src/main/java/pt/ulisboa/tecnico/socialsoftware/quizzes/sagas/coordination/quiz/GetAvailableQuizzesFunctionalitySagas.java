@@ -15,13 +15,14 @@ public class GetAvailableQuizzesFunctionalitySagas extends WorkflowFunctionality
     private List<QuizDto> availableQuizzes;
     private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
-    public GetAvailableQuizzesFunctionalitySagas(QuizService quizService, SagaUnitOfWorkService unitOfWorkService,  
-                                    Integer userAggregateId, Integer courseExecutionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public GetAvailableQuizzesFunctionalitySagas(QuizService quizService, SagaUnitOfWorkService unitOfWorkService,
+            Integer userAggregateId, Integer courseExecutionAggregateId, SagaUnitOfWork unitOfWork,
+            CommandGateway CommandGateway) {
         this.quizService = quizService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(userAggregateId, courseExecutionAggregateId, unitOfWork);
     }
 
@@ -32,10 +33,9 @@ public class GetAvailableQuizzesFunctionalitySagas extends WorkflowFunctionality
             List<QuizDto> availableQuizzes = quizService.getAvailableQuizzes(courseExecutionAggregateId, unitOfWork); // TODO
             this.setAvailableQuizzes(availableQuizzes);
         });
-    
+
         workflow.addStep(getAvailableQuizzesStep);
     }
-    
 
     public List<QuizDto> getAvailableQuizzes() {
         return availableQuizzes;

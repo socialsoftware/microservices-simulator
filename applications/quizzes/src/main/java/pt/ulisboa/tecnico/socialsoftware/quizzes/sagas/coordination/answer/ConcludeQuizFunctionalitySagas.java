@@ -17,17 +17,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
-    
+
     private QuizAnswerDto quizAnswer;
     private final QuizAnswerService quizAnswerService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
-    public ConcludeQuizFunctionalitySagas(QuizAnswerService quizAnswerService, SagaUnitOfWorkService unitOfWorkService,  
-                            Integer quizAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public ConcludeQuizFunctionalitySagas(QuizAnswerService quizAnswerService, SagaUnitOfWorkService unitOfWorkService,
+            Integer quizAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork,
+            CommandGateway CommandGateway) {
         this.quizAnswerService = quizAnswerService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(quizAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -35,27 +36,33 @@ public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getQuizAnswerStep = new SagaSyncStep("getQuizAnswerStep", () -> {
-            QuizAnswerDto quizAnswer = (QuizAnswerDto) quizAnswerService.getQuizAnswerDtoByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork); // TODO
-            unitOfWorkService.registerSagaState(quizAnswer.getAggregateId(), QuizAnswerSagaState.READ_QUIZ_ANSWER, unitOfWork);
-            // GetQuizAnswerDtoByQuizIdAndUserIdCommand getQuizAnswerDtoByQuizIdAndUserIdCommand = new GetQuizAnswerDtoByQuizIdAndUserIdCommand(unitOfWork, quizAnswerService.getServiceName(), quizAggregateId, userAggregateId);
+            QuizAnswerDto quizAnswer = (QuizAnswerDto) quizAnswerService
+                    .getQuizAnswerDtoByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork); // TODO
+            unitOfWorkService.registerSagaState(quizAnswer.getAggregateId(), QuizAnswerSagaState.READ_QUIZ_ANSWER,
+                    unitOfWork);
+            // GetQuizAnswerDtoByQuizIdAndUserIdCommand
+            // getQuizAnswerDtoByQuizIdAndUserIdCommand = new
+            // GetQuizAnswerDtoByQuizIdAndUserIdCommand(unitOfWork,
+            // quizAnswerService.getServiceName(), quizAggregateId, userAggregateId);
             this.setQuizAnswer(quizAnswer);
         });
-    
+
         getQuizAnswerStep.registerCompensation(() -> {
-//            unitOfWorkService.registerSagaState(this.quizAnswer.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            Command command = new Command(unitOfWork, ServiceMapping.ANSWER.getServiceName(), this.quizAnswer.getAggregateId());
+            // unitOfWorkService.registerSagaState(this.quizAnswer.getAggregateId(),
+            // GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            Command command = new Command(unitOfWork, ServiceMapping.ANSWER.getServiceName(),
+                    this.quizAnswer.getAggregateId());
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            CommandGateway.send(command);
         }, unitOfWork);
-    
+
         SagaSyncStep concludeQuizStep = new SagaSyncStep("concludeQuizStep", () -> {
             quizAnswerService.concludeQuiz(quizAggregateId, userAggregateId, unitOfWork); // TODO
         }, new ArrayList<>(Arrays.asList(getQuizAnswerStep)));
-    
+
         workflow.addStep(getQuizAnswerStep);
         workflow.addStep(concludeQuizStep);
     }
-    
 
     public QuizAnswerDto getQuizAnswer() {
         return quizAnswer;

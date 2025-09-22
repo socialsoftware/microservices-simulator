@@ -18,8 +18,9 @@ public class FindTournamentFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public FindTournamentFunctionalityTCC(TournamentService tournamentService,CausalUnitOfWorkService unitOfWorkService, 
-                                Integer tournamentAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public FindTournamentFunctionalityTCC(TournamentService tournamentService,
+            CausalUnitOfWorkService unitOfWorkService,
+            Integer tournamentAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -30,13 +31,16 @@ public class FindTournamentFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
-            GetTournamentByIdCommand GetTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            // this.tournamentDto =
+            // tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            GetTournamentByIdCommand GetTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             this.tournamentDto = (TournamentDto) commandGateway.send(GetTournamentByIdCommand);
         });
-    
+
         workflow.addStep(step);
     }
+
     public TournamentDto getTournamentDto() {
         return tournamentDto;
     }

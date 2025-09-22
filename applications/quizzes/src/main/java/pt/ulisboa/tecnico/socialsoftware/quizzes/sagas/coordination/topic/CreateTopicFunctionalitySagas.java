@@ -28,14 +28,15 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
     private final TopicService topicService;
     private final CourseService courseService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
-    public CreateTopicFunctionalitySagas(TopicService topicService, CourseService courseService, SagaUnitOfWorkService unitOfWorkService,  
-                            Integer courseAggregateId, TopicDto topicDto, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public CreateTopicFunctionalitySagas(TopicService topicService, CourseService courseService,
+            SagaUnitOfWorkService unitOfWorkService,
+            Integer courseAggregateId, TopicDto topicDto, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.topicService = topicService;
         this.courseService = courseService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(courseAggregateId, topicDto, unitOfWork);
     }
 
@@ -43,32 +44,39 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseStep = new SagaSyncStep("getCourseStep", () -> {
-//            this.courseDto = courseService.getCourseById(courseAggregateId, unitOfWork);
-//            unitOfWorkService.registerSagaState(courseDto.getAggregateId(), CourseSagaState.READ_COURSE, unitOfWork);
-            GetCourseByIdCommand getCourseByIdCommand = new GetCourseByIdCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
+            // this.courseDto = courseService.getCourseById(courseAggregateId, unitOfWork);
+            // unitOfWorkService.registerSagaState(courseDto.getAggregateId(),
+            // CourseSagaState.READ_COURSE, unitOfWork);
+            GetCourseByIdCommand getCourseByIdCommand = new GetCourseByIdCommand(unitOfWork,
+                    ServiceMapping.COURSE.getServiceName(), courseAggregateId);
             getCourseByIdCommand.setSemanticLock(CourseSagaState.READ_COURSE);
-            this.courseDto = (CourseDto) commandGateway.send(getCourseByIdCommand);
+            this.courseDto = (CourseDto) CommandGateway.send(getCourseByIdCommand);
             TopicCourse course = new TopicCourse(courseDto);
             this.setCourse(course);
         });
 
         getCourseStep.registerCompensation(() -> {
-//            unitOfWorkService.registerSagaState(courseDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            Command command = new Command(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseDto.getAggregateId());
+            // unitOfWorkService.registerSagaState(courseDto.getAggregateId(),
+            // GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            Command command = new Command(unitOfWork, ServiceMapping.COURSE.getServiceName(),
+                    courseDto.getAggregateId());
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            CommandGateway.send(command);
         }, unitOfWork);
-    
+
         SagaSyncStep createTopicStep = new SagaSyncStep("createTopicStep", () -> {
-//            TopicDto createdTopicDto = topicService.createTopic(topicDto, this.getCourse(), unitOfWork);
-            CreateTopicCommand createTopicCommand = new CreateTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto, this.getCourse());
-            TopicDto createdTopicDto = (TopicDto) commandGateway.send(createTopicCommand);
+            // TopicDto createdTopicDto = topicService.createTopic(topicDto,
+            // this.getCourse(), unitOfWork);
+            CreateTopicCommand createTopicCommand = new CreateTopicCommand(unitOfWork,
+                    ServiceMapping.TOPIC.getServiceName(), topicDto, this.getCourse());
+            TopicDto createdTopicDto = (TopicDto) CommandGateway.send(createTopicCommand);
             this.setCreatedTopicDto(createdTopicDto);
         }, new ArrayList<>(Arrays.asList(getCourseStep)));
-    
+
         workflow.addStep(getCourseStep);
         workflow.addStep(createTopicStep);
     }
+
     public TopicCourse getCourse() {
         return course;
     }

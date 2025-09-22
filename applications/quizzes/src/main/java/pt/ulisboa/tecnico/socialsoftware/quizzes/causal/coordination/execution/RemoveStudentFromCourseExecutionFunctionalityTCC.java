@@ -18,26 +18,31 @@ public class RemoveStudentFromCourseExecutionFunctionalityTCC extends WorkflowFu
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public RemoveStudentFromCourseExecutionFunctionalityTCC(CourseExecutionService courseExecutionService, CausalUnitOfWorkService unitOfWorkService, CourseExecutionFactory courseExecutionFactory, 
-                                                Integer courseExecutionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public RemoveStudentFromCourseExecutionFunctionalityTCC(CourseExecutionService courseExecutionService,
+            CausalUnitOfWorkService unitOfWorkService, CourseExecutionFactory courseExecutionFactory,
+            Integer courseExecutionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork,
+            CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(courseExecutionAggregateId, userAggregateId, courseExecutionFactory, unitOfWork);
     }
 
-    public void buildWorkflow(Integer courseExecutionAggregateId, Integer userAggregateId, CourseExecutionFactory courseExecutionFactory, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer courseExecutionAggregateId, Integer userAggregateId,
+            CourseExecutionFactory courseExecutionFactory, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            courseExecutionService.removeStudentFromCourseExecution(courseExecutionAggregateId, userAggregateId, unitOfWork);
-            RemoveStudentFromCourseExecutionCommand removeStudentFromCourseExecutionCommand = new RemoveStudentFromCourseExecutionCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionAggregateId, userAggregateId);
+            // courseExecutionService.removeStudentFromCourseExecution(courseExecutionAggregateId,
+            // userAggregateId, unitOfWork);
+            RemoveStudentFromCourseExecutionCommand removeStudentFromCourseExecutionCommand = new RemoveStudentFromCourseExecutionCommand(
+                    unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionAggregateId,
+                    userAggregateId);
             commandGateway.send(removeStudentFromCourseExecutionCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public CourseExecution getOldCourseExecution() {
         return oldCourseExecution;

@@ -11,7 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamen
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -21,8 +20,9 @@ public class GetTournamentsForCourseExecutionFunctionalityTCC extends WorkflowFu
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public GetTournamentsForCourseExecutionFunctionalityTCC(TournamentService tournamentService,CausalUnitOfWorkService unitOfWorkService, 
-                                Integer executionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public GetTournamentsForCourseExecutionFunctionalityTCC(TournamentService tournamentService,
+            CausalUnitOfWorkService unitOfWorkService,
+            Integer executionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -33,13 +33,15 @@ public class GetTournamentsForCourseExecutionFunctionalityTCC extends WorkflowFu
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.tournaments = tournamentService.getTournamentsByCourseExecutionId(executionAggregateId, unitOfWork);
-            this.tournaments = (List<TournamentDto>) commandGateway.send(new GetTournamentsByCourseExecutionIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), executionAggregateId));
+            // this.tournaments =
+            // tournamentService.getTournamentsByCourseExecutionId(executionAggregateId,
+            // unitOfWork);
+            this.tournaments = (List<TournamentDto>) commandGateway.send(new GetTournamentsByCourseExecutionIdCommand(
+                    unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), executionAggregateId));
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public List<TournamentDto> getTournaments() {
         return tournaments;

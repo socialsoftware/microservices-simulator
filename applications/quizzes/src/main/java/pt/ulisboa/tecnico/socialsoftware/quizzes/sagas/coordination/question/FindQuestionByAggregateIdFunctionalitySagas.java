@@ -15,29 +15,31 @@ public class FindQuestionByAggregateIdFunctionalitySagas extends WorkflowFunctio
     private QuestionDto questionDto;
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
-    public FindQuestionByAggregateIdFunctionalitySagas(QuestionService questionService, SagaUnitOfWorkService unitOfWorkService,
-                                                       Integer aggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public FindQuestionByAggregateIdFunctionalitySagas(QuestionService questionService,
+            SagaUnitOfWorkService unitOfWorkService,
+            Integer aggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.questionService = questionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(aggregateId, unitOfWork);
     }
 
     public void buildWorkflow(Integer aggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep findQuestionStep = new SagaSyncStep("findQuestionStep",() -> {
-//            QuestionDto questionDto = questionService.getQuestionById(aggregateId, unitOfWork);
-            GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(),  aggregateId);
-            QuestionDto questionDto = (QuestionDto) commandGateway.send(getQuestionByIdCommand);
+        SagaSyncStep findQuestionStep = new SagaSyncStep("findQuestionStep", () -> {
+            // QuestionDto questionDto = questionService.getQuestionById(aggregateId,
+            // unitOfWork);
+            GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork,
+                    ServiceMapping.QUESTION.getServiceName(), aggregateId);
+            QuestionDto questionDto = (QuestionDto) CommandGateway.send(getQuestionByIdCommand);
             this.setQuestionDto(questionDto);
         });
 
         workflow.addStep(findQuestionStep);
     }
-    
 
     public QuestionDto getQuestionDto() {
         return questionDto;

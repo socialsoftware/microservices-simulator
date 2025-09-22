@@ -23,44 +23,53 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
     private final TournamentService tournamentService;
     private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
     private TournamentDto tournamentDto;
 
-    public RemoveTournamentFunctionalitySagas(TournamentService tournamentService, QuizService quizService, SagaUnitOfWorkService unitOfWorkService,
-                                Integer tournamentAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public RemoveTournamentFunctionalitySagas(TournamentService tournamentService, QuizService quizService,
+            SagaUnitOfWorkService unitOfWorkService,
+            Integer tournamentAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.tournamentService = tournamentService;
         this.quizService = quizService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(tournamentAggregateId, unitOfWork);
     }
 
     public void buildWorkflow(Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> { // TODO CAN WE REPLACE VERIFYANDREGISTER??
-//            List<SagaAggregate.SagaState> states = new ArrayList<>();
-//            states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
-//            unitOfWorkService.verifyAndRegisterSagaState(tournamentAggregateId, TournamentSagaState.IN_DELETE_TOURNAMENT, states, unitOfWork);
-//            TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
-            GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
-            getTournamentByIdCommand.setForbiddenStates(new ArrayList<>(List.of(TournamentSagaState.IN_UPDATE_TOURNAMENT)));
+        SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> { // TODO CAN WE REPLACE
+                                                                                       // VERIFYANDREGISTER??
+            // List<SagaAggregate.SagaState> states = new ArrayList<>();
+            // states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
+            // unitOfWorkService.verifyAndRegisterSagaState(tournamentAggregateId,
+            // TournamentSagaState.IN_DELETE_TOURNAMENT, states, unitOfWork);
+            // TournamentDto tournamentDto =
+            // tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            getTournamentByIdCommand
+                    .setForbiddenStates(new ArrayList<>(List.of(TournamentSagaState.IN_UPDATE_TOURNAMENT)));
             getTournamentByIdCommand.setSemanticLock(TournamentSagaState.IN_DELETE_TOURNAMENT);
-            TournamentDto tournamentDto = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
+            TournamentDto tournamentDto = (TournamentDto) CommandGateway.send(getTournamentByIdCommand);
             setTournamentDto(tournamentDto);
         });
 
         SagaSyncStep removeQuizStep = new SagaSyncStep("removeQuizStep", () -> {
-//            quizService.removeQuiz(getTournamentDto().getQuiz().getAggregateId(), unitOfWork);
-            RemoveQuizCommand removeQuizCommand = new RemoveQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), getTournamentDto().getQuiz().getAggregateId());
-            commandGateway.send(removeQuizCommand);
+            // quizService.removeQuiz(getTournamentDto().getQuiz().getAggregateId(),
+            // unitOfWork);
+            RemoveQuizCommand removeQuizCommand = new RemoveQuizCommand(unitOfWork,
+                    ServiceMapping.QUIZ.getServiceName(), getTournamentDto().getQuiz().getAggregateId());
+            CommandGateway.send(removeQuizCommand);
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
-    
+
         SagaSyncStep removeTournamentStep = new SagaSyncStep("removeTournamentStep", () -> {
-//            tournamentService.removeTournament(tournamentAggregateId, unitOfWork);
-            RemoveTournamentCommand removeTournamentCommand = new RemoveTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
-            commandGateway.send(removeTournamentCommand);
+            // tournamentService.removeTournament(tournamentAggregateId, unitOfWork);
+            RemoveTournamentCommand removeTournamentCommand = new RemoveTournamentCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            CommandGateway.send(removeTournamentCommand);
         }, new ArrayList<>(Arrays.asList(removeQuizStep)));
 
         workflow.addStep(getTournamentStep);

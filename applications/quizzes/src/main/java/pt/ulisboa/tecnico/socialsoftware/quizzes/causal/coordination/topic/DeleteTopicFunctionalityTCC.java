@@ -18,8 +18,8 @@ public class DeleteTopicFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public DeleteTopicFunctionalityTCC(TopicService topicService, CausalUnitOfWorkService unitOfWorkService,  
-                            Integer topicAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public DeleteTopicFunctionalityTCC(TopicService topicService, CausalUnitOfWorkService unitOfWorkService,
+            Integer topicAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -31,13 +31,13 @@ public class DeleteTopicFunctionalityTCC extends WorkflowFunctionality {
 
         SyncStep step = new SyncStep(() -> {
             // topicService.deleteTopic(topicAggregateId, unitOfWork);
-            DeleteTopicCommand DeleteTopicCommand = new DeleteTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
+            DeleteTopicCommand DeleteTopicCommand = new DeleteTopicCommand(unitOfWork,
+                    ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
             commandGateway.send(DeleteTopicCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public CausalTopic getTopic() {
         return topic;

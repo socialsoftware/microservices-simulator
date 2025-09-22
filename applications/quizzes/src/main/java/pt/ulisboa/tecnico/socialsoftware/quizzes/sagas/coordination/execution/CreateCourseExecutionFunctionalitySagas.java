@@ -16,12 +16,14 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
     private CourseExecutionDto createdCourseExecution;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
-    public CreateCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService, CourseExecutionDto courseExecutionDto, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public CreateCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService,
+            SagaUnitOfWorkService unitOfWorkService, CourseExecutionDto courseExecutionDto, SagaUnitOfWork unitOfWork,
+            CommandGateway CommandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(courseExecutionDto, unitOfWork);
     }
 
@@ -29,10 +31,13 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createCourseExecutionStep = new SagaSyncStep("createCourseExecutionStep", () -> {
-//            CourseExecutionDto createdCourseExecution = (CourseExecutionDto) courseExecutionService
-//                    .createCourseExecution(courseExecutionDto, unitOfWork);
-            CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionDto);
-            CourseExecutionDto createdCourseExecution = (CourseExecutionDto) commandGateway.send(createCourseExecutionCommand);
+            // CourseExecutionDto createdCourseExecution = (CourseExecutionDto)
+            // courseExecutionService
+            // .createCourseExecution(courseExecutionDto, unitOfWork);
+            CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork,
+                    ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionDto);
+            CourseExecutionDto createdCourseExecution = (CourseExecutionDto) CommandGateway
+                    .send(createCourseExecutionCommand);
             this.setCreatedCourseExecution(createdCourseExecution);
         });
 

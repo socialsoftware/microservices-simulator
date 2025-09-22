@@ -36,8 +36,10 @@ public class CreateQuestionFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public CreateQuestionFunctionalityTCC(QuestionService questionService, TopicService topicService, CourseService courseService, CausalUnitOfWorkService unitOfWorkService,  
-                            Integer courseAggregateId, QuestionDto questionDto, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public CreateQuestionFunctionalityTCC(QuestionService questionService, TopicService topicService,
+            CourseService courseService, CausalUnitOfWorkService unitOfWorkService,
+            Integer courseAggregateId, QuestionDto questionDto, CausalUnitOfWork unitOfWork,
+            CommandGateway commandGateway) {
         this.questionService = questionService;
         this.topicService = topicService;
         this.courseService = courseService;
@@ -49,34 +51,40 @@ public class CreateQuestionFunctionalityTCC extends WorkflowFunctionality {
     public void buildWorkflow(Integer courseAggregateId, QuestionDto questionDto, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
-    SyncStep step = new SyncStep(() -> {
-//             QuestionCourse course = new QuestionCourse(courseService.getCourseById(courseAggregateId, unitOfWork));
-        GetCourseByIdCommand getCourseByIdCommand = new GetCourseByIdCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
-        QuestionCourse course = new QuestionCourse((CourseDto) commandGateway.send(getCourseByIdCommand));
-        /*
-            COURSE_SAME_TOPICS_COURSE
-        */
+        SyncStep step = new SyncStep(() -> {
+            // QuestionCourse course = new
+            // QuestionCourse(courseService.getCourseById(courseAggregateId, unitOfWork));
+            GetCourseByIdCommand getCourseByIdCommand = new GetCourseByIdCommand(unitOfWork,
+                    ServiceMapping.COURSE.getServiceName(), courseAggregateId);
+            QuestionCourse course = new QuestionCourse((CourseDto) commandGateway.send(getCourseByIdCommand));
+            /*
+             * COURSE_SAME_TOPICS_COURSE
+             */
 
-        for (TopicDto topicDto : questionDto.getTopicDto()) {
-            if (!topicDto.getCourseId().equals(courseAggregateId)) {
-                throw new QuizzesException(QuizzesErrorMessage.QUESTION_TOPIC_INVALID_COURSE, topicDto.getAggregateId(), courseAggregateId);
+            for (TopicDto topicDto : questionDto.getTopicDto()) {
+                if (!topicDto.getCourseId().equals(courseAggregateId)) {
+                    throw new QuizzesException(QuizzesErrorMessage.QUESTION_TOPIC_INVALID_COURSE,
+                            topicDto.getAggregateId(), courseAggregateId);
+                }
             }
-        }
 
-//            List<TopicDto> topics = questionDto.getTopicDto().stream()
-//                    .map(topicDto -> topicService.getTopicById(topicDto.getAggregateId(), unitOfWork))
-//                    .collect(Collectors.toList());
-        List<TopicDto> topics = questionDto.getTopicDto().stream()
-            .map(topicDto -> (TopicDto) commandGateway.send(new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId())))
-            .collect(Collectors.toList());
+            // List<TopicDto> topics = questionDto.getTopicDto().stream()
+            // .map(topicDto -> topicService.getTopicById(topicDto.getAggregateId(),
+            // unitOfWork))
+            // .collect(Collectors.toList());
+            List<TopicDto> topics = questionDto.getTopicDto().stream()
+                    .map(topicDto -> (TopicDto) commandGateway.send(new GetTopicByIdCommand(unitOfWork,
+                            ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId())))
+                    .collect(Collectors.toList());
 
-//            this.createdQuestion = questionService.createQuestion(course, questionDto, topics, unitOfWork);
-        CreateQuestionCommand createQuestionCommand = new CreateQuestionCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), course, questionDto, topics);
-        this.createdQuestion = (QuestionDto) commandGateway.send(createQuestionCommand);
-    });
-    workflow.addStep(step);
+            // this.createdQuestion = questionService.createQuestion(course, questionDto,
+            // topics, unitOfWork);
+            CreateQuestionCommand createQuestionCommand = new CreateQuestionCommand(unitOfWork,
+                    ServiceMapping.QUESTION.getServiceName(), course, questionDto, topics);
+            this.createdQuestion = (QuestionDto) commandGateway.send(createQuestionCommand);
+        });
+        workflow.addStep(step);
     }
-    
 
     public QuestionCourse getCourse() {
         return course;

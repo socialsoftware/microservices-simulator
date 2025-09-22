@@ -18,8 +18,8 @@ public class GetTopicByIdFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public GetTopicByIdFunctionalityTCC(TopicService topicService, CausalUnitOfWorkService unitOfWorkService,  
-                                Integer topicAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public GetTopicByIdFunctionalityTCC(TopicService topicService, CausalUnitOfWorkService unitOfWorkService,
+            Integer topicAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -31,13 +31,13 @@ public class GetTopicByIdFunctionalityTCC extends WorkflowFunctionality {
 
         SyncStep step = new SyncStep(() -> {
             // this.topicDto = topicService.getTopicById(topicAggregateId, unitOfWork);
-            GetTopicByIdCommand GetTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
+            GetTopicByIdCommand GetTopicByIdCommand = new GetTopicByIdCommand(unitOfWork,
+                    ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
             this.topicDto = (TopicDto) commandGateway.send(GetTopicByIdCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public void setTopicDto(TopicDto topicDto) {
         this.topicDto = topicDto;

@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
@@ -48,7 +48,7 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
     private TournamentEventHandling tournamentEventHandling
 
     @Autowired
-    private CommandGateway commandGateway
+    private LocalCommandGateway commandGateway
 
     @Autowired
     public TraceService traceService

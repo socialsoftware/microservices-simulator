@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
@@ -45,7 +45,7 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
     public TraceService traceService
 
     @Autowired
-    private CommandGateway commandGateway;
+    private LocalCommandGateway commandGateway;
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto

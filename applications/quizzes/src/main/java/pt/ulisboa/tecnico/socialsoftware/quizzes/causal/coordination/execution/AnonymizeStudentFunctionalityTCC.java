@@ -18,26 +18,30 @@ public class AnonymizeStudentFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public AnonymizeStudentFunctionalityTCC(CourseExecutionService courseExecutionService, CausalUnitOfWorkService unitOfWorkService, CourseExecutionFactory courseExecutionFactory, 
-                                    Integer executionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public AnonymizeStudentFunctionalityTCC(CourseExecutionService courseExecutionService,
+            CausalUnitOfWorkService unitOfWorkService, CourseExecutionFactory courseExecutionFactory,
+            Integer executionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork,
+            CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(executionAggregateId, userAggregateId, courseExecutionFactory, unitOfWork);
     }
 
-    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, CourseExecutionFactory courseExecutionFactory, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId,
+            CourseExecutionFactory courseExecutionFactory, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            courseExecutionService.anonymizeStudent(executionAggregateId, userAggregateId, unitOfWork);
-            AnonymizeStudentCommand anonymizeStudentCommand = new AnonymizeStudentCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, userAggregateId);
+            // courseExecutionService.anonymizeStudent(executionAggregateId,
+            // userAggregateId, unitOfWork);
+            AnonymizeStudentCommand anonymizeStudentCommand = new AnonymizeStudentCommand(unitOfWork,
+                    ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, userAggregateId);
             commandGateway.send(anonymizeStudentCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public CourseExecution getOldCourseExecution() {
         return oldCourseExecution;

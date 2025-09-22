@@ -15,13 +15,13 @@ public class GetTopicByIdFunctionalitySagas extends WorkflowFunctionality {
     private TopicDto topicDto;
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
-    public GetTopicByIdFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService,  
-                                Integer topicAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public GetTopicByIdFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService,
+            Integer topicAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(topicAggregateId, unitOfWork);
     }
 
@@ -29,15 +29,15 @@ public class GetTopicByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
-//            TopicDto topicDto = topicService.getTopicById(topicAggregateId, unitOfWork);
-            GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
-            TopicDto topicDto = (TopicDto) commandGateway.send(getTopicByIdCommand);
+            // TopicDto topicDto = topicService.getTopicById(topicAggregateId, unitOfWork);
+            GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork,
+                    ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
+            TopicDto topicDto = (TopicDto) CommandGateway.send(getTopicByIdCommand);
             this.setTopicDto(topicDto);
         });
-    
+
         workflow.addStep(getTopicStep);
     }
-    
 
     public void setTopicDto(TopicDto topicDto) {
         this.topicDto = topicDto;

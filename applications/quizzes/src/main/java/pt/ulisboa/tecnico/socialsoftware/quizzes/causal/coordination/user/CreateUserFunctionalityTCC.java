@@ -19,8 +19,8 @@ public class CreateUserFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public CreateUserFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,  
-                            UserDto userDto, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public CreateUserFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,
+            UserDto userDto, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -32,13 +32,13 @@ public class CreateUserFunctionalityTCC extends WorkflowFunctionality {
 
         SyncStep step = new SyncStep(() -> {
             // this.createdUserDto = userService.createUser(userDto, unitOfWork);
-            CreateUserCommand CreateUserCommand = new CreateUserCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userDto);
+            CreateUserCommand CreateUserCommand = new CreateUserCommand(unitOfWork,
+                    ServiceMapping.USER.getServiceName(), userDto);
             this.createdUserDto = (UserDto) commandGateway.send(CreateUserCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public UserDto getUserDto() {
         return userDto;

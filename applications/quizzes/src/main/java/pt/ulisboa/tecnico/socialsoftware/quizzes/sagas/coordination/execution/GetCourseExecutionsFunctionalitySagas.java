@@ -17,14 +17,14 @@ public class GetCourseExecutionsFunctionalitySagas extends WorkflowFunctionality
     private List<CourseExecutionDto> courseExecutions;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
     public GetCourseExecutionsFunctionalitySagas(CourseExecutionService courseExecutionService,
             SagaUnitOfWorkService unitOfWorkService,
-            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+            SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(unitOfWork);
     }
 
@@ -36,7 +36,7 @@ public class GetCourseExecutionsFunctionalitySagas extends WorkflowFunctionality
             // courseExecutionService.getAllCourseExecutions(unitOfWork);
             GetAllCourseExecutionsCommand getAllCourseExecutionsCommand = new GetAllCourseExecutionsCommand(unitOfWork,
                     ServiceMapping.COURSE_EXECUTION.getServiceName());
-            List<CourseExecutionDto> courseExecutions = (List<CourseExecutionDto>) commandGateway
+            List<CourseExecutionDto> courseExecutions = (List<CourseExecutionDto>) CommandGateway
                     .send(getAllCourseExecutionsCommand);
             this.setCourseExecutions(courseExecutions);
         });

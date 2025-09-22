@@ -8,8 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.StreamCommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.StreamCommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.StreamCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination.user.*;
@@ -41,8 +40,6 @@ public class UserFunctionalities {
     private TransactionalModel workflowType;
     @Autowired
     private CommandGateway commandGateway;
-    @Autowired
-    private StreamCommandGateway streamCommandGateway;
 
     @PostConstruct
     public void init() {
@@ -73,12 +70,13 @@ public class UserFunctionalities {
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(userDto);
 
-        CreateUserFunctionalityTCC createUserFunctionalityTCC = new CreateUserFunctionalityTCC(
-            userService, causalUnitOfWorkService, userDto, causalUnitOfWork, commandGateway);
+                CreateUserFunctionalityTCC createUserFunctionalityTCC = new CreateUserFunctionalityTCC(
+                        userService, causalUnitOfWorkService, userDto, causalUnitOfWork, commandGateway);
 
                 createUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return createUserFunctionalityTCC.getCreatedUserDto();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -95,12 +93,13 @@ public class UserFunctionalities {
                 return findUserByIdFunctionalitySagas.getUserDto();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        FindUserByIdFunctionalityTCC findUserByIdFunctionalityTCC = new FindUserByIdFunctionalityTCC(
-            userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
+                FindUserByIdFunctionalityTCC findUserByIdFunctionalityTCC = new FindUserByIdFunctionalityTCC(
+                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
 
                 findUserByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findUserByIdFunctionalityTCC.getUserDto();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -111,18 +110,19 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 ActivateUserFunctionalitySagas activateUserFunctionalitySagas = new ActivateUserFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway, streamCommandGateway);
+                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 activateUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        ActivateUserFunctionalityTCC activateUserFunctionalityTCC = new ActivateUserFunctionalityTCC(
-            userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
+                ActivateUserFunctionalityTCC activateUserFunctionalityTCC = new ActivateUserFunctionalityTCC(
+                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
 
                 activateUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -139,12 +139,13 @@ public class UserFunctionalities {
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        DeleteUserFunctionalityTCC deleteUserFunctionalityTCC = new DeleteUserFunctionalityTCC(
-            userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
+                DeleteUserFunctionalityTCC deleteUserFunctionalityTCC = new DeleteUserFunctionalityTCC(
+                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
 
                 deleteUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -161,12 +162,13 @@ public class UserFunctionalities {
                 return getStudentsFunctionalitySagas.getStudents();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        GetStudentsFunctionalityTCC getStudentsFunctionalityTCC = new GetStudentsFunctionalityTCC(
-            userService, causalUnitOfWorkService, causalUnitOfWork, commandGateway);
+                GetStudentsFunctionalityTCC getStudentsFunctionalityTCC = new GetStudentsFunctionalityTCC(
+                        userService, causalUnitOfWorkService, causalUnitOfWork, commandGateway);
 
                 getStudentsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getStudentsFunctionalityTCC.getStudents();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -183,12 +185,13 @@ public class UserFunctionalities {
                 return getTeachersFunctionalitySagas.getTeachers();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        GetTeachersFunctionalityTCC getTeachersFunctionalityTCC = new GetTeachersFunctionalityTCC(
-            userService, causalUnitOfWorkService, causalUnitOfWork, commandGateway);
+                GetTeachersFunctionalityTCC getTeachersFunctionalityTCC = new GetTeachersFunctionalityTCC(
+                        userService, causalUnitOfWorkService, causalUnitOfWork, commandGateway);
 
                 getTeachersFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getTeachersFunctionalityTCC.getTeachers();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

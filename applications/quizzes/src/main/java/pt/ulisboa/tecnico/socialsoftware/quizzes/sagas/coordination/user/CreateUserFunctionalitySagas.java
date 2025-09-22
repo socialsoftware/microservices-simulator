@@ -16,13 +16,13 @@ public class CreateUserFunctionalitySagas extends WorkflowFunctionality {
     private UserDto createdUserDto;
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
     public CreateUserFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService,
-                                        UserDto userDto, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+            UserDto userDto, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(userDto, unitOfWork);
     }
 
@@ -30,15 +30,15 @@ public class CreateUserFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createUserStep = new SagaSyncStep("createUserStep", () -> {
-//            UserDto createdUserDto = userService.createUser(userDto, unitOfWork);
-            CreateUserCommand createUserCommand = new CreateUserCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userDto);
-            createdUserDto = (UserDto) commandGateway.send(createUserCommand);
+            // UserDto createdUserDto = userService.createUser(userDto, unitOfWork);
+            CreateUserCommand createUserCommand = new CreateUserCommand(unitOfWork,
+                    ServiceMapping.USER.getServiceName(), userDto);
+            createdUserDto = (UserDto) CommandGateway.send(createUserCommand);
             setCreatedUserDto(createdUserDto);
         });
 
         workflow.addStep(createUserStep);
     }
-    
 
     public UserDto getUserDto() {
         return userDto;

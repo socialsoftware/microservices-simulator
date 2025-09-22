@@ -15,14 +15,14 @@ public class GetCourseExecutionByIdFunctionalitySagas extends WorkflowFunctional
     private CourseExecutionDto courseExecutionDto;
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
     public GetCourseExecutionByIdFunctionalitySagas(CourseExecutionService courseExecutionService,
             SagaUnitOfWorkService unitOfWorkService,
-            Integer executionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+            Integer executionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(executionAggregateId, unitOfWork);
     }
 
@@ -35,7 +35,7 @@ public class GetCourseExecutionByIdFunctionalitySagas extends WorkflowFunctional
             // unitOfWork);
             GetCourseExecutionByIdCommand getCourseExecutionCommand = new GetCourseExecutionByIdCommand(unitOfWork,
                     ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
-            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) commandGateway
+            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) CommandGateway
                     .send(getCourseExecutionCommand);
             this.setCourseExecutionDto(courseExecutionDto);
         });

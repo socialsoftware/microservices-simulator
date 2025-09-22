@@ -30,7 +30,10 @@ public class AddParticipantFunctionalityTCC extends WorkflowFunctionality {
     private CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public AddParticipantFunctionalityTCC(EventService eventService, TournamentEventHandling tournamentEventHandling, TournamentService tournamentService, CourseExecutionService courseExecutionService, CausalUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public AddParticipantFunctionalityTCC(EventService eventService, TournamentEventHandling tournamentEventHandling,
+            TournamentService tournamentService, CourseExecutionService courseExecutionService,
+            CausalUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer userAggregateId,
+            CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
@@ -42,21 +45,29 @@ public class AddParticipantFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
-            GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            // TournamentDto tournamentDto =
+            // tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             TournamentDto tournamentDto = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
 
-            // by making this call the invariants regarding the course execution and the role of the participant are guaranteed
-            // UserDto userDto = courseExecutionService.getStudentByExecutionIdAndUserId(tournamentDto.getCourseExecution().getAggregateId(), userAggregateId, unitOfWork);
-            GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), tournamentDto.getCourseExecution().getAggregateId(), userAggregateId);
+            // by making this call the invariants regarding the course execution and the
+            // role of the participant are guaranteed
+            // UserDto userDto =
+            // courseExecutionService.getStudentByExecutionIdAndUserId(tournamentDto.getCourseExecution().getAggregateId(),
+            // userAggregateId, unitOfWork);
+            GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(
+                    unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(),
+                    tournamentDto.getCourseExecution().getAggregateId(), userAggregateId);
             UserDto userDto = (UserDto) commandGateway.send(getStudentByExecutionIdAndUserIdCommand);
 
             TournamentParticipant participant = new TournamentParticipant(userDto);
-            // tournamentService.addParticipant(tournamentAggregateId, participant, unitOfWork);
-            AddParticipantCommand addParticipantCommand = new AddParticipantCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, participant);
+            // tournamentService.addParticipant(tournamentAggregateId, participant,
+            // unitOfWork);
+            AddParticipantCommand addParticipantCommand = new AddParticipantCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, participant);
             commandGateway.send(addParticipantCommand);
         });
-
 
         this.workflow.addStep(step);
     }

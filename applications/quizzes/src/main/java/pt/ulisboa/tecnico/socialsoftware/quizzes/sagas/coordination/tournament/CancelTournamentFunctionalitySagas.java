@@ -20,50 +20,57 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class CancelTournamentFunctionalitySagas extends WorkflowFunctionality {
-    
+
     private TournamentDto tournament;
     private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
-    public CancelTournamentFunctionalitySagas(TournamentService tournamentService, SagaUnitOfWorkService unitOfWorkService,
-                                              TournamentFactory tournamentFactory,
-                                              Integer tournamentAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public CancelTournamentFunctionalitySagas(TournamentService tournamentService,
+            SagaUnitOfWorkService unitOfWorkService,
+            TournamentFactory tournamentFactory,
+            Integer tournamentAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(tournamentFactory, tournamentAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId,
+            SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
-//            SagaTournamentDto tournament = (SagaTournamentDto) tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
-//            unitOfWorkService.registerSagaState(tournamentAggregateId, TournamentSagaState.READ_TOURNAMENT, unitOfWork);
-            GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            // SagaTournamentDto tournament = (SagaTournamentDto)
+            // tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            // unitOfWorkService.registerSagaState(tournamentAggregateId,
+            // TournamentSagaState.READ_TOURNAMENT, unitOfWork);
+            GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             getTournamentByIdCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
-            TournamentDto tournament = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
+            TournamentDto tournament = (TournamentDto) CommandGateway.send(getTournamentByIdCommand);
             this.setTournament(tournament);
         });
-    
+
         getTournamentStep.registerCompensation(() -> {
-//            unitOfWorkService.registerSagaState(tournamentAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            Command command = new Command(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            // unitOfWorkService.registerSagaState(tournamentAggregateId,
+            // GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            Command command = new Command(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),
+                    tournamentAggregateId);
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            CommandGateway.send(command);
         }, unitOfWork);
-    
+
         SagaSyncStep cancelTournamentStep = new SagaSyncStep("cancelTournamentStep", () -> {
-//            tournamentService.cancelTournament(tournamentAggregateId, unitOfWork);
-            CancelTournamentCommand cancelTournamentCommand = new CancelTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
-            commandGateway.send(cancelTournamentCommand);
+            // tournamentService.cancelTournament(tournamentAggregateId, unitOfWork);
+            CancelTournamentCommand cancelTournamentCommand = new CancelTournamentCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            CommandGateway.send(cancelTournamentCommand);
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
-    
+
         workflow.addStep(getTournamentStep);
         workflow.addStep(cancelTournamentStep);
     }
-    
 
     public TournamentDto getTournament() {
         return tournament;

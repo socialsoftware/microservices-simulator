@@ -19,8 +19,9 @@ public class GetCourseExecutionsByUserFunctionalityTCC extends WorkflowFunctiona
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public GetCourseExecutionsByUserFunctionalityTCC(CourseExecutionService courseExecutionService, CausalUnitOfWorkService unitOfWorkService, 
-                                    Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public GetCourseExecutionsByUserFunctionalityTCC(CourseExecutionService courseExecutionService,
+            CausalUnitOfWorkService unitOfWorkService,
+            Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -31,14 +32,16 @@ public class GetCourseExecutionsByUserFunctionalityTCC extends WorkflowFunctiona
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            this.courseExecutions = courseExecutionService.getCourseExecutionsByUserId(userAggregateId, unitOfWork);
-            GetCourseExecutionsByUserIdCommand getCourseExecutionsByUserIdCommand = new GetCourseExecutionsByUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), userAggregateId);
+            // this.courseExecutions =
+            // courseExecutionService.getCourseExecutionsByUserId(userAggregateId,
+            // unitOfWork);
+            GetCourseExecutionsByUserIdCommand getCourseExecutionsByUserIdCommand = new GetCourseExecutionsByUserIdCommand(
+                    unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), userAggregateId);
             this.courseExecutions = (Set<CourseExecutionDto>) commandGateway.send(getCourseExecutionsByUserIdCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public Set<CourseExecutionDto> getCourseExecutions() {
         return courseExecutions;

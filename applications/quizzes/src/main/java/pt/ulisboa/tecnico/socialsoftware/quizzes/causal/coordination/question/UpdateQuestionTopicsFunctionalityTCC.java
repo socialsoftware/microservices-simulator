@@ -31,9 +31,10 @@ public class UpdateQuestionTopicsFunctionalityTCC extends WorkflowFunctionality 
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public UpdateQuestionTopicsFunctionalityTCC(QuestionService questionService, TopicService topicService, 
-                                QuestionFactory questionFactory, CausalUnitOfWorkService unitOfWorkService,  
-                                Integer courseAggregateId, List<Integer> topicIds, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public UpdateQuestionTopicsFunctionalityTCC(QuestionService questionService, TopicService topicService,
+            QuestionFactory questionFactory, CausalUnitOfWorkService unitOfWorkService,
+            Integer courseAggregateId, List<Integer> topicIds, CausalUnitOfWork unitOfWork,
+            CommandGateway commandGateway) {
         this.questionService = questionService;
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
@@ -41,27 +42,29 @@ public class UpdateQuestionTopicsFunctionalityTCC extends WorkflowFunctionality 
         this.buildWorkflow(courseAggregateId, topicIds, questionFactory, unitOfWork);
     }
 
-    public void buildWorkflow(Integer courseAggregateId, List<Integer> topicIds, QuestionFactory questionFactory, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer courseAggregateId, List<Integer> topicIds, QuestionFactory questionFactory,
+            CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            Set<QuestionTopic> topics = topicIds.stream()
-//                        .map(id -> topicService.getTopicById(id, unitOfWork))
-//                        .map(QuestionTopic::new)
-//                        .collect(Collectors.toSet());
+            // Set<QuestionTopic> topics = topicIds.stream()
+            // .map(id -> topicService.getTopicById(id, unitOfWork))
+            // .map(QuestionTopic::new)
+            // .collect(Collectors.toSet());
             Set<QuestionTopic> topics = topicIds.stream()
-                        .map(id -> (TopicDto) commandGateway.send(new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), id)))
-                        .map(QuestionTopic::new)
-                        .collect(Collectors.toSet());
+                    .map(id -> (TopicDto) commandGateway
+                            .send(new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), id)))
+                    .map(QuestionTopic::new)
+                    .collect(Collectors.toSet());
 
-//            questionService.updateQuestionTopics(courseAggregateId, topics, unitOfWork);
-            UpdateQuestionTopicsCommand cmd = new UpdateQuestionTopicsCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), courseAggregateId, topics);
+            // questionService.updateQuestionTopics(courseAggregateId, topics, unitOfWork);
+            UpdateQuestionTopicsCommand cmd = new UpdateQuestionTopicsCommand(unitOfWork,
+                    ServiceMapping.QUESTION.getServiceName(), courseAggregateId, topics);
             commandGateway.send(cmd);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public Set<QuestionTopic> getTopics() {
         return topics;

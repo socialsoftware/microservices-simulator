@@ -19,8 +19,9 @@ public class FindQuestionsByCourseFunctionalityTCC extends WorkflowFunctionality
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public FindQuestionsByCourseFunctionalityTCC(QuestionService questionService, CausalUnitOfWorkService unitOfWorkService,  
-                            Integer courseAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public FindQuestionsByCourseFunctionalityTCC(QuestionService questionService,
+            CausalUnitOfWorkService unitOfWorkService,
+            Integer courseAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.questionService = questionService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -31,15 +32,17 @@ public class FindQuestionsByCourseFunctionalityTCC extends WorkflowFunctionality
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            this.questions = questionService.findQuestionsByCourseAggregateId(courseAggregateId, unitOfWork);
-            FindQuestionsByCourseAggregateIdCommand cmd = new FindQuestionsByCourseAggregateIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), courseAggregateId);
+            // this.questions =
+            // questionService.findQuestionsByCourseAggregateId(courseAggregateId,
+            // unitOfWork);
+            FindQuestionsByCourseAggregateIdCommand cmd = new FindQuestionsByCourseAggregateIdCommand(unitOfWork,
+                    ServiceMapping.QUESTION.getServiceName(), courseAggregateId);
             List<QuestionDto> result = (List<QuestionDto>) commandGateway.send(cmd);
             this.questions = result;
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public List<QuestionDto> getQuestions() {
         return questions;

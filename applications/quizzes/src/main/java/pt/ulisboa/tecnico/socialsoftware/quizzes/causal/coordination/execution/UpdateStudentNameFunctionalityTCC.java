@@ -17,32 +17,36 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.Us
 public class UpdateStudentNameFunctionalityTCC extends WorkflowFunctionality {
     private CausalUser student;
     private CourseExecution oldCourseExecution;
-        
-    
 
     private final CourseExecutionService courseExecutionService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public UpdateStudentNameFunctionalityTCC(CourseExecutionService courseExecutionService, CourseExecutionFactory courseExecutionFactory, CausalUnitOfWorkService unitOfWorkService, Integer executionAggregateId, Integer userAggregateId, UserDto userDto, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public UpdateStudentNameFunctionalityTCC(CourseExecutionService courseExecutionService,
+            CourseExecutionFactory courseExecutionFactory, CausalUnitOfWorkService unitOfWorkService,
+            Integer executionAggregateId, Integer userAggregateId, UserDto userDto, CausalUnitOfWork unitOfWork,
+            CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(executionAggregateId, userAggregateId, userDto, unitOfWork);
     }
 
-    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, UserDto userDto, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, UserDto userDto,
+            CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            courseExecutionService.updateExecutionStudentName(executionAggregateId, userAggregateId, userDto.getName(), unitOfWork);
-            UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand = new UpdateExecutionStudentNameCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, userAggregateId, userDto.getName());
+            // courseExecutionService.updateExecutionStudentName(executionAggregateId,
+            // userAggregateId, userDto.getName(), unitOfWork);
+            UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand = new UpdateExecutionStudentNameCommand(
+                    unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, userAggregateId,
+                    userDto.getName());
             commandGateway.send(updateExecutionStudentNameCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public CausalUser getStudent() {
         return student;
@@ -60,4 +64,3 @@ public class UpdateStudentNameFunctionalityTCC extends WorkflowFunctionality {
         this.oldCourseExecution = oldCourseExecution;
     }
 }
-

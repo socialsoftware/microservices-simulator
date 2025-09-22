@@ -16,21 +16,25 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.Us
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.USER_MISSING_NAME;
 
 public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
-    
+
     private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CourseExecutionFactory courseExecutionFactory;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
-    public UpdateStudentNameFunctionalitySagas(CourseExecutionService courseExecutionService, CourseExecutionFactory courseExecutionFactory, SagaUnitOfWorkService unitOfWorkService, Integer executionAggregateId, Integer userAggregateId, UserDto userDto, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public UpdateStudentNameFunctionalitySagas(CourseExecutionService courseExecutionService,
+            CourseExecutionFactory courseExecutionFactory, SagaUnitOfWorkService unitOfWorkService,
+            Integer executionAggregateId, Integer userAggregateId, UserDto userDto, SagaUnitOfWork unitOfWork,
+            CommandGateway CommandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.courseExecutionFactory = courseExecutionFactory;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(executionAggregateId, userAggregateId, userDto, unitOfWork);
     }
 
-    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, UserDto userDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, UserDto userDto,
+            SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         if (userDto.getName() == null) {
@@ -38,12 +42,14 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
         }
 
         SagaSyncStep updateStudentNameStep = new SagaSyncStep("updateStudentNameStep", () -> {
-//            courseExecutionService.updateExecutionStudentName(executionAggregateId, userAggregateId, userDto.getName(), unitOfWork);
-            UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand = new UpdateExecutionStudentNameCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, userAggregateId, userDto.getName());
-            commandGateway.send(updateExecutionStudentNameCommand);
+            // courseExecutionService.updateExecutionStudentName(executionAggregateId,
+            // userAggregateId, userDto.getName(), unitOfWork);
+            UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand = new UpdateExecutionStudentNameCommand(
+                    unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, userAggregateId,
+                    userDto.getName());
+            CommandGateway.send(updateExecutionStudentNameCommand);
         });
-    
+
         workflow.addStep(updateStudentNameStep);
     }
 }
-

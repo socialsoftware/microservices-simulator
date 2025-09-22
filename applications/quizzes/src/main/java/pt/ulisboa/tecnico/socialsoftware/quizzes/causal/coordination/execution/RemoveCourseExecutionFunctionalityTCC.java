@@ -17,8 +17,9 @@ public class RemoveCourseExecutionFunctionalityTCC extends WorkflowFunctionality
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public RemoveCourseExecutionFunctionalityTCC(CourseExecutionService courseExecutionService, CausalUnitOfWorkService unitOfWorkService,
-                                                 Integer executionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public RemoveCourseExecutionFunctionalityTCC(CourseExecutionService courseExecutionService,
+            CausalUnitOfWorkService unitOfWorkService,
+            Integer executionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -29,14 +30,15 @@ public class RemoveCourseExecutionFunctionalityTCC extends WorkflowFunctionality
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            courseExecutionService.removeCourseExecution(executionAggregateId, unitOfWork);
-            RemoveCourseExecutionCommand removeCourseExecutionCommand = new RemoveCourseExecutionCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
+            // courseExecutionService.removeCourseExecution(executionAggregateId,
+            // unitOfWork);
+            RemoveCourseExecutionCommand removeCourseExecutionCommand = new RemoveCourseExecutionCommand(unitOfWork,
+                    ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
             commandGateway.send(removeCourseExecutionCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public CausalCourseExecution getCourseExecution() {
         return courseExecution;

@@ -18,8 +18,8 @@ public class DeleteUserFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public DeleteUserFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,  
-                            Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public DeleteUserFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,
+            Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -31,13 +31,13 @@ public class DeleteUserFunctionalityTCC extends WorkflowFunctionality {
 
         SyncStep step = new SyncStep(() -> {
             // userService.deleteUser(userAggregateId, unitOfWork);
-            DeleteUserCommand DeleteUserCommand = new DeleteUserCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
+            DeleteUserCommand DeleteUserCommand = new DeleteUserCommand(unitOfWork,
+                    ServiceMapping.USER.getServiceName(), userAggregateId);
             commandGateway.send(DeleteUserCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public CausalUser getUser() {
         return user;

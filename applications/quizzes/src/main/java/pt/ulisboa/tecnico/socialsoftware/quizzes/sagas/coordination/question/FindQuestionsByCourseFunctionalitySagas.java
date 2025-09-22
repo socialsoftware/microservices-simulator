@@ -17,13 +17,14 @@ public class FindQuestionsByCourseFunctionalitySagas extends WorkflowFunctionali
     private List<QuestionDto> questions;
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway commandGateway;
+    private final CommandGateway CommandGateway;
 
-    public FindQuestionsByCourseFunctionalitySagas(QuestionService questionService, SagaUnitOfWorkService unitOfWorkService,
-                                                   Integer courseAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public FindQuestionsByCourseFunctionalitySagas(QuestionService questionService,
+            SagaUnitOfWorkService unitOfWorkService,
+            Integer courseAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.questionService = questionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
+        this.CommandGateway = CommandGateway;
         this.buildWorkflow(courseAggregateId, unitOfWork);
     }
 
@@ -31,15 +32,18 @@ public class FindQuestionsByCourseFunctionalitySagas extends WorkflowFunctionali
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep findQuestionsStep = new SagaSyncStep("findQuestionsStep", () -> {
-//            List<QuestionDto> questions = questionService.findQuestionsByCourseAggregateId(courseAggregateId, unitOfWork);
-            FindQuestionsByCourseAggregateIdCommand findQuestionsByCourseAggregateIdCommand = new FindQuestionsByCourseAggregateIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), courseAggregateId);
-            List<QuestionDto> questions = (List<QuestionDto>) commandGateway.send(findQuestionsByCourseAggregateIdCommand);
+            // List<QuestionDto> questions =
+            // questionService.findQuestionsByCourseAggregateId(courseAggregateId,
+            // unitOfWork);
+            FindQuestionsByCourseAggregateIdCommand findQuestionsByCourseAggregateIdCommand = new FindQuestionsByCourseAggregateIdCommand(
+                    unitOfWork, ServiceMapping.QUESTION.getServiceName(), courseAggregateId);
+            List<QuestionDto> questions = (List<QuestionDto>) CommandGateway
+                    .send(findQuestionsByCourseAggregateIdCommand);
             this.setQuestions(questions);
         });
-    
+
         workflow.addStep(findQuestionsStep);
     }
-    
 
     public List<QuestionDto> getQuestions() {
         return questions;

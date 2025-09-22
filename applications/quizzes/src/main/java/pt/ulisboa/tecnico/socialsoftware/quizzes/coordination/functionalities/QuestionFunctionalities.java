@@ -72,11 +72,12 @@ public class QuestionFunctionalities {
                 return findQuestionByAggregateIdFunctionalitySagas.getQuestionDto();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        FindQuestionByAggregateIdFunctionalityTCC findQuestionByAggregateIdFunctionalityTCC = new FindQuestionByAggregateIdFunctionalityTCC(
-            questionService, causalUnitOfWorkService, aggregateId, causalUnitOfWork, commandGateway);
+                FindQuestionByAggregateIdFunctionalityTCC findQuestionByAggregateIdFunctionalityTCC = new FindQuestionByAggregateIdFunctionalityTCC(
+                        questionService, causalUnitOfWorkService, aggregateId, causalUnitOfWork, commandGateway);
                 findQuestionByAggregateIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findQuestionByAggregateIdFunctionalityTCC.getQuestionDto();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -92,11 +93,12 @@ public class QuestionFunctionalities {
                 return findQuestionsByCourseFunctionalitySagas.getQuestions();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        FindQuestionsByCourseFunctionalityTCC findQuestionsByCourseFunctionalityTCC = new FindQuestionsByCourseFunctionalityTCC(
-            questionService, causalUnitOfWorkService, courseAggregateId, causalUnitOfWork, commandGateway);
+                FindQuestionsByCourseFunctionalityTCC findQuestionsByCourseFunctionalityTCC = new FindQuestionsByCourseFunctionalityTCC(
+                        questionService, causalUnitOfWorkService, courseAggregateId, causalUnitOfWork, commandGateway);
                 findQuestionsByCourseFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findQuestionsByCourseFunctionalityTCC.getQuestions();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -107,16 +109,19 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 CreateQuestionFunctionalitySagas createQuestionFunctionalitySagas = new CreateQuestionFunctionalitySagas(
-                        questionService, topicService, courseService, sagaUnitOfWorkService, courseAggregateId, questionDto, sagaUnitOfWork, commandGateway);
+                        questionService, topicService, courseService, sagaUnitOfWorkService, courseAggregateId,
+                        questionDto, sagaUnitOfWork, commandGateway);
                 createQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createQuestionFunctionalitySagas.getCreatedQuestion();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        CreateQuestionFunctionalityTCC createQuestionFunctionalityTCC = new CreateQuestionFunctionalityTCC(
-            questionService, topicService, courseService, causalUnitOfWorkService, courseAggregateId, questionDto, causalUnitOfWork, commandGateway);
+                CreateQuestionFunctionalityTCC createQuestionFunctionalityTCC = new CreateQuestionFunctionalityTCC(
+                        questionService, topicService, courseService, causalUnitOfWorkService, courseAggregateId,
+                        questionDto, causalUnitOfWork, commandGateway);
                 createQuestionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return createQuestionFunctionalityTCC.getCreatedQuestion();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -127,16 +132,19 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuestionFunctionalitySagas updateQuestionFunctionalitySagas = new UpdateQuestionFunctionalitySagas(
-                        questionService, sagaUnitOfWorkService, questionFactory, questionDto, sagaUnitOfWork, commandGateway);
+                        questionService, sagaUnitOfWorkService, questionFactory, questionDto, sagaUnitOfWork,
+                        commandGateway);
                 updateQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        UpdateQuestionFunctionalityTCC updateQuestionFunctionalityTCC = new UpdateQuestionFunctionalityTCC(
-            questionService, causalUnitOfWorkService, questionFactory, questionDto, causalUnitOfWork, commandGateway);
+                UpdateQuestionFunctionalityTCC updateQuestionFunctionalityTCC = new UpdateQuestionFunctionalityTCC(
+                        questionService, causalUnitOfWorkService, questionFactory, questionDto, causalUnitOfWork,
+                        commandGateway);
                 updateQuestionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -152,11 +160,13 @@ public class QuestionFunctionalities {
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        RemoveQuestionFunctionalityTCC removeQuestionFunctionalityTCC = new RemoveQuestionFunctionalityTCC(
-            questionService, causalUnitOfWorkService, questionAggregateId, causalUnitOfWork, commandGateway);
+                RemoveQuestionFunctionalityTCC removeQuestionFunctionalityTCC = new RemoveQuestionFunctionalityTCC(
+                        questionService, causalUnitOfWorkService, questionAggregateId, causalUnitOfWork,
+                        commandGateway);
                 removeQuestionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -167,16 +177,19 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuestionTopicsFunctionalitySagas updateQuestionTopicsFunctionalitySagas = new UpdateQuestionTopicsFunctionalitySagas(
-                        questionService, topicService, questionFactory, sagaUnitOfWorkService, courseAggregateId, topicIds, sagaUnitOfWork, commandGateway);
+                        questionService, topicService, questionFactory, sagaUnitOfWorkService, courseAggregateId,
+                        topicIds, sagaUnitOfWork, commandGateway);
                 updateQuestionTopicsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        UpdateQuestionTopicsFunctionalityTCC updateQuestionTopicsFunctionalityTCC = new UpdateQuestionTopicsFunctionalityTCC(
-            questionService, topicService, questionFactory, causalUnitOfWorkService, courseAggregateId, topicIds, causalUnitOfWork, commandGateway);
+                UpdateQuestionTopicsFunctionalityTCC updateQuestionTopicsFunctionalityTCC = new UpdateQuestionTopicsFunctionalityTCC(
+                        questionService, topicService, questionFactory, causalUnitOfWorkService, courseAggregateId,
+                        topicIds, causalUnitOfWork, commandGateway);
                 updateQuestionTopicsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

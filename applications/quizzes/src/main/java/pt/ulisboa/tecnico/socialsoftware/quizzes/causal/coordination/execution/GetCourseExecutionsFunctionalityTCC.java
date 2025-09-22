@@ -19,8 +19,9 @@ public class GetCourseExecutionsFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public GetCourseExecutionsFunctionalityTCC(CourseExecutionService courseExecutionService, CausalUnitOfWorkService unitOfWorkService, 
-                                    CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public GetCourseExecutionsFunctionalityTCC(CourseExecutionService courseExecutionService,
+            CausalUnitOfWorkService unitOfWorkService,
+            CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.courseExecutionService = courseExecutionService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -31,14 +32,15 @@ public class GetCourseExecutionsFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            this.courseExecutions = courseExecutionService.getAllCourseExecutions(unitOfWork);
-            GetAllCourseExecutionsCommand getAllCourseExecutionsCommand = new GetAllCourseExecutionsCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName());
+            // this.courseExecutions =
+            // courseExecutionService.getAllCourseExecutions(unitOfWork);
+            GetAllCourseExecutionsCommand getAllCourseExecutionsCommand = new GetAllCourseExecutionsCommand(unitOfWork,
+                    ServiceMapping.COURSE_EXECUTION.getServiceName());
             this.courseExecutions = (List<CourseExecutionDto>) commandGateway.send(getAllCourseExecutionsCommand);
         });
-    
+
         workflow.addStep(step);
     }
-    
 
     public List<CourseExecutionDto> getCourseExecutions() {
         return courseExecutions;

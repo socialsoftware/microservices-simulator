@@ -20,24 +20,27 @@ public class RemoveTournamentFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public RemoveTournamentFunctionalityTCC(EventService eventService, TournamentService tournamentService,CausalUnitOfWorkService unitOfWorkService, 
-                                TournamentFactory tournamentFactory,
-                                Integer tournamentAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public RemoveTournamentFunctionalityTCC(EventService eventService, TournamentService tournamentService,
+            CausalUnitOfWorkService unitOfWorkService,
+            TournamentFactory tournamentFactory,
+            Integer tournamentAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentFactory, tournamentAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId,
+            CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
             // tournamentService.removeTournament(tournamentAggregateId, unitOfWork);
-            RemoveTournamentCommand RemoveTournamentCommand = new RemoveTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            RemoveTournamentCommand RemoveTournamentCommand = new RemoveTournamentCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             commandGateway.send(RemoveTournamentCommand);
         });
-    
+
         workflow.addStep(step);
     }
 

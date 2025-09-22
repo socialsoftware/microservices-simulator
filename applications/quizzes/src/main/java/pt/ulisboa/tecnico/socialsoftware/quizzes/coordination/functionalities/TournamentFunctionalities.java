@@ -8,7 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.StreamCommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.StreamCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -64,8 +64,6 @@ public class TournamentFunctionalities {
     private EventService eventService;
     @Autowired
     private CommandGateway commandGateway;
-    @Autowired
-    private StreamCommandGateway streamCommandGateway;
 
     @Autowired
     private Environment env;
@@ -84,7 +82,8 @@ public class TournamentFunctionalities {
         }
     }
 
-    public TournamentDto createTournament(Integer userId, Integer executionId, List<Integer> topicsId, TournamentDto tournamentDto) {
+    public TournamentDto createTournament(Integer userId, Integer executionId, List<Integer> topicsId,
+            TournamentDto tournamentDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -102,13 +101,14 @@ public class TournamentFunctionalities {
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(userId, topicsId, tournamentDto);
 
-        CreateTournamentFunctionalityTCC createTournamentFunctionalityTCC = new CreateTournamentFunctionalityTCC(
-            tournamentService, courseExecutionService, topicService, quizService, causalUnitOfWorkService,
-            userId, executionId, topicsId, tournamentDto, causalUnitOfWork, commandGateway);
+                CreateTournamentFunctionalityTCC createTournamentFunctionalityTCC = new CreateTournamentFunctionalityTCC(
+                        tournamentService, courseExecutionService, topicService, quizService, causalUnitOfWorkService,
+                        userId, executionId, topicsId, tournamentDto, causalUnitOfWork, commandGateway);
 
                 createTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return createTournamentFunctionalityTCC.getTournamentDto();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -120,23 +120,26 @@ public class TournamentFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 AddParticipantFunctionalitySagas addParticipantFunctionalitySagas = new AddParticipantFunctionalitySagas(
                         tournamentService, courseExecutionService, sagaUnitOfWorkService,
-                        tournamentAggregateId, executionAggregateId, userAggregateId, sagaUnitOfWork, commandGateway, streamCommandGateway);
+                        tournamentAggregateId, executionAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 addParticipantFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        AddParticipantFunctionalityTCC addParticipantFunctionalityTCC = new AddParticipantFunctionalityTCC(
-            eventService, tournamentEventHandling, tournamentService, courseExecutionService, causalUnitOfWorkService,
-            tournamentAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
+                AddParticipantFunctionalityTCC addParticipantFunctionalityTCC = new AddParticipantFunctionalityTCC(
+                        eventService, tournamentEventHandling, tournamentService, courseExecutionService,
+                        causalUnitOfWorkService,
+                        tournamentAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
 
                 addParticipantFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void addParticipantAsync(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId) {
+    public void addParticipantAsync(Integer tournamentAggregateId, Integer executionAggregateId,
+            Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -149,14 +152,18 @@ public class TournamentFunctionalities {
                 addParticipantAsyncFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             // case TCC:
-            //     CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            //     AddParticipantAsyncFunctionalityTCC addParticipantAsyncFunctionalityTCC = new AddParticipantAsyncFunctionalityTCC(
-            //             tournamentService, courseExecutionService, causalUnitOfWorkService,
-            //             tournamentAggregateId, executionAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
+            // CausalUnitOfWork causalUnitOfWork =
+            // causalUnitOfWorkService.createUnitOfWork(functionalityName);
+            // AddParticipantAsyncFunctionalityTCC addParticipantAsyncFunctionalityTCC = new
+            // AddParticipantAsyncFunctionalityTCC(
+            // tournamentService, courseExecutionService, causalUnitOfWorkService,
+            // tournamentAggregateId, executionAggregateId, userAggregateId,
+            // causalUnitOfWork, commandGateway);
 
-            //     addParticipantAsyncFunctionalityTCC.executeWorkflow(causalUnitOfWork);
-            //     break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            // addParticipantAsyncFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+            // break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -175,12 +182,14 @@ public class TournamentFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateTournamentFunctionalityTCC updateTournamentFunctionalityTCC = new UpdateTournamentFunctionalityTCC(
-                        tournamentService, topicService, quizService, causalUnitOfWorkService, tournamentFactory, quizFactory,
+                        tournamentService, topicService, quizService, causalUnitOfWorkService, tournamentFactory,
+                        quizFactory,
                         tournamentDto, topicsAggregateIds, causalUnitOfWork, commandGateway);
 
                 updateTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -198,12 +207,14 @@ public class TournamentFunctionalities {
                 return getTournamentsForCourseExecutionFunctionalitySagas.getTournaments();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        GetTournamentsForCourseExecutionFunctionalityTCC getTournamentsForCourseExecutionFunctionalityTCC = new GetTournamentsForCourseExecutionFunctionalityTCC(
-            tournamentService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork, commandGateway);
+                GetTournamentsForCourseExecutionFunctionalityTCC getTournamentsForCourseExecutionFunctionalityTCC = new GetTournamentsForCourseExecutionFunctionalityTCC(
+                        tournamentService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork,
+                        commandGateway);
 
                 getTournamentsForCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getTournamentsForCourseExecutionFunctionalityTCC.getTournaments();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -220,12 +231,14 @@ public class TournamentFunctionalities {
                 return getOpenedTournamentsForCourseExecutionFunctionalitySagas.getOpenedTournaments();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        GetOpenedTournamentsForCourseExecutionFunctionalityTCC getOpenedTournamentsForCourseExecutionFunctionalityTCC = new GetOpenedTournamentsForCourseExecutionFunctionalityTCC(
-            tournamentService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork, commandGateway);
+                GetOpenedTournamentsForCourseExecutionFunctionalityTCC getOpenedTournamentsForCourseExecutionFunctionalityTCC = new GetOpenedTournamentsForCourseExecutionFunctionalityTCC(
+                        tournamentService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork,
+                        commandGateway);
 
                 getOpenedTournamentsForCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getOpenedTournamentsForCourseExecutionFunctionalityTCC.getOpenedTournaments();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -242,12 +255,14 @@ public class TournamentFunctionalities {
                 return getClosedTournamentsForCourseExecutionFunctionalitySagas.getClosedTournaments();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        GetClosedTournamentsForCourseExecutionFunctionalityTCC getClosedTournamentsForCourseExecutionFunctionalityTCC = new GetClosedTournamentsForCourseExecutionFunctionalityTCC(
-            tournamentService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork, commandGateway);
+                GetClosedTournamentsForCourseExecutionFunctionalityTCC getClosedTournamentsForCourseExecutionFunctionalityTCC = new GetClosedTournamentsForCourseExecutionFunctionalityTCC(
+                        tournamentService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork,
+                        commandGateway);
 
                 getClosedTournamentsForCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getClosedTournamentsForCourseExecutionFunctionalityTCC.getClosedTournaments();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -258,18 +273,21 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 LeaveTournamentFunctionalitySagas leaveTournamentFunctionalitySagas = new LeaveTournamentFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, tournamentFactory, tournamentAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
+                        tournamentService, sagaUnitOfWorkService, tournamentFactory, tournamentAggregateId,
+                        userAggregateId, sagaUnitOfWork, commandGateway);
 
                 leaveTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 LeaveTournamentFunctionalityTCC leaveTournamentFunctionalityTCC = new LeaveTournamentFunctionalityTCC(
-                        tournamentService, causalUnitOfWorkService, tournamentFactory, tournamentAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
+                        tournamentService, causalUnitOfWorkService, tournamentFactory, tournamentAggregateId,
+                        userAggregateId, causalUnitOfWork, commandGateway);
 
                 leaveTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -293,7 +311,8 @@ public class TournamentFunctionalities {
 
                 solveQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return solveQuizFunctionalityTCC.getQuizDto();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -304,18 +323,21 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 CancelTournamentFunctionalitySagas cancelTournamentFunctionalitySagas = new CancelTournamentFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, tournamentFactory, tournamentAggregateId, sagaUnitOfWork, commandGateway);
+                        tournamentService, sagaUnitOfWorkService, tournamentFactory, tournamentAggregateId,
+                        sagaUnitOfWork, commandGateway);
 
                 cancelTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 CancelTournamentFunctionalityTCC cancelTournamentFunctionalityTCC = new CancelTournamentFunctionalityTCC(
-                        tournamentService, causalUnitOfWorkService, tournamentFactory, tournamentAggregateId, causalUnitOfWork, commandGateway);
+                        tournamentService, causalUnitOfWorkService, tournamentFactory, tournamentAggregateId,
+                        causalUnitOfWork, commandGateway);
 
                 cancelTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -327,7 +349,8 @@ public class TournamentFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
 
                 RemoveTournamentFunctionalitySagas removeTournamentFunctionalitySagas = new RemoveTournamentFunctionalitySagas(
-                        tournamentService, quizService, sagaUnitOfWorkService, tournamentAggregateId, sagaUnitOfWork, commandGateway);
+                        tournamentService, quizService, sagaUnitOfWorkService, tournamentAggregateId, sagaUnitOfWork,
+                        commandGateway);
 
                 removeTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
@@ -335,11 +358,13 @@ public class TournamentFunctionalities {
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
 
                 RemoveTournamentFunctionalityTCC removeTournamentFunctionalityTCC = new RemoveTournamentFunctionalityTCC(
-                        eventService, tournamentService, causalUnitOfWorkService, tournamentFactory, tournamentAggregateId, causalUnitOfWork, commandGateway);
+                        eventService, tournamentService, causalUnitOfWorkService, tournamentFactory,
+                        tournamentAggregateId, causalUnitOfWork, commandGateway);
 
                 removeTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -350,19 +375,23 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
 
-                FindTournamentFunctionalitySagas findTournamentFunctionalitySagas = new FindTournamentFunctionalitySagas(tournamentService, sagaUnitOfWorkService, tournamentAggregateId, sagaUnitOfWork, commandGateway);
+                FindTournamentFunctionalitySagas findTournamentFunctionalitySagas = new FindTournamentFunctionalitySagas(
+                        tournamentService, sagaUnitOfWorkService, tournamentAggregateId, sagaUnitOfWork,
+                        commandGateway);
 
                 findTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findTournamentFunctionalitySagas.getTournamentDto();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
 
-        FindTournamentFunctionalityTCC findTournamentFunctionalityTCC = new FindTournamentFunctionalityTCC(
-            tournamentService, causalUnitOfWorkService, tournamentAggregateId, causalUnitOfWork, commandGateway);
+                FindTournamentFunctionalityTCC findTournamentFunctionalityTCC = new FindTournamentFunctionalityTCC(
+                        tournamentService, causalUnitOfWorkService, tournamentAggregateId, causalUnitOfWork,
+                        commandGateway);
 
                 findTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findTournamentFunctionalityTCC.getTournamentDto();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -374,18 +403,21 @@ public class TournamentFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
 
                 FindParticipantFunctionalitySagas findParticipantFunctionalitySagas = new FindParticipantFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, tournamentAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
+                        tournamentService, sagaUnitOfWorkService, tournamentAggregateId, userAggregateId,
+                        sagaUnitOfWork, commandGateway);
 
                 findParticipantFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findParticipantFunctionalitySagas.getParticipant();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-        FindParticipantFunctionalityTCC findParticipantFunctionalityTCC = new FindParticipantFunctionalityTCC(
-            causalUnitOfWorkService, tournamentAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
+                FindParticipantFunctionalityTCC findParticipantFunctionalityTCC = new FindParticipantFunctionalityTCC(
+                        causalUnitOfWorkService, tournamentAggregateId, userAggregateId, causalUnitOfWork,
+                        commandGateway);
 
                 findParticipantFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findParticipantFunctionalityTCC.getParticipant();
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -393,16 +425,19 @@ public class TournamentFunctionalities {
     public void getTournamentAndUser(Integer tournamentAggregateId, Integer userAggregateId) {
         switch (workflowType) {
             case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService
+                        .createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
                 tournamentService.getTournamentById(tournamentAggregateId, sagaUnitOfWork);
                 userService.getUserById(userAggregateId, sagaUnitOfWork);
                 break;
             case TCC:
-                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService
+                        .createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
                 tournamentService.getTournamentById(tournamentAggregateId, causalUnitOfWork);
                 userService.getUserById(userAggregateId, causalUnitOfWork);
                 break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
