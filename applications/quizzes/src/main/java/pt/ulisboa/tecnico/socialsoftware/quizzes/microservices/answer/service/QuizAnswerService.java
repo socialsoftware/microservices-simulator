@@ -72,7 +72,7 @@ public class QuizAnswerService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -102,7 +102,7 @@ public class QuizAnswerService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -120,7 +120,7 @@ public class QuizAnswerService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -136,7 +136,7 @@ public class QuizAnswerService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -153,7 +153,7 @@ public class QuizAnswerService {
     /************************************************ EVENT PROCESSING ************************************************/
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -176,7 +176,7 @@ public class QuizAnswerService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",

@@ -40,7 +40,7 @@ public class UserService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -53,7 +53,7 @@ public class UserService {
 
     /*simple user creation*/
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -68,7 +68,7 @@ public class UserService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -86,7 +86,7 @@ public class UserService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -102,7 +102,7 @@ public class UserService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -121,7 +121,7 @@ public class UserService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",

@@ -35,7 +35,7 @@
         }
 
         @Retryable(
-                value = { SQLException.class },
+                retryFor = { SQLException.class },
                 maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -47,7 +47,7 @@
         }
 
         @Retryable(
-                value = { SQLException.class },
+                retryFor = { SQLException.class },
                 maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",

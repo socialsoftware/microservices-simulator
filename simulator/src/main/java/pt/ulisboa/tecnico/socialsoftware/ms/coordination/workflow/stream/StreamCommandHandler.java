@@ -1,13 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
@@ -16,44 +13,17 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import java.util.logging.Logger;
 
+@Profile("stream")
 public abstract class StreamCommandHandler implements CommandHandler {
 
     private static final Logger logger = Logger.getLogger(StreamCommandHandler.class.getName());
     private final StreamBridge streamBridge;
     private final ObjectMapper objectMapper;
 
-    protected StreamCommandHandler(StreamBridge streamBridge) {
+    // New constructor using the shared provider
+    protected StreamCommandHandler(StreamBridge streamBridge, MessagingObjectMapperProvider mapperProvider) {
         this.streamBridge = streamBridge;
-
-        // Create and configure ObjectMapper
-        this.objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules();
-
-        // objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        // Use polymorphic typing for domain objects but skip container (Map/Collection) types
-        PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
-                .allowIfSubType("pt.ulisboa.tecnico") // narrow the allowed subtype space
-                .build();
-
-        ObjectMapper.DefaultTypeResolverBuilder typer =
-                new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL, ptv) {
-                    @Override
-                    public boolean useForType(JavaType t) {
-                        // Do not require @class for containers; this avoids failures on empty maps
-                        if (t.isContainerType() || t.isMapLikeType() || t.isCollectionLikeType()) {
-                            return false;
-                        }
-                        return super.useForType(t);
-                    }
-                };
-        typer = (ObjectMapper.DefaultTypeResolverBuilder) typer.init(JsonTypeInfo.Id.CLASS, null)
-                .inclusion(JsonTypeInfo.As.PROPERTY)
-                .typeProperty("@class");
-
-        objectMapper.setDefaultTyping(typer);
-
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    
+        this.objectMapper = mapperProvider.newMapper();
     }
 
     public void handleCommandMessage(Message<?> message) {
@@ -102,13 +72,29 @@ public abstract class StreamCommandHandler implements CommandHandler {
     private void sendResponse(String correlationId, Object result) {
         logger.info("Sending response.....");
         CommandResponse response = CommandResponse.success(correlationId, result);
+        String json;
+        try {
+            // Serialize with the messaging mapper (includes @class for nested DTOs)
+            json = objectMapper.writeValueAsString(response);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        logger.info(json);
         streamBridge.send("command-responses",
-                MessageBuilder.withPayload(response).build());
+                MessageBuilder.withPayload(json).build());
     }
 
     private void sendErrorResponse(String correlationId, String errorMessage) {
         CommandResponse response = CommandResponse.error(correlationId, errorMessage);
+        String json;
+        try {
+            // Serialize with the messaging mapper (includes @class for nested DTOs)
+            json = objectMapper.writeValueAsString(response);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        logger.info(json);
         streamBridge.send("command-responses",
-                MessageBuilder.withPayload(response).build());
+                MessageBuilder.withPayload(json).build());
     }
 }

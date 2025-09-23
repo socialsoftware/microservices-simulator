@@ -44,7 +44,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     private EventRepository eventRepository;
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -97,7 +97,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -163,7 +163,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
 
     // Must be serializable in order to ensure no other commits are made between the checking of concurrent versions and the actual persist
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",

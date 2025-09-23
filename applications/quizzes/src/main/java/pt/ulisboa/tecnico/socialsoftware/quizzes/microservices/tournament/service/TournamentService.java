@@ -54,7 +54,7 @@ public class TournamentService {
 
     // intended for requests from external functionalities
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -66,7 +66,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -86,14 +86,15 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void addParticipant(Integer tournamentAggregateId, TournamentParticipant tournamentParticipant, UnitOfWork unitOfWork) {
+    public void addParticipant(Integer tournamentAggregateId, UserDto participantDto, UnitOfWork unitOfWork) {
+        TournamentParticipant tournamentParticipant = new TournamentParticipant(participantDto);
         if (tournamentParticipant.getParticipantName().equals("ANONYMOUS") || tournamentParticipant.getParticipantUsername().equals("ANONYMOUS")) {
             throw new QuizzesException(QuizzesErrorMessage.USER_IS_ANONYMOUS, tournamentParticipant.getParticipantAggregateId());
         }
@@ -107,7 +108,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class},
+            retryFor = { SQLException.class,  CannotAcquireLockException.class},
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -143,7 +144,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -159,7 +160,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -178,7 +179,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -197,7 +198,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -216,7 +217,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -235,7 +236,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -250,7 +251,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -268,7 +269,7 @@ public class TournamentService {
     /******************************************* EVENT PROCESSING SERVICES ********************************************/
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -303,7 +304,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -325,7 +326,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -354,7 +355,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -376,7 +377,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -411,7 +412,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -446,7 +447,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -480,7 +481,7 @@ public class TournamentService {
     }
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",

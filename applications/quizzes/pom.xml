@@ -37,6 +37,14 @@
             <properties>
                 <activatedProperties>sagas,stream</activatedProperties>
             </properties>
+            <dependencies>
+                <!-- Include specific binder based on your message broker -->
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                    <version>4.3.0</version>
+                </dependency>
+            </dependencies>
         </profile>
 		<profile>
 			<id>tcc</id>
@@ -49,6 +57,14 @@
             <properties>
                 <activatedProperties>tcc,stream</activatedProperties>
             </properties>
+            <dependencies>
+                <!-- Include specific binder based on your message broker -->
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                    <version>4.3.0</version>
+                </dependency>
+            </dependencies>
         </profile>
 		<profile>
 			<id>dev-sagas</id>
@@ -211,12 +227,7 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Include specific binder based on your message broker -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
-            <version>4.3.0</version>
-        </dependency>
+
 
 
     </dependencies>

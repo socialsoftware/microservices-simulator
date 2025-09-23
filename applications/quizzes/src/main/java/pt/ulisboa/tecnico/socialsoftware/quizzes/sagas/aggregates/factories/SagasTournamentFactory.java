@@ -10,7 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaTournament;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTournamentDto;
 
 import java.util.Set;
 
@@ -31,6 +30,6 @@ public class SagasTournamentFactory implements TournamentFactory {
 
     @Override
     public TournamentDto createTournamentDto(Tournament tournament) {
-        return new SagaTournamentDto(tournament);
+        return new TournamentDto(tournament);
     }
 }

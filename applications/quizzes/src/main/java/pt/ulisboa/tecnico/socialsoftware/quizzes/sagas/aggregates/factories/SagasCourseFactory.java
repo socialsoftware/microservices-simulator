@@ -7,7 +7,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaCourse;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaCourseDto;
 
 @Service
 @Profile("sagas")
@@ -19,6 +18,6 @@ public class SagasCourseFactory implements CourseFactory {
 
     @Override
     public CourseDto createCourseDto(Course course) {
-        return new SagaCourseDto(course);
+        return new CourseDto(course);
     }
 }

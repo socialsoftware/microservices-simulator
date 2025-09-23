@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.user;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.StreamCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;

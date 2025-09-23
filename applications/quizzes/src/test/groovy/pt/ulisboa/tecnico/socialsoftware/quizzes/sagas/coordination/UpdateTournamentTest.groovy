@@ -18,9 +18,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.Quizzes
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
@@ -134,7 +134,7 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         updatedTournamentDto.numberOfQuestions == 2
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
         and: 'saga sate is undone'
-        updatedTournamentDto.sagaState == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(updatedTournamentDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def 'update tournament aborts when trying to create a quiz and there are not enough questions'() {
@@ -153,11 +153,11 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         updatedTournamentDto.numberOfQuestions == 2
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
         and: 'saga sate is undone'
-        updatedTournamentDto.sagaState == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(updatedTournamentDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
         and: 'quiz is not changed'
         def quizDto = (QuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 2
-        quizDto.sagaState == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(quizDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def 'concurrent update of tournament' () {

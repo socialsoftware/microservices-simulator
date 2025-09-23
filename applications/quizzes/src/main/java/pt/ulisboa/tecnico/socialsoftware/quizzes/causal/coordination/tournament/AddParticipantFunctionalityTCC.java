@@ -61,11 +61,11 @@ public class AddParticipantFunctionalityTCC extends WorkflowFunctionality {
                     tournamentDto.getCourseExecution().getAggregateId(), userAggregateId);
             UserDto userDto = (UserDto) commandGateway.send(getStudentByExecutionIdAndUserIdCommand);
 
-            TournamentParticipant participant = new TournamentParticipant(userDto);
+//            TournamentParticipant participant = new TournamentParticipant(userDto);
             // tournamentService.addParticipant(tournamentAggregateId, participant,
             // unitOfWork);
             AddParticipantCommand addParticipantCommand = new AddParticipantCommand(unitOfWork,
-                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, participant);
+                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, userDto);
             commandGateway.send(addParticipantCommand);
         });
 

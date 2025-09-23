@@ -15,7 +15,7 @@ public class AggregateIdGeneratorService {
     @Autowired
     private AggregateIdRepository aggregateIdRepository;
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",

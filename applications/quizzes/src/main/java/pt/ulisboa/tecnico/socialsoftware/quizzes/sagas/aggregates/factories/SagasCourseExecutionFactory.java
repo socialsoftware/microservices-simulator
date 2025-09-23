@@ -7,7 +7,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggrega
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaCourseExecutionDto;
 
 @Service
 @Profile("sagas")
@@ -24,6 +23,6 @@ public class SagasCourseExecutionFactory implements CourseExecutionFactory {
 
     @Override
     public CourseExecutionDto createCourseExecutionDto(CourseExecution courseExecution) {
-        return new SagaCourseExecutionDto(courseExecution);
+        return new CourseExecutionDto(courseExecution);
     }
 }

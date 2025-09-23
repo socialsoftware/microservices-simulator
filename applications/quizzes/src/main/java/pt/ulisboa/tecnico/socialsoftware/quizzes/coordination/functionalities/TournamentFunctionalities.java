@@ -8,7 +8,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.StreamCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;

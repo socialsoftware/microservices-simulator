@@ -1,60 +1,74 @@
 spring:
+  config:
+    activate:
+      on-profile: stream
   cloud:
     function:
-      definition: commandResponseChannel;answerServiceCommandChannel;courseExecutionServiceCommandChannel;questionServiceCommandChannel;quizServiceCommandChannel;topicServiceCommandChannel;tournamentServiceCommandChannel;userServiceCommandChannel;
+      definition: >
+        commandResponseChannel;
+        answerServiceCommandChannel;
+        courseExecutionServiceCommandChannel;
+        questionServiceCommandChannel;
+        quizServiceCommandChannel;
+        topicServiceCommandChannel;
+        tournamentServiceCommandChannel;
+        userServiceCommandChannel;
+        courseServiceCommandChannel
+
     stream:
       default:
         contentType: application/json
-      bindings:
-        # Command channels (output)
-        quiz-command-channel:
-          destination: quiz-service-commands
-        topic-command-channel:
-          destination: topic-service-commands
-        user-command-channel:
-          destination: user-service-commands
-        answer-command-channel:
-          destination: answer-service-commands
-        course-execution-command-channel:
-          destination: courseexecution-service-commands
-        question-command-channel:
-          destination: question-service-commands
-        tournament-command-channel:
-          destination: tournament-service-commands
 
-        # Command handlers (input)
+      bindings:
+        # --- Command producers (outputs) ---
+        quiz-command-channel:
+          destination: quiz-command-channel
+        topic-command-channel:
+          destination: topic-command-channel
+        user-command-channel:
+          destination: user-command-channel
+        answer-command-channel:
+          destination: answer-command-channel
+        course-execution-command-channel:
+          destination: courseexecution-command-channel
+        question-command-channel:
+          destination: question-command-channel
+        tournament-command-channel:
+          destination: tournament-command-channel
+        course-command-channel:
+          destination: course-command-channel
+
+        # --- Command consumers (inputs) ---
         quizServiceCommandChannel-in-0:
-          destination: quiz-service-commands
+          destination: quiz-command-channel
           group: quiz-service-group
         topicServiceCommandChannel-in-0:
-          destination: topic-service-commands
+          destination: topic-command-channel
           group: topic-service-group
         userServiceCommandChannel-in-0:
-          destination: user-service-commands
+          destination: user-command-channel
           group: user-service-group
         answerServiceCommandChannel-in-0:
-          destination: answer-service-commands
+          destination: answer-command-channel
           group: answer-service-group
         courseExecutionServiceCommandChannel-in-0:
           destination: courseexecution-command-channel
           group: course-execution-service-group
         questionServiceCommandChannel-in-0:
-          destination: question-service-commands
+          destination: question-command-channel
           group: question-service-group
         tournamentServiceCommandChannel-in-0:
-          destination: tournament-service-commands
+          destination: tournament-command-channel
           group: tournament-service-group
+        courseServiceCommandChannel-in-0:
+          destination: course-command-channel
+          group: course-service-group
 
-        # Response channel (output from services)
+        # --- Response channel ---
         commandResponseChannel-in-0:
           destination: command-responses
           group: response-group
 
-      # Configure your message broker (Kafka or RabbitMQ)
-      #      kafka:
-      #        binder:
-      #          brokers: localhost:9092
-      # Or for RabbitMQ
       rabbit:
         binder:
           host: localhost

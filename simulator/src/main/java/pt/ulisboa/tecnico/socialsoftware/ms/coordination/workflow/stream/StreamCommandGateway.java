@@ -33,38 +33,12 @@ public class StreamCommandGateway implements CommandGateway {
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     @Autowired
-    public StreamCommandGateway(StreamBridge streamBridge, CommandResponseAggregator responseAggregator,
-            ObjectMapper objectMapper) {
+    public StreamCommandGateway(StreamBridge streamBridge,
+                                CommandResponseAggregator responseAggregator,
+                                MessagingObjectMapperProvider mapperProvider) {
         this.streamBridge = streamBridge;
         this.responseAggregator = responseAggregator;
-
-        // Create an isolated mapper for stream messages
-        this.msgMapper = objectMapper.copy();
-        this.msgMapper.findAndRegisterModules();
-
-        PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
-                .allowIfSubType("pt.ulisboa.tecnico")
-                .build();
-
-        // Apply typing only to our domain POJOs; skip maps/collections/arrays/etc.
-        TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(
-                ObjectMapper.DefaultTyping.NON_FINAL, ptv) {
-            @Override
-            public boolean useForType(JavaType t) {
-                if (t.isPrimitive() || t.isEnumType())
-                    return false;
-                if (t.isArrayType() || t.isCollectionLikeType() || t.isMapLikeType() || t.isContainerType())
-                    return false;
-                Class<?> raw = t.getRawClass();
-                Package p = raw.getPackage();
-                String pkg = (p == null) ? "" : p.getName();
-                return pkg.startsWith("pt.ulisboa.tecnico");
-            }
-        };
-        // ensures "@class" is used
-        typer = typer.init(JsonTypeInfo.Id.CLASS, null).inclusion(JsonTypeInfo.As.PROPERTY);
-
-        this.msgMapper.setDefaultTyping(typer);
+        this.msgMapper = mapperProvider.newMapper();
     }
 
     public Object send(Command command) {
@@ -73,7 +47,7 @@ public class StreamCommandGateway implements CommandGateway {
 
         CompletableFuture<Object> responseFuture = responseAggregator.createResponseFuture(correlationId);
         System.out.println("Sending command to " + destination);
-        String json = null;
+        String json;
         try {
             // Serialize with the messaging mapper (includes @class for nested DTOs)
             json = msgMapper.writeValueAsString(command);

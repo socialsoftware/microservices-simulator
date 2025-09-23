@@ -6,7 +6,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.Us
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaUser;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaUserDto;
 
 @Service
 @Profile("sagas")
@@ -24,6 +23,6 @@ public class SagasUserFactory implements UserFactory {
 
     @Override
     public UserDto createUserDto(User user) {
-        return new SagaUserDto(user);
+        return new UserDto(user);
     }
 }

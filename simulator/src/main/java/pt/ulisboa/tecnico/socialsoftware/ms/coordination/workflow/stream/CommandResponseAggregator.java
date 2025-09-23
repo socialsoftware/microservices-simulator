@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@Profile("stream")
 public class CommandResponseAggregator {
     private final Map<String, CompletableFuture<Object>> pendingResponses = new ConcurrentHashMap<>();
 

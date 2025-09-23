@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaQuestion;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuestionDto;
 
 import java.util.List;
 
@@ -23,8 +22,8 @@ public class SagasQuestionFactory implements QuestionFactory {
     }
 
     @Override
-    public SagaQuestionDto createQuestionDto(Question question) {
-        return new SagaQuestionDto(question);
+    public QuestionDto createQuestionDto(Question question) {
+        return new QuestionDto(question);
     }
     
 }

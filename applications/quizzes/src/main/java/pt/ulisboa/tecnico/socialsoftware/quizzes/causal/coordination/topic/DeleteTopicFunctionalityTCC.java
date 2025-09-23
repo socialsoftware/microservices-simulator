@@ -7,8 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.DeleteTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates.CausalTopic;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.DeleteTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 
 public class DeleteTopicFunctionalityTCC extends WorkflowFunctionality {

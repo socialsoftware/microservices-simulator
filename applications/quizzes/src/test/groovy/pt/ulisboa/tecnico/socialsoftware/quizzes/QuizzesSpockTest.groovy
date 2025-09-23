@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes
 import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import pt.ulisboa.tecnico.socialsoftware.SpockTest
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.*
@@ -12,6 +13,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaTournament
 
 import java.time.LocalDateTime
 
@@ -80,7 +84,8 @@ class QuizzesSpockTest extends SpockTest {
     private TournamentFunctionalities tournamentFunctionalities
     @Autowired
     public BehaviourService behaviourService
-
+    @Autowired(required = false)
+    protected SagaUnitOfWorkService unitOfWorkService
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -143,5 +148,12 @@ class QuizzesSpockTest extends SpockTest {
         tournamentDto.setNumberOfQuestions(numberOfQuestions)
         tournamentDto = tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)
         tournamentDto
+    }
+
+    // Generic: get saga state for any saga aggregate by ID
+    SagaState sagaStateOf(Integer aggregateId) {
+        def uow = unitOfWorkService.createUnitOfWork("TEST")
+        def agg = (SagaAggregate) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, uow)
+        return agg.getSagaState()
     }
 }

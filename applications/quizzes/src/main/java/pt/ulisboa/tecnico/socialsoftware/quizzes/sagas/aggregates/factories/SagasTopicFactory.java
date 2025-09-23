@@ -7,7 +7,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.T
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaTopic;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTopicDto;
 
 @Service
 @Profile("sagas")
@@ -25,6 +24,6 @@ public class SagasTopicFactory implements TopicFactory {
     
     @Override
     public TopicDto createTopicDto(Topic topic) {
-        return new SagaTopicDto(topic);
+        return new TopicDto(topic);
     }
 }

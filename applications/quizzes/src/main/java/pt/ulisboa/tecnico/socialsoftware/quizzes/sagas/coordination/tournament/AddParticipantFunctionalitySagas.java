@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.StreamCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
@@ -53,7 +52,7 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {
             System.out.println("ADDING PARTICIPANT");
-            TournamentParticipant participant = new TournamentParticipant(this.userDto);
+//            TournamentParticipant participant = new TournamentParticipant(this.userDto); TODO
             List<SagaAggregate.SagaState> states = new ArrayList<>();
             states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
             // unitOfWorkService.verifySagaState(tournamentAggregateId, states);
@@ -61,7 +60,7 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
             // unitOfWork);
             AddParticipantCommand addParticipantCommand = new AddParticipantCommand(unitOfWork,
                     ServiceMapping.TOURNAMENT.getServiceName(),
-                    tournamentAggregateId, participant);
+                    tournamentAggregateId, this.userDto);
             addParticipantCommand.setForbiddenStates(states);
             CommandGateway.send(addParticipantCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));

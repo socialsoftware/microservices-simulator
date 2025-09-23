@@ -20,16 +20,16 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggrega
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.AnonymizeStudentFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 
 @DataJpaTest
 class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
@@ -380,11 +380,11 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         updatedTournamentDto.numberOfQuestions == 2
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
         and: 'saga sate is undone'
-        updatedTournamentDto.sagaState == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(updatedTournamentDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
         and: 'quiz is not changed'
         def quizDto = (QuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 2
-        quizDto.sagaState == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(quizDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
 
         when: 'tournament processes event to anonymize the creator'
         tournamentEventHandling.handleAnonymizeStudentEvents()
@@ -428,11 +428,11 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         updatedTournamentDto.numberOfQuestions == 2
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
         and: 'saga sate is undone'
-        updatedTournamentDto.sagaState == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(updatedTournamentDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
         and: 'quiz is not changed'
         def quizDto = (QuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 2
-        quizDto.sagaState == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(quizDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
 
         when: 'tournament processes event to anonymize the creator'
         tournamentEventHandling.handleAnonymizeStudentEvents()

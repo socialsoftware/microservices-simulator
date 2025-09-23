@@ -15,7 +15,7 @@ import java.util.Map;
 @Service
 public abstract class UnitOfWorkService<U extends UnitOfWork> {
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -40,7 +40,7 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
     public abstract void registerEvent(Event event, U unitOfWork);
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -50,7 +50,7 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
     public abstract void commit(U unitOfWork);
 
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",
@@ -62,7 +62,7 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
 
     // Must be serializable in order to ensure no other commits are made between the checking of concurrent versions and the actual persist
     @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
+            retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.db.delay}",

@@ -6,12 +6,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateQuestionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.Question;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateQuestionCommand;
 
 public class UpdateQuestionFunctionalityTCC extends WorkflowFunctionality {
     private Question oldQuestion;

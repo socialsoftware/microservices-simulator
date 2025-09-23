@@ -52,18 +52,23 @@ public class AddParticipantAsyncFunctionalitySagas extends WorkflowFunctionality
         });
 
         SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {
-            TournamentParticipant participant = null;
-            try {
-                participant = new TournamentParticipant(this.userDto.get());
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
+//            TournamentParticipant participant = null;
+//            try {
+//                participant = new TournamentParticipant(this.userDto.get());
+//            } catch (InterruptedException | ExecutionException e) {
+//                throw new RuntimeException(e);
+//            }
             List<SagaAggregate.SagaState> states = new ArrayList<>();
             states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
 
-            AddParticipantCommand addParticipantCommand = new AddParticipantCommand(unitOfWork,
-                    ServiceMapping.TOURNAMENT.getServiceName(),
-                    tournamentAggregateId, participant);
+            AddParticipantCommand addParticipantCommand = null;
+            try {
+                addParticipantCommand = new AddParticipantCommand(unitOfWork,
+                        ServiceMapping.TOURNAMENT.getServiceName(),
+                        tournamentAggregateId, this.userDto.get());
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
             addParticipantCommand.setForbiddenStates(states);
             CommandGateway.send(addParticipantCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
