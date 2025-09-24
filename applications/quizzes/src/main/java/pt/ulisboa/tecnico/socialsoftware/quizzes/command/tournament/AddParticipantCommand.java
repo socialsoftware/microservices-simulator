@@ -7,20 +7,20 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.Us
 
 public class AddParticipantCommand extends Command {
     private Integer tournamentAggregateId;
-    private UserDto participantDto;
+    private UserDto userDto;
 
-    public AddParticipantCommand(UnitOfWork unitOfWork, String serviceName, Integer tournamentAggregateId, UserDto participantDto) {
+    public AddParticipantCommand(UnitOfWork unitOfWork, String serviceName, Integer tournamentAggregateId, UserDto userDto) {
         super(unitOfWork, serviceName, tournamentAggregateId);
         this.tournamentAggregateId = tournamentAggregateId;
-        this.participantDto = participantDto;
+        this.userDto = userDto;
     }
 
     public Integer getTournamentAggregateId() {
         return tournamentAggregateId;
     }
 
-    public UserDto getParticipant() {
-        return participantDto;
+    public UserDto getUserDto() {
+        return userDto;
     }
 
 }

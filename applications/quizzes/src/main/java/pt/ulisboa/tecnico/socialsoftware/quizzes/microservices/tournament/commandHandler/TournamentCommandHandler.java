@@ -87,7 +87,7 @@ public class TournamentCommandHandler implements CommandHandler {
         try {
             tournamentService.addParticipant(
                     command.getTournamentAggregateId(),
-                    command.getParticipant(),
+                    command.getUserDto(),
                     command.getUnitOfWork());
             return null;
         } catch (Exception e) {

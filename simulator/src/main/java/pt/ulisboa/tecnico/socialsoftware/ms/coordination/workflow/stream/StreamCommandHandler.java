@@ -58,6 +58,10 @@ public abstract class StreamCommandHandler implements CommandHandler {
 
         try {
             Object result = handle(command);
+            if (result instanceof Exception) {
+                sendErrorResponse(correlationId, ((Exception) result).getMessage());
+                return;
+            }
             sendResponse(correlationId, result);
         } catch (SimulatorException e) {
             logger.warning("Command handling error: " + e.getMessage());
@@ -68,33 +72,30 @@ public abstract class StreamCommandHandler implements CommandHandler {
         }
     }
 
-
     private void sendResponse(String correlationId, Object result) {
         logger.info("Sending response.....");
         CommandResponse response = CommandResponse.success(correlationId, result);
         String json;
         try {
-            // Serialize with the messaging mapper (includes @class for nested DTOs)
             json = objectMapper.writeValueAsString(response);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        logger.info(json);
-        streamBridge.send("command-responses",
-                MessageBuilder.withPayload(json).build());
+        // Avoid logging the whole payload to keep logs small
+        logger.info("Sent success response for correlationId=" + correlationId +
+                " resultType=" + (result == null ? "null" : result.getClass().getName()));
+        streamBridge.send("command-responses", MessageBuilder.withPayload(json).build());
     }
 
     private void sendErrorResponse(String correlationId, String errorMessage) {
         CommandResponse response = CommandResponse.error(correlationId, errorMessage);
         String json;
         try {
-            // Serialize with the messaging mapper (includes @class for nested DTOs)
             json = objectMapper.writeValueAsString(response);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        logger.info(json);
-        streamBridge.send("command-responses",
-                MessageBuilder.withPayload(json).build());
+        logger.info("Sent error response for correlationId=" + correlationId + " message=" + errorMessage);
+        streamBridge.send("command-responses", MessageBuilder.withPayload(json).build());
     }
 }

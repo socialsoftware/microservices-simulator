@@ -93,8 +93,8 @@ public class TournamentService {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void addParticipant(Integer tournamentAggregateId, UserDto participantDto, UnitOfWork unitOfWork) {
-        TournamentParticipant tournamentParticipant = new TournamentParticipant(participantDto);
+    public void addParticipant(Integer tournamentAggregateId, UserDto userDto, UnitOfWork unitOfWork) {
+        TournamentParticipant tournamentParticipant = new TournamentParticipant(userDto);
         if (tournamentParticipant.getParticipantName().equals("ANONYMOUS") || tournamentParticipant.getParticipantUsername().equals("ANONYMOUS")) {
             throw new QuizzesException(QuizzesErrorMessage.USER_IS_ANONYMOUS, tournamentParticipant.getParticipantAggregateId());
         }
