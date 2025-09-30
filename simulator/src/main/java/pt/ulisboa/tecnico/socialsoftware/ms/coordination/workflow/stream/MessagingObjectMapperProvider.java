@@ -11,12 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-/**
- * Provides an ObjectMapper configured for stream messaging:
- * - polymorphic typing for domain objects under pt.ulisboa.tecnico
- * - skips containers, arrays, maps, primitives and enums
- * - registers modules and ignores unknown properties
- */
 @Component
 @Profile("stream")
 public class MessagingObjectMapperProvider {

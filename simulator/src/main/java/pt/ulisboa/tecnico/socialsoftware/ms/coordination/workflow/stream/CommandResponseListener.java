@@ -1,11 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
@@ -38,9 +33,7 @@ public class CommandResponseListener {
             CommandResponse response;
 
             Object payload = message.getPayload();
-            if (payload instanceof CommandResponse) {
-                response = (CommandResponse) payload;
-            } else if (payload instanceof byte[]) {
+            if (payload instanceof byte[]) {
                 try {
                     response = objectMapper.readValue((byte[]) payload, CommandResponse.class);
                     logger.info("Successfully deserialized CommandResponse from byte array");

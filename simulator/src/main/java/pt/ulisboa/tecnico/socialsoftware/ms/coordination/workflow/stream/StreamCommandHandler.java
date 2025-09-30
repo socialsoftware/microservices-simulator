@@ -20,7 +20,6 @@ public abstract class StreamCommandHandler implements CommandHandler {
     private final StreamBridge streamBridge;
     private final ObjectMapper objectMapper;
 
-    // New constructor using the shared provider
     protected StreamCommandHandler(StreamBridge streamBridge, MessagingObjectMapperProvider mapperProvider) {
         this.streamBridge = streamBridge;
         this.objectMapper = mapperProvider.newMapper();
@@ -28,19 +27,16 @@ public abstract class StreamCommandHandler implements CommandHandler {
 
     public void handleCommandMessage(Message<?> message) {
         Command command;
-
-        // Handle the case where the message payload is not a Command object
         if (!(message.getPayload() instanceof Command)) {
             logger.warning("Received message payload is not a Command object: " + message.getPayload().getClass());
 
             if (message.getPayload() instanceof byte[]) {
                 try {
-                    // Use the pre-configured ObjectMapper
                     command = objectMapper.readValue((byte[]) message.getPayload(), Command.class);
                     logger.info("Successfully deserialized command from byte array");
                 } catch (Exception e) {
                     logger.severe("Failed to deserialize command: " + e.getMessage());
-                    e.printStackTrace(); // Add stack trace for more detailed debugging
+                    e.printStackTrace();
                     return;
                 }
             } else {
@@ -58,7 +54,7 @@ public abstract class StreamCommandHandler implements CommandHandler {
 
         try {
             Object result = handle(command);
-            if (result instanceof Exception) {
+            if (result instanceof Exception) { // TODO check if result is better thrown
                 sendErrorResponse(correlationId, ((Exception) result).getMessage());
                 return;
             }
@@ -81,7 +77,6 @@ public abstract class StreamCommandHandler implements CommandHandler {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        // Avoid logging the whole payload to keep logs small
         logger.info("Sent success response for correlationId=" + correlationId +
                 " resultType=" + (result == null ? "null" : result.getClass().getName()));
         streamBridge.send("command-responses", MessageBuilder.withPayload(json).build());

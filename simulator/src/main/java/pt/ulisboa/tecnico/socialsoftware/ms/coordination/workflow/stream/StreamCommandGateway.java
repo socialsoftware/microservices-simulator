@@ -1,12 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
-import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
@@ -28,7 +23,6 @@ public class StreamCommandGateway implements CommandGateway {
     private static final Logger logger = Logger.getLogger(StreamCommandGateway.class.getName());
     private final StreamBridge streamBridge;
     private final CommandResponseAggregator responseAggregator;
-    // Use a dedicated mapper for messaging to avoid affecting MVC serialization
     private final ObjectMapper msgMapper;
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -46,10 +40,9 @@ public class StreamCommandGateway implements CommandGateway {
         String correlationId = java.util.UUID.randomUUID().toString();
 
         CompletableFuture<Object> responseFuture = responseAggregator.createResponseFuture(correlationId);
-        System.out.println("Sending command to " + destination);
+        logger.info("Sending command to " + destination);
         String json;
         try {
-            // Serialize with the messaging mapper (includes @class for nested DTOs)
             json = msgMapper.writeValueAsString(command);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -65,10 +58,9 @@ public class StreamCommandGateway implements CommandGateway {
             throw new RuntimeException("Failed to send command to service: " + command.getServiceName());
         }
 
-        System.out.println("Command sent to " + destination);
+        logger.info("Command sent to " + destination);
 
         try {
-            // Wait for the response
             Object response = responseFuture.get();
             logger.info("GOT RESPONSE: " + response);
             if (response instanceof SimulatorException) {

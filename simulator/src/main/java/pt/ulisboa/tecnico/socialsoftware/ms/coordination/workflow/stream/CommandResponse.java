@@ -2,7 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-public record CommandResponse (
+public record CommandResponse(
         String correlationId,
         boolean isError,
         String errorMessage,

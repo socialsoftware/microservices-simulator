@@ -43,7 +43,6 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            System.out.println("GETTING USER");
             GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(
                     unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId,
                     userAggregateId);
@@ -51,7 +50,6 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
         });
 
         SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {
-            System.out.println("ADDING PARTICIPANT");
 //            TournamentParticipant participant = new TournamentParticipant(this.userDto); TODO
             List<SagaAggregate.SagaState> states = new ArrayList<>();
             states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);

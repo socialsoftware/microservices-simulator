@@ -29,21 +29,17 @@ public class AnswerCommandHandler implements CommandHandler {
             sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
         }
         Object returnObject;
-        if (command instanceof GetQuizAnswerByQuizIdAndUserIdCommand) {
-            returnObject = handleGetQuizAnswerByQuizIdAndUserId((GetQuizAnswerByQuizIdAndUserIdCommand) command);
-        } else if (command instanceof GetQuizAnswerDtoByQuizIdAndUserIdCommand) {
-            returnObject = handleGetQuizAnswerDtoByQuizIdAndUserId((GetQuizAnswerDtoByQuizIdAndUserIdCommand) command);
-        } else if (command instanceof StartQuizCommand) {
-            returnObject = handleStartQuiz((StartQuizCommand) command);
-        } else if (command instanceof ConcludeQuizCommand) {
-            returnObject = handleConcludeQuiz((ConcludeQuizCommand) command);
-        } else if (command instanceof AnswerQuestionCommand) {
-            returnObject = handleAnswerQuestion((AnswerQuestionCommand) command);
-        } else if (command instanceof RemoveQuizAnswerCommand) {
-            returnObject = handleRemoveQuizAnswer((RemoveQuizAnswerCommand) command);
-        } else {
-            logger.warning("Unknown command type: " + command.getClass().getName());
-            returnObject = null;
+        switch (command) {
+            case GetQuizAnswerByQuizIdAndUserIdCommand getQuizAnswerByQuizIdAndUserIdCommand -> returnObject = handleGetQuizAnswerByQuizIdAndUserId(getQuizAnswerByQuizIdAndUserIdCommand);
+            case GetQuizAnswerDtoByQuizIdAndUserIdCommand getQuizAnswerDtoByQuizIdAndUserIdCommand -> returnObject = handleGetQuizAnswerDtoByQuizIdAndUserId(getQuizAnswerDtoByQuizIdAndUserIdCommand);
+            case StartQuizCommand startQuizCommand -> returnObject = handleStartQuiz(startQuizCommand);
+            case ConcludeQuizCommand concludeQuizCommand -> returnObject = handleConcludeQuiz(concludeQuizCommand);
+            case AnswerQuestionCommand answerQuestionCommand -> returnObject = handleAnswerQuestion(answerQuestionCommand);
+            case RemoveQuizAnswerCommand removeQuizAnswerCommand -> returnObject = handleRemoveQuizAnswer(removeQuizAnswerCommand);
+            default -> {
+                logger.warning("Unknown command type: " + command.getClass().getName());
+                returnObject = null;
+            }
         }
         if (command.getSemanticLock() != null) {
             sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(), (SagaUnitOfWork) command.getUnitOfWork());
