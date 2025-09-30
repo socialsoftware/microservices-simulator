@@ -30,6 +30,11 @@ public class TournamentController {
         tournamentFunctionalities.addParticipant(tournamentAggregateId, executionAggregateId, userAggregateId);
     }
 
+    @PostMapping(value = "/tournaments/{tournamentAggregateId}/leave")
+    public void leaveTournament(@PathVariable Integer tournamentAggregateId, @RequestParam Integer userAggregateId) throws Exception {
+        tournamentFunctionalities.leaveTournament(tournamentAggregateId, userAggregateId);
+    }   
+
     @GetMapping(value = "/tournaments/{tournamentAggregateId}")
     public TournamentDto findTournament(@PathVariable Integer tournamentAggregateId) {
         return tournamentFunctionalities.findTournament(tournamentAggregateId);

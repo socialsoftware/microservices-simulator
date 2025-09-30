@@ -102,6 +102,8 @@ public class TournamentService {
 
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
+        logger.info("Adding participant {} to tournament {}", tournamentParticipant.getId(), tournamentAggregateId);
+
         newTournament.addParticipant(tournamentParticipant);
 
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
