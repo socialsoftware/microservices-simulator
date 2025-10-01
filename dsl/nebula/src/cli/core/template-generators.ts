@@ -150,4 +150,38 @@ ${deps.join('\n')}
   </build>
 </project>`;
   }
+
+  static generateGitignore(): string {
+    return `# Build output
+target/
+build/
+
+# Logs
+logs/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+.factorypath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Application specific
+HELP.md
+**/BehaviourReport.txt
+
+# Environment files
+src/main/resources/application-dev.properties
+src/main/resources/application-prod.properties
+`;
+  }
 }

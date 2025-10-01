@@ -191,6 +191,10 @@ export class CodeGenerator {
         await fs.writeFile(path.join(paths.projectPath, "pom.xml"), pomContent, 'utf-8');
         console.log(`\t- Generated pom.xml`);
 
+        const gitignoreContent = TemplateGenerators.generateGitignore();
+        await fs.writeFile(path.join(paths.projectPath, ".gitignore"), gitignoreContent, 'utf-8');
+        console.log(`\t- Generated .gitignore`);
+
         await this.generateConfigurationFiles(paths, config, generators);
 
         await this.generateTestTemplates(allModels, paths, config, generators);
