@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.GetQuizAnswerDtoByQuizIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.states.QuizAnswerSagaState;
@@ -36,14 +37,13 @@ public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getQuizAnswerStep = new SagaSyncStep("getQuizAnswerStep", () -> {
-            QuizAnswerDto quizAnswer = (QuizAnswerDto) quizAnswerService
-                    .getQuizAnswerDtoByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork); // TODO
-            unitOfWorkService.registerSagaState(quizAnswer.getAggregateId(), QuizAnswerSagaState.READ_QUIZ_ANSWER,
-                    unitOfWork);
-            // GetQuizAnswerDtoByQuizIdAndUserIdCommand
-            // getQuizAnswerDtoByQuizIdAndUserIdCommand = new
-            // GetQuizAnswerDtoByQuizIdAndUserIdCommand(unitOfWork,
-            // quizAnswerService.getServiceName(), quizAggregateId, userAggregateId);
+//            QuizAnswerDto quizAnswer = (QuizAnswerDto) quizAnswerService
+//                    .getQuizAnswerDtoByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork); // TODO
+//            unitOfWorkService.registerSagaState(quizAnswer.getAggregateId(), QuizAnswerSagaState.READ_QUIZ_ANSWER,
+//                    unitOfWork);
+            GetQuizAnswerDtoByQuizIdAndUserIdCommand getQuizAnswerDtoByQuizIdAndUserIdCommand = new GetQuizAnswerDtoByQuizIdAndUserIdCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), quizAnswer.getAggregateId(), quizAggregateId, userAggregateId);
+            getQuizAnswerDtoByQuizIdAndUserIdCommand.setSemanticLock(QuizAnswerSagaState.READ_QUIZ_ANSWER);
+            CommandGateway.send(getQuizAnswerDtoByQuizIdAndUserIdCommand);
             this.setQuizAnswer(quizAnswer);
         });
 

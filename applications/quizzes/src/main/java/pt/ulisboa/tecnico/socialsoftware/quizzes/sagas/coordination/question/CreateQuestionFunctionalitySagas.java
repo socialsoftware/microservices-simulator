@@ -94,13 +94,10 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> {
             List<TopicDto> topics = questionDto.getTopicDto().stream()
-                    .map(topicDto -> {
-                        // TopicDto topic = (TopicDto)
-                        // topicService.getTopicById(topicDto.getAggregateId(), unitOfWork);
-                        // unitOfWorkService.registerSagaState(topic.getAggregateId(),
-                        // TopicSagaState.READ_TOPIC, unitOfWork);
-                        GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork,
-                                ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId());
+                    .map(topicDto -> { // TODO
+                        // TopicDto topic = (TopicDto) topicService.getTopicById(topicDto.getAggregateId(), unitOfWork);
+                        // unitOfWorkService.registerSagaState(topic.getAggregateId(), TopicSagaState.READ_TOPIC, unitOfWork);
+                        GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId());
                         getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
                         return (TopicDto) CommandGateway.send(getTopicByIdCommand);
                     })

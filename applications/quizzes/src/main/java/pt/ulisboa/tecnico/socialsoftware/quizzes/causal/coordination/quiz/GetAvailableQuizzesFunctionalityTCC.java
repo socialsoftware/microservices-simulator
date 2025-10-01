@@ -34,7 +34,7 @@ public class GetAvailableQuizzesFunctionalityTCC extends WorkflowFunctionality {
             // this.availableQuizzes =
             // quizService.getAvailableQuizzes(courseExecutionAggregateId, unitOfWork);
             GetAvailableQuizzesCommand GetAvailableQuizzesCommand = new GetAvailableQuizzesCommand(unitOfWork,
-                    ServiceMapping.QUIZ.getServiceName(), courseExecutionAggregateId);
+                    ServiceMapping.QUIZ.getServiceName(), null, courseExecutionAggregateId);
             Object result = commandGateway.send(GetAvailableQuizzesCommand);
             List<?> list = (List<?>) result;
             this.availableQuizzes = list.stream().map(o -> (QuizDto) o).collect(Collectors.toList());

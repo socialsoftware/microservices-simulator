@@ -95,7 +95,7 @@ public class QuizAnswerFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 StartQuizFunctionalitySagas startQuizFunctionalitySagas = new StartQuizFunctionalitySagas(
                         quizAnswerService, quizService, sagaUnitOfWorkService, quizAggregateId,
-                        courseExecutionAggregateId, userAggregateId, sagaUnitOfWork);
+                        courseExecutionAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
                 startQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:

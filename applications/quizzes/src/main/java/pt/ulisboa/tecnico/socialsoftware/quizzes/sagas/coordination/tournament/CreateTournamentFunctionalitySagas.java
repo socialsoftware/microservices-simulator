@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GenerateQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.RemoveQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
@@ -77,17 +78,13 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             // by making this call locks regarding the role of the creator are guaranteed
             // by making this call the invariants regarding the course execution and the
             // role of the creator are guaranteed
-            UserDto creatorDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId,
-                    unitOfWork);
+//            UserDto creatorDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId,
+//                    unitOfWork);
             // unitOfWorkService.registerSagaState(userId, UserSagaState.READ_USER,
             // unitOfWork); // TODO calling another aggregate that is not courseExecution
-            // GetStudentByExecutionIdAndUserIdCommand
-            // getStudentByExecutionIdAndUserIdCommand = new
-            // GetStudentByExecutionIdAndUserIdCommand(unitOfWork,
-            // ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId, userId);
+             GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId, userId);
             // getStudentByExecutionIdAndUserIdCommand.setSemanticLock(UserSagaState.READ_USER);
-            // UserDto creatorDto = (UserDto)
-            // CommandGateway.send(getStudentByExecutionIdAndUserIdCommand);
+            UserDto creatorDto = (UserDto) CommandGateway.send(getStudentByExecutionIdAndUserIdCommand);
             this.setUserDto(creatorDto);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
 

@@ -132,14 +132,14 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 DeactivateUserFunctionalitySagas deactivateUserFunctionalitySagas = new DeactivateUserFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
+                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 deactivateUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 DeactivateUserFunctionalityTCC deactivateUserFunctionalityTCC = new DeactivateUserFunctionalityTCC(
-                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork);
+                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
 
                 deactivateUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;

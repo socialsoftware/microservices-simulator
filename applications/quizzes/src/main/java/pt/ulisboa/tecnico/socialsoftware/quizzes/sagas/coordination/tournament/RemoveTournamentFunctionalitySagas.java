@@ -40,8 +40,7 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> { // TODO CAN WE REPLACE
-                                                                                       // VERIFYANDREGISTER??
+        SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
             // List<SagaAggregate.SagaState> states = new ArrayList<>();
             // states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
             // unitOfWorkService.verifyAndRegisterSagaState(tournamentAggregateId,

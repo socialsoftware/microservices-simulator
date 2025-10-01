@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateQuestionTopicsCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
@@ -78,8 +79,11 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
         }, unitOfWork);
 
         SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
-            QuestionDto question = (QuestionDto) questionService.getQuestionById(courseAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(question.getAggregateId(), QuestionSagaState.READ_QUESTION, unitOfWork);
+//            QuestionDto question = (QuestionDto) questionService.getQuestionById(courseAggregateId, unitOfWork);
+//            unitOfWorkService.registerSagaState(question.getAggregateId(), QuestionSagaState.READ_QUESTION, unitOfWork);
+            GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), courseAggregateId);
+            getQuestionByIdCommand.setSemanticLock(QuestionSagaState.READ_QUESTION);
+            QuestionDto question = (QuestionDto) CommandGateway.send(getQuestionByIdCommand);
             Set<TopicDto> topics = question.getTopicDto();
             this.setQuestion(question);
             this.setTopicDtos(topics);

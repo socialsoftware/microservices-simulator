@@ -31,16 +31,16 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
     private final QuizAnswerService quizAnswerService;
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
     public AnswerQuestionFunctionalitySagas(QuizAnswerService quizAnswerService, QuestionService questionService,
             SagaUnitOfWorkService unitOfWorkService, QuizAnswerFactory quizAnswerFactory,
             Integer quizAggregateId, Integer userAggregateId, QuestionAnswerDto userQuestionAnswerDto,
-            SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
+            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.quizAnswerService = quizAnswerService;
         this.questionService = questionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(quizAggregateId, userAggregateId, userQuestionAnswerDto, quizAnswerFactory, unitOfWork);
     }
 
@@ -57,7 +57,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork,
                     ServiceMapping.QUESTION.getServiceName(), userQuestionAnswerDto.getQuestionAggregateId());
             getQuestionByIdCommand.setSemanticLock(QuestionSagaState.READ_QUESTION);
-            QuestionDto questionDto = (QuestionDto) CommandGateway.send(getQuestionByIdCommand);
+            QuestionDto questionDto = (QuestionDto) commandGateway.send(getQuestionByIdCommand);
             this.setQuestionDto(questionDto);
         });
 
@@ -67,7 +67,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             Command command = new Command(unitOfWork, ServiceMapping.QUESTION.getServiceName(),
                     this.questionDto.getAggregateId());
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            CommandGateway.send(command);
+            commandGateway.send(command);
         }, unitOfWork);
 
         SagaSyncStep getQuizAnswerStep = new SagaSyncStep("getQuizAnswerStep", () -> {
@@ -75,11 +75,11 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             // quizAnswerService.getQuizAnswerDtoByQuizIdAndUserId(quizAggregateId,
             // userAggregateId, unitOfWork);
             // unitOfWorkService.registerSagaState(quizAggregateId,
-            // QuizAnswerSagaState.READ_QUIZ_ANSWER, unitOfWork);
+            // QuizAnswerSagaState.READ_QUIZ_ANSWER, unitOfWork); TODO
             GetQuizAnswerDtoByQuizIdAndUserIdCommand getQuizAnswerDtoByQuizIdAndUserIdCommand = new GetQuizAnswerDtoByQuizIdAndUserIdCommand(
-                    unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizAggregateId, userAggregateId);
+                    unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizAnswer.getQuizAggregateId(), quizAggregateId, userAggregateId);
             getQuizAnswerDtoByQuizIdAndUserIdCommand.setSemanticLock(QuizAnswerSagaState.READ_QUIZ_ANSWER);
-            CommandGateway.send(getQuizAnswerDtoByQuizIdAndUserIdCommand);
+            QuizAnswerDto quizAnswer = (QuizAnswerDto) commandGateway.send(getQuizAnswerDtoByQuizIdAndUserIdCommand);
             this.setQuizAnswer(quizAnswer);
         });
 
@@ -89,7 +89,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             Command command = new Command(unitOfWork, ServiceMapping.QUIZ.getServiceName(),
                     this.quizAnswer.getAggregateId());
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            CommandGateway.send(command);
+            commandGateway.send(command);
         }, unitOfWork);
 
         SagaSyncStep answerQuestionStep = new SagaSyncStep("answerQuestionStep", () -> {
@@ -98,6 +98,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             AnswerQuestionCommand answerQuestion = new AnswerQuestionCommand(unitOfWork,
                     ServiceMapping.QUIZ.getServiceName(), quizAggregateId, userAggregateId, userQuestionAnswerDto,
                     this.getQuestionDto());
+            commandGateway.send(answerQuestion);
         }, new ArrayList<>(Arrays.asList(getQuestionStep, getQuizAnswerStep)));
 
         workflow.addStep(getQuestionStep);
