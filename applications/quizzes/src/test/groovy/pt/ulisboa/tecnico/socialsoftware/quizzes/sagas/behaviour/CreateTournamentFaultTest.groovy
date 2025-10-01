@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
@@ -66,6 +67,9 @@ class CreateTournamentFaultTest extends QuizzesSpockTest {
     @Autowired
     private TournamentEventHandling tournamentEventHandling
 
+    @Autowired
+    private LocalCommandGateway commandGateway
+
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
     private TopicDto topicDto1, topicDto2, topicDto3
@@ -119,7 +123,7 @@ class CreateTournamentFaultTest extends QuizzesSpockTest {
         and: 'the create tournament functionality'
         def createTournamentFunctionality = new CreateTournamentFunctionalitySagas(
             tournamentService, courseExecutionService, topicService, quizService, unitOfWorkService, userCreatorDto.getAggregateId(),
-             courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], tournamentDto, unitOfWork1)
+             courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], tournamentDto, unitOfWork1, commandGateway)
         
 
         when: 'execute until the step that generates the quiz'

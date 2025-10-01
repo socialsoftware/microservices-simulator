@@ -5,11 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import java.util.concurrent.CompletableFuture;
@@ -25,18 +28,47 @@ public class StreamCommandGateway implements CommandGateway {
     private final CommandResponseAggregator responseAggregator;
     private final ObjectMapper msgMapper;
     private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final ApplicationContext applicationContext;
 
     @Autowired
     public StreamCommandGateway(StreamBridge streamBridge,
-                                CommandResponseAggregator responseAggregator,
-                                MessagingObjectMapperProvider mapperProvider) {
+            CommandResponseAggregator responseAggregator,
+            MessagingObjectMapperProvider mapperProvider, ApplicationContext applicationContext) {
         this.streamBridge = streamBridge;
         this.responseAggregator = responseAggregator;
         this.msgMapper = mapperProvider.newMapper();
+        this.applicationContext = applicationContext;
     }
 
     public Object send(Command command) {
-        String destination = command.getServiceName().toLowerCase() + "-command-channel";
+        String service = command.getServiceName() != null ? command.getServiceName().toLowerCase() : "";
+        String cmdPkg = command.getClass().getPackage().getName();
+        boolean isSameServicePackage = !service.isEmpty() && (cmdPkg.contains(".command." + service));
+
+        if (isSameServicePackage) {
+            logger.info("Routing to LocalCommandGateway for command: " + command.getClass().getSimpleName());
+            String handlerClassName = command.getServiceName() + "CommandHandler";
+
+            CommandHandler handler = applicationContext.getBeansOfType(CommandHandler.class)
+                    .values()
+                    .stream()
+                    .filter(h -> h.getClass().getSimpleName().equalsIgnoreCase(handlerClassName))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("No handler found for command: " + handlerClassName));
+
+            try {
+                Object returnObject = handler.handle(command);
+                if (returnObject instanceof SimulatorException) {
+                    throw (SimulatorException) returnObject;
+                }
+                return returnObject;
+            } catch (SimulatorException e) {
+                Logger.getLogger(LocalCommandGateway.class.getName()).warning(e.getMessage());
+                throw e;
+            }
+        }
+
+        String destination = service + "-command-channel";
         String correlationId = java.util.UUID.randomUUID().toString();
 
         CompletableFuture<Object> responseFuture = responseAggregator.createResponseFuture(correlationId);
