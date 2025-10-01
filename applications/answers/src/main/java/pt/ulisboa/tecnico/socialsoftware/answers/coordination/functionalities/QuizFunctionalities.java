@@ -1,25 +1,27 @@
-package com.generated.microservices.answers.coordination.functionalities;
+package pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities;
 
-import static com.generated.microservices.ms.TransactionalModel.SAGAS;
-import static com.generated.microservices.answers.microservices.exception.AnswersErrorMessage.*;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 
-import static com.generated.microservices.ms.TransactionalModel.SAGAS;
-import static com.generated.microservices.answers.microservices.exception.AnswersErrorMessage.*;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.ArrayList;
-import com.generated.microservices.answers.microservices.exception.AnswersException;
+import java.util.HashSet;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
-import com.generated.microservices.ms.TransactionalModel;
-import com.generated.microservices.ms.coordination.unitOfWork.UnitOfWork;
-import com.generated.microservices.answers.microservices.quiz.service.QuizService;
-import com.generated.microservices.answers.microservices.quiz.aggregate.QuizDto;
-import com.generated.microservices.answers.microservices.quiz.aggregate.QuizCourseExecutionDto;
-import com.generated.microservices.answers.microservices.quiz.aggregate.QuizQuestionDto;
-import com.generated.microservices.answers.microservices.quiz.aggregate.QuizOptionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.service.QuizService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizCourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizQuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizOptionDto;
 
 @Service
 public class QuizFunctionalities {

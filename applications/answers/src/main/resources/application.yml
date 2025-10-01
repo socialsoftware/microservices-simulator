@@ -21,6 +21,12 @@ spring:
 server:
   port: 9115
 
+saga:
+  enabled: true
+  timeout: 30000
+  retry: 
+    max-attempts: 3
+
 events:
   async: true
   thread-pool-size: 10

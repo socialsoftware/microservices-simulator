@@ -1,4 +1,4 @@
-package com.generated.microservices.answers.microservices.quiz.validation.invariants;
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.validation.invariants;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -15,12 +15,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.generated.microservices.answers.microservices.quiz.aggregate.*;
 import jakarta.validation.Constraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.Payload;
 import jakarta.validation.constraints.*;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.*;
 
 
 /**

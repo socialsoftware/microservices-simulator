@@ -1,4 +1,4 @@
-package com.generated.microservices.answers.microservices.courseexecution.validation.validators;
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.validation.validators;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -18,15 +18,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.generated.microservices.answers.microservices.courseexecution.aggregate.*;
 import jakarta.validation.Constraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.Payload;
 import jakarta.validation.constraints.*;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.*;
 
-public class StartDateEndDateRangeValidator implements ConstraintValidator<ValidStartDateEndDateRange, CourseExecution> {
+
+public class StartDateEndDateRangeValidator implements ConstraintValidator<ValidStartDateEndDateRange, Execution> {
     
     @Override
     public void initialize(ValidStartDateEndDateRange constraintAnnotation) {
@@ -34,7 +35,7 @@ public class StartDateEndDateRangeValidator implements ConstraintValidator<Valid
     }
     
     @Override
-    public boolean isValid(CourseExecution value, ConstraintValidatorContext context) {
+    public boolean isValid(Execution value, ConstraintValidatorContext context) {
         if (value == null) {
             return true; // Let @NotNull handle null validation
         }

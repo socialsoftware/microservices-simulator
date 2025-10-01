@@ -9,10 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 @Service
 public class AnswerFactory {
 
-    public Answer createAnswer(Integer aggregateId, QuizAnswerDto answerDto) {
+    public Answer createAnswer(Integer aggregateId, AnswerDto answerDto) {
         // Factory method implementation - create root entity directly
         // Extract properties from DTO and create the root entity
-        return new QuizAnswer(
+        return new Answer(
             answerDto.getAnswerDate(),
             answerDto.getCompletedDate(),
             answerDto.getCompleted(),
@@ -25,13 +25,13 @@ public class AnswerFactory {
 
     public Answer createAnswerFromExisting(Answer existingAnswer) {
         // Create a copy of the existing aggregate
-        if (existingAnswer instanceof QuizAnswer) {
-            return new QuizAnswer((QuizAnswer) existingAnswer);
+        if (existingAnswer instanceof Answer) {
+            return new Answer((Answer) existingAnswer);
         }
         throw new IllegalArgumentException("Unknown aggregate type");
     }
 
-    public QuizAnswerDto createQuizAnswerDto(Answer answer) {
-        return new QuizAnswerDto((QuizAnswer) answer);
+    public AnswerDto createAnswerDto(Answer answer) {
+        return new AnswerDto((Answer) answer);
     }
 }

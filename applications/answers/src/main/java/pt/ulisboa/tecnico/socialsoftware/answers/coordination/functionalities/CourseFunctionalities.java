@@ -1,22 +1,24 @@
-package com.generated.microservices.answers.coordination.functionalities;
+package pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities;
 
-import static com.generated.microservices.ms.TransactionalModel.SAGAS;
-import static com.generated.microservices.answers.microservices.exception.AnswersErrorMessage.*;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 
-import static com.generated.microservices.ms.TransactionalModel.SAGAS;
-import static com.generated.microservices.answers.microservices.exception.AnswersErrorMessage.*;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.ArrayList;
-import com.generated.microservices.answers.microservices.exception.AnswersException;
+import java.util.HashSet;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
-import com.generated.microservices.ms.TransactionalModel;
-import com.generated.microservices.ms.coordination.unitOfWork.UnitOfWork;
-import com.generated.microservices.answers.microservices.course.service.CourseService;
-import com.generated.microservices.answers.microservices.course.aggregate.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.CourseDto;
 
 @Service
 public class CourseFunctionalities {
@@ -38,5 +40,5 @@ throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
 }
 }
 
-[object Object],[object Object],[object Object]
+[object Object],[object Object],[object Object],[object Object],[object Object]
 }

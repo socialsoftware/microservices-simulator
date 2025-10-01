@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggre
 import jakarta.persistence.Embeddable;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
 
 @Embeddable
 public class TournamentCreator {
@@ -28,11 +27,11 @@ public class TournamentCreator {
     public TournamentCreator(TournamentCreator other) {
         // Copy constructor
     }
-	public TournamentCreator(UserDto userDto) {
-		setCreatorAggregateId(userDto.getAggregateId());
-		            setCreatorName(userDto.getName());
-		            setCreatorUsername(userDto.getUsername());
-		            setCreatorVersion(userDto.getVersion());
+	public TournamentCreator(Integer userId) {
+		setCreatorAggregateId(userId);
+		            setCreatorName('Default Name');
+		            setCreatorUsername('Default Username');
+		            setCreatorVersion(1);
 	}
 
     public Long getId() {
@@ -90,13 +89,8 @@ public class TournamentCreator {
     public void setTournament(Object tournament) {
         this.tournament = tournament;
     }
-	public UserDto buildDto() {
-		UserDto userDto = new UserDto();
-		                userDto.setAggregateId(getCreatorAggregateId());
-		                userDto.setVersion(getCreatorVersion());
-		                userDto.setName(getCreatorName());
-		                userDto.setUsername(getCreatorUsername());
-		                return userDto;
+	public String buildDto() {
+		return 'User: ' + getCreatorAggregateId();
 	}
 
 }

@@ -1,56 +1,34 @@
-package com.generated.microservices.answers.coordination.webapi;
+package pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi;
 
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import pt.ulisboa.tecnico.socialsoftware.ms.TracesService;
-import java.util.List;
-import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService;
 
 @RestController
-@RequestMapping("/api/traces")
 public class TracesController {
+    @Autowired
+    private TraceService traceService;
 
-@Autowired
-private TracesService tracesService;
+   @GetMapping("/traces/start")
+    public String start() {
+        System.out.println("Root span started");
+        traceService.startRootSpan();
+        return "OK";
+    }
+    
+    @GetMapping(value = "/traces/end")
+    public String stop() {
+        System.out.println("Stop root span");
+        traceService.endRootSpan();
+        return "OK";
+    }
 
-@GetMapping("/all")
-public ResponseEntity<List<Map<String, Object>>> getAllTraces() {
-    try {
-    List<Map<String, Object>> traces = tracesService.getAllTraces();
-        return ResponseEntity.ok(traces);
-        } catch (Exception e) {
-        return ResponseEntity.badRequest().body(null);
-        }
-        }
-
-        @GetMapping("/aggregate/{aggregateName}")
-        public ResponseEntity<List<Map<String, Object>>> getTracesByAggregate(@PathVariable String aggregateName) {
-            try {
-            List<Map<String, Object>> traces = tracesService.getTracesByAggregate(aggregateName);
-                return ResponseEntity.ok(traces);
-                } catch (Exception e) {
-                return ResponseEntity.badRequest().body(null);
-                }
-                }
-
-                @PostMapping("/clear")
-                public ResponseEntity<String> clearTraces() {
-                    try {
-                    tracesService.clearTraces();
-                    return ResponseEntity.ok("Traces cleared successfully");
-                    } catch (Exception e) {
-                    return ResponseEntity.badRequest().body("Error clearing traces: " + e.getMessage());
-                    }
-                    }
-
-                    @GetMapping("/export")
-                    public ResponseEntity<String> exportTraces(@RequestParam(defaultValue = "json") String format) {
-                        try {
-                        String exportData = tracesService.exportTraces(format);
-                        return ResponseEntity.ok(exportData);
-                        } catch (Exception e) {
-                        return ResponseEntity.badRequest().body("Error exporting traces: " + e.getMessage());
-                        }
-                        }
-                        }
+    @GetMapping(value = "/traces/flush")
+    public String flush() {
+        System.out.println("Flush root span");
+        traceService.spanFlush();
+        return "OK";
+    }
+}

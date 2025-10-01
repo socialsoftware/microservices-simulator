@@ -5,5 +5,5 @@ import java.util.List;
 import java.util.Set;
 
 public interface AnswerCustomRepository {
-    Optional<Integer> findQuizAnswerIdByQuizIdAndUserId(Integer quizAggregateId, Integer studentAggregateId);
+    Optional<Integer> findAnswerIdByQuizIdAndUserId(Integer quizAggregateId, Integer studentAggregateId);
 }

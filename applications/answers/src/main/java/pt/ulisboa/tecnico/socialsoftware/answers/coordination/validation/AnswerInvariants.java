@@ -1,4 +1,4 @@
-package com.generated.microservices.answers.microservices.answer.validation.invariants;
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.validation.invariants;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -15,12 +15,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.generated.microservices.answers.microservices.answer.aggregate.*;
 import jakarta.validation.Constraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.Payload;
 import jakarta.validation.constraints.*;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.*;
 
 
 /**
@@ -31,7 +32,7 @@ public class AnswerInvariants {
     /**
      * AnswerDate cannot be null
      */
-    public static void invariantAnswerDateNotNull(QuizAnswer entity) {
+    public static void invariantAnswerDateNotNull(Answer entity) {
         if (entity.getAnswerDate() == null) {
             throw new IllegalStateException("AnswerDate cannot be null");
         }
@@ -40,7 +41,7 @@ public class AnswerInvariants {
     /**
      * CompletedDate cannot be null
      */
-    public static void invariantCompletedDateNotNull(QuizAnswer entity) {
+    public static void invariantCompletedDateNotNull(Answer entity) {
         if (entity.getCompletedDate() == null) {
             throw new IllegalStateException("CompletedDate cannot be null");
         }
@@ -49,7 +50,7 @@ public class AnswerInvariants {
     /**
      * Completed cannot be null
      */
-    public static void invariantCompletedNotNull(QuizAnswer entity) {
+    public static void invariantCompletedNotNull(Answer entity) {
         if (entity.isCompleted() == null) {
             throw new IllegalStateException("Completed cannot be null");
         }
@@ -58,7 +59,7 @@ public class AnswerInvariants {
     /**
      * QuizAnswerStudent cannot be null
      */
-    public static void invariantQuizAnswerStudentNotNull(QuizAnswer entity) {
+    public static void invariantQuizAnswerStudentNotNull(Answer entity) {
         if (entity.getQuizAnswerStudent() == null) {
             throw new IllegalStateException("QuizAnswerStudent cannot be null");
         }
@@ -67,7 +68,7 @@ public class AnswerInvariants {
     /**
      * QuizAnswerCourseExecution cannot be null
      */
-    public static void invariantQuizAnswerCourseExecutionNotNull(QuizAnswer entity) {
+    public static void invariantQuizAnswerCourseExecutionNotNull(Answer entity) {
         if (entity.getQuizAnswerCourseExecution() == null) {
             throw new IllegalStateException("QuizAnswerCourseExecution cannot be null");
         }
@@ -76,7 +77,7 @@ public class AnswerInvariants {
     /**
      * QuestionAnswers cannot be null
      */
-    public static void invariantQuestionAnswersNotNull(QuizAnswer entity) {
+    public static void invariantQuestionAnswersNotNull(Answer entity) {
         if (entity.getQuestionAnswers() == null) {
             throw new IllegalStateException("QuestionAnswers cannot be null");
         }
@@ -85,7 +86,7 @@ public class AnswerInvariants {
     /**
      * QuestionAnswers cannot be empty
      */
-    public static void invariantQuestionAnswersNotEmpty(QuizAnswer entity) {
+    public static void invariantQuestionAnswersNotEmpty(Answer entity) {
         if (entity.getQuestionAnswers() == null || ((java.util.Collection) entity.getQuestionAnswers()).isEmpty()) {
             throw new IllegalStateException("QuestionAnswers cannot be empty");
         }
@@ -94,7 +95,7 @@ public class AnswerInvariants {
     /**
      * AnsweredQuiz cannot be null
      */
-    public static void invariantAnsweredQuizNotNull(QuizAnswer entity) {
+    public static void invariantAnsweredQuizNotNull(Answer entity) {
         if (entity.getAnsweredQuiz() == null) {
             throw new IllegalStateException("AnsweredQuiz cannot be null");
         }
@@ -103,7 +104,7 @@ public class AnswerInvariants {
     /**
      * Answer aggregate must be in a valid state
      */
-    public static void invariantAnswerValid(QuizAnswer entity) {
+    public static void invariantAnswerValid(Answer entity) {
         // Aggregate-level validation logic
         // Validate business rules that span multiple properties
         // Example: startDate must be before endDate

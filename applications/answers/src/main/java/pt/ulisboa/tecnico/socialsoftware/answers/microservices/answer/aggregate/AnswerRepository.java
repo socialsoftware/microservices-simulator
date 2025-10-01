@@ -1,4 +1,4 @@
-package com.generated.microservices.answers.microservices.answer.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
 
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

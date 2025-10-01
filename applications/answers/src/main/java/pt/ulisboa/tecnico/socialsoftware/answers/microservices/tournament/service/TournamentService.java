@@ -130,13 +130,13 @@ public class TournamentService {
 
     // Business Methods
     @Transactional
-    public Object getOpenedTournamentsForCourseExecution(Integer id, Integer courseExecutionId, UnitOfWork unitOfWork) {
+    public List<TournamentDto> getOpenedTournamentsForCourseExecution(Integer id, Integer courseExecutionId, UnitOfWork unitOfWork) {
         try {
             Tournament tournament = tournamentRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
             
             // Business logic for getOpenedTournamentsForCourseExecution
-            Object result = tournament.getOpenedTournamentsForCourseExecution();
+            List<TournamentDto> result = tournament.getOpenedTournamentsForCourseExecution();
             tournamentRepository.save(tournament);
             return result;
         } catch (Exception e) {
@@ -145,13 +145,13 @@ public class TournamentService {
     }
 
     @Transactional
-    public Object getClosedTournamentsForCourseExecution(Integer id, Integer courseExecutionId, UnitOfWork unitOfWork) {
+    public List<TournamentDto> getClosedTournamentsForCourseExecution(Integer id, Integer courseExecutionId, UnitOfWork unitOfWork) {
         try {
             Tournament tournament = tournamentRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
             
             // Business logic for getClosedTournamentsForCourseExecution
-            Object result = tournament.getClosedTournamentsForCourseExecution();
+            List<TournamentDto> result = tournament.getClosedTournamentsForCourseExecution();
             tournamentRepository.save(tournament);
             return result;
         } catch (Exception e) {
@@ -176,7 +176,7 @@ public class TournamentService {
 
     // Custom Workflow Methods
     @Transactional
-    public void addParticipant(UserDto userDto, Integer tournamentId, UnitOfWork unitOfWork) {
+    public void addParticipant(Integer userId, Integer tournamentId, UnitOfWork unitOfWork) {
         try {
             // TODO: Implement workflow logic for addParticipant
             throw new UnsupportedOperationException("Workflow addParticipant not implemented");

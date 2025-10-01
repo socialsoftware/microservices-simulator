@@ -1,4 +1,4 @@
-package com.generated.microservices.answers.microservices.answer.events;
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.generated.microservices.answers.microservices.answer.aggregate.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.*;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.*;

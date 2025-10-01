@@ -1,17 +1,17 @@
-package com.generated.microservices.answers.coordination.eventProcessing;
+package pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing;
 
-import static com.generated.microservices.ms.TransactionalModel.SAGAS;
-import static com.generated.microservices.answers.microservices.exception.AnswersErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
 import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
-import com.generated.microservices.ms.TransactionalModel;
-import com.generated.microservices.ms.coordination.unitOfWork.UnitOfWork;
-import com.generated.microservices.ms.coordination.unitOfWork.UnitOfWorkService;
-import com.generated.microservices.answers.microservices.exception.AnswersException;
-import com.generated.microservices.answers.microservices.tournament.service.TournamentService;
+import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.service.TournamentService;
 
 @Service
 public class TournamentEventProcessing {

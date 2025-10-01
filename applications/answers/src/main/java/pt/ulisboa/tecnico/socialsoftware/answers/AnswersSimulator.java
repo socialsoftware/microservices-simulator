@@ -1,4 +1,4 @@
-package com.generated.microservices.answers;
+package pt.ulisboa.tecnico.socialsoftware.answers;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +9,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import com.generated.microservices.ms.domain.event.EventService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 
 @PropertySource({"classpath:application.properties"})
 @EnableJpaRepositories(basePackages = {".ms.*",

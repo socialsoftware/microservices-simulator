@@ -1,10 +1,11 @@
-package com.generated.microservices.answers.microservices.answer.service;
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.repository.*;
 import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,57 +13,57 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AnswerService {
 
-@Autowired
-private AnswerRepository answerRepository;
+    @Autowired
+    private AnswerRepository answerRepository;
 
-public QuizAnswer createQuizAnswer(QuizAnswerDto quizanswerDto) {
-// TODO: Implement createQuizAnswer method
-return null; // Placeholder
-}
+    public Answer createAnswer(AnswerDto answerDto) {
+        // TODO: Implement createAnswer method
+        return null; // Placeholder
+    }
 
-public Optional<QuizAnswer> findQuizAnswerById(Integer id) {
-// TODO: Implement findQuizAnswerById method
-return null; // Placeholder
-}
+    public Optional<Answer> findAnswerById(Integer id) {
+        // TODO: Implement findAnswerById method
+        return null; // Placeholder
+    }
 
-public QuizAnswer updateQuizAnswer(Integer id, QuizAnswerDto quizanswerDto) {
-// TODO: Implement updateQuizAnswer method
-return null; // Placeholder
-}
+    public Answer updateAnswer(Integer id, AnswerDto answerDto) {
+        // TODO: Implement updateAnswer method
+        return null; // Placeholder
+    }
 
-public void deleteQuizAnswer(Integer id) {
-// TODO: Implement deleteQuizAnswer method
-}
+    public void deleteAnswer(Integer id) {
+        // TODO: Implement deleteAnswer method
+    }
 
-public List<QuizAnswer> findAllAnswers() {
-// TODO: Implement findAllAnswers method
-return null; // Placeholder
-}
+    public List<Answer> findAllAnswers() {
+        // TODO: Implement findAllAnswers method
+        return null; // Placeholder
+    }
 
-public QuizAnswer createQuizAnswer(QuizAnswer answer, Object user) {
-// TODO: Implement createQuizAnswer method
-return null; // Placeholder
-}
+    public Answer createAnswer(Answer answer, Integer userId) {
+        // TODO: Implement createAnswer method
+        return null; // Placeholder
+    }
 
-public QuizAnswer findQuizAnswerById(Integer id) {
-// TODO: Implement findQuizAnswerById method
-return null; // Placeholder
-}
+    public Answer findAnswerById(Integer id) {
+        // TODO: Implement findAnswerById method
+        return null; // Placeholder
+    }
 
-public QuizAnswer updateQuizAnswerState(Integer id, Object state) {
-// TODO: Implement updateQuizAnswerState method
-return null; // Placeholder
-}
+    public Answer updateAnswerState(Integer id, Object state) {
+        // TODO: Implement updateAnswerState method
+        return null; // Placeholder
+    }
 
-public Object deleteQuizAnswer(Integer id) {
-// TODO: Implement deleteQuizAnswer method
-return null; // Placeholder
-}
+    public Object deleteAnswer(Integer id) {
+        // TODO: Implement deleteAnswer method
+        return null; // Placeholder
+    }
 
-public Object findQuizAnswersByStudent(Integer studentId) {
-// TODO: Implement findQuizAnswersByStudent method
-return null; // Placeholder
-}
+    public Object findAnswersByStudent(Integer studentId) {
+        // TODO: Implement findAnswersByStudent method
+        return null; // Placeholder
+    }
 
-// Additional CRUD utility methods can be added here
+    // Additional CRUD utility methods can be added here
 }

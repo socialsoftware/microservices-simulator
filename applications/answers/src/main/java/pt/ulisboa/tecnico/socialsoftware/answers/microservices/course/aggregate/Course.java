@@ -68,7 +68,7 @@ public class Course extends Aggregate {
 		return null; // TODO: Implement method
 	}
 
-	public Object getAllCourses(UnitOfWork unitOfWork) {
+	public List<Course> getAllCourses(UnitOfWork unitOfWork) {
 
 		return null; // TODO: Implement method
 	}

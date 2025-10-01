@@ -1,4 +1,4 @@
-package com.generated.microservices.answers.microservices.tournament.aggregate;
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate;
 
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -108,13 +108,13 @@ public class CourseService {
 
     // Business Methods
     @Transactional
-    public Object searchCoursesByName(Integer id, String name, UnitOfWork unitOfWork) {
+    public List<Course> searchCoursesByName(Integer id, String name, UnitOfWork unitOfWork) {
         try {
             Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
             
             // Business logic for searchCoursesByName
-            Object result = course.searchCoursesByName();
+            List<Course> result = course.searchCoursesByName();
             courseRepository.save(course);
             return result;
         } catch (Exception e) {
@@ -123,17 +123,47 @@ public class CourseService {
     }
 
     @Transactional
-    public Object searchCoursesByAcronym(Integer id, String acronym, UnitOfWork unitOfWork) {
+    public List<Course> searchCoursesByAcronym(Integer id, String acronym, UnitOfWork unitOfWork) {
         try {
             Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
             
             // Business logic for searchCoursesByAcronym
-            Object result = course.searchCoursesByAcronym();
+            List<Course> result = course.searchCoursesByAcronym();
             courseRepository.save(course);
             return result;
         } catch (Exception e) {
             throw new AnswersException("Error in searchCoursesByAcronym: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public Set<Object> getUniqueCourseTypes(Integer id, UnitOfWork unitOfWork) {
+        try {
+            Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
+            
+            // Business logic for getUniqueCourseTypes
+            Set<Object> result = course.getUniqueCourseTypes();
+            courseRepository.save(course);
+            return result;
+        } catch (Exception e) {
+            throw new AnswersException("Error in getUniqueCourseTypes: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public Set<Course> getCoursesAsSet(Integer id, UnitOfWork unitOfWork) {
+        try {
+            Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
+            
+            // Business logic for getCoursesAsSet
+            Set<Course> result = course.getCoursesAsSet();
+            courseRepository.save(course);
+            return result;
+        } catch (Exception e) {
+            throw new AnswersException("Error in getCoursesAsSet: " + e.getMessage());
         }
     }
 

@@ -3,58 +3,48 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.UserFunctionalities;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user")
 public class UserController {
+    @Autowired
+    private UserFunctionalities userFunctionalities;
 
-@Autowired
-private UserService userService;
+    @PostMapping("/users/create")
+    public UserDto createUser(@RequestBody UserDto userDto) throws Exception {
+        UserDto result = userFunctionalities.createUser(userDto);
+        return result;
+    }
 
-@GetMapping(value = "/users")
-public ResponseEntity<List<UserDto>> getAllUsers(
-        ) {
-        List<UserDto> result = userService.getAllUsers();
-        return ResponseEntity.ok(result);
-        }
+    @GetMapping("/users/{userAggregateId}")
+    public UserDto findByUserId(@PathVariable Integer userAggregateId) {
+        UserDto result = userFunctionalities.findByUserId(userAggregateId);
+        return result;
+    }
 
-@GetMapping(value = "/users/{id}")
-public ResponseEntity<UserDto> getUser(
-        @PathVariable Long id
-        ) throws Exception {
-        UserDto result = userService.getUser(id);
-        return ResponseEntity.ok(result);
-        }
+    @PostMapping("/users/{userAggregateId}/activate")
+    public void activateUser(@PathVariable Integer userAggregateId) throws Exception {
+        userFunctionalities.activateUser(userAggregateId);
+    }
 
-@PostMapping(value = "/users")
-public ResponseEntity<UserDto> createUser(
-        @RequestBody UserDto userDto
-        ) throws Exception {
-        UserDto result = userService.createUser(userDto);
-        return ResponseEntity.ok(result);
-        }
+    @PostMapping("/users/{userAggregateId}/delete")
+    public void deleteUser(@PathVariable Integer userAggregateId) throws Exception {
+        userFunctionalities.deleteUser(userAggregateId);
+    }
 
-@PutMapping(value = "/users/{id}")
-public ResponseEntity<UserDto> updateUser(
-        @PathVariable Long id,
-        @RequestBody UserDto userDto
-        ) throws Exception {
-        UserDto result = userService.updateUser(id,
-        userDto);
-        return ResponseEntity.ok(result);
-        }
+    @GetMapping("/users/students")
+    public List<UserDto> getStudents() {
+        List<UserDto> result = userFunctionalities.getStudents();
+        return result;
+    }
 
-@DeleteMapping(value = "/users/{id}")
-public ResponseEntity<Void> deleteUser(
-        @PathVariable Long id
-        ) throws Exception {
-        userService.deleteUser(id);
-        return ResponseEntity.ok().build();
-        }
-
-        }
+    @GetMapping("/users/teachers")
+    public List<UserDto> getTeachers() {
+        List<UserDto> result = userFunctionalities.getTeachers();
+        return result;
+    }
+}

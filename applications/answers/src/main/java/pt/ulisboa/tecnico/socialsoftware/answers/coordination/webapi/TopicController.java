@@ -3,58 +3,36 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.TopicFunctionalities;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/topic")
 public class TopicController {
+    @Autowired
+    private TopicFunctionalities topicFunctionalities;
 
-@Autowired
-private TopicService topicService;
+    @GetMapping("/courses/{courseAggregateId}/topics")
+    public List<TopicDto> findTopicsByCourseAggregateId(@PathVariable Integer courseAggregateId) {
+        List<TopicDto> result = topicFunctionalities.findTopicsByCourseAggregateId(courseAggregateId);
+        return result;
+    }
 
-@GetMapping(value = "/topics")
-public ResponseEntity<List<TopicDto>> getAllTopics(
-        ) {
-        List<TopicDto> result = topicService.getAllTopics();
-        return ResponseEntity.ok(result);
-        }
+    @PostMapping("/courses/{courseAggregateId}/create")
+    public TopicDto createTopic(@PathVariable Integer courseAggregateId, @RequestBody TopicDto topicDto) throws Exception {
+        TopicDto result = topicFunctionalities.createTopic(courseAggregateId, topicDto);
+        return result;
+    }
 
-@GetMapping(value = "/topics/{id}")
-public ResponseEntity<TopicDto> getTopic(
-        @PathVariable Long id
-        ) throws Exception {
-        TopicDto result = topicService.getTopic(id);
-        return ResponseEntity.ok(result);
-        }
+    @PostMapping("/topics/update")
+    public void updateTopic(@RequestBody TopicDto topicDto) throws Exception {
+        topicFunctionalities.updateTopic(topicDto);
+    }
 
-@PostMapping(value = "/topics")
-public ResponseEntity<TopicDto> createTopic(
-        @RequestBody TopicDto topicDto
-        ) throws Exception {
-        TopicDto result = topicService.createTopic(topicDto);
-        return ResponseEntity.ok(result);
-        }
-
-@PutMapping(value = "/topics/{id}")
-public ResponseEntity<TopicDto> updateTopic(
-        @PathVariable Long id,
-        @RequestBody TopicDto topicDto
-        ) throws Exception {
-        TopicDto result = topicService.updateTopic(id,
-        topicDto);
-        return ResponseEntity.ok(result);
-        }
-
-@DeleteMapping(value = "/topics/{id}")
-public ResponseEntity<Void> deleteTopic(
-        @PathVariable Long id
-        ) throws Exception {
-        topicService.deleteTopic(id);
-        return ResponseEntity.ok().build();
-        }
-
-        }
+    @PostMapping("/topics/{topicAggregateId}/delete")
+    public void deleteTopic(@PathVariable Integer topicAggregateId) throws Exception {
+        topicFunctionalities.deleteTopic(topicAggregateId);
+    }
+}

@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import spock.lang.Specification
 import pt.ulisboa.tecnico.socialsoftware.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.AnswerFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuizAnswerDto
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerDto
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.webapi.AnswerController
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
@@ -30,9 +30,9 @@ class AnswerRestApiTest extends SpockTest {
         BehaviourService.clearBehaviour()
     }
 
-    def "should create QuizAnswer via REST API"() {
+    def "should create Answer via REST API"() {
         when:
-        def answerDto = new QuizAnswerDto()
+        def answerDto = new AnswerDto()
         def jsonContent = objectMapper.writeValueAsString(answerDto)
         
         mockMvc.perform(MockMvcRequestBuilders.post("/api/answer")
@@ -43,9 +43,9 @@ class AnswerRestApiTest extends SpockTest {
         noExceptionThrown()
     }
 
-    def "should get QuizAnswer via REST API"() {
+    def "should get Answer via REST API"() {
         when:
-        def answerDto = new QuizAnswerDto()
+        def answerDto = new AnswerDto()
         def createdAnswer = answerFunctionalities.createAnswer(answerDto)
         
         mockMvc.perform(MockMvcRequestBuilders.get("/api/answer/" + createdAnswer.getId()))
@@ -55,9 +55,9 @@ class AnswerRestApiTest extends SpockTest {
         noExceptionThrown()
     }
 
-    def "should update QuizAnswer via REST API"() {
+    def "should update Answer via REST API"() {
         when:
-        def answerDto = new QuizAnswerDto()
+        def answerDto = new AnswerDto()
         def createdAnswer = answerFunctionalities.createAnswer(answerDto)
         
         // Update the DTO
@@ -72,9 +72,9 @@ class AnswerRestApiTest extends SpockTest {
         noExceptionThrown()
     }
 
-    def "should delete QuizAnswer via REST API"() {
+    def "should delete Answer via REST API"() {
         when:
-        def answerDto = new QuizAnswerDto()
+        def answerDto = new AnswerDto()
         def createdAnswer = answerFunctionalities.createAnswer(answerDto)
         
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/answer/" + createdAnswer.getId()))
@@ -83,11 +83,11 @@ class AnswerRestApiTest extends SpockTest {
         noExceptionThrown()
     }
 
-    def "should list all QuizAnswers via REST API"() {
+    def "should list all Answers via REST API"() {
         when:
         // Create some test data
-        def answerDto1 = new QuizAnswerDto()
-        def answerDto2 = new QuizAnswerDto()
+        def answerDto1 = new AnswerDto()
+        def answerDto2 = new AnswerDto()
         answerFunctionalities.createAnswer(answerDto1)
         answerFunctionalities.createAnswer(answerDto2)
         
