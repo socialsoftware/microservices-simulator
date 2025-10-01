@@ -4,23 +4,23 @@ import java.time.LocalDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 import pt.ulisboa.tecnico.socialsoftware.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.AnswerFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerDto
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.ExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 
 class AnswersSpockTest extends SpockTest {
     @Autowired
-    AnswerFunctionalities answerFunctionalities
+    ExecutionFunctionalities executionFunctionalities
 
     def setup() {
         BehaviourService.clearBehaviour()
     }
 
-    def "should create Answer"() {
+    def "should create Execution"() {
         when:
-        def answerDto = new AnswerDto()
-        answerFunctionalities.createAnswer(answerDto)
+        def executionDto = new ExecutionDto()
+        executionFunctionalities.createExecution(executionDto)
         then:
         noExceptionThrown()
     }

@@ -11,6 +11,9 @@
         "coordination",
         "saga"
     ],
+    "consistencyModels": [
+        "sagas"
+    ],
     "database": {
         "type": "postgresql",
         "host": "postgres",

@@ -3,6 +3,7 @@ export interface GenerationOptions {
     outputPath: string;
     architecture?: 'default' | 'external-dto-removal' | 'causal-saga';
     features?: string[];
+    consistencyModels?: string[];
 }
 
 export interface CoordinationGenerationOptions extends GenerationOptions { }

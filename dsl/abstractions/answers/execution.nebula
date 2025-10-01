@@ -185,8 +185,7 @@ Aggregate Execution {
             methodName: updateStudentName
             parameters: [
                 executionAggregateId: Integer: "@PathVariable",
-                userAggregateId: Integer: "@PathVariable",
-                userDto: User: "@RequestBody"
+                userAggregateId: Integer: "@PathVariable"
             ]
             desc: "Update student name in an execution"
             throwsException: true

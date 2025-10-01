@@ -22,8 +22,11 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         const projectName = options.projectName.toLowerCase();
         const ProjectName = this.capitalize(options.projectName);
 
+        // Get consistency models from configuration, default to sagas only
+        const consistencyModels = options.consistencyModels || ['sagas'];
+
         const dependencies = this.buildDependencies(aggregate, options);
-        const businessMethods = this.buildBusinessMethods(aggregate, rootEntity, capitalizedAggregate, entityRegistry);
+        const businessMethods = this.buildBusinessMethods(aggregate, rootEntity, capitalizedAggregate, entityRegistry, consistencyModels);
         const imports = this.buildImports(aggregate, rootEntity, options, dependencies, entityRegistry);
 
         const basePackage = this.getBasePackage();
@@ -39,6 +42,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             businessMethods,
             projectName,
             ProjectName,
+            consistencyModels,
             hasSagas: options.architecture === 'causal-saga' || options.features?.includes('sagas'),
             hasExternalDtos: options.architecture === 'default'
         };
@@ -54,22 +58,63 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             required: true
         });
 
+        // Add UserService if needed
+        const needsUserService = this.checkUserServiceUsage(aggregate);
+        if (needsUserService) {
+            dependencies.push({
+                name: 'userService',
+                type: 'UserService',
+                required: true
+            });
+        }
+
         const needsSaga = options.architecture === 'causal-saga' || options.features?.includes('sagas');
 
         if (needsSaga) {
             dependencies.push({
                 name: 'sagaUnitOfWorkService',
                 type: 'SagaUnitOfWorkService',
-                required: true
+                required: false
+            });
+            dependencies.push({
+                name: 'causalUnitOfWorkService',
+                type: 'CausalUnitOfWorkService',
+                required: false
             });
         }
+
+        // Add factory
+        dependencies.push({
+            name: `${aggregateName}Factory`,
+            type: `${this.capitalize(aggregate.name)}Factory`,
+            required: true
+        });
 
         return dependencies;
     }
 
-    private buildBusinessMethods(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, entityRegistry: EntityRegistry): any[] {
+    private buildBusinessMethods(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, entityRegistry: EntityRegistry, consistencyModels: string[]): any[] {
         const methods: any[] = [];
         const addedMethods = new Set<string>();
+
+        // Add methods from WebAPIEndpoints
+        if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints) {
+            aggregate.webApiEndpoints.endpoints.forEach((endpoint: any) => {
+                const params = this.extractEndpointParameters(endpoint.parameters);
+                const returnType = this.extractReturnType(endpoint.returnType, entityRegistry);
+                const methodSignature = `${endpoint.methodName}_${params.map((p: any) => p.type).join('_')}`;
+                if (!addedMethods.has(methodSignature)) {
+                    methods.push({
+                        name: endpoint.methodName,
+                        returnType: returnType,
+                        parameters: params,
+                        body: this.generateWebApiMethodBody(endpoint, returnType, aggregateName, consistencyModels),
+                        throwsException: endpoint.throwsException === 'true'
+                    });
+                    addedMethods.add(methodSignature);
+                }
+            });
+        }
 
         if (aggregate.methods) {
             aggregate.methods.forEach((method: any) => {
@@ -382,6 +427,74 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     }
 
 
+    private extractEndpointParameters(parameters: any): any[] {
+        if (!parameters) return [];
+
+        return parameters.map((param: any) => {
+            let paramType = 'Object';
+            const paramName = param.name || 'param';
+
+            if (param.type) {
+                const type = param.type;
+
+                if (typeof type === 'string') {
+                    paramType = type;
+                } else if (type.$type === 'PrimitiveType') {
+                    paramType = TypeResolver.resolveJavaType(type);
+                } else if (type.$type === 'EntityType' && type.type && type.type.ref) {
+                    paramType = type.type.ref.name + 'Dto';
+                } else if (type.$type === 'BuiltinType') {
+                    paramType = type.name;
+                } else if (type.name) {
+                    paramType = type.name;
+                }
+            }
+
+            return { type: paramType, name: paramName, annotation: param.annotation };
+        });
+    }
+
+    private generateWebApiMethodBody(endpoint: any, returnType: string, aggregateName: string, consistencyModels: string[]): string {
+        const methodName = endpoint.methodName;
+        const capitalizedMethodName = this.capitalize(methodName);
+        const lowerAggregateName = aggregateName.toLowerCase();
+        const params = this.extractEndpointParameters(endpoint.parameters);
+
+        // Generate workflow implementation based on configured consistency models
+        const sagaParams = this.buildSagaParameters(params, lowerAggregateName);
+        const sagaCall = this.buildSagaCall(methodName, returnType);
+
+        let cases = '';
+
+        if (consistencyModels.includes('sagas')) {
+            cases += `            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                ${capitalizedMethodName}FunctionalitySagas ${methodName}FunctionalitySagas = new ${capitalizedMethodName}FunctionalitySagas(
+                        ${sagaParams});
+                ${methodName}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                ${sagaCall}`;
+        }
+
+        if (consistencyModels.includes('tcc')) {
+            cases += `            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                ${capitalizedMethodName}FunctionalityTCC ${methodName}FunctionalityTCC = new ${capitalizedMethodName}FunctionalityTCC(
+                        ${sagaParams.replace('sagaUnitOfWork', 'causalUnitOfWork')});
+                ${methodName}FunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                ${sagaCall.replace('FunctionalitySagas', 'FunctionalityTCC')}`;
+        }
+
+        let body = `String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+${cases}
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }`;
+
+        return body;
+    }
+
+
     private generateMethodBody(method: any, returnType: string): string {
         if (returnType === 'void') {
             return `// TODO: Implement ${method.name}`;
@@ -395,5 +508,52 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             return `return null; // TODO: Implement ${method.name}`;
         }
     }
+
+    private checkUserServiceUsage(aggregate: Aggregate): boolean {
+        // Check if any WebAPI endpoints use User-related parameters
+        if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints) {
+            return aggregate.webApiEndpoints.endpoints.some((endpoint: any) =>
+                endpoint.parameters && endpoint.parameters.some((param: any) =>
+                    param.name && param.name.toLowerCase().includes('user')
+                )
+            );
+        }
+        return false;
+    }
+
+    private buildSagaParameters(params: any[], aggregateName: string): string {
+        const baseParams = [`${aggregateName}Service`, 'sagaUnitOfWorkService'];
+
+        // Add parameters from the method
+        params.forEach(param => {
+            if (!param.annotation) { // Skip annotated parameters like @PathVariable, @RequestBody
+                baseParams.push(param.name);
+            }
+        });
+
+        baseParams.push('sagaUnitOfWork');
+        return baseParams.join(', ');
+    }
+
+    private buildSagaCall(methodName: string, returnType: string): string {
+        if (returnType === 'void') {
+            return 'break;';
+        } else if (returnType.startsWith('List<')) {
+            return `return ${methodName}FunctionalitySagas.get${this.capitalize(methodName.replace('get', ''))}();`;
+        } else if (returnType.startsWith('Set<')) {
+            return `return ${methodName}FunctionalitySagas.get${this.capitalize(methodName.replace('get', ''))}();`;
+        } else if (returnType.includes('Dto')) {
+            if (methodName.startsWith('create')) {
+                return `return ${methodName}FunctionalitySagas.getCreated${this.capitalize(methodName.replace('create', ''))}();`;
+            } else if (methodName.startsWith('get')) {
+                return `return ${methodName}FunctionalitySagas.get${this.capitalize(methodName.replace('get', ''))}();`;
+            } else {
+                return `return ${methodName}FunctionalitySagas.getResult();`;
+            }
+        } else {
+            return `return ${methodName}FunctionalitySagas.getResult();`;
+        }
+    }
+
 
 }

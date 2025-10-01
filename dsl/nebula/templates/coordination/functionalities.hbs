@@ -10,24 +10,30 @@ import static {{basePackage}}.{{projectName}}.microservices.exception.{{ProjectN
 {{annotations.service}}
 public class {{aggregateName}}Functionalities {
 {{#each dependencies}}
-{{annotations.autowired}}{{#unless required}}(required = false){{/unless}}
-private {{type}} {{name}};
+    {{annotations.autowired}}{{#unless required}}(required = false){{/unless}}
+    private {{type}} {{name}};
+
 {{/each}}
 
-{{annotations.autowired}}
-private Environment env;
+    {{annotations.autowired}}
+    private Environment env;
 
-private TransactionalModel workflowType;
+    private TransactionalModel workflowType;
 
-@PostConstruct
-public void init() {
-String[] activeProfiles = env.getActiveProfiles();
-if (Arrays.asList(activeProfiles).contains({{transactionModel}}.getValue())) {
-workflowType = {{transactionModel}};
-} else {
-throw new {{ProjectName}}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
-}
-}
+    @PostConstruct
+    public void init() {
+        String[] activeProfiles = env.getActiveProfiles();
+        if (Arrays.asList(activeProfiles).contains(SAGAS.getValue())) {
+            workflowType = SAGAS;
+        } else {
+            throw new {{ProjectName}}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
 
-{{businessMethods}}
+{{#each businessMethods}}
+    public {{returnType}} {{name}}({{#each parameters}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}){{#if throwsException}} throws {{../ProjectName}}Exception{{/if}} {
+        {{{body}}}
+    }
+
+{{/each}}
 }

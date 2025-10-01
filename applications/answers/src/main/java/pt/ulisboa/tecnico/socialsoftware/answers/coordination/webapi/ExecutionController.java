@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.ExecutionFunctionalities;
 import java.util.Set;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.*;
 
 import java.util.List;
@@ -61,7 +60,7 @@ public class ExecutionController {
     }
 
     @PostMapping("/executions/{executionAggregateId}/students/{userAggregateId}/update/name")
-    public void updateStudentName(@PathVariable Integer executionAggregateId, @PathVariable Integer userAggregateId, @RequestBody UserDto userDto) throws Exception {
-        executionFunctionalities.updateStudentName(executionAggregateId, userAggregateId, userDto);
+    public void updateStudentName(@PathVariable Integer executionAggregateId, @PathVariable Integer userAggregateId) throws Exception {
+        executionFunctionalities.updateStudentName(executionAggregateId, userAggregateId);
     }
 }

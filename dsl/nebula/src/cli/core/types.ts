@@ -11,6 +11,7 @@ export type GenerationOptions = {
     features: string[];
     projectName: string;
     outputPath: string;
+    consistencyModels?: string[];
 };
 
 export type ProjectPaths = {
