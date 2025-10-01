@@ -1,0 +1,27 @@
+{
+    "projectName": "answers",
+    "basePackage": "pt.ulisboa.tecnico.socialsoftware",
+    "outputDirectory": "../../applications",
+    "architecture": "causal-saga",
+    "features": [
+        "entities",
+        "dtos",
+        "services",
+        "factories",
+        "repositories",
+        "webapi",
+        "saga"
+    ],
+    "database": {
+        "type": "postgresql",
+        "host": "postgres",
+        "port": 5432,
+        "name": "answersdb",
+        "username": "postgres",
+        "password": "password"
+    },
+    "java": {
+        "version": "17",
+        "springBootVersion": "3.0.0"
+    }
+}

@@ -1,6 +1,8 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { WebApiGenerationOptions } from "./webapi-types.js";
 import { WebApiBaseGenerator } from "./webapi-base-generator.js";
+import { getGlobalConfig } from "../../base/config.js";
+import { SharedDtoGenerator } from "../shared/shared-dto-generator.js";
 
 export class ControllerGenerator extends WebApiBaseGenerator {
     async generateController(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions): Promise<string> {
@@ -20,8 +22,8 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         return {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
-            serviceName: `${lowerAggregate}Service`,
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.coordination.webapi`,
+            functionalitiesName: `${aggregate.name.charAt(0).toLowerCase() + aggregate.name.slice(1)}Functionalities`,
+            packageName: getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'webapi'),
             endpoints,
             imports,
             projectName: options.projectName.toLowerCase(),
@@ -36,8 +38,9 @@ export class ControllerGenerator extends WebApiBaseGenerator {
 
         if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints.length > 0) {
             aggregate.webApiEndpoints.endpoints.forEach((endpoint: any) => {
+                const resolvedReturnType = endpoint.returnType ? this.resolveParameterType(endpoint.returnType) : null;
                 endpoints.push({
-                    method: this.resolveHttpMethod(endpoint.method || endpoint.httpMethod),
+                    method: this.resolveHttpMethod(endpoint.method?.method || endpoint.httpMethod?.method),
                     path: endpoint.path,
                     methodName: endpoint.methodName,
                     parameters: endpoint.parameters.map((param: any) => ({
@@ -45,75 +48,15 @@ export class ControllerGenerator extends WebApiBaseGenerator {
                         type: this.resolveParameterType(param.type),
                         annotation: param.annotation
                     })),
-                    returnType: this.resolveParameterType(endpoint.returnType),
+                    returnType: resolvedReturnType,
                     description: endpoint.description || endpoint.desc,
                     throwsException: endpoint.throwsException === 'true'
                 });
             });
-        } else {
-            this.generateDefaultEndpoints(endpoints, rootEntity, aggregateName);
         }
-
         return endpoints;
     }
 
-    private generateDefaultEndpoints(endpoints: any[], rootEntity: Entity, aggregateName: string): void {
-        const rootEntityName = rootEntity.name;
-        const dtoType = `${rootEntityName}Dto`;
-
-        endpoints.push({
-            method: this.resolveHttpMethod('GET'),
-            path: `/${aggregateName.toLowerCase()}s`,
-            methodName: `getAll${aggregateName}s`,
-            parameters: [],
-            returnType: `List<${dtoType}>`,
-            description: `Get all ${aggregateName.toLowerCase()}s`,
-            throwsException: false
-        });
-
-        endpoints.push({
-            method: this.resolveHttpMethod('GET'),
-            path: `/${aggregateName.toLowerCase()}s/{id}`,
-            methodName: `get${aggregateName}`,
-            parameters: [{ name: 'id', type: 'Long', annotation: '@PathVariable' }],
-            returnType: dtoType,
-            description: `Get ${aggregateName.toLowerCase()} by ID`,
-            throwsException: true
-        });
-
-        endpoints.push({
-            method: this.resolveHttpMethod('POST'),
-            path: `/${aggregateName.toLowerCase()}s`,
-            methodName: `create${aggregateName}`,
-            parameters: [{ name: `${aggregateName.toLowerCase()}Dto`, type: dtoType, annotation: '@RequestBody' }],
-            returnType: dtoType,
-            description: `Create new ${aggregateName.toLowerCase()}`,
-            throwsException: true
-        });
-
-        endpoints.push({
-            method: this.resolveHttpMethod('PUT'),
-            path: `/${aggregateName.toLowerCase()}s/{id}`,
-            methodName: `update${aggregateName}`,
-            parameters: [
-                { name: 'id', type: 'Long', annotation: '@PathVariable' },
-                { name: `${aggregateName.toLowerCase()}Dto`, type: dtoType, annotation: '@RequestBody' }
-            ],
-            returnType: dtoType,
-            description: `Update ${aggregateName.toLowerCase()}`,
-            throwsException: true
-        });
-
-        endpoints.push({
-            method: this.resolveHttpMethod('DELETE'),
-            path: `/${aggregateName.toLowerCase()}s/{id}`,
-            methodName: `delete${aggregateName}`,
-            parameters: [{ name: 'id', type: 'Long', annotation: '@PathVariable' }],
-            returnType: 'void',
-            description: `Delete ${aggregateName.toLowerCase()}`,
-            throwsException: true
-        });
-    }
 
     private buildControllerImports(aggregate: Aggregate, options: WebApiGenerationOptions, endpoints: any[]): string[] {
         const imports = new Set<string>();
@@ -125,43 +68,81 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         if (options.architecture === 'external-dto-removal') {
             endpoints.forEach(endpoint => {
                 if (endpoint.returnType && endpoint.returnType.includes('Dto')) {
-                    imports.add(`import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.aggregate.${endpoint.returnType.replace('Dto', '')}.${endpoint.returnType};`);
+                    imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'aggregate', endpoint.returnType.replace('Dto', ''))}.${endpoint.returnType};`);
                 }
                 endpoint.parameters?.forEach((param: any) => {
                     if (param.type && param.type.includes('Dto')) {
-                        imports.add(`import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.aggregate.${param.type.replace('Dto', '')}.${param.type};`);
+                        imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'aggregate', param.type.replace('Dto', ''))}.${param.type};`);
                     }
                 });
             });
         }
 
-        imports.add(`import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.service.${aggregate.name}Service;`);
+        imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'functionalities')}.${aggregate.name}Functionalities;`);
+
+        // Add collection imports if needed
+        const hasSetType = endpoints.some(e => e.returnType && e.returnType.includes('Set<'));
+        if (hasSetType) {
+            imports.add('import java.util.Set;');
+        }
+
+        // Collect all DTOs needed and add appropriate imports
+        const dtoTypes = new Set<string>();
 
         endpoints.forEach(endpoint => {
-            if (endpoint.returnType && endpoint.returnType.includes('Dto')) {
-                const dtoType = endpoint.returnType.match(/(\w*Dto)/)?.[1];
-                if (dtoType) {
-                    imports.add(`import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${dtoType};`);
-                }
-            }
+            // Extract DTOs from return type
+            this.extractDtoTypes(endpoint.returnType, dtoTypes);
+
+            // Extract DTOs from parameters
             endpoint.parameters?.forEach((param: any) => {
-                if (param.type && param.type.includes('Dto')) {
-                    const dtoType = param.type.match(/(\w*Dto)/)?.[1];
-                    if (dtoType) {
-                        imports.add(`import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${dtoType};`);
-                    }
-                }
+                this.extractDtoTypes(param.type, dtoTypes);
             });
         });
 
+        // Add imports for each DTO
+        dtoTypes.forEach(dtoType => {
+            const importPath = SharedDtoGenerator.getDtoImportPath(dtoType, options);
+            imports.add(`import ${importPath};`);
+        });
+
         if (endpoints.some(e => e.throwsException)) {
-            imports.add(`import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.microservices.exception.*;`);
+            imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', 'exception')}.*;`);
         }
 
         return Array.from(imports);
     }
 
+    private extractDtoTypes(type: string, dtoSet: Set<string>): void {
+        if (!type) return;
+
+        // Extract DTO names from types like "CourseExecutionDto", "List<CourseDto>", "Set<UserDto>"
+        const dtoMatches = type.match(/(\w+Dto)/g);
+        if (dtoMatches) {
+            dtoMatches.forEach(dto => {
+                if (dto !== 'Dto') { // Avoid matching just "Dto"
+                    dtoSet.add(dto);
+                }
+            });
+        }
+    }
+
+    async generateEmptyController(aggregate: Aggregate, options: WebApiGenerationOptions): Promise<string> {
+        const packageName = getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'webapi');
+
+        const context = {
+            packageName,
+            aggregateName: aggregate.name
+        };
+
+        const template = this.getEmptyControllerTemplate();
+        return this.renderTemplate(template, context);
+    }
+
     private getControllerTemplate(): string {
         return this.loadTemplate('web/controller.hbs');
+    }
+
+    private getEmptyControllerTemplate(): string {
+        return this.loadTemplate('web/empty-controller.hbs');
     }
 }

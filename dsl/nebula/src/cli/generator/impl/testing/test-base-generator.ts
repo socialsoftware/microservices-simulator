@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { OrchestrationBase } from "../../base/orchestration-base.js";
 import { TestGenerationOptions, TestContext } from "./test-types.js";
+import { getGlobalConfig } from "../../base/config.js";
 
 export abstract class TestBaseGenerator extends OrchestrationBase {
     protected createTestContext(options: TestGenerationOptions, testPath: string): TestContext {
@@ -30,7 +31,7 @@ export abstract class TestBaseGenerator extends OrchestrationBase {
     }
 
     protected buildTestPackageName(projectName: string, ...subPackages: string[]): string {
-        const basePackage = `pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}`;
+        const basePackage = getGlobalConfig().buildPackageName(projectName);
         if (subPackages.length === 0) {
             return basePackage;
         }
@@ -42,7 +43,7 @@ export abstract class TestBaseGenerator extends OrchestrationBase {
             'import org.springframework.beans.factory.annotation.Autowired',
             'import spock.lang.Specification',
             'import pt.ulisboa.tecnico.socialsoftware.SpockTest',
-            `import pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.coordination.functionalities.${aggregateName}Functionalities`,
+            `import ${getGlobalConfig().buildPackageName(projectName, 'coordination', 'functionalities')}.${aggregateName}Functionalities`,
             'import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler',
             'import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService',
             '',

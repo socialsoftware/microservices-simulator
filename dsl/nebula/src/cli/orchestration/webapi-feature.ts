@@ -9,12 +9,28 @@ export class WebApiFeature {
         options: GenerationOptions,
         generators: any
     ): Promise<void> {
+        const hasEndpoints = aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints.length > 0;
+
         try {
-            const webApiCode = await generators.webApiGenerator.generateWebApi(aggregate, options);
+            let controllerCode: string;
+
+            if (hasEndpoints) {
+                const webApiCode = await generators.webApiGenerator.generateWebApi(aggregate, options);
+                controllerCode = webApiCode['controller'];
+            } else {
+                // Generate empty controller
+                controllerCode = await generators.webApiGenerator.generateEmptyController(aggregate, options);
+            }
+
             const webApiPath = path.join(paths.javaPath, 'coordination', 'webapi', `${aggregate.name}Controller.java`);
             await fs.mkdir(path.dirname(webApiPath), { recursive: true });
-            await fs.writeFile(webApiPath, webApiCode['controller'], 'utf-8');
-            console.log(`\t- Generated web API ${aggregate.name}Controller`);
+            await fs.writeFile(webApiPath, controllerCode, 'utf-8');
+
+            if (hasEndpoints) {
+                console.log(`\t- Generated web API ${aggregate.name}Controller (using Functionalities, ${aggregate.webApiEndpoints.endpoints.length} endpoints)`);
+            } else {
+                console.log(`\t- Generated empty ${aggregate.name}Controller (no WebAPIEndpoints defined)`);
+            }
         } catch (error) {
             console.error(`\t- Error generating web API for ${aggregate.name}: ${error instanceof Error ? error.message : String(error)}`);
         }
@@ -32,17 +48,6 @@ export class WebApiFeature {
             const tracesControllerPath = path.join(paths.javaPath, 'coordination', 'webapi', 'TracesController.java');
             await fs.writeFile(tracesControllerPath, globalControllersCode['traces-controller'], 'utf-8');
             console.log(`\t- Generated global web API TracesController`);
-
-            const utilityServicesCode = await generators.webApiGenerator.generateUtilityServices(options);
-
-            const behaviourServicePath = path.join(paths.javaPath, '..', '..', '..', 'main', 'java', 'pt', 'ulisboa', 'tecnico', 'socialsoftware', 'ms', 'BehaviourService.java');
-            await fs.mkdir(path.dirname(behaviourServicePath), { recursive: true });
-            await fs.writeFile(behaviourServicePath, utilityServicesCode['behaviour-service'], 'utf-8');
-            console.log(`\t- Generated utility service BehaviourService`);
-
-            const tracesServicePath = path.join(paths.javaPath, '..', '..', '..', 'main', 'java', 'pt', 'ulisboa', 'tecnico', 'socialsoftware', 'ms', 'TracesService.java');
-            await fs.writeFile(tracesServicePath, utilityServicesCode['traces-service'], 'utf-8');
-            console.log(`\t- Generated utility service TracesService`);
         } catch (error) {
             console.error(`\t- Error generating global web API controllers: ${error instanceof Error ? error.message : String(error)}`);
         }

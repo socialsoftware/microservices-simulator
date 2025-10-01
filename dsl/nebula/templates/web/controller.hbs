@@ -7,28 +7,18 @@ package {{packageName}};
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/{{lowerAggregate}}")
 public class {{aggregateName}}Controller {
-
-@Autowired
-private {{aggregateName}}Service {{serviceName}};
-
+    @Autowired
+    private {{aggregateName}}Functionalities {{functionalitiesName}};
 {{#each endpoints}}
-@{{method}}Mapping({{#if path}}value = "{{path}}"{{/if}})
-public {{#if (eq returnType "void")}}ResponseEntity<Void>{{else}}ResponseEntity<{{returnType}}>{{/if}} {{methodName}}(
-        {{#each parameters}}
-        {{annotation}} {{type}} {{name}}{{#unless @last}},{{/unless}}
-        {{/each}}
-        ){{#if throwsException}} throws Exception{{/if}} {
-        {{#if (eq returnType "void")}}
-        {{../serviceName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
-        return ResponseEntity.ok().build();
-        {{else}}
-        {{returnType}} result = {{../serviceName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}},
-        {{/unless}}{{/each}});
-        return ResponseEntity.ok(result);
-        {{/if}}
-        }
 
-        {{/each}}
-        }
+    @{{method}}Mapping({{#if path}}"{{path}}"{{/if}})
+    public {{#if returnType}}{{#if (eq returnType "void")}}void{{else}}{{returnType}}{{/if}}{{else}}void{{/if}} {{methodName}}({{#each parameters}}{{annotation}} {{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}){{#if throwsException}} throws Exception{{/if}} {
+{{#if returnType}}{{#if (eq returnType "void")}}        {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
+{{else}}{{#if (eq returnType "List")}}        return {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
+{{else}}        {{returnType}} result = {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
+        return result;
+{{/if}}{{/if}}{{else}}        {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
+{{/if}}    }
+{{/each}}
+}

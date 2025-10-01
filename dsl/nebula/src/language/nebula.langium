@@ -2,11 +2,11 @@ grammar Nebula
 
 entry Model:
     imports+=Import*
-    aggregates+=Aggregate*
+    (aggregates+=Aggregate | sharedDtos+=SharedDtos)*
     (exceptions=ExceptionMessages)?;
 
 Import:
-    'import' name=ID ';';
+    'import' sharedDtos?='shared-dtos' ';';
 
 Aggregate:
     (annotations+=Annotation)*
@@ -16,7 +16,6 @@ Aggregate:
         methods+=Method*
         workflows+=Workflow*
         (customRepository=CustomRepository)?
-        (validationRules=ValidationRules)?
         (webApiEndpoints=WebAPIEndpoints)?
         (serviceDefinition=ServiceDefinition)?
     '}';
@@ -63,10 +62,7 @@ RepositoryMethod:
     returnType=RepositoryReturnType name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' ';';
 
 RepositoryReturnType:
-    'Optional' '<' type=ParamType '>' | 
-    'List' '<' type=ParamType '>' |
-    'Set' '<' type=ParamType '>' |
-    type=ParamType;
+    OptionalType | ListType | SetType | ParamType;
 
 Parameter:
     (annotations+=Annotation)*
@@ -80,16 +76,22 @@ AnnotationValue:
     value=(STRING | ID | LITERAL);
 
 ParamType:
-    PrimitiveType | EntityType | BuiltinType | ListType;
+    PrimitiveType | EntityType | BuiltinType | ListType | SetType | OptionalType;
 
 BuiltinType:
-    name=('UnitOfWork' | 'UserDto' | 'AggregateState');
+    name=('UnitOfWork' | 'AggregateState');
 
 ReturnType:
-    'void' | PrimitiveType | EntityType | BuiltinType | ListType;
+    'void' | PrimitiveType | EntityType | BuiltinType | ListType | SetType | OptionalType;
 
 ListType:
-    'List' '<' elementType=ID '>';
+    'List' '<' elementType=(PrimitiveType | ID) '>';
+
+SetType:
+    'Set' '<' elementType=(PrimitiveType | ID) '>';
+
+OptionalType:
+    'Optional' '<' elementType=(PrimitiveType | ID) '>';
 
 Property:
     type=Type name=ID (',' names+=ID)* (isKey?='key')? ';';
@@ -200,13 +202,14 @@ CollectionExpression:
     ) '(' variable=ID '->' body=Expression ')';
 
 Type:
-    PrimitiveType | CollectionType | EntityType | AggregateStateType;
+    PrimitiveType | CollectionType | EntityType | AggregateStateType | OptionalType;
 
 PrimitiveType:
-    typeName=('Integer' | 'Long' | 'String' | 'Boolean' | 'LocalDateTime');
+    typeName=('Integer' | 'Long' | 'Float' | 'Double' | 'String' | 'Boolean' | 'LocalDateTime');
 
 CollectionType:
-    'Set' '<' elementType=(EntityType | PrimitiveType) '>';
+    'Set' '<' elementType=(EntityType | PrimitiveType) '>' |
+    'List' '<' elementType=(EntityType | PrimitiveType) '>';
 
 EntityType:
     type=[Entity:QualifiedName];
@@ -252,21 +255,6 @@ ExceptionMessages:
 ExceptionMessage:
     name=ID ':' message=STRING ';';
 
-ValidationRules:
-    'ValidationRules' '{'
-        (typeValidations+=TypeValidation)*
-        (businessRules+=ValidationBusinessRule)*
-    '}';
-
-TypeValidation:
-    type=ParamType ':' (annotations+=STRING)*;
-
-ValidationBusinessRule:
-    'BusinessRule' name=ID '{'
-        desc=STRING
-        logic=STRING
-    '}';
-
 WebAPIEndpoints:
     'WebAPIEndpoints' '{'
         (endpoints+=CustomEndpoint)*
@@ -291,15 +279,11 @@ HttpMethod:
 
 AggregateMetadata:
     '@Metadata' '{'
-        (requiresUserDto?='requiresUserDto' ';')?
         (requiresAggregateState?='requiresAggregateState' ';')?
         (hasEventService?='hasEventService' ';')?
-        (hasScheduling?='hasScheduling' ';')?
-        (hasRetry?='hasRetry' ';')?
         (hasSagas?='hasSagas' ';')?
         (hasTransactions?='hasTransactions' ';')?
         (hasJpa?='hasJpa' ';')?
-        (hasExternalDtos?='hasExternalDtos' ';')?
     '}';
 
 ServiceDefinition:
@@ -313,17 +297,34 @@ ServiceDefinition:
 
 ServiceMethod:
     (annotations+=Annotation)*
-    name=ID '(' (parameters+=ServiceParameter (',' parameters+=ServiceParameter)*)? ')' 
-    (':' returnType=ServiceReturnType)? ';';
+    name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' 
+    (':' returnType=ReturnType)? ';';
 
-ServiceParameter:
-    type=ServiceParameterType name=ID;
+// Shared DTOs Support
+SharedDtos:
+    'SharedDtos' '{'
+        dtos+=DtoDefinition*
+    '}';
 
-ServiceParameterType:
-    PrimitiveType | EntityType | 'UserDto' | 'AggregateState' | ListType;
+DtoDefinition:
+    'dto' name=ID (genericParams=GenericParameters)? '{'
+        fields+=DtoField*
+    '}';
 
-ServiceReturnType:
-    'void' | PrimitiveType | EntityType | 'UserDto' | 'AggregateState' | ListType;
+GenericParameters:
+    '<' params+=ID (',' params+=ID)* '>';
+
+DtoField:
+    type=DtoFieldType name=ID ';';
+
+DtoFieldType:
+    PrimitiveType | DtoReference | ListType | SetType | OptionalType | GenericType;
+
+DtoReference:
+    dto=[DtoDefinition:ID];
+
+GenericType:
+    name=ID;
 
 
 

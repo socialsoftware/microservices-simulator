@@ -52,4 +52,53 @@ Aggregate Topic {
     CustomRepository {
         Optional<Integer> findTopicIdByName(String topicName);
     }
+
+    WebAPIEndpoints {
+        Endpoint FindTopicsByCourseAggregateId {
+            httpMethod: GET
+            path: "/courses/{courseAggregateId}/topics"
+            methodName: findTopicsByCourseAggregateId
+            parameters: [
+                courseAggregateId: Integer: "@PathVariable"
+            ]
+            returnType: List<Topic>
+            desc: "Find topics by course aggregate ID"
+            throwsException: false
+        }
+
+        Endpoint CreateTopic {
+            httpMethod: POST
+            path: "/courses/{courseAggregateId}/create"
+            methodName: createTopic
+            parameters: [
+                courseAggregateId: Integer: "@PathVariable",
+                topicDto: Topic: "@RequestBody"
+            ]
+            returnType: Topic
+            desc: "Create a new topic"
+            throwsException: true
+        }
+
+        Endpoint UpdateTopic {
+            httpMethod: POST
+            path: "/topics/update"
+            methodName: updateTopic
+            parameters: [
+                topicDto: Topic: "@RequestBody"
+            ]
+            desc: "Update a topic"
+            throwsException: true
+        }
+
+        Endpoint DeleteTopic {
+            httpMethod: POST
+            path: "/topics/{topicAggregateId}/delete"
+            methodName: deleteTopic
+            parameters: [
+                topicAggregateId: Integer: "@PathVariable"
+            ]
+            desc: "Delete a topic"
+            throwsException: true
+        }
+    }
 }

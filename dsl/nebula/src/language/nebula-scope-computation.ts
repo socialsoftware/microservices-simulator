@@ -15,6 +15,15 @@ export class NebulaScopeComputation extends DefaultScopeComputation {
                     descriptions.push(this.descriptions.createDescription(entity, entity.name));
                 }
             }
+
+            // Export all DTOs from SharedDtos blocks as if they were entities
+            // This allows them to be referenced through EntityType
+            for (const sharedDtos of model.sharedDtos) {
+                for (const dto of sharedDtos.dtos) {
+                    // Create a description that makes the DTO resolvable as an Entity
+                    descriptions.push(this.descriptions.createDescription(dto, dto.name, document));
+                }
+            }
         }
 
         return descriptions;

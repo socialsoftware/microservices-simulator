@@ -1,5 +1,6 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { OrchestrationBase } from "../../base/orchestration-base.js";
+import { getGlobalConfig } from "../../base/config.js";
 
 export interface ServiceGenerationOptions {
     architecture?: string;
@@ -46,9 +47,10 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
         const imports = [
             'import org.springframework.stereotype.Service;',
             'import org.springframework.beans.factory.annotation.Autowired;',
-            `import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.*;`,
-            `import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.repository.*;`,
+            `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'aggregate')}.*;`,
+            `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'repository')}.*;`,
             'import java.util.List;',
+            'import java.util.Set;',
             'import java.util.Optional;'
         ];
 
@@ -146,7 +148,7 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
 
     private generateDefaultService(aggregate: Aggregate, rootEntity: Entity, options: ServiceGenerationOptions): string {
         const context = {
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.service`,
+            packageName: getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'service'),
             serviceName: `${aggregate.name}Service`,
             aggregateName: aggregate.name,
             lowerAggregate: aggregate.name.toLowerCase(),
@@ -154,8 +156,8 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
             imports: [
                 'import org.springframework.stereotype.Service;',
                 'import org.springframework.beans.factory.annotation.Autowired;',
-                `import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.*;`,
-                `import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.repository.*;`
+                `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'aggregate')}.*;`,
+                `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'repository')}.*;`
             ],
             methods: [],
             generateCrud: false,
@@ -193,10 +195,14 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
             'AggregateState': 'AggregateState'
         };
 
-        // Handle List types
         if (typeStr.startsWith('List<') && typeStr.endsWith('>')) {
             const innerType = typeStr.slice(5, -1);
             return `List<${this.resolveJavaType(innerType)}>`;
+        }
+
+        if (typeStr.startsWith('Set<') && typeStr.endsWith('>')) {
+            const innerType = typeStr.slice(4, -1);
+            return `Set<${this.resolveJavaType(innerType)}>`;
         }
 
         return typeMap[typeStr] || typeStr;

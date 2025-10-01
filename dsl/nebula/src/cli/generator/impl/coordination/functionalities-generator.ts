@@ -119,7 +119,9 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
 
         imports.push('import java.util.Arrays;');
         imports.push('import java.util.List;');
+        imports.push('import java.util.Set;');
         imports.push('import java.util.ArrayList;');
+        imports.push('import java.util.HashSet;');
         imports.push(`import ${basePackage}.${projectName}.microservices.exception.${this.capitalize(options.projectName)}Exception;`);
         imports.push('import org.springframework.beans.factory.annotation.Autowired;');
         imports.push('import org.springframework.core.env.Environment;');
@@ -291,6 +293,9 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         } else if (type.$type === 'ListType' && type.elementType) {
             const elementType = this.extractReturnType(type.elementType, entityRegistry);
             return `List<${elementType}>`;
+        } else if (type.$type === 'SetType' && type.elementType) {
+            const elementType = this.extractReturnType(type.elementType, entityRegistry);
+            return `Set<${elementType}>`;
         } else if (type.$type === 'CollectionType') {
             const elementType = this.extractReturnType(type.elementType, entityRegistry);
             return `List<${elementType}>`;
@@ -382,6 +387,8 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             return `// TODO: Implement ${method.name}`;
         } else if (returnType.startsWith('List<')) {
             return `return new ArrayList<>(); // TODO: Implement ${method.name}`;
+        } else if (returnType.startsWith('Set<')) {
+            return `return new HashSet<>(); // TODO: Implement ${method.name}`;
         } else if (returnType.includes('Dto')) {
             return `return null; // TODO: Implement ${method.name}`;
         } else {

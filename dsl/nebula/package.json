@@ -11,7 +11,7 @@
   },
   "type": "module",
   "scripts": {
-    "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
+    "build": "tsc -b tsconfig.src.json && node esbuild.mjs && cp -r templates out/",
     "watch": "concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.src.json --watch\" \"node esbuild.mjs --watch\"",
     "lint": "eslint src --ext ts",
     "langium:generate": "langium generate",

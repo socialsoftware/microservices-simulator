@@ -1,7 +1,6 @@
-import User;
+import shared-dtos;
 
 @Metadata {
-    requiresUserDto;
     requiresAggregateState;
     hasEventService;
     hasTransactions;
@@ -38,7 +37,7 @@ Aggregate Answer {
         Integer numberOfQuestions;
     }
 
-    Root Entity QuizAnswer {
+    Root Entity Answer {
         LocalDateTime answerDate;
         LocalDateTime completedDate;
         Boolean completed;
@@ -73,40 +72,55 @@ Aggregate Answer {
         }
 
         methods {
-            method createQuizAnswer(QuizAnswerStudent student, QuizAnswerCourseExecution courseExecution, AnsweredQuiz quiz, UnitOfWork unitOfWork): QuizAnswer;
-            method getQuizAnswerById(Integer quizAnswerId, UnitOfWork unitOfWork): QuizAnswer;
-            method getQuizAnswersByStudent(Integer studentId, UnitOfWork unitOfWork): List<QuizAnswer>;
-            method getQuizAnswersByQuiz(Integer quizId, UnitOfWork unitOfWork): List<QuizAnswer>;
-            method submitAnswer(Integer quizAnswerId, Integer questionId, String answer, UnitOfWork unitOfWork): QuizAnswer;
-            method completeQuizAnswer(Integer quizAnswerId, UnitOfWork unitOfWork): QuizAnswer;
+            method createAnswer(QuizAnswerStudent student, QuizAnswerCourseExecution courseExecution, AnsweredQuiz quiz, UnitOfWork unitOfWork): Answer;
+            method getAnswerById(Integer answerId, UnitOfWork unitOfWork): Answer;
+            method getAnswersByStudent(Integer studentId, UnitOfWork unitOfWork): List<Answer>;
+            method getAnswersByQuiz(Integer quizId, UnitOfWork unitOfWork): List<Answer>;
+            method submitAnswer(Integer answerId, Integer questionId, String answer, UnitOfWork unitOfWork): Answer;
+            method completeAnswer(Integer answerId, UnitOfWork unitOfWork): Answer;
         }
     }
 
     // Service methods
-    method getQuizAnswersByCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork): List<QuizAnswer>;
-    method getQuizAnswersByStudentAndCourseExecution(Integer studentId, Integer courseExecutionId, UnitOfWork unitOfWork): List<QuizAnswer>;
-    method getQuizAnswersByQuizAndCourseExecution(Integer quizId, Integer courseExecutionId, UnitOfWork unitOfWork): List<QuizAnswer>;
+    method getAnswersByCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork): List<Answer>;
+    method getAnswersByStudentAndCourseExecution(Integer studentId, Integer courseExecutionId, UnitOfWork unitOfWork): List<Answer>;
+    method getAnswersByQuizAndCourseExecution(Integer quizId, Integer courseExecutionId, UnitOfWork unitOfWork): List<Answer>;
     
     // Event processing workflows
-    saga workflow anonymizeStudent(Integer studentAggregateId, Integer quizAnswerId, UnitOfWork unitOfWork);
-    saga workflow invalidateQuiz(Integer quizAggregateId, Integer quizAnswerId, UnitOfWork unitOfWork);
-    saga workflow removeCourseExecution(Integer courseExecutionAggregateId, Integer quizAnswerId, UnitOfWork unitOfWork);
-    saga workflow unenrollStudentFromCourseExecution(Integer studentAggregateId, Integer courseExecutionAggregateId, Integer quizAnswerId, UnitOfWork unitOfWork);
-    saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer quizAnswerId, UnitOfWork unitOfWork);
+    saga workflow anonymizeStudent(Integer studentAggregateId, Integer answerId, UnitOfWork unitOfWork);
+    saga workflow invalidateQuiz(Integer quizAggregateId, Integer answerId, UnitOfWork unitOfWork);
+    saga workflow removeCourseExecution(Integer courseExecutionAggregateId, Integer answerId, UnitOfWork unitOfWork);
+    saga workflow unenrollStudentFromCourseExecution(Integer studentAggregateId, Integer courseExecutionAggregateId, Integer answerId, UnitOfWork unitOfWork);
+    saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer answerId, UnitOfWork unitOfWork);
     
     CustomRepository {
-        Optional<Integer> findQuizAnswerIdByQuizIdAndUserId(Integer quizAggregateId, Integer studentAggregateId);
+        Optional<Integer> findAnswerIdByQuizIdAndUserId(Integer quizAggregateId, Integer studentAggregateId);
+    }
+
+    WebAPIEndpoints {
+        Endpoint AnswerQuestion {
+            httpMethod: POST
+            path: "/quizzes/{quizAggregateId}/answer"
+            methodName: answerQuestion
+            parameters: [
+                quizAggregateId: Integer: "@PathVariable",
+                userAggregateId: Integer: "@RequestParam",
+                questionAnswerDto: Answer: "@RequestBody"
+            ]
+            desc: "Submit an answer to a quiz question"
+            throwsException: true
+        }
     }
 
     Service AnswerService {
         @GenerateCrud;
         @Transactional;
         methods {
-            createQuizAnswer(QuizAnswer answer, UserDto user): QuizAnswer;
-            findQuizAnswerById(Integer id): QuizAnswer;
-            updateQuizAnswerState(Integer id, AggregateState state): QuizAnswer;
-            deleteQuizAnswer(Integer id): void;
-            findQuizAnswersByStudent(Integer studentId): List<QuizAnswer>;
+            createAnswer(Answer answer, Integer userId): Answer;
+            findAnswerById(Integer id): Answer;
+            updateAnswerState(Integer id, AggregateState state): Answer;
+            deleteAnswer(Integer id): void;
+            findAnswersByStudent(Integer studentId): List<Answer>;
         }
     }
 }

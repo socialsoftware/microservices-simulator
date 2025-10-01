@@ -1,5 +1,6 @@
 import { Aggregate } from "../../../../language/generated/ast.js";
 import { capitalize } from "../../../utils/generator-utils.js";
+import { getGlobalConfig } from "../../base/config.js";
 import { ServiceContext } from "./service-types.js";
 
 export class ServiceStructureGenerator {
@@ -17,13 +18,13 @@ export class ServiceStructureGenerator {
             'import org.slf4j.Logger;',
             'import org.slf4j.LoggerFactory;',
             '',
-            `import pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate.*;`,
+            `import ${getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'aggregate')}.*;`,
             ''
         ];
 
         aggregate.entities.forEach(entity => {
             if (!entity.isRoot) {
-                imports.push(`import pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate.${entity.name};`);
+                imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'aggregate')}.${entity.name};`);
             }
         });
 
@@ -43,7 +44,7 @@ export class ServiceStructureGenerator {
         imports.push('import java.util.List;');
         imports.push('import java.util.stream.Collectors;');
 
-        imports.push(`import pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.user.aggregate.UserDto;`);
+        imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', 'user', 'aggregate')}.UserDto;`);
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
 
         const hasDateTime = aggregate.entities.some(entity =>
@@ -66,7 +67,7 @@ export class ServiceStructureGenerator {
 
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;');
 
-        imports.push(`import pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.exception.${capitalize(projectName)}Exception;`);
+        imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', 'exception')}.${capitalize(projectName)}Exception;`);
         imports.push('');
 
         return imports.join('\n');
@@ -102,7 +103,7 @@ public class ${capitalize(aggregateName)}Service {`;
     static createServiceContext(aggregate: Aggregate, projectName: string): ServiceContext {
         const aggregateName = aggregate.name;
         const capitalizedAggregate = capitalize(aggregateName);
-        const packageName = `pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.${aggregateName.toLowerCase()}.service`;
+        const packageName = `${getGlobalConfig().buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'service')}`;
 
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
         if (!rootEntity) {

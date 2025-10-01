@@ -1,6 +1,6 @@
-import User;
+import shared-dtos;
 
-Aggregate CourseExecution {
+Aggregate Execution {
     Entity CourseExecutionCourse {
         Integer courseAggregateId;
         String courseName;
@@ -16,7 +16,7 @@ Aggregate CourseExecution {
         LocalDateTime enrollmentDate;
     }
 
-    Root Entity CourseExecution {
+    Root Entity Execution {
         String name;
         String acronym;
         String academicTerm;
@@ -59,30 +59,137 @@ Aggregate CourseExecution {
         }
 
         methods {
-            method createCourseExecution(String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, CourseExecutionCourse course, UnitOfWork unitOfWork): void;
-            method getCourseExecutionById(Integer courseExecutionId, UnitOfWork unitOfWork): void;
-            method getAllCourseExecutions(UnitOfWork unitOfWork): void;
-            method getCourseExecutionsByCourse(Integer courseId, UnitOfWork unitOfWork): void;
-            method enrollStudent(Integer courseExecutionId, Integer studentId, UnitOfWork unitOfWork): void;
-            method unenrollStudent(Integer courseExecutionId, Integer studentId, UnitOfWork unitOfWork): void;
-            method updateCourseExecution(Integer courseExecutionId, String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, UnitOfWork unitOfWork): void;
-            method deleteCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork): void;
+            method createExecution(String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, CourseExecutionCourse course, UnitOfWork unitOfWork): void;
+            method getExecutionById(Integer executionId, UnitOfWork unitOfWork): void;
+            method getAllExecutions(UnitOfWork unitOfWork): void;
+            method getExecutionsByCourse(Integer courseId, UnitOfWork unitOfWork): void;
+            method enrollStudent(Integer executionId, Integer studentId, UnitOfWork unitOfWork): void;
+            method unenrollStudent(Integer executionId, Integer studentId, UnitOfWork unitOfWork): void;
+            method updateExecution(Integer executionId, String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, UnitOfWork unitOfWork): void;
+            method deleteExecution(Integer executionId, UnitOfWork unitOfWork): void;
         }
     }
 
     // Service methods
-    method getCourseExecutionsByStudent(Integer studentId, UnitOfWork unitOfWork): void;
-    method getActiveCourseExecutions(UnitOfWork unitOfWork): void;
-    method getCourseExecutionsByAcademicTerm(String academicTerm, UnitOfWork unitOfWork): void;
+    method getExecutionsByStudent(Integer studentId, UnitOfWork unitOfWork): void;
+    method getActiveExecutions(UnitOfWork unitOfWork): void;
+    method getExecutionsByAcademicTerm(String academicTerm, UnitOfWork unitOfWork): void;
     
     // Event processing workflows
-    saga workflow removeUser(Integer userAggregateId, Integer courseExecutionId, UnitOfWork unitOfWork);
-    saga workflow anonymizeStudent(Integer studentAggregateId, Integer courseExecutionId, UnitOfWork unitOfWork);
-    saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer courseExecutionId, UnitOfWork unitOfWork);
-    saga workflow deleteCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork);
-    saga workflow disenrollStudentFromCourseExecution(Integer studentAggregateId, Integer courseExecutionId, UnitOfWork unitOfWork);
+    saga workflow removeUser(Integer userAggregateId, Integer executionId, UnitOfWork unitOfWork);
+    saga workflow anonymizeStudent(Integer studentAggregateId, Integer executionId, UnitOfWork unitOfWork);
+    saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer executionId, UnitOfWork unitOfWork);
+    saga workflow deleteExecution(Integer executionId, UnitOfWork unitOfWork);
+    saga workflow disenrollStudentFromExecution(Integer studentAggregateId, Integer executionId, UnitOfWork unitOfWork);
     
     CustomRepository {
-        Optional<Integer> findCourseExecutionIdByCourseIdAndAcademicTerm(Integer courseId, String academicTerm);
+        Optional<Integer> findExecutionIdByCourseIdAndAcademicTerm(Integer courseId, String academicTerm);
+    }
+
+    WebAPIEndpoints {
+        Endpoint CreateExecution {
+            httpMethod: POST
+            path: "/executions/create"
+            methodName: createExecution
+            parameters: [
+                executionDto: Execution: "@RequestBody"
+            ]
+            returnType: Execution
+            desc: "Create a new execution"
+            throwsException: true
+        }
+
+        Endpoint GetExecutionByAggregateId {
+            httpMethod: GET
+            path: "/executions/{executionAggregateId}"
+            methodName: getExecutionByAggregateId
+            parameters: [
+                executionAggregateId: Integer: "@PathVariable"
+            ]
+            returnType: Execution
+            desc: "Get execution by aggregate ID"
+            throwsException: false
+        }
+
+        Endpoint GetExecutions {
+            httpMethod: GET
+            path: "/executions"
+            methodName: getExecutions
+            returnType: List<Execution>
+            desc: "Get all executions"
+            throwsException: false
+        }
+
+        Endpoint RemoveExecution {
+            httpMethod: POST
+            path: "/executions/{executionAggregateId}/delete"
+            methodName: removeExecution
+            parameters: [
+                executionAggregateId: Integer: "@PathVariable"
+            ]
+            desc: "Remove an execution"
+            throwsException: true
+        }
+
+        Endpoint EnrollStudent {
+            httpMethod: POST
+            path: "/executions/{executionAggregateId}/students/add"
+            methodName: addStudent
+            parameters: [
+                executionAggregateId: Integer: "@PathVariable",
+                userAggregateId: Integer: "@RequestParam"
+            ]
+            desc: "Enroll a student in a course execution"
+            throwsException: true
+        }
+
+        Endpoint GetUserExecutions {
+            httpMethod: GET
+            path: "/users/{userAggregateId}/executions"
+            methodName: getExecutionsByUser
+            parameters: [
+                userAggregateId: Integer: "@PathVariable"
+            ]
+            returnType: Set<Execution>
+            desc: "Get all executions for a user"
+            throwsException: false
+        }
+
+        Endpoint RemoveStudentFromExecution {
+            httpMethod: POST
+            path: "/executions/{executionAggregateId}/students/remove"
+            methodName: removeStudentFromExecution
+            parameters: [
+                executionAggregateId: Integer: "@PathVariable",
+                userAggregateId: Integer: "@RequestParam"
+            ]
+            desc: "Remove a student from an execution"
+            throwsException: true
+        }
+
+        Endpoint AnonymizeExecutionStudent {
+            httpMethod: POST
+            path: "/executions/{executionAggregateId}/anonymize"
+            methodName: anonymizeStudent
+            parameters: [
+                executionAggregateId: Integer: "@PathVariable",
+                userAggregateId: Integer: "@RequestParam"
+            ]
+            desc: "Anonymize a student in an execution"
+            throwsException: true
+        }
+
+        Endpoint UpdateExecutionStudentName {
+            httpMethod: POST
+            path: "/executions/{executionAggregateId}/students/{userAggregateId}/update/name"
+            methodName: updateStudentName
+            parameters: [
+                executionAggregateId: Integer: "@PathVariable",
+                userAggregateId: Integer: "@PathVariable",
+                userDto: User: "@RequestBody"
+            ]
+            desc: "Update student name in an execution"
+            throwsException: true
+        }
     }
 }

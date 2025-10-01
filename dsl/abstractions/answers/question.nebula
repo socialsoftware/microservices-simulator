@@ -96,4 +96,77 @@ Aggregate Question {
     CustomRepository {
         Optional<Integer> findQuestionIdByTitle(String questionTitle);
     }
+
+    WebAPIEndpoints {
+        Endpoint FindQuestionByAggregateId {
+            httpMethod: GET
+            path: "/questions/{aggregateId}"
+            methodName: findQuestionByAggregateId
+            parameters: [
+                aggregateId: Integer: "@PathVariable"
+            ]
+            returnType: Question
+            desc: "Find question by aggregate ID"
+            throwsException: false
+        }
+
+        Endpoint FindQuestionsByCourseAggregateId {
+            httpMethod: GET
+            path: "/courses/{courseAggregateId}/questions"
+            methodName: findQuestionsByCourseAggregateId
+            parameters: [
+                courseAggregateId: Integer: "@PathVariable"
+            ]
+            returnType: List<Question>
+            desc: "Find questions by course aggregate ID"
+            throwsException: false
+        }
+
+        Endpoint CreateQuestion {
+            httpMethod: POST
+            path: "/courses/{courseAggregateId}/questions/create"
+            methodName: createQuestion
+            parameters: [
+                courseAggregateId: Integer: "@PathVariable",
+                questionDto: Question: "@RequestBody"
+            ]
+            returnType: Question
+            desc: "Create a new question"
+            throwsException: true
+        }
+
+        Endpoint UpdateQuestion {
+            httpMethod: POST
+            path: "/questions/update"
+            methodName: updateQuestion
+            parameters: [
+                questionDto: Question: "@RequestBody"
+            ]
+            desc: "Update a question"
+            throwsException: true
+        }
+
+        Endpoint RemoveQuestion {
+            httpMethod: POST
+            path: "/questions/{questionAggregateId}"
+            methodName: removeQuestion
+            parameters: [
+                questionAggregateId: Integer: "@PathVariable"
+            ]
+            desc: "Remove a question"
+            throwsException: true
+        }
+
+        Endpoint UpdateQuestionTopics {
+            httpMethod: POST
+            path: "/questions/{questionAggregateId}/updateTopics"
+            methodName: updateQuestionTopics
+            parameters: [
+                courseAggregateId: Integer: "@PathVariable",
+                topicIds: String: "@RequestParam"
+            ]
+            desc: "Update question topics"
+            throwsException: true
+        }
+    }
 }

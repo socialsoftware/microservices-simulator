@@ -90,4 +90,43 @@ Aggregate Quiz {
     saga workflow removeQuestion(Integer questionId, Integer quizId, UnitOfWork unitOfWork);
     saga workflow updateQuestion(Integer questionId, String questionTitle, String questionContent, Integer quizId, UnitOfWork unitOfWork);
     saga workflow removeUser(Integer userAggregateId, Integer quizId, UnitOfWork unitOfWork);
+
+    WebAPIEndpoints {
+        Endpoint CreateQuiz {
+            httpMethod: POST
+            path: "/executions/{courseExecutionId}"
+            methodName: createQuiz
+            parameters: [
+                courseExecutionId: Integer: "@PathVariable",
+                quizDto: Quiz: "@RequestBody"
+            ]
+            returnType: Quiz
+            desc: "Create a new quiz"
+            throwsException: true
+        }
+
+        Endpoint UpdateQuiz {
+            httpMethod: POST
+            path: "/quizzes/update"
+            methodName: updateQuiz
+            parameters: [
+                quizDto: Quiz: "@RequestBody"
+            ]
+            returnType: Quiz
+            desc: "Update a quiz"
+            throwsException: true
+        }
+
+        Endpoint FindQuiz {
+            httpMethod: GET
+            path: "/quizzes/{quizAggregateId}"
+            methodName: findQuiz
+            parameters: [
+                quizAggregateId: Integer: "@PathVariable"
+            ]
+            returnType: Quiz
+            desc: "Find quiz by aggregate ID"
+            throwsException: false
+        }
+    }
 }

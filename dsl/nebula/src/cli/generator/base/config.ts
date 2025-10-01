@@ -13,6 +13,7 @@ export interface GenerationConfig {
     projectName: string;
     outputDirectory: string;
     packageName: string;
+    basePackage: string; // New field for base package (e.g., com.company or pt.ulisboa.tecnico.socialsoftware)
 
     architecture: 'microservices' | 'causal-saga' | 'monolith';
     features: GenerationFeature[];
@@ -138,6 +139,7 @@ export class ConfigManager {
             projectName: 'project',
             outputDirectory: '../../applications',
             packageName: 'com.generated.microservices',
+            basePackage: 'com.generated', // Default base package
             architecture: 'causal-saga',
             features: ['entities', 'dtos', 'services', 'factories', 'repositories'],
             templateEngine: 'simple',
@@ -289,6 +291,21 @@ export class ConfigManager {
             default:
                 return `${basePackage}.${projectName}`;
         }
+    }
+
+    buildPackageName(projectName: string, ...subPackages: string[]): string {
+        const basePackage = this.config.basePackage;
+        const projectPackage = `${basePackage}.${projectName.toLowerCase()}`;
+
+        if (subPackages.length === 0) {
+            return projectPackage;
+        }
+
+        return `${projectPackage}.${subPackages.join('.')}`;
+    }
+
+    getBasePackage(): string {
+        return this.config.basePackage;
     }
 
     getFeatureOutputPath(feature: GenerationFeature): string {

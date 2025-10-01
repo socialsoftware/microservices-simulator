@@ -10,24 +10,24 @@ package {{packageName}};
 {{/if}}
 public class {{serviceName}} {
 
-{{annotations.autowired}}
-private {{aggregateName}}Repository {{lowerAggregate}}Repository;
+    {{annotations.autowired}}
+    private {{aggregateName}}Repository {{lowerAggregate}}Repository;
 
-{{#each methods}}
-{{#each annotations}}
-{{this}}
-{{/each}}
-public {{returnType}} {{name}}({{#each parameters}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
-{{#if (eq returnType "void")}}
-// TODO: Implement {{name}} method
-{{else}}
-// TODO: Implement {{name}} method
-return null; // Placeholder
-{{/if}}
-}
+    {{#each methods}}
+    {{#each annotations}}
+    {{this}}
+    {{/each}}
+    public {{returnType}} {{name}}({{#each parameters}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
+        {{#if (eq returnType "void")}}
+        // TODO: Implement {{name}} method
+        {{else}}
+        // TODO: Implement {{name}} method
+        return null; // Placeholder
+        {{/if}}
+    }
 
-{{/each}}
-{{#if generateCrud}}
-// Additional CRUD utility methods can be added here
-{{/if}}
+    {{/each}}
+    {{#if generateCrud}}
+    // Additional CRUD utility methods can be added here
+    {{/if}}
 }

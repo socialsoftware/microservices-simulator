@@ -1,6 +1,7 @@
 import { Entity } from "../../../../language/generated/ast.js";
 import { capitalize } from "../../../utils/generator-utils.js";
 import { TypeResolver } from "../../base/type-resolver.js";
+import { getGlobalConfig } from "../../base/config.js";
 
 const resolveJavaType = (type: any) => TypeResolver.resolveJavaType(type);
 const resolveParamReturnType = (type: any) => TypeResolver.resolveJavaType(type);
@@ -67,7 +68,13 @@ export function generateEntityCode(entity: Entity, projectName: string): string 
         ? (aggregateName !== entity.name ? ` extends ${aggregateName}` : ' extends Aggregate')
         : '';
     const abstractModifier = '';
-    const packageName = `pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.${aggregateName.toLowerCase()}.aggregate`;
+    const config = getGlobalConfig();
+    const packageName = config.buildPackageName(
+        projectName,
+        'microservices',
+        aggregateName.toLowerCase(),
+        'aggregate'
+    );
 
     const jpaAnnotation = isRootEntity ? '@Entity' : '@Embeddable';
 
@@ -88,7 +95,13 @@ ${invariants}
 }
 
 export function generateDtoCode(entity: Entity, projectName: string): string {
-    const packageName = `pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.${entity.$container?.name?.toLowerCase() || 'unknown'}.aggregate`;
+    const config = getGlobalConfig();
+    const packageName = config.buildPackageName(
+        projectName,
+        'microservices',
+        entity.$container?.name?.toLowerCase() || 'unknown',
+        'aggregate'
+    );
     const fields = generateDtoFields(entity);
     const constructor = generateDtoConstructor(entity);
     const gettersSetters = generateGettersSetters(entity.properties);
@@ -221,7 +234,7 @@ function generateImports(importReqs: ImportRequirements, projectName: string, is
     if (importReqs.usesBigDecimal) imports.push('import java.math.BigDecimal;');
     if (importReqs.usesSet) imports.push('import java.util.Set;\nimport java.util.HashSet;');
     if (importReqs.usesList) imports.push('import java.util.List;\nimport java.util.ArrayList;');
-    if (importReqs.usesUserDto) imports.push(`import pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.user.aggregate.UserDto;`);
+    if (importReqs.usesUserDto) imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', 'user', 'aggregate')}.UserDto;`);
 
     if (importReqs.customImports) {
         imports.push(...Array.from(importReqs.customImports));

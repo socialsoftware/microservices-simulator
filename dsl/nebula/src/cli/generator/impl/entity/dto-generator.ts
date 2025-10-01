@@ -1,10 +1,11 @@
 import { Entity, Property } from "../../../../language/generated/ast.js";
 import { capitalize } from "../../../utils/generator-utils.js";
 import { TypeResolver } from "../../base/type-resolver.js";
+import { getGlobalConfig } from "../../base/config.js";
 
 export function generateDtoCode(entity: Entity, projectName: string): string {
 
-    const packageName = `pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.${entity.$container.name.toLowerCase()}.aggregate`;
+    const packageName = `${getGlobalConfig().buildPackageName(projectName, 'microservices', entity.$container.name.toLowerCase(), 'aggregate')}`;
 
     const imports = generateDtoImports(entity);
     const fields = generateDtoFields(entity);

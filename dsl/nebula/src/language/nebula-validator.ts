@@ -1,5 +1,5 @@
 import type { ValidationAcceptor, ValidationChecks } from "langium";
-import type { NebulaAstType, Model, Aggregate, Entity, Property, Method, Invariant, BusinessRule } from "./generated/ast.js";
+import type { NebulaAstType, Model, Aggregate, Entity, Property, Method, Invariant, BusinessRule, Import } from "./generated/ast.js";
 import type { NebulaServices } from "./nebula-module.js";
 import { ErrorMessageProvider } from "./error-messages.js";
 
@@ -14,6 +14,7 @@ export function registerValidationChecks(services: NebulaServices) {
     Method: validator.checkMethod,
     Invariant: validator.checkInvariant,
     BusinessRule: validator.checkBusinessRule,
+    Import: validator.checkImport,
   };
   registry.register(checks, validator);
 }
@@ -266,5 +267,10 @@ export class NebulaValidator {
         });
       }
     }
+  }
+
+  checkImport(importNode: Import, accept: ValidationAcceptor): void {
+    // Import validation is now handled by the grammar itself
+    // Only 'import shared-dtos;' is allowed
   }
 }

@@ -1,0 +1,26 @@
+{
+    "projectName": "answers",
+    "basePackage": "pt.ulisboa.tecnico.socialsoftware",
+    "features": [
+        "entities",
+        "dtos",
+        "services",
+        "factories",
+        "repositories",
+        "webapi",
+        "coordination",
+        "saga"
+    ],
+    "database": {
+        "type": "postgresql",
+        "host": "postgres",
+        "port": 5432,
+        "name": "answersdb",
+        "username": "postgres",
+        "password": "password"
+    },
+    "java": {
+        "version": "17",
+        "springBootVersion": "3.0.0"
+    }
+}

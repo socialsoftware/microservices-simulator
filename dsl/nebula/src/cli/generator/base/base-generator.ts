@@ -3,6 +3,7 @@ import { TypeResolver } from "./type-resolver.js";
 import { SimpleTemplateEngine } from "../template-engine/simple-engine.js";
 import { Storage } from "../template-engine/storage.js";
 import { Utils } from "../../utils/generator-utils.js";
+import { getGlobalConfig } from "./config.js";
 
 export interface BaseGenerationOptions {
     architecture?: string;
@@ -57,7 +58,7 @@ export abstract class BaseGenerator {
 
         return {
             entityName: entity.name,
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName}`,
+            packageName: `${getGlobalConfig().buildPackageName(options.projectName)}`,
             tableName: entity.name.toLowerCase(),
             fields,
             constructorParams,
@@ -77,7 +78,7 @@ export abstract class BaseGenerator {
             rootEntity: rootEntity,
             entities: aggregate.entities,
             projectName: options.projectName,
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName}`,
+            packageName: `${getGlobalConfig().buildPackageName(options.projectName)}`,
             ...this.buildEntityContext(rootEntity, options)
         };
     }
@@ -107,7 +108,7 @@ export abstract class BaseGenerator {
         return {
             entityName: entity.name,
             dtoName: `${entity.name}Dto`,
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName}`,
+            packageName: `${getGlobalConfig().buildPackageName(options.projectName)}`,
             fields,
             constructorParams,
             constructorAssignments
@@ -126,7 +127,7 @@ export abstract class BaseGenerator {
             serviceName: `${aggregate.name}Service`,
             repositoryName: `${aggregate.name}Repository`,
             repositoryVariable: `${aggregate.name.toLowerCase()}Repository`,
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName}`,
+            packageName: `${getGlobalConfig().buildPackageName(options.projectName)}`,
             methods
         };
     }
@@ -142,7 +143,7 @@ export abstract class BaseGenerator {
         return {
             repositoryName: `${aggregate.name}Repository`,
             entityName: rootEntity.name,
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName}`,
+            packageName: `${getGlobalConfig().buildPackageName(options.projectName)}`,
             queries
         };
     }
@@ -165,7 +166,7 @@ export abstract class BaseGenerator {
             factoryName: `${aggregate.name}Factory`,
             entityName: rootEntity.name,
             dtoName: `${rootEntity.name}Dto`,
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName}`,
+            packageName: `${getGlobalConfig().buildPackageName(options.projectName)}`,
             constructorParams
         };
     }
@@ -184,7 +185,7 @@ export abstract class BaseGenerator {
             entityName: rootEntity.name,
             entityVariable: rootEntity.name.toLowerCase(),
             projectName: options.projectName,
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName}`,
+            packageName: `${getGlobalConfig().buildPackageName(options.projectName)}`,
             invariants,
             businessRules
         };
@@ -202,7 +203,7 @@ export abstract class BaseGenerator {
             controllerName: `${aggregate.name}Controller`,
             serviceName: `${aggregate.name}Service`,
             serviceVariable: `${aggregate.name.toLowerCase()}Service`,
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName}`,
+            packageName: `${getGlobalConfig().buildPackageName(options.projectName)}`,
             aggregateName: aggregate.name.toLowerCase(),
             endpoints
         };

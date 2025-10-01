@@ -13,7 +13,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 20s
       timeout: 5s
       retries: 5
@@ -102,6 +102,17 @@ services:
       - mavencache:/root/.m2
     command: mvn -Ptest-tcc test
 
+  test-answers-sagas:
+    image: maven:3.9.7-eclipse-temurin-21-alpine
+    stop_signal: SIGKILL
+    stdin_open: true
+    tty: true
+    working_dir: /answers
+    volumes:
+      - ./applications/answers:/answers
+      - mavencache:/root/.m2
+    command: mvn -Ptest-sagas test
+
   test-fig3a:
     image: maven:3.9.7-eclipse-temurin-21-alpine
     stop_signal: SIGKILL
@@ -163,12 +174,12 @@ services:
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "16686:16686"  # Jaeger UI
-      - "14250:14250"  # Jaeger gRPC
-      - "14268:14268"  # Jaeger HTTP
-      - "4317:4317"    # OTLP gRPC receiver
-      - "4318:4318"    # OTLP HTTP receiver
+      - "16686:16686" # Jaeger UI
+      - "14250:14250" # Jaeger gRPC
+      - "14268:14268" # Jaeger HTTP
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
     restart: unless-stopped
-    
+
 volumes:
   mavencache:

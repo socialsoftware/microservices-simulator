@@ -95,7 +95,6 @@ export interface AggregateData {
     methods: MethodData[];
     workflows: WorkflowData[];
     customRepository?: CustomRepositoryData;
-    validationRules?: ValidationRulesData;
     webApiEndpoints?: WebAPIEndpointsData;
     relationships: RelationshipData[];
 }
@@ -107,17 +106,6 @@ export interface CustomRepositoryData {
     javaReturnType: string;
 }
 
-export interface ValidationRulesData {
-    rules: RuleData[];
-    typeValidations: TypeValidationData[];
-}
-
-export interface TypeValidationData {
-    type: string;
-    javaType: string;
-    annotations: string[];
-    validationRules: ValidationRuleData[];
-}
 
 export interface WebAPIEndpointsData {
     endpoints: EndpointData[];
@@ -182,7 +170,6 @@ export class ModelParser {
             methods,
             workflows,
             customRepository: aggregate.customRepository ? this.parseCustomRepository(aggregate.customRepository) : undefined,
-            validationRules: aggregate.validationRules ? this.parseValidationRules(aggregate.validationRules) : undefined,
             webApiEndpoints: aggregate.webApiEndpoints ? this.parseWebAPIEndpoints(aggregate.webApiEndpoints) : undefined,
             relationships
         };
@@ -309,24 +296,6 @@ export class ModelParser {
         };
     }
 
-    parseValidationRules(rules: any): ValidationRulesData {
-        return {
-            rules: rules.rules?.map((rule: any) => this.parseRule(rule)) || [],
-            typeValidations: rules.typeValidations?.map((tv: any) => this.parseTypeValidation(tv)) || []
-        };
-    }
-
-    parseTypeValidation(tv: any): TypeValidationData {
-        const type = this.extractType(tv.type);
-        const javaType = this.resolveJavaType(type);
-
-        return {
-            type,
-            javaType,
-            annotations: this.extractAnnotations(tv),
-            validationRules: this.extractValidationRules(tv)
-        };
-    }
 
     parseWebAPIEndpoints(endpoints: any): WebAPIEndpointsData {
         return {

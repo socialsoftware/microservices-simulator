@@ -1,4 +1,4 @@
-import User;
+import shared-dtos;
 
 Aggregate Tournament {
     Root Entity Tournament { 
@@ -141,21 +141,16 @@ Aggregate Tournament {
         AggregateState creatorState;
         Tournament tournament;
         
-        constructor TournamentCreator(UserDto userDto) {
-            "setCreatorAggregateId(userDto.getAggregateId());
-            setCreatorName(userDto.getName());
-            setCreatorUsername(userDto.getUsername());
-            setCreatorVersion(userDto.getVersion());"
+        constructor TournamentCreator(Integer userId) {
+            "setCreatorAggregateId(userId);
+            setCreatorName('Default Name');
+            setCreatorUsername('Default Username');
+            setCreatorVersion(1);"
         }
         
         methods {
-            method buildDto(): UserDto {
-                "UserDto userDto = new UserDto();
-                userDto.setAggregateId(getCreatorAggregateId());
-                userDto.setVersion(getCreatorVersion());
-                userDto.setName(getCreatorName());
-                userDto.setUsername(getCreatorUsername());
-                return userDto;"
+            method buildDto(): String {
+                "return 'User: ' + getCreatorAggregateId();"
             }
         }
     }
@@ -208,7 +203,7 @@ Aggregate Tournament {
     method getTournamentParticipant(Integer userAggregateId): TournamentParticipant;
     
     // Business workflows (converted to saga workflows)
-    saga workflow addParticipant(UserDto userDto, Integer tournamentId, UnitOfWork unitOfWork);
+    saga workflow addParticipant(Integer userId, Integer tournamentId, UnitOfWork unitOfWork);
     saga workflow leaveTournament(Integer userAggregateId, Integer tournamentId, UnitOfWork unitOfWork);
     saga workflow solveQuiz(Integer userAggregateId, Integer tournamentId, Integer quizAnswerId, UnitOfWork unitOfWork);
     saga workflow cancelTournament(Integer tournamentId, UnitOfWork unitOfWork);
@@ -243,15 +238,110 @@ Aggregate Tournament {
         Endpoint joinTournament {
             httpMethod: POST
             path: "/tournaments/{tournamentAggregateId}/join"
-            methodName: joinTournament
+            methodName: addParticipant
             parameters: [
                 tournamentAggregateId: Integer: "@PathVariable",
                 executionAggregateId: Integer: "@RequestParam",
                 userAggregateId: Integer: "@RequestParam"
             ]
-            returnType: String
             desc: "Join tournament"
             throwsException: true
+        }
+
+        Endpoint UpdateTournament {
+            httpMethod: POST
+            path: "/tournaments/update"
+            methodName: updateTournament
+            parameters: [
+                topicsId: String: "@RequestParam",
+                tournamentDto: Tournament: "@RequestBody"
+            ]
+            desc: "Update tournament"
+            throwsException: true
+        }
+
+        Endpoint FindTournament {
+            httpMethod: GET
+            path: "/tournaments/{tournamentAggregateId}"
+            methodName: findTournament
+            parameters: [
+                tournamentAggregateId: Integer: "@PathVariable"
+            ]
+            returnType: Tournament
+            desc: "Find tournament by aggregate ID"
+            throwsException: false
+        }
+
+        Endpoint SolveQuiz {
+            httpMethod: POST
+            path: "/tournaments/{tournamentAggregateId}/solveQuiz"
+            methodName: solveQuiz
+            parameters: [
+                tournamentAggregateId: Integer: "@PathVariable",
+                userAggregateId: Integer: "@RequestParam"
+            ]
+            returnType: String
+            desc: "Solve quiz in tournament"
+            throwsException: true
+        }
+
+        Endpoint GetTournamentsForCourseExecution {
+            httpMethod: GET
+            path: "/executions/{executionAggregateId}/tournaments"
+            methodName: getTournamentsForCourseExecution
+            parameters: [
+                executionAggregateId: Integer: "@PathVariable"
+            ]
+            returnType: List<Tournament>
+            desc: "Get tournaments for course execution"
+            throwsException: false
+        }
+
+        Endpoint GetOpenedTournamentsForCourseExecution {
+            httpMethod: GET
+            path: "/executions/{executionAggregateId}/tournaments/opened"
+            methodName: getOpenedTournamentsForCourseExecution
+            parameters: [
+                executionAggregateId: Integer: "@PathVariable"
+            ]
+            returnType: List<Tournament>
+            desc: "Get opened tournaments for course execution"
+            throwsException: false
+        }
+
+        Endpoint GetClosedTournamentsForCourseExecution {
+            httpMethod: GET
+            path: "/executions/{executionAggregateId}/tournaments/closed"
+            methodName: getClosedTournamentsForCourseExecution
+            parameters: [
+                executionAggregateId: Integer: "@PathVariable"
+            ]
+            returnType: List<Tournament>
+            desc: "Get closed tournaments for course execution"
+            throwsException: false
+        }
+
+        Endpoint RemoveTournament {
+            httpMethod: POST
+            path: "/tournaments/{tournamentAggregate}/remove"
+            methodName: removeTournament
+            parameters: [
+                tournamentAggregate: Integer: "@PathVariable"
+            ]
+            desc: "Remove tournament"
+            throwsException: true
+        }
+
+        Endpoint GetTournamentAndUser {
+            httpMethod: GET
+            path: "/tournaments/{tournamentAggregateId}/user/{userAggregateId}"
+            methodName: getTournamentAndUser
+            parameters: [
+                tournamentAggregateId: Integer: "@PathVariable",
+                userAggregateId: Integer: "@PathVariable"
+            ]
+            desc: "Get tournament and user"
+            throwsException: false
         }
     }
 }

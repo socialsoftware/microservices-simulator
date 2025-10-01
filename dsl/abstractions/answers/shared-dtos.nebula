@@ -1,0 +1,65 @@
+SharedDtos {
+    
+    dto UserDto {
+        Integer id;
+        String name;
+        String username;
+        String email;
+    }
+    
+    dto CourseDto {
+        Integer id;
+        String name;
+        String acronym;
+        String courseType;
+    }
+    
+    dto ExecutionDto {
+        Integer id;
+        String name;
+        String acronym;
+        String academicTerm;
+        LocalDateTime startDate;
+        LocalDateTime endDate;
+    }
+    
+    dto QuestionDto {
+        Integer id;
+        String title;
+        String content;
+        Integer numberOfOptions;
+        Integer correctOption;
+        Integer order;
+    }
+    
+    dto TopicDto {
+        Integer id;
+        String name;
+        LocalDateTime creationDate;
+    }
+    
+    dto QuizDto {
+        Integer id;
+        String title;
+        String description;
+        String quizType;
+        LocalDateTime availableDate;
+        LocalDateTime conclusionDate;
+        Integer numberOfQuestions;
+    }
+    
+    dto TournamentDto {
+        Integer id;
+        LocalDateTime startTime;
+        LocalDateTime endTime;
+        Integer numberOfQuestions;
+        Boolean cancelled;
+    }
+    
+    dto AnswerDto {
+        Integer questionId;
+        String answer;
+        String option;
+        LocalDateTime answerDate;
+    }
+}

@@ -1,10 +1,11 @@
 import { Aggregate } from "../../../../language/generated/ast.js";
 import { capitalize } from "../../../utils/generator-utils.js";
+import { getGlobalConfig } from "../../base/config.js";
 
 export function generateFactoryCode(aggregate: Aggregate, projectName: string): string {
     const aggregateName = aggregate.name;
     const capitalizedAggregate = capitalize(aggregateName);
-    const packageName = `pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.${aggregateName.toLowerCase()}.aggregate`;
+    const packageName = `${getGlobalConfig().buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate')}`;
 
     const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
     if (!rootEntity) {

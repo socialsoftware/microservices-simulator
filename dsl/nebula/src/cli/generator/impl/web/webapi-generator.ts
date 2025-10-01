@@ -28,6 +28,15 @@ export class WebApiGenerator {
         return results;
     }
 
+    async generateEmptyController(aggregate: Aggregate, options: WebApiGenerationOptions): Promise<string> {
+        const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+        if (!rootEntity) {
+            throw new Error(`No root entity found in aggregate ${aggregate.name}`);
+        }
+
+        return await this.controllerGenerator.generateEmptyController(aggregate, options);
+    }
+
     async generateGlobalControllers(options: WebApiGenerationOptions): Promise<{ [key: string]: string }> {
         const results: { [key: string]: string } = {};
 

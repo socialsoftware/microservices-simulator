@@ -25,6 +25,30 @@ export class TypeResolver {
 
     static resolveType(fieldType: any): ResolvedType {
         if (typeof fieldType === 'object' && fieldType !== null) {
+            // Handle AST ListType
+            if (fieldType.$type === 'ListType' && fieldType.elementType) {
+                const elementTypeName = this.extractElementTypeName(fieldType.elementType);
+                return {
+                    javaType: `List<${elementTypeName}>`,
+                    isCollection: true,
+                    elementType: elementTypeName,
+                    isPrimitive: false,
+                    isEntity: this.isEntityType(elementTypeName),
+                    isBuiltin: false
+                };
+            }
+            // Handle AST SetType
+            if (fieldType.$type === 'SetType' && fieldType.elementType) {
+                const elementTypeName = this.extractElementTypeName(fieldType.elementType);
+                return {
+                    javaType: `Set<${elementTypeName}>`,
+                    isCollection: true,
+                    elementType: elementTypeName,
+                    isPrimitive: false,
+                    isEntity: this.isEntityType(elementTypeName),
+                    isBuiltin: false
+                };
+            }
             if ('name' in fieldType) {
                 const typeName = fieldType.name;
                 return this.resolveTypeFromName(typeName);
@@ -92,6 +116,29 @@ export class TypeResolver {
         const end = typeName.lastIndexOf(suffix);
         if (start > prefix.length - 1 && end > start) {
             return typeName.substring(start, end).trim();
+        }
+        return 'Object';
+    }
+
+    private static extractElementTypeName(elementType: any): string {
+        if (typeof elementType === 'string') {
+            return elementType;
+        }
+        if (elementType && typeof elementType === 'object') {
+            // Handle PrimitiveType
+            if (elementType.$type === 'PrimitiveType' && elementType.name) {
+                return elementType.name;
+            }
+            // Handle ID references
+            if (elementType.$refText) {
+                return elementType.$refText;
+            }
+            if (elementType.ref && elementType.ref.name) {
+                return elementType.ref.name;
+            }
+            if (elementType.name) {
+                return elementType.name;
+            }
         }
         return 'Object';
     }

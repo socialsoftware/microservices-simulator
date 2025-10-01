@@ -1,10 +1,12 @@
+import { getGlobalConfig } from "../generator/base/config.js";
+
 export class TemplateGenerators {
   static generateAggregateBaseClass(
     aggregateName: string,
     rootEntityName: string,
     projectName: string
   ): string {
-    const packageName = `pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.${aggregateName.toLowerCase()}.aggregate`;
+    const packageName = `${getGlobalConfig().buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate')}`;
 
     return `package ${packageName};
 

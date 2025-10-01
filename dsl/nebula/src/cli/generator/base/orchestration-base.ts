@@ -3,6 +3,7 @@ import * as path from 'path';
 import { Aggregate, Entity } from "../../../language/generated/ast.js";
 import { TypeResolver } from "./type-resolver.js";
 import Handlebars from "handlebars";
+import { getGlobalConfig } from "./config.js";
 
 export abstract class OrchestrationBase {
     constructor() {
@@ -144,7 +145,8 @@ export abstract class OrchestrationBase {
     }
 
     protected getBasePackage(): string {
-        return 'com.generated.microservices';
+        const config = getGlobalConfig();
+        return config.getBasePackage();
     }
 
     protected getFrameworkAnnotations(): any {
@@ -317,11 +319,12 @@ export abstract class OrchestrationBase {
 
         const javaImports = uniqueImports.filter(imp => imp.startsWith('import java.'));
         const springImports = uniqueImports.filter(imp => imp.startsWith('import org.springframework'));
-        const projectImports = uniqueImports.filter(imp => imp.startsWith('import pt.ulisboa'));
+        const basePackage = this.getBasePackage();
+        const projectImports = uniqueImports.filter(imp => imp.startsWith(`import ${basePackage}`));
         const otherImports = uniqueImports.filter(imp =>
             !imp.startsWith('import java.') &&
             !imp.startsWith('import org.springframework') &&
-            !imp.startsWith('import pt.ulisboa')
+            !imp.startsWith(`import ${basePackage}`)
         );
 
         const result = [];

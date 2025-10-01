@@ -122,6 +122,16 @@ List<String> categories;
 List<String> permissions;
 \`\`\``;
 
+                case 'Set<String>':
+                    return `Set<String> type for unique collections of strings. Use when duplicates should not be allowed.
+
+Example:
+\`\`\`nebula
+Set<String> uniqueTags;
+Set<String> permissions;
+Set<String> roles;
+\`\`\``;
+
                 case 'invariants':
                     return `Invariants define conditions that must always be true for an entity. They are automatically validated.
 

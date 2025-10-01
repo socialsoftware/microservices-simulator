@@ -1,10 +1,11 @@
 import { Aggregate, CustomRepository, RepositoryMethod } from "../../../../language/generated/ast.js";
 import { capitalize } from "../../../utils/generator-utils.js";
+import { getGlobalConfig } from "../../base/config.js";
 
 export function generateRepositoryCode(aggregate: Aggregate, projectName: string): string {
     const aggregateName = aggregate.name;
     const capitalizedAggregate = capitalize(aggregateName);
-    const packageName = `pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.${aggregateName.toLowerCase()}.aggregate`;
+    const packageName = `${getGlobalConfig().buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate')}`;
 
     const imports = generateRepositoryImports(aggregate.customRepository);
     const interfaceDeclaration = generateInterfaceDeclaration(capitalizedAggregate);

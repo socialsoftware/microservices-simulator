@@ -1,4 +1,5 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
+import { getGlobalConfig } from "../../base/config.js";
 
 export interface CausalEntityGenerationOptions {
     architecture?: string;
@@ -23,7 +24,7 @@ export class CausalEntityGenerator {
 
     private generateCausalEntityClass(aggregate: Aggregate, rootEntity: Entity, options: CausalEntityGenerationOptions): string {
         const aggregateName = this.capitalize(aggregate.name);
-        const packageName = `pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.sagas.aggregates.causal`;
+        const packageName = `${getGlobalConfig().buildPackageName(options.projectName, 'sagas', 'aggregates', 'causal')}`;
 
         const properties = (rootEntity.properties || []).map((prop: any) => ({
             name: prop.name,
@@ -50,7 +51,7 @@ ${gettersSetters}
 
     private generateCausalFactoryClass(aggregate: Aggregate, rootEntity: Entity, options: CausalEntityGenerationOptions): string {
         const aggregateName = this.capitalize(aggregate.name);
-        const packageName = `pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.sagas.aggregates.causal`;
+        const packageName = `${getGlobalConfig().buildPackageName(options.projectName, 'sagas', 'aggregates', 'causal')}`;
 
         const imports = this.generateImports(aggregate, rootEntity, options);
 
@@ -83,7 +84,7 @@ ${setters}
 
         aggregate.entities.forEach((entity: any) => {
             if (entity.name !== rootEntity.name) {
-                imports.add(`import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${entity.name};`);
+                imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'aggregate')}.${entity.name};`);
             }
         });
 

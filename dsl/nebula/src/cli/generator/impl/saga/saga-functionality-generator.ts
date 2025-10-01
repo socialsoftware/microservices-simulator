@@ -3,6 +3,7 @@ import { TypeResolver } from "../../base/type-resolver.js";
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'node:url';
+import { getGlobalConfig } from "../../base/config.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export interface SagaFunctionalityGenerationOptions {
@@ -46,7 +47,7 @@ export class SagaFunctionalityGenerator {
         return {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.sagas.coordination.${lowerAggregate}`,
+            packageName: getGlobalConfig().buildPackageName(options.projectName, 'sagas', 'coordination', lowerAggregate),
             sagaMethods,
             imports
         };
@@ -136,9 +137,9 @@ export class SagaFunctionalityGenerator {
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
         const rootEntityName = rootEntity ? rootEntity.name : aggregateName;
 
-        imports.push(`import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${capitalizedAggregate}Service;`);
-        imports.push(`import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate.${rootEntityName}Dto;`);
-        imports.push(`import pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.sagas.aggregates.dtos.Saga${capitalizedAggregate}Dto;`);
+        imports.push(`import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', lowerAggregate, 'service')}.${capitalizedAggregate}Service;`);
+        imports.push(`import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', lowerAggregate, 'aggregate')}.${rootEntityName}Dto;`);
+        imports.push(`import ${getGlobalConfig().buildPackageName(options.projectName, 'sagas', 'aggregates', 'dtos')}.Saga${capitalizedAggregate}Dto;`);
 
         return imports;
     }

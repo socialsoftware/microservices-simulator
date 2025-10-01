@@ -1,6 +1,7 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { WebApiGenerationOptions } from "./webapi-types.js";
 import { WebApiBaseGenerator } from "./webapi-base-generator.js";
+import { getGlobalConfig } from "../../base/config.js";
 
 export class WebApiDtoGenerator extends WebApiBaseGenerator {
     async generateRequestDtos(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions): Promise<string> {
@@ -26,7 +27,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         return {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.coordination.webapi.dtos`,
+            packageName: `${getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'webapi', 'dtos')}`,
             requestDtos,
             imports
         };
@@ -43,7 +44,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         return {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
-            packageName: `pt.ulisboa.tecnico.socialsoftware.${options.projectName.toLowerCase()}.coordination.webapi.dtos`,
+            packageName: `${getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'webapi', 'dtos')}`,
             responseDtos,
             imports
         };

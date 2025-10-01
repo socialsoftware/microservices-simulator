@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { TestBaseGenerator } from './test-base-generator.js';
 import { TestGenerationOptions } from './test-types.js';
+import { getGlobalConfig } from '../../base/config.js';
 
 export class UnitTestGenerator extends TestBaseGenerator {
     async generateUnitTests(options: TestGenerationOptions): Promise<void> {
@@ -17,7 +18,7 @@ export class UnitTestGenerator extends TestBaseGenerator {
     }
 
     private async generateSpockBaseTest(projectName: string, testPath: string): Promise<void> {
-        const packageName = 'pt.ulisboa.tecnico.socialsoftware';
+        const packageName = getGlobalConfig().getBasePackage();
         const content = `package ${packageName}
 
 import spock.lang.Specification
@@ -34,7 +35,7 @@ class SpockTest extends Specification {
 
         const packageName = this.buildTestPackageName(projectName);
         const imports = this.buildTestImports(projectName, aggregateName, [
-            `import pt.ulisboa.tecnico.socialsoftware.${projectName.toLowerCase()}.microservices.${aggregateName.toLowerCase()}.aggregate.${entityName}Dto`
+            `import ${getGlobalConfig().buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate')}.${entityName}Dto`
         ]);
 
         const classBody = this.generateProjectTestMethods(context);

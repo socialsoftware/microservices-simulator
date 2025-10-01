@@ -12,6 +12,8 @@ import { ProjectSetup } from "./project-setup.js";
 import { GeneratorRegistryFactory } from "./generator-registry.js";
 import { TemplateGenerators } from "./template-generators.js";
 import { FeatureGenerators } from "./feature-generators.js";
+import { ConfigLoader } from "../utils/config-loader.js";
+import { getGlobalConfig } from "../generator/base/config.js";
 
 export class CodeGenerator {
     static async generateCode(inputPath: string, opts: TemplateGenerateOptions): Promise<void> {
@@ -29,7 +31,19 @@ export class CodeGenerator {
             const services = createNebulaServices(NodeFileSystem).nebulaServices;
             await this.loadLanguageDocuments(services, nebulaFiles);
 
-            const config = this.extractConfiguration(opts, inputPath);
+            // Load configuration from file and merge with CLI options
+            const cliConfig = this.extractConfiguration(opts, inputPath);
+            const loadedConfig = await ConfigLoader.loadConfig(inputPath, {
+                projectName: cliConfig.projectName,
+                outputDirectory: cliConfig.baseOutputDir,
+                architecture: cliConfig.architecture as any,
+                features: cliConfig.features as any
+            });
+
+            const config = {
+                ...cliConfig,
+                basePackage: loadedConfig.basePackage
+            };
 
             const paths = await ProjectSetup.setupProjectPaths(
                 config.baseOutputDir,
@@ -48,6 +62,7 @@ export class CodeGenerator {
 
             console.log(`\nCode generation completed successfully!`);
             console.log(`Output directory: ${paths.projectPath}`);
+            console.log(`Base package: ${config.basePackage || getGlobalConfig().getBasePackage()}`);
             console.log(`Architecture: ${config.architecture}`);
             console.log(`Features: ${config.features.join(', ')}`);
 
@@ -76,7 +91,7 @@ export class CodeGenerator {
         const baseOutputDir = opts.destination || DEFAULT_OUTPUT_DIR;
         const projectName = ProjectSetup.deriveProjectName(inputPath, opts.name);
         const architecture = opts.architecture || 'default';
-        const features = opts.features || ['events', 'validation', 'webapi', 'coordination'];
+        const features = opts.features || ['events', 'validation', 'webapi', 'coordination', 'saga'];
         const validate = opts.validate || false;
 
         return {
@@ -170,12 +185,13 @@ export class CodeGenerator {
             await fs.writeFile(integrationPath, integrationCode['application'], 'utf-8');
             console.log(`\t- Generated integration ${config.projectName}Simulator`);
 
+            const globalConfig = getGlobalConfig();
             await generators.exceptionGenerator.generate(
                 allModels[0].aggregates[0],
                 paths.projectPath,
                 {
                     projectName: config.projectName,
-                    packageName: `pt.ulisboa.tecnico.socialsoftware.${config.projectName.toLowerCase()}`,
+                    packageName: globalConfig.buildPackageName(config.projectName),
                     architecture: config.architecture,
                     features: config.features || []
                 },
@@ -184,6 +200,10 @@ export class CodeGenerator {
         }
 
         if (config.features?.includes('webapi')) {
+            // Generate shared DTOs first
+            const { SharedDtoFeature } = await import('../orchestration/shared-dto-feature.js');
+            await SharedDtoFeature.generateSharedDtos(allModels, paths, options);
+
             await FeatureGenerators.generateGlobalWebApi(paths, options, generators);
         }
 

@@ -29,13 +29,13 @@ export default async function (): Promise<void> {
         .option("-d, --destination <dir>", "destination directory for generating code", DEFAULT_OUTPUT_DIR)
         .option("-n, --name <name>", "name of the project")
         .option("-a, --architecture <arch>", "architecture pattern (default, causal-saga, external-dto-removal)", "default")
-        .option("-f, --features <features>", "comma-separated list of features (events,validation,webapi,coordination,saga)", "events,validation,webapi,coordination")
+        .option("-f, --features <features>", "comma-separated list of features (events,validation,webapi,coordination,saga)", "events,validation,webapi,coordination,saga")
         .option("--validate", "validate DSL files before generation")
         .description('generates Java microservices code from Nebula DSL files')
         .action(async (inputPath: string, options: any) => {
             const features = options.features
                 ? options.features.split(',').map((f: string) => f.trim())
-                : ['events', 'validation', 'webapi', 'coordination'];
+                : ['events', 'validation', 'webapi', 'coordination', 'saga'];
 
             await CodeGenerator.generateCode(inputPath, {
                 destination: options.destination,
