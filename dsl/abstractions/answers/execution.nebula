@@ -10,15 +10,14 @@ Aggregate Execution {
         Integer courseVersion;
     }
 
-    Entity ExecutionStudent {
-        Long id
+    Entity ExecutionStudent uses dto UserDto {
+        Long id;
         Integer studentAggregateId;
         Integer studentVersion;
         String studentName;
         String studentUsername;
         Boolean active;
-        String studentEmail;
-        LocalDateTime enrollmentDate;
+        AggregateState studentState;
     }
 
     Root Entity Execution {

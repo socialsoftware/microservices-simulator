@@ -4,9 +4,10 @@ SharedDtos {
     
     dto UserDto {
         Integer id;
+        Integer version;
         String name;
         String username;
-        String email;
+        AggregateState state;
     }
     
     dto CourseDto {
@@ -29,9 +30,10 @@ SharedDtos {
         
         mapping UserDto students {
             id -> studentAggregateId;
+            version -> studentVersion;
             name -> studentName;
             username -> studentUsername;
-            email -> studentEmail;
+            state -> studentState;
         }
     }
     

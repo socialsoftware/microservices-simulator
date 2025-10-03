@@ -21,7 +21,7 @@ Aggregate:
     '}';
 
 Entity:
-    (isRoot?='Root')? 'Entity' name=ID '{'
+    (isRoot?='Root')? 'Entity' name=ID ('uses' 'dto' dtoType=[DtoDefinition:ID])? '{'
         properties+=Property*
         constructors+=Constructor*
         ('invariants' '{'
@@ -62,7 +62,7 @@ RepositoryMethod:
     returnType=RepositoryReturnType name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' ';';
 
 RepositoryReturnType:
-    OptionalType | ListType | SetType | ParamType;
+    ParamType;
 
 Parameter:
     (annotations+=Annotation)*
@@ -341,7 +341,7 @@ FieldMapping:
     dtoField=ID '->' entityField=ID ';';
 
 DtoFieldType:
-    PrimitiveType | DtoReference | ListType | SetType | OptionalType | GenericType;
+    PrimitiveType | DtoReference | ListType | SetType | OptionalType | GenericType | AggregateStateType;
 
 DtoReference:
     dto=[DtoDefinition:ID];

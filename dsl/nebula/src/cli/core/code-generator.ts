@@ -144,16 +144,24 @@ export class CodeGenerator {
         config: any,
         generators: any
     ): Promise<void> {
+        // STEP 1: Extract all shared DTOs and mappings from DSL
+        const sharedMetadata = this.extractSharedMetadata(allModels);
+
         const options: GenerationOptions = {
             architecture: config.architecture as 'default' | 'external-dto-removal' | 'causal-saga',
             features: config.features || [],
             projectName: config.projectName,
             outputPath: paths.projectPath,
-            consistencyModels: config.consistencyModels
+            consistencyModels: config.consistencyModels,
+            // Add shared metadata to options so all generators can access it
+            allSharedDtos: sharedMetadata.allDtoDefinitions,
+            dtoMappings: sharedMetadata.allDtoMappings,
+            allModels: allModels
         };
 
         const allAggregates = allModels.flatMap(model => model.aggregates);
 
+        // STEP 2: Generate aggregates with access to shared metadata
         for (const model of allModels) {
             for (const aggregate of model.aggregates) {
                 console.log(`\nGenerating ${aggregate.name} aggregate:`);
@@ -161,10 +169,41 @@ export class CodeGenerator {
             }
         }
 
+        // STEP 3: Generate project files
         await this.generateProjectFiles(allModels, paths, config, generators);
 
-        // Generate shared components
+        // STEP 4: Generate shared components
         await FeatureGenerators.generateSharedComponents(paths, options, allModels);
+    }
+
+    /**
+     * Extract shared DTOs and mappings from all models before generation
+     */
+    private static extractSharedMetadata(allModels: Model[]): {
+        allDtoDefinitions: any[];
+        allDtoMappings: any[];
+    } {
+        const allDtoDefinitions: any[] = [];
+        const allDtoMappings: any[] = [];
+
+        for (const model of allModels) {
+            if (model.sharedDtos) {
+                for (const sharedDtosBlock of model.sharedDtos) {
+                    if (sharedDtosBlock.dtos) {
+                        for (const dtoDefinition of sharedDtosBlock.dtos) {
+                            allDtoDefinitions.push(dtoDefinition);
+
+                            // Extract mappings from this DTO
+                            if (dtoDefinition.mappings) {
+                                allDtoMappings.push(...dtoDefinition.mappings);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return { allDtoDefinitions, allDtoMappings };
     }
 
     private static async generateProjectFiles(

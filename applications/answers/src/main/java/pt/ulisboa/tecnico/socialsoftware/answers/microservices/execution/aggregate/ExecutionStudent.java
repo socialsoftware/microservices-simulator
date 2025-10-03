@@ -4,41 +4,51 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import java.time.LocalDateTime;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
 public class ExecutionStudent {
     @Id
     @GeneratedValue
+    private Long id;
     private Integer studentAggregateId;
+    private Integer studentVersion;
     private String studentName;
     private String studentUsername;
-    private String studentEmail;
-    private LocalDateTime enrollmentDate;
+    private Boolean active;
+    private AggregateState studentState;
     @OneToOne
     private Execution execution; 
 
     public ExecutionStudent() {
     }
 
-    public ExecutionStudent(ExecutionDto executionDto) {
-        setStudentName(executionDto.getStudentName());
-        setStudentUsername(executionDto.getStudentUsername());
-        setStudentEmail(executionDto.getStudentEmail());
-        setEnrollmentDate(executionDto.getEnrollmentDate());
+    public ExecutionStudent(UserDto userdto) {
+        setStudentAggregateId(userdto.getId());
+        setStudentVersion(userdto.getVersion());
+        setStudentName(userdto.getName());
+        setStudentUsername(userdto.getUsername());
+        setStudentState(userdto.getState());
     }
 
     public ExecutionStudent(ExecutionStudent other) {
+        setStudentAggregateId(other.getStudentAggregateId());
+        setStudentVersion(other.getStudentVersion());
         setStudentName(other.getStudentName());
         setStudentUsername(other.getStudentUsername());
-        setStudentEmail(other.getStudentEmail());
-        setEnrollmentDate(other.getEnrollmentDate());
+        setActive(other.getActive());
+        setStudentState(other.getStudentState());
     }
 
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Integer getStudentAggregateId() {
         return studentAggregateId;
@@ -46,6 +56,14 @@ public class ExecutionStudent {
 
     public void setStudentAggregateId(Integer studentAggregateId) {
         this.studentAggregateId = studentAggregateId;
+    }
+
+    public Integer getStudentVersion() {
+        return studentVersion;
+    }
+
+    public void setStudentVersion(Integer studentVersion) {
+        this.studentVersion = studentVersion;
     }
 
     public String getStudentName() {
@@ -64,20 +82,20 @@ public class ExecutionStudent {
         this.studentUsername = studentUsername;
     }
 
-    public String getStudentEmail() {
-        return studentEmail;
+    public Boolean getActive() {
+        return active;
     }
 
-    public void setStudentEmail(String studentEmail) {
-        this.studentEmail = studentEmail;
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 
-    public LocalDateTime getEnrollmentDate() {
-        return enrollmentDate;
+    public AggregateState getStudentState() {
+        return studentState;
     }
 
-    public void setEnrollmentDate(LocalDateTime enrollmentDate) {
-        this.enrollmentDate = enrollmentDate;
+    public void setStudentState(AggregateState studentState) {
+        this.studentState = studentState;
     }
 
     public Execution getExecution() {

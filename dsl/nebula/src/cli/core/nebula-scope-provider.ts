@@ -22,6 +22,38 @@ export class NebulaScopeProvider extends DefaultScopeProvider {
     }
 
     override getScope(context: ReferenceInfo): Scope {
+        // Check if we're dealing with a dtoType reference in Entity
+        if (context.property === 'dtoType') {
+            // This is a dtoType reference that should point to DtoDefinition
+            const document = AstUtils.getDocument(context.container);
+            const model = document.parseResult.value as Model;
+
+            const descriptions: AstNodeDescription[] = [];
+
+            // Collect all DTO definitions from SharedDtos in the current document
+            if (model.sharedDtos) {
+                for (const sharedDtosBlock of model.sharedDtos) {
+                    if (sharedDtosBlock.dtos) {
+                        for (const dto of sharedDtosBlock.dtos) {
+                            if (dto.name) {
+                                const desc = this.astNodeDescriptionProvider.createDescription(dto, dto.name);
+                                descriptions.push(desc);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Also collect DTOs from imported shared-dtos files
+            const globalScope = super.getScope(context);
+            const globalDescriptions = globalScope.getAllElements().filter(desc =>
+                desc.type === 'DtoDefinition'
+            );
+            descriptions.push(...globalDescriptions);
+
+            return new MapScope(descriptions);
+        }
+
         // Check if we're dealing with an EntityType reference
         if (isEntityType(context.container) && context.property === 'type') {
             // This is an EntityType reference that could point to either Entity or EnumDefinition

@@ -72,7 +72,7 @@ public abstract class Answer extends Aggregate {
         this.completedDate = completedDate;
     }
 
-    public Boolean isCompleted() {
+    public Boolean getCompleted() {
         return completed;
     }
 

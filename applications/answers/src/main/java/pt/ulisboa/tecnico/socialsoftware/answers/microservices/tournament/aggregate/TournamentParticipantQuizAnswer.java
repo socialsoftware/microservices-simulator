@@ -5,9 +5,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.CascadeType;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 
 @Entity
@@ -71,7 +68,7 @@ public class TournamentParticipantQuizAnswer {
         this.quizAnswerVersion = quizAnswerVersion;
     }
 
-    public Boolean isAnswered() {
+    public Boolean getAnswered() {
         return answered;
     }
 

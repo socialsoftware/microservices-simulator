@@ -37,19 +37,12 @@ const isEnumTypeByNaming = (javaType: string) => {
     return javaType.match(/^[A-Z][a-zA-Z]*Type$/) !== null;
 };
 
-const getSharedDtoImportPath = (dtoName: string, projectName: string): string | null => {
-    const sharedDtos = [
-        'UserDto',
-        'CourseDto',
-        'ExecutionDto',
-        'QuestionDto',
-        'TopicDto',
-        'QuizDto',
-        'TournamentDto',
-        'AnswerDto'
-    ];
+// Import the shared DTO generator to check if a DTO is shared
+import { SharedDtoGenerator } from '../shared/shared-dto-generator.js';
 
-    if (sharedDtos.includes(dtoName)) {
+const getSharedDtoImportPath = (dtoName: string, projectName: string, allSharedDtos?: any[]): string | null => {
+    // Use the dynamic SharedDtoGenerator.isSharedDto method
+    if (SharedDtoGenerator.isSharedDto(dtoName, allSharedDtos)) {
         return `${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.${dtoName}`;
     }
     return null;
@@ -74,10 +67,18 @@ export type ImportRequirements = {
     usesCollectors?: boolean;
     usesGeneratedValue?: boolean;
     usesEnumerated?: boolean;
+    usesAggregateState?: boolean;
     customImports?: Set<string>;
 };
 
-export function generateEntityCode(entity: Entity, projectName: string): string {
+export type EntityGenerationOptions = {
+    projectName: string;
+    allSharedDtos?: any[];
+    dtoMappings?: any[];
+};
+
+export function generateEntityCode(entity: Entity, projectName: string, options?: EntityGenerationOptions): string {
+    const opts = options || { projectName };
     const isRootEntity = entity.isRoot || false;
     const importReqs: ImportRequirements = {
         usesPersistence: true,
@@ -96,7 +97,7 @@ export function generateEntityCode(entity: Entity, projectName: string): string 
 
     const { code: defaultConstructor } = generateDefaultConstructor(entity.name);
 
-    const { code: dtoConstructor, imports: dtoImports } = generateEntityDtoConstructor(entity, projectName);
+    const { code: dtoConstructor, imports: dtoImports } = generateEntityDtoConstructor(entity, projectName, opts.allSharedDtos, opts.dtoMappings);
     Object.assign(importReqs, dtoImports);
 
     const { code: copyConstructor, imports: copyImports } = generateCopyConstructor(entity);
@@ -247,6 +248,11 @@ function generateFields(properties: any[], entity: Entity, isRootEntity: boolean
             imports.usesEnumerated = true;
         }
 
+        // Check if this is AggregateState type
+        if (javaType === 'AggregateState') {
+            imports.usesAggregateState = true;
+        }
+
         // Add @Id annotation for the first field of any entity, and @GeneratedValue for non-root entities
         let idAnnotation = '';
         if (index === 0) {
@@ -307,13 +313,30 @@ function generateDefaultConstructor(name: string): { code: string } {
     };
 }
 
-function generateEntityDtoConstructor(entity: Entity, projectName: string): { code: string, imports: ImportRequirements } {
+function generateEntityDtoConstructor(entity: Entity, projectName: string, allSharedDtos?: any[], dtoMappings?: any[]): { code: string, imports: ImportRequirements } {
     const entityName = entity.name;
     const isRootEntity = entity.isRoot || false;
 
-    // For non-root entities, use the root entity's DTO
-    const rootEntityName = isRootEntity ? entityName : (entity.$container?.name || entityName);
-    const dtoName = `${rootEntityName}Dto`;
+    // Check if entity specifies a custom DTO type
+    const entityAny = entity as any;
+    const dtoTypeRef = entityAny.dtoType;
+
+    const customDtoType = dtoTypeRef?.ref?.name || dtoTypeRef?.$refText;
+
+    // Determine DTO name and type
+    let dtoName: string;
+    let dtoTypeName: string;
+
+    if (customDtoType) {
+        // Use the specified DTO type
+        dtoName = customDtoType;
+        dtoTypeName = customDtoType;
+    } else {
+        // For non-root entities, use the root entity's DTO
+        const rootEntityName = isRootEntity ? entityName : (entity.$container?.name || entityName);
+        dtoName = `${rootEntityName}Dto`;
+        dtoTypeName = dtoName;
+    }
 
     // Find entity relationships for constructor parameters
     const entityRelationships = entity.properties.filter((prop: any) => {
@@ -325,14 +348,18 @@ function generateEntityDtoConstructor(entity: Entity, projectName: string): { co
         `${resolveJavaType(prop.type)} ${prop.name}`
     ).join(', ');
 
+    // Generate parameter name based on DTO type
+    const dtoParamName = customDtoType ? customDtoType.toLowerCase() : `${(isRootEntity ? entityName : (entity.$container?.name || entityName)).toLowerCase()}Dto`;
+
     // For root entities, include aggregateId parameter; for non-root entities, don't
     const params = isRootEntity ?
         (relationshipParams ?
-            `Integer aggregateId, ${dtoName} ${rootEntityName.toLowerCase()}Dto, ${relationshipParams}` :
-            `Integer aggregateId, ${dtoName} ${rootEntityName.toLowerCase()}Dto`) :
-        `${dtoName} ${rootEntityName.toLowerCase()}Dto`;
+            `Integer aggregateId, ${dtoTypeName} ${dtoParamName}, ${relationshipParams}` :
+            `Integer aggregateId, ${dtoTypeName} ${dtoParamName}`) :
+        `${dtoTypeName} ${dtoParamName}`;
 
     // Generate setter calls using DTO properties
+    // For custom DTO types, we need to map entity fields to DTO fields
     const setterCalls = entity.properties.map((prop: any, index: number) => {
         // Skip the first property (id) for non-root entities as it's @GeneratedValue
         if (!isRootEntity && index === 0) {
@@ -342,18 +369,118 @@ function generateEntityDtoConstructor(entity: Entity, projectName: string): { co
         const javaType = resolveJavaType(prop.type);
         const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
 
+        // Determine the DTO getter method name
+        let dtoGetterName = capitalizedName;
+
+        // If using a custom DTO, map entity field names to DTO field names
+        if (customDtoType) {
+            // Apply reverse mapping: entity field -> DTO field
+            // For ExecutionStudent fields like "studentAggregateId", "studentName", etc.
+            // Map to UserDto fields like "id", "name", etc.
+            const mappedName = mapEntityFieldToDtoField(prop.name, customDtoType, dtoMappings, entity);
+            if (mappedName === null) {
+                // Skip fields that don't exist in the custom DTO
+                return '';
+            }
+            dtoGetterName = mappedName;
+        }
+
         if (javaType === 'LocalDateTime') {
-            return `        set${capitalizedName}(${rootEntityName.toLowerCase()}Dto.get${capitalizedName}());`;
+            return `        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`;
         } else if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
             return `        set${capitalizedName}(${prop.name});`;
         } else if (isEnumType(prop.type) || isEnumTypeByNaming(javaType)) {
             // For enum types, use valueOf to convert from String DTO field
-            return `        set${capitalizedName}(${javaType}.valueOf(${rootEntityName.toLowerCase()}Dto.get${capitalizedName}()));`;
+            return `        set${capitalizedName}(${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}()));`;
         } else if (!javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
-            return `        set${capitalizedName}(${rootEntityName.toLowerCase()}Dto.get${capitalizedName}());`;
+            return `        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`;
         }
         return ''; // Skip collections, they're initialized empty
     }).filter(call => call !== '').join('\n');
+
+    // Helper function to map entity field names to DTO field names for custom DTOs
+    // Returns null if the field doesn't exist in the DTO
+    // Dynamically reads from DSL mapping blocks in shared-dtos.nebula
+    function mapEntityFieldToDtoField(entityFieldName: string, dtoType: string, dtoMappings?: any[], entity?: Entity): string | null {
+        if (!dtoMappings || !entity) {
+            // Fallback: just capitalize (assuming the field exists in the DTO)
+            return entityFieldName.charAt(0).toUpperCase() + entityFieldName.slice(1);
+        }
+
+        // Find the mapping for this entity's collection in the target DTO
+        // For ExecutionStudent -> UserDto mapping via the 'students' collection
+        const aggregateName = entity.$container?.name;
+        const entityCollectionName = findCollectionNameForEntity(entity, aggregateName);
+
+        if (!entityCollectionName) {
+            // No collection mapping found, use default capitalization
+            return entityFieldName.charAt(0).toUpperCase() + entityFieldName.slice(1);
+        }
+
+        // Find the DTO mapping block for this collection
+        for (const mapping of dtoMappings) {
+            // Check if this mapping is for the target DTO and collection
+            if (mapping.targetDto?.ref?.name === dtoType &&
+                mapping.collectionName?.toLowerCase() === entityCollectionName.toLowerCase()) {
+
+                // Look for a field mapping for this entity field
+                if (mapping.fieldMappings) {
+                    for (const fieldMapping of mapping.fieldMappings) {
+                        // The mapping is: dtoField -> entityField
+                        // We need the reverse: entityField -> dtoField
+                        if (fieldMapping.entityField === entityFieldName) {
+                            // Found a mapping! Return the DTO field name (capitalized for getter)
+                            return capitalize(fieldMapping.dtoField);
+                        }
+                    }
+                }
+            }
+        }
+
+        // No explicit mapping found - check if this field exists in the DTO definition
+        // If not found in mappings, return null to skip it
+        return null;
+    }
+
+    // Helper to find which collection this entity belongs to
+    function findCollectionNameForEntity(entity: Entity, aggregateName?: string): string | null {
+        if (!aggregateName || !entity.$container) {
+            return null;
+        }
+
+        // Find the root entity in the aggregate
+        const aggregate = entity.$container;
+        const rootEntity = (aggregate as any).entities?.find((e: any) => e.isRoot);
+
+        if (!rootEntity) {
+            return null;
+        }
+
+        // Search through root entity's properties to find a collection of this entity type
+        for (const prop of rootEntity.properties || []) {
+            const propType = prop.type;
+
+            // Check if this is a Set or List containing our entity type
+            // Note: In the AST, collections are 'CollectionType' (Set or List)
+            if (propType && (propType.$type === 'SetType' || propType.$type === 'ListType' || propType.$type === 'CollectionType')) {
+                const elementType = propType.elementType;
+
+                // Check if the element type references our entity
+                if (elementType && elementType.$type === 'EntityType') {
+                    const referencedEntityName = elementType.type?.ref?.name || elementType.type?.$refText;
+
+                    if (referencedEntityName === entity.name) {
+                        // Found the collection!
+                        return prop.name;
+                    }
+                }
+            }
+        }
+
+        // Fallback: use naming convention
+        const pluralForm = entity.name.charAt(0).toLowerCase() + entity.name.slice(1) + 's';
+        return pluralForm;
+    }
 
     // Different constructor body for root vs non-root entities
     const constructorBody = isRootEntity ?
@@ -369,7 +496,7 @@ ${constructorBody}
     // Add import for the DTO (either shared or local)
     const imports: ImportRequirements = {};
     // Check if we should use shared DTO for the root entity
-    const dtoImportPath = getSharedDtoImportPath(dtoName, projectName);
+    const dtoImportPath = getSharedDtoImportPath(dtoTypeName, projectName, allSharedDtos);
     if (dtoImportPath) {
         if (!imports.customImports) imports.customImports = new Set();
         imports.customImports.add(`import ${dtoImportPath};`);
@@ -394,6 +521,7 @@ ${constructorBody}
 function generateCopyConstructor(entity: Entity): { code: string, imports: ImportRequirements } {
     const entityName = entity.name;
     const isRootEntity = entity.isRoot || false;
+    const imports: ImportRequirements = {};
 
     // Generate setter calls for copy constructor
     const setterCalls = entity.properties.map((prop: any, index: number) => {
@@ -412,16 +540,20 @@ function generateCopyConstructor(entity: Entity): { code: string, imports: Impor
             // Collection relationship - deep copy with stream
             const elementType = TypeResolver.getElementType(prop.type);
             if (elementType && TypeResolver.isEntityType(elementType)) {
+                imports.usesCollectors = true; // Only set when actually using Collectors
                 return `        set${capitalizedName}(other.get${capitalizedName}().stream().map(${elementType}::new).collect(Collectors.toSet()));`;
             } else {
+                imports.usesSet = true; // Need HashSet import
                 return `        set${capitalizedName}(new HashSet<>(other.get${capitalizedName}()));`;
             }
         } else if (javaType.startsWith('List<')) {
             // List relationship - deep copy with stream
             const elementType = TypeResolver.getElementType(prop.type);
             if (elementType && TypeResolver.isEntityType(elementType)) {
+                imports.usesCollectors = true; // Only set when actually using Collectors
                 return `        set${capitalizedName}(other.get${capitalizedName}().stream().map(${elementType}::new).collect(Collectors.toList()));`;
             } else {
+                imports.usesList = true; // Need ArrayList import
                 return `        set${capitalizedName}(new ArrayList<>(other.get${capitalizedName}()));`;
             }
         } else {
@@ -442,9 +574,7 @@ ${constructorBody}
 
     return {
         code,
-        imports: {
-            usesCollectors: true
-        }
+        imports
     };
 }
 
@@ -454,7 +584,7 @@ function generateGettersSetters(properties: any[], entity?: Entity, projectName?
     const methods = properties.map((prop: any) => {
         const javaType = resolveJavaType(prop.type, prop.name);
         const capName = capitalize(prop.name);
-        const getter = javaType === 'Boolean' ? `is${capName}` : `get${capName}`;
+        const getter = `get${capName}`;
 
         const getterMethod = `\n    public ${javaType} ${getter}() {\n        return ${prop.name};\n    }`;
 
@@ -541,14 +671,18 @@ function generateImports(importReqs: ImportRequirements, projectName: string, is
     if (importReqs.usesEnumerated) imports.push('import jakarta.persistence.Enumerated;\nimport jakarta.persistence.EnumType;');
     if (importReqs.usesDateHandler) imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;');
     if (importReqs.usesCollectors) imports.push('import java.util.stream.Collectors;');
+    if (importReqs.usesAggregateState) imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
     if (isRoot) {
         if (aggregateName && entityName && aggregateName !== entityName) {
         } else {
             imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;');
         }
+        // Only root entities need these imports
+        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;');
+        if (!importReqs.usesAggregateState) {
+            imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
+        }
     }
-    imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;');
-    imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
     if (importReqs.usesLocalDateTime) imports.push('import java.time.LocalDateTime;');
     if (importReqs.usesBigDecimal) imports.push('import java.math.BigDecimal;');
     if (importReqs.usesSet) imports.push('import java.util.Set;\nimport java.util.HashSet;');
@@ -628,9 +762,8 @@ ${methodBody}${needsReturn ? '\n' + defaultReturn : ''}
 
 
 export class EntityGenerator {
-    async generateEntity(entity: Entity, options: { projectName: string }): Promise<string> {
-        const projectName = options.projectName;
-        return generateEntityCode(entity, projectName);
+    async generateEntity(entity: Entity, options: EntityGenerationOptions): Promise<string> {
+        return generateEntityCode(entity, options.projectName, options);
     }
 }
 

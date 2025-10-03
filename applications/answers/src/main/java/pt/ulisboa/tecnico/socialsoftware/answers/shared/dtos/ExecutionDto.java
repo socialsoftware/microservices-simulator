@@ -7,6 +7,9 @@ import java.util.stream.Collectors;
 
 public class ExecutionDto implements Serializable {
     
+    private Integer aggregateId;
+    private Integer version;
+    private String state;
     private String acronym;
     private String academicTerm;
     private LocalDateTime endDate;
@@ -20,12 +23,25 @@ public class ExecutionDto implements Serializable {
     }
     
     public ExecutionDto(pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution execution) {
+        // Standard aggregate fields
+        setAggregateId(execution.getAggregateId());
+        setVersion(execution.getVersion());
+        setState(execution.getState().toString());
+
         // Root entity fields
         setAcronym(execution.getAcronym());
         setAcademicTerm(execution.getAcademicTerm());
         setEndDate(execution.getEndDate());
         setStudents(execution.getStudents().stream()
-            .map(executionstudent -> new UserDto(executionstudent.getStudentAggregateId(), executionstudent.getStudentName(), executionstudent.getStudentUsername(), executionstudent.getStudentEmail()))
+            .map(executionstudent -> ((java.util.function.Supplier<UserDto>) () -> {
+            UserDto userdto = new UserDto();
+                userdto.setId(executionstudent.getStudentAggregateId());
+                userdto.setVersion(executionstudent.getStudentVersion());
+                userdto.setName(executionstudent.getStudentName());
+                userdto.setUsername(executionstudent.getStudentUsername());
+                userdto.setState(executionstudent.getStudentState());
+            return userdto;
+        }).get())
             .collect(Collectors.toSet()));
 
         // Fields from ExecutionCourse
@@ -36,6 +52,30 @@ public class ExecutionDto implements Serializable {
 
     }
     
+    public Integer getAggregateId() {
+        return aggregateId;
+    }
+    
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+    
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    public String getState() {
+        return state;
+    }
+    
+    public void setState(String state) {
+        this.state = state;
+    }
+
     public String getAcronym() {
         return acronym;
     }

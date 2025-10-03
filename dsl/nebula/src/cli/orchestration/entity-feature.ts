@@ -28,7 +28,13 @@ export class EntityFeature {
         generators: GeneratorRegistry
     ): Promise<void> {
         for (const entity of aggregate.entities) {
-            const entityCode = await generators.entityGenerator.generateEntity(entity, options);
+            // Pass shared metadata to entity generator
+            const entityOptions = {
+                projectName: options.projectName,
+                allSharedDtos: options.allSharedDtos,
+                dtoMappings: options.dtoMappings
+            };
+            const entityCode = await generators.entityGenerator.generateEntity(entity, entityOptions);
             const entityPath = path.join(aggregatePath, 'aggregate', `${entity.name}.java`);
             await fs.mkdir(path.dirname(entityPath), { recursive: true });
             await fs.writeFile(entityPath, entityCode, 'utf-8');

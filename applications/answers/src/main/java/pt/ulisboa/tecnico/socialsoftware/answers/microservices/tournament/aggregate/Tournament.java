@@ -86,7 +86,7 @@ public abstract class Tournament extends Aggregate {
         this.numberOfQuestions = numberOfQuestions;
     }
 
-    public Boolean isCancelled() {
+    public Boolean getCancelled() {
         return cancelled;
     }
 

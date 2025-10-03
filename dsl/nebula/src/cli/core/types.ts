@@ -12,6 +12,10 @@ export type GenerationOptions = {
     projectName: string;
     outputPath: string;
     consistencyModels?: string[];
+    // Shared metadata extracted from all DSL models before generation
+    allSharedDtos?: any[];
+    dtoMappings?: any[];
+    allModels?: any[];
 };
 
 export type ProjectPaths = {

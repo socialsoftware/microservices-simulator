@@ -24,7 +24,7 @@ export class SharedDtoGenerator extends OrchestrationBase {
         const packageName = config.buildPackageName(options.projectName, 'shared', 'dtos');
 
         // Add standard aggregate fields automatically for root entity DTOs
-        const standardAggregateFields = this.getStandardAggregateFields(dtoDefinition.name);
+        const standardAggregateFields = this.getStandardAggregateFields(dtoDefinition.name, allSharedDtos);
         const dslFields = dtoDefinition.fields.map((field: DtoField) => ({
             type: this.resolveDtoFieldType(field),
             name: field.name,
@@ -227,6 +227,7 @@ ${fields.map((field: any) => `    public ${field.type} get${field.capitalizedNam
         const needsLocalDateTime = fields.some(f => f.type === 'LocalDateTime');
         const needsList = fields.some(f => f.type.startsWith('List<'));
         const needsSet = fields.some(f => f.type.startsWith('Set<'));
+        const needsAggregateState = fields.some(f => f.type === 'AggregateState');
         const needsCollectors = dtoMappings && dtoMappings.length > 0; // If we have mappings, we use stream collectors
 
         if (needsLocalDateTime) {
@@ -239,6 +240,10 @@ ${fields.map((field: any) => `    public ${field.type} get${field.capitalizedNam
 
         if (needsSet) {
             imports.add('import java.util.Set;');
+        }
+
+        if (needsAggregateState) {
+            imports.add('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
         }
 
         if (needsCollectors) {
@@ -272,13 +277,15 @@ ${this.generateConstructorBody(fields, aggregateName, aggregateVariable, allShar
 
     private generateParameterConstructor(dtoName: string, fields: any[]): string {
         // Generate constructor with individual parameters for utility DTOs like UserDto
-        const params = fields
-            .filter(field => !['aggregateId', 'version', 'state'].includes(field.name))
+        // Only filter out standard aggregate fields for aggregate root DTOs, not utility DTOs
+        const isUtilityDto = !this.isRootEntityDto(dtoName);
+        const fieldsToInclude = isUtilityDto ? fields : fields.filter(field => !['aggregateId', 'version', 'state'].includes(field.name));
+
+        const params = fieldsToInclude
             .map(field => `${field.type} ${field.name}`)
             .join(', ');
 
-        const setterCalls = fields
-            .filter(field => !['aggregateId', 'version', 'state'].includes(field.name))
+        const setterCalls = fieldsToInclude
             .map(field => `        set${field.capitalizedName}(${field.name});`)
             .join('\n');
 
@@ -455,12 +462,20 @@ ${setterCalls}
             return this.generateHardcodedDtoConstructor(targetDtoName, entityVariable, aggregateName);
         }
 
-        // Generate constructor parameters based on DTO fields
-        const constructorParams = dtoDefinition.fields.map((field: any) => {
-            return this.mapEntityFieldToDtoField(field.name, entityVariable, aggregateName, dtoMappings);
-        }).join(', ');
+        // Generate DTO creation with empty constructor + setters
+        const dtoVariable = `${targetDtoName.toLowerCase()}`;
+        const setterCalls = dtoDefinition.fields.map((field: any) => {
+            const entityFieldCall = this.mapEntityFieldToDtoField(field.name, entityVariable, aggregateName, dtoMappings);
+            const capitalizedFieldName = field.name.charAt(0).toUpperCase() + field.name.slice(1);
+            return `                ${dtoVariable}.set${capitalizedFieldName}(${entityFieldCall});`;
+        }).join('\n');
 
-        return `new ${targetDtoName}(${constructorParams})`;
+        // Generate inline block for DTO creation using Supplier pattern
+        return `((java.util.function.Supplier<${targetDtoName}>) () -> {
+            ${targetDtoName} ${dtoVariable} = new ${targetDtoName}();
+${setterCalls}
+            return ${dtoVariable};
+        }).get()`;
     }
 
     private findDtoDefinition(dtoName: string, allSharedDtos?: DtoDefinition[]): any | null {
@@ -508,9 +523,9 @@ ${setterCalls}
     /**
      * Returns standard aggregate fields that should be automatically added to root entity DTOs
      */
-    private getStandardAggregateFields(dtoName: string): any[] {
+    private getStandardAggregateFields(dtoName: string, allSharedDtos?: DtoDefinition[]): any[] {
         // Only add aggregate fields to root entity DTOs
-        if (this.isRootEntityDto(dtoName)) {
+        if (this.isRootEntityDto(dtoName, allSharedDtos)) {
             return [
                 {
                     type: 'Integer',

@@ -61,6 +61,17 @@ export class TypeResolver {
                     isBuiltin: false
                 };
             }
+            // Handle AggregateStateType
+            if (fieldType.$type === 'AggregateStateType') {
+                return {
+                    javaType: 'AggregateState',
+                    isCollection: false,
+                    elementType: undefined,
+                    isPrimitive: false,
+                    isEntity: false,
+                    isBuiltin: true
+                };
+            }
             // Handle EntityType references (can be Entity or EnumDefinition)
             if (fieldType.$type === 'EntityType' && fieldType.type) {
                 // Try to get the name from the resolved reference
@@ -246,7 +257,7 @@ export class TypeResolver {
     }
 
     private static isBuiltinType(typeName: string): boolean {
-        const builtins = ['userdto', 'aggregatestate', 'unitofwork'];
+        const builtins = ['userdto', 'aggregatestate', 'unitofwork', 'aggregate.aggregatestate'];
         return builtins.includes(typeName.toLowerCase());
     }
 
