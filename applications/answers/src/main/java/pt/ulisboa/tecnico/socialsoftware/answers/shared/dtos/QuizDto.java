@@ -2,24 +2,12 @@ package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 
 public class QuizDto implements Serializable {
     
-    // Standard aggregate fields
-    private Integer aggregateId;
-    private Integer version;
-    private String state;
-
-    // Root entity fields
+    private Integer id;
     private String title;
     private String description;
-
-    // Fields from QuizDetails
-    private Integer id;
     private String quizType;
     private LocalDateTime availableDate;
     private LocalDateTime conclusionDate;
@@ -28,49 +16,16 @@ public class QuizDto implements Serializable {
     public QuizDto() {
     }
     
-    public QuizDto(pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz quiz) {
-        // Standard aggregate fields
-        setAggregateId(quiz.getAggregateId());
-        setVersion(quiz.getVersion());
-        setState(quiz.getState().toString());
-
-        // Root entity fields
-        setTitle(quiz.getTitle());
-        setDescription(quiz.getDescription());
-
-        // Fields from QuizDetails
-        setId(quiz.getQuizDetails().getId());
-        setQuizType(quiz.getQuizDetails().getQuizType().toString());
-        setAvailableDate(quiz.getQuizDetails().getAvailableDate());
-        setConclusionDate(quiz.getQuizDetails().getConclusionDate());
-        setNumberOfQuestions(quiz.getQuizDetails().getNumberOfQuestions());
-
+    public QuizDto(Integer id, String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions) {
+        setId(id);
+        setTitle(title);
+        setDescription(description);
+        setQuizType(quizType);
+        setAvailableDate(availableDate);
+        setConclusionDate(conclusionDate);
+        setNumberOfQuestions(numberOfQuestions);
     }
     
-    public Integer getAggregateId() {
-        return aggregateId;
-    }
-    
-    public void setAggregateId(Integer aggregateId) {
-        this.aggregateId = aggregateId;
-    }
-
-    public Integer getVersion() {
-        return version;
-    }
-    
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
-    public String getState() {
-        return state;
-    }
-    
-    public void setState(String state) {
-        this.state = state;
-    }
-
     public Integer getId() {
         return id;
     }

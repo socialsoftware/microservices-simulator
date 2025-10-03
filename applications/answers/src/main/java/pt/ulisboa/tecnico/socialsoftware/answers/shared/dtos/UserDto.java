@@ -1,11 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 
 public class UserDto implements Serializable {
     

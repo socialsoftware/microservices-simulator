@@ -44,7 +44,8 @@ export class SharedDtoFeature {
                     const dtoCode = await generator.generateSharedDtoFromDefinition(
                         dtoDefinition,
                         options,
-                        allDtoDefinitions
+                        allDtoDefinitions,
+                        models  // Pass the models so generator can read aggregate structure!
                     );
 
                     const dtoFilePath = path.join(sharedDtoPath, `${dtoDefinition.name}.java`);

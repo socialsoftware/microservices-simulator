@@ -1,25 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 
 public class QuestionDto implements Serializable {
     
-    // Standard aggregate fields
-    private Integer aggregateId;
-    private Integer version;
-    private String state;
-
-    // Root entity fields
+    private Integer id;
     private String title;
     private String content;
-
-    // Fields from QuestionDetails
-    private Integer id;
     private Integer numberOfOptions;
     private Integer correctOption;
     private Integer order;
@@ -27,48 +14,15 @@ public class QuestionDto implements Serializable {
     public QuestionDto() {
     }
     
-    public QuestionDto(pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question question) {
-        // Standard aggregate fields
-        setAggregateId(question.getAggregateId());
-        setVersion(question.getVersion());
-        setState(question.getState().toString());
-
-        // Root entity fields
-        setTitle(question.getTitle());
-        setContent(question.getContent());
-
-        // Fields from QuestionDetails
-        setId(question.getQuestionDetails().getId());
-        setNumberOfOptions(question.getQuestionDetails().getNumberOfOptions());
-        setCorrectOption(question.getQuestionDetails().getCorrectOption());
-        setOrder(question.getQuestionDetails().getOrder());
-
+    public QuestionDto(Integer id, String title, String content, Integer numberOfOptions, Integer correctOption, Integer order) {
+        setId(id);
+        setTitle(title);
+        setContent(content);
+        setNumberOfOptions(numberOfOptions);
+        setCorrectOption(correctOption);
+        setOrder(order);
     }
     
-    public Integer getAggregateId() {
-        return aggregateId;
-    }
-    
-    public void setAggregateId(Integer aggregateId) {
-        this.aggregateId = aggregateId;
-    }
-
-    public Integer getVersion() {
-        return version;
-    }
-    
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
-    public String getState() {
-        return state;
-    }
-    
-    public void setState(String state) {
-        this.state = state;
-    }
-
     public Integer getId() {
         return id;
     }

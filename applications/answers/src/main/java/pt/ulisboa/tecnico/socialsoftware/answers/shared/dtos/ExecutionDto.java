@@ -2,25 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
 public class ExecutionDto implements Serializable {
     
-    // Standard aggregate fields
-    private Integer aggregateId;
-    private Integer version;
-    private String state;
-
-    // Root entity fields
     private String acronym;
     private String academicTerm;
     private LocalDateTime endDate;
     private Set<UserDto> students;
-
-    // Fields from ExecutionCourse
     private Integer courseAggregateId;
     private String courseName;
     private String courseType;
@@ -30,11 +20,6 @@ public class ExecutionDto implements Serializable {
     }
     
     public ExecutionDto(pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution execution) {
-        // Standard aggregate fields
-        setAggregateId(execution.getAggregateId());
-        setVersion(execution.getVersion());
-        setState(execution.getState().toString());
-
         // Root entity fields
         setAcronym(execution.getAcronym());
         setAcademicTerm(execution.getAcademicTerm());
@@ -51,30 +36,6 @@ public class ExecutionDto implements Serializable {
 
     }
     
-    public Integer getAggregateId() {
-        return aggregateId;
-    }
-    
-    public void setAggregateId(Integer aggregateId) {
-        this.aggregateId = aggregateId;
-    }
-
-    public Integer getVersion() {
-        return version;
-    }
-    
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
-    public String getState() {
-        return state;
-    }
-    
-    public void setState(String state) {
-        this.state = state;
-    }
-
     public String getAcronym() {
         return acronym;
     }
