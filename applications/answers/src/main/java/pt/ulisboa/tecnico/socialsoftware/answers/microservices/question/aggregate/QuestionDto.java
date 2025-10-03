@@ -12,9 +12,9 @@ public class QuestionDto implements Serializable {
 	private Integer numberOfOptions;
 	private Integer correctOption;
 	private Integer order;
-	private Object course;
-	private Object topics;
-	private Object options;
+	private QuestionCourse course;
+	private Set<QuestionTopic> topics;
+	private Set<Option> options;
 	private Integer version;
 	private AggregateState state;
 
@@ -83,27 +83,27 @@ public class QuestionDto implements Serializable {
 		this.order = order;
 	}
 
-	public Object getCourse() {
+	public QuestionCourse getCourse() {
 		return course;
 	}
 
-	public void setCourse(Object course) {
+	public void setCourse(QuestionCourse course) {
 		this.course = course;
 	}
 
-	public Object getTopics() {
+	public Set<QuestionTopic> getTopics() {
 		return topics;
 	}
 
-	public void setTopics(Object topics) {
+	public void setTopics(Set<QuestionTopic> topics) {
 		this.topics = topics;
 	}
 
-	public Object getOptions() {
+	public Set<Option> getOptions() {
 		return options;
 	}
 
-	public void setOptions(Object options) {
+	public void setOptions(Set<Option> options) {
 		this.options = options;
 	}
 

@@ -17,6 +17,7 @@ export interface GenerationConfig {
 
     architecture: 'microservices' | 'causal-saga' | 'monolith';
     features: GenerationFeature[];
+    consistencyModels?: string[];
 
     templateEngine: 'simple' | 'handlebars';
     templateCaching: boolean;

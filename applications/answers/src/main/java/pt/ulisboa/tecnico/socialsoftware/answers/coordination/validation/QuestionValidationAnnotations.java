@@ -122,14 +122,14 @@ public class QuestionValidationAnnotations {
      */
     public static class CourseValidation {
         @NotNull
-        private Object course;
+        private QuestionCourse course;
         
         // Getter and setter
-        public Object getCourse() {
+        public QuestionCourse getCourse() {
             return course;
         }
         
-        public void setCourse(Object course) {
+        public void setCourse(QuestionCourse course) {
             this.course = course;
         }
     }
@@ -140,14 +140,14 @@ public class QuestionValidationAnnotations {
     public static class TopicsValidation {
         @NotNull
     @NotEmpty
-        private Object topics;
+        private Set<QuestionTopic> topics;
         
         // Getter and setter
-        public Object getTopics() {
+        public Set<QuestionTopic> getTopics() {
             return topics;
         }
         
-        public void setTopics(Object topics) {
+        public void setTopics(Set<QuestionTopic> topics) {
             this.topics = topics;
         }
     }
@@ -158,14 +158,14 @@ public class QuestionValidationAnnotations {
     public static class OptionsValidation {
         @NotNull
     @NotEmpty
-        private Object options;
+        private Set<Option> options;
         
         // Getter and setter
-        public Object getOptions() {
+        public Set<Option> getOptions() {
             return options;
         }
         
-        public void setOptions(Object options) {
+        public void setOptions(Set<Option> options) {
             this.options = options;
         }
     }

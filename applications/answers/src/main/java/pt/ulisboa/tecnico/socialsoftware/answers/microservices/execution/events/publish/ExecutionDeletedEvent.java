@@ -28,26 +28,22 @@ private final LocalDateTime timestamp;
 
 private final Long aggregateId;
 
-private final String name;
 private final String acronym;
 private final String academicTerm;
-private final LocalDateTime startDate;
 private final LocalDateTime endDate;
-private final Object course;
-private final Object students;
+private final ExecutionCourse executionCourse;
+private final Set<ExecutionStudent> students;
 
-public ExecutionDeletedEvent(Object source, Long aggregateId, String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, Object course, Object students) {
+public ExecutionDeletedEvent(Object source, Long aggregateId, String acronym, String academicTerm, LocalDateTime endDate, ExecutionCourse executionCourse, Set<ExecutionStudent> students) {
 super(source);
 this.eventId = java.util.UUID.randomUUID().toString();
 this.eventType = "Deleted";
 this.timestamp = LocalDateTime.now();
 this.aggregateId = aggregateId;
-this.name = name;
 this.acronym = acronym;
 this.academicTerm = academicTerm;
-this.startDate = startDate;
 this.endDate = endDate;
-this.course = course;
+this.executionCourse = executionCourse;
 this.students = students;
 }
 
@@ -68,10 +64,6 @@ public Long getAggregateId() {
 return aggregateId;
 }
 
-public String getName() {
-return name;
-}
-
 public String getAcronym() {
 return acronym;
 }
@@ -80,19 +72,15 @@ public String getAcademicTerm() {
 return academicTerm;
 }
 
-public LocalDateTime getStartDate() {
-return startDate;
-}
-
 public LocalDateTime getEndDate() {
 return endDate;
 }
 
-public Object getCourse() {
-return course;
+public ExecutionCourse getExecutionCourse() {
+return executionCourse;
 }
 
-public Object getStudents() {
+public Set<ExecutionStudent> getStudents() {
 return students;
 }
 
@@ -103,12 +91,10 @@ return "ExecutionDeletedEvent{" +
 ", eventType='" + eventType + '\'' +
 ", timestamp=" + timestamp +
 ", aggregateId=" + aggregateId +
-", name=" + name +
 ", acronym=" + acronym +
 ", academicTerm=" + academicTerm +
-", startDate=" + startDate +
 ", endDate=" + endDate +
-", course=" + course +
+", executionCourse=" + executionCourse +
 ", students=" + students +
 '}';
 }

@@ -8,6 +8,7 @@ export interface NebulaConfig {
     outputDirectory?: string;
     architecture?: 'microservices' | 'causal-saga' | 'monolith';
     features?: string[];
+    consistencyModels?: string[];
     database?: {
         type?: 'postgresql' | 'mysql' | 'mongodb' | 'h2';
         host?: string;
@@ -114,6 +115,10 @@ export class ConfigLoader {
 
         if (config.features) {
             result.features = config.features as any[];
+        }
+
+        if (config.consistencyModels) {
+            result.consistencyModels = config.consistencyModels;
         }
 
         if (config.database) {

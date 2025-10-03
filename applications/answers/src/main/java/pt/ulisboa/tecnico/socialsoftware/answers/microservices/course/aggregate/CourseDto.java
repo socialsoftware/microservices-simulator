@@ -21,7 +21,7 @@ public class CourseDto implements Serializable {
 		this.aggregateId = course.getAggregateId();
 		this.name = course.getName();
 		this.acronym = course.getAcronym();
-		this.courseType = course.getCourseType();
+		this.courseType = course.getCourseType() != null ? course.getCourseType().toString() : null;
 		this.creationDate = course.getCreationDate();
 		this.version = course.getVersion();
 		this.state = course.getState();

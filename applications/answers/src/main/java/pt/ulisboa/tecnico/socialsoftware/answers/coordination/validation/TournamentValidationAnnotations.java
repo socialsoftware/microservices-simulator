@@ -103,14 +103,14 @@ public class TournamentValidationAnnotations {
      */
     public static class TournamentCreatorValidation {
         @NotNull
-        private Object tournamentCreator;
+        private TournamentCreator tournamentCreator;
         
         // Getter and setter
-        public Object getTournamentCreator() {
+        public TournamentCreator getTournamentCreator() {
             return tournamentCreator;
         }
         
-        public void setTournamentCreator(Object tournamentCreator) {
+        public void setTournamentCreator(TournamentCreator tournamentCreator) {
             this.tournamentCreator = tournamentCreator;
         }
     }
@@ -121,32 +121,32 @@ public class TournamentValidationAnnotations {
     public static class TournamentParticipantsValidation {
         @NotNull
     @NotEmpty
-        private Object tournamentParticipants;
+        private Set<TournamentParticipant> tournamentParticipants;
         
         // Getter and setter
-        public Object getTournamentParticipants() {
+        public Set<TournamentParticipant> getTournamentParticipants() {
             return tournamentParticipants;
         }
         
-        public void setTournamentParticipants(Object tournamentParticipants) {
+        public void setTournamentParticipants(Set<TournamentParticipant> tournamentParticipants) {
             this.tournamentParticipants = tournamentParticipants;
         }
     }
 
     /**
-     * Validation annotations for tournamentCourseExecution
+     * Validation annotations for tournamentExecution
      */
-    public static class TournamentCourseExecutionValidation {
+    public static class TournamentExecutionValidation {
         @NotNull
-        private Object tournamentCourseExecution;
+        private TournamentExecution tournamentExecution;
         
         // Getter and setter
-        public Object getTournamentCourseExecution() {
-            return tournamentCourseExecution;
+        public TournamentExecution getTournamentExecution() {
+            return tournamentExecution;
         }
         
-        public void setTournamentCourseExecution(Object tournamentCourseExecution) {
-            this.tournamentCourseExecution = tournamentCourseExecution;
+        public void setTournamentExecution(TournamentExecution tournamentExecution) {
+            this.tournamentExecution = tournamentExecution;
         }
     }
 
@@ -156,14 +156,14 @@ public class TournamentValidationAnnotations {
     public static class TournamentTopicsValidation {
         @NotNull
     @NotEmpty
-        private Object tournamentTopics;
+        private Set<TournamentTopic> tournamentTopics;
         
         // Getter and setter
-        public Object getTournamentTopics() {
+        public Set<TournamentTopic> getTournamentTopics() {
             return tournamentTopics;
         }
         
-        public void setTournamentTopics(Object tournamentTopics) {
+        public void setTournamentTopics(Set<TournamentTopic> tournamentTopics) {
             this.tournamentTopics = tournamentTopics;
         }
     }
@@ -173,14 +173,14 @@ public class TournamentValidationAnnotations {
      */
     public static class TournamentQuizValidation {
         @NotNull
-        private Object tournamentQuiz;
+        private TournamentQuiz tournamentQuiz;
         
         // Getter and setter
-        public Object getTournamentQuiz() {
+        public TournamentQuiz getTournamentQuiz() {
             return tournamentQuiz;
         }
         
-        public void setTournamentQuiz(Object tournamentQuiz) {
+        public void setTournamentQuiz(TournamentQuiz tournamentQuiz) {
             this.tournamentQuiz = tournamentQuiz;
         }
     }

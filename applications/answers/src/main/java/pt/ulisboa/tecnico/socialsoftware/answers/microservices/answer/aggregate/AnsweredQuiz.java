@@ -1,30 +1,48 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
 
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 
-@Embeddable
+@Entity
 public class AnsweredQuiz {
+    @Id
+    @GeneratedValue
     private Integer quizAggregateId;
     private String quizTitle;
-    private String quizType;
+    @Enumerated(EnumType.STRING)
+    private QuizType quizType;
     private LocalDateTime availableDate;
     private LocalDateTime conclusionDate;
-    private Integer numberOfQuestions; 
+    private Integer numberOfQuestions;
+    @OneToOne
+    private Answer answer; 
 
-    public AnsweredQuiz(Integer quizAggregateId, String quizTitle, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions) {
-        this.quizAggregateId = quizAggregateId;
-        this.quizTitle = quizTitle;
-        this.quizType = quizType;
-        this.availableDate = availableDate;
-        this.conclusionDate = conclusionDate;
-        this.numberOfQuestions = numberOfQuestions;
+    public AnsweredQuiz() {
+    }
+
+    public AnsweredQuiz(AnswerDto answerDto) {
+        setQuizTitle(answerDto.getQuizTitle());
+        setQuizType(answerDto.getQuizType());
+        setAvailableDate(answerDto.getAvailableDate());
+        setConclusionDate(answerDto.getConclusionDate());
+        setNumberOfQuestions(answerDto.getNumberOfQuestions());
     }
 
     public AnsweredQuiz(AnsweredQuiz other) {
-        // Copy constructor
+        setQuizTitle(other.getQuizTitle());
+        setQuizType(other.getQuizType());
+        setAvailableDate(other.getAvailableDate());
+        setConclusionDate(other.getConclusionDate());
+        setNumberOfQuestions(other.getNumberOfQuestions());
     }
 
 
@@ -44,11 +62,11 @@ public class AnsweredQuiz {
         this.quizTitle = quizTitle;
     }
 
-    public String getQuizType() {
+    public QuizType getQuizType() {
         return quizType;
     }
 
-    public void setQuizType(String quizType) {
+    public void setQuizType(QuizType quizType) {
         this.quizType = quizType;
     }
 
@@ -74,6 +92,14 @@ public class AnsweredQuiz {
 
     public void setNumberOfQuestions(Integer numberOfQuestions) {
         this.numberOfQuestions = numberOfQuestions;
+    }
+
+    public Answer getAnswer() {
+        return answer;
+    }
+
+    public void setAnswer(Answer answer) {
+        this.answer = answer;
     }
 
 

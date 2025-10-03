@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 
 public class UserDto implements Serializable {
     
@@ -13,7 +15,13 @@ public class UserDto implements Serializable {
     private String email;
     
     public UserDto() {
-        // Default constructor
+    }
+    
+    public UserDto(Integer id, String name, String username, String email) {
+        setId(id);
+        setName(name);
+        setUsername(username);
+        setEmail(email);
     }
     
     public Integer getId() {

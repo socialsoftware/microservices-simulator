@@ -14,9 +14,9 @@ public class QuizDto implements Serializable {
 	private LocalDateTime availableDate;
 	private LocalDateTime conclusionDate;
 	private Integer numberOfQuestions;
-	private Object courseExecution;
-	private Object questions;
-	private Object options;
+	private QuizExecution execution;
+	private Set<QuizQuestion> questions;
+	private Set<QuizOption> options;
 	private Integer version;
 	private AggregateState state;
 
@@ -27,11 +27,11 @@ public class QuizDto implements Serializable {
 		this.aggregateId = quiz.getAggregateId();
 		this.title = quiz.getTitle();
 		this.description = quiz.getDescription();
-		this.quizType = quiz.getQuizType();
+		this.quizType = quiz.getQuizType() != null ? quiz.getQuizType().toString() : null;
 		this.availableDate = quiz.getAvailableDate();
 		this.conclusionDate = quiz.getConclusionDate();
 		this.numberOfQuestions = quiz.getNumberOfQuestions();
-		this.courseExecution = quiz.getCourseExecution();
+		this.execution = quiz.getExecution();
 		this.questions = quiz.getQuestions();
 		this.options = quiz.getOptions();
 		this.version = quiz.getVersion();
@@ -94,27 +94,27 @@ public class QuizDto implements Serializable {
 		this.numberOfQuestions = numberOfQuestions;
 	}
 
-	public Object getCourseExecution() {
-		return courseExecution;
+	public QuizExecution getExecution() {
+		return execution;
 	}
 
-	public void setCourseExecution(Object courseExecution) {
-		this.courseExecution = courseExecution;
+	public void setExecution(QuizExecution execution) {
+		this.execution = execution;
 	}
 
-	public Object getQuestions() {
+	public Set<QuizQuestion> getQuestions() {
 		return questions;
 	}
 
-	public void setQuestions(Object questions) {
+	public void setQuestions(Set<QuizQuestion> questions) {
 		this.questions = questions;
 	}
 
-	public Object getOptions() {
+	public Set<QuizOption> getOptions() {
 		return options;
 	}
 
-	public void setOptions(Object options) {
+	public void setOptions(Set<QuizOption> options) {
 		this.options = options;
 	}
 

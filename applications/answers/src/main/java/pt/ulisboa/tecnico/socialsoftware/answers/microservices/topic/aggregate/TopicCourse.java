@@ -1,23 +1,35 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate;
 
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.OneToOne;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 
-@Embeddable
+@Entity
 public class TopicCourse {
+    @Id
+    @GeneratedValue
     private Integer courseAggregateId;
     private String courseName;
-    private String courseAcronym; 
+    private String courseAcronym;
+    @OneToOne
+    private Topic topic; 
 
-    public TopicCourse(Integer courseAggregateId, String courseName, String courseAcronym) {
-        this.courseAggregateId = courseAggregateId;
-        this.courseName = courseName;
-        this.courseAcronym = courseAcronym;
+    public TopicCourse() {
+    }
+
+    public TopicCourse(TopicDto topicDto) {
+        setCourseName(topicDto.getCourseName());
+        setCourseAcronym(topicDto.getCourseAcronym());
     }
 
     public TopicCourse(TopicCourse other) {
-        // Copy constructor
+        setCourseName(other.getCourseName());
+        setCourseAcronym(other.getCourseAcronym());
     }
 
 
@@ -43,6 +55,14 @@ public class TopicCourse {
 
     public void setCourseAcronym(String courseAcronym) {
         this.courseAcronym = courseAcronym;
+    }
+
+    public Topic getTopic() {
+        return topic;
+    }
+
+    public void setTopic(Topic topic) {
+        this.topic = topic;
     }
 
 

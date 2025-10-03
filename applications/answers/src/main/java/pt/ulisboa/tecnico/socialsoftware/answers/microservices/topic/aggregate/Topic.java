@@ -2,26 +2,39 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.CascadeType;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 
 @Entity
-public class Topic extends Aggregate {
+public abstract class Topic extends Aggregate {
     @Id
     private String name;
-    private Object course;
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "topic")
+    private TopicCourse course;
     private LocalDateTime creationDate; 
 
-    public Topic(String name, Object course, LocalDateTime creationDate) {
-        this.name = name;
-        this.course = course;
-        this.creationDate = creationDate;
+    public Topic() {
+    }
+
+    public Topic(Integer aggregateId, TopicDto topicDto, TopicCourse course) {
+        super(aggregateId);
+        setAggregateType(getClass().getSimpleName());
+        setName(topicDto.getName());
+        setCourse(course);
+        setCreationDate(topicDto.getCreationDate());
     }
 
     public Topic(Topic other) {
-        // Copy constructor
+        super(other);
+        setName(other.getName());
+        setCourse(new TopicCourse(other.getCourse()));
+        setCreationDate(other.getCreationDate());
     }
 
 
@@ -33,12 +46,15 @@ public class Topic extends Aggregate {
         this.name = name;
     }
 
-    public Object getCourse() {
+    public TopicCourse getCourse() {
         return course;
     }
 
-    public void setCourse(Object course) {
+    public void setCourse(TopicCourse course) {
         this.course = course;
+        if (this.course != null) {
+            this.course.setTopic(this);
+        }
     }
 
     public LocalDateTime getCreationDate() {
@@ -48,34 +64,29 @@ public class Topic extends Aggregate {
     public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
-	public Object createTopic(String name, Object course, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
+	public void createTopic(String name, TopicCourse course, UnitOfWork unitOfWork) {
+
 	}
 
-	public Object getTopicById(Integer topicId, UnitOfWork unitOfWork) {
+	public void getTopicById(Integer topicId, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object getAllTopics(UnitOfWork unitOfWork) {
+	public void getAllTopics(UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object getTopicsByCourse(Integer courseId, UnitOfWork unitOfWork) {
+	public void getTopicsByCourse(Integer courseId, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object updateTopic(Integer topicId, String name, UnitOfWork unitOfWork) {
+	public void updateTopic(Integer topicId, String name, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object deleteTopic(Integer topicId, UnitOfWork unitOfWork) {
+	public void deleteTopic(Integer topicId, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
 }

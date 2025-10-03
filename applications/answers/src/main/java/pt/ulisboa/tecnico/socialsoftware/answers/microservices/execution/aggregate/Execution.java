@@ -2,44 +2,51 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggreg
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.FetchType;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.HashSet;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 @Entity
-public class Execution extends Aggregate {
+public abstract class Execution extends Aggregate {
     @Id
-    private String name;
     private String acronym;
     private String academicTerm;
-    private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private Object course;
-    private Object students; 
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "execution")
+    private ExecutionCourse executionCourse;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "execution")
+    private Set<ExecutionStudent> students = new HashSet<>(); 
 
-    public Execution(String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, Object course, Object students) {
-        this.name = name;
-        this.acronym = acronym;
-        this.academicTerm = academicTerm;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.course = course;
-        this.students = students;
+    public Execution() {
+    }
+
+    public Execution(Integer aggregateId, ExecutionDto executionDto, ExecutionCourse executionCourse) {
+        super(aggregateId);
+        setAggregateType(getClass().getSimpleName());
+        setAcronym(executionDto.getAcronym());
+        setAcademicTerm(executionDto.getAcademicTerm());
+        setEndDate(executionDto.getEndDate());
+        setExecutionCourse(executionCourse);
     }
 
     public Execution(Execution other) {
-        // Copy constructor
+        super(other);
+        setAcronym(other.getAcronym());
+        setAcademicTerm(other.getAcademicTerm());
+        setEndDate(other.getEndDate());
+        setExecutionCourse(new ExecutionCourse(other.getExecutionCourse()));
+        setStudents(other.getStudents().stream().map(ExecutionStudent::new).collect(Collectors.toSet()));
     }
 
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getAcronym() {
         return acronym;
@@ -57,14 +64,6 @@ public class Execution extends Aggregate {
         this.academicTerm = academicTerm;
     }
 
-    public LocalDateTime getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(LocalDateTime startDate) {
-        this.startDate = startDate;
-    }
-
     public LocalDateTime getEndDate() {
         return endDate;
     }
@@ -73,59 +72,28 @@ public class Execution extends Aggregate {
         this.endDate = endDate;
     }
 
-    public Object getCourse() {
-        return course;
+    public ExecutionCourse getExecutionCourse() {
+        return executionCourse;
     }
 
-    public void setCourse(Object course) {
-        this.course = course;
+    public void setExecutionCourse(ExecutionCourse executionCourse) {
+        this.executionCourse = executionCourse;
+        if (this.executionCourse != null) {
+            this.executionCourse.setExecution(this);
+        }
     }
 
-    public Object getStudents() {
+    public Set<ExecutionStudent> getStudents() {
         return students;
     }
 
-    public void setStudents(Object students) {
+    public void setStudents(Set<ExecutionStudent> students) {
         this.students = students;
+        if (this.students != null) {
+            this.students.forEach(executionstudent -> executionstudent.setExecution(this));
+        }
     }
-	public Object createExecution(String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, Object course, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
-	}
 
-	public Object getExecutionById(Integer executionId, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public Object getAllExecutions(UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public Object getExecutionsByCourse(Integer courseId, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public Object enrollStudent(Integer executionId, Integer studentId, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public Object unenrollStudent(Integer executionId, Integer studentId, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public Object updateExecution(Integer executionId, String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public Object deleteExecution(Integer executionId, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
 
 }

@@ -2,25 +2,35 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
-public class User extends Aggregate {
+public abstract class User extends Aggregate {
     @Id
     private String name;
     private String username;
     private Boolean active; 
 
-    public User(String name, String username, Boolean active) {
-        this.name = name;
-        this.username = username;
-        this.active = active;
+    public User() {
+    }
+
+    public User(Integer aggregateId, UserDto userDto) {
+        super(aggregateId);
+        setAggregateType(getClass().getSimpleName());
+        setName(userDto.getName());
+        setUsername(userDto.getUsername());
+        setActive(userDto.getActive());
     }
 
     public User(User other) {
-        // Copy constructor
+        super(other);
+        setName(other.getName());
+        setUsername(other.getUsername());
+        setActive(other.getActive());
     }
 
 
@@ -47,6 +57,7 @@ public class User extends Aggregate {
     public void setActive(Boolean active) {
         this.active = active;
     }
+
 
 
 }

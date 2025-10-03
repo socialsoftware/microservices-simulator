@@ -10,7 +10,7 @@ public class TournamentCreatorDto implements Serializable {
 	private String creatorUsername;
 	private Integer creatorVersion;
 	private AggregateState creatorState;
-	private Object tournament;
+	private Tournament tournament;
 
 	public TournamentCreatorDto() {
 	}
@@ -64,11 +64,11 @@ public class TournamentCreatorDto implements Serializable {
 		this.creatorState = creatorState;
 	}
 
-	public Object getTournament() {
+	public Tournament getTournament() {
 		return tournament;
 	}
 
-	public void setTournament(Object tournament) {
+	public void setTournament(Tournament tournament) {
 		this.tournament = tournament;
 	}
 

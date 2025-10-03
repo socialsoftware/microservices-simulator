@@ -4,6 +4,23 @@ import { GenerationOptions, Aggregate, GeneratorRegistry } from "../core/types.j
 import { TemplateGenerators } from "../core/template-generators.js";
 
 export class EntityFeature {
+    /**
+     * Check if a DTO is available as a shared DTO
+     */
+    private static isSharedDto(dtoName: string): boolean {
+        const sharedDtos = [
+            'UserDto',
+            'CourseDto',
+            'ExecutionDto',
+            'QuestionDto',
+            'TopicDto',
+            'QuizDto',
+            'TournamentDto',
+            'AnswerDto'
+        ];
+        return sharedDtos.includes(dtoName);
+    }
+
     static async generateCoreComponents(
         aggregate: Aggregate,
         aggregatePath: string,
@@ -17,10 +34,19 @@ export class EntityFeature {
             await fs.writeFile(entityPath, entityCode, 'utf-8');
             console.log(`\t- Generated entity ${entity.name}`);
 
-            const dtoCode = await generators.dtoGenerator.generateDto(entity, options);
-            const dtoPath = path.join(aggregatePath, 'aggregate', `${entity.name}Dto.java`);
-            await fs.writeFile(dtoPath, dtoCode, 'utf-8');
-            console.log(`\t- Generated DTO ${entity.name}Dto`);
+            // Only generate DTO for root entities, and only if not available as shared DTO
+            if ((entity as any).isRoot) {
+                if (!this.isSharedDto(entity.name + 'Dto')) {
+                    const dtoCode = await generators.dtoGenerator.generateDto(entity, options);
+                    const dtoPath = path.join(aggregatePath, 'aggregate', `${entity.name}Dto.java`);
+                    await fs.writeFile(dtoPath, dtoCode, 'utf-8');
+                    console.log(`\t- Generated DTO ${entity.name}Dto`);
+                } else {
+                    console.log(`\t- Skipping DTO generation for ${entity.name}Dto (using shared DTO)`);
+                }
+            } else {
+                console.log(`\t- Skipping DTO generation for ${entity.name} (non-root entity)`);
+            }
         }
 
         const factoryCode = await generators.factoryGenerator.generateFactory(aggregate, options);

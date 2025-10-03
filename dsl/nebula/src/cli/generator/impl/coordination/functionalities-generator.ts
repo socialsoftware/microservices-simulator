@@ -68,18 +68,23 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             });
         }
 
-        const needsSaga = options.architecture === 'causal-saga' || options.features?.includes('sagas');
+        // Get consistency models from configuration
+        const consistencyModels = options.consistencyModels || [];
 
-        if (needsSaga) {
+        // Add unit of work services based on consistency models
+        if (consistencyModels.includes('sagas')) {
             dependencies.push({
                 name: 'sagaUnitOfWorkService',
                 type: 'SagaUnitOfWorkService',
-                required: false
+                required: true
             });
+        }
+
+        if (consistencyModels.includes('tcc')) {
             dependencies.push({
                 name: 'causalUnitOfWorkService',
                 type: 'CausalUnitOfWorkService',
-                required: false
+                required: true
             });
         }
 
@@ -175,9 +180,17 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         imports.push(`import ${basePackage}.ms.TransactionalModel;`);
         imports.push(`import ${basePackage}.ms.coordination.unitOfWork.UnitOfWork;`);
 
-        if (options.architecture === 'causal-saga' || options.features?.includes('sagas')) {
+        // Get consistency models from configuration
+        const consistencyModels = options.consistencyModels || [];
+
+        if (consistencyModels.includes('sagas')) {
             imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
             imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
+        }
+
+        if (consistencyModels.includes('tcc')) {
+            imports.push(`import ${basePackage}.ms.causal.unitOfWork.CausalUnitOfWork;`);
+            imports.push(`import ${basePackage}.ms.causal.unitOfWork.CausalUnitOfWorkService;`);
         }
 
         const usesUserDto = this.checkUserDtoUsage(aggregate, rootEntity);
@@ -191,7 +204,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         }
 
         dependencies.forEach(dep => {
-            if (dep.required && dep.name !== 'sagaUnitOfWorkService') {
+            if (dep.required && !dep.name.includes('UnitOfWorkService')) {
                 const serviceName = dep.name.toLowerCase().replace('service', '');
                 imports.push(`import ${basePackage}.${projectName}.microservices.${serviceName}.service.${dep.type};`);
             }

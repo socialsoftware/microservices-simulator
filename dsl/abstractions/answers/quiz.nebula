@@ -1,9 +1,9 @@
 Aggregate Quiz {
-    Entity QuizCourseExecution {
-        Integer courseExecutionAggregateId;
-        String courseExecutionName;
-        String courseExecutionAcronym;
-        String courseExecutionAcademicTerm;
+    Entity QuizExecution {
+        Integer executionAggregateId;
+        String executionName;
+        String executionAcronym;
+        String executionAcademicTerm;
     }
 
     Entity QuizQuestion {
@@ -26,7 +26,7 @@ Aggregate Quiz {
         LocalDateTime availableDate;
         LocalDateTime conclusionDate;
         Integer numberOfQuestions;
-        QuizCourseExecution courseExecution;
+        QuizExecution execution;
         Set<QuizQuestion> questions;
         Set<QuizOption> options;
 
@@ -68,10 +68,10 @@ Aggregate Quiz {
         }
 
         methods {
-            method createQuiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, QuizCourseExecution courseExecution, UnitOfWork unitOfWork): void;
+            method createQuiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, QuizExecution execution, UnitOfWork unitOfWork): void;
             method getQuizById(Integer quizId, UnitOfWork unitOfWork): void;
             method getAllQuizzes(UnitOfWork unitOfWork): void;
-            method getQuizzesByCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork): void;
+            method getQuizzesByExecution(Integer executionId, UnitOfWork unitOfWork): void;
             method getQuizzesByType(String quizType, UnitOfWork unitOfWork): void;
             method updateQuiz(Integer quizId, String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, UnitOfWork unitOfWork): void;
             method deleteQuiz(Integer quizId, UnitOfWork unitOfWork): void;
@@ -86,7 +86,7 @@ Aggregate Quiz {
     
     // Event processing workflows
     saga workflow invalidateQuiz(Integer quizId, UnitOfWork unitOfWork);
-    saga workflow removeCourseExecution(Integer courseExecutionId, Integer quizId, UnitOfWork unitOfWork);
+    saga workflow removeExecution(Integer executionId, Integer quizId, UnitOfWork unitOfWork);
     saga workflow removeQuestion(Integer questionId, Integer quizId, UnitOfWork unitOfWork);
     saga workflow updateQuestion(Integer questionId, String questionTitle, String questionContent, Integer quizId, UnitOfWork unitOfWork);
     saga workflow removeUser(Integer userAggregateId, Integer quizId, UnitOfWork unitOfWork);
@@ -94,10 +94,10 @@ Aggregate Quiz {
     WebAPIEndpoints {
         Endpoint CreateQuiz {
             httpMethod: POST
-            path: "/executions/{courseExecutionId}"
+            path: "/executions/{executionId}"
             methodName: createQuiz
             parameters: [
-                courseExecutionId: Integer: "@PathVariable",
+                executionId: Integer: "@PathVariable",
                 quizDto: Quiz: "@RequestBody"
             ]
             returnType: Quiz

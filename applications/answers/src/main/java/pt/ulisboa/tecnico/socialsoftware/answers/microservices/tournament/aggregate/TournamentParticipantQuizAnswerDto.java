@@ -10,7 +10,7 @@ public class TournamentParticipantQuizAnswerDto implements Serializable {
 	private boolean answered;
 	private Integer numberOfAnswered;
 	private Integer numberOfCorrect;
-	private Object tournamentParticipant;
+	private TournamentParticipant tournamentParticipant;
 
 	public TournamentParticipantQuizAnswerDto() {
 	}
@@ -64,11 +64,11 @@ public class TournamentParticipantQuizAnswerDto implements Serializable {
 		this.numberOfCorrect = numberOfCorrect;
 	}
 
-	public Object getTournamentParticipant() {
+	public TournamentParticipant getTournamentParticipant() {
 		return tournamentParticipant;
 	}
 
-	public void setTournamentParticipant(Object tournamentParticipant) {
+	public void setTournamentParticipant(TournamentParticipant tournamentParticipant) {
 		this.tournamentParticipant = tournamentParticipant;
 	}
 

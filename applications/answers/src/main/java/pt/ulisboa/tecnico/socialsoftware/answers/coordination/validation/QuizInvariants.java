@@ -111,11 +111,11 @@ public class QuizInvariants {
     }
 
     /**
-     * CourseExecution cannot be null
+     * Execution cannot be null
      */
-    public static void invariantCourseExecutionNotNull(Quiz entity) {
-        if (entity.getCourseExecution() == null) {
-            throw new IllegalStateException("CourseExecution cannot be null");
+    public static void invariantExecutionNotNull(Quiz entity) {
+        if (entity.getExecution() == null) {
+            throw new IllegalStateException("Execution cannot be null");
         }
     }
 

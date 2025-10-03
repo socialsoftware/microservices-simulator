@@ -12,11 +12,11 @@ public class TournamentDto implements Serializable {
 	private LocalDateTime endTime;
 	private Integer numberOfQuestions;
 	private boolean cancelled;
-	private Object tournamentCreator;
-	private Object tournamentParticipants;
-	private Object tournamentCourseExecution;
-	private Object tournamentTopics;
-	private Object tournamentQuiz;
+	private TournamentCreator tournamentCreator;
+	private Set<TournamentParticipant> tournamentParticipants;
+	private TournamentExecution tournamentExecution;
+	private Set<TournamentTopic> tournamentTopics;
+	private TournamentQuiz tournamentQuiz;
 	private Integer version;
 	private AggregateState state;
 
@@ -31,7 +31,7 @@ public class TournamentDto implements Serializable {
 		this.cancelled = tournament.isCancelled();
 		this.tournamentCreator = tournament.getTournamentCreator();
 		this.tournamentParticipants = tournament.getTournamentParticipants();
-		this.tournamentCourseExecution = tournament.getTournamentCourseExecution();
+		this.tournamentExecution = tournament.getTournamentExecution();
 		this.tournamentTopics = tournament.getTournamentTopics();
 		this.tournamentQuiz = tournament.getTournamentQuiz();
 		this.version = tournament.getVersion();
@@ -78,43 +78,43 @@ public class TournamentDto implements Serializable {
 		this.cancelled = cancelled;
 	}
 
-	public Object getTournamentCreator() {
+	public TournamentCreator getTournamentCreator() {
 		return tournamentCreator;
 	}
 
-	public void setTournamentCreator(Object tournamentCreator) {
+	public void setTournamentCreator(TournamentCreator tournamentCreator) {
 		this.tournamentCreator = tournamentCreator;
 	}
 
-	public Object getTournamentParticipants() {
+	public Set<TournamentParticipant> getTournamentParticipants() {
 		return tournamentParticipants;
 	}
 
-	public void setTournamentParticipants(Object tournamentParticipants) {
+	public void setTournamentParticipants(Set<TournamentParticipant> tournamentParticipants) {
 		this.tournamentParticipants = tournamentParticipants;
 	}
 
-	public Object getTournamentCourseExecution() {
-		return tournamentCourseExecution;
+	public TournamentExecution getTournamentExecution() {
+		return tournamentExecution;
 	}
 
-	public void setTournamentCourseExecution(Object tournamentCourseExecution) {
-		this.tournamentCourseExecution = tournamentCourseExecution;
+	public void setTournamentExecution(TournamentExecution tournamentExecution) {
+		this.tournamentExecution = tournamentExecution;
 	}
 
-	public Object getTournamentTopics() {
+	public Set<TournamentTopic> getTournamentTopics() {
 		return tournamentTopics;
 	}
 
-	public void setTournamentTopics(Object tournamentTopics) {
+	public void setTournamentTopics(Set<TournamentTopic> tournamentTopics) {
 		this.tournamentTopics = tournamentTopics;
 	}
 
-	public Object getTournamentQuiz() {
+	public TournamentQuiz getTournamentQuiz() {
 		return tournamentQuiz;
 	}
 
-	public void setTournamentQuiz(Object tournamentQuiz) {
+	public void setTournamentQuiz(TournamentQuiz tournamentQuiz) {
 		this.tournamentQuiz = tournamentQuiz;
 	}
 

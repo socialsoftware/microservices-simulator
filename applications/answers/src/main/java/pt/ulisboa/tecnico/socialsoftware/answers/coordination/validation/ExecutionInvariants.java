@@ -30,24 +30,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggrega
 public class ExecutionInvariants {
 
     /**
-     * Name cannot be null
-     */
-    public static void invariantNameNotNull(Execution entity) {
-        if (entity.getName() == null) {
-            throw new IllegalStateException("Name cannot be null");
-        }
-    }
-
-    /**
-     * Name cannot be blank
-     */
-    public static void invariantNameNotBlank(Execution entity) {
-        if (entity.getName() == null || entity.getName().trim().isEmpty()) {
-            throw new IllegalStateException("Name cannot be blank");
-        }
-    }
-
-    /**
      * Acronym cannot be null
      */
     public static void invariantAcronymNotNull(Execution entity) {
@@ -84,15 +66,6 @@ public class ExecutionInvariants {
     }
 
     /**
-     * StartDate cannot be null
-     */
-    public static void invariantStartDateNotNull(Execution entity) {
-        if (entity.getStartDate() == null) {
-            throw new IllegalStateException("StartDate cannot be null");
-        }
-    }
-
-    /**
      * EndDate cannot be null
      */
     public static void invariantEndDateNotNull(Execution entity) {
@@ -102,11 +75,11 @@ public class ExecutionInvariants {
     }
 
     /**
-     * Course cannot be null
+     * ExecutionCourse cannot be null
      */
-    public static void invariantCourseNotNull(Execution entity) {
-        if (entity.getCourse() == null) {
-            throw new IllegalStateException("Course cannot be null");
+    public static void invariantExecutionCourseNotNull(Execution entity) {
+        if (entity.getExecutionCourse() == null) {
+            throw new IllegalStateException("ExecutionCourse cannot be null");
         }
     }
 

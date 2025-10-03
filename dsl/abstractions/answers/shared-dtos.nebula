@@ -1,3 +1,5 @@
+import shared-dtos;
+
 SharedDtos {
     
     dto UserDto {
@@ -15,12 +17,22 @@ SharedDtos {
     }
     
     dto ExecutionDto {
-        Integer id;
-        String name;
         String acronym;
         String academicTerm;
-        LocalDateTime startDate;
         LocalDateTime endDate;
+        Set<UserDto> students;
+
+        Integer courseAggregateId;
+        String courseName;
+        String courseType;
+        Integer courseVersion;
+        
+        mapping UserDto students {
+            id -> studentAggregateId;
+            name -> studentName;
+            username -> studentUsername;
+            email -> studentEmail;
+        }
     }
     
     dto QuestionDto {

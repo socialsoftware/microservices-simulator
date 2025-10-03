@@ -19,7 +19,7 @@ public class QuizFactory {
             quizDto.getAvailableDate(),
             quizDto.getConclusionDate(),
             quizDto.getNumberOfQuestions(),
-            quizDto.getCourseExecution(),
+            quizDto.getExecution(),
             quizDto.getQuestions(),
             quizDto.getOptions()
         );

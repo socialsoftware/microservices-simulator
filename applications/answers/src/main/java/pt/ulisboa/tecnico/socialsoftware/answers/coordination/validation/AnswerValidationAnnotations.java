@@ -86,32 +86,32 @@ public class AnswerValidationAnnotations {
      */
     public static class QuizAnswerStudentValidation {
         @NotNull
-        private Object quizAnswerStudent;
+        private QuizAnswerStudent quizAnswerStudent;
         
         // Getter and setter
-        public Object getQuizAnswerStudent() {
+        public QuizAnswerStudent getQuizAnswerStudent() {
             return quizAnswerStudent;
         }
         
-        public void setQuizAnswerStudent(Object quizAnswerStudent) {
+        public void setQuizAnswerStudent(QuizAnswerStudent quizAnswerStudent) {
             this.quizAnswerStudent = quizAnswerStudent;
         }
     }
 
     /**
-     * Validation annotations for quizAnswerCourseExecution
+     * Validation annotations for quizAnswerExecution
      */
-    public static class QuizAnswerCourseExecutionValidation {
+    public static class QuizAnswerExecutionValidation {
         @NotNull
-        private Object quizAnswerCourseExecution;
+        private QuizAnswerExecution quizAnswerExecution;
         
         // Getter and setter
-        public Object getQuizAnswerCourseExecution() {
-            return quizAnswerCourseExecution;
+        public QuizAnswerExecution getQuizAnswerExecution() {
+            return quizAnswerExecution;
         }
         
-        public void setQuizAnswerCourseExecution(Object quizAnswerCourseExecution) {
-            this.quizAnswerCourseExecution = quizAnswerCourseExecution;
+        public void setQuizAnswerExecution(QuizAnswerExecution quizAnswerExecution) {
+            this.quizAnswerExecution = quizAnswerExecution;
         }
     }
 
@@ -121,14 +121,14 @@ public class AnswerValidationAnnotations {
     public static class QuestionAnswersValidation {
         @NotNull
     @NotEmpty
-        private Object questionAnswers;
+        private Set<QuestionAnswer> questionAnswers;
         
         // Getter and setter
-        public Object getQuestionAnswers() {
+        public Set<QuestionAnswer> getQuestionAnswers() {
             return questionAnswers;
         }
         
-        public void setQuestionAnswers(Object questionAnswers) {
+        public void setQuestionAnswers(Set<QuestionAnswer> questionAnswers) {
             this.questionAnswers = questionAnswers;
         }
     }
@@ -138,14 +138,14 @@ public class AnswerValidationAnnotations {
      */
     public static class AnsweredQuizValidation {
         @NotNull
-        private Object answeredQuiz;
+        private AnsweredQuiz answeredQuiz;
         
         // Getter and setter
-        public Object getAnsweredQuiz() {
+        public AnsweredQuiz getAnsweredQuiz() {
             return answeredQuiz;
         }
         
-        public void setAnsweredQuiz(Object answeredQuiz) {
+        public void setAnsweredQuiz(AnsweredQuiz answeredQuiz) {
             this.answeredQuiz = answeredQuiz;
         }
     }

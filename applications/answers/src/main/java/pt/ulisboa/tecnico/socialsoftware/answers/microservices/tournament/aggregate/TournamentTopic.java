@@ -1,31 +1,49 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate;
 
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.CascadeType;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 
-@Embeddable
+@Entity
 public class TournamentTopic {
+    @Id
+    @GeneratedValue
     private Long id;
     private Integer topicAggregateId;
     private String topicName;
     private Integer topicCourseAggregateId;
     private Integer topicVersion;
     private AggregateState state;
-    private Object tournament; 
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamenttopic")
+    private Tournament tournament;
+    @OneToOne
+    private Tournament tournament; 
 
-    public TournamentTopic(Long id, Integer topicAggregateId, String topicName, Integer topicCourseAggregateId, Integer topicVersion, AggregateState state, Object tournament) {
-        this.id = id;
-        this.topicAggregateId = topicAggregateId;
-        this.topicName = topicName;
-        this.topicCourseAggregateId = topicCourseAggregateId;
-        this.topicVersion = topicVersion;
-        this.state = state;
-        this.tournament = tournament;
+    public TournamentTopic() {
+    }
+
+    public TournamentTopic(TournamentDto tournamentDto) {
+        setTopicAggregateId(tournamentDto.getTopicAggregateId());
+        setTopicName(tournamentDto.getTopicName());
+        setTopicCourseAggregateId(tournamentDto.getTopicCourseAggregateId());
+        setTopicVersion(tournamentDto.getTopicVersion());
+        setState(tournamentDto.getState());
+        setTournament(tournament);
     }
 
     public TournamentTopic(TournamentTopic other) {
-        // Copy constructor
+        setTopicAggregateId(other.getTopicAggregateId());
+        setTopicName(other.getTopicName());
+        setTopicCourseAggregateId(other.getTopicCourseAggregateId());
+        setTopicVersion(other.getTopicVersion());
+        setState(other.getState());
+        setTournament(new Tournament(other.getTournament()));
     }
 
 
@@ -77,11 +95,22 @@ public class TournamentTopic {
         this.state = state;
     }
 
-    public Object getTournament() {
+    public Tournament getTournament() {
         return tournament;
     }
 
-    public void setTournament(Object tournament) {
+    public void setTournament(Tournament tournament) {
+        this.tournament = tournament;
+        if (this.tournament != null) {
+            this.tournament.setTournamentTopic(this);
+        }
+    }
+
+    public Tournament getTournament() {
+        return tournament;
+    }
+
+    public void setTournament(Tournament tournament) {
         this.tournament = tournament;
     }
 

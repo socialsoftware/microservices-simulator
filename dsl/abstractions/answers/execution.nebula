@@ -1,29 +1,32 @@
 import shared-dtos;
+import shared-enums;
 
 Aggregate Execution {
-    Entity CourseExecutionCourse {
+    Entity ExecutionCourse {
+        Long id;
         Integer courseAggregateId;
         String courseName;
-        String courseAcronym;
-        String courseType;
+        CourseType courseType;
+        Integer courseVersion;
     }
 
-    Entity CourseExecutionStudent {
+    Entity ExecutionStudent {
+        Long id
         Integer studentAggregateId;
+        Integer studentVersion;
         String studentName;
         String studentUsername;
+        Boolean active;
         String studentEmail;
         LocalDateTime enrollmentDate;
     }
 
     Root Entity Execution {
-        String name;
         String acronym;
         String academicTerm;
-        LocalDateTime startDate;
         LocalDateTime endDate;
-        CourseExecutionCourse course;
-        Set<CourseExecutionStudent> students;
+        ExecutionCourse executionCourse;
+        Set<ExecutionStudent> students;
 
         invariants {
             check startDateBeforeEndDate {
@@ -59,28 +62,10 @@ Aggregate Execution {
         }
 
         methods {
-            method createExecution(String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, CourseExecutionCourse course, UnitOfWork unitOfWork): void;
-            method getExecutionById(Integer executionId, UnitOfWork unitOfWork): void;
-            method getAllExecutions(UnitOfWork unitOfWork): void;
-            method getExecutionsByCourse(Integer courseId, UnitOfWork unitOfWork): void;
-            method enrollStudent(Integer executionId, Integer studentId, UnitOfWork unitOfWork): void;
-            method unenrollStudent(Integer executionId, Integer studentId, UnitOfWork unitOfWork): void;
-            method updateExecution(Integer executionId, String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, UnitOfWork unitOfWork): void;
-            method deleteExecution(Integer executionId, UnitOfWork unitOfWork): void;
+
         }
     }
 
-    // Service methods
-    method getExecutionsByStudent(Integer studentId, UnitOfWork unitOfWork): void;
-    method getActiveExecutions(UnitOfWork unitOfWork): void;
-    method getExecutionsByAcademicTerm(String academicTerm, UnitOfWork unitOfWork): void;
-    
-    // Event processing workflows
-    saga workflow removeUser(Integer userAggregateId, Integer executionId, UnitOfWork unitOfWork);
-    saga workflow anonymizeStudent(Integer studentAggregateId, Integer executionId, UnitOfWork unitOfWork);
-    saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer executionId, UnitOfWork unitOfWork);
-    saga workflow deleteExecution(Integer executionId, UnitOfWork unitOfWork);
-    saga workflow disenrollStudentFromExecution(Integer studentAggregateId, Integer executionId, UnitOfWork unitOfWork);
     
     CustomRepository {
         Optional<Integer> findExecutionIdByCourseIdAndAcademicTerm(Integer courseId, String academicTerm);

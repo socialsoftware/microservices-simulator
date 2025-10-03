@@ -136,19 +136,19 @@ public class QuizValidationAnnotations {
     }
 
     /**
-     * Validation annotations for courseExecution
+     * Validation annotations for execution
      */
-    public static class CourseExecutionValidation {
+    public static class ExecutionValidation {
         @NotNull
-        private Object courseExecution;
+        private QuizExecution execution;
         
         // Getter and setter
-        public Object getCourseExecution() {
-            return courseExecution;
+        public QuizExecution getExecution() {
+            return execution;
         }
         
-        public void setCourseExecution(Object courseExecution) {
-            this.courseExecution = courseExecution;
+        public void setExecution(QuizExecution execution) {
+            this.execution = execution;
         }
     }
 
@@ -158,14 +158,14 @@ public class QuizValidationAnnotations {
     public static class QuestionsValidation {
         @NotNull
     @NotEmpty
-        private Object questions;
+        private Set<QuizQuestion> questions;
         
         // Getter and setter
-        public Object getQuestions() {
+        public Set<QuizQuestion> getQuestions() {
             return questions;
         }
         
-        public void setQuestions(Object questions) {
+        public void setQuestions(Set<QuizQuestion> questions) {
             this.questions = questions;
         }
     }
@@ -176,14 +176,14 @@ public class QuizValidationAnnotations {
     public static class OptionsValidation {
         @NotNull
     @NotEmpty
-        private Object options;
+        private Set<QuizOption> options;
         
         // Getter and setter
-        public Object getOptions() {
+        public Set<QuizOption> getOptions() {
             return options;
         }
         
-        public void setOptions(Object options) {
+        public void setOptions(Set<QuizOption> options) {
             this.options = options;
         }
     }

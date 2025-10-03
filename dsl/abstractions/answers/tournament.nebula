@@ -8,7 +8,7 @@ Aggregate Tournament {
        Boolean cancelled;
        TournamentCreator tournamentCreator;
        Set<TournamentParticipant> tournamentParticipants;
-       TournamentCourseExecution tournamentCourseExecution;
+       TournamentExecution tournamentExecution;
        Set<TournamentTopic> tournamentTopics;
        TournamentQuiz tournamentQuiz;
 
@@ -46,7 +46,7 @@ Aggregate Tournament {
        businessRules {
            rule "FINAL_AFTER_START" {
                trigger: startTime;
-               affectedFields: [startTime, endTime, numberOfQuestions, tournamentTopics, cancelled, tournamentCreator, tournamentParticipants, tournamentCourseExecution, tournamentQuiz];
+               affectedFields: [startTime, endTime, numberOfQuestions, tournamentTopics, cancelled, tournamentCreator, tournamentParticipants, tournamentExecution, tournamentQuiz];
                conditions: [
                    "DateHandler.now().isAfter(prev.getStartTime())",
                    "prev.isCancelled()"
@@ -116,18 +116,18 @@ Aggregate Tournament {
        }
     }
 
-    Entity TournamentCourseExecution {
+    Entity TournamentExecution {
         Long id key;
-        Integer courseExecutionAggregateId;
-        Integer courseExecutionCourseId;
-        String courseExecutionAcronym;
-        String courseExecutionStatus;
-        Integer courseExecutionVersion;
+        Integer executionAggregateId;
+        Integer executionCourseId;
+        String executionAcronym;
+        String executionStatus;
+        Integer executionVersion;
         Tournament tournament;
 
         invariants {
             check validStatus {
-                courseExecutionStatus != null;
+                executionStatus != null;
             }
         }
     }
@@ -197,9 +197,9 @@ Aggregate Tournament {
     }
 
     // Service methods (remain as regular methods)
-    method getTournamentsByCourseExecutionId(Integer courseExecutionId, UnitOfWork unitOfWork): List<TournamentDto>;
-    method getOpenedTournamentsForCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork): List<TournamentDto>;
-    method getClosedTournamentsForCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork): List<TournamentDto>;
+    method getTournamentsByExecutionId(Integer executionId, UnitOfWork unitOfWork): List<TournamentDto>;
+    method getOpenedTournamentsForExecution(Integer executionId, UnitOfWork unitOfWork): List<TournamentDto>;
+    method getClosedTournamentsForExecution(Integer executionId, UnitOfWork unitOfWork): List<TournamentDto>;
     method getTournamentParticipant(Integer userAggregateId): TournamentParticipant;
     
     // Business workflows (converted to saga workflows)
@@ -285,10 +285,10 @@ Aggregate Tournament {
             throwsException: true
         }
 
-        Endpoint GetTournamentsForCourseExecution {
+        Endpoint GetTournamentsForExecution {
             httpMethod: GET
             path: "/executions/{executionAggregateId}/tournaments"
-            methodName: getTournamentsForCourseExecution
+            methodName: getTournamentsForExecution
             parameters: [
                 executionAggregateId: Integer: "@PathVariable"
             ]
@@ -297,10 +297,10 @@ Aggregate Tournament {
             throwsException: false
         }
 
-        Endpoint GetOpenedTournamentsForCourseExecution {
+        Endpoint GetOpenedTournamentsForExecution {
             httpMethod: GET
             path: "/executions/{executionAggregateId}/tournaments/opened"
-            methodName: getOpenedTournamentsForCourseExecution
+            methodName: getOpenedTournamentsForExecution
             parameters: [
                 executionAggregateId: Integer: "@PathVariable"
             ]
@@ -309,10 +309,10 @@ Aggregate Tournament {
             throwsException: false
         }
 
-        Endpoint GetClosedTournamentsForCourseExecution {
+        Endpoint GetClosedTournamentsForExecution {
             httpMethod: GET
             path: "/executions/{executionAggregateId}/tournaments/closed"
-            methodName: getClosedTournamentsForCourseExecution
+            methodName: getClosedTournamentsForExecution
             parameters: [
                 executionAggregateId: Integer: "@PathVariable"
             ]

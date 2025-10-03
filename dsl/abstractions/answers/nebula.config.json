@@ -9,7 +9,8 @@
         "repositories",
         "webapi",
         "coordination",
-        "saga"
+        "saga",
+        "shared"
     ],
     "consistencyModels": [
         "sagas"

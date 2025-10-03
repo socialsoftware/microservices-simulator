@@ -35,7 +35,7 @@ public class TopicService {
     public TopicService() {}
 
     // CRUD Operations
-    public TopicDto createTopic(String name, Object course, LocalDateTime creationDate) {
+    public TopicDto createTopic(String name, TopicCourse course, LocalDateTime creationDate) {
         try {
             Topic topic = new Topic(name, course, creationDate);
             topic = topicRepository.save(topic);
@@ -106,13 +106,13 @@ public class TopicService {
 
     // Business Methods
     @Transactional
-    public Object searchTopicsByName(Integer id, String name, UnitOfWork unitOfWork) {
+    public void searchTopicsByName(Integer id, String name, UnitOfWork unitOfWork) {
         try {
             Topic topic = topicRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Topic not found with id: " + id));
             
             // Business logic for searchTopicsByName
-            Object result = topic.searchTopicsByName();
+            void result = topic.searchTopicsByName();
             topicRepository.save(topic);
             return result;
         } catch (Exception e) {

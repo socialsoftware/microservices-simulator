@@ -7,15 +7,15 @@ import static {{basePackage}}.{{projectName}}.microservices.exception.{{ProjectN
 {{this}}
 {{/each}}
 
-{{annotations.service}}
+@Service
 public class {{aggregateName}}Functionalities {
 {{#each dependencies}}
-    {{annotations.autowired}}{{#unless required}}(required = false){{/unless}}
+    @Autowired{{#unless required}}(required = false){{/unless}}
     private {{type}} {{name}};
 
 {{/each}}
 
-    {{annotations.autowired}}
+    @Autowired
     private Environment env;
 
     private TransactionalModel workflowType;

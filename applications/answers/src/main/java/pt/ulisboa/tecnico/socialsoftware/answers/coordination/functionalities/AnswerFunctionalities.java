@@ -17,34 +17,93 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service.AnswerService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answerfactory.service.AnswerFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuizAnswerStudentDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuizAnswerCourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuizAnswerExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuestionAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnsweredQuizDto;
 
 @Service
 public class AnswerFunctionalities {
+    @Autowired
+    private AnswerService answerService;
 
-private AnswerService answerService;
+    @Autowired
+    private UserService userService;
 
-@Autowired
-private Environment env;
+    @Autowired
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
 
-private TransactionalModel workflowType;
+    @Autowired
+    private AnswerFactory answerFactory;
 
-@PostConstruct
-public void init() {
-String[] activeProfiles = env.getActiveProfiles();
-if (Arrays.asList(activeProfiles).contains(SAGAS.getValue())) {
-workflowType = SAGAS;
-} else {
-throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
-}
-}
 
-[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]
+    @Autowired
+    private Environment env;
+
+    private TransactionalModel workflowType;
+
+    @PostConstruct
+    public void init() {
+        String[] activeProfiles = env.getActiveProfiles();
+        if (Arrays.asList(activeProfiles).contains(SAGAS.getValue())) {
+            workflowType = SAGAS;
+        } else {
+            throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void answerQuestion(Integer quizAggregateId, Integer userAggregateId, AnswerDto questionAnswerDto) throws AnswersException {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AnswerQuestionFunctionalitySagas answerQuestionFunctionalitySagas = new AnswerQuestionFunctionalitySagas(
+                        answerService, sagaUnitOfWorkService, sagaUnitOfWork);
+                answerQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public List<AnswerDto> getAnswersByExecution(Integer executionId, UnitOfWork unitOfWork) {
+        return new ArrayList<>(); // TODO: Implement getAnswersByExecution
+    }
+
+    public List<AnswerDto> getAnswersByStudentAndExecution(Integer studentId, Integer executionId, UnitOfWork unitOfWork) {
+        return new ArrayList<>(); // TODO: Implement getAnswersByStudentAndExecution
+    }
+
+    public List<AnswerDto> getAnswersByQuizAndExecution(Integer quizId, Integer executionId, UnitOfWork unitOfWork) {
+        return new ArrayList<>(); // TODO: Implement getAnswersByQuizAndExecution
+    }
+
+    public void anonymizeStudent(Integer studentAggregateId, Integer answerId, UnitOfWork unitOfWork) {
+        
+    }
+
+    public void invalidateQuiz(Integer quizAggregateId, Integer answerId, UnitOfWork unitOfWork) {
+        
+    }
+
+    public void removeExecution(Integer executionAggregateId, Integer answerId, UnitOfWork unitOfWork) {
+        
+    }
+
+    public void unenrollStudentFromExecution(Integer studentAggregateId, Integer executionAggregateId, Integer answerId, UnitOfWork unitOfWork) {
+        
+    }
+
+    public void updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer answerId, UnitOfWork unitOfWork) {
+        
+    }
+
 }

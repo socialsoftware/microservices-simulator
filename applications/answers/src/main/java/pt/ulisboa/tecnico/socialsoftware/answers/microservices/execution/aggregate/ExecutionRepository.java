@@ -9,10 +9,7 @@ import jakarta.transaction.Transactional;
 @Repository
 @Transactional
 public interface ExecutionRepository extends JpaRepository<Execution, Integer> {
-        @Query(value = "select execution.id from Execution execution where execution.name = :name AND execution.state = 'ACTIVE' AND execution.sagaState = 'NOT_IN_SAGA'")
-    Optional<Integer> findExecutionIdByNameForSaga(String name);
-
-    @Query(value = "select execution.id from Execution execution where execution.acronym = :acronym AND execution.state = 'ACTIVE' AND execution.sagaState = 'NOT_IN_SAGA'")
+        @Query(value = "select execution.id from Execution execution where execution.acronym = :acronym AND execution.state = 'ACTIVE' AND execution.sagaState = 'NOT_IN_SAGA'")
     Optional<Integer> findExecutionIdByAcronymForSaga(String acronym);
 
     @Query(value = "select execution.id from Execution execution where execution.academicTerm = :academicTerm AND execution.state = 'ACTIVE' AND execution.sagaState = 'NOT_IN_SAGA'")

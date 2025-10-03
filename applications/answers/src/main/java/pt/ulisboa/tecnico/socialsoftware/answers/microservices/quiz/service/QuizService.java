@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.*;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizExecution;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizQuestion;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizOption;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
@@ -40,9 +40,9 @@ public class QuizService {
     public QuizService() {}
 
     // CRUD Operations
-    public QuizDto createQuiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, Object courseExecution, Object questions, Object options) {
+    public QuizDto createQuiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, QuizExecution execution, Set<QuizQuestion> questions, Set<QuizOption> options) {
         try {
-            Quiz quiz = new Quiz(title, description, quizType, availableDate, conclusionDate, numberOfQuestions, courseExecution, questions, options);
+            Quiz quiz = new Quiz(title, description, quizType, availableDate, conclusionDate, numberOfQuestions, execution, questions, options);
             quiz = quizRepository.save(quiz);
             return new QuizDto(quiz);
         } catch (Exception e) {
@@ -95,8 +95,8 @@ public class QuizService {
             if (quizDto.getNumberOfQuestions() != null) {
                 quiz.setNumberOfQuestions(quizDto.getNumberOfQuestions());
             }
-            if (quizDto.getCourseExecution() != null) {
-                quiz.setCourseExecution(quizDto.getCourseExecution());
+            if (quizDto.getExecution() != null) {
+                quiz.setExecution(quizDto.getExecution());
             }
             if (quizDto.getQuestions() != null) {
                 quiz.setQuestions(quizDto.getQuestions());
@@ -129,13 +129,13 @@ public class QuizService {
 
     // Business Methods
     @Transactional
-    public Object getAvailableQuizzes(Integer id, UnitOfWork unitOfWork) {
+    public void getAvailableQuizzes(Integer id, UnitOfWork unitOfWork) {
         try {
             Quiz quiz = quizRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Quiz not found with id: " + id));
             
             // Business logic for getAvailableQuizzes
-            Object result = quiz.getAvailableQuizzes();
+            void result = quiz.getAvailableQuizzes();
             quizRepository.save(quiz);
             return result;
         } catch (Exception e) {
@@ -144,13 +144,13 @@ public class QuizService {
     }
 
     @Transactional
-    public Object getCompletedQuizzes(Integer id, UnitOfWork unitOfWork) {
+    public void getCompletedQuizzes(Integer id, UnitOfWork unitOfWork) {
         try {
             Quiz quiz = quizRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Quiz not found with id: " + id));
             
             // Business logic for getCompletedQuizzes
-            Object result = quiz.getCompletedQuizzes();
+            void result = quiz.getCompletedQuizzes();
             quizRepository.save(quiz);
             return result;
         } catch (Exception e) {
@@ -159,13 +159,13 @@ public class QuizService {
     }
 
     @Transactional
-    public Object searchQuizzesByTitle(Integer id, String title, UnitOfWork unitOfWork) {
+    public void searchQuizzesByTitle(Integer id, String title, UnitOfWork unitOfWork) {
         try {
             Quiz quiz = quizRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Quiz not found with id: " + id));
             
             // Business logic for searchQuizzesByTitle
-            Object result = quiz.searchQuizzesByTitle();
+            void result = quiz.searchQuizzesByTitle();
             quizRepository.save(quiz);
             return result;
         } catch (Exception e) {
@@ -186,13 +186,13 @@ public class QuizService {
     }
 
     @Transactional
-    public void removeCourseExecution(Integer courseExecutionId, Integer quizId, UnitOfWork unitOfWork) {
+    public void removeExecution(Integer executionId, Integer quizId, UnitOfWork unitOfWork) {
         try {
-            // TODO: Implement workflow logic for removeCourseExecution
-            throw new UnsupportedOperationException("Workflow removeCourseExecution not implemented");
+            // TODO: Implement workflow logic for removeExecution
+            throw new UnsupportedOperationException("Workflow removeExecution not implemented");
 
         } catch (Exception e) {
-            throw new AnswersException("Error in workflow removeCourseExecution: " + e.getMessage());
+            throw new AnswersException("Error in workflow removeExecution: " + e.getMessage());
         }
     }
 

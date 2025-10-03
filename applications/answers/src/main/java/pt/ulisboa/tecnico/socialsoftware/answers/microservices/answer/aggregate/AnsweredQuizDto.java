@@ -19,7 +19,7 @@ public class AnsweredQuizDto implements Serializable {
 	public AnsweredQuizDto(AnsweredQuiz answeredquiz) {
 		this.quizAggregateId = answeredquiz.getQuizAggregateId();
 		this.quizTitle = answeredquiz.getQuizTitle();
-		this.quizType = answeredquiz.getQuizType();
+		this.quizType = answeredquiz.getQuizType() != null ? answeredquiz.getQuizType().toString() : null;
 		this.availableDate = answeredquiz.getAvailableDate();
 		this.conclusionDate = answeredquiz.getConclusionDate();
 		this.numberOfQuestions = answeredquiz.getNumberOfQuestions();

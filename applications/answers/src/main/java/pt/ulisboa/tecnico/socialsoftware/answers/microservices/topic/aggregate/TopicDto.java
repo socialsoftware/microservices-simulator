@@ -8,7 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 public class TopicDto implements Serializable {
 	private Integer aggregateId;
 	private String name;
-	private Object course;
+	private TopicCourse course;
 	private LocalDateTime creationDate;
 	private Integer version;
 	private AggregateState state;
@@ -41,11 +41,11 @@ public class TopicDto implements Serializable {
 		this.name = name;
 	}
 
-	public Object getCourse() {
+	public TopicCourse getCourse() {
 		return course;
 	}
 
-	public void setCourse(Object course) {
+	public void setCourse(TopicCourse course) {
 		this.course = course;
 	}
 

@@ -35,22 +35,22 @@ class AnswerBuilder extends SpockTest {
         return this
     }
 
-    AnswerBuilder withQuizAnswerStudent(Object quizAnswerStudent) {
+    AnswerBuilder withQuizAnswerStudent(QuizAnswerStudent quizAnswerStudent) {
         this.answer.setQuizAnswerStudent(quizAnswerStudent)
         return this
     }
 
-    AnswerBuilder withQuizAnswerCourseExecution(Object quizAnswerCourseExecution) {
-        this.answer.setQuizAnswerCourseExecution(quizAnswerCourseExecution)
+    AnswerBuilder withQuizAnswerExecution(QuizAnswerExecution quizAnswerExecution) {
+        this.answer.setQuizAnswerExecution(quizAnswerExecution)
         return this
     }
 
-    AnswerBuilder withQuestionAnswers(Object questionAnswers) {
+    AnswerBuilder withQuestionAnswers(Set<QuestionAnswer> questionAnswers) {
         this.answer.setQuestionAnswers(questionAnswers)
         return this
     }
 
-    AnswerBuilder withAnsweredQuiz(Object answeredQuiz) {
+    AnswerBuilder withAnsweredQuiz(AnsweredQuiz answeredQuiz) {
         this.answer.setAnsweredQuiz(answeredQuiz)
         return this
     }

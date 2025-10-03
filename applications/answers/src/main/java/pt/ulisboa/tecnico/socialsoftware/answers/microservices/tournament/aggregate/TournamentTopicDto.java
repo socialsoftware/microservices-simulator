@@ -10,7 +10,7 @@ public class TournamentTopicDto implements Serializable {
 	private Integer topicCourseAggregateId;
 	private Integer topicVersion;
 	private AggregateState state;
-	private Object tournament;
+	private Tournament tournament;
 
 	public TournamentTopicDto() {
 	}
@@ -64,11 +64,11 @@ public class TournamentTopicDto implements Serializable {
 		this.state = state;
 	}
 
-	public Object getTournament() {
+	public Tournament getTournament() {
 		return tournament;
 	}
 
-	public void setTournament(Object tournament) {
+	public void setTournament(Tournament tournament) {
 		this.tournament = tournament;
 	}
 

@@ -21,43 +21,43 @@ this.quizService = quizService;
 this.unitOfWorkService = unitOfWorkService;
 }
 
-    public Object createQuiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, Object courseExecution, SagaUnitOfWork unitOfWork) {
+    public void createQuiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, QuizExecution execution, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for createQuiz
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object getQuizById(Integer quizId, SagaUnitOfWork unitOfWork) {
+    public void getQuizById(Integer quizId, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for getQuizById
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object getAllQuizzes(SagaUnitOfWork unitOfWork) {
+    public void getAllQuizzes(SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for getAllQuizzes
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object getQuizzesByCourseExecution(Integer courseExecutionId, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for getQuizzesByCourseExecution
+    public void getQuizzesByExecution(Integer executionId, SagaUnitOfWork unitOfWork) {
+        // TODO: Implement saga functionality for getQuizzesByExecution
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object getQuizzesByType(String quizType, SagaUnitOfWork unitOfWork) {
+    public void getQuizzesByType(String quizType, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for getQuizzesByType
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object updateQuiz(Integer quizId, String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, SagaUnitOfWork unitOfWork) {
+    public void updateQuiz(Integer quizId, String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for updateQuiz
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object deleteQuiz(Integer quizId, SagaUnitOfWork unitOfWork) {
+    public void deleteQuiz(Integer quizId, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for deleteQuiz
         // This method should orchestrate the saga workflow
         return null;

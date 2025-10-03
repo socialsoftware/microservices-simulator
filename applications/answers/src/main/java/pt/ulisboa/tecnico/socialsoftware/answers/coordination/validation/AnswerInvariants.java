@@ -66,11 +66,11 @@ public class AnswerInvariants {
     }
 
     /**
-     * QuizAnswerCourseExecution cannot be null
+     * QuizAnswerExecution cannot be null
      */
-    public static void invariantQuizAnswerCourseExecutionNotNull(Answer entity) {
-        if (entity.getQuizAnswerCourseExecution() == null) {
-            throw new IllegalStateException("QuizAnswerCourseExecution cannot be null");
+    public static void invariantQuizAnswerExecutionNotNull(Answer entity) {
+        if (entity.getQuizAnswerExecution() == null) {
+            throw new IllegalStateException("QuizAnswerExecution cannot be null");
         }
     }
 

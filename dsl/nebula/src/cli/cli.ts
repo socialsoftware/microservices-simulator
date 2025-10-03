@@ -35,7 +35,7 @@ export default async function (): Promise<void> {
         .action(async (inputPath: string, options: any) => {
             const features = options.features
                 ? options.features.split(',').map((f: string) => f.trim())
-                : ['events', 'validation', 'webapi', 'coordination', 'saga'];
+                : ['events', 'validation', 'webapi', 'coordination', 'saga', 'shared'];
 
             await CodeGenerator.generateCode(inputPath, {
                 destination: options.destination,

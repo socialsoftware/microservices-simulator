@@ -1,28 +1,42 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate;
 
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.OneToOne;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
-@Embeddable
-public class CourseExecutionStudent {
+@Entity
+public class ExecutionStudent {
+    @Id
+    @GeneratedValue
     private Integer studentAggregateId;
     private String studentName;
     private String studentUsername;
     private String studentEmail;
-    private LocalDateTime enrollmentDate; 
+    private LocalDateTime enrollmentDate;
+    @OneToOne
+    private Execution execution; 
 
-    public CourseExecutionStudent(Integer studentAggregateId, String studentName, String studentUsername, String studentEmail, LocalDateTime enrollmentDate) {
-        this.studentAggregateId = studentAggregateId;
-        this.studentName = studentName;
-        this.studentUsername = studentUsername;
-        this.studentEmail = studentEmail;
-        this.enrollmentDate = enrollmentDate;
+    public ExecutionStudent() {
     }
 
-    public CourseExecutionStudent(CourseExecutionStudent other) {
-        // Copy constructor
+    public ExecutionStudent(ExecutionDto executionDto) {
+        setStudentName(executionDto.getStudentName());
+        setStudentUsername(executionDto.getStudentUsername());
+        setStudentEmail(executionDto.getStudentEmail());
+        setEnrollmentDate(executionDto.getEnrollmentDate());
+    }
+
+    public ExecutionStudent(ExecutionStudent other) {
+        setStudentName(other.getStudentName());
+        setStudentUsername(other.getStudentUsername());
+        setStudentEmail(other.getStudentEmail());
+        setEnrollmentDate(other.getEnrollmentDate());
     }
 
 
@@ -64,6 +78,14 @@ public class CourseExecutionStudent {
 
     public void setEnrollmentDate(LocalDateTime enrollmentDate) {
         this.enrollmentDate = enrollmentDate;
+    }
+
+    public Execution getExecution() {
+        return execution;
+    }
+
+    public void setExecution(Execution execution) {
+        this.execution = execution;
     }
 
 

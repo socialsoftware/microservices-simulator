@@ -1,25 +1,38 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
 
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.OneToOne;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 
-@Embeddable
+@Entity
 public class QuizAnswerStudent {
+    @Id
+    @GeneratedValue
     private Integer studentAggregateId;
     private String studentName;
     private String studentUsername;
-    private String studentEmail; 
+    private String studentEmail;
+    @OneToOne
+    private Answer answer; 
 
-    public QuizAnswerStudent(Integer studentAggregateId, String studentName, String studentUsername, String studentEmail) {
-        this.studentAggregateId = studentAggregateId;
-        this.studentName = studentName;
-        this.studentUsername = studentUsername;
-        this.studentEmail = studentEmail;
+    public QuizAnswerStudent() {
+    }
+
+    public QuizAnswerStudent(AnswerDto answerDto) {
+        setStudentName(answerDto.getStudentName());
+        setStudentUsername(answerDto.getStudentUsername());
+        setStudentEmail(answerDto.getStudentEmail());
     }
 
     public QuizAnswerStudent(QuizAnswerStudent other) {
-        // Copy constructor
+        setStudentName(other.getStudentName());
+        setStudentUsername(other.getStudentUsername());
+        setStudentEmail(other.getStudentEmail());
     }
 
 
@@ -53,6 +66,14 @@ public class QuizAnswerStudent {
 
     public void setStudentEmail(String studentEmail) {
         this.studentEmail = studentEmail;
+    }
+
+    public Answer getAnswer() {
+        return answer;
+    }
+
+    public void setAnswer(Answer answer) {
+        this.answer = answer;
     }
 
 

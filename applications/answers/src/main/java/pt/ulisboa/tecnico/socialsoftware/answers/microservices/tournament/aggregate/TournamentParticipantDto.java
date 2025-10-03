@@ -10,10 +10,10 @@ public class TournamentParticipantDto implements Serializable {
 	private String participantName;
 	private String participantUsername;
 	private LocalDateTime enrollTime;
-	private Object participantAnswer;
+	private TournamentParticipantQuizAnswer participantAnswer;
 	private Integer participantVersion;
 	private AggregateState state;
-	private Object tournament;
+	private Tournament tournament;
 
 	public TournamentParticipantDto() {
 	}
@@ -61,11 +61,11 @@ public class TournamentParticipantDto implements Serializable {
 		this.enrollTime = enrollTime;
 	}
 
-	public Object getParticipantAnswer() {
+	public TournamentParticipantQuizAnswer getParticipantAnswer() {
 		return participantAnswer;
 	}
 
-	public void setParticipantAnswer(Object participantAnswer) {
+	public void setParticipantAnswer(TournamentParticipantQuizAnswer participantAnswer) {
 		this.participantAnswer = participantAnswer;
 	}
 
@@ -85,11 +85,11 @@ public class TournamentParticipantDto implements Serializable {
 		this.state = state;
 	}
 
-	public Object getTournament() {
+	public Tournament getTournament() {
 		return tournament;
 	}
 
-	public void setTournament(Object tournament) {
+	public void setTournament(Tournament tournament) {
 		this.tournament = tournament;
 	}
 

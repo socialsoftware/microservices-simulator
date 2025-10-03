@@ -13,12 +13,10 @@ public class ExecutionFactory {
         // Factory method implementation - create root entity directly
         // Extract properties from DTO and create the root entity
         return new Execution(
-            executionDto.getName(),
             executionDto.getAcronym(),
             executionDto.getAcademicTerm(),
-            executionDto.getStartDate(),
             executionDto.getEndDate(),
-            executionDto.getCourse(),
+            executionDto.getExecutionCourse(),
             executionDto.getStudents()
         );
     }

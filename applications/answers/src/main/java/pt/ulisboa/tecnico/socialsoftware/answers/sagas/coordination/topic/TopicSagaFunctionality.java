@@ -21,37 +21,37 @@ this.topicService = topicService;
 this.unitOfWorkService = unitOfWorkService;
 }
 
-    public Object createTopic(String name, Object course, SagaUnitOfWork unitOfWork) {
+    public void createTopic(String name, TopicCourse course, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for createTopic
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object getTopicById(Integer topicId, SagaUnitOfWork unitOfWork) {
+    public void getTopicById(Integer topicId, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for getTopicById
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object getAllTopics(SagaUnitOfWork unitOfWork) {
+    public void getAllTopics(SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for getAllTopics
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object getTopicsByCourse(Integer courseId, SagaUnitOfWork unitOfWork) {
+    public void getTopicsByCourse(Integer courseId, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for getTopicsByCourse
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object updateTopic(Integer topicId, String name, SagaUnitOfWork unitOfWork) {
+    public void updateTopic(Integer topicId, String name, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for updateTopic
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object deleteTopic(Integer topicId, SagaUnitOfWork unitOfWork) {
+    public void deleteTopic(Integer topicId, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for deleteTopic
         // This method should orchestrate the saga workflow
         return null;

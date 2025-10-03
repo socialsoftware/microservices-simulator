@@ -19,7 +19,7 @@ public class TournamentFactory {
             tournamentDto.getCancelled(),
             tournamentDto.getTournamentCreator(),
             tournamentDto.getTournamentParticipants(),
-            tournamentDto.getTournamentCourseExecution(),
+            tournamentDto.getTournamentExecution(),
             tournamentDto.getTournamentTopics(),
             tournamentDto.getTournamentQuiz()
         );

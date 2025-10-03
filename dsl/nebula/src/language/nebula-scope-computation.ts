@@ -24,6 +24,15 @@ export class NebulaScopeComputation extends DefaultScopeComputation {
                     descriptions.push(this.descriptions.createDescription(dto, dto.name, document));
                 }
             }
+
+            // Export all enum definitions from SharedEnums blocks
+            // This allows them to be referenced through EntityType
+            for (const sharedEnums of model.sharedEnums) {
+                for (const enumDef of sharedEnums.enums) {
+                    // Create a description that makes the enum resolvable through EntityType
+                    descriptions.push(this.descriptions.createDescription(enumDef, enumDef.name, document));
+                }
+            }
         }
 
         return descriptions;

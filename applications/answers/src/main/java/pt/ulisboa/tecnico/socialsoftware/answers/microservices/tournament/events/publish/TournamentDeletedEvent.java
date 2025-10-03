@@ -32,13 +32,13 @@ private final LocalDateTime startTime;
 private final LocalDateTime endTime;
 private final Integer numberOfQuestions;
 private final Boolean cancelled;
-private final Object tournamentCreator;
-private final Object tournamentParticipants;
-private final Object tournamentCourseExecution;
-private final Object tournamentTopics;
-private final Object tournamentQuiz;
+private final TournamentCreator tournamentCreator;
+private final Set<TournamentParticipant> tournamentParticipants;
+private final TournamentExecution tournamentExecution;
+private final Set<TournamentTopic> tournamentTopics;
+private final TournamentQuiz tournamentQuiz;
 
-public TournamentDeletedEvent(Object source, Long aggregateId, LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, Boolean cancelled, Object tournamentCreator, Object tournamentParticipants, Object tournamentCourseExecution, Object tournamentTopics, Object tournamentQuiz) {
+public TournamentDeletedEvent(Object source, Long aggregateId, LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, Boolean cancelled, TournamentCreator tournamentCreator, Set<TournamentParticipant> tournamentParticipants, TournamentExecution tournamentExecution, Set<TournamentTopic> tournamentTopics, TournamentQuiz tournamentQuiz) {
 super(source);
 this.eventId = java.util.UUID.randomUUID().toString();
 this.eventType = "Deleted";
@@ -50,7 +50,7 @@ this.numberOfQuestions = numberOfQuestions;
 this.cancelled = cancelled;
 this.tournamentCreator = tournamentCreator;
 this.tournamentParticipants = tournamentParticipants;
-this.tournamentCourseExecution = tournamentCourseExecution;
+this.tournamentExecution = tournamentExecution;
 this.tournamentTopics = tournamentTopics;
 this.tournamentQuiz = tournamentQuiz;
 }
@@ -88,23 +88,23 @@ public Boolean getCancelled() {
 return cancelled;
 }
 
-public Object getTournamentCreator() {
+public TournamentCreator getTournamentCreator() {
 return tournamentCreator;
 }
 
-public Object getTournamentParticipants() {
+public Set<TournamentParticipant> getTournamentParticipants() {
 return tournamentParticipants;
 }
 
-public Object getTournamentCourseExecution() {
-return tournamentCourseExecution;
+public TournamentExecution getTournamentExecution() {
+return tournamentExecution;
 }
 
-public Object getTournamentTopics() {
+public Set<TournamentTopic> getTournamentTopics() {
 return tournamentTopics;
 }
 
-public Object getTournamentQuiz() {
+public TournamentQuiz getTournamentQuiz() {
 return tournamentQuiz;
 }
 
@@ -121,7 +121,7 @@ return "TournamentDeletedEvent{" +
 ", cancelled=" + cancelled +
 ", tournamentCreator=" + tournamentCreator +
 ", tournamentParticipants=" + tournamentParticipants +
-", tournamentCourseExecution=" + tournamentCourseExecution +
+", tournamentExecution=" + tournamentExecution +
 ", tournamentTopics=" + tournamentTopics +
 ", tournamentQuiz=" + tournamentQuiz +
 '}';

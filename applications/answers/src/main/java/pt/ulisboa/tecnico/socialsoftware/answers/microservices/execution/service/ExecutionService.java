@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.*;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.CourseExecutionCourse;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.CourseExecutionStudent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourse;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionStudent;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
 
 import java.util.*;
@@ -39,9 +39,9 @@ public class ExecutionService {
     public ExecutionService() {}
 
     // CRUD Operations
-    public ExecutionDto createExecution(String name, String acronym, String academicTerm, LocalDateTime startDate, LocalDateTime endDate, Object course, Object students) {
+    public ExecutionDto createExecution(String acronym, String academicTerm, LocalDateTime endDate, ExecutionCourse executionCourse, Set<ExecutionStudent> students) {
         try {
-            Execution execution = new Execution(name, acronym, academicTerm, startDate, endDate, course, students);
+            Execution execution = new Execution(acronym, academicTerm, endDate, executionCourse, students);
             execution = executionRepository.save(execution);
             return new ExecutionDto(execution);
         } catch (Exception e) {
@@ -76,23 +76,17 @@ public class ExecutionService {
             Execution execution = (Execution) executionRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Execution not found with id: " + id));
             
-                        if (executionDto.getName() != null) {
-                execution.setName(executionDto.getName());
-            }
-            if (executionDto.getAcronym() != null) {
+                        if (executionDto.getAcronym() != null) {
                 execution.setAcronym(executionDto.getAcronym());
             }
             if (executionDto.getAcademicTerm() != null) {
                 execution.setAcademicTerm(executionDto.getAcademicTerm());
             }
-            if (executionDto.getStartDate() != null) {
-                execution.setStartDate(executionDto.getStartDate());
-            }
             if (executionDto.getEndDate() != null) {
                 execution.setEndDate(executionDto.getEndDate());
             }
-            if (executionDto.getCourse() != null) {
-                execution.setCourse(executionDto.getCourse());
+            if (executionDto.getExecutionCourse() != null) {
+                execution.setExecutionCourse(executionDto.getExecutionCourse());
             }
             if (executionDto.getStudents() != null) {
                 execution.setStudents(executionDto.getStudents());
@@ -120,77 +114,9 @@ public class ExecutionService {
         }
     }
 
-    // Business Methods
-    @Transactional
-    public Object getActiveExecutions(Integer id, UnitOfWork unitOfWork) {
-        try {
-            Execution execution = executionRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Execution not found with id: " + id));
-            
-            // Business logic for getActiveExecutions
-            Object result = execution.getActiveExecutions();
-            executionRepository.save(execution);
-            return result;
-        } catch (Exception e) {
-            throw new AnswersException("Error in getActiveExecutions: " + e.getMessage());
-        }
-    }
+    // No business methods defined
 
-    // Custom Workflow Methods
-    @Transactional
-    public void removeUser(Integer userAggregateId, Integer executionId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for removeUser
-            throw new UnsupportedOperationException("Workflow removeUser not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow removeUser: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void anonymizeStudent(Integer studentAggregateId, Integer executionId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for anonymizeStudent
-            throw new UnsupportedOperationException("Workflow anonymizeStudent not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow anonymizeStudent: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer executionId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for updateStudentName
-            throw new UnsupportedOperationException("Workflow updateStudentName not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow updateStudentName: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void deleteExecution(Integer executionId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for deleteExecution
-            throw new UnsupportedOperationException("Workflow deleteExecution not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow deleteExecution: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void disenrollStudentFromExecution(Integer studentAggregateId, Integer executionId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for disenrollStudentFromExecution
-            throw new UnsupportedOperationException("Workflow disenrollStudentFromExecution not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow disenrollStudentFromExecution: " + e.getMessage());
-        }
-    }
+    // No custom workflows defined
 
     // Query methods disabled - repository methods not implemented
 

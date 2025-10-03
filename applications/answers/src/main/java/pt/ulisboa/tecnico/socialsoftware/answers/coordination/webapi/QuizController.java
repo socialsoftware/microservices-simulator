@@ -14,9 +14,9 @@ public class QuizController {
     @Autowired
     private QuizFunctionalities quizFunctionalities;
 
-    @PostMapping("/executions/{courseExecutionId}")
-    public QuizDto createQuiz(@PathVariable Integer courseExecutionId, @RequestBody QuizDto quizDto) throws Exception {
-        QuizDto result = quizFunctionalities.createQuiz(courseExecutionId, quizDto);
+    @PostMapping("/executions/{executionId}")
+    public QuizDto createQuiz(@PathVariable Integer executionId, @RequestBody QuizDto quizDto) throws Exception {
+        QuizDto result = quizFunctionalities.createQuiz(executionId, quizDto);
         return result;
     }
 

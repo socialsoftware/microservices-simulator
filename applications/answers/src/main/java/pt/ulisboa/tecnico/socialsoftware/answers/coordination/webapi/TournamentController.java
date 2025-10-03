@@ -43,20 +43,20 @@ public class TournamentController {
     }
 
     @GetMapping("/executions/{executionAggregateId}/tournaments")
-    public List<TournamentDto> getTournamentsForCourseExecution(@PathVariable Integer executionAggregateId) {
-        List<TournamentDto> result = tournamentFunctionalities.getTournamentsForCourseExecution(executionAggregateId);
+    public List<TournamentDto> getTournamentsForExecution(@PathVariable Integer executionAggregateId) {
+        List<TournamentDto> result = tournamentFunctionalities.getTournamentsForExecution(executionAggregateId);
         return result;
     }
 
     @GetMapping("/executions/{executionAggregateId}/tournaments/opened")
-    public List<TournamentDto> getOpenedTournamentsForCourseExecution(@PathVariable Integer executionAggregateId) {
-        List<TournamentDto> result = tournamentFunctionalities.getOpenedTournamentsForCourseExecution(executionAggregateId);
+    public List<TournamentDto> getOpenedTournamentsForExecution(@PathVariable Integer executionAggregateId) {
+        List<TournamentDto> result = tournamentFunctionalities.getOpenedTournamentsForExecution(executionAggregateId);
         return result;
     }
 
     @GetMapping("/executions/{executionAggregateId}/tournaments/closed")
-    public List<TournamentDto> getClosedTournamentsForCourseExecution(@PathVariable Integer executionAggregateId) {
-        List<TournamentDto> result = tournamentFunctionalities.getClosedTournamentsForCourseExecution(executionAggregateId);
+    public List<TournamentDto> getClosedTournamentsForExecution(@PathVariable Integer executionAggregateId) {
+        List<TournamentDto> result = tournamentFunctionalities.getClosedTournamentsForExecution(executionAggregateId);
         return result;
     }
 

@@ -1,31 +1,49 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate;
 
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.CascadeType;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 
-@Embeddable
+@Entity
 public class TournamentParticipantQuizAnswer {
+    @Id
+    @GeneratedValue
     private Long id;
     private Integer quizAnswerAggregateId;
     private Integer quizAnswerVersion;
     private Boolean answered;
     private Integer numberOfAnswered;
     private Integer numberOfCorrect;
-    private Object tournamentParticipant; 
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentparticipantquizanswer")
+    private TournamentParticipant tournamentParticipant;
+    @OneToOne
+    private Tournament tournament; 
 
-    public TournamentParticipantQuizAnswer(Long id, Integer quizAnswerAggregateId, Integer quizAnswerVersion, Boolean answered, Integer numberOfAnswered, Integer numberOfCorrect, Object tournamentParticipant) {
-        this.id = id;
-        this.quizAnswerAggregateId = quizAnswerAggregateId;
-        this.quizAnswerVersion = quizAnswerVersion;
-        this.answered = answered;
-        this.numberOfAnswered = numberOfAnswered;
-        this.numberOfCorrect = numberOfCorrect;
-        this.tournamentParticipant = tournamentParticipant;
+    public TournamentParticipantQuizAnswer() {
+    }
+
+    public TournamentParticipantQuizAnswer(TournamentDto tournamentDto) {
+        setQuizAnswerAggregateId(tournamentDto.getQuizAnswerAggregateId());
+        setQuizAnswerVersion(tournamentDto.getQuizAnswerVersion());
+        setAnswered(tournamentDto.getAnswered());
+        setNumberOfAnswered(tournamentDto.getNumberOfAnswered());
+        setNumberOfCorrect(tournamentDto.getNumberOfCorrect());
+        setTournamentParticipant(tournamentParticipant);
     }
 
     public TournamentParticipantQuizAnswer(TournamentParticipantQuizAnswer other) {
-        // Copy constructor
+        setQuizAnswerAggregateId(other.getQuizAnswerAggregateId());
+        setQuizAnswerVersion(other.getQuizAnswerVersion());
+        setAnswered(other.getAnswered());
+        setNumberOfAnswered(other.getNumberOfAnswered());
+        setNumberOfCorrect(other.getNumberOfCorrect());
+        setTournamentParticipant(new TournamentParticipant(other.getTournamentParticipant()));
     }
 
 
@@ -77,12 +95,23 @@ public class TournamentParticipantQuizAnswer {
         this.numberOfCorrect = numberOfCorrect;
     }
 
-    public Object getTournamentParticipant() {
+    public TournamentParticipant getTournamentParticipant() {
         return tournamentParticipant;
     }
 
-    public void setTournamentParticipant(Object tournamentParticipant) {
+    public void setTournamentParticipant(TournamentParticipant tournamentParticipant) {
         this.tournamentParticipant = tournamentParticipant;
+        if (this.tournamentParticipant != null) {
+            this.tournamentParticipant.setTournamentParticipantQuizAnswer(this);
+        }
+    }
+
+    public Tournament getTournament() {
+        return tournament;
+    }
+
+    public void setTournament(Tournament tournament) {
+        this.tournament = tournament;
     }
 
 

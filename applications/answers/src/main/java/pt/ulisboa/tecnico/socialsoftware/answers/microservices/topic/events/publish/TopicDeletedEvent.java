@@ -29,10 +29,10 @@ private final LocalDateTime timestamp;
 private final Long aggregateId;
 
 private final String name;
-private final Object course;
+private final TopicCourse course;
 private final LocalDateTime creationDate;
 
-public TopicDeletedEvent(Object source, Long aggregateId, String name, Object course, LocalDateTime creationDate) {
+public TopicDeletedEvent(Object source, Long aggregateId, String name, TopicCourse course, LocalDateTime creationDate) {
 super(source);
 this.eventId = java.util.UUID.randomUUID().toString();
 this.eventType = "Deleted";
@@ -64,7 +64,7 @@ public String getName() {
 return name;
 }
 
-public Object getCourse() {
+public TopicCourse getCourse() {
 return course;
 }
 

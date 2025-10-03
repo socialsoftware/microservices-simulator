@@ -2,38 +2,64 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.HashSet;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 
 @Entity
-public class Quiz extends Aggregate {
+public abstract class Quiz extends Aggregate {
     @Id
     private String title;
     private String description;
-    private String quizType;
+    @Enumerated(EnumType.STRING)
+    private QuizType quizType;
     private LocalDateTime availableDate;
     private LocalDateTime conclusionDate;
     private Integer numberOfQuestions;
-    private Object courseExecution;
-    private Object questions;
-    private Object options; 
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "quiz")
+    private QuizExecution execution;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "quiz")
+    private Set<QuizQuestion> questions = new HashSet<>();
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "quiz")
+    private Set<QuizOption> options = new HashSet<>(); 
 
-    public Quiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, Object courseExecution, Object questions, Object options) {
-        this.title = title;
-        this.description = description;
-        this.quizType = quizType;
-        this.availableDate = availableDate;
-        this.conclusionDate = conclusionDate;
-        this.numberOfQuestions = numberOfQuestions;
-        this.courseExecution = courseExecution;
-        this.questions = questions;
-        this.options = options;
+    public Quiz() {
+    }
+
+    public Quiz(Integer aggregateId, QuizDto quizDto, QuizExecution execution) {
+        super(aggregateId);
+        setAggregateType(getClass().getSimpleName());
+        setTitle(quizDto.getTitle());
+        setDescription(quizDto.getDescription());
+        setQuizType(quizDto.getQuizType());
+        setAvailableDate(quizDto.getAvailableDate());
+        setConclusionDate(quizDto.getConclusionDate());
+        setNumberOfQuestions(quizDto.getNumberOfQuestions());
+        setExecution(execution);
     }
 
     public Quiz(Quiz other) {
-        // Copy constructor
+        super(other);
+        setTitle(other.getTitle());
+        setDescription(other.getDescription());
+        setQuizType(other.getQuizType());
+        setAvailableDate(other.getAvailableDate());
+        setConclusionDate(other.getConclusionDate());
+        setNumberOfQuestions(other.getNumberOfQuestions());
+        setExecution(new QuizExecution(other.getExecution()));
+        setQuestions(other.getQuestions().stream().map(QuizQuestion::new).collect(Collectors.toSet()));
+        setOptions(other.getOptions().stream().map(QuizOption::new).collect(Collectors.toSet()));
     }
 
 
@@ -53,11 +79,11 @@ public class Quiz extends Aggregate {
         this.description = description;
     }
 
-    public String getQuizType() {
+    public QuizType getQuizType() {
         return quizType;
     }
 
-    public void setQuizType(String quizType) {
+    public void setQuizType(QuizType quizType) {
         this.quizType = quizType;
     }
 
@@ -85,62 +111,65 @@ public class Quiz extends Aggregate {
         this.numberOfQuestions = numberOfQuestions;
     }
 
-    public Object getCourseExecution() {
-        return courseExecution;
+    public QuizExecution getExecution() {
+        return execution;
     }
 
-    public void setCourseExecution(Object courseExecution) {
-        this.courseExecution = courseExecution;
+    public void setExecution(QuizExecution execution) {
+        this.execution = execution;
+        if (this.execution != null) {
+            this.execution.setQuiz(this);
+        }
     }
 
-    public Object getQuestions() {
+    public Set<QuizQuestion> getQuestions() {
         return questions;
     }
 
-    public void setQuestions(Object questions) {
+    public void setQuestions(Set<QuizQuestion> questions) {
         this.questions = questions;
+        if (this.questions != null) {
+            this.questions.forEach(quizquestion -> quizquestion.setQuiz(this));
+        }
     }
 
-    public Object getOptions() {
+    public Set<QuizOption> getOptions() {
         return options;
     }
 
-    public void setOptions(Object options) {
+    public void setOptions(Set<QuizOption> options) {
         this.options = options;
+        if (this.options != null) {
+            this.options.forEach(quizoption -> quizoption.setQuiz(this));
+        }
     }
-	public Object createQuiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, Object courseExecution, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
+	public void createQuiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, QuizExecution execution, UnitOfWork unitOfWork) {
+
 	}
 
-	public Object getQuizById(Integer quizId, UnitOfWork unitOfWork) {
+	public void getQuizById(Integer quizId, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object getAllQuizzes(UnitOfWork unitOfWork) {
+	public void getAllQuizzes(UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object getQuizzesByCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork) {
+	public void getQuizzesByExecution(Integer executionId, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object getQuizzesByType(String quizType, UnitOfWork unitOfWork) {
+	public void getQuizzesByType(String quizType, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object updateQuiz(Integer quizId, String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, UnitOfWork unitOfWork) {
+	public void updateQuiz(Integer quizId, String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object deleteQuiz(Integer quizId, UnitOfWork unitOfWork) {
+	public void deleteQuiz(Integer quizId, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
 }

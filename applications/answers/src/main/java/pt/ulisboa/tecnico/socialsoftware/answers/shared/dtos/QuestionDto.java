@@ -4,20 +4,71 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 
 public class QuestionDto implements Serializable {
     
-    private Integer id;
+    // Standard aggregate fields
+    private Integer aggregateId;
+    private Integer version;
+    private String state;
+
+    // Root entity fields
     private String title;
     private String content;
+
+    // Fields from QuestionDetails
+    private Integer id;
     private Integer numberOfOptions;
     private Integer correctOption;
     private Integer order;
     
     public QuestionDto() {
-        // Default constructor
     }
     
+    public QuestionDto(pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question question) {
+        // Standard aggregate fields
+        setAggregateId(question.getAggregateId());
+        setVersion(question.getVersion());
+        setState(question.getState().toString());
+
+        // Root entity fields
+        setTitle(question.getTitle());
+        setContent(question.getContent());
+
+        // Fields from QuestionDetails
+        setId(question.getQuestionDetails().getId());
+        setNumberOfOptions(question.getQuestionDetails().getNumberOfOptions());
+        setCorrectOption(question.getQuestionDetails().getCorrectOption());
+        setOrder(question.getQuestionDetails().getOrder());
+
+    }
+    
+    public Integer getAggregateId() {
+        return aggregateId;
+    }
+    
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+    
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    public String getState() {
+        return state;
+    }
+    
+    public void setState(String state) {
+        this.state = state;
+    }
+
     public Integer getId() {
         return id;
     }

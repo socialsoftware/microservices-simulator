@@ -13,7 +13,6 @@ export class SharedDtoFeature {
         paths: any,
         options: GenerationOptions
     ): Promise<void> {
-        const generator = new SharedDtoGenerator();
         const sharedDtoPath = path.join(paths.javaPath, 'shared', 'dtos');
 
         // Create shared/dtos directory
@@ -34,12 +33,18 @@ export class SharedDtoFeature {
         }
 
         // Generate DTOs from DSL definitions
+        const generator = new SharedDtoGenerator();
+
+        // Collect all DTO definitions for cross-referencing
+        const allDtoDefinitions = allSharedDtos.flatMap(block => block.dtos);
+
         for (const sharedDtosBlock of allSharedDtos) {
             for (const dtoDefinition of sharedDtosBlock.dtos) {
                 try {
                     const dtoCode = await generator.generateSharedDtoFromDefinition(
                         dtoDefinition,
-                        options
+                        options,
+                        allDtoDefinitions
                     );
 
                     const dtoFilePath = path.join(sharedDtoPath, `${dtoDefinition.name}.java`);
@@ -51,6 +56,7 @@ export class SharedDtoFeature {
             }
         }
     }
+
 
     /**
      * Legacy method for backward compatibility when no SharedDtos blocks are defined

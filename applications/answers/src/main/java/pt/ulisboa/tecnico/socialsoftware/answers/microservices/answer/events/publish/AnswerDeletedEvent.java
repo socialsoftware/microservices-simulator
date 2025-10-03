@@ -31,12 +31,12 @@ private final Long aggregateId;
 private final LocalDateTime answerDate;
 private final LocalDateTime completedDate;
 private final Boolean completed;
-private final Object quizAnswerStudent;
-private final Object quizAnswerCourseExecution;
-private final Object questionAnswers;
-private final Object answeredQuiz;
+private final QuizAnswerStudent quizAnswerStudent;
+private final QuizAnswerExecution quizAnswerExecution;
+private final Set<QuestionAnswer> questionAnswers;
+private final AnsweredQuiz answeredQuiz;
 
-public AnswerDeletedEvent(Object source, Long aggregateId, LocalDateTime answerDate, LocalDateTime completedDate, Boolean completed, Object quizAnswerStudent, Object quizAnswerCourseExecution, Object questionAnswers, Object answeredQuiz) {
+public AnswerDeletedEvent(Object source, Long aggregateId, LocalDateTime answerDate, LocalDateTime completedDate, Boolean completed, QuizAnswerStudent quizAnswerStudent, QuizAnswerExecution quizAnswerExecution, Set<QuestionAnswer> questionAnswers, AnsweredQuiz answeredQuiz) {
 super(source);
 this.eventId = java.util.UUID.randomUUID().toString();
 this.eventType = "Deleted";
@@ -46,7 +46,7 @@ this.answerDate = answerDate;
 this.completedDate = completedDate;
 this.completed = completed;
 this.quizAnswerStudent = quizAnswerStudent;
-this.quizAnswerCourseExecution = quizAnswerCourseExecution;
+this.quizAnswerExecution = quizAnswerExecution;
 this.questionAnswers = questionAnswers;
 this.answeredQuiz = answeredQuiz;
 }
@@ -80,19 +80,19 @@ public Boolean getCompleted() {
 return completed;
 }
 
-public Object getQuizAnswerStudent() {
+public QuizAnswerStudent getQuizAnswerStudent() {
 return quizAnswerStudent;
 }
 
-public Object getQuizAnswerCourseExecution() {
-return quizAnswerCourseExecution;
+public QuizAnswerExecution getQuizAnswerExecution() {
+return quizAnswerExecution;
 }
 
-public Object getQuestionAnswers() {
+public Set<QuestionAnswer> getQuestionAnswers() {
 return questionAnswers;
 }
 
-public Object getAnsweredQuiz() {
+public AnsweredQuiz getAnsweredQuiz() {
 return answeredQuiz;
 }
 
@@ -107,7 +107,7 @@ return "AnswerDeletedEvent{" +
 ", completedDate=" + completedDate +
 ", completed=" + completed +
 ", quizAnswerStudent=" + quizAnswerStudent +
-", quizAnswerCourseExecution=" + quizAnswerCourseExecution +
+", quizAnswerExecution=" + quizAnswerExecution +
 ", questionAnswers=" + questionAnswers +
 ", answeredQuiz=" + answeredQuiz +
 '}';

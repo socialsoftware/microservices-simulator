@@ -17,7 +17,10 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.service.QuestionService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.questionfactory.service.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionTopicDto;
@@ -25,23 +28,141 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregat
 
 @Service
 public class QuestionFunctionalities {
+    @Autowired
+    private QuestionService questionService;
 
-private QuestionService questionService;
+    @Autowired
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
 
-@Autowired
-private Environment env;
+    @Autowired
+    private QuestionFactory questionFactory;
 
-private TransactionalModel workflowType;
 
-@PostConstruct
-public void init() {
-String[] activeProfiles = env.getActiveProfiles();
-if (Arrays.asList(activeProfiles).contains(SAGAS.getValue())) {
-workflowType = SAGAS;
-} else {
-throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
-}
-}
+    @Autowired
+    private Environment env;
 
-[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]
+    private TransactionalModel workflowType;
+
+    @PostConstruct
+    public void init() {
+        String[] activeProfiles = env.getActiveProfiles();
+        if (Arrays.asList(activeProfiles).contains(SAGAS.getValue())) {
+            workflowType = SAGAS;
+        } else {
+            throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public QuestionDto findQuestionByAggregateId(Integer aggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                FindQuestionByAggregateIdFunctionalitySagas findQuestionByAggregateIdFunctionalitySagas = new FindQuestionByAggregateIdFunctionalitySagas(
+                        questionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                findQuestionByAggregateIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return findQuestionByAggregateIdFunctionalitySagas.getResult();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public List<QuestionDto> findQuestionsByCourseAggregateId(Integer courseAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                FindQuestionsByCourseAggregateIdFunctionalitySagas findQuestionsByCourseAggregateIdFunctionalitySagas = new FindQuestionsByCourseAggregateIdFunctionalitySagas(
+                        questionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                findQuestionsByCourseAggregateIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return findQuestionsByCourseAggregateIdFunctionalitySagas.getFindQuestionsByCourseAggregateId();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public QuestionDto createQuestion(Integer courseAggregateId, QuestionDto questionDto) throws AnswersException {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                CreateQuestionFunctionalitySagas createQuestionFunctionalitySagas = new CreateQuestionFunctionalitySagas(
+                        questionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                createQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return createQuestionFunctionalitySagas.getCreatedQuestion();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void updateQuestion(QuestionDto questionDto) throws AnswersException {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateQuestionFunctionalitySagas updateQuestionFunctionalitySagas = new UpdateQuestionFunctionalitySagas(
+                        questionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                updateQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void removeQuestion(Integer questionAggregateId) throws AnswersException {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveQuestionFunctionalitySagas removeQuestionFunctionalitySagas = new RemoveQuestionFunctionalitySagas(
+                        questionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                removeQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void updateQuestionTopics(Integer courseAggregateId, String topicIds) throws AnswersException {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateQuestionTopicsFunctionalitySagas updateQuestionTopicsFunctionalitySagas = new UpdateQuestionTopicsFunctionalitySagas(
+                        questionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                updateQuestionTopicsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void getQuestionsByCourseAndTopic(Integer courseId, Integer topicId, UnitOfWork unitOfWork) {
+        // TODO: Implement getQuestionsByCourseAndTopic
+    }
+
+    public void searchQuestionsByTitle(String title, UnitOfWork unitOfWork) {
+        // TODO: Implement searchQuestionsByTitle
+    }
+
+    public void getQuestionsByDifficulty(Integer difficulty, UnitOfWork unitOfWork) {
+        // TODO: Implement getQuestionsByDifficulty
+    }
+
+    public void deleteQuestion(Integer questionId, UnitOfWork unitOfWork) {
+        
+    }
+
+    public void updateQuestion(Integer questionId, String title, String content, UnitOfWork unitOfWork) {
+        
+    }
+
+    public void removeCourse(Integer courseId, Integer questionId, UnitOfWork unitOfWork) {
+        
+    }
+
+    public void removeTopic(Integer topicId, Integer questionId, UnitOfWork unitOfWork) {
+        
+    }
+
 }

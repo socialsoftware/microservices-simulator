@@ -2,11 +2,11 @@ grammar Nebula
 
 entry Model:
     imports+=Import*
-    (aggregates+=Aggregate | sharedDtos+=SharedDtos)*
+    (aggregates+=Aggregate | sharedDtos+=SharedDtos | sharedEnums+=SharedEnums)*
     (exceptions=ExceptionMessages)?;
 
 Import:
-    'import' sharedDtos?='shared-dtos' ';';
+    'import' (sharedDtos?='shared-dtos' | sharedEnums?='shared-enums') ';';
 
 Aggregate:
     (annotations+=Annotation)*
@@ -300,15 +300,30 @@ ServiceMethod:
     name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' 
     (':' returnType=ReturnType)? ';';
 
+// Enum Support
+EnumDefinition:
+    'enum' name=ID '{'
+        values+=EnumValue (',' values+=EnumValue)*
+    '}';
+
+EnumValue:
+    name=ID;
+
 // Shared DTOs Support
 SharedDtos:
     'SharedDtos' '{'
         dtos+=DtoDefinition*
     '}';
 
+// Shared Enums Support
+SharedEnums:
+    'SharedEnums' '{'
+        enums+=EnumDefinition*
+    '}';
+
 DtoDefinition:
     'dto' name=ID (genericParams=GenericParameters)? '{'
-        fields+=DtoField*
+        (fields+=DtoField | mappings+=DtoMapping)*
     '}';
 
 GenericParameters:
@@ -316,6 +331,14 @@ GenericParameters:
 
 DtoField:
     type=DtoFieldType name=ID ';';
+
+DtoMapping:
+    'mapping' targetDto=[DtoDefinition:ID] collectionName=ID '{'
+        fieldMappings+=FieldMapping*
+    '}';
+
+FieldMapping:
+    dtoField=ID '->' entityField=ID ';';
 
 DtoFieldType:
     PrimitiveType | DtoReference | ListType | SetType | OptionalType | GenericType;

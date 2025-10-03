@@ -14,11 +14,11 @@ Aggregate Answer {
         String studentEmail;
     }
 
-    Entity QuizAnswerCourseExecution {
-        Integer courseExecutionAggregateId;
-        String courseExecutionName;
-        String courseExecutionAcronym;
-        String courseExecutionAcademicTerm;
+    Entity QuizAnswerExecution {
+        Integer executionAggregateId;
+        String executionName;
+        String executionAcronym;
+        String executionAcademicTerm;
     }
 
     Entity QuestionAnswer {
@@ -42,7 +42,7 @@ Aggregate Answer {
         LocalDateTime completedDate;
         Boolean completed;
         QuizAnswerStudent quizAnswerStudent;
-        QuizAnswerCourseExecution quizAnswerCourseExecution;
+        QuizAnswerExecution quizAnswerExecution;
         Set<QuestionAnswer> questionAnswers;
         AnsweredQuiz answeredQuiz;
 
@@ -72,7 +72,7 @@ Aggregate Answer {
         }
 
         methods {
-            method createAnswer(QuizAnswerStudent student, QuizAnswerCourseExecution courseExecution, AnsweredQuiz quiz, UnitOfWork unitOfWork): Answer;
+            method createAnswer(QuizAnswerStudent student, QuizAnswerExecution execution, AnsweredQuiz quiz, UnitOfWork unitOfWork): Answer;
             method getAnswerById(Integer answerId, UnitOfWork unitOfWork): Answer;
             method getAnswersByStudent(Integer studentId, UnitOfWork unitOfWork): List<Answer>;
             method getAnswersByQuiz(Integer quizId, UnitOfWork unitOfWork): List<Answer>;
@@ -82,15 +82,15 @@ Aggregate Answer {
     }
 
     // Service methods
-    method getAnswersByCourseExecution(Integer courseExecutionId, UnitOfWork unitOfWork): List<Answer>;
-    method getAnswersByStudentAndCourseExecution(Integer studentId, Integer courseExecutionId, UnitOfWork unitOfWork): List<Answer>;
-    method getAnswersByQuizAndCourseExecution(Integer quizId, Integer courseExecutionId, UnitOfWork unitOfWork): List<Answer>;
+    method getAnswersByExecution(Integer executionId, UnitOfWork unitOfWork): List<Answer>;
+    method getAnswersByStudentAndExecution(Integer studentId, Integer executionId, UnitOfWork unitOfWork): List<Answer>;
+    method getAnswersByQuizAndExecution(Integer quizId, Integer executionId, UnitOfWork unitOfWork): List<Answer>;
     
     // Event processing workflows
     saga workflow anonymizeStudent(Integer studentAggregateId, Integer answerId, UnitOfWork unitOfWork);
     saga workflow invalidateQuiz(Integer quizAggregateId, Integer answerId, UnitOfWork unitOfWork);
-    saga workflow removeCourseExecution(Integer courseExecutionAggregateId, Integer answerId, UnitOfWork unitOfWork);
-    saga workflow unenrollStudentFromCourseExecution(Integer studentAggregateId, Integer courseExecutionAggregateId, Integer answerId, UnitOfWork unitOfWork);
+    saga workflow removeExecution(Integer executionAggregateId, Integer answerId, UnitOfWork unitOfWork);
+    saga workflow unenrollStudentFromExecution(Integer studentAggregateId, Integer executionAggregateId, Integer answerId, UnitOfWork unitOfWork);
     saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer answerId, UnitOfWork unitOfWork);
     
     CustomRepository {

@@ -34,11 +34,11 @@ private final String quizType;
 private final LocalDateTime availableDate;
 private final LocalDateTime conclusionDate;
 private final Integer numberOfQuestions;
-private final Object courseExecution;
-private final Object questions;
-private final Object options;
+private final QuizExecution execution;
+private final Set<QuizQuestion> questions;
+private final Set<QuizOption> options;
 
-public QuizUpdatedEvent(Object source, Long aggregateId, String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, Object courseExecution, Object questions, Object options) {
+public QuizUpdatedEvent(Object source, Long aggregateId, String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, QuizExecution execution, Set<QuizQuestion> questions, Set<QuizOption> options) {
 super(source);
 this.eventId = java.util.UUID.randomUUID().toString();
 this.eventType = "Updated";
@@ -50,7 +50,7 @@ this.quizType = quizType;
 this.availableDate = availableDate;
 this.conclusionDate = conclusionDate;
 this.numberOfQuestions = numberOfQuestions;
-this.courseExecution = courseExecution;
+this.execution = execution;
 this.questions = questions;
 this.options = options;
 }
@@ -96,15 +96,15 @@ public Integer getNumberOfQuestions() {
 return numberOfQuestions;
 }
 
-public Object getCourseExecution() {
-return courseExecution;
+public QuizExecution getExecution() {
+return execution;
 }
 
-public Object getQuestions() {
+public Set<QuizQuestion> getQuestions() {
 return questions;
 }
 
-public Object getOptions() {
+public Set<QuizOption> getOptions() {
 return options;
 }
 
@@ -121,7 +121,7 @@ return "QuizUpdatedEvent{" +
 ", availableDate=" + availableDate +
 ", conclusionDate=" + conclusionDate +
 ", numberOfQuestions=" + numberOfQuestions +
-", courseExecution=" + courseExecution +
+", execution=" + execution +
 ", questions=" + questions +
 ", options=" + options +
 '}';

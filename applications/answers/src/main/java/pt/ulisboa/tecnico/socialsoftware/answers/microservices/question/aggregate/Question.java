@@ -2,35 +2,57 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggrega
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.FetchType;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import java.util.Set;
+import java.util.HashSet;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 @Entity
-public class Question extends Aggregate {
+public abstract class Question extends Aggregate {
     @Id
     private String title;
     private String content;
     private Integer numberOfOptions;
     private Integer correctOption;
     private Integer order;
-    private Object course;
-    private Object topics;
-    private Object options; 
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "question")
+    private QuestionCourse course;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "question")
+    private Set<QuestionTopic> topics = new HashSet<>();
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "question")
+    private Set<Option> options = new HashSet<>(); 
 
-    public Question(String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, Object course, Object topics, Object options) {
-        this.title = title;
-        this.content = content;
-        this.numberOfOptions = numberOfOptions;
-        this.correctOption = correctOption;
-        this.order = order;
-        this.course = course;
-        this.topics = topics;
-        this.options = options;
+    public Question() {
+    }
+
+    public Question(Integer aggregateId, QuestionDto questionDto, QuestionCourse course) {
+        super(aggregateId);
+        setAggregateType(getClass().getSimpleName());
+        setTitle(questionDto.getTitle());
+        setContent(questionDto.getContent());
+        setNumberOfOptions(questionDto.getNumberOfOptions());
+        setCorrectOption(questionDto.getCorrectOption());
+        setOrder(questionDto.getOrder());
+        setCourse(course);
     }
 
     public Question(Question other) {
-        // Copy constructor
+        super(other);
+        setTitle(other.getTitle());
+        setContent(other.getContent());
+        setNumberOfOptions(other.getNumberOfOptions());
+        setCorrectOption(other.getCorrectOption());
+        setOrder(other.getOrder());
+        setCourse(new QuestionCourse(other.getCourse()));
+        setTopics(other.getTopics().stream().map(QuestionTopic::new).collect(Collectors.toSet()));
+        setOptions(other.getOptions().stream().map(Option::new).collect(Collectors.toSet()));
     }
 
 
@@ -74,62 +96,65 @@ public class Question extends Aggregate {
         this.order = order;
     }
 
-    public Object getCourse() {
+    public QuestionCourse getCourse() {
         return course;
     }
 
-    public void setCourse(Object course) {
+    public void setCourse(QuestionCourse course) {
         this.course = course;
+        if (this.course != null) {
+            this.course.setQuestion(this);
+        }
     }
 
-    public Object getTopics() {
+    public Set<QuestionTopic> getTopics() {
         return topics;
     }
 
-    public void setTopics(Object topics) {
+    public void setTopics(Set<QuestionTopic> topics) {
         this.topics = topics;
+        if (this.topics != null) {
+            this.topics.forEach(questiontopic -> questiontopic.setQuestion(this));
+        }
     }
 
-    public Object getOptions() {
+    public Set<Option> getOptions() {
         return options;
     }
 
-    public void setOptions(Object options) {
+    public void setOptions(Set<Option> options) {
         this.options = options;
+        if (this.options != null) {
+            this.options.forEach(option -> option.setQuestion(this));
+        }
     }
-	public Object createQuestion(String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, Object course, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
+	public void createQuestion(String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, QuestionCourse course, UnitOfWork unitOfWork) {
+
 	}
 
-	public Object getQuestionById(Integer questionId, UnitOfWork unitOfWork) {
+	public void getQuestionById(Integer questionId, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object getAllQuestions(UnitOfWork unitOfWork) {
+	public void getAllQuestions(UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object getQuestionsByCourse(Integer courseId, UnitOfWork unitOfWork) {
+	public void getQuestionsByCourse(Integer courseId, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object getQuestionsByTopic(Integer topicId, UnitOfWork unitOfWork) {
+	public void getQuestionsByTopic(Integer topicId, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object updateQuestion(Integer questionId, String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, UnitOfWork unitOfWork) {
+	public void updateQuestion(Integer questionId, String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
-	public Object deleteQuestion(Integer questionId, UnitOfWork unitOfWork) {
+	public void deleteQuestion(Integer questionId, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
 }

@@ -31,24 +31,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggrega
 public class ExecutionValidationAnnotations {
 
     /**
-     * Validation annotations for name
-     */
-    public static class NameValidation {
-        @NotNull
-    @NotBlank
-        private String name;
-        
-        // Getter and setter
-        public String getName() {
-            return name;
-        }
-        
-        public void setName(String name) {
-            this.name = name;
-        }
-    }
-
-    /**
      * Validation annotations for acronym
      */
     public static class AcronymValidation {
@@ -85,23 +67,6 @@ public class ExecutionValidationAnnotations {
     }
 
     /**
-     * Validation annotations for startDate
-     */
-    public static class StartDateValidation {
-        @NotNull
-        private LocalDateTime startDate;
-        
-        // Getter and setter
-        public LocalDateTime getStartDate() {
-            return startDate;
-        }
-        
-        public void setStartDate(LocalDateTime startDate) {
-            this.startDate = startDate;
-        }
-    }
-
-    /**
      * Validation annotations for endDate
      */
     public static class EndDateValidation {
@@ -119,19 +84,19 @@ public class ExecutionValidationAnnotations {
     }
 
     /**
-     * Validation annotations for course
+     * Validation annotations for executionCourse
      */
-    public static class CourseValidation {
+    public static class ExecutionCourseValidation {
         @NotNull
-        private Object course;
+        private ExecutionCourse executionCourse;
         
         // Getter and setter
-        public Object getCourse() {
-            return course;
+        public ExecutionCourse getExecutionCourse() {
+            return executionCourse;
         }
         
-        public void setCourse(Object course) {
-            this.course = course;
+        public void setExecutionCourse(ExecutionCourse executionCourse) {
+            this.executionCourse = executionCourse;
         }
     }
 
@@ -141,14 +106,14 @@ public class ExecutionValidationAnnotations {
     public static class StudentsValidation {
         @NotNull
     @NotEmpty
-        private Object students;
+        private Set<ExecutionStudent> students;
         
         // Getter and setter
-        public Object getStudents() {
+        public Set<ExecutionStudent> getStudents() {
             return students;
         }
         
-        public void setStudents(Object students) {
+        public void setStudents(Set<ExecutionStudent> students) {
             this.students = students;
         }
     }

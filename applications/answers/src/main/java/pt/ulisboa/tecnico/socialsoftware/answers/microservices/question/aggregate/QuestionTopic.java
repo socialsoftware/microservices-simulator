@@ -1,21 +1,32 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate;
 
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.OneToOne;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
-@Embeddable
+@Entity
 public class QuestionTopic {
+    @Id
+    @GeneratedValue
     private Integer topicId;
-    private String topicName; 
+    private String topicName;
+    @OneToOne
+    private Question question; 
 
-    public QuestionTopic(Integer topicId, String topicName) {
-        this.topicId = topicId;
-        this.topicName = topicName;
+    public QuestionTopic() {
+    }
+
+    public QuestionTopic(QuestionDto questionDto) {
+        setTopicName(questionDto.getTopicName());
     }
 
     public QuestionTopic(QuestionTopic other) {
-        // Copy constructor
+        setTopicName(other.getTopicName());
     }
 
 
@@ -33,6 +44,14 @@ public class QuestionTopic {
 
     public void setTopicName(String topicName) {
         this.topicName = topicName;
+    }
+
+    public Question getQuestion() {
+        return question;
+    }
+
+    public void setQuestion(Question question) {
+        this.question = question;
     }
 
 

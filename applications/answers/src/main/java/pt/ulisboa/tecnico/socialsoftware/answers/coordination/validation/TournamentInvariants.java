@@ -93,11 +93,11 @@ public class TournamentInvariants {
     }
 
     /**
-     * TournamentCourseExecution cannot be null
+     * TournamentExecution cannot be null
      */
-    public static void invariantTournamentCourseExecutionNotNull(Tournament entity) {
-        if (entity.getTournamentCourseExecution() == null) {
-            throw new IllegalStateException("TournamentCourseExecution cannot be null");
+    public static void invariantTournamentExecutionNotNull(Tournament entity) {
+        if (entity.getTournamentExecution() == null) {
+            throw new IllegalStateException("TournamentExecution cannot be null");
         }
     }
 

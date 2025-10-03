@@ -7,7 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 public class TournamentQuizDto implements Serializable {
 	private Integer quizAggregateId;
 	private Integer quizVersion;
-	private Object tournament;
+	private Tournament tournament;
 
 	public TournamentQuizDto() {
 	}
@@ -34,11 +34,11 @@ public class TournamentQuizDto implements Serializable {
 		this.quizVersion = quizVersion;
 	}
 
-	public Object getTournament() {
+	public Tournament getTournament() {
 		return tournament;
 	}
 
-	public void setTournament(Object tournament) {
+	public void setTournament(Tournament tournament) {
 		this.tournament = tournament;
 	}
 

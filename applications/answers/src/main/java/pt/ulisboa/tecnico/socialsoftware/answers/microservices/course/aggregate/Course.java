@@ -2,28 +2,42 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 
 @Entity
-public class Course extends Aggregate {
+public abstract class Course extends Aggregate {
     @Id
     private String name;
     private String acronym;
-    private String courseType;
+    @Enumerated(EnumType.STRING)
+    private CourseType courseType;
     private LocalDateTime creationDate; 
 
-    public Course(String name, String acronym, String courseType, LocalDateTime creationDate) {
-        this.name = name;
-        this.acronym = acronym;
-        this.courseType = courseType;
-        this.creationDate = creationDate;
+    public Course() {
+    }
+
+    public Course(Integer aggregateId, CourseDto courseDto) {
+        super(aggregateId);
+        setAggregateType(getClass().getSimpleName());
+        setName(courseDto.getName());
+        setAcronym(courseDto.getAcronym());
+        setCourseType(courseDto.getCourseType());
+        setCreationDate(courseDto.getCreationDate());
     }
 
     public Course(Course other) {
-        // Copy constructor
+        super(other);
+        setName(other.getName());
+        setAcronym(other.getAcronym());
+        setCourseType(other.getCourseType());
+        setCreationDate(other.getCreationDate());
     }
 
 
@@ -43,11 +57,11 @@ public class Course extends Aggregate {
         this.acronym = acronym;
     }
 
-    public String getCourseType() {
+    public CourseType getCourseType() {
         return courseType;
     }
 
-    public void setCourseType(String courseType) {
+    public void setCourseType(CourseType courseType) {
         this.courseType = courseType;
     }
 
@@ -58,12 +72,13 @@ public class Course extends Aggregate {
     public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
-	public Object createCourse(String name, String acronym, String courseType, UnitOfWork unitOfWork) {
+
+	public Course createCourse(String name, String acronym, String courseType, UnitOfWork unitOfWork) {
 
 		return null; // TODO: Implement method
 	}
 
-	public Object getCourseById(Integer courseId, UnitOfWork unitOfWork) {
+	public Course getCourseById(Integer courseId, UnitOfWork unitOfWork) {
 
 		return null; // TODO: Implement method
 	}
@@ -73,14 +88,13 @@ public class Course extends Aggregate {
 		return null; // TODO: Implement method
 	}
 
-	public Object updateCourse(Integer courseId, String name, String acronym, String courseType, UnitOfWork unitOfWork) {
+	public Course updateCourse(Integer courseId, String name, String acronym, String courseType, UnitOfWork unitOfWork) {
 
 		return null; // TODO: Implement method
 	}
 
-	public Object deleteCourse(Integer courseId, UnitOfWork unitOfWork) {
+	public void deleteCourse(Integer courseId, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
 	}
 
 }

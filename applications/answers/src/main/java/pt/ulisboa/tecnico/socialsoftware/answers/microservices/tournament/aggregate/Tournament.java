@@ -2,38 +2,63 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggre
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.FetchType;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.HashSet;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 
 @Entity
-public class Tournament extends Aggregate {
+public abstract class Tournament extends Aggregate {
     @Id
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Integer numberOfQuestions;
     private Boolean cancelled;
-    private Object tournamentCreator;
-    private Object tournamentParticipants;
-    private Object tournamentCourseExecution;
-    private Object tournamentTopics;
-    private Object tournamentQuiz; 
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournament")
+    private TournamentCreator tournamentCreator;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "tournament")
+    private Set<TournamentParticipant> tournamentParticipants = new HashSet<>();
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournament")
+    private TournamentExecution tournamentExecution;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "tournament")
+    private Set<TournamentTopic> tournamentTopics = new HashSet<>();
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournament")
+    private TournamentQuiz tournamentQuiz; 
 
-    public Tournament(LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, Boolean cancelled, Object tournamentCreator, Object tournamentParticipants, Object tournamentCourseExecution, Object tournamentTopics, Object tournamentQuiz) {
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.numberOfQuestions = numberOfQuestions;
-        this.cancelled = cancelled;
-        this.tournamentCreator = tournamentCreator;
-        this.tournamentParticipants = tournamentParticipants;
-        this.tournamentCourseExecution = tournamentCourseExecution;
-        this.tournamentTopics = tournamentTopics;
-        this.tournamentQuiz = tournamentQuiz;
+    public Tournament() {
+    }
+
+    public Tournament(Integer aggregateId, TournamentDto tournamentDto, TournamentCreator tournamentCreator, TournamentExecution tournamentExecution, TournamentQuiz tournamentQuiz) {
+        super(aggregateId);
+        setAggregateType(getClass().getSimpleName());
+        setStartTime(tournamentDto.getStartTime());
+        setEndTime(tournamentDto.getEndTime());
+        setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
+        setCancelled(tournamentDto.getCancelled());
+        setTournamentCreator(tournamentCreator);
+        setTournamentExecution(tournamentExecution);
+        setTournamentQuiz(tournamentQuiz);
     }
 
     public Tournament(Tournament other) {
-        // Copy constructor
+        super(other);
+        setStartTime(other.getStartTime());
+        setEndTime(other.getEndTime());
+        setNumberOfQuestions(other.getNumberOfQuestions());
+        setCancelled(other.getCancelled());
+        setTournamentCreator(new TournamentCreator(other.getTournamentCreator()));
+        setTournamentParticipants(other.getTournamentParticipants().stream().map(TournamentParticipant::new).collect(Collectors.toSet()));
+        setTournamentExecution(new TournamentExecution(other.getTournamentExecution()));
+        setTournamentTopics(other.getTournamentTopics().stream().map(TournamentTopic::new).collect(Collectors.toSet()));
+        setTournamentQuiz(new TournamentQuiz(other.getTournamentQuiz()));
     }
 
 
@@ -69,46 +94,62 @@ public class Tournament extends Aggregate {
         this.cancelled = cancelled;
     }
 
-    public Object getTournamentCreator() {
+    public TournamentCreator getTournamentCreator() {
         return tournamentCreator;
     }
 
-    public void setTournamentCreator(Object tournamentCreator) {
+    public void setTournamentCreator(TournamentCreator tournamentCreator) {
         this.tournamentCreator = tournamentCreator;
+        if (this.tournamentCreator != null) {
+            this.tournamentCreator.setTournament(this);
+        }
     }
 
-    public Object getTournamentParticipants() {
+    public Set<TournamentParticipant> getTournamentParticipants() {
         return tournamentParticipants;
     }
 
-    public void setTournamentParticipants(Object tournamentParticipants) {
+    public void setTournamentParticipants(Set<TournamentParticipant> tournamentParticipants) {
         this.tournamentParticipants = tournamentParticipants;
+        if (this.tournamentParticipants != null) {
+            this.tournamentParticipants.forEach(tournamentparticipant -> tournamentparticipant.setTournament(this));
+        }
     }
 
-    public Object getTournamentCourseExecution() {
-        return tournamentCourseExecution;
+    public TournamentExecution getTournamentExecution() {
+        return tournamentExecution;
     }
 
-    public void setTournamentCourseExecution(Object tournamentCourseExecution) {
-        this.tournamentCourseExecution = tournamentCourseExecution;
+    public void setTournamentExecution(TournamentExecution tournamentExecution) {
+        this.tournamentExecution = tournamentExecution;
+        if (this.tournamentExecution != null) {
+            this.tournamentExecution.setTournament(this);
+        }
     }
 
-    public Object getTournamentTopics() {
+    public Set<TournamentTopic> getTournamentTopics() {
         return tournamentTopics;
     }
 
-    public void setTournamentTopics(Object tournamentTopics) {
+    public void setTournamentTopics(Set<TournamentTopic> tournamentTopics) {
         this.tournamentTopics = tournamentTopics;
+        if (this.tournamentTopics != null) {
+            this.tournamentTopics.forEach(tournamenttopic -> tournamenttopic.setTournament(this));
+        }
     }
 
-    public Object getTournamentQuiz() {
+    public TournamentQuiz getTournamentQuiz() {
         return tournamentQuiz;
     }
 
-    public void setTournamentQuiz(Object tournamentQuiz) {
+    public void setTournamentQuiz(TournamentQuiz tournamentQuiz) {
         this.tournamentQuiz = tournamentQuiz;
+        if (this.tournamentQuiz != null) {
+            this.tournamentQuiz.setTournament(this);
+        }
     }
-	public void addParticipant(Object participant) {
+
+	public void addParticipant(TournamentParticipant participant) {
 		Tournament prev = (Tournament) getPrev();
 		               if (DateHandler.now().isAfter(prev.getStartTime())) {
 		                   throw new ProjectException(CANNOT_ADD_PARTICIPANT, getAggregateId());
@@ -120,14 +161,14 @@ public class Tournament extends Aggregate {
 		               participant.setTournament(this);
 	}
 
-	public Object findParticipant(Integer userAggregateId) {
+	public TournamentParticipant findParticipant(Integer userAggregateId) {
 		return this.tournamentParticipants.stream()
 		                   .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
 		                   .findFirst()
 		                   .orElse(null);
 	}
 
-	public Boolean removeParticipant(Object participant) {
+	public Boolean removeParticipant(TournamentParticipant participant) {
 		Tournament prev = (Tournament) getPrev();
 		               if (prev != null) {
 		                   if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
@@ -137,14 +178,14 @@ public class Tournament extends Aggregate {
 		               return this.tournamentParticipants.remove(participant);
 	}
 
-	public Object findTopic(Integer topicAggregateId) {
+	public TournamentTopic findTopic(Integer topicAggregateId) {
 		return getTournamentTopics().stream()
 		                   .filter(t -> topicAggregateId.equals(t.getTopicAggregateId()))
 		                   .findFirst()
 		                   .orElse(null);
 	}
 
-	public void removeTopic(Object tournamentTopic) {
+	public void removeTopic(TournamentTopic tournamentTopic) {
 		this.tournamentTopics.remove(tournamentTopic);
 	}
 

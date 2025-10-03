@@ -15,16 +15,9 @@ class ExecutionBuilder extends SpockTest {
         // Set default values
         this.execution.setId(1L)
         this.execution.setVersion(1)
-        this.execution.setName("Default name")
         this.execution.setAcronym("Default acronym")
         this.execution.setAcademicTerm("Default academicTerm")
-        this.execution.setStartDate(LocalDateTime.now())
         this.execution.setEndDate(LocalDateTime.now())
-    }
-
-    ExecutionBuilder withName(String name) {
-        this.execution.setName(name)
-        return this
     }
 
     ExecutionBuilder withAcronym(String acronym) {
@@ -37,22 +30,17 @@ class ExecutionBuilder extends SpockTest {
         return this
     }
 
-    ExecutionBuilder withStartDate(LocalDateTime startDate) {
-        this.execution.setStartDate(startDate)
-        return this
-    }
-
     ExecutionBuilder withEndDate(LocalDateTime endDate) {
         this.execution.setEndDate(endDate)
         return this
     }
 
-    ExecutionBuilder withCourse(Object course) {
-        this.execution.setCourse(course)
+    ExecutionBuilder withExecutionCourse(ExecutionCourse executionCourse) {
+        this.execution.setExecutionCourse(executionCourse)
         return this
     }
 
-    ExecutionBuilder withStudents(Object students) {
+    ExecutionBuilder withStudents(Set<ExecutionStudent> students) {
         this.execution.setStudents(students)
         return this
     }

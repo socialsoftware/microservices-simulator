@@ -11,10 +11,10 @@ public class AnswerDto implements Serializable {
 	private LocalDateTime answerDate;
 	private LocalDateTime completedDate;
 	private boolean completed;
-	private Object quizAnswerStudent;
-	private Object quizAnswerCourseExecution;
-	private Object questionAnswers;
-	private Object answeredQuiz;
+	private QuizAnswerStudent quizAnswerStudent;
+	private QuizAnswerExecution quizAnswerExecution;
+	private Set<QuestionAnswer> questionAnswers;
+	private AnsweredQuiz answeredQuiz;
 	private Integer version;
 	private AggregateState state;
 
@@ -27,7 +27,7 @@ public class AnswerDto implements Serializable {
 		this.completedDate = answer.getCompletedDate();
 		this.completed = answer.isCompleted();
 		this.quizAnswerStudent = answer.getQuizAnswerStudent();
-		this.quizAnswerCourseExecution = answer.getQuizAnswerCourseExecution();
+		this.quizAnswerExecution = answer.getQuizAnswerExecution();
 		this.questionAnswers = answer.getQuestionAnswers();
 		this.answeredQuiz = answer.getAnsweredQuiz();
 		this.version = answer.getVersion();
@@ -66,35 +66,35 @@ public class AnswerDto implements Serializable {
 		this.completed = completed;
 	}
 
-	public Object getQuizAnswerStudent() {
+	public QuizAnswerStudent getQuizAnswerStudent() {
 		return quizAnswerStudent;
 	}
 
-	public void setQuizAnswerStudent(Object quizAnswerStudent) {
+	public void setQuizAnswerStudent(QuizAnswerStudent quizAnswerStudent) {
 		this.quizAnswerStudent = quizAnswerStudent;
 	}
 
-	public Object getQuizAnswerCourseExecution() {
-		return quizAnswerCourseExecution;
+	public QuizAnswerExecution getQuizAnswerExecution() {
+		return quizAnswerExecution;
 	}
 
-	public void setQuizAnswerCourseExecution(Object quizAnswerCourseExecution) {
-		this.quizAnswerCourseExecution = quizAnswerCourseExecution;
+	public void setQuizAnswerExecution(QuizAnswerExecution quizAnswerExecution) {
+		this.quizAnswerExecution = quizAnswerExecution;
 	}
 
-	public Object getQuestionAnswers() {
+	public Set<QuestionAnswer> getQuestionAnswers() {
 		return questionAnswers;
 	}
 
-	public void setQuestionAnswers(Object questionAnswers) {
+	public void setQuestionAnswers(Set<QuestionAnswer> questionAnswers) {
 		this.questionAnswers = questionAnswers;
 	}
 
-	public Object getAnsweredQuiz() {
+	public AnsweredQuiz getAnsweredQuiz() {
 		return answeredQuiz;
 	}
 
-	public void setAnsweredQuiz(Object answeredQuiz) {
+	public void setAnsweredQuiz(AnsweredQuiz answeredQuiz) {
 		this.answeredQuiz = answeredQuiz;
 	}
 

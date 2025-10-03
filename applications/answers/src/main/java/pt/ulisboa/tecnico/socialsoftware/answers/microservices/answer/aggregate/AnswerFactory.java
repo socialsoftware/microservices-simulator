@@ -17,7 +17,7 @@ public class AnswerFactory {
             answerDto.getCompletedDate(),
             answerDto.getCompleted(),
             answerDto.getQuizAnswerStudent(),
-            answerDto.getQuizAnswerCourseExecution(),
+            answerDto.getQuizAnswerExecution(),
             answerDto.getQuestionAnswers(),
             answerDto.getAnsweredQuiz()
         );

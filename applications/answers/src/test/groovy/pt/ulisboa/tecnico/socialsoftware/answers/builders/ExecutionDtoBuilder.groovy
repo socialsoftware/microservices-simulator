@@ -13,16 +13,9 @@ class ExecutionDtoBuilder extends SpockTest {
     ExecutionDtoBuilder() {
         this.executionDto = new ExecutionDto()
         // Set default values
-        this.executionDto.setName("Default name")
         this.executionDto.setAcronym("Default acronym")
         this.executionDto.setAcademicTerm("Default academicTerm")
-        this.executionDto.setStartDate(LocalDateTime.now())
         this.executionDto.setEndDate(LocalDateTime.now())
-    }
-
-    ExecutionDtoBuilder withName(String name) {
-        this.executionDto.setName(name)
-        return this
     }
 
     ExecutionDtoBuilder withAcronym(String acronym) {
@@ -35,22 +28,17 @@ class ExecutionDtoBuilder extends SpockTest {
         return this
     }
 
-    ExecutionDtoBuilder withStartDate(LocalDateTime startDate) {
-        this.executionDto.setStartDate(startDate)
-        return this
-    }
-
     ExecutionDtoBuilder withEndDate(LocalDateTime endDate) {
         this.executionDto.setEndDate(endDate)
         return this
     }
 
-    ExecutionDtoBuilder withCourse(Object course) {
-        this.executionDto.setCourse(course)
+    ExecutionDtoBuilder withExecutionCourse(ExecutionCourse executionCourse) {
+        this.executionDto.setExecutionCourse(executionCourse)
         return this
     }
 
-    ExecutionDtoBuilder withStudents(Object students) {
+    ExecutionDtoBuilder withStudents(Set<ExecutionStudent> students) {
         this.executionDto.setStudents(students)
         return this
     }

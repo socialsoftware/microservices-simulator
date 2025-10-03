@@ -53,14 +53,14 @@ public class TopicValidationAnnotations {
      */
     public static class CourseValidation {
         @NotNull
-        private Object course;
+        private TopicCourse course;
         
         // Getter and setter
-        public Object getCourse() {
+        public TopicCourse getCourse() {
             return course;
         }
         
-        public void setCourse(Object course) {
+        public void setCourse(TopicCourse course) {
             this.course = course;
         }
     }

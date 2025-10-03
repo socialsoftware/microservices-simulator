@@ -21,13 +21,13 @@ this.courseService = courseService;
 this.unitOfWorkService = unitOfWorkService;
 }
 
-    public Object createCourse(String name, String acronym, String courseType, SagaUnitOfWork unitOfWork) {
+    public Course createCourse(String name, String acronym, String courseType, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for createCourse
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object getCourseById(Integer courseId, SagaUnitOfWork unitOfWork) {
+    public Course getCourseById(Integer courseId, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for getCourseById
         // This method should orchestrate the saga workflow
         return null;
@@ -39,13 +39,13 @@ this.unitOfWorkService = unitOfWorkService;
         return null;
     }
 
-    public Object updateCourse(Integer courseId, String name, String acronym, String courseType, SagaUnitOfWork unitOfWork) {
+    public Course updateCourse(Integer courseId, String name, String acronym, String courseType, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for updateCourse
         // This method should orchestrate the saga workflow
         return null;
     }
 
-    public Object deleteCourse(Integer courseId, SagaUnitOfWork unitOfWork) {
+    public void deleteCourse(Integer courseId, SagaUnitOfWork unitOfWork) {
         // TODO: Implement saga functionality for deleteCourse
         // This method should orchestrate the saga workflow
         return null;

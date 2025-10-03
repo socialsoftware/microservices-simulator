@@ -95,7 +95,14 @@ function generateDtoConstructors(entity: Entity): string {
     for (const property of entity.properties) {
         if (!property.isKey) {
             const getter = getGetterName(property);
-            constructors.push(`\t\tthis.${property.name} = ${entity.name.toLowerCase()}.${getter}();`);
+
+            // Check if this is an enum field (ends with "Type")
+            if (property.name.endsWith('Type')) {
+                // Convert enum to string using toString()
+                constructors.push(`\t\tthis.${property.name} = ${entity.name.toLowerCase()}.${getter}() != null ? ${entity.name.toLowerCase()}.${getter}().toString() : null;`);
+            } else {
+                constructors.push(`\t\tthis.${property.name} = ${entity.name.toLowerCase()}.${getter}();`);
+            }
         }
     }
 

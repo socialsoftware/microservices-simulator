@@ -33,11 +33,11 @@ private final String content;
 private final Integer numberOfOptions;
 private final Integer correctOption;
 private final Integer order;
-private final Object course;
-private final Object topics;
-private final Object options;
+private final QuestionCourse course;
+private final Set<QuestionTopic> topics;
+private final Set<Option> options;
 
-public QuestionUpdatedEvent(Object source, Long aggregateId, String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, Object course, Object topics, Object options) {
+public QuestionUpdatedEvent(Object source, Long aggregateId, String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, QuestionCourse course, Set<QuestionTopic> topics, Set<Option> options) {
 super(source);
 this.eventId = java.util.UUID.randomUUID().toString();
 this.eventType = "Updated";
@@ -90,15 +90,15 @@ public Integer getOrder() {
 return order;
 }
 
-public Object getCourse() {
+public QuestionCourse getCourse() {
 return course;
 }
 
-public Object getTopics() {
+public Set<QuestionTopic> getTopics() {
 return topics;
 }
 
-public Object getOptions() {
+public Set<Option> getOptions() {
 return options;
 }
 

@@ -4,21 +4,73 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 
 public class QuizDto implements Serializable {
     
-    private Integer id;
+    // Standard aggregate fields
+    private Integer aggregateId;
+    private Integer version;
+    private String state;
+
+    // Root entity fields
     private String title;
     private String description;
+
+    // Fields from QuizDetails
+    private Integer id;
     private String quizType;
     private LocalDateTime availableDate;
     private LocalDateTime conclusionDate;
     private Integer numberOfQuestions;
     
     public QuizDto() {
-        // Default constructor
     }
     
+    public QuizDto(pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz quiz) {
+        // Standard aggregate fields
+        setAggregateId(quiz.getAggregateId());
+        setVersion(quiz.getVersion());
+        setState(quiz.getState().toString());
+
+        // Root entity fields
+        setTitle(quiz.getTitle());
+        setDescription(quiz.getDescription());
+
+        // Fields from QuizDetails
+        setId(quiz.getQuizDetails().getId());
+        setQuizType(quiz.getQuizDetails().getQuizType().toString());
+        setAvailableDate(quiz.getQuizDetails().getAvailableDate());
+        setConclusionDate(quiz.getQuizDetails().getConclusionDate());
+        setNumberOfQuestions(quiz.getQuizDetails().getNumberOfQuestions());
+
+    }
+    
+    public Integer getAggregateId() {
+        return aggregateId;
+    }
+    
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+    
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    public String getState() {
+        return state;
+    }
+    
+    public void setState(String state) {
+        this.state = state;
+    }
+
     public Integer getId() {
         return id;
     }

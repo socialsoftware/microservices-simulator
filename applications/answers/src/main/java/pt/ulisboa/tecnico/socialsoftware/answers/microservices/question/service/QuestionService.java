@@ -38,7 +38,7 @@ public class QuestionService {
     public QuestionService() {}
 
     // CRUD Operations
-    public QuestionDto createQuestion(String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, Object course, Object topics, Object options) {
+    public QuestionDto createQuestion(String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, QuestionCourse course, Set<QuestionTopic> topics, Set<Option> options) {
         try {
             Question question = new Question(title, content, numberOfOptions, correctOption, order, course, topics, options);
             question = questionRepository.save(question);
@@ -124,13 +124,13 @@ public class QuestionService {
 
     // Business Methods
     @Transactional
-    public Object searchQuestionsByTitle(Integer id, String title, UnitOfWork unitOfWork) {
+    public void searchQuestionsByTitle(Integer id, String title, UnitOfWork unitOfWork) {
         try {
             Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Question not found with id: " + id));
             
             // Business logic for searchQuestionsByTitle
-            Object result = question.searchQuestionsByTitle();
+            void result = question.searchQuestionsByTitle();
             questionRepository.save(question);
             return result;
         } catch (Exception e) {

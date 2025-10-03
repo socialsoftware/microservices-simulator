@@ -17,23 +17,28 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.executionfactory.service.ExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.CourseExecutionCourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.CourseExecutionStudentDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionStudentDto;
 
 @Service
 public class ExecutionFunctionalities {
-    
+    @Autowired
     private ExecutionService executionService;
 
-    
+    @Autowired
     private UserService userService;
 
-    
+    @Autowired
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+
+    @Autowired
     private ExecutionFactory executionFactory;
 
 
@@ -176,38 +181,6 @@ public class ExecutionFunctionalities {
                 break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
-    }
-
-    public void getExecutionsByStudent(Integer studentId, UnitOfWork unitOfWork) {
-        // TODO: Implement getExecutionsByStudent
-    }
-
-    public void getActiveExecutions(UnitOfWork unitOfWork) {
-        // TODO: Implement getActiveExecutions
-    }
-
-    public void getExecutionsByAcademicTerm(String academicTerm, UnitOfWork unitOfWork) {
-        // TODO: Implement getExecutionsByAcademicTerm
-    }
-
-    public void removeUser(Integer userAggregateId, Integer executionId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void anonymizeStudent(Integer studentAggregateId, Integer executionId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer executionId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void deleteExecution(Integer executionId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void disenrollStudentFromExecution(Integer studentAggregateId, Integer executionId, UnitOfWork unitOfWork) {
-        
     }
 
 }

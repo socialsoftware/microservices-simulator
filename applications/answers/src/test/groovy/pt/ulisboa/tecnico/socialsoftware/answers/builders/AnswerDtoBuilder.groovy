@@ -33,22 +33,22 @@ class AnswerDtoBuilder extends SpockTest {
         return this
     }
 
-    AnswerDtoBuilder withQuizAnswerStudent(Object quizAnswerStudent) {
+    AnswerDtoBuilder withQuizAnswerStudent(QuizAnswerStudent quizAnswerStudent) {
         this.answerDto.setQuizAnswerStudent(quizAnswerStudent)
         return this
     }
 
-    AnswerDtoBuilder withQuizAnswerCourseExecution(Object quizAnswerCourseExecution) {
-        this.answerDto.setQuizAnswerCourseExecution(quizAnswerCourseExecution)
+    AnswerDtoBuilder withQuizAnswerExecution(QuizAnswerExecution quizAnswerExecution) {
+        this.answerDto.setQuizAnswerExecution(quizAnswerExecution)
         return this
     }
 
-    AnswerDtoBuilder withQuestionAnswers(Object questionAnswers) {
+    AnswerDtoBuilder withQuestionAnswers(Set<QuestionAnswer> questionAnswers) {
         this.answerDto.setQuestionAnswers(questionAnswers)
         return this
     }
 
-    AnswerDtoBuilder withAnsweredQuiz(Object answeredQuiz) {
+    AnswerDtoBuilder withAnsweredQuiz(AnsweredQuiz answeredQuiz) {
         this.answerDto.setAnsweredQuiz(answeredQuiz)
         return this
     }

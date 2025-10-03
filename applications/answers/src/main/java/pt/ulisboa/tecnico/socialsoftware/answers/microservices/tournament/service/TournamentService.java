@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.*;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentExecution;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentCreator;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipant;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipantQuizAnswer;
@@ -43,9 +43,9 @@ public class TournamentService {
     public TournamentService() {}
 
     // CRUD Operations
-    public TournamentDto createTournament(LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, Boolean cancelled, Object tournamentCreator, Object tournamentParticipants, Object tournamentCourseExecution, Object tournamentTopics, Object tournamentQuiz) {
+    public TournamentDto createTournament(LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, Boolean cancelled, TournamentCreator tournamentCreator, Set<TournamentParticipant> tournamentParticipants, TournamentExecution tournamentExecution, Set<TournamentTopic> tournamentTopics, TournamentQuiz tournamentQuiz) {
         try {
-            Tournament tournament = new Tournament(startTime, endTime, numberOfQuestions, cancelled, tournamentCreator, tournamentParticipants, tournamentCourseExecution, tournamentTopics, tournamentQuiz);
+            Tournament tournament = new Tournament(startTime, endTime, numberOfQuestions, cancelled, tournamentCreator, tournamentParticipants, tournamentExecution, tournamentTopics, tournamentQuiz);
             tournament = tournamentRepository.save(tournament);
             return new TournamentDto(tournament);
         } catch (Exception e) {
@@ -96,8 +96,8 @@ public class TournamentService {
             if (tournamentDto.getTournamentParticipants() != null) {
                 tournament.setTournamentParticipants(tournamentDto.getTournamentParticipants());
             }
-            if (tournamentDto.getTournamentCourseExecution() != null) {
-                tournament.setTournamentCourseExecution(tournamentDto.getTournamentCourseExecution());
+            if (tournamentDto.getTournamentExecution() != null) {
+                tournament.setTournamentExecution(tournamentDto.getTournamentExecution());
             }
             if (tournamentDto.getTournamentTopics() != null) {
                 tournament.setTournamentTopics(tournamentDto.getTournamentTopics());
@@ -130,43 +130,43 @@ public class TournamentService {
 
     // Business Methods
     @Transactional
-    public List<TournamentDto> getOpenedTournamentsForCourseExecution(Integer id, Integer courseExecutionId, UnitOfWork unitOfWork) {
+    public List<TournamentDto> getOpenedTournamentsForExecution(Integer id, Integer executionId, UnitOfWork unitOfWork) {
         try {
             Tournament tournament = tournamentRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
             
-            // Business logic for getOpenedTournamentsForCourseExecution
-            List<TournamentDto> result = tournament.getOpenedTournamentsForCourseExecution();
+            // Business logic for getOpenedTournamentsForExecution
+            List<TournamentDto> result = tournament.getOpenedTournamentsForExecution();
             tournamentRepository.save(tournament);
             return result;
         } catch (Exception e) {
-            throw new AnswersException("Error in getOpenedTournamentsForCourseExecution: " + e.getMessage());
+            throw new AnswersException("Error in getOpenedTournamentsForExecution: " + e.getMessage());
         }
     }
 
     @Transactional
-    public List<TournamentDto> getClosedTournamentsForCourseExecution(Integer id, Integer courseExecutionId, UnitOfWork unitOfWork) {
+    public List<TournamentDto> getClosedTournamentsForExecution(Integer id, Integer executionId, UnitOfWork unitOfWork) {
         try {
             Tournament tournament = tournamentRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
             
-            // Business logic for getClosedTournamentsForCourseExecution
-            List<TournamentDto> result = tournament.getClosedTournamentsForCourseExecution();
+            // Business logic for getClosedTournamentsForExecution
+            List<TournamentDto> result = tournament.getClosedTournamentsForExecution();
             tournamentRepository.save(tournament);
             return result;
         } catch (Exception e) {
-            throw new AnswersException("Error in getClosedTournamentsForCourseExecution: " + e.getMessage());
+            throw new AnswersException("Error in getClosedTournamentsForExecution: " + e.getMessage());
         }
     }
 
     @Transactional
-    public Object getTournamentParticipant(Integer id, Integer userAggregateId) {
+    public TournamentParticipant getTournamentParticipant(Integer id, Integer userAggregateId) {
         try {
             Tournament tournament = tournamentRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
             
             // Business logic for getTournamentParticipant
-            Object result = tournament.getTournamentParticipant();
+            TournamentParticipant result = tournament.getTournamentParticipant();
             tournamentRepository.save(tournament);
             return result;
         } catch (Exception e) {

@@ -42,7 +42,8 @@ export class CodeGenerator {
 
             const config = {
                 ...cliConfig,
-                basePackage: loadedConfig.basePackage
+                basePackage: loadedConfig.basePackage,
+                consistencyModels: loadedConfig.consistencyModels
             };
 
             const paths = await ProjectSetup.setupProjectPaths(
@@ -91,7 +92,7 @@ export class CodeGenerator {
         const baseOutputDir = opts.destination || DEFAULT_OUTPUT_DIR;
         const projectName = ProjectSetup.deriveProjectName(inputPath, opts.name);
         const architecture = opts.architecture || 'default';
-        const features = opts.features || ['events', 'validation', 'webapi', 'coordination', 'saga'];
+        const features = opts.features || ['events', 'validation', 'webapi', 'coordination', 'saga', 'shared'];
         const validate = opts.validate || false;
 
         return {
@@ -147,7 +148,8 @@ export class CodeGenerator {
             architecture: config.architecture as 'default' | 'external-dto-removal' | 'causal-saga',
             features: config.features || [],
             projectName: config.projectName,
-            outputPath: paths.projectPath
+            outputPath: paths.projectPath,
+            consistencyModels: config.consistencyModels
         };
 
         const allAggregates = allModels.flatMap(model => model.aggregates);
@@ -160,6 +162,9 @@ export class CodeGenerator {
         }
 
         await this.generateProjectFiles(allModels, paths, config, generators);
+
+        // Generate shared components
+        await FeatureGenerators.generateSharedComponents(paths, options, allModels);
     }
 
     private static async generateProjectFiles(
