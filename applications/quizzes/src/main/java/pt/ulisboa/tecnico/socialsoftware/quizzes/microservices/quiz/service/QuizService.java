@@ -246,14 +246,14 @@ public class QuizService {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Quiz removeCourseExecution(Integer quizAggregateId, Integer courseExecutionId, Integer aggregateVersion, UnitOfWork unitOfWork) {
+    public QuizDto removeCourseExecution(Integer quizAggregateId, Integer courseExecutionId, Integer aggregateVersion, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
         Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
         
         if (newQuiz.getQuizCourseExecution().getCourseExecutionAggregateId().equals(courseExecutionId)) {
             newQuiz.setState(Aggregate.AggregateState.INACTIVE);
             unitOfWorkService.registerChanged(newQuiz, unitOfWork);
-            return newQuiz;
+            return new QuizDto(newQuiz);
         }
         
         return null;

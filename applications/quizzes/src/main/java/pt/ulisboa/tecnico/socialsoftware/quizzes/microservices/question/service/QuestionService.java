@@ -175,7 +175,7 @@ public class QuestionService {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Question updateTopic(Integer questionAggregateId, Integer topicAggregateId, String topicName, Integer aggregateVersion, UnitOfWork unitOfWork) {
+    public QuestionDto updateTopic(Integer questionAggregateId, Integer topicAggregateId, String topicName, Integer aggregateVersion, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
 
@@ -188,7 +188,7 @@ public class QuestionService {
         questionTopic.setTopicName(topicName);
         questionTopic.setTopicVersion(aggregateVersion);
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
-        return newQuestion;
+        return new QuestionDto(newQuestion);
     }
 
     @Retryable(
@@ -199,7 +199,7 @@ public class QuestionService {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Question removeTopic(Integer questionAggregateId, Integer topicAggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
+    public QuestionDto removeTopic(Integer questionAggregateId, Integer topicAggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
 
@@ -211,7 +211,7 @@ public class QuestionService {
             questionTopic.setState(Aggregate.AggregateState.INACTIVE);
         }
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
-        return newQuestion;
+        return new QuestionDto(newQuestion);
     }
 
 

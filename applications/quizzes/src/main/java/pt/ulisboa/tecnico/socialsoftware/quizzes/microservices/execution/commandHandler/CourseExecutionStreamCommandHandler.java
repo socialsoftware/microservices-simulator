@@ -30,7 +30,6 @@ public class CourseExecutionStreamCommandHandler extends StreamCommandHandler {
 
     @Override
     public Object handle(Command command) {
-        logger.info("CourseExecutionStreamCommandHandler handling command: " + command.getServiceName());
         return courseExecutionCommandHandler.handle(command);
     }
 

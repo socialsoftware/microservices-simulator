@@ -104,31 +104,31 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
         aggregate.setSagaState(state);
         entityManager.persist(aggregate);
-        unitOfWork.addToAggregatesInSaga(aggregate);
+        unitOfWork.addToAggregatesInSaga(((Aggregate)aggregate).getAggregateId());
     }
 
-    @Retryable(
-            retryFor = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void verifyAndRegisterSagaState(Integer aggregateId, SagaState state, List<SagaState> forbiddenStates, SagaUnitOfWork unitOfWork) {
-        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
-                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
-        
-        if (forbiddenStates.contains(aggregate.getSagaState())) {
-            throw new SimulatorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, aggregate.getSagaState().getStateName());
-        }
-
-        unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
-
-        aggregate.setSagaState(state);
-        entityManager.persist(aggregate);
-        unitOfWork.addToAggregatesInSaga(aggregate);
-    }
+//    @Retryable(
+//            retryFor = { SQLException.class,  CannotAcquireLockException.class },
+//            maxAttemptsExpression = "${retry.db.maxAttempts}",
+//        backoff = @Backoff(
+//            delayExpression = "${retry.db.delay}",
+//            multiplierExpression = "${retry.db.multiplier}"
+//        ))
+//    @Transactional(isolation = Isolation.SERIALIZABLE)
+//    public void verifyAndRegisterSagaState(Integer aggregateId, SagaState state, List<SagaState> forbiddenStates, SagaUnitOfWork unitOfWork) {
+//        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
+//                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
+//
+//        if (forbiddenStates.contains(aggregate.getSagaState())) {
+//            throw new SimulatorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, aggregate.getSagaState().getStateName());
+//        }
+//
+//        unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
+//
+//        aggregate.setSagaState(state);
+//        entityManager.persist(aggregate);
+//        unitOfWork.addToAggregatesInSaga();
+//    }
 
     @Retryable(
             retryFor = { SQLException.class,  CannotAcquireLockException.class },
@@ -156,9 +156,9 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commit(SagaUnitOfWork unitOfWork) {
-        unitOfWork.getAggregatesInSaga().stream().forEach(a -> {
-            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findAnySagaAggregate(((Aggregate)a).getAggregateId())
-                    .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, ((Aggregate)a).getAggregateId()));
+        unitOfWork.getAggregatesInSaga().forEach(a -> {
+            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findAnySagaAggregate(a)
+                    .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, a));
             aggregate.setSagaState(GenericSagaState.NOT_IN_SAGA);
             entityManager.persist(aggregate);
         });

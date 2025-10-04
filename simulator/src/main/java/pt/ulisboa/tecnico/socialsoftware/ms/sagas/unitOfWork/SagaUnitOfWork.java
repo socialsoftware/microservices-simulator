@@ -29,11 +29,11 @@ public class SagaUnitOfWork extends UnitOfWork {
 
     private static final Logger logger = LoggerFactory.getLogger(SagaUnitOfWork.class);
 
-    private ArrayList<Runnable> compensatingActions;
-    private ArrayList<SagaAggregate> aggregatesInSaga;
-    private HashMap<Integer, SagaState> previousStates = new HashMap<>();
+    private final ArrayList<Runnable> compensatingActions;
+    private final ArrayList<Integer> aggregatesInSaga; //TODO CHANGE IN DISTRIBUTED
+    private final HashMap<Integer, SagaState> previousStates = new HashMap<>();
 
-    private TraceManager traceManager;
+    private final TraceManager traceManager;
 
     public SagaUnitOfWork(Integer version, String functionalityName) {
         super(version, functionalityName);
@@ -69,12 +69,12 @@ public class SagaUnitOfWork extends UnitOfWork {
         return CompletableFuture.allOf(compensationFutures.toArray(new CompletableFuture[0]));
     }
 
-    public ArrayList<SagaAggregate> getAggregatesInSaga() {
+    public ArrayList<Integer> getAggregatesInSaga() {
         return this.aggregatesInSaga;
     }
 
-    public void addToAggregatesInSaga(SagaAggregate aggregate) {
-        this.aggregatesInSaga.add(aggregate);
+    public void addToAggregatesInSaga(Integer aggregateId) {
+        this.aggregatesInSaga.add(aggregateId);
     }
 
     public HashMap<Integer, SagaState> getPreviousStates() {

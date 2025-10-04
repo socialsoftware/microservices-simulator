@@ -28,12 +28,9 @@ public abstract class StreamCommandHandler implements CommandHandler {
     public void handleCommandMessage(Message<?> message) {
         Command command;
         if (!(message.getPayload() instanceof Command)) {
-            logger.warning("Received message payload is not a Command object: " + message.getPayload().getClass());
-
             if (message.getPayload() instanceof byte[]) {
                 try {
                     command = objectMapper.readValue((byte[]) message.getPayload(), Command.class);
-                    logger.info("Successfully deserialized command from byte array");
                 } catch (Exception e) {
                     logger.severe("Failed to deserialize command: " + e.getMessage());
                     e.printStackTrace();

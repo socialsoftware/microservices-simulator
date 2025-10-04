@@ -33,7 +33,7 @@ public class QuizAnswerService {
     @Autowired
     private CourseExecutionService courseExecutionService;
 
-    private final UnitOfWorkService unitOfWorkService;
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     private final QuizAnswerCustomRepository quizAnswerRepository;
 
@@ -45,7 +45,7 @@ public class QuizAnswerService {
         this.quizAnswerRepository = quizAnswerRepository;
     }
 
-    public QuizAnswer getQuizAnswerByQuizIdAndUserId(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+    private QuizAnswer getQuizAnswerByQuizIdAndUserId(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         Integer quizAnswerId = quizAnswerRepository.findQuizAnswerIdByQuizIdAndUserId(quizAggregateId, userAggregateId)
                 .orElseThrow(() -> new QuizzesException(QuizzesErrorMessage.NO_USER_ANSWER_FOR_QUIZ, quizAggregateId, userAggregateId));
 

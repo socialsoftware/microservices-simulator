@@ -113,7 +113,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         // STEP 4 perform a commit of the aggregates under SERIALIZABLE isolation
 
         Map<Integer, Aggregate> originalAggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
-
+        logger.info("Aggregates to commit: {}", originalAggregatesToCommit);
         // may contain merged aggregates
         // we do not want to compare intermediate merged aggregates with concurrent aggregate, so we separate
         // the comparison is always between the original written by the functionality and the concurrent

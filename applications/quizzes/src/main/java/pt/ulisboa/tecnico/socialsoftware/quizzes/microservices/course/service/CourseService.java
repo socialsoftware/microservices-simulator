@@ -22,7 +22,7 @@
         @Autowired
         private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-        private final UnitOfWorkService unitOfWorkService;
+        private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
         private final CourseCustomRepository courseRepository;
 

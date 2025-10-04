@@ -40,7 +40,7 @@ public class TournamentService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    private final UnitOfWorkService unitOfWorkService;
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     private final TournamentCustomRepository tournamentRepository;
 
@@ -278,7 +278,7 @@ public class TournamentService {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament anonymizeUser(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId, String name, String username, Integer eventVersion, UnitOfWork unitOfWork) {
+    public TournamentDto anonymizeUser(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId, String name, String username, Integer eventVersion, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
@@ -302,7 +302,7 @@ public class TournamentService {
                 unitOfWorkService.registerChanged(newTournament, unitOfWork);
             }
         }
-        return newTournament;
+        return new TournamentDto(newTournament);
     }
 
     @Retryable(
@@ -313,7 +313,7 @@ public class TournamentService {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament removeCourseExecution(Integer tournamentAggregateId, Integer courseExecutionId, Integer eventVersion, UnitOfWork unitOfWork) {
+    public TournamentDto removeCourseExecution(Integer tournamentAggregateId, Integer courseExecutionId, Integer eventVersion, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         if (oldTournament.getTournamentCourseExecution() != null && oldTournament.getTournamentCourseExecution().getCourseExecutionVersion() >= eventVersion) {
             return null;
@@ -324,7 +324,7 @@ public class TournamentService {
             newTournament.setState(Aggregate.AggregateState.INACTIVE);
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
-        return newTournament;
+        return new TournamentDto(newTournament);
     }
 
     @Retryable(
@@ -335,7 +335,7 @@ public class TournamentService {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament removeUser(Integer tournamentAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, Integer eventVersion, UnitOfWork unitOfWork) {
+    public TournamentDto removeUser(Integer tournamentAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, Integer eventVersion, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
 
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
@@ -353,7 +353,7 @@ public class TournamentService {
             //tournamentParticipant.setVersion(eventVersion);
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
-        return newTournament;
+        return new TournamentDto(newTournament);
     }
 
     @Retryable(
@@ -364,7 +364,7 @@ public class TournamentService {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament updateTopic(Integer tournamentAggregateId, Integer topicAggregateId, String topicName, Integer eventVersion, UnitOfWork unitOfWork) {
+    public TournamentDto updateTopic(Integer tournamentAggregateId, Integer topicAggregateId, String topicName, Integer eventVersion, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         TournamentTopic topic = newTournament.findTopic(topicAggregateId);
@@ -375,7 +375,7 @@ public class TournamentService {
         topic.setTopicVersion(eventVersion);
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
 
-        return newTournament;
+        return new TournamentDto(newTournament);
     }
 
     @Retryable(
@@ -386,7 +386,7 @@ public class TournamentService {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament removeTopic(Integer tournamentAggregateId, Integer topicAggregateId, Integer eventVersion, UnitOfWork unitOfWork) {
+    public TournamentDto removeTopic(Integer tournamentAggregateId, Integer topicAggregateId, Integer eventVersion, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         TournamentTopic oldTopic = oldTournament.findTopic(topicAggregateId);
         if (oldTopic != null && oldTopic.getTopicVersion() >= eventVersion) {
@@ -410,7 +410,7 @@ public class TournamentService {
         }
 
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
-        return newTournament;
+        return new TournamentDto(newTournament);
     }
 
     @Retryable(
@@ -421,7 +421,7 @@ public class TournamentService {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament updateParticipantAnswer(Integer tournamentAggregateId, Integer studentAggregateId, Integer quizAnswerAggregateId, Integer questionAggregateId, boolean isCorrect, Integer eventVersion, UnitOfWork unitOfWork) {
+    public TournamentDto updateParticipantAnswer(Integer tournamentAggregateId, Integer studentAggregateId, Integer quizAnswerAggregateId, Integer questionAggregateId, boolean isCorrect, Integer eventVersion, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         TournamentParticipant oldParticipant = oldTournament.findParticipant(studentAggregateId);
         if (oldParticipant != null && oldParticipant.getParticipantAnswer().getQuizAnswerVersion() >= eventVersion) {
@@ -445,7 +445,7 @@ public class TournamentService {
         }
         tournamentParticipant.updateAnswerWithQuestion(quizAnswerAggregateId, quizAnswerAggregateId, isCorrect, eventVersion);
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
-        return newTournament;
+        return new TournamentDto(newTournament);
     }
 
     @Retryable(
@@ -456,7 +456,7 @@ public class TournamentService {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament invalidateQuiz(Integer tournamentAggregateId, Integer aggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
+    public TournamentDto invalidateQuiz(Integer tournamentAggregateId, Integer aggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         List<Integer> topicsIds = newTournament.getTournamentTopics().stream().map(TournamentTopic::getTopicAggregateId).collect(Collectors.toList());
@@ -479,7 +479,7 @@ public class TournamentService {
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
-        return newTournament;
+        return new TournamentDto(newTournament);
     }
 
     @Retryable(

@@ -29,29 +29,30 @@ public class CourseExecutionCommandHandler implements CommandHandler {
             sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
         }
         Object returnObject;
-        if (command instanceof CreateCourseExecutionCommand) {
-            returnObject = handleCreateCourseExecution((CreateCourseExecutionCommand) command);
-        } else if (command instanceof RemoveCourseExecutionCommand) {
-            returnObject = handleRemoveCourseExecution((RemoveCourseExecutionCommand) command);
-        } else if (command instanceof RemoveStudentFromCourseExecutionCommand) {
-            returnObject = handleRemoveStudentFromCourseExecution((RemoveStudentFromCourseExecutionCommand) command);
-        } else if (command instanceof UpdateExecutionStudentNameCommand) {
-            returnObject = handleUpdateExecutionStudentName((UpdateExecutionStudentNameCommand) command);
-        } else if (command instanceof GetStudentByExecutionIdAndUserIdCommand) {
-            returnObject = handleGetStudentByExecutionIdAndUserId((GetStudentByExecutionIdAndUserIdCommand) command);
-        } else if (command instanceof GetCourseExecutionsByUserIdCommand) {
-            returnObject = handleGetCourseExecutionsByUserId((GetCourseExecutionsByUserIdCommand) command);
-        } else if (command instanceof GetCourseExecutionByIdCommand) {
-            returnObject = handleGetCourseExecutionById((GetCourseExecutionByIdCommand) command);
-        } else if (command instanceof GetAllCourseExecutionsCommand) {
-            returnObject = handleGetAllCourseExecutions((GetAllCourseExecutionsCommand) command);
-        } else if (command instanceof EnrollStudentCommand) {
-            returnObject = handleEnrollStudent((EnrollStudentCommand) command);
-        } else if (command instanceof AnonymizeStudentCommand) {
-            returnObject = handleAnonymizeStudent((AnonymizeStudentCommand) command);
-        } else {
-            logger.warning("Unknown command type: " + command.getClass().getName());
-            returnObject = null;
+        switch (command) {
+            case CreateCourseExecutionCommand createCourseExecutionCommand ->
+                    returnObject = handleCreateCourseExecution(createCourseExecutionCommand);
+            case RemoveCourseExecutionCommand removeCourseExecutionCommand ->
+                    returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
+            case RemoveStudentFromCourseExecutionCommand removeStudentFromCourseExecutionCommand ->
+                    returnObject = handleRemoveStudentFromCourseExecution(removeStudentFromCourseExecutionCommand);
+            case UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand ->
+                    returnObject = handleUpdateExecutionStudentName(updateExecutionStudentNameCommand);
+            case GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand ->
+                    returnObject = handleGetStudentByExecutionIdAndUserId(getStudentByExecutionIdAndUserIdCommand);
+            case GetCourseExecutionsByUserIdCommand getCourseExecutionsByUserIdCommand ->
+                    returnObject = handleGetCourseExecutionsByUserId(getCourseExecutionsByUserIdCommand);
+            case GetCourseExecutionByIdCommand getCourseExecutionByIdCommand ->
+                    returnObject = handleGetCourseExecutionById(getCourseExecutionByIdCommand);
+            case GetAllCourseExecutionsCommand getAllCourseExecutionsCommand ->
+                    returnObject = handleGetAllCourseExecutions(getAllCourseExecutionsCommand);
+            case EnrollStudentCommand enrollStudentCommand -> returnObject = handleEnrollStudent(enrollStudentCommand);
+            case AnonymizeStudentCommand anonymizeStudentCommand ->
+                    returnObject = handleAnonymizeStudent(anonymizeStudentCommand);
+            default -> {
+                logger.warning("Unknown command type: " + command.getClass().getName());
+                returnObject = null;
+            }
         }
         if (command.getSemanticLock() != null) {
             Logger.getLogger(CourseExecutionCommandHandler.class.getName()).info("Registering saga state: " + command.getSemanticLock());

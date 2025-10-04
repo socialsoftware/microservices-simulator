@@ -262,12 +262,12 @@ public class CourseExecutionService {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public CourseExecution removeUser(Integer executionAggregateId, Integer userAggregateId, Integer aggregateEventVersion, UnitOfWork unitOfWork) {
+    public CourseExecutionDto removeUser(Integer executionAggregateId, Integer userAggregateId, Integer aggregateEventVersion, UnitOfWork unitOfWork) {
         CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
         CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setState(Aggregate.AggregateState.INACTIVE);
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
         unitOfWorkService.registerEvent(new DisenrollStudentFromCourseExecutionEvent(executionAggregateId, userAggregateId), unitOfWork);
-        return newExecution;
+        return new CourseExecutionDto(newExecution);
     }
 }

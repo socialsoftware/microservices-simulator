@@ -78,8 +78,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             // by making this call locks regarding the role of the creator are guaranteed
             // by making this call the invariants regarding the course execution and the
             // role of the creator are guaranteed
-//            UserDto creatorDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId,
-//                    unitOfWork);
+//            UserDto creatorDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId, unitOfWork);
             // unitOfWorkService.registerSagaState(userId, UserSagaState.READ_USER,
             // unitOfWork); // TODO calling another aggregate that is not courseExecution
              GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId, userId);
