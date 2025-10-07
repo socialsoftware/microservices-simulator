@@ -34,6 +34,13 @@ export class NebulaValidator {
   checkModel(model: Model, accept: ValidationAcceptor): void {
     const aggregateNames = new Set<string>();
     for (const aggregate of model.aggregates) {
+      if (!aggregate.name) {
+        accept("error", "Aggregate name is required", {
+          node: aggregate,
+          property: "name",
+        });
+        continue;
+      }
       if (aggregateNames.has(aggregate.name.toLowerCase())) {
         const errorMsg = ErrorMessageProvider.getMessage('DUPLICATE_AGGREGATE_NAME', { name: aggregate.name });
         accept("error", errorMsg.message, {
@@ -44,6 +51,9 @@ export class NebulaValidator {
         aggregateNames.add(aggregate.name.toLowerCase());
       }
     }
+
+    // Validate DTO mappings
+    this.validateDtoMappings(model, accept);
 
     if (model.aggregates.length === 0) {
       const warningMsg = ErrorMessageProvider.getMessage('EMPTY_MODEL');
@@ -272,5 +282,70 @@ export class NebulaValidator {
   checkImport(importNode: Import, accept: ValidationAcceptor): void {
     // Import validation is now handled by the grammar itself
     // Only 'import shared-dtos;' is allowed
+  }
+
+  private validateDtoMappings(model: Model, accept: ValidationAcceptor): void {
+    // Check shared DTOs for mapping consistency
+    for (const sharedDtos of model.sharedDtos) {
+      for (const dto of sharedDtos.dtos) {
+        if (dto.mappings) {
+          for (const mapping of dto.mappings) {
+            this.validateDtoMapping(model, dto, mapping, accept);
+          }
+        }
+      }
+    }
+  }
+
+  private validateDtoMapping(model: Model, dto: any, mapping: any, accept: ValidationAcceptor): void {
+    const collectionName = mapping.collectionName;
+    const fieldMappings = mapping.fieldMappings || [];
+
+    // Find the aggregate that contains this collection
+    for (const aggregate of model.aggregates) {
+      const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+      if (rootEntity) {
+        // Check if this root entity has the collection
+        const collectionProperty = rootEntity.properties?.find((prop: any) =>
+          prop.name === collectionName
+        );
+
+        if (collectionProperty) {
+          // Find the entity type of the collection
+          const entityTypeName = this.extractEntityTypeFromCollection(collectionProperty);
+
+          // Find the actual entity definition
+          const targetEntity = aggregate.entities.find((e: any) => e.name === entityTypeName);
+
+          if (targetEntity) {
+            // Validate each field mapping
+            for (const fieldMapping of fieldMappings) {
+              const entityFieldName = fieldMapping.entityField;
+              const entityHasField = targetEntity.properties?.some((prop: any) =>
+                prop.name === entityFieldName
+              );
+
+              if (!entityHasField) {
+                accept("error", `Field '${entityFieldName}' does not exist in entity '${entityTypeName}'. Available fields: ${targetEntity.properties?.map((p: any) => p.name).join(', ') || 'none'}`, {
+                  node: fieldMapping,
+                  property: "entityField",
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private extractEntityTypeFromCollection(property: any): string | null {
+    // Extract entity type from Set<EntityType> or List<EntityType>
+    if (property.type?.$type === 'SetType' || property.type?.$type === 'ListType') {
+      const elementType = property.type.elementType;
+      if (elementType?.$type === 'EntityType') {
+        return elementType.type?.ref?.name || elementType.type?.$refText;
+      }
+    }
+    return null;
   }
 }

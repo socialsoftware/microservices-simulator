@@ -33,6 +33,16 @@ export class NebulaScopeComputation extends DefaultScopeComputation {
                     descriptions.push(this.descriptions.createDescription(enumDef, enumDef.name, document));
                 }
             }
+
+            // Export all published events from all aggregates
+            // This allows them to be referenced in subscribed events across aggregates
+            for (const aggregate of model.aggregates) {
+                if (aggregate.events?.publishedEvents) {
+                    for (const publishedEvent of aggregate.events.publishedEvents) {
+                        descriptions.push(this.descriptions.createDescription(publishedEvent, publishedEvent.name, document));
+                    }
+                }
+            }
         }
 
         return descriptions;

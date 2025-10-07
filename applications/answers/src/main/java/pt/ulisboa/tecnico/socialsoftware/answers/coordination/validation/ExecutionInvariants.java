@@ -84,20 +84,20 @@ public class ExecutionInvariants {
     }
 
     /**
-     * Students cannot be null
+     * Users cannot be null
      */
-    public static void invariantStudentsNotNull(Execution entity) {
-        if (entity.getStudents() == null) {
-            throw new IllegalStateException("Students cannot be null");
+    public static void invariantUsersNotNull(Execution entity) {
+        if (entity.getUsers() == null) {
+            throw new IllegalStateException("Users cannot be null");
         }
     }
 
     /**
-     * Students cannot be empty
+     * Users cannot be empty
      */
-    public static void invariantStudentsNotEmpty(Execution entity) {
-        if (entity.getStudents() == null || ((java.util.Collection) entity.getStudents()).isEmpty()) {
-            throw new IllegalStateException("Students cannot be empty");
+    public static void invariantUsersNotEmpty(Execution entity) {
+        if (entity.getUsers() == null || ((java.util.Collection) entity.getUsers()).isEmpty()) {
+            throw new IllegalStateException("Users cannot be empty");
         }
     }
 

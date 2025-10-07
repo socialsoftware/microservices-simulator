@@ -55,13 +55,31 @@ export class EventProcessingGenerator extends OrchestrationBase {
 
         const aggregateEvents = (aggregate as any).events;
         if (aggregateEvents) {
-            aggregateEvents.forEach((event: any) => {
-                methods.push({
-                    name: `process${event.name}`,
-                    returnType: 'void',
-                    parameters: event.parameters || []
+            // Handle new DSL structure with publishedEvents and subscribedEvents
+            if (aggregateEvents.subscribedEvents) {
+                aggregateEvents.subscribedEvents.forEach((event: any) => {
+                    const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
+                    methods.push({
+                        name: `process${eventTypeName}`,
+                        returnType: 'void',
+                        parameters: [
+                            { name: 'aggregateId', type: 'Integer' },
+                            { name: eventTypeName.charAt(0).toLowerCase() + eventTypeName.slice(1), type: eventTypeName }
+                        ]
+                    });
                 });
-            });
+            }
+
+            // Handle legacy array structure for backward compatibility
+            if (Array.isArray(aggregateEvents)) {
+                aggregateEvents.forEach((event: any) => {
+                    methods.push({
+                        name: `process${event.name}`,
+                        returnType: 'void',
+                        parameters: event.parameters || []
+                    });
+                });
+            }
         }
 
         return methods;
@@ -85,6 +103,26 @@ export class EventProcessingGenerator extends OrchestrationBase {
         imports.push(`import ${basePackage}.ms.coordination.unitOfWork.UnitOfWorkService;`);
         imports.push(`import ${basePackage}.${projectName}.microservices.exception.${this.capitalize(options.projectName)}Exception;`);
         imports.push(`import ${basePackage}.${projectName}.microservices.${aggregate.name.toLowerCase()}.service.${this.capitalize(aggregate.name)}Service;`);
+
+        // Add imports for subscribed events
+        const aggregateEvents = (aggregate as any).events;
+        if (aggregateEvents?.subscribedEvents) {
+            aggregateEvents.subscribedEvents.forEach((event: any) => {
+                const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
+
+                // Determine the source aggregate for the event (e.g., DeleteUserEvent comes from User aggregate)
+                let eventSourceAggregate = 'user'; // Default assumption for DeleteUserEvent
+                if (eventTypeName.toLowerCase().includes('user')) {
+                    eventSourceAggregate = 'user';
+                } else if (eventTypeName.toLowerCase().includes('course')) {
+                    eventSourceAggregate = 'course';
+                } else if (eventTypeName.toLowerCase().includes('execution')) {
+                    eventSourceAggregate = 'execution';
+                }
+
+                imports.push(`import ${basePackage}.${projectName}.microservices.${eventSourceAggregate}.events.publish.${eventTypeName};`);
+            });
+        }
 
         return imports;
     }

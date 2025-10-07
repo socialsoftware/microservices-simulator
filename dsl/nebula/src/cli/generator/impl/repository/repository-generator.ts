@@ -23,13 +23,18 @@ ${methods}
 function generateRepositoryImports(customRepository: CustomRepository | undefined): string {
     const imports = new Set<string>();
 
-    imports.add('import java.util.Optional;');
-    imports.add('import java.util.List;');
-    imports.add('import java.util.Set;');
-
+    // Add imports based on what's actually used in methods
     if (customRepository && customRepository.repositoryMethods) {
-        customRepository.repositoryMethods.forEach(method => {
-        });
+        const hasOptional = customRepository.repositoryMethods.some(method =>
+            resolveRepositoryReturnType(method.returnType).includes('Optional<'));
+        const hasList = customRepository.repositoryMethods.some(method =>
+            resolveRepositoryReturnType(method.returnType).includes('List<'));
+        const hasSet = customRepository.repositoryMethods.some(method =>
+            resolveRepositoryReturnType(method.returnType).includes('Set<'));
+
+        if (hasOptional) imports.add('import java.util.Optional;');
+        if (hasList) imports.add('import java.util.List;');
+        if (hasSet) imports.add('import java.util.Set;');
     }
 
     return Array.from(imports).join('\n');
@@ -41,7 +46,23 @@ function generateInterfaceDeclaration(aggregateName: string): string {
 
 function generateCustomRepositoryMethods(aggregate: Aggregate, capitalizedAggregate: string): string {
     if (aggregate.customRepository && aggregate.customRepository.repositoryMethods.length > 0) {
-        return aggregate.customRepository.repositoryMethods
+        // Remove "For" suffix and deduplicate method names
+        const uniqueMethods = new Map<string, any>();
+
+        aggregate.customRepository.repositoryMethods.forEach(method => {
+            // Remove everything after "For" to get the base method name
+            const baseMethodName = method.name.split('For')[0];
+
+            // Only keep the first occurrence of each base method name
+            if (!uniqueMethods.has(baseMethodName)) {
+                uniqueMethods.set(baseMethodName, {
+                    ...method,
+                    name: baseMethodName
+                });
+            }
+        });
+
+        return Array.from(uniqueMethods.values())
             .map(method => generateRepositoryMethod(method))
             .join('\n');
     }

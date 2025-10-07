@@ -71,111 +71,117 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
 
     private buildQueryMethods(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, options: RepositoryInterfaceGenerationOptions): any[] {
         const methods: any[] = [];
-        const lowerAggregate = aggregateName.toLowerCase();
 
-        rootEntity.properties.forEach((property: any) => {
-            if (!property.isKey) {
-                const javaType = TypeResolver.resolveJavaType(property.type);
-
-                if (javaType === 'String') {
-                    methods.push({
-                        methodName: `find${aggregateName}IdBy${this.capitalize(property.name)}`,
-                        query: `select ${lowerAggregate}.id from ${aggregateName} ${lowerAggregate} where ${lowerAggregate}.${property.name} = :${property.name} AND ${lowerAggregate}.state = 'ACTIVE'`,
-                        parameters: [{ name: property.name, type: javaType }],
-                        returnType: 'Optional<Integer>',
-                        forSaga: true
-                    });
-                }
-            }
-        });
-
-        this.generateRelationshipQueryMethods(aggregate, rootEntity, aggregateName, methods);
+        // Only generate methods from DSL CustomRepository block
+        this.addCustomRepositoryMethods(aggregate, methods);
 
         return methods;
     }
 
-    private generateRelationshipQueryMethods(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, methods: any[]): void {
-        const lowerAggregate = aggregateName.toLowerCase();
 
-        rootEntity.properties.forEach((property: any) => {
-            if (!property.isKey) {
-                const referencedAggregate = this.detectReferencedAggregate(property);
-                if (referencedAggregate) {
-                    const methodName = `find${aggregateName}IdBy${referencedAggregate}IdAnd${this.capitalize(property.name)}`;
-                    const query = `select ${lowerAggregate}.id from ${aggregateName} ${lowerAggregate} where ${lowerAggregate}.${property.name}.${referencedAggregate.toLowerCase()}AggregateId = :${referencedAggregate.toLowerCase()}AggregateId AND ${lowerAggregate}.${property.name}.${this.capitalize(property.name)} = :${property.name}`;
+    private addCustomRepositoryMethods(aggregate: Aggregate, methods: any[]): void {
+        if (aggregate.customRepository && aggregate.customRepository.repositoryMethods) {
+            aggregate.customRepository.repositoryMethods.forEach((method: any) => {
+                const returnType = this.resolveRepositoryReturnType(method.returnType);
+                const parameters = method.parameters || [];
 
-                    methods.push({
-                        methodName,
-                        query,
-                        parameters: [
-                            { name: `${referencedAggregate.toLowerCase()}AggregateId`, type: 'Integer' },
-                            { name: property.name, type: this.capitalize(property.name) }
-                        ],
-                        returnType: 'Optional<Integer>',
-                        forSaga: true
-                    });
+                // Use query from DSL if provided, otherwise generate based on method name pattern
+                let query = '';
+                if (method.query) {
+                    // DSL-defined query - use as-is
+                    query = method.query;
+                } else if (method.name.includes('findExecutionIdsOfAllNonDeletedForSaga')) {
+                    // Fallback: Generate query based on method name pattern
+                    query = `select e1.aggregateId from ${aggregate.name} e1 where e1.aggregateId NOT IN (select e2.aggregateId from ${aggregate.name} e2 where e2.state = 'DELETED' AND e2.sagaState != 'NOT_IN_SAGA')`;
                 }
-            }
-        });
+
+                methods.push({
+                    methodName: method.name,
+                    query: query,
+                    parameters: parameters.map((param: any) => ({
+                        name: param.name,
+                        type: this.resolveParameterType(param.type)
+                    })),
+                    returnType: returnType,
+                    forSaga: false // Custom methods handle saga logic themselves
+                });
+            });
+        }
     }
 
-    private detectReferencedAggregate(property: any): string | null {
-        const propertyName = property.name.toLowerCase();
-        const javaType = TypeResolver.resolveJavaType(property.type);
+    private resolveRepositoryReturnType(returnType: any): string {
+        if (!returnType) return 'void';
 
-        const aggregatePatterns = [
-            /(\w+)aggregateid/i,
-            /(\w+)id/i,
-            /(\w+)aggregate/i
-        ];
+        if (returnType.$cstNode && returnType.$cstNode.text) {
+            const text = returnType.$cstNode.text.trim();
+            if (text) return text;
+        }
 
-        for (const pattern of aggregatePatterns) {
-            const match = propertyName.match(pattern);
-            if (match && match[1]) {
-                const potentialAggregate = this.capitalize(match[1]);
-                if (this.isValidAggregateName(potentialAggregate)) {
-                    return potentialAggregate;
-                }
+        if (returnType.type) {
+            const innerType = this.resolveParameterType(returnType.type);
+            const cstText = returnType.$cstNode?.text || '';
+
+            if (cstText.startsWith('Optional<')) {
+                return `Optional<${innerType}>`;
+            } else if (cstText.startsWith('List<')) {
+                return `List<${innerType}>`;
+            } else if (cstText.startsWith('Set<')) {
+                return `Set<${innerType}>`;
+            }
+
+            return innerType;
+        }
+
+        if (returnType.name) {
+            return returnType.name;
+        }
+
+        return 'Object';
+    }
+
+    private resolveParameterType(type: any): string {
+        if (!type) return 'Object';
+
+        if (typeof type === 'string') {
+            return type;
+        }
+
+        if (type.name) {
+            return type.name;
+        }
+
+        if (type.$type) {
+            if (type.$type === 'PrimitiveType' || type.$type === 'BuiltinType' || type.$type === 'EntityType') {
+                if (type.name) return type.name;
             }
         }
 
-        if (javaType) {
-            return this.extractReferencedAggregate(javaType);
+        if (type.$cstNode && type.$cstNode.text) {
+            return type.$cstNode.text;
         }
 
-        return null;
+        return 'Object';
     }
 
-    private extractReferencedAggregate(javaType: string): string | null {
-        const typePatterns = [
-            /(\w+)Dto/i,
-            /(\w+)(?=Event)/i,
-            /(\w+)(?=Id)/i
-        ];
-
-        for (const pattern of typePatterns) {
-            const match = javaType.match(pattern);
-            if (match && match[1]) {
-                const potentialAggregate = this.capitalize(match[1]);
-                if (this.isValidAggregateName(potentialAggregate)) {
-                    return potentialAggregate;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private isValidAggregateName(name: string): boolean {
-        const genericTerms = ['id', 'type', 'name', 'value', 'data', 'item', 'object', 'entity', 'dto', 'event'];
-        return !genericTerms.includes(name.toLowerCase()) && name.length > 1;
-    }
 
     private buildRepositoryInterfaceImports(aggregate: Aggregate, options: RepositoryInterfaceGenerationOptions, queryMethods: any[]): string[] {
         const imports: string[] = [];
         const repositoryType = this.getRepositoryType(options);
 
-        imports.push('import java.util.Optional;');
+        // Add imports based on what's actually used in methods
+        const hasOptionalReturnType = queryMethods.some(method => method.returnType.includes('Optional<'));
+        const hasSetReturnType = queryMethods.some(method => method.returnType.includes('Set<'));
+        const hasListReturnType = queryMethods.some(method => method.returnType.includes('List<'));
+
+        if (hasOptionalReturnType) {
+            imports.push('import java.util.Optional;');
+        }
+        if (hasSetReturnType) {
+            imports.push('import java.util.Set;');
+        }
+        if (hasListReturnType) {
+            imports.push('import java.util.List;');
+        }
 
         switch (repositoryType) {
             case 'MongoRepository':
@@ -224,8 +230,10 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
                     `${method.query} AND ${context.lowerAggregate}.sagaState = 'NOT_IN_SAGA'` :
                     method.query;
 
-                return `    @Query(value = "${sagaQuery}")\n    ${method.returnType} ${method.methodName}ForSaga(${method.parameters.map((p: any) => `${p.type} ${p.name}`).join(', ')});\n\n`;
-            }).join('');
+                const methodName = method.forSaga ? `${method.methodName}ForSaga` : method.methodName;
+                return `    @Query(value = "${sagaQuery}")
+    ${method.returnType} ${methodName}(${method.parameters.map((p: any) => `${p.type} ${p.name}`).join(', ')});`;
+            }).join('\n');
             result = result.replace(/\{\{queryMethods\}\}/g, queryMethodsText);
         } else {
             result = result.replace(/\{\{queryMethods\}\}/g, '');

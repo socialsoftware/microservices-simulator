@@ -4,16 +4,17 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 public class ExecutionDto implements Serializable {
     
     private Integer aggregateId;
     private Integer version;
-    private String state;
+    private AggregateState state;
     private String acronym;
     private String academicTerm;
     private LocalDateTime endDate;
-    private Set<UserDto> students;
+    private Set<UserDto> users;
     private Integer courseAggregateId;
     private String courseName;
     private String courseType;
@@ -32,14 +33,15 @@ public class ExecutionDto implements Serializable {
         setAcronym(execution.getAcronym());
         setAcademicTerm(execution.getAcademicTerm());
         setEndDate(execution.getEndDate());
-        setStudents(execution.getStudents().stream()
-            .map(executionstudent -> ((java.util.function.Supplier<UserDto>) () -> {
+        setUsers(execution.getUsers().stream()
+            .map(executionuser -> ((java.util.function.Supplier<UserDto>) () -> {
             UserDto userdto = new UserDto();
-                userdto.setId(executionstudent.getStudentAggregateId());
-                userdto.setVersion(executionstudent.getStudentVersion());
-                userdto.setName(executionstudent.getStudentName());
-                userdto.setUsername(executionstudent.getStudentUsername());
-                userdto.setState(executionstudent.getStudentState());
+                userdto.setName(executionuser.getUserName());
+                userdto.setUsername(executionuser.getUserUsername());
+                userdto.setRole(executionuser.getRole());
+                userdto.setActive(executionuser.getActive());
+                userdto.setNumberAnswered(executionuser.getNumberAnswered());
+                userdto.setNumberCorrect(executionuser.getNumberCorrect());
             return userdto;
         }).get())
             .collect(Collectors.toSet()));
@@ -68,11 +70,11 @@ public class ExecutionDto implements Serializable {
         this.version = version;
     }
 
-    public String getState() {
+    public AggregateState getState() {
         return state;
     }
     
-    public void setState(String state) {
+    public void setState(AggregateState state) {
         this.state = state;
     }
 
@@ -100,12 +102,12 @@ public class ExecutionDto implements Serializable {
         this.endDate = endDate;
     }
 
-    public Set<UserDto> getStudents() {
-        return students;
+    public Set<UserDto> getUsers() {
+        return users;
     }
     
-    public void setStudents(Set<UserDto> students) {
-        this.students = students;
+    public void setUsers(Set<UserDto> users) {
+        this.users = users;
     }
 
     public Integer getCourseAggregateId() {

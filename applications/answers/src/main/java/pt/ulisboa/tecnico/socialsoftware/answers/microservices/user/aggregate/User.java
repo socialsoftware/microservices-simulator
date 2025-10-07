@@ -3,8 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity

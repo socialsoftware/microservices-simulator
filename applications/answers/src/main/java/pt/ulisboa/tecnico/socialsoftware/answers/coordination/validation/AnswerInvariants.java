@@ -30,20 +30,20 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.
 public class AnswerInvariants {
 
     /**
+     * CreationDate cannot be null
+     */
+    public static void invariantCreationDateNotNull(Answer entity) {
+        if (entity.getCreationDate() == null) {
+            throw new IllegalStateException("CreationDate cannot be null");
+        }
+    }
+
+    /**
      * AnswerDate cannot be null
      */
     public static void invariantAnswerDateNotNull(Answer entity) {
         if (entity.getAnswerDate() == null) {
             throw new IllegalStateException("AnswerDate cannot be null");
-        }
-    }
-
-    /**
-     * CompletedDate cannot be null
-     */
-    public static void invariantCompletedDateNotNull(Answer entity) {
-        if (entity.getCompletedDate() == null) {
-            throw new IllegalStateException("CompletedDate cannot be null");
         }
     }
 
@@ -57,47 +57,47 @@ public class AnswerInvariants {
     }
 
     /**
-     * QuizAnswerStudent cannot be null
+     * AnswerExecution cannot be null
      */
-    public static void invariantQuizAnswerStudentNotNull(Answer entity) {
-        if (entity.getQuizAnswerStudent() == null) {
-            throw new IllegalStateException("QuizAnswerStudent cannot be null");
+    public static void invariantAnswerExecutionNotNull(Answer entity) {
+        if (entity.getAnswerExecution() == null) {
+            throw new IllegalStateException("AnswerExecution cannot be null");
         }
     }
 
     /**
-     * QuizAnswerExecution cannot be null
+     * AnswerUser cannot be null
      */
-    public static void invariantQuizAnswerExecutionNotNull(Answer entity) {
-        if (entity.getQuizAnswerExecution() == null) {
-            throw new IllegalStateException("QuizAnswerExecution cannot be null");
+    public static void invariantAnswerUserNotNull(Answer entity) {
+        if (entity.getAnswerUser() == null) {
+            throw new IllegalStateException("AnswerUser cannot be null");
         }
     }
 
     /**
-     * QuestionAnswers cannot be null
+     * AnswerQuiz cannot be null
      */
-    public static void invariantQuestionAnswersNotNull(Answer entity) {
-        if (entity.getQuestionAnswers() == null) {
-            throw new IllegalStateException("QuestionAnswers cannot be null");
+    public static void invariantAnswerQuizNotNull(Answer entity) {
+        if (entity.getAnswerQuiz() == null) {
+            throw new IllegalStateException("AnswerQuiz cannot be null");
         }
     }
 
     /**
-     * QuestionAnswers cannot be empty
+     * AnswerQuestion cannot be null
      */
-    public static void invariantQuestionAnswersNotEmpty(Answer entity) {
-        if (entity.getQuestionAnswers() == null || ((java.util.Collection) entity.getQuestionAnswers()).isEmpty()) {
-            throw new IllegalStateException("QuestionAnswers cannot be empty");
+    public static void invariantAnswerQuestionNotNull(Answer entity) {
+        if (entity.getAnswerQuestion() == null) {
+            throw new IllegalStateException("AnswerQuestion cannot be null");
         }
     }
 
     /**
-     * AnsweredQuiz cannot be null
+     * AnswerQuestion cannot be empty
      */
-    public static void invariantAnsweredQuizNotNull(Answer entity) {
-        if (entity.getAnsweredQuiz() == null) {
-            throw new IllegalStateException("AnsweredQuiz cannot be null");
+    public static void invariantAnswerQuestionNotEmpty(Answer entity) {
+        if (entity.getAnswerQuestion() == null || ((java.util.Collection) entity.getAnswerQuestion()).isEmpty()) {
+            throw new IllegalStateException("AnswerQuestion cannot be empty");
         }
     }
 

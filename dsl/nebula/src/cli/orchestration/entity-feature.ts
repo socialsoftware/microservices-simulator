@@ -55,7 +55,10 @@ export class EntityFeature {
             }
         }
 
-        const factoryCode = await generators.factoryGenerator.generateFactory(aggregate, options);
+        const factoryCode = await generators.factoryGenerator.generateFactory(aggregate, {
+            ...options,
+            allSharedDtos: options.allSharedDtos
+        });
         const factoryPath = path.join(aggregatePath, 'aggregate', `${aggregate.name}Factory.java`);
         await fs.writeFile(factoryPath, factoryCode, 'utf-8');
         console.log(`\t- Generated factory ${aggregate.name}Factory`);

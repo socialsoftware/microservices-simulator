@@ -1,6 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { GenerationOptions, Aggregate, GeneratorRegistry } from "../core/types.js";
+import { EventFeature } from "./event-feature.js";
 
 export class EventsFeature {
     static async generateEvents(
@@ -64,6 +65,10 @@ export class EventsFeature {
         } catch (error) {
             console.error(`\t- Error generating events for ${aggregate.name}: ${error instanceof Error ? error.message : String(error)}`);
         }
+
+        // Generate custom events defined in DSL
+        const customEventFeature = new EventFeature();
+        await customEventFeature.generateEvents(aggregate, options);
     }
 
     private static extractClassNameFromContent(content: string): string | null {

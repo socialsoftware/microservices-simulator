@@ -1,83 +1,56 @@
 import shared-dtos;
 
-@Metadata {
-    requiresAggregateState;
-    hasEventService;
-    hasTransactions;
-    hasJpa;
-}
 Aggregate Answer {
-    Entity QuizAnswerStudent {
-        Integer studentAggregateId;
-        String studentName;
-        String studentUsername;
-        String studentEmail;
+    Entity AnswerUser {
+        Long id;
+        Integer userAggregateId;
+        String userName;
+        AggregateState userState;
     }
 
-    Entity QuizAnswerExecution {
+    Entity AnswerExecution {
+        Long id;
         Integer executionAggregateId;
-        String executionName;
-        String executionAcronym;
-        String executionAcademicTerm;
+        Integer executionVersion;
     }
 
-    Entity QuestionAnswer {
-        Integer questionId;
-        String answer;
-        String option;
-        LocalDateTime answerDate;
+    Entity AnswerQuestion {
+        Long id;
+        Integer questionOptionSequenceChoice;
+        Integer questionAggregateId;
+        Integer questionVersion;
+        Integer questionTimeTaken;
+        Integer questionOptionKey;
+        Boolean questionCorrect;
+        AggregateState questionState;
     }
 
-    Entity AnsweredQuiz {
+    Entity AnswerQuiz {
+        Long id;
         Integer quizAggregateId;
-        String quizTitle;
-        String quizType;
-        LocalDateTime availableDate;
-        LocalDateTime conclusionDate;
-        Integer numberOfQuestions;
+        Integer quizVersion;
+        List<Integer> quizQuestionsAggregateIds;
     }
 
     Root Entity Answer {
+        LocalDateTime creationDate;
         LocalDateTime answerDate;
-        LocalDateTime completedDate;
         Boolean completed;
-        QuizAnswerStudent quizAnswerStudent;
-        QuizAnswerExecution quizAnswerExecution;
-        Set<QuestionAnswer> questionAnswers;
-        AnsweredQuiz answeredQuiz;
+        AnswerExecution answerExecution;
+        AnswerUser answerUser;
+        AnswerQuiz answerQuiz;
+        List<AnswerQuestion> answerQuestion;
 
         invariants {
-            check answerDateBeforeCompletedDate {
-                completedDate == null || answerDate.isBefore(completedDate);
-            }
 
-            check completedWhenCompletedDate {
-                completed == (completedDate != null);
-            }
-
-            check uniqueQuestionAnswers {
-                questionAnswers.unique(questionId);
-            }
         }
 
         businessRules {
-            rule "AUTO_COMPLETE_AFTER_END" {
-                trigger: completedDate;
-                affectedFields: [completed];
-                conditions: [
-                    "completedDate != null"
-                ];
-                exception: "CANNOT_COMPLETE_QUIZ_ANSWER";
-            }
+           
         }
 
         methods {
-            method createAnswer(QuizAnswerStudent student, QuizAnswerExecution execution, AnsweredQuiz quiz, UnitOfWork unitOfWork): Answer;
-            method getAnswerById(Integer answerId, UnitOfWork unitOfWork): Answer;
-            method getAnswersByStudent(Integer studentId, UnitOfWork unitOfWork): List<Answer>;
-            method getAnswersByQuiz(Integer quizId, UnitOfWork unitOfWork): List<Answer>;
-            method submitAnswer(Integer answerId, Integer questionId, String answer, UnitOfWork unitOfWork): Answer;
-            method completeAnswer(Integer answerId, UnitOfWork unitOfWork): Answer;
+   
         }
     }
 

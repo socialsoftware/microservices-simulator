@@ -31,6 +31,23 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.
 public class AnswerValidationAnnotations {
 
     /**
+     * Validation annotations for creationDate
+     */
+    public static class CreationDateValidation {
+        @NotNull
+        private LocalDateTime creationDate;
+        
+        // Getter and setter
+        public LocalDateTime getCreationDate() {
+            return creationDate;
+        }
+        
+        public void setCreationDate(LocalDateTime creationDate) {
+            this.creationDate = creationDate;
+        }
+    }
+
+    /**
      * Validation annotations for answerDate
      */
     public static class AnswerDateValidation {
@@ -44,23 +61,6 @@ public class AnswerValidationAnnotations {
         
         public void setAnswerDate(LocalDateTime answerDate) {
             this.answerDate = answerDate;
-        }
-    }
-
-    /**
-     * Validation annotations for completedDate
-     */
-    public static class CompletedDateValidation {
-        @NotNull
-        private LocalDateTime completedDate;
-        
-        // Getter and setter
-        public LocalDateTime getCompletedDate() {
-            return completedDate;
-        }
-        
-        public void setCompletedDate(LocalDateTime completedDate) {
-            this.completedDate = completedDate;
         }
     }
 
@@ -82,71 +82,71 @@ public class AnswerValidationAnnotations {
     }
 
     /**
-     * Validation annotations for quizAnswerStudent
+     * Validation annotations for answerExecution
      */
-    public static class QuizAnswerStudentValidation {
+    public static class AnswerExecutionValidation {
         @NotNull
-        private QuizAnswerStudent quizAnswerStudent;
+        private AnswerExecution answerExecution;
         
         // Getter and setter
-        public QuizAnswerStudent getQuizAnswerStudent() {
-            return quizAnswerStudent;
+        public AnswerExecution getAnswerExecution() {
+            return answerExecution;
         }
         
-        public void setQuizAnswerStudent(QuizAnswerStudent quizAnswerStudent) {
-            this.quizAnswerStudent = quizAnswerStudent;
+        public void setAnswerExecution(AnswerExecution answerExecution) {
+            this.answerExecution = answerExecution;
         }
     }
 
     /**
-     * Validation annotations for quizAnswerExecution
+     * Validation annotations for answerUser
      */
-    public static class QuizAnswerExecutionValidation {
+    public static class AnswerUserValidation {
         @NotNull
-        private QuizAnswerExecution quizAnswerExecution;
+        private AnswerUser answerUser;
         
         // Getter and setter
-        public QuizAnswerExecution getQuizAnswerExecution() {
-            return quizAnswerExecution;
+        public AnswerUser getAnswerUser() {
+            return answerUser;
         }
         
-        public void setQuizAnswerExecution(QuizAnswerExecution quizAnswerExecution) {
-            this.quizAnswerExecution = quizAnswerExecution;
+        public void setAnswerUser(AnswerUser answerUser) {
+            this.answerUser = answerUser;
         }
     }
 
     /**
-     * Validation annotations for questionAnswers
+     * Validation annotations for answerQuiz
      */
-    public static class QuestionAnswersValidation {
+    public static class AnswerQuizValidation {
+        @NotNull
+        private AnswerQuiz answerQuiz;
+        
+        // Getter and setter
+        public AnswerQuiz getAnswerQuiz() {
+            return answerQuiz;
+        }
+        
+        public void setAnswerQuiz(AnswerQuiz answerQuiz) {
+            this.answerQuiz = answerQuiz;
+        }
+    }
+
+    /**
+     * Validation annotations for answerQuestion
+     */
+    public static class AnswerQuestionValidation {
         @NotNull
     @NotEmpty
-        private Set<QuestionAnswer> questionAnswers;
+        private Set<AnswerQuestion> answerQuestion;
         
         // Getter and setter
-        public Set<QuestionAnswer> getQuestionAnswers() {
-            return questionAnswers;
+        public Set<AnswerQuestion> getAnswerQuestion() {
+            return answerQuestion;
         }
         
-        public void setQuestionAnswers(Set<QuestionAnswer> questionAnswers) {
-            this.questionAnswers = questionAnswers;
-        }
-    }
-
-    /**
-     * Validation annotations for answeredQuiz
-     */
-    public static class AnsweredQuizValidation {
-        @NotNull
-        private AnsweredQuiz answeredQuiz;
-        
-        // Getter and setter
-        public AnsweredQuiz getAnsweredQuiz() {
-            return answeredQuiz;
-        }
-        
-        public void setAnsweredQuiz(AnsweredQuiz answeredQuiz) {
-            this.answeredQuiz = answeredQuiz;
+        public void setAnswerQuestion(Set<AnswerQuestion> answerQuestion) {
+            this.answerQuestion = answerQuestion;
         }
     }
 

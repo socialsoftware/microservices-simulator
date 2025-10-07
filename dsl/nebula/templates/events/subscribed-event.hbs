@@ -1,0 +1,18 @@
+package {{packageName}};
+
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import {{sourceAggregatePackage}}.{{sourceAggregate}};
+import {{eventTypePackage}}.{{eventTypeName}};
+
+public class {{subscriptionName}} extends EventSubscription {
+    public {{subscriptionName}}({{sourceAggregate}} {{sourceAggregateVariable}}) {
+        super({{sourceAggregateVariable}}.getStudentAggregateId(),
+                {{sourceAggregateVariable}}.getStudentVersion(),
+                {{eventTypeName}}.class.getSimpleName());
+    }
+
+    public boolean subscribesEvent(Event event) {
+        return super.subscribesEvent(event);
+    }
+}

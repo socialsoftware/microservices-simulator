@@ -10,14 +10,14 @@ Aggregate Execution {
         Integer courseVersion;
     }
 
-    Entity ExecutionStudent uses dto UserDto {
+    Entity ExecutionUser uses dto UserDto {
         Long id;
-        Integer studentAggregateId;
-        Integer studentVersion;
-        String studentName;
-        String studentUsername;
+        Integer userAggregateId;
+        Integer userVersion;
+        String userName;
+        String userUsername;
         Boolean active;
-        AggregateState studentState;
+        AggregateState userState;
     }
 
     Root Entity Execution {
@@ -25,7 +25,7 @@ Aggregate Execution {
         String academicTerm;
         LocalDateTime endDate;
         ExecutionCourse executionCourse;
-        Set<ExecutionStudent> students;
+        Set<ExecutionUser> users;
 
         invariants {
             check startDateBeforeEndDate {
@@ -44,8 +44,8 @@ Aggregate Execution {
                 academicTerm.length() > 0;
             }
 
-            check uniqueStudents {
-                students.unique(studentAggregateId);
+            check uniqueUsers {
+                users.unique(userAggregateId);
             }
         }
 
@@ -67,7 +67,38 @@ Aggregate Execution {
 
     
     CustomRepository {
-        Optional<Integer> findExecutionIdByCourseIdAndAcademicTerm(Integer courseId, String academicTerm);
+        @Query("select e1.aggregateId from Execution e1 where e1.aggregateId NOT IN (select e2.aggregateId from Execution e2 where e2.state = 'DELETED' AND e2.sagaState != 'NOT_IN_SAGA')")
+        Set<Integer> findCourseExecutionIdsOfAllNonDeletedForSaga();
+    }
+
+    Events {
+        publish AnonymizeStudentEvent {
+            String name;
+            String username;
+            Integer studentAggregateId;
+        }
+
+        publish UpdateStudentNameEvent {
+            String oldName;
+            String newName;
+            Integer studentAggregateId;
+        }
+
+        publish DeleteExecutionEvent {
+            Integer executionAggregateId;
+            String acronym;
+        }
+
+        publish DisenrollStudentFromExecutionEvent {
+            Integer executionAggregateId;
+            Integer studentAggregateId;
+            String studentName;
+        }
+
+        subscribe DeleteUserEvent from ExecutionUser {
+            "event.getUserAggregateId().equals(executionUser.getStudentAggregateId())";
+        }
+
     }
 
     WebAPIEndpoints {
@@ -151,7 +182,7 @@ Aggregate Execution {
             throwsException: true
         }
 
-        Endpoint AnonymizeExecutionStudent {
+        Endpoint AnonymizeExecutionUser {
             httpMethod: POST
             path: "/executions/{executionAggregateId}/anonymize"
             methodName: anonymizeStudent
@@ -163,7 +194,7 @@ Aggregate Execution {
             throwsException: true
         }
 
-        Endpoint UpdateExecutionStudentName {
+        Endpoint UpdateExecutionUserName {
             httpMethod: POST
             path: "/executions/{executionAggregateId}/students/{userAggregateId}/update/name"
             methodName: updateStudentName
@@ -173,6 +204,24 @@ Aggregate Execution {
             ]
             desc: "Update student name in an execution"
             throwsException: true
+        }
+    }
+
+    Service ExecutionService {
+        @GenerateCrud;
+        @Transactional;
+        
+        methods {
+            removeUser(Integer executionAggregateId, Integer userAggregateId, Integer userVersion, UnitOfWork unitOfWork): Execution {
+                load oldExecution = aggregate(executionAggregateId);
+                create newExecution = Execution(oldExecution);
+                execute newExecution.findStudent(userAggregateId).setState(INACTIVE);
+                register newExecution in unitOfWork;
+                registerEvent DisenrollStudentFromExecutionEvent(executionAggregateId, userAggregateId) in unitOfWork;
+                return newExecution;
+            }
+            anonymizeStudent(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork): void;
+            updateStudentName(Integer executionAggregateId, Integer userAggregateId, String newName, UnitOfWork unitOfWork): void;
         }
     }
 }

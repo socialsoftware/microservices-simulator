@@ -1,81 +1,59 @@
 import { Aggregate } from "../../../../language/generated/ast.js";
-import { capitalize } from "../../../utils/generator-utils.js";
-import { getGlobalConfig } from "../../base/config.js";
+import { OrchestrationBase } from "../../base/orchestration-base.js";
 
 export function generateFactoryCode(aggregate: Aggregate, projectName: string): string {
-    const aggregateName = aggregate.name;
-    const capitalizedAggregate = capitalize(aggregateName);
-    const packageName = `${getGlobalConfig().buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate')}`;
-
-    const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
-    if (!rootEntity) {
-        throw new Error(`No root entity found in aggregate ${aggregateName}`);
-    }
-
-    const imports = generateFactoryImports(projectName);
-    const classDeclaration = generateFactoryClassDeclaration(capitalizedAggregate);
-    const createMethods = generateCreateMethods(capitalizedAggregate, rootEntity);
-    const dtoMethods = generateDtoMethods(capitalizedAggregate, rootEntity);
-
-    return `package ${packageName};
-
-${imports}
-
-${classDeclaration}
-
-${createMethods}
-
-${dtoMethods}
-}`;
+    const generator = new FactoryGenerator();
+    return generator.generateFactoryInterface(aggregate, { projectName });
 }
 
-function generateFactoryImports(projectName: string): string {
-    return `import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;`;
-}
 
-function generateFactoryClassDeclaration(aggregateName: string): string {
-    return `@Service
-public class ${aggregateName}Factory {`;
-}
-
-function generateCreateMethods(aggregateName: string, rootEntity: any): string {
-    const lowerName = aggregateName.toLowerCase();
-    const dtoName = `${rootEntity.name}Dto`;
-
-    const properties = rootEntity.properties || [];
-    const constructorParams = properties
-        .map((prop: any) => `${lowerName}Dto.get${capitalize(prop.name)}()`)
-        .join(',\n            ');
-
-    return `    public ${aggregateName} create${aggregateName}(Integer aggregateId, ${dtoName} ${lowerName}Dto) {
-        // Factory method implementation - create root entity directly
-        // Extract properties from DTO and create the root entity
-        return new ${rootEntity.name}(${constructorParams ? '\n            ' + constructorParams + '\n        ' : ''});
-    }
-
-    public ${aggregateName} create${aggregateName}FromExisting(${aggregateName} existing${aggregateName}) {
-        // Create a copy of the existing aggregate
-        if (existing${aggregateName} instanceof ${rootEntity.name}) {
-            return new ${rootEntity.name}((${rootEntity.name}) existing${aggregateName});
+export class FactoryGenerator extends OrchestrationBase {
+    generateFactoryInterface(aggregate: Aggregate, options: { projectName: string, allSharedDtos?: any[] }): string {
+        const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+        if (!rootEntity) {
+            throw new Error(`No root entity found in aggregate ${aggregate.name}`);
         }
-        throw new IllegalArgumentException("Unknown aggregate type");
-    }`;
-}
 
-function generateDtoMethods(aggregateName: string, rootEntity: any): string {
-    const dtoName = `${rootEntity.name}Dto`;
+        const context = this.buildFactoryContext(aggregate, rootEntity, options);
+        const template = this.loadTemplate('entity/factory-interface.hbs');
+        return this.renderTemplate(template, context);
+    }
 
-    return `    public ${dtoName} create${dtoName}(${aggregateName} ${aggregateName.toLowerCase()}) {
-        return new ${dtoName}((${rootEntity.name}) ${aggregateName.toLowerCase()});
-    }`;
-}
+    async generateFactory(aggregate: Aggregate, options: { projectName: string, allSharedDtos?: any[] }): Promise<string> {
+        return this.generateFactoryInterface(aggregate, options);
+    }
 
-export class FactoryGenerator {
-    async generateFactory(aggregate: Aggregate, options: { projectName: string }): Promise<string> {
-        return generateFactoryCode(aggregate, options.projectName);
+    private buildFactoryContext(aggregate: Aggregate, rootEntity: any, options: { projectName: string, allSharedDtos?: any[] }): any {
+        const aggregateName = aggregate.name;
+        const capitalizedAggregate = this.capitalize(aggregateName);
+        const lowerAggregateName = aggregateName.toLowerCase();
+        const dtoName = `${rootEntity.name}Dto`;
+
+        // Check if DTO is shared and add import if needed
+        const imports = this.generateFactoryImports(dtoName, options.projectName, options.allSharedDtos);
+
+        return {
+            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.aggregate`,
+            aggregateName: capitalizedAggregate,
+            lowerAggregateName,
+            dtoName,
+            imports
+        };
+    }
+
+    private generateFactoryImports(dtoName: string, projectName: string, allSharedDtos?: any[]): string {
+        // Check if this is a shared DTO using dynamic detection
+        if (this.isSharedDto(dtoName, allSharedDtos)) {
+            return `import ${this.getBasePackage()}.${projectName.toLowerCase()}.shared.dtos.${dtoName};`;
+        }
+        return '';
+    }
+
+    private isSharedDto(dtoName: string, allSharedDtos?: any[]): boolean {
+        // Dynamic detection: check if DTO exists in allSharedDtos
+        if (allSharedDtos) {
+            return allSharedDtos.some((dto: any) => dto.name === dtoName);
+        }
+        return false;
     }
 }

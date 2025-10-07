@@ -1,0 +1,17 @@
+package {{packageName}};
+
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import {{aggregateCoordinationPackage}}.{{aggregateName}}EventProcessing;
+import {{aggregatePackage}}.{{aggregateName}}Repository;
+import {{eventTypePackage}}.{{eventTypeName}};
+
+public class {{handlerName}} extends {{aggregateName}}EventHandler {
+    public {{handlerName}}({{aggregateName}}Repository {{lowerAggregateName}}Repository, {{aggregateName}}EventProcessing {{lowerAggregateName}}EventProcessing) {
+        super({{lowerAggregateName}}Repository, {{lowerAggregateName}}EventProcessing);
+    }
+
+    @Override
+    public void handleEvent(Integer subscriberAggregateId, Event event) {
+        this.{{lowerAggregateName}}EventProcessing.process{{eventTypeName}}(subscriberAggregateId, ({{eventTypeName}}) event);
+    }
+}

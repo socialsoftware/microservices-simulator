@@ -15,18 +15,18 @@ class AnswerBuilder extends SpockTest {
         // Set default values
         this.answer.setId(1L)
         this.answer.setVersion(1)
+        this.answer.setCreationDate(LocalDateTime.now())
         this.answer.setAnswerDate(LocalDateTime.now())
-        this.answer.setCompletedDate(LocalDateTime.now())
         this.answer.setCompleted(false)
+    }
+
+    AnswerBuilder withCreationDate(LocalDateTime creationDate) {
+        this.answer.setCreationDate(creationDate)
+        return this
     }
 
     AnswerBuilder withAnswerDate(LocalDateTime answerDate) {
         this.answer.setAnswerDate(answerDate)
-        return this
-    }
-
-    AnswerBuilder withCompletedDate(LocalDateTime completedDate) {
-        this.answer.setCompletedDate(completedDate)
         return this
     }
 
@@ -35,23 +35,23 @@ class AnswerBuilder extends SpockTest {
         return this
     }
 
-    AnswerBuilder withQuizAnswerStudent(QuizAnswerStudent quizAnswerStudent) {
-        this.answer.setQuizAnswerStudent(quizAnswerStudent)
+    AnswerBuilder withAnswerExecution(AnswerExecution answerExecution) {
+        this.answer.setAnswerExecution(answerExecution)
         return this
     }
 
-    AnswerBuilder withQuizAnswerExecution(QuizAnswerExecution quizAnswerExecution) {
-        this.answer.setQuizAnswerExecution(quizAnswerExecution)
+    AnswerBuilder withAnswerUser(AnswerUser answerUser) {
+        this.answer.setAnswerUser(answerUser)
         return this
     }
 
-    AnswerBuilder withQuestionAnswers(Set<QuestionAnswer> questionAnswers) {
-        this.answer.setQuestionAnswers(questionAnswers)
+    AnswerBuilder withAnswerQuiz(AnswerQuiz answerQuiz) {
+        this.answer.setAnswerQuiz(answerQuiz)
         return this
     }
 
-    AnswerBuilder withAnsweredQuiz(AnsweredQuiz answeredQuiz) {
-        this.answer.setAnsweredQuiz(answeredQuiz)
+    AnswerBuilder withAnswerQuestion(Set<AnswerQuestion> answerQuestion) {
+        this.answer.setAnswerQuestion(answerQuestion)
         return this
     }
 

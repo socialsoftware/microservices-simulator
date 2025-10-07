@@ -9,11 +9,6 @@ import jakarta.transaction.Transactional;
 @Repository
 @Transactional
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
-        @Query(value = "select question.id from Question question where question.title = :title AND question.state = 'ACTIVE' AND question.sagaState = 'NOT_IN_SAGA'")
-    Optional<Integer> findQuestionIdByTitleForSaga(String title);
-
-    @Query(value = "select question.id from Question question where question.content = :content AND question.state = 'ACTIVE' AND question.sagaState = 'NOT_IN_SAGA'")
-    Optional<Integer> findQuestionIdByContentForSaga(String content);
-
-
-    }
+    @Query(value = "")
+    Optional<Integer> findQuestionIdByTitle(String questionTitle);
+}

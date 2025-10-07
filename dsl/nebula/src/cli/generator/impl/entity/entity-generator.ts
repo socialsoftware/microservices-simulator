@@ -348,8 +348,10 @@ function generateEntityDtoConstructor(entity: Entity, projectName: string, allSh
         `${resolveJavaType(prop.type)} ${prop.name}`
     ).join(', ');
 
-    // Generate parameter name based on DTO type
-    const dtoParamName = customDtoType ? customDtoType.toLowerCase() : `${(isRootEntity ? entityName : (entity.$container?.name || entityName)).toLowerCase()}Dto`;
+    // Generate parameter name based on DTO type (preserve camelCase)
+    const dtoParamName = customDtoType ?
+        customDtoType.charAt(0).toLowerCase() + customDtoType.slice(1) :
+        `${(isRootEntity ? entityName : (entity.$container?.name || entityName)).toLowerCase()}Dto`;
 
     // For root entities, include aggregateId parameter; for non-root entities, don't
     const params = isRootEntity ?
@@ -677,11 +679,7 @@ function generateImports(importReqs: ImportRequirements, projectName: string, is
         } else {
             imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;');
         }
-        // Only root entities need these imports
-        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;');
-        if (!importReqs.usesAggregateState) {
-            imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
-        }
+        // Note: UnitOfWork and AggregateState imports are now dynamic based on actual usage
     }
     if (importReqs.usesLocalDateTime) imports.push('import java.time.LocalDateTime;');
     if (importReqs.usesBigDecimal) imports.push('import java.math.BigDecimal;');

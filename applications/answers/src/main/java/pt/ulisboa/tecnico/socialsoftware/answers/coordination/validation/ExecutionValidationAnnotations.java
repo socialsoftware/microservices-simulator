@@ -101,20 +101,20 @@ public class ExecutionValidationAnnotations {
     }
 
     /**
-     * Validation annotations for students
+     * Validation annotations for users
      */
-    public static class StudentsValidation {
+    public static class UsersValidation {
         @NotNull
     @NotEmpty
-        private Set<ExecutionStudent> students;
+        private Set<ExecutionUser> users;
         
         // Getter and setter
-        public Set<ExecutionStudent> getStudents() {
-            return students;
+        public Set<ExecutionUser> getUsers() {
+            return users;
         }
         
-        public void setStudents(Set<ExecutionStudent> students) {
-            this.students = students;
+        public void setUsers(Set<ExecutionUser> users) {
+            this.users = users;
         }
     }
 

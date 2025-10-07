@@ -8,8 +8,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
@@ -18,43 +16,51 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 @Entity
 public abstract class Answer extends Aggregate {
     @Id
+    private LocalDateTime creationDate;
     private LocalDateTime answerDate;
-    private LocalDateTime completedDate;
     private Boolean completed;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
-    private QuizAnswerStudent quizAnswerStudent;
+    private AnswerExecution answerExecution;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
-    private QuizAnswerExecution quizAnswerExecution;
+    private AnswerUser answerUser;
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
+    private AnswerQuiz answerQuiz;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "answer")
-    private Set<QuestionAnswer> questionAnswers = new HashSet<>();
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
-    private AnsweredQuiz answeredQuiz; 
+    private Set<AnswerQuestion> answerQuestion = new HashSet<>(); 
 
     public Answer() {
     }
 
-    public Answer(Integer aggregateId, AnswerDto answerDto, QuizAnswerStudent quizAnswerStudent, QuizAnswerExecution quizAnswerExecution, AnsweredQuiz answeredQuiz) {
+    public Answer(Integer aggregateId, AnswerDto answerDto, AnswerExecution answerExecution, AnswerUser answerUser, AnswerQuiz answerQuiz) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
+        setCreationDate(answerDto.getCreationDate());
         setAnswerDate(answerDto.getAnswerDate());
-        setCompletedDate(answerDto.getCompletedDate());
         setCompleted(answerDto.getCompleted());
-        setQuizAnswerStudent(quizAnswerStudent);
-        setQuizAnswerExecution(quizAnswerExecution);
-        setAnsweredQuiz(answeredQuiz);
+        setAnswerExecution(answerExecution);
+        setAnswerUser(answerUser);
+        setAnswerQuiz(answerQuiz);
     }
 
     public Answer(Answer other) {
         super(other);
+        setCreationDate(other.getCreationDate());
         setAnswerDate(other.getAnswerDate());
-        setCompletedDate(other.getCompletedDate());
         setCompleted(other.getCompleted());
-        setQuizAnswerStudent(new QuizAnswerStudent(other.getQuizAnswerStudent()));
-        setQuizAnswerExecution(new QuizAnswerExecution(other.getQuizAnswerExecution()));
-        setQuestionAnswers(other.getQuestionAnswers().stream().map(QuestionAnswer::new).collect(Collectors.toSet()));
-        setAnsweredQuiz(new AnsweredQuiz(other.getAnsweredQuiz()));
+        setAnswerExecution(new AnswerExecution(other.getAnswerExecution()));
+        setAnswerUser(new AnswerUser(other.getAnswerUser()));
+        setAnswerQuiz(new AnswerQuiz(other.getAnswerQuiz()));
+        setAnswerQuestion(other.getAnswerQuestion().stream().map(AnswerQuestion::new).collect(Collectors.toSet()));
     }
 
+
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
 
     public LocalDateTime getAnswerDate() {
         return answerDate;
@@ -62,14 +68,6 @@ public abstract class Answer extends Aggregate {
 
     public void setAnswerDate(LocalDateTime answerDate) {
         this.answerDate = answerDate;
-    }
-
-    public LocalDateTime getCompletedDate() {
-        return completedDate;
-    }
-
-    public void setCompletedDate(LocalDateTime completedDate) {
-        this.completedDate = completedDate;
     }
 
     public Boolean getCompleted() {
@@ -80,78 +78,50 @@ public abstract class Answer extends Aggregate {
         this.completed = completed;
     }
 
-    public QuizAnswerStudent getQuizAnswerStudent() {
-        return quizAnswerStudent;
+    public AnswerExecution getAnswerExecution() {
+        return answerExecution;
     }
 
-    public void setQuizAnswerStudent(QuizAnswerStudent quizAnswerStudent) {
-        this.quizAnswerStudent = quizAnswerStudent;
-        if (this.quizAnswerStudent != null) {
-            this.quizAnswerStudent.setAnswer(this);
+    public void setAnswerExecution(AnswerExecution answerExecution) {
+        this.answerExecution = answerExecution;
+        if (this.answerExecution != null) {
+            this.answerExecution.setAnswer(this);
         }
     }
 
-    public QuizAnswerExecution getQuizAnswerExecution() {
-        return quizAnswerExecution;
+    public AnswerUser getAnswerUser() {
+        return answerUser;
     }
 
-    public void setQuizAnswerExecution(QuizAnswerExecution quizAnswerExecution) {
-        this.quizAnswerExecution = quizAnswerExecution;
-        if (this.quizAnswerExecution != null) {
-            this.quizAnswerExecution.setAnswer(this);
+    public void setAnswerUser(AnswerUser answerUser) {
+        this.answerUser = answerUser;
+        if (this.answerUser != null) {
+            this.answerUser.setAnswer(this);
         }
     }
 
-    public Set<QuestionAnswer> getQuestionAnswers() {
-        return questionAnswers;
+    public AnswerQuiz getAnswerQuiz() {
+        return answerQuiz;
     }
 
-    public void setQuestionAnswers(Set<QuestionAnswer> questionAnswers) {
-        this.questionAnswers = questionAnswers;
-        if (this.questionAnswers != null) {
-            this.questionAnswers.forEach(questionanswer -> questionanswer.setAnswer(this));
+    public void setAnswerQuiz(AnswerQuiz answerQuiz) {
+        this.answerQuiz = answerQuiz;
+        if (this.answerQuiz != null) {
+            this.answerQuiz.setAnswer(this);
         }
     }
 
-    public AnsweredQuiz getAnsweredQuiz() {
-        return answeredQuiz;
+    public Set<AnswerQuestion> getAnswerQuestion() {
+        return answerQuestion;
     }
 
-    public void setAnsweredQuiz(AnsweredQuiz answeredQuiz) {
-        this.answeredQuiz = answeredQuiz;
-        if (this.answeredQuiz != null) {
-            this.answeredQuiz.setAnswer(this);
+    public void setAnswerQuestion(Set<AnswerQuestion> answerQuestion) {
+        this.answerQuestion = answerQuestion;
+        if (this.answerQuestion != null) {
+            this.answerQuestion.forEach(answerquestion -> answerquestion.setAnswer(this));
         }
     }
 
-	public Answer createAnswer(QuizAnswerStudent student, QuizAnswerExecution execution, AnsweredQuiz quiz, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
-	}
-
-	public Answer getAnswerById(Integer answerId, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public List<Answer> getAnswersByStudent(Integer studentId, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public List<Answer> getAnswersByQuiz(Integer quizId, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public Answer submitAnswer(Integer answerId, Integer questionId, String answer, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public Answer completeAnswer(Integer answerId, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
 
 }

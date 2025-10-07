@@ -9,20 +9,66 @@ package {{packageName}};
 {{annotations.transactional}}
 {{/if}}
 public class {{serviceName}} {
-
-    {{annotations.autowired}}
-    private {{aggregateName}}Repository {{lowerAggregate}}Repository;
+{{#each dependencies}}
+    @Autowired
+    private {{type}} {{name}};
+{{/each}}
 
     {{#each methods}}
+    {{#if implementation}}
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    {{/if}}
     {{#each annotations}}
     {{this}}
     {{/each}}
     public {{returnType}} {{name}}({{#each parameters}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
+        {{#if implementation}}
+        {{#each implementation}}
+        {{#if (eq action "load")}}
+        {{aggregateType}} {{aggregateVar}} = ({{aggregateType}}) unitOfWorkService.aggregateLoadAndRegisterRead({{aggregateId}}, {{unitOfWorkVar}});
+        {{/if}}
+        {{#if (eq action "validate")}}
+        if (!({{condition}})) {
+            throw new AnswersException(AnswersErrorMessage.{{exception}}, {{#each exceptionParams}}{{this}}{{#unless @last}}, {{/unless}}{{/each}});
+        }
+        {{/if}}
+        {{#if (eq action "create")}}
+        {{entityType}} {{entityVar}} = executionFactory.create{{entityType}}FromExisting({{constructorParam}});
+        {{/if}}
+        {{#if (eq action "execute")}}
+        {{targetVar}}.{{operationChain}};
+        {{/if}}
+        {{#if (eq action "register")}}
+        unitOfWorkService.registerChanged({{aggregateVar}}, {{unitOfWorkVar}});
+        {{/if}}
+        {{#if (eq action "registerEvent")}}
+        unitOfWorkService.registerEvent(new {{eventType}}({{#each eventParams}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}), {{unitOfWorkVar}});
+        {{/if}}
+        {{#if (eq action "publish")}}
+        // Event publishing: {{eventType}} would be published by the framework
+        {{/if}}
+        {{#if (eq action "return")}}
+        {{#if returnValue}}
+        return {{returnValue}};
+        {{else if returnExpression}}
+        return {{returnExpression}};
+        {{/if}}
+        {{/if}}
+        {{/each}}
+        {{else}}
         {{#if (eq returnType "void")}}
         // TODO: Implement {{name}} method
         {{else}}
         // TODO: Implement {{name}} method
         return null; // Placeholder
+        {{/if}}
         {{/if}}
     }
 

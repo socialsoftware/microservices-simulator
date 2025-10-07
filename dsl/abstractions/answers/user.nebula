@@ -9,6 +9,13 @@ Aggregate User {
         Optional<Integer> findUserIdByUsername(String username);
     }
 
+    Events {
+        publish DeleteUserEvent {
+            Integer userAggregateId;
+            String username;
+        }
+    }
+
     WebAPIEndpoints {
         Endpoint CreateUser {
             httpMethod: POST

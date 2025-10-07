@@ -21,39 +21,5 @@ this.answerService = answerService;
 this.unitOfWorkService = unitOfWorkService;
 }
 
-    public Answer createAnswer(QuizAnswerStudent student, QuizAnswerExecution execution, AnsweredQuiz quiz, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for createAnswer
-        // This method should orchestrate the saga workflow
-        return null;
-    }
 
-    public Answer getAnswerById(Integer answerId, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for getAnswerById
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public List<Answer> getAnswersByStudent(Integer studentId, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for getAnswersByStudent
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public List<Answer> getAnswersByQuiz(Integer quizId, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for getAnswersByQuiz
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public Answer submitAnswer(Integer answerId, Integer questionId, String answer, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for submitAnswer
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public Answer completeAnswer(Integer answerId, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for completeAnswer
-        // This method should orchestrate the saga workflow
-        return null;
-    }
 }

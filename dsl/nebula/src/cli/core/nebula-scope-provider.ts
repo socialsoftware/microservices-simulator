@@ -128,6 +128,20 @@ export class NebulaScopeProvider extends DefaultScopeProvider {
             }
         }
 
+        // Check if we're dealing with an eventType reference in SubscribedEvent
+        if (context.container.$type === 'SubscribedEvent' && context.property === 'eventType') {
+            const descriptions: AstNodeDescription[] = [];
+
+            // Collect PublishedEvent from all aggregates in the workspace
+            const globalScope = super.getScope(context);
+            const globalDescriptions = globalScope.getAllElements().filter(desc =>
+                desc.type === 'PublishedEvent'
+            );
+            descriptions.push(...globalDescriptions);
+
+            return new MapScope(descriptions);
+        }
+
         // Fall back to the default scope provider for other references
         return super.getScope(context);
     }

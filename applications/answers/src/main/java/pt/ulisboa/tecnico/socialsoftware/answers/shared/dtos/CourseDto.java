@@ -1,9 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 public class CourseDto implements Serializable {
     
+    private Integer aggregateId;
+    private Integer version;
+    private AggregateState state;
     private Integer id;
     private String name;
     private String acronym;
@@ -12,13 +16,40 @@ public class CourseDto implements Serializable {
     public CourseDto() {
     }
     
-    public CourseDto(Integer id, String name, String acronym, String courseType) {
+    public CourseDto(Integer aggregateId, Integer version, AggregateState state, Integer id, String name, String acronym, String courseType) {
+        setAggregateId(aggregateId);
+        setVersion(version);
+        setState(state);
         setId(id);
         setName(name);
         setAcronym(acronym);
         setCourseType(courseType);
     }
     
+    public Integer getAggregateId() {
+        return aggregateId;
+    }
+    
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+    
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    public AggregateState getState() {
+        return state;
+    }
+    
+    public void setState(AggregateState state) {
+        this.state = state;
+    }
+
     public Integer getId() {
         return id;
     }

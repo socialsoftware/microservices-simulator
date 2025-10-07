@@ -8,8 +8,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
@@ -24,7 +22,7 @@ public abstract class Execution extends Aggregate {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "execution")
     private ExecutionCourse executionCourse;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "execution")
-    private Set<ExecutionStudent> students = new HashSet<>(); 
+    private Set<ExecutionUser> users = new HashSet<>(); 
 
     public Execution() {
     }
@@ -44,7 +42,7 @@ public abstract class Execution extends Aggregate {
         setAcademicTerm(other.getAcademicTerm());
         setEndDate(other.getEndDate());
         setExecutionCourse(new ExecutionCourse(other.getExecutionCourse()));
-        setStudents(other.getStudents().stream().map(ExecutionStudent::new).collect(Collectors.toSet()));
+        setUsers(other.getUsers().stream().map(ExecutionUser::new).collect(Collectors.toSet()));
     }
 
 
@@ -83,14 +81,14 @@ public abstract class Execution extends Aggregate {
         }
     }
 
-    public Set<ExecutionStudent> getStudents() {
-        return students;
+    public Set<ExecutionUser> getUsers() {
+        return users;
     }
 
-    public void setStudents(Set<ExecutionStudent> students) {
-        this.students = students;
-        if (this.students != null) {
-            this.students.forEach(executionstudent -> executionstudent.setExecution(this));
+    public void setUsers(Set<ExecutionUser> users) {
+        this.users = users;
+        if (this.users != null) {
+            this.users.forEach(executionuser -> executionuser.setExecution(this));
         }
     }
 

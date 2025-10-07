@@ -3,47 +3,62 @@ import shared-dtos;
 SharedDtos {
     
     dto UserDto {
-        Integer id;
-        Integer version;
         String name;
         String username;
-        AggregateState state;
+        String role;
+        Boolean active;
+        Integer numberAnswered;
+        Integer numberCorrect;
     }
     
     dto CourseDto {
-        Integer id;
+        String type;
         String name;
-        String acronym;
-        String courseType;
     }
     
     dto ExecutionDto {
         String acronym;
         String academicTerm;
         LocalDateTime endDate;
-        Set<UserDto> students;
+        Set<UserDto> users;
 
         Integer courseAggregateId;
         String courseName;
         String courseType;
         Integer courseVersion;
         
-        mapping UserDto students {
-            id -> studentAggregateId;
-            version -> studentVersion;
-            name -> studentName;
-            username -> studentUsername;
-            state -> studentState;
+        mapping UserDto users {
+            aggregateId -> userAggregateId;
+            version -> userVersion;
+            name -> userName;
+            username -> userUsername;
+            state -> userState;
         }
     }
     
     dto QuestionDto {
-        Integer id;
         String title;
         String content;
-        Integer numberOfOptions;
-        Integer correctOption;
-        Integer order;
+        String creationDate;
+
+        CourseDto course;
+
+        Set<TopicDto> topicsDto {
+            aggregateId -> topicAggregateId;
+            version -> topicVersion;
+            name -> topicName;
+        }
+
+        List<OptionDto> optionDtos {
+
+        }
+    }
+
+    dto OptionDto {
+        Integer key;
+        Integer sequence;
+        boolean correct;
+        String content;
     }
     
     dto TopicDto {
@@ -71,9 +86,14 @@ SharedDtos {
     }
     
     dto AnswerDto {
-        Integer questionId;
-        String answer;
-        String option;
+        LocalDateTime creationDate;
         LocalDateTime answerDate;
+        Boolean completed;
+
+        Integer userAggregateId;
+        String userName;
+
+        Integer quizAggregateId;
     }
 }
+

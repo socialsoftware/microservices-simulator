@@ -524,28 +524,24 @@ ${setterCalls}
      * Returns standard aggregate fields that should be automatically added to root entity DTOs
      */
     private getStandardAggregateFields(dtoName: string, allSharedDtos?: DtoDefinition[]): any[] {
-        // Only add aggregate fields to root entity DTOs
-        if (this.isRootEntityDto(dtoName, allSharedDtos)) {
-            return [
-                {
-                    type: 'Integer',
-                    name: 'aggregateId',
-                    capitalizedName: 'AggregateId'
-                },
-                {
-                    type: 'Integer',
-                    name: 'version',
-                    capitalizedName: 'Version'
-                },
-                {
-                    type: 'String',
-                    name: 'state',
-                    capitalizedName: 'State'
-                }
-            ];
-        }
-
-        return [];
+        // Add aggregate fields to ALL DTOs
+        return [
+            {
+                type: 'Integer',
+                name: 'aggregateId',
+                capitalizedName: 'AggregateId'
+            },
+            {
+                type: 'Integer',
+                name: 'version',
+                capitalizedName: 'Version'
+            },
+            {
+                type: 'AggregateState',
+                name: 'state',
+                capitalizedName: 'State'
+            }
+        ];
     }
 
     /**

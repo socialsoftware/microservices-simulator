@@ -1,0 +1,61 @@
+package {{packageName}};
+
+{{imports}}
+
+@Service
+{{#if transactional}}@Transactional{{/if}}
+public class {{serviceName}} {
+{{#each dependencies}}
+    @Autowired
+    private {{type}} {{name}};
+{{/each}}
+
+{{#each constructorDependencies}}
+    private final {{type}} {{name}};
+{{/each}}
+
+    public {{serviceName}}({{#each constructorDependencies}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
+{{#each constructorDependencies}}
+        this.{{name}} = {{name}};
+{{/each}}
+    }
+
+{{#each methods}}
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public {{returnType}} {{name}}({{#each parameters}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
+{{#each implementation}}
+{{#if (eq action "load")}}
+        {{aggregateType}} {{aggregateVar}} = ({{aggregateType}}) unitOfWorkService.aggregateLoadAndRegisterRead({{aggregateId}}, {{unitOfWorkVar}});
+{{/if}}
+{{#if (eq action "validate")}}
+        if (!({{condition}})) {
+            throw new {{../../../projectName}}Exception({{exception}}, {{#each exceptionParams}}{{this}}{{#unless @last}}, {{/unless}}{{/each}});
+        }
+{{/if}}
+{{#if (eq action "create")}}
+        {{entityType}} {{entityVar}} = {{../../../aggregateName}}Factory.create{{../../../aggregateName}}FromExisting({{constructorParam}});
+{{/if}}
+{{#if (eq action "modify")}}
+        {{aggregateVar}}.{{operation}}({{#each operationParams}}{{this}}{{#unless @last}}, {{/unless}}{{/each}});
+{{/if}}
+{{#if (eq action "register")}}
+        unitOfWorkService.registerChanged({{aggregateVar}}, {{unitOfWorkVar}});
+{{/if}}
+{{#if (eq action "publish")}}
+        // Event publishing would be handled by the framework
+{{/if}}
+{{/each}}
+{{#if returnStatement}}
+        return {{returnStatement}};
+{{/if}}
+    }
+
+{{/each}}
+}

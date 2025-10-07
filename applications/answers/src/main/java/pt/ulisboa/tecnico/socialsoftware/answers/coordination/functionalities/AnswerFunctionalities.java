@@ -25,10 +25,10 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service.An
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answerfactory.service.AnswerFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuizAnswerStudentDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuizAnswerExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuestionAnswerDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnsweredQuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerUserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerQuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerQuizDto;
 
 @Service
 public class AnswerFunctionalities {

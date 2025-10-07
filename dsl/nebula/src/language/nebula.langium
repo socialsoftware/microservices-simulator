@@ -16,6 +16,7 @@ Aggregate:
         methods+=Method*
         workflows+=Workflow*
         (customRepository=CustomRepository)?
+        (events=Events)?
         (webApiEndpoints=WebAPIEndpoints)?
         (serviceDefinition=ServiceDefinition)?
     '}';
@@ -58,8 +59,30 @@ CustomRepository:
         repositoryMethods+=RepositoryMethod*
     '}';
 
+Events:
+    'Events' '{'
+        (publishedEvents+=PublishedEvent)*
+        (subscribedEvents+=SubscribedEvent)*
+    '}';
+
+PublishedEvent:
+    'publish' name=ID '{'
+        fields+=EventField*
+    '}';
+
+SubscribedEvent:
+    'subscribe' eventType=[PublishedEvent:QualifiedName] 'from' sourceAggregate=ID '{'
+        conditions+=EventCondition*
+    '}';
+
+EventField:
+    type=Type name=ID ';';
+
+EventCondition:
+    condition=STRING ';';
+
 RepositoryMethod:
-    returnType=RepositoryReturnType name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' ';';
+    ('@Query' '(' query=STRING ')')? returnType=RepositoryReturnType name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' ';';
 
 RepositoryReturnType:
     ParamType;
@@ -298,7 +321,53 @@ ServiceDefinition:
 ServiceMethod:
     (annotations+=Annotation)*
     name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' 
-    (':' returnType=ReturnType)? ';';
+    (':' returnType=ReturnType)? ('{' 
+        implementation=MethodImplementation
+    '}' | ';');
+
+MethodImplementation:
+    (actions+=BusinessAction)*;
+
+BusinessAction:
+    LoadAggregateAction | ValidateAction | CreateEntityAction | DomainOperationAction | 
+    RegisterChangeAction | RegisterEventAction | PublishEventAction | CallServiceAction | 
+    ThrowExceptionAction | ReturnAction;
+
+LoadAggregateAction:
+    'load' aggregateVar=ID '=' 'aggregate' '(' aggregateId=ID ')' ';';
+
+ValidateAction:
+    'validate' condition=STRING ('throw' exception=ID '(' (exceptionParams+=ID (',' exceptionParams+=ID)*)? ')')? ';';
+
+CreateEntityAction:
+    'create' entityVar=ID '=' entityType=ID '(' (constructorParams+=ID (',' constructorParams+=ID)*)? ')' ';';
+
+DomainOperationAction:
+    'execute' targetVar=ID '.' operationChain=OperationChain ';';
+
+OperationChain:
+    operations+=ChainOperation ('.' operations+=ChainOperation)*;
+
+ChainOperation:
+    methodName=ID ('(' (params+=ID (',' params+=ID)*)? ')')?;
+
+RegisterChangeAction:
+    'register' aggregateVar=ID 'in' unitOfWorkVar=ID ';';
+
+RegisterEventAction:
+    'registerEvent' eventType=[PublishedEvent:ID] '(' (eventParams+=ID (',' eventParams+=ID)*)? ')' 'in' unitOfWorkVar=ID ';';
+
+PublishEventAction:
+    'publish' eventType=[PublishedEvent:ID] '(' (eventParams+=ID (',' eventParams+=ID)*)? ')' ';';
+
+CallServiceAction:
+    'call' serviceVar=ID '=' service=ID '.' methodName=ID '(' (callParams+=ID (',' callParams+=ID)*)? ')' ';';
+
+ThrowExceptionAction:
+    'throw' exception=ID '(' (exceptionParams+=ID (',' exceptionParams+=ID)*)? ')' ';';
+
+ReturnAction:
+    'return' (returnValue=ID | returnExpression=STRING)? ';';
 
 // Enum Support
 EnumDefinition:

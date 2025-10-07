@@ -13,18 +13,18 @@ class AnswerDtoBuilder extends SpockTest {
     AnswerDtoBuilder() {
         this.answerDto = new AnswerDto()
         // Set default values
+        this.answerDto.setCreationDate(LocalDateTime.now())
         this.answerDto.setAnswerDate(LocalDateTime.now())
-        this.answerDto.setCompletedDate(LocalDateTime.now())
         this.answerDto.setCompleted(false)
+    }
+
+    AnswerDtoBuilder withCreationDate(LocalDateTime creationDate) {
+        this.answerDto.setCreationDate(creationDate)
+        return this
     }
 
     AnswerDtoBuilder withAnswerDate(LocalDateTime answerDate) {
         this.answerDto.setAnswerDate(answerDate)
-        return this
-    }
-
-    AnswerDtoBuilder withCompletedDate(LocalDateTime completedDate) {
-        this.answerDto.setCompletedDate(completedDate)
         return this
     }
 
@@ -33,23 +33,23 @@ class AnswerDtoBuilder extends SpockTest {
         return this
     }
 
-    AnswerDtoBuilder withQuizAnswerStudent(QuizAnswerStudent quizAnswerStudent) {
-        this.answerDto.setQuizAnswerStudent(quizAnswerStudent)
+    AnswerDtoBuilder withAnswerExecution(AnswerExecution answerExecution) {
+        this.answerDto.setAnswerExecution(answerExecution)
         return this
     }
 
-    AnswerDtoBuilder withQuizAnswerExecution(QuizAnswerExecution quizAnswerExecution) {
-        this.answerDto.setQuizAnswerExecution(quizAnswerExecution)
+    AnswerDtoBuilder withAnswerUser(AnswerUser answerUser) {
+        this.answerDto.setAnswerUser(answerUser)
         return this
     }
 
-    AnswerDtoBuilder withQuestionAnswers(Set<QuestionAnswer> questionAnswers) {
-        this.answerDto.setQuestionAnswers(questionAnswers)
+    AnswerDtoBuilder withAnswerQuiz(AnswerQuiz answerQuiz) {
+        this.answerDto.setAnswerQuiz(answerQuiz)
         return this
     }
 
-    AnswerDtoBuilder withAnsweredQuiz(AnsweredQuiz answeredQuiz) {
-        this.answerDto.setAnsweredQuiz(answeredQuiz)
+    AnswerDtoBuilder withAnswerQuestion(Set<AnswerQuestion> answerQuestion) {
+        this.answerDto.setAnswerQuestion(answerQuestion)
         return this
     }
 

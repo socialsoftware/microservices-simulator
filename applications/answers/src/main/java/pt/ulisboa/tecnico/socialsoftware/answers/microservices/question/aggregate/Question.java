@@ -8,8 +8,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.util.Set;
 import java.util.HashSet;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;

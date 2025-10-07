@@ -27,6 +27,7 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
 
         const imports = this.buildServiceImports(aggregate, serviceDefinition, options);
         const methods = this.buildServiceMethods(serviceDefinition, aggregate, rootEntity);
+        const dependencies = this.buildServiceDependencies(aggregate, serviceDefinition);
 
         return {
             packageName,
@@ -36,6 +37,7 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
             rootEntityName: rootEntity.name,
             imports,
             methods,
+            dependencies,
             generateCrud: serviceDefinition.generateCrud || false,
             transactional: serviceDefinition.transactional || false,
             projectName: options.projectName.toLowerCase(),
@@ -56,6 +58,25 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
 
         if (serviceDefinition.transactional) {
             imports.push('import org.springframework.transaction.annotation.Transactional;');
+        }
+
+        // Check if any method uses business logic that requires additional imports
+        const hasBusinessLogic = serviceDefinition.serviceMethods?.some((method: any) =>
+            method.implementation?.actions?.length > 0
+        );
+
+        if (hasBusinessLogic) {
+            imports.push(
+                'import java.sql.SQLException;',
+                'import org.springframework.dao.CannotAcquireLockException;',
+                'import org.springframework.retry.annotation.Backoff;',
+                'import org.springframework.retry.annotation.Retryable;',
+                'import org.springframework.transaction.annotation.Isolation;',
+                'import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;',
+                'import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;',
+                `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', 'exception')}.${this.capitalize(options.projectName)}Exception;`,
+                `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', 'exception')}.${this.capitalize(options.projectName)}ErrorMessage;`
+            );
         }
 
         // Add imports based on method parameters and return types
@@ -89,6 +110,8 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
 
         if (serviceDefinition.serviceMethods) {
             serviceDefinition.serviceMethods.forEach((method: any) => {
+                const methodImplementation = this.processMethodImplementation(method.implementation, aggregate);
+
                 methods.push({
                     name: method.name,
                     parameters: method.parameters?.map((param: any) => ({
@@ -96,7 +119,8 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
                         name: param.name || 'param'
                     })) || [],
                     returnType: this.resolveJavaType(method.returnType || 'void'),
-                    annotations: method.annotations || []
+                    annotations: method.annotations || [],
+                    implementation: methodImplementation
                 });
             });
         }
@@ -190,6 +214,7 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
             'String': 'String',
             'Boolean': 'Boolean',
             'LocalDateTime': 'LocalDateTime',
+            'UnitOfWork': 'UnitOfWork',
             'void': 'void',
             'UserDto': 'UserDto',
             'AggregateState': 'AggregateState'
@@ -206,5 +231,126 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
         }
 
         return typeMap[typeStr] || typeStr;
+    }
+
+    private processMethodImplementation(implementation: any, aggregate: Aggregate): any[] {
+        if (!implementation?.actions) {
+            return [];
+        }
+
+        return implementation.actions.map((action: any) => {
+            switch (action.$type) {
+                case 'LoadAggregateAction':
+                    return {
+                        action: 'load',
+                        aggregateVar: action.aggregateVar,
+                        aggregateType: aggregate.name,
+                        aggregateId: action.aggregateId,
+                        unitOfWorkVar: 'unitOfWork'
+                    };
+
+                case 'ValidateAction':
+                    return {
+                        action: 'validate',
+                        condition: action.condition,
+                        exception: action.exception,
+                        exceptionParams: action.exceptionParams || []
+                    };
+
+                case 'CreateEntityAction':
+                    return {
+                        action: 'create',
+                        entityVar: action.entityVar,
+                        entityType: action.entityType,
+                        constructorParam: action.constructorParams?.[0] || 'oldExecution'
+                    };
+
+                case 'DomainOperationAction':
+                    return {
+                        action: 'execute',
+                        targetVar: action.targetVar,
+                        operationChain: this.processOperationChain(action.operationChain)
+                    };
+
+                case 'RegisterChangeAction':
+                    return {
+                        action: 'register',
+                        aggregateVar: action.aggregateVar,
+                        unitOfWorkVar: action.unitOfWorkVar
+                    };
+
+                case 'RegisterEventAction':
+                    return {
+                        action: 'registerEvent',
+                        eventType: action.eventType?.ref?.name || action.eventType?.$refText,
+                        eventParams: action.eventParams || [],
+                        unitOfWorkVar: action.unitOfWorkVar
+                    };
+
+                case 'PublishEventAction':
+                    return {
+                        action: 'publish',
+                        eventType: action.eventType?.ref?.name || action.eventType?.$refText,
+                        eventParams: action.eventParams || []
+                    };
+
+                case 'ReturnAction':
+                    return {
+                        action: 'return',
+                        returnValue: action.returnValue,
+                        returnExpression: action.returnExpression
+                    };
+
+                default:
+                    return { action: 'unknown', raw: action };
+            }
+        });
+    }
+
+    private buildServiceDependencies(aggregate: Aggregate, serviceDefinition: any): any[] {
+        const dependencies = [
+            {
+                type: `${aggregate.name}Repository`,
+                name: `${aggregate.name.toLowerCase()}Repository`
+            }
+        ];
+
+        // Check if any method uses business logic that requires additional dependencies
+        const hasBusinessLogic = serviceDefinition.serviceMethods?.some((method: any) =>
+            method.implementation?.actions?.length > 0
+        );
+
+        if (hasBusinessLogic) {
+            dependencies.push(
+                {
+                    type: 'UnitOfWorkService',
+                    name: 'unitOfWorkService'
+                },
+                {
+                    type: `${aggregate.name}Factory`,
+                    name: `${aggregate.name.toLowerCase()}Factory`
+                }
+            );
+        }
+
+        return dependencies;
+    }
+
+    private processOperationChain(operationChain: any): string {
+        if (!operationChain?.operations) {
+            return '';
+        }
+
+        return operationChain.operations.map((operation: any) => {
+            const methodName = operation.methodName;
+            const params = operation.params?.map((param: any) => {
+                // Handle special constants
+                if (param === 'INACTIVE') {
+                    return 'Aggregate.AggregateState.INACTIVE';
+                }
+                return param;
+            }).join(', ') || '';
+            return params ? `${methodName}(${params})` : methodName;
+        }).join('.');
     }
 }

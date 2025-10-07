@@ -26,7 +26,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.User
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.executionfactory.service.ExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionStudentDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUserDto;
 
 @Service
 public class ExecutionFunctionalities {
