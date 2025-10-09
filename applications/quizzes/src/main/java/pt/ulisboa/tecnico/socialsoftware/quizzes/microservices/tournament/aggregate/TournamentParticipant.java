@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
@@ -17,6 +18,7 @@ public class TournamentParticipant {
     private String participantUsername;
     private LocalDateTime enrollTime;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentParticipant")
+    @JsonManagedReference
     private TournamentParticipantQuizAnswer participantAnswer;
     private Integer participantVersion;
     @Enumerated(EnumType.STRING)

@@ -7,10 +7,12 @@ import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
+import java.util.Objects;
 import java.util.logging.Logger;
 
 @Profile("stream")
@@ -52,22 +54,22 @@ public abstract class StreamCommandHandler implements CommandHandler {
         try {
             Object result = handle(command);
             if (result instanceof Exception) { // TODO check if result is better thrown
-                sendErrorResponse(correlationId, ((Exception) result).getMessage());
+                sendErrorResponse(correlationId, ((Exception) result).getMessage(), command.getUnitOfWork());
                 return;
             }
-            sendResponse(correlationId, result);
+            sendResponse(correlationId, result, command.getUnitOfWork());
         } catch (SimulatorException e) {
             logger.warning("Command handling error: " + e.getMessage());
-            sendErrorResponse(correlationId, e.getMessage());
+            sendErrorResponse(correlationId, e.getMessage(), command.getUnitOfWork());
         } catch (Exception e) {
             logger.severe("Unexpected error handling command: " + e.getMessage());
-            sendErrorResponse(correlationId, "Unexpected error: " + e.getMessage());
+            sendErrorResponse(correlationId, "Unexpected error: " + e.getMessage(), command.getUnitOfWork());
         }
     }
 
-    private void sendResponse(String correlationId, Object result) {
+    private void sendResponse(String correlationId, Object result, UnitOfWork unitOfWork) {
         logger.info("Sending response.....");
-        CommandResponse response = CommandResponse.success(correlationId, result);
+        CommandResponse response = CommandResponse.success(correlationId, result, unitOfWork);
         String json;
         try {
             json = objectMapper.writeValueAsString(response);
@@ -79,8 +81,8 @@ public abstract class StreamCommandHandler implements CommandHandler {
         streamBridge.send("command-responses", MessageBuilder.withPayload(json).build());
     }
 
-    private void sendErrorResponse(String correlationId, String errorMessage) {
-        CommandResponse response = CommandResponse.error(correlationId, errorMessage);
+    private void sendErrorResponse(String correlationId, String errorMessage, UnitOfWork unitOfWork) {
+        CommandResponse response = CommandResponse.error(correlationId, errorMessage, unitOfWork);
         String json;
         try {
             json = objectMapper.writeValueAsString(response);

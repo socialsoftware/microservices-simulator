@@ -12,6 +12,8 @@ public class QuizAnswerSubscribesRemoveCourseExecution extends EventSubscription
                 DeleteCourseExecutionEvent.class.getSimpleName());
     }
 
+    public QuizAnswerSubscribesRemoveCourseExecution() {}
+
     public boolean subscribesEvent(Event event) {
         return super.subscribesEvent(event);
     }

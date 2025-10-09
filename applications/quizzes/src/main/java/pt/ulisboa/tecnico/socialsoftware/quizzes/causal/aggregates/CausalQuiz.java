@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
@@ -22,12 +23,14 @@ public class CausalQuiz extends Quiz implements CausalAggregate {
     }
 
     @Override
+    @JsonIgnore
     public Set<String> getMutableFields() {
         // we dont add the courseExecution because it can only change through events and the only events that comes from it is the delete which deletes the quiz
         return Set.of("availableDate", "conclusionDate", "resultsDate", "title" ,"quizQuestions");
     }
 
     @Override
+    @JsonIgnore
     public Set<String[]> getIntentions() {
         return Set.of(
                 new String[]{"availableDate", "conclusionDate"},

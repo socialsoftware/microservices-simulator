@@ -12,6 +12,8 @@ public class QuizSubscribesUpdateQuestion extends EventSubscription {
                 UpdateQuestionEvent.class.getSimpleName());
     }
 
+    public QuizSubscribesUpdateQuestion() {}
+
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event);
     }

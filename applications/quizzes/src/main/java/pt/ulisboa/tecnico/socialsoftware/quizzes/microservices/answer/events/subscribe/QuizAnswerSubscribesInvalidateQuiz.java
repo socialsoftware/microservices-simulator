@@ -12,6 +12,8 @@ public class QuizAnswerSubscribesInvalidateQuiz extends EventSubscription {
                 InvalidateQuizEvent.class.getSimpleName());
     }
 
+    public QuizAnswerSubscribesInvalidateQuiz() {}
+
     public boolean subscribesEvent(Event event) {
         return super.subscribesEvent(event);
     }

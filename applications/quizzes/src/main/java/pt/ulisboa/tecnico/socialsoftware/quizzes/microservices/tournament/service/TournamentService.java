@@ -102,7 +102,7 @@ public class TournamentService {
 
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
-        logger.info("Adding participant {} to tournament {}", tournamentParticipant.getId(), tournamentAggregateId);
+        logger.info("Adding participant {} to tournament {}", tournamentParticipant.getParticipantName(), tournamentAggregateId);
 
         newTournament.addParticipant(tournamentParticipant);
 

@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService;
@@ -171,7 +172,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             delayExpression = "${retry.db.delay}",
             multiplierExpression = "${retry.db.multiplier}"
         ))
-    public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
+    public void commitAllObjects(Integer commitVersion, Map<Integer, AggregateDto> aggregateMap) {
         // aggregates are committed at the end of each service
     }
 

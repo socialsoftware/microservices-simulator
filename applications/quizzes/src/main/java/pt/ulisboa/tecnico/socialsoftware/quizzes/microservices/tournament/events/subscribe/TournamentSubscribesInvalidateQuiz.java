@@ -12,6 +12,8 @@ public class TournamentSubscribesInvalidateQuiz extends EventSubscription {
                 InvalidateQuizEvent.class.getSimpleName());
     }
 
+    public TournamentSubscribesInvalidateQuiz() {}
+
     @Override
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event);

@@ -12,6 +12,8 @@ public class QuestionSubscribesDeleteTopic extends EventSubscription {
                 DeleteTopicEvent.class.getSimpleName());
     }
 
+    public QuestionSubscribesDeleteTopic() {}
+
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event);
     }

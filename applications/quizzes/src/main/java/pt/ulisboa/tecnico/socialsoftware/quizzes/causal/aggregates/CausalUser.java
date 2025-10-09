@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
@@ -24,11 +25,13 @@ public class CausalUser extends User implements CausalAggregate {
     }
 
     @Override
+    @JsonIgnore
     public Set<String> getMutableFields() {
         return Set.of("name", "username", "active");
     }
 
     @Override
+    @JsonIgnore
     public Set<String[]> getIntentions() {
         return new HashSet<>();
     }

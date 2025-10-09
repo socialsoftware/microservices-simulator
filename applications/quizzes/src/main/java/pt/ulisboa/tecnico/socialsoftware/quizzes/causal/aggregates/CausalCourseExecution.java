@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.aggregates;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import org.apache.commons.collections4.SetUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
@@ -27,11 +28,13 @@ public class CausalCourseExecution extends CourseExecution implements CausalAggr
     }
 
     @Override
+    @JsonIgnore
     public Set<String> getMutableFields() {
         return Set.of("students");
     }
 
     @Override
+    @JsonIgnore
     public Set<String[]> getIntentions() {
         return new HashSet<>();
     }

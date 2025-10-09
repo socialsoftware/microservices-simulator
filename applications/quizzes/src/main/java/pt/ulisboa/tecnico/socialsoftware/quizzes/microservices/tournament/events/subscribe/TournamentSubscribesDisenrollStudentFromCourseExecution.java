@@ -17,6 +17,8 @@ public class TournamentSubscribesDisenrollStudentFromCourseExecution extends Eve
         this.tournamentDto = new TournamentDto(tournament);
     }
 
+    public TournamentSubscribesDisenrollStudentFromCourseExecution() {}
+
     @Override
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event) && checkTournamentInfo((DisenrollStudentFromCourseExecutionEvent)event);
