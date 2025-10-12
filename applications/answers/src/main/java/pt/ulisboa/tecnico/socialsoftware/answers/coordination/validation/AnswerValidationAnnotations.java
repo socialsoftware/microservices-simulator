@@ -138,14 +138,14 @@ public class AnswerValidationAnnotations {
     public static class AnswerQuestionValidation {
         @NotNull
     @NotEmpty
-        private Set<AnswerQuestion> answerQuestion;
+        private List<AnswerQuestion> answerQuestion;
         
         // Getter and setter
-        public Set<AnswerQuestion> getAnswerQuestion() {
+        public List<AnswerQuestion> getAnswerQuestion() {
             return answerQuestion;
         }
         
-        public void setAnswerQuestion(Set<AnswerQuestion> answerQuestion) {
+        public void setAnswerQuestion(List<AnswerQuestion> answerQuestion) {
             this.answerQuestion = answerQuestion;
         }
     }

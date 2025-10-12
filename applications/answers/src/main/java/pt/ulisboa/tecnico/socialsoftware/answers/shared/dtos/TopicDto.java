@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 public class TopicDto implements Serializable {
@@ -9,20 +8,18 @@ public class TopicDto implements Serializable {
     private Integer aggregateId;
     private Integer version;
     private AggregateState state;
-    private Integer id;
     private String name;
-    private LocalDateTime creationDate;
+    private Integer courseId;
     
     public TopicDto() {
     }
     
-    public TopicDto(Integer aggregateId, Integer version, AggregateState state, Integer id, String name, LocalDateTime creationDate) {
+    public TopicDto(Integer aggregateId, Integer version, AggregateState state, String name, Integer courseId) {
         setAggregateId(aggregateId);
         setVersion(version);
         setState(state);
-        setId(id);
         setName(name);
-        setCreationDate(creationDate);
+        setCourseId(courseId);
     }
     
     public Integer getAggregateId() {
@@ -49,14 +46,6 @@ public class TopicDto implements Serializable {
         this.state = state;
     }
 
-    public Integer getId() {
-        return id;
-    }
-    
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
@@ -65,11 +54,11 @@ public class TopicDto implements Serializable {
         this.name = name;
     }
 
-    public LocalDateTime getCreationDate() {
-        return creationDate;
+    public Integer getCourseId() {
+        return courseId;
     }
     
-    public void setCreationDate(LocalDateTime creationDate) {
-        this.creationDate = creationDate;
+    public void setCourseId(Integer courseId) {
+        this.courseId = courseId;
     }
 }

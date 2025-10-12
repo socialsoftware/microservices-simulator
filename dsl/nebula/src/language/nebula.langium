@@ -402,7 +402,7 @@ DtoField:
     type=DtoFieldType name=ID ';';
 
 DtoMapping:
-    'mapping' targetDto=[DtoDefinition:ID] collectionName=ID '{'
+    'mapping' (collectionType=('Set' | 'List'))? '<'? targetDto=[DtoDefinition:ID] '>'? collectionName=ID '{'
         fieldMappings+=FieldMapping*
     '}';
 
@@ -410,13 +410,11 @@ FieldMapping:
     dtoField=ID '->' entityField=ID ';';
 
 DtoFieldType:
-    PrimitiveType | DtoReference | ListType | SetType | OptionalType | GenericType | AggregateStateType;
+    PrimitiveType | DtoReference | ListType | SetType | OptionalType | AggregateStateType;
 
 DtoReference:
     dto=[DtoDefinition:ID];
 
-GenericType:
-    name=ID;
 
 
 

@@ -4,13 +4,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.FetchType;
-import java.util.stream.Collectors;
-import java.util.Set;
-import java.util.HashSet;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
+import java.util.List;
+import java.util.ArrayList;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 
 @Entity
 public class AnswerQuiz {
@@ -19,23 +15,21 @@ public class AnswerQuiz {
     private Long id;
     private Integer quizAggregateId;
     private Integer quizVersion;
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "answerquiz")
-    private Set<Object> quizQuestionsAggregateIds = new HashSet<>();
+    private List<Integer> quizQuestionsAggregateIds = new ArrayList<>();
     @OneToOne
     private Answer answer; 
 
     public AnswerQuiz() {
     }
 
-    public AnswerQuiz(AnswerDto answerDto) {
-        setQuizAggregateId(answerDto.getQuizAggregateId());
-        setQuizVersion(answerDto.getQuizVersion());
+    public AnswerQuiz(QuizDto quizDto) {
+
     }
 
     public AnswerQuiz(AnswerQuiz other) {
         setQuizAggregateId(other.getQuizAggregateId());
         setQuizVersion(other.getQuizVersion());
-        setQuizQuestionsAggregateIds(other.getQuizQuestionsAggregateIds().stream().map(Object::new).collect(Collectors.toSet()));
+        setQuizQuestionsAggregateIds(new ArrayList<>(other.getQuizQuestionsAggregateIds()));
     }
 
 
@@ -63,15 +57,12 @@ public class AnswerQuiz {
         this.quizVersion = quizVersion;
     }
 
-    public Set<Object> getQuizQuestionsAggregateIds() {
+    public List<Integer> getQuizQuestionsAggregateIds() {
         return quizQuestionsAggregateIds;
     }
 
-    public void setQuizQuestionsAggregateIds(Set<Object> quizQuestionsAggregateIds) {
+    public void setQuizQuestionsAggregateIds(List<Integer> quizQuestionsAggregateIds) {
         this.quizQuestionsAggregateIds = quizQuestionsAggregateIds;
-        if (this.quizQuestionsAggregateIds != null) {
-            this.quizQuestionsAggregateIds.forEach(object -> object.setAnswerQuiz(this));
-        }
     }
 
     public Answer getAnswer() {

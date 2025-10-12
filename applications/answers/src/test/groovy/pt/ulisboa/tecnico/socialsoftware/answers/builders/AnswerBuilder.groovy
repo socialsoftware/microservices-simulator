@@ -50,7 +50,7 @@ class AnswerBuilder extends SpockTest {
         return this
     }
 
-    AnswerBuilder withAnswerQuestion(Set<AnswerQuestion> answerQuestion) {
+    AnswerBuilder withAnswerQuestion(List<AnswerQuestion> answerQuestion) {
         this.answer.setAnswerQuestion(answerQuestion)
         return this
     }

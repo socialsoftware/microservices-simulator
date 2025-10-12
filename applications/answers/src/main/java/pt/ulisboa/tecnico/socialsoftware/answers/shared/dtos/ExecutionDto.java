@@ -19,6 +19,7 @@ public class ExecutionDto implements Serializable {
     private String courseName;
     private String courseType;
     private Integer courseVersion;
+    private Set<UserDto> users;
     
     public ExecutionDto() {
     }
@@ -33,6 +34,18 @@ public class ExecutionDto implements Serializable {
         setAcronym(execution.getAcronym());
         setAcademicTerm(execution.getAcademicTerm());
         setEndDate(execution.getEndDate());
+        setUsers(execution.getUsers().stream()
+            .map(executionuser -> ((java.util.function.Supplier<UserDto>) () -> {
+            UserDto userdto = new UserDto();
+                userdto.setName(executionuser.getUserName());
+                userdto.setUsername(executionuser.getUserUsername());
+                userdto.setRole(executionuser.getRole());
+                userdto.setActive(executionuser.getActive());
+                userdto.setNumberAnswered(executionuser.getNumberAnswered());
+                userdto.setNumberCorrect(executionuser.getNumberCorrect());
+            return userdto;
+        }).get())
+            .collect(Collectors.toSet()));
         setUsers(execution.getUsers().stream()
             .map(executionuser -> ((java.util.function.Supplier<UserDto>) () -> {
             UserDto userdto = new UserDto();
@@ -140,5 +153,13 @@ public class ExecutionDto implements Serializable {
     
     public void setCourseVersion(Integer courseVersion) {
         this.courseVersion = courseVersion;
+    }
+
+    public Set<UserDto> getUsers() {
+        return users;
+    }
+    
+    public void setUsers(Set<UserDto> users) {
+        this.users = users;
     }
 }

@@ -5,7 +5,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 @Entity
 public class AnswerQuestion {
@@ -25,14 +25,8 @@ public class AnswerQuestion {
     public AnswerQuestion() {
     }
 
-    public AnswerQuestion(AnswerDto answerDto) {
-        setQuestionOptionSequenceChoice(answerDto.getQuestionOptionSequenceChoice());
-        setQuestionAggregateId(answerDto.getQuestionAggregateId());
-        setQuestionVersion(answerDto.getQuestionVersion());
-        setQuestionTimeTaken(answerDto.getQuestionTimeTaken());
-        setQuestionOptionKey(answerDto.getQuestionOptionKey());
-        setQuestionCorrect(answerDto.getQuestionCorrect());
-        setQuestionState(answerDto.getQuestionState());
+    public AnswerQuestion(QuestionDto questionDto) {
+
     }
 
     public AnswerQuestion(AnswerQuestion other) {

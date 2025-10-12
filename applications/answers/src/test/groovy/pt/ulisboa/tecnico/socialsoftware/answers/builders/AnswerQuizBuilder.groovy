@@ -34,7 +34,7 @@ class AnswerQuizBuilder extends SpockTest {
         return this
     }
 
-    AnswerQuizBuilder withQuizQuestionsAggregateIds(Set<Object> quizQuestionsAggregateIds) {
+    AnswerQuizBuilder withQuizQuestionsAggregateIds(List<Integer> quizQuestionsAggregateIds) {
         this.answerquiz.setQuizQuestionsAggregateIds(quizQuestionsAggregateIds)
         return this
     }

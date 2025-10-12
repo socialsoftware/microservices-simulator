@@ -28,6 +28,7 @@ export class TypeResolver {
             // Handle AST ListType
             if (fieldType.$type === 'ListType' && fieldType.elementType) {
                 const elementTypeName = this.extractElementTypeName(fieldType.elementType);
+                console.log(`Debug ListType: elementTypeName=${elementTypeName}, elementType.$type=${fieldType.elementType.$type}`);
                 return {
                     javaType: `List<${elementTypeName}>`,
                     isCollection: true,
@@ -52,11 +53,15 @@ export class TypeResolver {
             // Handle CollectionType (generic collection type)
             if (fieldType.$type === 'CollectionType' && fieldType.elementType) {
                 const elementTypeName = this.extractElementTypeName(fieldType.elementType);
+                // Determine collection type from the AST node text
+                const sourceText = fieldType.$cstNode?.text || '';
+                const collectionTypeName = sourceText.startsWith('List<') ? 'List' : 'Set';
+                console.log(`Debug CollectionType: elementTypeName=${elementTypeName}, collectionType=${collectionTypeName}, sourceText=${sourceText}`);
                 return {
-                    javaType: `Set<${elementTypeName}>`,
+                    javaType: `${collectionTypeName}<${elementTypeName}>`,
                     isCollection: true,
                     elementType: elementTypeName,
-                    isPrimitive: false,
+                    isPrimitive: this.isPrimitiveType(elementTypeName),
                     isEntity: this.isEntityType(elementTypeName),
                     isBuiltin: false
                 };
@@ -118,6 +123,15 @@ export class TypeResolver {
         if (typeof fieldType === 'string') {
             return this.resolveTypeFromName(fieldType);
         }
+
+        // Debug: Check if this is a collection type that we're not handling
+        const fieldTypeStr = String(fieldType);
+        if (fieldTypeStr.includes('List<') || fieldTypeStr.includes('Set<')) {
+            console.log(`Warning: Unhandled collection type: ${fieldTypeStr}, AST type: ${fieldType.$type}`);
+        }
+
+        // Debug: Log all unhandled types to understand what's happening
+        console.log(`Debug fallback: fieldType=${fieldTypeStr}, AST type: ${fieldType.$type}`);
 
         return {
             javaType: String(fieldType),
@@ -189,8 +203,9 @@ export class TypeResolver {
                 }
             }
             // Handle PrimitiveType
-            if (elementType.$type === 'PrimitiveType' && elementType.name) {
-                return elementType.name;
+            if (elementType.$type === 'PrimitiveType') {
+                console.log(`Debug PrimitiveType: elementType.name=${elementType.name}, elementType.typeName=${elementType.typeName}`);
+                return elementType.name || elementType.typeName || 'UnknownPrimitive';
             }
             // Handle ID references
             if (elementType.$refText) {
@@ -231,8 +246,8 @@ export class TypeResolver {
         }
     }
 
-    private static isPrimitiveType(typeName: string): boolean {
-        const primitives = ['string', 'integer', 'long', 'boolean', 'localdatetime'];
+    static isPrimitiveType(typeName: string): boolean {
+        const primitives = ['string', 'integer', 'long', 'boolean', 'localdatetime', 'float', 'double'];
         return primitives.includes(typeName.toLowerCase());
     }
 

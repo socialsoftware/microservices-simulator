@@ -9,8 +9,8 @@ import jakarta.persistence.FetchType;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import java.time.LocalDateTime;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 
 @Entity
@@ -26,7 +26,7 @@ public abstract class Answer extends Aggregate {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
     private AnswerQuiz answerQuiz;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "answer")
-    private Set<AnswerQuestion> answerQuestion = new HashSet<>(); 
+    private List<AnswerQuestion> answerQuestion = new HashSet<>(); 
 
     public Answer() {
     }
@@ -50,7 +50,7 @@ public abstract class Answer extends Aggregate {
         setAnswerExecution(new AnswerExecution(other.getAnswerExecution()));
         setAnswerUser(new AnswerUser(other.getAnswerUser()));
         setAnswerQuiz(new AnswerQuiz(other.getAnswerQuiz()));
-        setAnswerQuestion(other.getAnswerQuestion().stream().map(AnswerQuestion::new).collect(Collectors.toSet()));
+        setAnswerQuestion(other.getAnswerQuestion().stream().map(AnswerQuestion::new).collect(Collectors.toList()));
     }
 
 
@@ -111,11 +111,11 @@ public abstract class Answer extends Aggregate {
         }
     }
 
-    public Set<AnswerQuestion> getAnswerQuestion() {
+    public List<AnswerQuestion> getAnswerQuestion() {
         return answerQuestion;
     }
 
-    public void setAnswerQuestion(Set<AnswerQuestion> answerQuestion) {
+    public void setAnswerQuestion(List<AnswerQuestion> answerQuestion) {
         this.answerQuestion = answerQuestion;
         if (this.answerQuestion != null) {
             this.answerQuestion.forEach(answerquestion -> answerquestion.setAnswer(this));

@@ -8,13 +8,13 @@ Aggregate Answer {
         AggregateState userState;
     }
 
-    Entity AnswerExecution {
+    Entity AnswerExecution uses dto ExecutionDto {
         Long id;
         Integer executionAggregateId;
         Integer executionVersion;
     }
 
-    Entity AnswerQuestion {
+    Entity AnswerQuestion uses dto QuestionDto {
         Long id;
         Integer questionOptionSequenceChoice;
         Integer questionAggregateId;
@@ -25,7 +25,7 @@ Aggregate Answer {
         AggregateState questionState;
     }
 
-    Entity AnswerQuiz {
+    Entity AnswerQuiz uses dto QuizDto {
         Long id;
         Integer quizAggregateId;
         Integer quizVersion;

@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 public class QuestionDto implements Serializable {
@@ -8,26 +9,28 @@ public class QuestionDto implements Serializable {
     private Integer aggregateId;
     private Integer version;
     private AggregateState state;
-    private Integer id;
     private String title;
     private String content;
-    private Integer numberOfOptions;
-    private Integer correctOption;
-    private Integer order;
+    private String creationDate;
+    private CourseDto course;
     
     public QuestionDto() {
     }
     
-    public QuestionDto(Integer aggregateId, Integer version, AggregateState state, Integer id, String title, String content, Integer numberOfOptions, Integer correctOption, Integer order) {
-        setAggregateId(aggregateId);
-        setVersion(version);
-        setState(state);
-        setId(id);
-        setTitle(title);
-        setContent(content);
-        setNumberOfOptions(numberOfOptions);
-        setCorrectOption(correctOption);
-        setOrder(order);
+    public QuestionDto(pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question question) {
+        // Standard aggregate fields
+        setAggregateId(question.getAggregateId());
+        setVersion(question.getVersion());
+        setState(question.getState().toString());
+
+        // Root entity fields
+        setTitle(question.getTitle());
+        setContent(question.getContent());
+        setCreationDate(question.getCreationDate());
+
+        // Fields from QuestionCourse
+        setCourse(question.getQuestionCourse().getCourse());
+
     }
     
     public Integer getAggregateId() {
@@ -54,14 +57,6 @@ public class QuestionDto implements Serializable {
         this.state = state;
     }
 
-    public Integer getId() {
-        return id;
-    }
-    
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
     public String getTitle() {
         return title;
     }
@@ -78,27 +73,19 @@ public class QuestionDto implements Serializable {
         this.content = content;
     }
 
-    public Integer getNumberOfOptions() {
-        return numberOfOptions;
+    public String getCreationDate() {
+        return creationDate;
     }
     
-    public void setNumberOfOptions(Integer numberOfOptions) {
-        this.numberOfOptions = numberOfOptions;
+    public void setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
     }
 
-    public Integer getCorrectOption() {
-        return correctOption;
+    public CourseDto getCourse() {
+        return course;
     }
     
-    public void setCorrectOption(Integer correctOption) {
-        this.correctOption = correctOption;
-    }
-
-    public Integer getOrder() {
-        return order;
-    }
-    
-    public void setOrder(Integer order) {
-        this.order = order;
+    public void setCourse(CourseDto course) {
+        this.course = course;
     }
 }

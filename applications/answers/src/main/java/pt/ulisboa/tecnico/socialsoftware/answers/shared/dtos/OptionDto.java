@@ -3,23 +3,25 @@ package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 import java.io.Serializable;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-public class CourseDto implements Serializable {
+public class OptionDto implements Serializable {
     
     private Integer aggregateId;
     private Integer version;
     private AggregateState state;
-    private String type;
-    private String name;
+    private Integer sequence;
+    private Boolean correct;
+    private String content;
     
-    public CourseDto() {
+    public OptionDto() {
     }
     
-    public CourseDto(Integer aggregateId, Integer version, AggregateState state, String type, String name) {
+    public OptionDto(Integer aggregateId, Integer version, AggregateState state, Integer sequence, Boolean correct, String content) {
         setAggregateId(aggregateId);
         setVersion(version);
         setState(state);
-        setType(type);
-        setName(name);
+        setSequence(sequence);
+        setCorrect(correct);
+        setContent(content);
     }
     
     public Integer getAggregateId() {
@@ -46,19 +48,27 @@ public class CourseDto implements Serializable {
         this.state = state;
     }
 
-    public String getType() {
-        return type;
+    public Integer getSequence() {
+        return sequence;
     }
     
-    public void setType(String type) {
-        this.type = type;
+    public void setSequence(Integer sequence) {
+        this.sequence = sequence;
     }
 
-    public String getName() {
-        return name;
+    public Boolean getCorrect() {
+        return correct;
     }
     
-    public void setName(String name) {
-        this.name = name;
+    public void setCorrect(Boolean correct) {
+        this.correct = correct;
+    }
+
+    public String getContent() {
+        return content;
+    }
+    
+    public void setContent(String content) {
+        this.content = content;
     }
 }

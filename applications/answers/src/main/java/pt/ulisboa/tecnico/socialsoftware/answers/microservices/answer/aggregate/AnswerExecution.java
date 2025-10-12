@@ -4,7 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 @Entity
 public class AnswerExecution {
@@ -19,9 +19,8 @@ public class AnswerExecution {
     public AnswerExecution() {
     }
 
-    public AnswerExecution(AnswerDto answerDto) {
-        setExecutionAggregateId(answerDto.getExecutionAggregateId());
-        setExecutionVersion(answerDto.getExecutionVersion());
+    public AnswerExecution(ExecutionDto executionDto) {
+
     }
 
     public AnswerExecution(AnswerExecution other) {

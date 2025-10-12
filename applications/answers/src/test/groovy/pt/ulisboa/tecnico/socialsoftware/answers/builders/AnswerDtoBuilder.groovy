@@ -48,7 +48,7 @@ class AnswerDtoBuilder extends SpockTest {
         return this
     }
 
-    AnswerDtoBuilder withAnswerQuestion(Set<AnswerQuestion> answerQuestion) {
+    AnswerDtoBuilder withAnswerQuestion(List<AnswerQuestion> answerQuestion) {
         this.answerDto.setAnswerQuestion(answerQuestion)
         return this
     }

@@ -267,7 +267,9 @@ function generateFields(properties: any[], entity: Entity, isRootEntity: boolean
         // Determine if this is an entity relationship
         const isEntityType = TypeResolver.isEntityType(javaType) && !isEnumType(prop.type);
         const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
-        const isEntityCollection = isCollection && TypeResolver.isEntityType(TypeResolver.getElementType(prop.type) || '');
+        const elementType = TypeResolver.getElementType(prop.type);
+        const isEntityCollection = isCollection && elementType && TypeResolver.isEntityType(elementType);
+        const isPrimitiveCollection = isCollection && elementType && TypeResolver.isPrimitiveType(elementType);
 
         let relationshipAnnotation = '';
         let initialization = '';
@@ -284,6 +286,13 @@ function generateFields(properties: any[], entity: Entity, isRootEntity: boolean
             imports.usesOneToMany = true;
             imports.usesCascadeType = true;
             imports.usesFetchType = true;
+        } else if (isPrimitiveCollection) {
+            // Collection of primitives - no JPA annotations needed
+            if (javaType.startsWith('List<')) {
+                initialization = ' = new ArrayList<>()';
+            } else if (javaType.startsWith('Set<')) {
+                initialization = ' = new HashSet<>()';
+            }
         }
 
         // Add @Enumerated annotation for enum types

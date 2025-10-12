@@ -95,9 +95,6 @@ export class SharedDtoGenerator extends OrchestrationBase {
             return `Set<${elementType}>`;
         }
 
-        if (fieldType.$type === 'GenericType') {
-            return fieldType.name;
-        }
 
         return this.resolveJavaType(fieldType);
     }

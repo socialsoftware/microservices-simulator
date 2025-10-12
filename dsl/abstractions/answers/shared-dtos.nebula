@@ -27,6 +27,8 @@ SharedDtos {
         String courseType;
         Integer courseVersion;
         
+        Set<UserDto> users;
+        
         mapping UserDto users {
             aggregateId -> userAggregateId;
             version -> userVersion;
@@ -43,37 +45,32 @@ SharedDtos {
 
         CourseDto course;
 
-        Set<TopicDto> topicsDto {
+        mapping Set<TopicDto> topics {
             aggregateId -> topicAggregateId;
             version -> topicVersion;
             name -> topicName;
         }
-
-        List<OptionDto> optionDtos {
-
-        }
     }
 
     dto OptionDto {
-        Integer key;
         Integer sequence;
-        boolean correct;
+        Boolean correct;
         String content;
     }
     
     dto TopicDto {
-        Integer id;
         String name;
-        LocalDateTime creationDate;
+        Integer courseId;
     }
     
     dto QuizDto {
-        Integer id;
         String title;
-        String description;
-        String quizType;
         LocalDateTime availableDate;
         LocalDateTime conclusionDate;
+        LocalDateTime resultsDate;
+         
+        String description;
+        String quizType;
         Integer numberOfQuestions;
     }
     

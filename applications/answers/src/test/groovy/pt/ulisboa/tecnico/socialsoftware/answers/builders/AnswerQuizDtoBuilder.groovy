@@ -33,7 +33,7 @@ class AnswerQuizDtoBuilder extends SpockTest {
         return this
     }
 
-    AnswerQuizDtoBuilder withQuizQuestionsAggregateIds(Set<Object> quizQuestionsAggregateIds) {
+    AnswerQuizDtoBuilder withQuizQuestionsAggregateIds(List<Integer> quizQuestionsAggregateIds) {
         this.answerquizDto.setQuizQuestionsAggregateIds(quizQuestionsAggregateIds)
         return this
     }

@@ -138,13 +138,13 @@ public class CourseService {
     }
 
     @Transactional
-    public Set<Object> getUniqueCourseTypes(Integer id, UnitOfWork unitOfWork) {
+    public Set<String> getUniqueCourseTypes(Integer id, UnitOfWork unitOfWork) {
         try {
             Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
             
             // Business logic for getUniqueCourseTypes
-            Set<Object> result = course.getUniqueCourseTypes();
+            Set<String> result = course.getUniqueCourseTypes();
             courseRepository.save(course);
             return result;
         } catch (Exception e) {
