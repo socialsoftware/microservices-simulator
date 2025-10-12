@@ -110,7 +110,7 @@ public abstract class Tournament extends Aggregate {
     public void setTournamentParticipants(Set<TournamentParticipant> tournamentParticipants) {
         this.tournamentParticipants = tournamentParticipants;
         if (this.tournamentParticipants != null) {
-            this.tournamentParticipants.forEach(tournamentparticipant -> tournamentparticipant.setTournament(this));
+            this.tournamentParticipants.forEach(tournamentParticipant -> tournamentParticipant.setTournament(this));
         }
     }
 
@@ -132,7 +132,7 @@ public abstract class Tournament extends Aggregate {
     public void setTournamentTopics(Set<TournamentTopic> tournamentTopics) {
         this.tournamentTopics = tournamentTopics;
         if (this.tournamentTopics != null) {
-            this.tournamentTopics.forEach(tournamenttopic -> tournamenttopic.setTournament(this));
+            this.tournamentTopics.forEach(tournamentTopic -> tournamentTopic.setTournament(this));
         }
     }
 

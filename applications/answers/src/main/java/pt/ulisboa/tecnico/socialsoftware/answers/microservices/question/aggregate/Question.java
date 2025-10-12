@@ -93,7 +93,7 @@ public abstract class Question extends Aggregate {
     public void setTopics(Set<QuestionTopic> topics) {
         this.topics = topics;
         if (this.topics != null) {
-            this.topics.forEach(questiontopic -> questiontopic.setQuestion(this));
+            this.topics.forEach(questionTopic -> questionTopic.setQuestion(this));
         }
     }
 

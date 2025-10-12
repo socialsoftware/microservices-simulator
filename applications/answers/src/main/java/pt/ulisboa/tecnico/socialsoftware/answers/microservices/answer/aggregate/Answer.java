@@ -118,7 +118,7 @@ public abstract class Answer extends Aggregate {
     public void setAnswerQuestion(List<AnswerQuestion> answerQuestion) {
         this.answerQuestion = answerQuestion;
         if (this.answerQuestion != null) {
-            this.answerQuestion.forEach(answerquestion -> answerquestion.setAnswer(this));
+            this.answerQuestion.forEach(answerQuestion -> answerQuestion.setAnswer(this));
         }
     }
 

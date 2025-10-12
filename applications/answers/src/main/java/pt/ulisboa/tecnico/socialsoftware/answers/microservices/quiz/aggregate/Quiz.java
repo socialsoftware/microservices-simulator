@@ -128,7 +128,7 @@ public abstract class Quiz extends Aggregate {
     public void setQuestions(Set<QuizQuestion> questions) {
         this.questions = questions;
         if (this.questions != null) {
-            this.questions.forEach(quizquestion -> quizquestion.setQuiz(this));
+            this.questions.forEach(quizQuestion -> quizQuestion.setQuiz(this));
         }
     }
 
@@ -139,7 +139,7 @@ public abstract class Quiz extends Aggregate {
     public void setOptions(Set<QuizOption> options) {
         this.options = options;
         if (this.options != null) {
-            this.options.forEach(quizoption -> quizoption.setQuiz(this));
+            this.options.forEach(quizOption -> quizOption.setQuiz(this));
         }
     }
 

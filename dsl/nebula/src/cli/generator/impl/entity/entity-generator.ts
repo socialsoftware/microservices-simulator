@@ -7,6 +7,10 @@ const resolveJavaType = (type: any, fieldName?: string) => {
     return TypeResolver.resolveJavaType(type);
 };
 
+const toCamelCase = (str: string) => {
+    return str.charAt(0).toLowerCase() + str.slice(1);
+};
+
 const isEnumType = (type: any) => {
     // Check if it's an EntityType that references an EnumDefinition
     if (type && typeof type === 'object' &&
@@ -652,7 +656,7 @@ function generateBidirectionalSetter(prop: any, javaType: string, capName: strin
             return `    public void set${capName}(${javaType} ${propName}) {
         this.${propName} = ${propName};
         if (this.${propName} != null) {
-            this.${propName}.forEach(${elementType.toLowerCase()} -> ${elementType.toLowerCase()}.${backRefMethod}(this));
+            this.${propName}.forEach(${toCamelCase(elementType)} -> ${toCamelCase(elementType)}.${backRefMethod}(this));
         }
     }`;
         } else {

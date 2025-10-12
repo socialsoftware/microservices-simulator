@@ -88,7 +88,7 @@ public abstract class Execution extends Aggregate {
     public void setUsers(Set<ExecutionUser> users) {
         this.users = users;
         if (this.users != null) {
-            this.users.forEach(executionuser -> executionuser.setExecution(this));
+            this.users.forEach(executionUser -> executionUser.setExecution(this));
         }
     }
 
