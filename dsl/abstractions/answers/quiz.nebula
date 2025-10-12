@@ -73,16 +73,6 @@ Aggregate Quiz {
             }
         }
 
-        businessRules {
-            rule "AUTO_SET_AVAILABLE_DATE" {
-                trigger: availableDate;
-                affectedFields: [availableDate];
-                conditions: [
-                    "availableDate == null"
-                ];
-                exception: "CANNOT_SET_AVAILABLE_DATE";
-            }
-        }
 
         methods {
         }

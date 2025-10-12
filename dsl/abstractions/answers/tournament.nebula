@@ -22,11 +22,11 @@ Aggregate Tournament {
            }
 
            check participantsEnrolledBeforeStartTime {
-               startTime != null;
+               forall p : tournamentParticipants | p.participantEnrollTime != null;
            }
 
            check answerBeforeStart {
-               startTime != null;
+               forall p : tournamentParticipants | p.tournamentParticipantQuizAnswer != null;
            }
 
            check deleteWhenNoParticipants {
@@ -34,85 +34,17 @@ Aggregate Tournament {
            }
 
            check creatorParticipantConsistency {
-               tournamentCreator != null;
+               tournamentParticipants.noneMatch(p -> p.participantAggregateId == tournamentCreator.creatorAggregateId);
            }
 
            check creatorIsNotAnonymous {
-               !tournamentCreator.creatorName.equals(ANONYMOUS) &&
-               !tournamentCreator.creatorUsername.equals(ANONYMOUS);
+               tournamentCreator.creatorName != 'ANONYMOUS' &&
+               tournamentCreator.creatorUsername != 'ANONYMOUS';
            }
        }
 
-       businessRules {
-           rule "FINAL_AFTER_START" {
-               trigger: startTime;
-               affectedFields: [startTime, endTime, numberOfQuestions, tournamentTopics, cancelled, tournamentCreator, tournamentParticipants, tournamentExecution, tournamentQuiz];
-               conditions: [
-                   "DateHandler.now().isAfter(prev.getStartTime())",
-                   "prev.isCancelled()"
-               ];
-               exception: "CANNOT_UPDATE_TOURNAMENT";
-           }
-       }
 
        methods {
-           method addParticipant(TournamentParticipant participant) {
-               "Tournament prev = (Tournament) getPrev();
-               if (DateHandler.now().isAfter(prev.getStartTime())) {
-                   throw new ProjectException(CANNOT_ADD_PARTICIPANT, getAggregateId());
-               }
-               if (prev != null && prev.isCancelled()) {
-                   throw new ProjectException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
-               }
-               this.tournamentParticipants.add(participant);
-               participant.setTournament(this);"
-           }
-
-           method findParticipant(Integer userAggregateId): TournamentParticipant {
-               "return this.tournamentParticipants.stream()
-                   .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
-                   .findFirst()
-                   .orElse(null);"
-           }
-
-           method removeParticipant(TournamentParticipant participant): Boolean {
-               "Tournament prev = (Tournament) getPrev();
-               if (prev != null) {
-                   if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                       throw new ProjectException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
-                   }
-               }
-               return this.tournamentParticipants.remove(participant);"
-           }
-
-           method findTopic(Integer topicAggregateId): TournamentTopic {
-               "return getTournamentTopics().stream()
-                   .filter(t -> topicAggregateId.equals(t.getTopicAggregateId()))
-                   .findFirst()
-                   .orElse(null);"
-           }
-
-           method removeTopic(TournamentTopic tournamentTopic) {
-               "this.tournamentTopics.remove(tournamentTopic);"
-           }
-
-           method cancel() {
-               "this.cancelled = true;"
-           }
-
-           method remove() {
-               "if (getTournamentParticipants().size() > 0) {
-                   throw new ProjectException(CANNOT_DELETE_TOURNAMENT, getAggregateId());
-               }
-               super.remove();"
-           }
-
-           method setVersion(Integer version) {
-               "if (this.tournamentQuiz.getQuizVersion() == null) {
-                   this.tournamentQuiz.setQuizVersion(version);
-               }
-               super.setVersion(version);"
-           }
        }
     }
 
@@ -130,11 +62,6 @@ Aggregate Tournament {
         AggregateState executionState;
         Integer executionVersion;
 
-        invariants {
-            check validStatus {
-                executionStatus != null;
-            }
-        }
     }
 
     Entity TournamentCreator uses dto UserDto mapping {
@@ -143,7 +70,6 @@ Aggregate Tournament {
         username -> creatorUsername;
         version -> creatorVersion;
         state -> creatorState;
-
     } {
         Long id;
         Integer creatorAggregateId;
@@ -163,7 +89,6 @@ Aggregate Tournament {
         username -> participantUsername;
         version -> participantVersion;
         state -> participantState;
-
     } {
         Long id;
         Integer participantAggregateId;

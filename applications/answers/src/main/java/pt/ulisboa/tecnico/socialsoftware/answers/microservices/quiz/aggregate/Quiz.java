@@ -1,24 +1,24 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 
 @Entity
 public abstract class Quiz extends Aggregate {
-    @Id
     private String title;
     private String description;
     @Enumerated(EnumType.STRING)
@@ -31,7 +31,7 @@ public abstract class Quiz extends Aggregate {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "quiz")
     private Set<QuizQuestion> questions = new HashSet<>();
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "quiz")
-    private Set<QuizOption> options = new HashSet<>(); 
+    private Set<QuizOption> options = new HashSet<>();
 
     public Quiz() {
     }
@@ -128,8 +128,43 @@ public abstract class Quiz extends Aggregate {
     public void setQuestions(Set<QuizQuestion> questions) {
         this.questions = questions;
         if (this.questions != null) {
-            this.questions.forEach(quizQuestion -> quizQuestion.setQuiz(this));
+            this.questions.forEach(item -> item.setQuiz(this));
         }
+    }
+
+    public void addQuizQuestion(QuizQuestion quizQuestion) {
+        if (this.questions == null) {
+            this.questions = new HashSet<>();
+        }
+        this.questions.add(quizQuestion);
+        if (quizQuestion != null) {
+            quizQuestion.setQuiz(this);
+        }
+    }
+
+    public void removeQuizQuestion(Long id) {
+        if (this.questions != null) {
+            this.questions.removeIf(item -> 
+                item.getId() != null && item.getId().equals(id));
+        }
+    }
+
+    public boolean containsQuizQuestion(Long id) {
+        if (this.questions == null) {
+            return false;
+        }
+        return this.questions.stream().anyMatch(item -> 
+            item.getId() != null && item.getId().equals(id));
+    }
+
+    public QuizQuestion findQuizQuestionById(Long id) {
+        if (this.questions == null) {
+            return null;
+        }
+        return this.questions.stream()
+            .filter(item -> item.getId() != null && item.getId().equals(id))
+            .findFirst()
+            .orElse(null);
     }
 
     public Set<QuizOption> getOptions() {
@@ -139,10 +174,83 @@ public abstract class Quiz extends Aggregate {
     public void setOptions(Set<QuizOption> options) {
         this.options = options;
         if (this.options != null) {
-            this.options.forEach(quizOption -> quizOption.setQuiz(this));
+            this.options.forEach(item -> item.setQuiz(this));
         }
+    }
+
+    public void addQuizOption(QuizOption quizOption) {
+        if (this.options == null) {
+            this.options = new HashSet<>();
+        }
+        this.options.add(quizOption);
+        if (quizOption != null) {
+            quizOption.setQuiz(this);
+        }
+    }
+
+    public void removeQuizOption(Integer id) {
+        if (this.options != null) {
+            this.options.removeIf(item -> 
+                item.getOptionNumber() != null && item.getOptionNumber().equals(id));
+        }
+    }
+
+    public boolean containsQuizOption(Integer id) {
+        if (this.options == null) {
+            return false;
+        }
+        return this.options.stream().anyMatch(item -> 
+            item.getOptionNumber() != null && item.getOptionNumber().equals(id));
+    }
+
+    public QuizOption findQuizOptionById(Integer id) {
+        if (this.options == null) {
+            return null;
+        }
+        return this.options.stream()
+            .filter(item -> item.getOptionNumber() != null && item.getOptionNumber().equals(id))
+            .findFirst()
+            .orElse(null);
     }
 
 
 
+    // ============================================================================
+    // INVARIANTS
+    // ============================================================================
+
+    public boolean invariantTitleNotEmpty() {
+        return this.title.length() > 0;
+    }
+
+    public boolean invariantAvailableDateBeforeConclusionDate() {
+        return this.availableDate.isBefore(this.conclusionDate);
+    }
+
+    public boolean invariantNumberOfQuestionsPositive() {
+        return this.numberOfQuestions > 0;
+    }
+
+    public boolean invariantUniqueQuestions() {
+        return this.questions.stream().map(item -> item.get${capitalize(questionId)}()).distinct().count() == this.questions.size();
+    }
+
+    public boolean invariantUniqueOptions() {
+        return this.options.stream().map(item -> item.get${capitalize(optionNumber)}()).distinct().count() == this.options.size();
+    }
+
+    public boolean invariantQuestionsMatchNumberOfQuestions() {
+        return this.numberOfQuestions > 0;
+    }
+    @Override
+    public void verifyInvariants() {
+        if (!(invariantTitleNotEmpty()
+               && invariantAvailableDateBeforeConclusionDate()
+               && invariantNumberOfQuestionsPositive()
+               && invariantUniqueQuestions()
+               && invariantUniqueOptions()
+               && invariantQuestionsMatchNumberOfQuestions())) {
+            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        }
+    }
 }

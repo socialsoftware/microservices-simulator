@@ -4,8 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 @Entity
 public class QuizQuestion {
@@ -19,7 +19,7 @@ public class QuizQuestion {
     private String questionContent;
     private Integer questionSequence;
     @OneToOne
-    private Quiz quiz; 
+    private Quiz quiz;
 
     public QuizQuestion() {
     }

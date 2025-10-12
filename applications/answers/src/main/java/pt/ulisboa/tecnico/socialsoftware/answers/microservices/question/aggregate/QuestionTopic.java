@@ -13,13 +13,13 @@ public class QuestionTopic {
     private Integer topicId;
     private String topicName;
     @OneToOne
-    private Question question; 
+    private Question question;
 
     public QuestionTopic() {
     }
 
     public QuestionTopic(TopicDto topicDto) {
-        setTopicName(topicDto.getName());
+        setTopicName(topicDto.getTopicName());
     }
 
     public QuestionTopic(QuestionTopic other) {

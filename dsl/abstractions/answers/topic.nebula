@@ -24,16 +24,6 @@ Aggregate Topic {
             }
         }
 
-        businessRules {
-            rule "AUTO_SET_CREATION_DATE" {
-                trigger: creationDate;
-                affectedFields: [creationDate];
-                conditions: [
-                    "creationDate == null"
-                ];
-                exception: "CANNOT_SET_CREATION_DATE";
-            }
-        }
 
         methods {
         }

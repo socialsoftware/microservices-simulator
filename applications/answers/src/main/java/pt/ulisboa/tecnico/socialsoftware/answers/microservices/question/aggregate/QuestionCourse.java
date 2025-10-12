@@ -15,13 +15,15 @@ public class QuestionCourse {
     private String courseName;
     private Integer courseVersion;
     @OneToOne
-    private Question question; 
+    private Question question;
 
     public QuestionCourse() {
     }
 
     public QuestionCourse(CourseDto courseDto) {
-
+        setCourseAggregateId(courseDto.getCourseAggregateId());
+        setCourseName(courseDto.getCourseName());
+        setCourseVersion(courseDto.getCourseVersion());
     }
 
     public QuestionCourse(QuestionCourse other) {

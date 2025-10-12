@@ -7,29 +7,9 @@ Aggregate Course {
         LocalDateTime creationDate;
 
         invariants {
-            check nameNotEmpty {
-                name.length() > 0;
-            }
-
-            check acronymNotEmpty {
-                acronym.length() > 0;
-            }
-
-            check creationDateInPast {
-                creationDate != null;
-            }
+           
         }
 
-        businessRules {
-            rule "AUTO_SET_CREATION_DATE" {
-                trigger: creationDate;
-                affectedFields: [creationDate];
-                conditions: [
-                    "creationDate == null"
-                ];
-                exception: "CANNOT_SET_CREATION_DATE";
-            }
-        }
 
         methods {
         }

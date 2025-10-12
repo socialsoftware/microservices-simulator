@@ -1,16 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
 public abstract class User extends Aggregate {
-    @Id
     private String name;
     private String username;
-    private Boolean active; 
+    private Boolean active;
 
     public User() {
     }

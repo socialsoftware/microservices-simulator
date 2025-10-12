@@ -14,7 +14,7 @@ public class TournamentQuiz {
     private Integer quizAggregateId;
     private Integer quizVersion;
     @OneToOne
-    private Tournament tournament; 
+    private Tournament tournament;
 
     public TournamentQuiz() {
     }

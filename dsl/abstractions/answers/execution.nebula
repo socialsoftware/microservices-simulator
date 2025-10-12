@@ -28,37 +28,9 @@ Aggregate Execution {
         Set<ExecutionUser> users;
 
         invariants {
-            check startDateBeforeEndDate {
-                startDate.isBefore(endDate);
-            }
-
-            check nameNotEmpty {
-                name.length() > 0;
-            }
-
-            check acronymNotEmpty {
-                acronym.length() > 0;
-            }
-
-            check academicTermNotEmpty {
-                academicTerm.length() > 0;
-            }
-
-            check uniqueUsers {
-                users.unique(userAggregateId);
-            }
+           
         }
 
-        businessRules {
-            rule "AUTO_ENROLL_STUDENT" {
-                trigger: students;
-                affectedFields: [students];
-                conditions: [
-                    "students.size() > 0"
-                ];
-                exception: "CANNOT_ENROLL_STUDENT";
-            }
-        }
 
         methods {
 

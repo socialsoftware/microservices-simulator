@@ -5,9 +5,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.CascadeType;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 @Entity
 public class TournamentParticipant {
@@ -23,7 +23,7 @@ public class TournamentParticipant {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentparticipant")
     private TournamentParticipantQuizAnswer tournamentParticipantQuizAnswer;
     @OneToOne
-    private Tournament tournament; 
+    private Tournament tournament;
 
     public TournamentParticipant() {
     }

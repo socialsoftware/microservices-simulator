@@ -4,8 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 @Entity
 public class ExecutionUser {
@@ -19,17 +19,18 @@ public class ExecutionUser {
     private Boolean active;
     private AggregateState userState;
     @OneToOne
-    private Execution execution; 
+    private Execution execution;
 
     public ExecutionUser() {
     }
 
     public ExecutionUser(UserDto userDto) {
-        setUserAggregateId(userDto.getAggregateId());
-        setUserVersion(userDto.getVersion());
-        setUserName(userDto.getName());
-        setUserUsername(userDto.getUsername());
-        setUserState(userDto.getState());
+        setUserAggregateId(userDto.getUserAggregateId());
+        setUserVersion(userDto.getUserVersion());
+        setUserName(userDto.getUserName());
+        setUserUsername(userDto.getUserUsername());
+        setActive(userDto.getActive());
+        setUserState(userDto.getUserState());
     }
 
     public ExecutionUser(ExecutionUser other) {

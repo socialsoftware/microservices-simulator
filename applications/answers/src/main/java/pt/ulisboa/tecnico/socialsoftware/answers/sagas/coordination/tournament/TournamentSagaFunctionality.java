@@ -21,51 +21,5 @@ this.tournamentService = tournamentService;
 this.unitOfWorkService = unitOfWorkService;
 }
 
-    public void addParticipant(TournamentParticipant participant) {
-        // TODO: Implement saga functionality for addParticipant
-        // This method should orchestrate the saga workflow
-        return null;
-    }
 
-    public TournamentParticipant findParticipant(Integer userAggregateId) {
-        // TODO: Implement saga functionality for findParticipant
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public Boolean removeParticipant(TournamentParticipant participant) {
-        // TODO: Implement saga functionality for removeParticipant
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public TournamentTopic findTopic(Integer topicAggregateId) {
-        // TODO: Implement saga functionality for findTopic
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public void removeTopic(TournamentTopic tournamentTopic) {
-        // TODO: Implement saga functionality for removeTopic
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public void cancel() {
-        // TODO: Implement saga functionality for cancel
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public void remove() {
-        // TODO: Implement saga functionality for remove
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public void setVersion(Integer version) {
-        // TODO: Implement saga functionality for setVersion
-        // This method should orchestrate the saga workflow
-        return null;
-    }
 }

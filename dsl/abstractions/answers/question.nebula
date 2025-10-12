@@ -62,16 +62,6 @@ Aggregate Question {
             }
         }
 
-        businessRules {
-            rule "AUTO_SET_ORDER" {
-                trigger: order;
-                affectedFields: [order];
-                conditions: [
-                    "order == null || order <= 0"
-                ];
-                exception: "CANNOT_SET_ORDER";
-            }
-        }
 
         methods {
         }

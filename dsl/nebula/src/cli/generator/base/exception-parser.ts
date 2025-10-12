@@ -1,4 +1,4 @@
-import { Model, Aggregate, Entity, BusinessRule as AstBusinessRule, WebAPIEndpoints as AstWebAPIEndpoints } from "../../../language/generated/ast.js";
+import { Model, Aggregate, Entity, WebAPIEndpoints as AstWebAPIEndpoints } from "../../../language/generated/ast.js";
 
 export type ExceptionSeverity = "error" | "warning" | "info";
 
@@ -57,7 +57,7 @@ export class ExceptionParser {
 
         for (const aggregate of model.aggregates as Aggregate[]) {
             for (const entity of aggregate.entities as Entity[]) {
-                const rules: AstBusinessRule[] = (entity as any).rules || [];
+                const rules: any[] = []; // Business rules removed
                 for (const rule of rules) {
                     const exceptionLiteral = (rule as any).exception as string | undefined;
                     if (exceptionLiteral) {

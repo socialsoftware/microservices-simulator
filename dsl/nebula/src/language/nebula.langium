@@ -28,9 +28,6 @@ Entity:
         ('invariants' '{'
             invariants+=Invariant*
         '}')?
-        ('businessRules' '{'
-            rules+=BusinessRule*
-        '}')?
         ('methods' '{'
             methods+=Method*
         '}')?
@@ -212,7 +209,7 @@ UniqueCheckExpression:
 
 CollectionOperationExpression:
     {infer CollectionOperationExpression}
-    collection=PropertyReference '.' operation=('size' | 'isEmpty' | 'count' | 'distinct' | 'findAny' | 'findFirst');
+    collection=PropertyReference '.' operation=('size' | 'isEmpty' | 'count' | 'distinct' | 'findAny' | 'findFirst' | 'getState');
 
 TimeExpression:
     {infer TimeExpression} 
@@ -250,15 +247,6 @@ AggregateStateType:
 
 QualifiedName returns string:
     ID ('.' ID)*;
-
-BusinessRule:
-    'rule' name=STRING '{'
-        'trigger' ':' trigger=ID ';'
-        'affectedFields' ':' '[' fields+=ID (',' fields+=ID)* ']' ';'
-        'conditions' ':' '[' conditions+=STRING (',' conditions+=STRING)* ']' ';'
-        'exception' ':' exception=STRING ';'
-        ('bidirectional' ':' bidirectional=STRING ';')?
-    '}';
 
 terminal ID:
     /[_a-zA-Z][a-zA-Z0-9_]*/;

@@ -1,21 +1,21 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 
 @Entity
 public abstract class Tournament extends Aggregate {
-    @Id
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Integer numberOfQuestions;
@@ -29,7 +29,7 @@ public abstract class Tournament extends Aggregate {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "tournament")
     private Set<TournamentTopic> tournamentTopics = new HashSet<>();
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournament")
-    private TournamentQuiz tournamentQuiz; 
+    private TournamentQuiz tournamentQuiz;
 
     public Tournament() {
     }
@@ -110,8 +110,43 @@ public abstract class Tournament extends Aggregate {
     public void setTournamentParticipants(Set<TournamentParticipant> tournamentParticipants) {
         this.tournamentParticipants = tournamentParticipants;
         if (this.tournamentParticipants != null) {
-            this.tournamentParticipants.forEach(tournamentParticipant -> tournamentParticipant.setTournament(this));
+            this.tournamentParticipants.forEach(item -> item.setTournament(this));
         }
+    }
+
+    public void addTournamentParticipant(TournamentParticipant tournamentParticipant) {
+        if (this.tournamentParticipants == null) {
+            this.tournamentParticipants = new HashSet<>();
+        }
+        this.tournamentParticipants.add(tournamentParticipant);
+        if (tournamentParticipant != null) {
+            tournamentParticipant.setTournament(this);
+        }
+    }
+
+    public void removeTournamentParticipant(Long id) {
+        if (this.tournamentParticipants != null) {
+            this.tournamentParticipants.removeIf(item -> 
+                item.getId() != null && item.getId().equals(id));
+        }
+    }
+
+    public boolean containsTournamentParticipant(Long id) {
+        if (this.tournamentParticipants == null) {
+            return false;
+        }
+        return this.tournamentParticipants.stream().anyMatch(item -> 
+            item.getId() != null && item.getId().equals(id));
+    }
+
+    public TournamentParticipant findTournamentParticipantById(Long id) {
+        if (this.tournamentParticipants == null) {
+            return null;
+        }
+        return this.tournamentParticipants.stream()
+            .filter(item -> item.getId() != null && item.getId().equals(id))
+            .findFirst()
+            .orElse(null);
     }
 
     public TournamentExecution getTournamentExecution() {
@@ -132,8 +167,43 @@ public abstract class Tournament extends Aggregate {
     public void setTournamentTopics(Set<TournamentTopic> tournamentTopics) {
         this.tournamentTopics = tournamentTopics;
         if (this.tournamentTopics != null) {
-            this.tournamentTopics.forEach(tournamentTopic -> tournamentTopic.setTournament(this));
+            this.tournamentTopics.forEach(item -> item.setTournament(this));
         }
+    }
+
+    public void addTournamentTopic(TournamentTopic tournamentTopic) {
+        if (this.tournamentTopics == null) {
+            this.tournamentTopics = new HashSet<>();
+        }
+        this.tournamentTopics.add(tournamentTopic);
+        if (tournamentTopic != null) {
+            tournamentTopic.setTournament(this);
+        }
+    }
+
+    public void removeTournamentTopic(Long id) {
+        if (this.tournamentTopics != null) {
+            this.tournamentTopics.removeIf(item -> 
+                item.getId() != null && item.getId().equals(id));
+        }
+    }
+
+    public boolean containsTournamentTopic(Long id) {
+        if (this.tournamentTopics == null) {
+            return false;
+        }
+        return this.tournamentTopics.stream().anyMatch(item -> 
+            item.getId() != null && item.getId().equals(id));
+    }
+
+    public TournamentTopic findTournamentTopicById(Long id) {
+        if (this.tournamentTopics == null) {
+            return null;
+        }
+        return this.tournamentTopics.stream()
+            .filter(item -> item.getId() != null && item.getId().equals(id))
+            .findFirst()
+            .orElse(null);
     }
 
     public TournamentQuiz getTournamentQuiz() {
@@ -147,62 +217,50 @@ public abstract class Tournament extends Aggregate {
         }
     }
 
-	public void addParticipant(TournamentParticipant participant) {
-		Tournament prev = (Tournament) getPrev();
-		               if (DateHandler.now().isAfter(prev.getStartTime())) {
-		                   throw new ProjectException(CANNOT_ADD_PARTICIPANT, getAggregateId());
-		               }
-		               if (prev != null && prev.isCancelled()) {
-		                   throw new ProjectException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
-		               }
-		               this.tournamentParticipants.add(participant);
-		               participant.setTournament(this);
-	}
 
-	public TournamentParticipant findParticipant(Integer userAggregateId) {
-		return this.tournamentParticipants.stream()
-		                   .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
-		                   .findFirst()
-		                   .orElse(null);
-	}
 
-	public Boolean removeParticipant(TournamentParticipant participant) {
-		Tournament prev = (Tournament) getPrev();
-		               if (prev != null) {
-		                   if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-		                       throw new ProjectException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
-		                   }
-		               }
-		               return this.tournamentParticipants.remove(participant);
-	}
+    // ============================================================================
+    // INVARIANTS
+    // ============================================================================
 
-	public TournamentTopic findTopic(Integer topicAggregateId) {
-		return getTournamentTopics().stream()
-		                   .filter(t -> topicAggregateId.equals(t.getTopicAggregateId()))
-		                   .findFirst()
-		                   .orElse(null);
-	}
+    public boolean invariantStartTimeBeforeEndTime() {
+        return this.startTime.isBefore(this.endTime);
+    }
 
-	public void removeTopic(TournamentTopic tournamentTopic) {
-		this.tournamentTopics.remove(tournamentTopic);
-	}
+    public boolean invariantUniqueParticipant() {
+        return this.tournamentParticipants.stream().map(item -> item.get${capitalize(participantAggregateId)}()).distinct().count() == this.tournamentParticipants.size();
+    }
 
-	public void cancel() {
-		this.cancelled = true;
-	}
+    public boolean invariantParticipantsEnrolledBeforeStartTime() {
+        return forall p : tournamentParticipants | p.this.participantEnrollTime != null;
+    }
 
-	public void remove() {
-		if (getTournamentParticipants().size() > 0) {
-		                   throw new ProjectException(CANNOT_DELETE_TOURNAMENT, getAggregateId());
-		               }
-		               super.remove();
-	}
+    public boolean invariantAnswerBeforeStart() {
+        return forall p : tournamentParticipants | p.this.tournamentParticipantQuizAnswer != null;
+    }
 
-	public void setVersion(Integer version) {
-		if (this.tournamentQuiz.getQuizVersion() == null) {
-		                   this.tournamentQuiz.setQuizVersion(version);
-		               }
-		               super.setVersion(version);
-	}
+    public boolean invariantDeleteWhenNoParticipants() {
+        return this.tournamentParticipants != null;
+    }
 
+    public boolean invariantCreatorParticipantConsistency() {
+        return tournamentParticipants.noneMatch(p -> p.this.participantAggregateId == tournamentCreator.creatorAggregateId);
+    }
+
+    public boolean invariantCreatorIsNotAnonymous() {
+        return tournamentCreator.creatorName != 'ANONYMOUS' &&
+               tournamentCreator.creatorUsername != 'ANONYMOUS';
+    }
+    @Override
+    public void verifyInvariants() {
+        if (!(invariantStartTimeBeforeEndTime()
+               && invariantUniqueParticipant()
+               && invariantParticipantsEnrolledBeforeStartTime()
+               && invariantAnswerBeforeStart()
+               && invariantDeleteWhenNoParticipants()
+               && invariantCreatorParticipantConsistency()
+               && invariantCreatorIsNotAnonymous())) {
+            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        }
+    }
 }

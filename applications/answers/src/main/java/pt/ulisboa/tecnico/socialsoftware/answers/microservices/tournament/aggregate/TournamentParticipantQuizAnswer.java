@@ -20,7 +20,7 @@ public class TournamentParticipantQuizAnswer {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentparticipantquizanswer")
     private TournamentParticipant tournamentParticipant;
     @OneToOne
-    private Tournament tournament; 
+    private Tournament tournament;
 
     public TournamentParticipantQuizAnswer() {
     }

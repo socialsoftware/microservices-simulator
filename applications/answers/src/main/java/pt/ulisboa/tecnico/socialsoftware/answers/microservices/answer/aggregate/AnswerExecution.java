@@ -14,13 +14,14 @@ public class AnswerExecution {
     private Integer executionAggregateId;
     private Integer executionVersion;
     @OneToOne
-    private Answer answer; 
+    private Answer answer;
 
     public AnswerExecution() {
     }
 
     public AnswerExecution(ExecutionDto executionDto) {
-
+        setExecutionAggregateId(executionDto.getExecutionAggregateId());
+        setExecutionVersion(executionDto.getExecutionVersion());
     }
 
     public AnswerExecution(AnswerExecution other) {

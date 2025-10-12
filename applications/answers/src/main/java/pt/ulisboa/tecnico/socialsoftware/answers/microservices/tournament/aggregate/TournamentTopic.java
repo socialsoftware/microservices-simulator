@@ -4,8 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 @Entity
 public class TournamentTopic {
@@ -18,7 +18,7 @@ public class TournamentTopic {
     private String topicName;
     private Integer topicCourseAggregateId;
     @OneToOne
-    private Tournament tournament; 
+    private Tournament tournament;
 
     public TournamentTopic() {
     }

@@ -177,7 +177,7 @@ export class ModelParser {
 
     parseEntity(entity: Entity): EntityData {
         const properties = entity.properties?.map(prop => this.parseProperty(prop)) || [];
-        const rules = entity.rules?.map(rule => this.parseRule(rule)) || [];
+        const rules: any[] = []; // Business rules removed
         const methods = entity.methods?.map(method => this.parseMethod(method)) || [];
 
         return {

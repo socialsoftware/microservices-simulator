@@ -20,7 +20,7 @@ public class ExecutionCourse {
     private CourseType courseType;
     private Integer courseVersion;
     @OneToOne
-    private Execution execution; 
+    private Execution execution;
 
     public ExecutionCourse() {
     }

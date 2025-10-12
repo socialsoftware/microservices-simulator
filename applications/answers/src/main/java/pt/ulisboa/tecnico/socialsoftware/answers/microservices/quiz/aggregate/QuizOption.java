@@ -14,13 +14,14 @@ public class QuizOption {
     private String content;
     private Boolean isCorrect;
     @OneToOne
-    private Quiz quiz; 
+    private Quiz quiz;
 
     public QuizOption() {
     }
 
     public QuizOption(OptionDto optionDto) {
-
+        setContent(optionDto.getContent());
+        setIsCorrect(optionDto.getIsCorrect());
     }
 
     public QuizOption(QuizOption other) {

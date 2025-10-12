@@ -1,23 +1,23 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 @Entity
 public abstract class Question extends Aggregate {
-    @Id
     private String title;
     private String content;
     private LocalDateTime creationDate;
@@ -26,7 +26,7 @@ public abstract class Question extends Aggregate {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "question")
     private Set<QuestionTopic> topics = new HashSet<>();
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "question")
-    private List<Option> options = new ArrayList<>(); 
+    private List<Option> options = new ArrayList<>();
 
     public Question() {
     }
@@ -93,8 +93,43 @@ public abstract class Question extends Aggregate {
     public void setTopics(Set<QuestionTopic> topics) {
         this.topics = topics;
         if (this.topics != null) {
-            this.topics.forEach(questionTopic -> questionTopic.setQuestion(this));
+            this.topics.forEach(item -> item.setQuestion(this));
         }
+    }
+
+    public void addQuestionTopic(QuestionTopic questionTopic) {
+        if (this.topics == null) {
+            this.topics = new HashSet<>();
+        }
+        this.topics.add(questionTopic);
+        if (questionTopic != null) {
+            questionTopic.setQuestion(this);
+        }
+    }
+
+    public void removeQuestionTopic(Integer id) {
+        if (this.topics != null) {
+            this.topics.removeIf(item -> 
+                item.getTopicId() != null && item.getTopicId().equals(id));
+        }
+    }
+
+    public boolean containsQuestionTopic(Integer id) {
+        if (this.topics == null) {
+            return false;
+        }
+        return this.topics.stream().anyMatch(item -> 
+            item.getTopicId() != null && item.getTopicId().equals(id));
+    }
+
+    public QuestionTopic findQuestionTopicById(Integer id) {
+        if (this.topics == null) {
+            return null;
+        }
+        return this.topics.stream()
+            .filter(item -> item.getTopicId() != null && item.getTopicId().equals(id))
+            .findFirst()
+            .orElse(null);
     }
 
     public List<Option> getOptions() {
@@ -104,10 +139,93 @@ public abstract class Question extends Aggregate {
     public void setOptions(List<Option> options) {
         this.options = options;
         if (this.options != null) {
-            this.options.forEach(option -> option.setQuestion(this));
+            this.options.forEach(item -> item.setQuestion(this));
         }
+    }
+
+    public void addOption(Option option) {
+        if (this.options == null) {
+            this.options = new ArrayList<>();
+        }
+        this.options.add(option);
+        if (option != null) {
+            option.setQuestion(this);
+        }
+    }
+
+    public void removeOption(Long id) {
+        if (this.options != null) {
+            this.options.removeIf(item -> 
+                item.getId() != null && item.getId().equals(id));
+        }
+    }
+
+    public boolean containsOption(Long id) {
+        if (this.options == null) {
+            return false;
+        }
+        return this.options.stream().anyMatch(item -> 
+            item.getId() != null && item.getId().equals(id));
+    }
+
+    public Option findOptionById(Long id) {
+        if (this.options == null) {
+            return null;
+        }
+        return this.options.stream()
+            .filter(item -> item.getId() != null && item.getId().equals(id))
+            .findFirst()
+            .orElse(null);
     }
 
 
 
+    // ============================================================================
+    // INVARIANTS
+    // ============================================================================
+
+    public boolean invariantTitleNotEmpty() {
+        return this.title.length() > 0;
+    }
+
+    public boolean invariantContentNotEmpty() {
+        return this.content.length() > 0;
+    }
+
+    public boolean invariantNumberOfOptionsPositive() {
+        return numberOfOptions > 0;
+    }
+
+    public boolean invariantCorrectOptionValid() {
+        return correctOption >= 1 && correctOption <= numberOfOptions;
+    }
+
+    public boolean invariantOrderPositive() {
+        return order > 0;
+    }
+
+    public boolean invariantUniqueTopics() {
+        return this.topics.stream().map(item -> item.get${capitalize(topicId)}()).distinct().count() == this.topics.size();
+    }
+
+    public boolean invariantUniqueOptions() {
+        return this.options.stream().map(item -> item.get${capitalize(optionNumber)}()).distinct().count() == this.options.size();
+    }
+
+    public boolean invariantOptionsMatchNumberOfOptions() {
+        return numberOfOptions > 0;
+    }
+    @Override
+    public void verifyInvariants() {
+        if (!(invariantTitleNotEmpty()
+               && invariantContentNotEmpty()
+               && invariantNumberOfOptionsPositive()
+               && invariantCorrectOptionValid()
+               && invariantOrderPositive()
+               && invariantUniqueTopics()
+               && invariantUniqueOptions()
+               && invariantOptionsMatchNumberOfOptions())) {
+            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        }
+    }
 }

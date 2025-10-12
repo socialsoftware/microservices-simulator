@@ -1,21 +1,19 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import java.time.LocalDateTime;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
 @Entity
 public abstract class Course extends Aggregate {
-    @Id
     private String name;
     @Enumerated(EnumType.STRING)
     private CourseType type;
-    private LocalDateTime creationDate; 
+    private LocalDateTime creationDate;
 
     public Course() {
     }

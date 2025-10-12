@@ -17,13 +17,14 @@ public class AnswerQuiz {
     private Integer quizVersion;
     private List<Integer> quizQuestionsAggregateIds = new ArrayList<>();
     @OneToOne
-    private Answer answer; 
+    private Answer answer;
 
     public AnswerQuiz() {
     }
 
     public AnswerQuiz(QuizDto quizDto) {
-
+        setQuizAggregateId(quizDto.getQuizAggregateId());
+        setQuizVersion(quizDto.getQuizVersion());
     }
 
     public AnswerQuiz(AnswerQuiz other) {

@@ -15,7 +15,7 @@ public class QuizExecution {
     private String executionAcronym;
     private String executionAcademicTerm;
     @OneToOne
-    private Quiz quiz; 
+    private Quiz quiz;
 
     public QuizExecution() {
     }

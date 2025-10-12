@@ -15,7 +15,7 @@ public class Option {
     private Boolean correct;
     private String content;
     @OneToOne
-    private Question question; 
+    private Question question;
 
     public Option() {
     }

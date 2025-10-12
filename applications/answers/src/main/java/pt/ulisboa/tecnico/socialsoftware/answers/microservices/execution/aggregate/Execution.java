@@ -1,28 +1,26 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 @Entity
 public abstract class Execution extends Aggregate {
-    @Id
     private String acronym;
     private String academicTerm;
     private LocalDateTime endDate;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "execution")
     private ExecutionCourse executionCourse;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "execution")
-    private Set<ExecutionUser> users = new HashSet<>(); 
+    private Set<ExecutionUser> users = new HashSet<>();
 
     public Execution() {
     }
@@ -88,8 +86,43 @@ public abstract class Execution extends Aggregate {
     public void setUsers(Set<ExecutionUser> users) {
         this.users = users;
         if (this.users != null) {
-            this.users.forEach(executionUser -> executionUser.setExecution(this));
+            this.users.forEach(item -> item.setExecution(this));
         }
+    }
+
+    public void addExecutionUser(ExecutionUser executionUser) {
+        if (this.users == null) {
+            this.users = new HashSet<>();
+        }
+        this.users.add(executionUser);
+        if (executionUser != null) {
+            executionUser.setExecution(this);
+        }
+    }
+
+    public void removeExecutionUser(Long id) {
+        if (this.users != null) {
+            this.users.removeIf(item -> 
+                item.getId() != null && item.getId().equals(id));
+        }
+    }
+
+    public boolean containsExecutionUser(Long id) {
+        if (this.users == null) {
+            return false;
+        }
+        return this.users.stream().anyMatch(item -> 
+            item.getId() != null && item.getId().equals(id));
+    }
+
+    public ExecutionUser findExecutionUserById(Long id) {
+        if (this.users == null) {
+            return null;
+        }
+        return this.users.stream()
+            .filter(item -> item.getId() != null && item.getId().equals(id))
+            .findFirst()
+            .orElse(null);
     }
 
 

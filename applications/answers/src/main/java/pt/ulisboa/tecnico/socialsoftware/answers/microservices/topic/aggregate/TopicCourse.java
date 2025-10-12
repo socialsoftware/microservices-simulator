@@ -14,7 +14,7 @@ public class TopicCourse {
     private Integer courseAggregateId;
     private Integer courseVersion;
     @OneToOne
-    private Topic topic; 
+    private Topic topic;
 
     public TopicCourse() {
     }

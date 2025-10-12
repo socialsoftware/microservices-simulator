@@ -1,21 +1,19 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 
 @Entity
 public abstract class Answer extends Aggregate {
-    @Id
     private LocalDateTime creationDate;
     private LocalDateTime answerDate;
     private Boolean completed;
@@ -26,7 +24,7 @@ public abstract class Answer extends Aggregate {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
     private AnswerQuiz answerQuiz;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "answer")
-    private List<AnswerQuestion> answerQuestion = new ArrayList<>(); 
+    private List<AnswerQuestion> answerQuestion = new ArrayList<>();
 
     public Answer() {
     }
@@ -118,8 +116,43 @@ public abstract class Answer extends Aggregate {
     public void setAnswerQuestion(List<AnswerQuestion> answerQuestion) {
         this.answerQuestion = answerQuestion;
         if (this.answerQuestion != null) {
-            this.answerQuestion.forEach(answerQuestion -> answerQuestion.setAnswer(this));
+            this.answerQuestion.forEach(item -> item.setAnswer(this));
         }
+    }
+
+    public void addAnswerQuestion(AnswerQuestion answerQuestion) {
+        if (this.answerQuestion == null) {
+            this.answerQuestion = new ArrayList<>();
+        }
+        this.answerQuestion.add(answerQuestion);
+        if (answerQuestion != null) {
+            answerQuestion.setAnswer(this);
+        }
+    }
+
+    public void removeAnswerQuestion(Long id) {
+        if (this.answerQuestion != null) {
+            this.answerQuestion.removeIf(item -> 
+                item.getId() != null && item.getId().equals(id));
+        }
+    }
+
+    public boolean containsAnswerQuestion(Long id) {
+        if (this.answerQuestion == null) {
+            return false;
+        }
+        return this.answerQuestion.stream().anyMatch(item -> 
+            item.getId() != null && item.getId().equals(id));
+    }
+
+    public AnswerQuestion findAnswerQuestionById(Long id) {
+        if (this.answerQuestion == null) {
+            return null;
+        }
+        return this.answerQuestion.stream()
+            .filter(item -> item.getId() != null && item.getId().equals(id))
+            .findFirst()
+            .orElse(null);
     }
 
 

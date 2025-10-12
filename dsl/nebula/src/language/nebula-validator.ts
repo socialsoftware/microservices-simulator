@@ -1,5 +1,5 @@
 import type { ValidationAcceptor, ValidationChecks } from "langium";
-import type { NebulaAstType, Model, Aggregate, Entity, Property, Method, Invariant, BusinessRule, Import } from "./generated/ast.js";
+import type { NebulaAstType, Model, Aggregate, Entity, Property, Method, Invariant, Import } from "./generated/ast.js";
 import type { NebulaServices } from "./nebula-module.js";
 import { ErrorMessageProvider } from "./error-messages.js";
 
@@ -13,7 +13,6 @@ export function registerValidationChecks(services: NebulaServices) {
     Property: validator.checkProperty,
     Method: validator.checkMethod,
     Invariant: validator.checkInvariant,
-    BusinessRule: validator.checkBusinessRule,
     Import: validator.checkImport,
   };
   registry.register(checks, validator);
@@ -154,6 +153,14 @@ export class NebulaValidator {
     if (entityAny.dtoMapping?.fieldMappings) {
       this.validateEntityDtoMapping(entity, entityAny.dtoMapping.fieldMappings, accept);
     }
+
+    // Validate that only root entities have invariants
+    if (!entity.isRoot && entity.invariants && entity.invariants.length > 0) {
+      accept("error", "Only root entities can have invariants. Non-root entities should not define invariant blocks.", {
+        node: entity,
+        property: "invariants",
+      });
+    }
   }
 
   // ============================================================================
@@ -237,26 +244,6 @@ export class NebulaValidator {
     }
   }
 
-  checkBusinessRule(businessRule: BusinessRule, accept: ValidationAcceptor): void {
-    // Validate business rule name
-    this.validateName(businessRule.name, "business rule", businessRule, accept);
-
-    // Check for empty conditions
-    if (!businessRule.conditions || businessRule.conditions.length === 0) {
-      accept("error", "Business rule must have at least one condition", {
-        node: businessRule,
-        property: "conditions",
-      });
-    }
-
-    // Check for exception message
-    if (!businessRule.exception || businessRule.exception.trim() === '') {
-      accept("warning", "Business rule should have an exception message", {
-        node: businessRule,
-        property: "exception",
-      });
-    }
-  }
 
   // ============================================================================
   // HELPER METHODS & UTILITIES

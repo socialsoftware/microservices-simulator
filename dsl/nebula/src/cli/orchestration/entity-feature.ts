@@ -32,7 +32,8 @@ export class EntityFeature {
             const entityOptions = {
                 projectName: options.projectName,
                 allSharedDtos: options.allSharedDtos,
-                dtoMappings: options.dtoMappings
+                dtoMappings: options.dtoMappings,
+                allEntities: aggregate.entities
             };
             const entityCode = await generators.entityGenerator.generateEntity(entity, entityOptions);
             const entityPath = path.join(aggregatePath, 'aggregate', `${entity.name}.java`);

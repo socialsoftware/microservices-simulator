@@ -43,7 +43,8 @@ public abstract class CourseExecution extends Aggregate {
     public CourseExecution() {
     }
 
-    public CourseExecution(Integer aggregateId, CourseExecutionDto courseExecutionDto, CourseExecutionCourse courseExecutionCourse) {
+    public CourseExecution(Integer aggregateId, CourseExecutionDto courseExecutionDto,
+            CourseExecutionCourse courseExecutionCourse) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setAcronym(courseExecutionDto.getAcronym());
@@ -124,8 +125,41 @@ public abstract class CourseExecution extends Aggregate {
     }
 
     /*
-        REMOVE_NO_STUDENTS
+     * REMOVE_NO_STUDENTS
      */
+
+    public void removeStudent(Integer userAggregateId) {
+        CourseExecutionStudent studentToRemove = null;
+        if (!hasStudent(userAggregateId)) {
+            throw new QuizzesException(QuizzesErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId,
+                    getAggregateId());
+        }
+        for (CourseExecutionStudent student : this.students) {
+            if (student.getUserAggregateId().equals(userAggregateId)) {
+                studentToRemove = student;
+            }
+        }
+        this.students.remove(studentToRemove);
+    }
+
+    public boolean hasStudent(Integer userAggregateId) {
+        for (CourseExecutionStudent student : this.students) {
+            if (student.getUserAggregateId().equals(userAggregateId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public CourseExecutionStudent findStudent(Integer userAggregateId) {
+        for (CourseExecutionStudent student : this.students) {
+            if (student.getUserAggregateId().equals(userAggregateId)) {
+                return student;
+            }
+        }
+        return null;
+    }
+
     public boolean removedNoStudents() {
         if (getState() == AggregateState.DELETED) {
             return getStudents().size() == 0;
@@ -152,7 +186,7 @@ public abstract class CourseExecution extends Aggregate {
     @Override
     public void remove() {
         /*
-            CANNOT_REMOVE_IF_STUDENTS
+         * CANNOT_REMOVE_IF_STUDENTS
          */
         if (getStudents().size() > 0) {
             super.remove();
@@ -161,44 +195,14 @@ public abstract class CourseExecution extends Aggregate {
         }
     }
 
-
     @Override
     public void setVersion(Integer version) {
-        // if the course version is null, it means it that we're creating during this transaction
+        // if the course version is null, it means it that we're creating during this
+        // transaction
         if (this.courseExecutionCourse.getCourseVersion() == null) {
             this.courseExecutionCourse.setCourseVersion(version);
         }
         super.setVersion(version);
     }
 
-    public boolean hasStudent(Integer userAggregateId) {
-        for (CourseExecutionStudent student : this.students) {
-            if (student.getUserAggregateId().equals(userAggregateId)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public CourseExecutionStudent findStudent(Integer userAggregateId) {
-        for (CourseExecutionStudent student : this.students) {
-            if (student.getUserAggregateId().equals(userAggregateId)) {
-                return student;
-            }
-        }
-        return null;
-    }
-
-    public void removeStudent(Integer userAggregateId) {
-        CourseExecutionStudent studentToRemove = null;
-        if (!hasStudent(userAggregateId)) {
-            throw new QuizzesException(QuizzesErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, getAggregateId());
-        }
-        for (CourseExecutionStudent student : this.students) {
-            if (student.getUserAggregateId().equals(userAggregateId)) {
-                studentToRemove = student;
-            }
-        }
-        this.students.remove(studentToRemove);
-    }
 }

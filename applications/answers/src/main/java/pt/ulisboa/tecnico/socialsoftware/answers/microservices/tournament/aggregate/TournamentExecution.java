@@ -4,8 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 @Entity
 public class TournamentExecution {
@@ -18,7 +18,7 @@ public class TournamentExecution {
     private AggregateState executionState;
     private Integer executionVersion;
     @OneToOne
-    private Tournament tournament; 
+    private Tournament tournament;
 
     public TournamentExecution() {
     }
