@@ -1,6 +1,8 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
-import { OrchestrationBase } from "../../shared/orchestration-base.js";
-import { getGlobalConfig } from "../../shared/config.js";
+import { OrchestrationBase } from "../../common/orchestration-base.js";
+import { getGlobalConfig } from "../../common/config.js";
+import { MethodImplementationProcessor } from "./method-implementation-processor.js";
+import { CrudMethodGenerator } from "./crud-method-generator.js";
 
 export interface ServiceGenerationOptions {
     architecture?: string;
@@ -9,6 +11,14 @@ export interface ServiceGenerationOptions {
 }
 
 export class ServiceDefinitionGenerator extends OrchestrationBase {
+    private methodProcessor: MethodImplementationProcessor;
+    private crudGenerator: CrudMethodGenerator;
+
+    constructor() {
+        super();
+        this.methodProcessor = new MethodImplementationProcessor();
+        this.crudGenerator = new CrudMethodGenerator();
+    }
     async generateServiceFromDefinition(aggregate: Aggregate, rootEntity: Entity, options: ServiceGenerationOptions): Promise<string> {
         const serviceDefinition = (aggregate as any).serviceDefinition;
         if (!serviceDefinition) {
@@ -104,71 +114,40 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
     private buildServiceMethods(serviceDefinition: any, aggregate: Aggregate, rootEntity: Entity): any[] {
         const methods: any[] = [];
 
+        // Generate CRUD methods using the dedicated generator
         if (serviceDefinition.generateCrud) {
-            methods.push(...this.generateCrudMethods(aggregate, rootEntity));
+            const crudOptions = CrudMethodGenerator.createOptions({
+                transactional: serviceDefinition.transactional || false,
+                includeValidation: true
+            });
+            methods.push(...this.crudGenerator.generateCrudMethods(aggregate, rootEntity, crudOptions));
         }
 
+        // Generate custom service methods
         if (serviceDefinition.serviceMethods) {
-            serviceDefinition.serviceMethods.forEach((method: any) => {
-                const methodImplementation = this.processMethodImplementation(method.implementation, aggregate);
-
-                methods.push({
-                    name: method.name,
-                    parameters: method.parameters?.map((param: any) => ({
-                        type: this.resolveJavaType(param.type || 'Object'),
-                        name: param.name || 'param'
-                    })) || [],
-                    returnType: this.resolveJavaType(method.returnType || 'void'),
-                    annotations: method.annotations || [],
-                    implementation: methodImplementation
-                });
-            });
+            methods.push(...this.buildCustomServiceMethods(serviceDefinition.serviceMethods, aggregate));
         }
 
         return methods;
     }
 
-    private generateCrudMethods(aggregate: Aggregate, rootEntity: Entity): any[] {
-        const aggregateName = aggregate.name;
-        const entityName = rootEntity.name;
-        const lowerEntity = entityName.toLowerCase();
+    private buildCustomServiceMethods(serviceMethods: any[], aggregate: Aggregate): any[] {
+        return serviceMethods.map((method: any) => {
+            const methodImplementation = this.methodProcessor.processMethodImplementation(method.implementation, aggregate);
 
-        return [
-            {
-                name: `create${entityName}`,
-                parameters: [{ type: `${entityName}Dto`, name: `${lowerEntity}Dto` }],
-                returnType: entityName,
-                annotations: []
-            },
-            {
-                name: `find${entityName}ById`,
-                parameters: [{ type: 'Integer', name: 'id' }],
-                returnType: `Optional<${entityName}>`,
-                annotations: []
-            },
-            {
-                name: `update${entityName}`,
-                parameters: [
-                    { type: 'Integer', name: 'id' },
-                    { type: `${entityName}Dto`, name: `${lowerEntity}Dto` }
-                ],
-                returnType: entityName,
-                annotations: []
-            },
-            {
-                name: `delete${entityName}`,
-                parameters: [{ type: 'Integer', name: 'id' }],
-                returnType: 'void',
-                annotations: []
-            },
-            {
-                name: `findAll${aggregateName}s`,
-                parameters: [],
-                returnType: `List<${entityName}>`,
-                annotations: []
-            }
-        ];
+            return {
+                name: method.name,
+                parameters: method.parameters?.map((param: any) => ({
+                    type: this.resolveJavaType(param.type || 'Object'),
+                    name: param.name || 'param'
+                })) || [],
+                returnType: this.resolveJavaType(method.returnType || 'void'),
+                annotations: method.annotations || [],
+                implementation: methodImplementation
+            };
+        });
     }
+
 
     private generateDefaultService(aggregate: Aggregate, rootEntity: Entity, options: ServiceGenerationOptions): string {
         const context = {
@@ -233,79 +212,6 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
         return typeMap[typeStr] || typeStr;
     }
 
-    private processMethodImplementation(implementation: any, aggregate: Aggregate): any[] {
-        if (!implementation?.actions) {
-            return [];
-        }
-
-        return implementation.actions.map((action: any) => {
-            switch (action.$type) {
-                case 'LoadAggregateAction':
-                    return {
-                        action: 'load',
-                        aggregateVar: action.aggregateVar,
-                        aggregateType: aggregate.name,
-                        aggregateId: action.aggregateId,
-                        unitOfWorkVar: 'unitOfWork'
-                    };
-
-                case 'ValidateAction':
-                    return {
-                        action: 'validate',
-                        condition: action.condition,
-                        exception: action.exception,
-                        exceptionParams: action.exceptionParams || []
-                    };
-
-                case 'CreateEntityAction':
-                    return {
-                        action: 'create',
-                        entityVar: action.entityVar,
-                        entityType: action.entityType,
-                        constructorParam: action.constructorParams?.[0] || 'oldExecution'
-                    };
-
-                case 'DomainOperationAction':
-                    return {
-                        action: 'execute',
-                        targetVar: action.targetVar,
-                        operationChain: this.processOperationChain(action.operationChain)
-                    };
-
-                case 'RegisterChangeAction':
-                    return {
-                        action: 'register',
-                        aggregateVar: action.aggregateVar,
-                        unitOfWorkVar: action.unitOfWorkVar
-                    };
-
-                case 'RegisterEventAction':
-                    return {
-                        action: 'registerEvent',
-                        eventType: action.eventType?.ref?.name || action.eventType?.$refText,
-                        eventParams: action.eventParams || [],
-                        unitOfWorkVar: action.unitOfWorkVar
-                    };
-
-                case 'PublishEventAction':
-                    return {
-                        action: 'publish',
-                        eventType: action.eventType?.ref?.name || action.eventType?.$refText,
-                        eventParams: action.eventParams || []
-                    };
-
-                case 'ReturnAction':
-                    return {
-                        action: 'return',
-                        returnValue: action.returnValue,
-                        returnExpression: action.returnExpression
-                    };
-
-                default:
-                    return { action: 'unknown', raw: action };
-            }
-        });
-    }
 
     private buildServiceDependencies(aggregate: Aggregate, serviceDefinition: any): any[] {
         const dependencies = [
@@ -336,21 +242,4 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
         return dependencies;
     }
 
-    private processOperationChain(operationChain: any): string {
-        if (!operationChain?.operations) {
-            return '';
-        }
-
-        return operationChain.operations.map((operation: any) => {
-            const methodName = operation.methodName;
-            const params = operation.params?.map((param: any) => {
-                // Handle special constants
-                if (param === 'INACTIVE') {
-                    return 'Aggregate.AggregateState.INACTIVE';
-                }
-                return param;
-            }).join(', ') || '';
-            return params ? `${methodName}(${params})` : methodName;
-        }).join('.');
-    }
 }

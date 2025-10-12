@@ -1,9 +1,9 @@
 import { Aggregate, Entity, Method } from "../../../language/generated/ast.js";
-import { TypeResolver } from "../shared/resolvers/type-resolver.js";
+import { TypeResolver } from "../common/resolvers/type-resolver.js";
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'node:url';
-import { getGlobalConfig } from "../shared/config.js";
+import { getGlobalConfig } from "../common/config.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export interface SagaFunctionalityGenerationOptions {

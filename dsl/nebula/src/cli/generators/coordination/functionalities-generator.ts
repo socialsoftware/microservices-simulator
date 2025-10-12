@@ -1,8 +1,8 @@
-import { Aggregate, Entity } from '../shared/parsers/model-parser.js';
+import { Aggregate, Entity } from '../common/parsers/model-parser.js';
 import { CoordinationGenerationOptions } from '../microservices/types.js';
-import { TypeResolver } from '../shared/resolvers/type-resolver.js';
-import { EntityRegistry } from '../shared/utils/entity-registry.js';
-import { OrchestrationBase } from '../shared/orchestration-base.js';
+import { TypeResolver } from '../common/resolvers/type-resolver.js';
+import { EntityRegistry } from '../common/utils/entity-registry.js';
+import { OrchestrationBase } from '../common/orchestration-base.js';
 
 export class FunctionalitiesGenerator extends OrchestrationBase {
     async generate(aggregate: Aggregate, rootEntity: Entity, options: CoordinationGenerationOptions, allAggregates?: Aggregate[]): Promise<string> {

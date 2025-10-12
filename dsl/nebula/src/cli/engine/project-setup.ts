@@ -1,6 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { ProjectPaths, JAVA_SRC_PATH } from "./types.js";
+import { getGlobalConfig } from "../generators/common/config.js";
 
 export class ProjectSetup {
     static async setupProjectPaths(
@@ -9,8 +10,17 @@ export class ProjectSetup {
         projectName: string
     ): Promise<ProjectPaths> {
         const projectPath = path.join(baseOutputDir, projectName);
+
+        // Use configuration for all paths instead of hardcoded values
+        const config = getGlobalConfig();
+        const basePackage = config.getBasePackage();
+        const fullPackage = `${basePackage}.${projectName.toLowerCase()}`;
+
+        // Standard Maven directory structure (could be made configurable if needed)
         const javaSrcPath = path.join(...JAVA_SRC_PATH);
-        const packagePath = path.join('pt', 'ulisboa', 'tecnico', 'socialsoftware', projectName.toLowerCase());
+
+        // Convert package name to directory path (e.g., "pt.ulisboa.tecnico" → "pt/ulisboa/tecnico")
+        const packagePath = fullPackage.split('.').join(path.sep);
         const javaPath = path.join(projectPath, javaSrcPath, packagePath);
 
         await this.handleExistingProject(projectPath, inputPath);
@@ -31,7 +41,11 @@ export class ProjectSetup {
             const isSingleFile = inputPath.endsWith('.nebula');
 
             if (isSingleFile) {
-                const microservicesPath = path.join(projectPath, 'src', 'main', 'java', 'pt', 'ulisboa', 'tecnico', 'socialsoftware', path.basename(projectPath), 'microservices');
+                // Use configurable package path instead of hardcoded
+                const config = getGlobalConfig();
+                const basePackage = config.getBasePackage();
+                const packageParts = basePackage.split('.');
+                const microservicesPath = path.join(projectPath, 'src', 'main', 'java', ...packageParts, path.basename(projectPath), 'microservices');
                 try {
                     const existingAggregates = await fs.readdir(microservicesPath);
                     if (existingAggregates.length > 0) {

@@ -1,6 +1,6 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
-import { TypeResolver } from "../../shared/resolvers/type-resolver.js";
-import { OrchestrationBase } from "../../shared/orchestration-base.js";
+import { TypeResolver } from "../../common/resolvers/type-resolver.js";
+import { OrchestrationBase } from "../../common/orchestration-base.js";
 
 export interface RepositoryInterfaceGenerationOptions {
     architecture?: string;

@@ -2,7 +2,7 @@ import { Aggregate, Entity } from "../../../language/generated/ast.js";
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'node:url';
-import { OrchestrationBase } from '../shared/orchestration-base.js';
+import { OrchestrationBase } from '../common/orchestration-base.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export interface SagaGenerationOptions {

@@ -3,7 +3,6 @@ import { EnumGenerator, EnumDefinition } from "./enum-generator.js";
 export interface SharedGenerationOptions {
     projectName: string;
     outputPath: string;
-    features?: string[];
     models?: any[];
     configPath?: string;
 }
@@ -56,7 +55,7 @@ export class SharedFeature {
         return feature.generateSharedComponents(options);
     }
 
-    isEnabled(features: string[]): boolean {
-        return features.includes('shared') || features.includes('enums');
+    isEnabled(): boolean {
+        return true; // Always enabled
     }
 }

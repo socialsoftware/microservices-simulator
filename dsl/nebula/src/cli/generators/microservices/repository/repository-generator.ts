@@ -1,6 +1,6 @@
 import { Aggregate, CustomRepository, RepositoryMethod } from "../../../../language/generated/ast.js";
 import { capitalize } from "../../../utils/generator-utils.js";
-import { getGlobalConfig } from "../../shared/config.js";
+import { getGlobalConfig } from "../../common/config.js";
 
 export function generateRepositoryCode(aggregate: Aggregate, projectName: string): string {
     const aggregateName = aggregate.name;

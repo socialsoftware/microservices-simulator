@@ -1,7 +1,8 @@
-import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { GenerationOptions, Aggregate, GeneratorRegistry } from "../engine/types.js";
 import { TemplateGenerators } from "../engine/template-generators.js";
+import { FileWriter } from "../utils/file-writer.js";
+import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../utils/error-handler.js";
 
 export class EntityFeature {
     /**
@@ -37,17 +38,14 @@ export class EntityFeature {
             };
             const entityCode = await generators.entityGenerator.generateEntity(entity, entityOptions);
             const entityPath = path.join(aggregatePath, 'aggregate', `${entity.name}.java`);
-            await fs.mkdir(path.dirname(entityPath), { recursive: true });
-            await fs.writeFile(entityPath, entityCode, 'utf-8');
-            console.log(`\t- Generated entity ${entity.name}`);
+            await FileWriter.writeGeneratedFile(entityPath, entityCode, `entity ${entity.name}`);
 
             // Only generate DTO for root entities, and only if not available as shared DTO
             if ((entity as any).isRoot) {
                 if (!this.isSharedDto(entity.name + 'Dto')) {
                     const dtoCode = await generators.dtoGenerator.generateDto(entity, options);
                     const dtoPath = path.join(aggregatePath, 'aggregate', `${entity.name}Dto.java`);
-                    await fs.writeFile(dtoPath, dtoCode, 'utf-8');
-                    console.log(`\t- Generated DTO ${entity.name}Dto`);
+                    await FileWriter.writeGeneratedFile(dtoPath, dtoCode, `DTO ${entity.name}Dto`);
                 } else {
                     console.log(`\t- Skipping DTO generation for ${entity.name}Dto (using shared DTO)`);
                 }
@@ -61,57 +59,63 @@ export class EntityFeature {
             allSharedDtos: options.allSharedDtos
         });
         const factoryPath = path.join(aggregatePath, 'aggregate', `${aggregate.name}Factory.java`);
-        await fs.writeFile(factoryPath, factoryCode, 'utf-8');
-        console.log(`\t- Generated factory ${aggregate.name}Factory`);
+        await FileWriter.writeGeneratedFile(factoryPath, factoryCode, `factory ${aggregate.name}Factory`);
 
         const repositoryCode = await generators.repositoryGenerator.generateRepository(aggregate, options);
         const repositoryPath = path.join(aggregatePath, 'aggregate', `${aggregate.name}CustomRepository.java`);
-        await fs.writeFile(repositoryPath, repositoryCode, 'utf-8');
-        console.log(`\t- Generated custom repository ${aggregate.name}CustomRepository`);
+        await FileWriter.writeGeneratedFile(repositoryPath, repositoryCode, `custom repository ${aggregate.name}CustomRepository`);
 
         const repositoryInterfaceCode = await generators.repositoryInterfaceGenerator.generateRepositoryInterface(aggregate, options);
         const repositoryInterfacePath = path.join(aggregatePath, 'aggregate', `${aggregate.name}Repository.java`);
-        await fs.writeFile(repositoryInterfacePath, repositoryInterfaceCode, 'utf-8');
-        console.log(`\t- Generated repository interface ${aggregate.name}Repository`);
+        await FileWriter.writeGeneratedFile(repositoryInterfacePath, repositoryInterfaceCode, `repository interface ${aggregate.name}Repository`);
 
         const hasServiceDefinition = (aggregate as any).serviceDefinition;
         if (!hasServiceDefinition) {
             console.log(`\t- Generating default service with options:`, {
-                projectName: options.projectName,
-                architecture: options.architecture,
-                features: options.features?.slice(0, 3)
+                projectName: options.projectName
             });
-            try {
-                const serviceCode = await generators.serviceGenerator.generateService(aggregate, options);
-                const servicePath = path.join(aggregatePath, 'service', `${aggregate.name}Service.java`);
-                await fs.mkdir(path.dirname(servicePath), { recursive: true });
-                await fs.writeFile(servicePath, serviceCode, 'utf-8');
-                console.log(`\t- Generated default service ${aggregate.name}Service`);
-            } catch (error) {
-                console.error(`Error generating service for ${aggregate.name}:`, error);
-                if (error instanceof Error) {
-                    console.error('Stack trace:', error.stack);
-                }
-                throw error;
-            }
+            await ErrorHandler.wrapAsync(
+                async () => {
+                    const serviceCode = await generators.serviceGenerator.generateService(aggregate, options);
+                    const servicePath = path.join(aggregatePath, 'service', `${aggregate.name}Service.java`);
+                    await FileWriter.writeGeneratedFile(servicePath, serviceCode, `default service ${aggregate.name}Service`);
+                },
+                ErrorUtils.aggregateContext(
+                    'generate default service',
+                    aggregate.name,
+                    'service-generator',
+                    { projectName: options.projectName }
+                ),
+                ErrorSeverity.FATAL
+            );
         } else {
             console.log(`\t- Service definition found in DSL for ${aggregate.name}, skipping default service generation`);
         }
 
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
         if (!rootEntity) {
-            throw new Error(`No root entity found in aggregate ${aggregate.name}`);
+            ErrorHandler.handle(
+                new Error(`No root entity found in aggregate ${aggregate.name}`),
+                ErrorUtils.aggregateContext(
+                    'find root entity',
+                    aggregate.name,
+                    'entity-feature',
+                    { totalEntities: aggregate.entities.length }
+                ),
+                ErrorSeverity.FATAL
+            );
+            return; // This will never be reached due to FATAL error, but satisfies TypeScript
         }
 
         if (aggregate.name !== rootEntity.name) {
             const aggregateBaseClassCode = TemplateGenerators.generateAggregateBaseClass(
                 aggregate.name,
                 rootEntity.name,
-                options.projectName
+                options.projectName,
+                aggregate
             );
             const aggregateBaseClassPath = path.join(aggregatePath, 'aggregate', `${aggregate.name}.java`);
-            await fs.writeFile(aggregateBaseClassPath, aggregateBaseClassCode, 'utf-8');
-            console.log(`\t- Generated aggregate base class ${aggregate.name}`);
+            await FileWriter.writeGeneratedFile(aggregateBaseClassPath, aggregateBaseClassCode, `aggregate base class ${aggregate.name}`);
         }
     }
 }

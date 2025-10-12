@@ -1,13 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { GenerationConfig, initializeConfig, getGlobalConfig } from '../generators/shared/config.js';
+import { GenerationConfig, initializeConfig, getGlobalConfig } from '../generators/common/config.js';
 
 export interface NebulaConfig {
     projectName?: string;
     basePackage?: string;
     outputDirectory?: string;
-    architecture?: 'microservices' | 'causal-saga' | 'monolith';
-    features?: string[];
     consistencyModels?: string[];
     database?: {
         type?: 'postgresql' | 'mysql' | 'mongodb' | 'h2';
@@ -27,6 +25,61 @@ export class ConfigLoader {
     private static readonly CONFIG_FILE_NAMES = ['nebula.config.json', 'nebula.json', '.nebularc.json'];
 
     /**
+     * Resolve environment variable placeholders in configuration values
+     */
+    private static resolveEnvironmentVariables(config: any): any {
+        if (typeof config === 'string') {
+            // Replace ${VAR_NAME} with environment variable value
+            return config.replace(/\$\{([^}]+)\}/g, (match, varName) => {
+                const envValue = process.env[varName];
+                if (envValue === undefined) {
+                    console.warn(`Environment variable ${varName} is not set, using placeholder`);
+                    return match; // Keep placeholder if env var not found
+                }
+                return envValue;
+            });
+        } else if (Array.isArray(config)) {
+            return config.map(item => this.resolveEnvironmentVariables(item));
+        } else if (config && typeof config === 'object') {
+            const resolved: any = {};
+            for (const [key, value] of Object.entries(config)) {
+                resolved[key] = this.resolveEnvironmentVariables(value);
+            }
+            return resolved;
+        }
+        return config;
+    }
+
+    /**
+     * Validate sensitive configuration values
+     */
+    private static validateSensitiveConfig(config: GenerationConfig): void {
+        // Check for insecure passwords
+        if (config.database?.password) {
+            const password = config.database.password;
+
+            // Check if password is still a placeholder
+            if (password.includes('${') && password.includes('}')) {
+                console.warn('⚠️  Database password contains unresolved environment variable placeholder');
+            }
+
+            // Check for weak passwords
+            const weakPasswords = ['password', '123456', 'admin', 'root', 'test', ''];
+            if (weakPasswords.includes(password.toLowerCase())) {
+                console.warn('⚠️  Database password appears to be weak or default. Consider using a stronger password.');
+            }
+
+            // Don't log the actual password
+            console.log('Database password configured (not displayed for security)');
+        }
+
+        // Validate other security-sensitive settings
+        if (config.database?.host && config.database.host !== 'localhost' && config.database.host !== '127.0.0.1') {
+            console.log(`Database host configured: ${config.database.host}`);
+        }
+    }
+
+    /**
      * Load configuration from file and merge with CLI options
      */
     static async loadConfig(searchPath?: string, cliOptions?: Partial<GenerationConfig>): Promise<GenerationConfig> {
@@ -38,6 +91,9 @@ export class ConfigLoader {
             try {
                 const configContent = fs.readFileSync(configFile, 'utf-8');
                 fileConfig = JSON.parse(configContent);
+
+                // Resolve environment variables in the loaded config
+                fileConfig = this.resolveEnvironmentVariables(fileConfig);
             } catch (error) {
                 console.warn(`Warning: Failed to parse config file: ${error instanceof Error ? error.message : String(error)}`);
             }
@@ -51,6 +107,9 @@ export class ConfigLoader {
             ...generationConfig,
             ...cliOptions
         };
+
+        // Validate sensitive configuration
+        this.validateSensitiveConfig(mergedConfig as GenerationConfig);
 
         // Initialize global config with merged values
         initializeConfig(mergedConfig);
@@ -109,13 +168,7 @@ export class ConfigLoader {
             result.outputDirectory = config.outputDirectory;
         }
 
-        if (config.architecture) {
-            result.architecture = config.architecture;
-        }
-
-        if (config.features) {
-            result.features = config.features as any[];
-        }
+        // Architecture and features removed - always generate everything
 
         if (config.consistencyModels) {
             result.consistencyModels = config.consistencyModels;
@@ -152,15 +205,13 @@ export class ConfigLoader {
             projectName: projectName,
             basePackage: basePackage || 'com.example',
             outputDirectory: '../../applications',
-            architecture: 'causal-saga',
-            features: ['entities', 'dtos', 'services', 'factories', 'repositories', 'webapi', 'saga'],
             database: {
                 type: 'postgresql',
                 host: 'localhost',
                 port: 5432,
                 name: `${projectName}db`,
                 username: 'postgres',
-                password: 'password'
+                password: '${NEBULA_DB_PASSWORD}' // Environment variable placeholder
             },
             java: {
                 version: '17',

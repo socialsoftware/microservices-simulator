@@ -1,74 +1,91 @@
-import * as fs from "node:fs/promises";
-import * as path from "node:path";
 import { GenerationOptions } from "../engine/types.js";
 import { SharedDtoGenerator } from "../generators/microservices/shared/shared-dto-generator.js";
 import { SharedDtos, Model } from "../../language/generated/ast.js";
+import { FeatureBase, FeatureResult } from "./feature-base.js";
 
-export class SharedDtoFeature {
+export class SharedDtoFeature extends FeatureBase {
+    constructor() {
+        super('shared-dto');
+    }
     /**
-     * Generates shared DTOs from DSL definitions
+     * Generate shared DTOs for models
      */
-    static async generateSharedDtos(
+    async generate(
         models: Model[],
         paths: any,
         options: GenerationOptions
-    ): Promise<void> {
-        const sharedDtoPath = path.join(paths.javaPath, 'shared', 'dtos');
+    ): Promise<FeatureResult> {
+        return this.executeFeatureGeneration('shared-dtos', async () => {
+            const sharedDtoPath = this.buildPackagePath(paths.javaPath, 'shared', 'dtos');
 
-        // Create shared/dtos directory
-        await fs.mkdir(sharedDtoPath, { recursive: true });
+            // Create shared/dtos directory
+            await this.createDirectory(sharedDtoPath, 'shared DTOs directory');
 
-        // Find SharedDtos definitions in all models
-        const allSharedDtos: SharedDtos[] = [];
-        for (const model of models) {
-            if (model.sharedDtos) {
-                allSharedDtos.push(...model.sharedDtos);
-            }
-        }
-
-        if (allSharedDtos.length === 0) {
-            console.log('\t- No SharedDtos definitions found, using legacy generation');
-            await this.generateLegacySharedDtos(models, paths, options);
-            return;
-        }
-
-        // Generate DTOs from DSL definitions
-        const generator = new SharedDtoGenerator();
-
-        // Collect all DTO definitions for cross-referencing
-        const allDtoDefinitions = allSharedDtos.flatMap(block => block.dtos);
-
-        for (const sharedDtosBlock of allSharedDtos) {
-            for (const dtoDefinition of sharedDtosBlock.dtos) {
-                try {
-                    const dtoCode = await generator.generateSharedDtoFromDefinition(
-                        dtoDefinition,
-                        options,
-                        allDtoDefinitions,
-                        models  // Pass the models so generator can read aggregate structure!
-                    );
-
-                    const dtoFilePath = path.join(sharedDtoPath, `${dtoDefinition.name}.java`);
-                    await fs.writeFile(dtoFilePath, dtoCode, 'utf-8');
-                    console.log(`\t- Generated shared DTO ${dtoDefinition.name}`);
-                } catch (error) {
-                    console.error(`\t- Error generating shared DTO ${dtoDefinition.name}: ${error instanceof Error ? error.message : String(error)}`);
+            // Find SharedDtos definitions in all models
+            const allSharedDtos: SharedDtos[] = [];
+            for (const model of models) {
+                if (model.sharedDtos) {
+                    allSharedDtos.push(...model.sharedDtos);
                 }
             }
-        }
+
+            if (allSharedDtos.length === 0) {
+                this.logWarning('No SharedDtos definitions found, using legacy generation');
+                return await this.generateLegacySharedDtos(models, paths, options);
+            }
+
+            // Generate DTOs from DSL definitions
+            const generator = new SharedDtoGenerator();
+            let filesGenerated = 0;
+            const warnings: string[] = [];
+
+            // Collect all DTO definitions for cross-referencing
+            const allDtoDefinitions = allSharedDtos.flatMap(block => block.dtos);
+
+            for (const sharedDtosBlock of allSharedDtos) {
+                for (const dtoDefinition of sharedDtosBlock.dtos) {
+                    try {
+                        const dtoCode = await generator.generateSharedDtoFromDefinition(
+                            dtoDefinition,
+                            options,
+                            allDtoDefinitions,
+                            models  // Pass the models so generator can read aggregate structure!
+                        );
+
+                        const dtoFilePath = this.buildJavaFilePath(
+                            paths.javaPath,
+                            ['shared', 'dtos'],
+                            dtoDefinition.name
+                        );
+
+                        await this.writeGeneratedFile(
+                            dtoFilePath,
+                            dtoCode,
+                            `shared DTO ${dtoDefinition.name}`
+                        );
+                        filesGenerated++;
+                    } catch (error) {
+                        const errorMsg = `Error generating shared DTO ${dtoDefinition.name}: ${error instanceof Error ? error.message : String(error)}`;
+                        warnings.push(errorMsg);
+                        this.logWarning(errorMsg);
+                    }
+                }
+            }
+
+            return this.createSuccessResult(filesGenerated, warnings);
+        });
     }
 
 
     /**
      * Legacy method for backward compatibility when no SharedDtos blocks are defined
      */
-    private static async generateLegacySharedDtos(
+    private async generateLegacySharedDtos(
         models: Model[],
         paths: any,
         options: GenerationOptions
-    ): Promise<void> {
+    ): Promise<FeatureResult> {
         const generator = new SharedDtoGenerator();
-        const sharedDtoPath = path.join(paths.javaPath, 'shared', 'dtos');
 
         // Collect all entities that need shared DTOs
         const sharedDtos = new Map<string, any>();
@@ -102,6 +119,9 @@ export class SharedDtoFeature {
         }
 
         // Generate each shared DTO
+        let filesGenerated = 0;
+        const warnings: string[] = [];
+
         for (const [dtoName, dtoInfo] of sharedDtos) {
             try {
                 const dtoCode = await generator.generateSharedDto(
@@ -110,12 +130,41 @@ export class SharedDtoFeature {
                     options
                 );
 
-                const dtoFilePath = path.join(sharedDtoPath, `${dtoName}.java`);
-                await fs.writeFile(dtoFilePath, dtoCode, 'utf-8');
-                console.log(`\t- Generated shared DTO ${dtoName}`);
+                const dtoFilePath = this.buildJavaFilePath(
+                    paths.javaPath,
+                    ['shared', 'dtos'],
+                    dtoName.replace('.java', '')
+                );
+
+                await this.writeGeneratedFile(
+                    dtoFilePath,
+                    dtoCode,
+                    `shared DTO ${dtoName}`
+                );
+                filesGenerated++;
             } catch (error) {
-                console.error(`\t- Error generating shared DTO ${dtoName}: ${error instanceof Error ? error.message : String(error)}`);
+                const errorMsg = `Error generating shared DTO ${dtoName}: ${error instanceof Error ? error.message : String(error)}`;
+                warnings.push(errorMsg);
+                this.logWarning(errorMsg);
             }
+        }
+
+        return this.createSuccessResult(filesGenerated, warnings);
+    }
+
+    /**
+     * Static method for backward compatibility
+     */
+    static async generateSharedDtos(
+        models: Model[],
+        paths: any,
+        options: GenerationOptions
+    ): Promise<void> {
+        const feature = new SharedDtoFeature();
+        const result = await feature.generate(models, paths, options);
+
+        if (!result.success) {
+            throw new Error(`Shared DTO generation failed: ${result.errors.join(', ')}`);
         }
     }
 }

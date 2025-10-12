@@ -1,5 +1,5 @@
-import { OrchestrationBase } from "../../shared/orchestration-base.js";
-import { getGlobalConfig } from "../../shared/config.js";
+import { OrchestrationBase } from "../../common/orchestration-base.js";
+import { getGlobalConfig } from "../../common/config.js";
 import { DtoDefinition, DtoField, Model } from "../../../../language/generated/ast.js";
 
 export interface SharedDtoGenerationOptions {

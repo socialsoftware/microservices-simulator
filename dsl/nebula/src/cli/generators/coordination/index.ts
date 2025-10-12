@@ -1,4 +1,4 @@
-import { Aggregate, Entity } from '../shared/parsers/model-parser.js';
+import { Aggregate } from '../common/parsers/model-parser.js';
 import { CoordinationGenerationOptions } from '../microservices/types.js';
 import { FunctionalitiesGenerator } from './functionalities-generator.js';
 import { EventProcessingGenerator } from './event-processing-generator.js';
@@ -24,13 +24,11 @@ export class CoordinationGenerator {
         results['event-processing'] = await this.eventProcessingGenerator.generate(aggregate, rootEntity, options);
 
         if (options.architecture === 'causal-saga' || options.features?.includes('sagas')) {
-            results['saga-coordination'] = await this.generateSagaCoordination(aggregate, rootEntity, options);
+            // Saga coordination is handled by the SagaFeature
+            console.log(`\t- Saga coordination handled by SagaFeature for ${aggregate.name}`);
         }
 
         return results;
     }
 
-    private async generateSagaCoordination(aggregate: Aggregate, rootEntity: Entity, options: CoordinationGenerationOptions): Promise<string> {
-        return '';
-    }
 }

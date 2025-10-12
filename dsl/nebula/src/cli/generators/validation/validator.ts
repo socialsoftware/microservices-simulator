@@ -6,7 +6,7 @@ import {
     ValidationError,
     ValidationWarning,
     TemplateContext
-} from '../shared/types.js';
+} from '../common/types.js';
 import { Utils } from '../../utils/generator-utils.js';
 
 export class Validator {

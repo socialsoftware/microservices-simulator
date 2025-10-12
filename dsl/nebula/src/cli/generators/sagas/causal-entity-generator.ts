@@ -1,5 +1,5 @@
 import { Aggregate, Entity } from "../../../language/generated/ast.js";
-import { getGlobalConfig } from "../shared/config.js";
+import { getGlobalConfig } from "../common/config.js";
 
 export interface CausalEntityGenerationOptions {
     architecture?: string;

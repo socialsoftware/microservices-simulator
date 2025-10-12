@@ -3,16 +3,49 @@ import chalk from 'chalk';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { URI } from 'langium';
+import { InputValidator } from './input-validator.js';
 
 export async function extractDocument(fileName: string, services: LangiumCoreServices): Promise<LangiumDocument> {
-    const extensions = services.LanguageMetaData.fileExtensions;
-    if (!extensions.includes(path.extname(fileName))) {
-        console.error(chalk.yellow(`Please choose a file with one of these extensions: ${extensions}.`));
+    // Validate file path for security
+    try {
+        const pathValidation = InputValidator.validateFilePath(fileName);
+        if (!pathValidation.isValid) {
+            console.error(chalk.red(`Invalid file path: ${pathValidation.error}`));
+            process.exit(1);
+        }
+        fileName = pathValidation.sanitized!;
+    } catch (error) {
+        console.error(chalk.red(`File path validation failed: ${error instanceof Error ? error.message : String(error)}`));
         process.exit(1);
     }
 
+    // Validate file extension
+    const extensions = services.LanguageMetaData.fileExtensions;
+    const extensionValidation = InputValidator.validateFileExtension(fileName, [...extensions]);
+    if (!extensionValidation.isValid) {
+        console.error(chalk.yellow(`${extensionValidation.error}. Expected one of: ${extensions.join(', ')}`));
+        process.exit(1);
+    }
+
+    // Check if file exists
     if (!fs.existsSync(fileName)) {
         console.error(chalk.red(`File ${fileName} does not exist.`));
+        process.exit(1);
+    }
+
+    // Check file size (prevent processing extremely large files)
+    const stats = fs.statSync(fileName);
+    const maxFileSize = 10 * 1024 * 1024; // 10MB limit
+    if (stats.size > maxFileSize) {
+        console.error(chalk.red(`File ${fileName} is too large (${Math.round(stats.size / 1024 / 1024)}MB). Maximum allowed size is ${maxFileSize / 1024 / 1024}MB.`));
+        process.exit(1);
+    }
+
+    // Check if file is readable
+    try {
+        fs.accessSync(fileName, fs.constants.R_OK);
+    } catch (error) {
+        console.error(chalk.red(`File ${fileName} is not readable.`));
         process.exit(1);
     }
 

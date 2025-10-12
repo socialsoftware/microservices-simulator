@@ -1,7 +1,7 @@
 import { Aggregate, Entity } from "../../../language/generated/ast.js";
-import { OrchestrationBase } from "../shared/orchestration-base.js";
+import { OrchestrationBase } from "../common/orchestration-base.js";
 import { ValidationGenerationOptions, ValidationContext } from "./validation-types.js";
-import { TypeResolver } from "../shared/resolvers/type-resolver.js";
+import { TypeResolver } from "../common/resolvers/type-resolver.js";
 
 export abstract class ValidationBaseGenerator extends OrchestrationBase {
     protected createValidationContext(aggregate: Aggregate, rootEntity: Entity, options: ValidationGenerationOptions, subPackage: string): ValidationContext {

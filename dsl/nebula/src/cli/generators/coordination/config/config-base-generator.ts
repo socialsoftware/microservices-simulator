@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { ConfigurationGeneratorPattern } from '../../shared/generator-patterns.js';
+import { ConfigurationGeneratorPattern } from '../../common/generator-patterns.js';
 import { ConfigurationGenerationOptions, ConfigContext } from './config-types.js';
 
 export abstract class ConfigBaseGenerator extends ConfigurationGeneratorPattern {

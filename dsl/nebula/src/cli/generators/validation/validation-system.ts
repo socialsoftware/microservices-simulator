@@ -39,8 +39,6 @@ export interface ValidationSummary {
 }
 
 export interface ValidationOptions {
-    architecture?: string;
-    features?: string[];
     projectName: string;
     strictMode?: boolean;
     includeWarnings?: boolean;
@@ -192,28 +190,7 @@ export class ValidationSystem {
             });
         }
 
-        const validArchitectures = ['default', 'causal-saga', 'external-dto-removal'];
-        if (options.architecture && !validArchitectures.includes(options.architecture)) {
-            warnings.push({
-                type: 'warning',
-                code: 'UNKNOWN_ARCHITECTURE',
-                message: `Unknown architecture '${options.architecture}', using default`,
-                severity: 'medium'
-            });
-        }
-
-        const validFeatures = ['events', 'validation', 'webapi', 'coordination', 'saga'];
-        if (options.features) {
-            const invalidFeatures = options.features.filter(f => !validFeatures.includes(f));
-            if (invalidFeatures.length > 0) {
-                warnings.push({
-                    type: 'warning',
-                    code: 'UNKNOWN_FEATURES',
-                    message: `Unknown features: ${invalidFeatures.join(', ')}`,
-                    severity: 'low'
-                });
-            }
-        }
+        // Architecture and features validation removed - always generate everything
 
         return { errors, warnings };
     }

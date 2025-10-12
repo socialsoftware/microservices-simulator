@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { getGlobalConfig } from '../generators/shared/config.js';
+import { getGlobalConfig } from '../generators/common/config.js';
 
 /**
  * Utility to refactor hardcoded package names to use dynamic configuration
@@ -103,7 +103,7 @@ export class PackageNameRefactor {
             if (filePath.endsWith('.ts')) {
                 // Add import if not present
                 if (!content.includes('import { getGlobalConfig }') && !content.includes('OrchestrationBase')) {
-                    const importStatement = `import { getGlobalConfig } from '../generators/shared/config.js';\n`;
+                    const importStatement = `import { getGlobalConfig } from '../generators/common/config.js';\n`;
 
                     // Find the right place to add import (after other imports)
                     const importRegex = /^import .* from .*;\n/gm;
@@ -172,7 +172,7 @@ export class PackageNameRefactor {
 const packageName = \`pt.ulisboa.tecnico.socialsoftware.\${projectName.toLowerCase()}.microservices.\${aggregateName.toLowerCase()}.aggregate\`;
 
 // After:
-import { getGlobalConfig } from '../generators/shared/config.js';
+import { getGlobalConfig } from '../generators/common/config.js';
 
 const config = getGlobalConfig();
 const packageName = config.buildPackageName(

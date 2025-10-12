@@ -1,0 +1,78 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+{{#if hasInvariants}}
+/*
+{{#each invariantComments}}
+    {{this}}
+{{/each}}
+*/
+{{/if}}
+@Entity
+public abstract class {{aggregateName}} extends Aggregate {
+{{#each fields}}
+    {{#if comment}}
+    /*
+        {{comment}}
+     */
+    {{/if}}
+    {{#if annotations}}
+    {{#each annotations}}
+    {{this}}
+    {{/each}}
+    {{/if}}
+    {{#if isFinal}}private final {{type}} {{name}};{{else}}private {{type}} {{name}};{{/if}}
+{{/each}}
+
+    public {{aggregateName}}() {
+        {{#each defaultFieldValues}}
+        this.{{name}} = {{value}};
+        {{/each}}
+    }
+
+    {{#if hasDtoConstructor}}
+    public {{aggregateName}}(Integer aggregateId, {{dtoType}} {{dtoParamName}}{{#if hasEntityParams}}, {{entityParams}}{{/if}}) {
+        super(aggregateId);
+        setAggregateType(getClass().getSimpleName());
+        {{#each dtoAssignments}}
+        {{this}};
+        {{/each}}
+        {{#each entityAssignments}}
+        {{this}};
+        {{/each}}
+    }
+    {{/if}}
+
+    {{#if hasCopyConstructor}}
+    public {{aggregateName}}({{aggregateName}} other) {
+        super(other);
+        {{#each copyAssignments}}
+        {{this}};
+        {{/each}}
+    }
+    {{/if}}
+
+    @Override
+    public Set<EventSubscription> getEventSubscriptions() {
+        return new HashSet<>();
+    }
+    
+    @Override
+    public void verifyInvariants() {
+        {{#each invariantChecks}}
+        {{this}}
+        {{/each}}
+        {{#unless invariantChecks}}
+        // Invariant verification implementation
+        // Override in concrete classes if needed
+        {{/unless}}
+    }
+
+    {{#each gettersSetters}}
+    {{this}}
+
+    {{/each}}
+}

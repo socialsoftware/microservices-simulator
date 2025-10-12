@@ -1,5 +1,5 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
-import { OrchestrationBase } from "../../shared/orchestration-base.js";
+import { OrchestrationBase } from "../../common/orchestration-base.js";
 
 export interface IntegrationGenerationOptions {
     architecture?: string;

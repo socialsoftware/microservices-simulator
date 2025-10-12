@@ -1,4 +1,4 @@
-import { getGlobalConfig } from "../../shared/config.js";
+import { getGlobalConfig } from "../../common/config.js";
 
 export interface EnumDefinition {
     name: string;

@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { ConfigContext } from './config-types.js';
-import { OrchestrationBase } from '../../shared/orchestration-base.js';
+import { OrchestrationBase } from '../../common/orchestration-base.js';
 
 export class DockerConfigGenerator extends OrchestrationBase {
   async generateDockerfile(context: ConfigContext): Promise<void> {

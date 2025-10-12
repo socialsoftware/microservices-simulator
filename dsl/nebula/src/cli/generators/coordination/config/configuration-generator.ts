@@ -1,4 +1,4 @@
-import { BaseGenerationOptions } from '../../shared/types.js';
+import { BaseGenerationOptions } from '../../common/types.js';
 import { ConfigurationGenerationOptions } from './config-types.js';
 import { ConfigBaseGenerator } from './config-base-generator.js';
 import { ApplicationConfigGenerator } from './application-config-generator.js';

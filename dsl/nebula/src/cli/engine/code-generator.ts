@@ -11,64 +11,230 @@ import { TemplateGenerateOptions, GenerationOptions, DEFAULT_OUTPUT_DIR } from "
 import { ProjectSetup } from "./project-setup.js";
 import { GeneratorRegistryFactory } from "./generator-registry.js";
 import { TemplateGenerators } from "./template-generators.js";
-import { FeatureGenerators } from "./feature-generators.js";
 import { ConfigLoader } from "../utils/config-loader.js";
-import { getGlobalConfig } from "../generators/shared/config.js";
+import { getGlobalConfig } from "../generators/common/config.js";
+import {
+    EntityFeature,
+    EventsFeature,
+    CoordinationFeature,
+    WebApiFeature,
+    ValidationFeature,
+    SagaFeature,
+    ServiceFeature
+} from "../features/index.js";
+import { SharedFeature } from "../generators/microservices/shared/index.js";
 
 export class CodeGenerator {
+    /**
+     * Main entry point for generating Java microservices code from Nebula DSL files.
+     * 
+     * This method orchestrates the entire code generation process:
+     * 1. Discovers and parses DSL files
+     * 2. Validates the domain models
+     * 3. Generates complete microservices architecture including:
+     *    - JPA entities and repositories
+     *    - Service layers and business logic
+     *    - REST APIs and DTOs
+     *    - Event handling and coordination
+     *    - Saga patterns and validation
+     *    - Project infrastructure (pom.xml, configuration, etc.)
+     * 
+     * @param inputPath Path to the abstractions folder containing .nebula files
+     * @param opts Generation options (destination, project name, validation)
+     */
     static async generateCode(inputPath: string, opts: TemplateGenerateOptions): Promise<void> {
         try {
             console.log(`Starting generation for: ${inputPath}`);
 
-            const nebulaFiles = await collectNebulaFiles(inputPath);
-            console.log(`Found ${nebulaFiles.length} Nebula files:`, nebulaFiles);
+            // ═══════════════════════════════════════════════════════════════
+            // PHASE 1: DISCOVERY & PARSING
+            // ═══════════════════════════════════════════════════════════════
 
+            // Discover all .nebula files in the input directory
+            const nebulaFiles = await collectNebulaFiles(inputPath);
             if (nebulaFiles.length === 0) {
                 console.error(`No Nebula files found at path: ${inputPath}`);
                 process.exit(1);
             }
+            console.log(`Found ${nebulaFiles.length} Nebula files`);
 
+            // Initialize Langium language services and parse DSL models
             const services = createNebulaServices(NodeFileSystem).nebulaServices;
             await this.loadLanguageDocuments(services, nebulaFiles);
+            const models = await this.parseModels(nebulaFiles, services);
 
-            // Load configuration from file and merge with CLI options
-            const cliConfig = this.extractConfiguration(opts, inputPath);
-            const loadedConfig = await ConfigLoader.loadConfig(inputPath, {
-                projectName: cliConfig.projectName,
-                outputDirectory: cliConfig.baseOutputDir,
-                architecture: cliConfig.architecture as any,
-                features: cliConfig.features as any
-            });
+            // ═══════════════════════════════════════════════════════════════
+            // PHASE 2: CONFIGURATION & VALIDATION
+            // ═══════════════════════════════════════════════════════════════
 
-            const config = {
-                ...cliConfig,
-                basePackage: loadedConfig.basePackage,
-                consistencyModels: loadedConfig.consistencyModels
-            };
+            // Setup project configuration and output paths
+            const config = await this.setupConfiguration(opts, inputPath);
+            const paths = await ProjectSetup.setupProjectPaths(config.baseOutputDir, inputPath, config.projectName);
 
-            const paths = await ProjectSetup.setupProjectPaths(
-                config.baseOutputDir,
-                inputPath,
-                config.projectName
-            );
+            // Validate domain models for correctness
+            await this.validateModels(models, config);
 
-            const allModels = await this.parseModels(nebulaFiles, services);
+            // ═══════════════════════════════════════════════════════════════
+            // PHASE 3: CODE GENERATION
+            // ═══════════════════════════════════════════════════════════════
 
-            if (config.validate) {
-                await this.validateModels(allModels, config);
+            console.log("Generating code...");
+            const generators = GeneratorRegistryFactory.createRegistry();
+
+            // Extract shared metadata needed for cross-aggregate references
+            const allDtoDefinitions: any[] = [];
+            const allDtoMappings: any[] = [];
+            for (const model of models) {
+                if (model.sharedDtos) {
+                    for (const sharedDtosBlock of model.sharedDtos) {
+                        if (sharedDtosBlock.dtos) {
+                            for (const dtoDefinition of sharedDtosBlock.dtos) {
+                                allDtoDefinitions.push(dtoDefinition);
+                                if (dtoDefinition.mappings) {
+                                    allDtoMappings.push(...dtoDefinition.mappings);
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
-            const generators = GeneratorRegistryFactory.createRegistry();
-            await this.generateAllCode(allModels, paths, config, generators);
+            // Prepare generation context with all necessary metadata
+            const options: GenerationOptions = {
+                projectName: config.projectName,
+                outputPath: paths.projectPath,
+                consistencyModels: config.consistencyModels,
+                allSharedDtos: allDtoDefinitions,
+                dtoMappings: allDtoMappings,
+                allModels: models
+            };
+
+            const aggregates = models.flatMap(model => model.aggregates);
+
+            // ───────────────────────────────────────────────────────────────
+            // 3A. Generate Aggregate-Specific Components
+            // ───────────────────────────────────────────────────────────────
+
+            for (const model of models) {
+                for (const aggregate of model.aggregates) {
+                    console.log(`\nGenerating ${aggregate.name} components:`);
+
+                    const aggregatePath = paths.javaPath + '/microservices/' + aggregate.name.toLowerCase();
+
+                    // Core microservice components (entities, services, repositories, factories)
+                    await EntityFeature.generateCoreComponents(aggregate, aggregatePath, options, generators);
+                    await ServiceFeature.generateService(aggregate, aggregatePath, options, generators);
+
+                    // Event-driven architecture components
+                    await EventsFeature.generateEvents(aggregate, aggregatePath, options, generators);
+
+                    // Cross-aggregate coordination and communication
+                    await CoordinationFeature.generateCoordination(aggregate, paths, options, generators, aggregates);
+
+                    // REST API endpoints and DTOs
+                    await WebApiFeature.generateWebApi(aggregate, paths, options, generators);
+
+                    // Business rule validation
+                    await ValidationFeature.generateValidation(aggregate, paths, options, generators);
+
+                    // Distributed transaction patterns
+                    await SagaFeature.generateSaga(aggregate, paths, options, generators);
+                }
+            }
+
+            // ───────────────────────────────────────────────────────────────
+            // 3B. Generate Project Infrastructure
+            // ───────────────────────────────────────────────────────────────
+
+            const projectOptions: GenerationOptions = {
+                projectName: config.projectName,
+                outputPath: paths.projectPath
+            };
+
+            // Application integration and exception handling
+            if (models[0]?.aggregates?.length > 0) {
+                // Main application class for microservices simulator
+                const integrationCode = await generators.integrationGenerator.generateIntegration(
+                    models[0].aggregates[0],
+                    projectOptions
+                );
+                const capitalizedProjectName = config.projectName.charAt(0).toUpperCase() + config.projectName.slice(1);
+                const integrationPath = path.join(paths.javaPath, `${capitalizedProjectName}Simulator.java`);
+                await fs.writeFile(integrationPath, integrationCode['application'], 'utf-8');
+                console.log(`\t- Generated integration ${config.projectName}Simulator`);
+
+                // Global exception handling
+                const globalConfig = getGlobalConfig();
+                await generators.exceptionGenerator.generate(
+                    models[0].aggregates[0],
+                    paths.projectPath,
+                    {
+                        projectName: config.projectName,
+                        packageName: globalConfig.buildPackageName(config.projectName)
+                    },
+                    models
+                );
+            }
+
+            // Global web API components and shared DTOs
+            const { SharedDtoFeature } = await import('../features/shared-dto-feature.js');
+            await SharedDtoFeature.generateSharedDtos(models, paths, projectOptions);
+            await WebApiFeature.generateGlobalWebApi(paths, projectOptions, generators);
+
+            // Maven build configuration
+            const pomContent = TemplateGenerators.generatePomXml(config.projectName);
+            await fs.writeFile(path.join(paths.projectPath, "pom.xml"), pomContent, 'utf-8');
+            console.log(`\t- Generated pom.xml`);
+
+            // Git ignore file
+            const gitignoreContent = TemplateGenerators.generateGitignore();
+            await fs.writeFile(path.join(paths.projectPath, ".gitignore"), gitignoreContent, 'utf-8');
+            console.log(`\t- Generated .gitignore`);
+
+            // Spring Boot configuration files
+            try {
+                await generators.configurationGenerator.generate({
+                    projectName: config.projectName,
+                    outputDirectory: paths.projectPath
+                }, {
+                    projectName: config.projectName
+                });
+                console.log(`\t- Generated configuration files`);
+            } catch (error) {
+                console.error(`\t- Error generating configuration files: ${error instanceof Error ? error.message : String(error)}`);
+            }
+
+            // Note: Test generation is currently disabled
+            console.log(`\t- Test generation skipped (disabled)`);
+
+            // ───────────────────────────────────────────────────────────────
+            // 3C. Generate Shared Components
+            // ───────────────────────────────────────────────────────────────
+
+            // Shared enums and utilities used across all microservices
+            const sharedFeature = new SharedFeature();
+            const sharedResults = await sharedFeature.generateSharedComponents({
+                projectName: options.projectName,
+                outputPath: options.outputPath,
+                models: models
+            });
+            for (const [filePath, content] of Object.entries(sharedResults)) {
+                const fullPath = `${paths.javaPath}/${filePath}`;
+                await fs.mkdir(path.dirname(fullPath), { recursive: true });
+                await fs.writeFile(fullPath, content, 'utf-8');
+                console.log(`\t- Generated shared component ${filePath}`);
+            }
+
+            // ═══════════════════════════════════════════════════════════════
+            // PHASE 4: COMPLETION
+            // ═══════════════════════════════════════════════════════════════
 
             console.log(`\nCode generation completed successfully!`);
-            console.log(`Output directory: ${paths.projectPath}`);
-            console.log(`Base package: ${config.basePackage || getGlobalConfig().getBasePackage()}`);
-            console.log(`Architecture: ${config.architecture}`);
-            console.log(`Features: ${config.features.join(', ')}`);
+            console.log(`Output: ${paths.projectPath}`);
+            console.log(`Package: ${config.basePackage || getGlobalConfig().getBasePackage()}`);
 
         } catch (error) {
-            console.error(`Error processing path ${inputPath}: ${error}`);
+            console.error(`Error: ${error}`);
             process.exit(1);
         }
     }
@@ -88,19 +254,24 @@ export class CodeGenerator {
         );
     }
 
-    private static extractConfiguration(opts: TemplateGenerateOptions, inputPath: string) {
+    private static async setupConfiguration(opts: TemplateGenerateOptions, inputPath: string) {
+        // Smart defaults - always generate everything
         const baseOutputDir = opts.destination || DEFAULT_OUTPUT_DIR;
         const projectName = ProjectSetup.deriveProjectName(inputPath, opts.name);
-        const architecture = opts.architecture || 'default';
-        const features = opts.features || ['events', 'validation', 'webapi', 'coordination', 'saga', 'shared'];
-        const validate = opts.validate || false;
+        const validate = true;
+
+        // Load additional config from file if exists
+        const loadedConfig = await ConfigLoader.loadConfig(inputPath, {
+            projectName,
+            outputDirectory: baseOutputDir
+        });
 
         return {
             baseOutputDir,
             projectName,
-            architecture,
-            features,
-            validate
+            validate,
+            basePackage: loadedConfig.basePackage,
+            consistencyModels: loadedConfig.consistencyModels
         };
     }
 
@@ -122,9 +293,7 @@ export class CodeGenerator {
         for (const model of allModels) {
             for (const aggregate of model.aggregates) {
                 const validationResult = await generators.validationSystem.validateAggregate(aggregate, {
-                    projectName: config.projectName,
-                    architecture: config.architecture,
-                    features: config.features
+                    projectName: config.projectName
                 });
 
                 if (!validationResult.isValid) {
@@ -138,168 +307,7 @@ export class CodeGenerator {
         console.log("Validation passed!");
     }
 
-    private static async generateAllCode(
-        allModels: Model[],
-        paths: any,
-        config: any,
-        generators: any
-    ): Promise<void> {
-        // STEP 1: Extract all shared DTOs and mappings from DSL
-        const sharedMetadata = this.extractSharedMetadata(allModels);
 
-        const options: GenerationOptions = {
-            architecture: config.architecture as 'default' | 'external-dto-removal' | 'causal-saga',
-            features: config.features || [],
-            projectName: config.projectName,
-            outputPath: paths.projectPath,
-            consistencyModels: config.consistencyModels,
-            // Add shared metadata to options so all generators can access it
-            allSharedDtos: sharedMetadata.allDtoDefinitions,
-            dtoMappings: sharedMetadata.allDtoMappings,
-            allModels: allModels
-        };
 
-        const allAggregates = allModels.flatMap(model => model.aggregates);
 
-        // STEP 2: Generate aggregates with access to shared metadata
-        for (const model of allModels) {
-            for (const aggregate of model.aggregates) {
-                console.log(`\nGenerating ${aggregate.name} aggregate:`);
-                await FeatureGenerators.generateAggregate(aggregate, paths, options, generators, allAggregates);
-            }
-        }
-
-        // STEP 3: Generate project files
-        await this.generateProjectFiles(allModels, paths, config, generators);
-
-        // STEP 4: Generate shared components
-        await FeatureGenerators.generateSharedComponents(paths, options, allModels);
-    }
-
-    /**
-     * Extract shared DTOs and mappings from all models before generation
-     */
-    private static extractSharedMetadata(allModels: Model[]): {
-        allDtoDefinitions: any[];
-        allDtoMappings: any[];
-    } {
-        const allDtoDefinitions: any[] = [];
-        const allDtoMappings: any[] = [];
-
-        for (const model of allModels) {
-            if (model.sharedDtos) {
-                for (const sharedDtosBlock of model.sharedDtos) {
-                    if (sharedDtosBlock.dtos) {
-                        for (const dtoDefinition of sharedDtosBlock.dtos) {
-                            allDtoDefinitions.push(dtoDefinition);
-
-                            // Extract mappings from this DTO
-                            if (dtoDefinition.mappings) {
-                                allDtoMappings.push(...dtoDefinition.mappings);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return { allDtoDefinitions, allDtoMappings };
-    }
-
-    private static async generateProjectFiles(
-        allModels: Model[],
-        paths: any,
-        config: any,
-        generators: any
-    ): Promise<void> {
-        const options = {
-            architecture: config.architecture,
-            features: config.features,
-            projectName: config.projectName,
-            outputPath: paths.projectPath
-        };
-
-        if (allModels[0]?.aggregates?.length > 0) {
-            const integrationCode = await generators.integrationGenerator.generateIntegration(
-                allModels[0].aggregates[0],
-                options
-            );
-            const capitalizedProjectName = config.projectName.charAt(0).toUpperCase() + config.projectName.slice(1);
-            const integrationPath = path.join(paths.javaPath, `${capitalizedProjectName}Simulator.java`);
-            await fs.writeFile(integrationPath, integrationCode['application'], 'utf-8');
-            console.log(`\t- Generated integration ${config.projectName}Simulator`);
-
-            const globalConfig = getGlobalConfig();
-            await generators.exceptionGenerator.generate(
-                allModels[0].aggregates[0],
-                paths.projectPath,
-                {
-                    projectName: config.projectName,
-                    packageName: globalConfig.buildPackageName(config.projectName),
-                    architecture: config.architecture,
-                    features: config.features || []
-                },
-                allModels
-            );
-        }
-
-        if (config.features?.includes('webapi')) {
-            // Generate shared DTOs first
-            const { SharedDtoFeature } = await import('../features/shared-dto-feature.js');
-            await SharedDtoFeature.generateSharedDtos(allModels, paths, options);
-
-            await FeatureGenerators.generateGlobalWebApi(paths, options, generators);
-        }
-
-        const pomContent = TemplateGenerators.generatePomXml(config.projectName, config.architecture, config.features);
-        await fs.writeFile(path.join(paths.projectPath, "pom.xml"), pomContent, 'utf-8');
-        console.log(`\t- Generated pom.xml`);
-
-        const gitignoreContent = TemplateGenerators.generateGitignore();
-        await fs.writeFile(path.join(paths.projectPath, ".gitignore"), gitignoreContent, 'utf-8');
-        console.log(`\t- Generated .gitignore`);
-
-        await this.generateConfigurationFiles(paths, config, generators);
-
-        await this.generateTestTemplates(allModels, paths, config, generators);
-    }
-
-    private static async generateConfigurationFiles(paths: any, config: any, generators: any): Promise<void> {
-        try {
-            await generators.configurationGenerator.generate({
-                projectName: config.projectName,
-                architecture: config.architecture,
-                features: config.features || [],
-                outputDirectory: paths.projectPath
-            }, {
-                projectName: config.projectName,
-                architecture: config.architecture,
-                features: config.features || []
-            });
-            console.log(`\t- Generated configuration files`);
-        } catch (error) {
-            console.error(`\t- Error generating configuration files: ${error instanceof Error ? error.message : String(error)}`);
-        }
-    }
-
-    private static async generateTestTemplates(allModels: Model[], paths: any, config: any, generators: any): Promise<void> {
-        try {
-            const mainAggregate = allModels[0]?.aggregates[0];
-            if (mainAggregate) {
-                await generators.testGenerator.generate({
-                    aggregate: mainAggregate,
-                    projectName: config.projectName,
-                    outputDirectory: paths.projectPath,
-                    features: config.features || []
-                }, {
-                    projectName: config.projectName,
-                    architecture: config.architecture,
-                    features: config.features || []
-                });
-                console.log(`\t- Generated test templates`);
-            }
-        } catch (error) {
-            console.error(`\t- Error generating test templates: ${error instanceof Error ? error.message : String(error)}`);
-        }
-    }
 }

@@ -1,14 +1,10 @@
 export type TemplateGenerateOptions = {
     destination?: string;
     name?: string;
-    architecture?: string;
-    features?: string[];
     validate?: boolean;
 };
 
 export type GenerationOptions = {
-    architecture: 'default' | 'external-dto-removal' | 'causal-saga';
-    features: string[];
     projectName: string;
     outputPath: string;
     consistencyModels?: string[];
@@ -44,7 +40,6 @@ export interface GeneratorRegistry {
     integrationGenerator: any;
     sagaGenerator: any;
     sagaFunctionalityGenerator: any;
-    testGenerator: any;
     exceptionGenerator: any;
     eventHandlerGenerator: any;
     causalEntityGenerator: any;

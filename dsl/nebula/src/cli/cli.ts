@@ -3,7 +3,6 @@
  */
 
 import { Command } from "commander";
-import { NebulaLanguageMetaData } from "../language/generated/module.js";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { CodeGenerator } from "./engine/code-generator.js";
@@ -18,31 +17,19 @@ export default async function cli(): Promise<void> {
     const packageContent = await fs.readFile(packagePath, "utf-8");
     program.version(JSON.parse(packageContent).version);
 
-    const fileExtensions = NebulaLanguageMetaData.fileExtensions.join(", ");
-
     program
         .command("generate")
         .argument(
-            "<path>",
-            `source file or directory (possible file extensions: ${fileExtensions})`
+            "<abstractions-path>",
+            "path to the abstractions folder containing Nebula DSL files"
         )
-        .option("-d, --destination <dir>", "destination directory for generating code", DEFAULT_OUTPUT_DIR)
-        .option("-n, --name <name>", "name of the project")
-        .option("-a, --architecture <arch>", "architecture pattern (default, causal-saga, external-dto-removal)", "default")
-        .option("-f, --features <features>", "comma-separated list of features (events,validation,webapi,coordination,saga)", "events,validation,webapi,coordination,saga")
-        .option("--validate", "validate DSL files before generation")
-        .description('generates Java microservices code from Nebula DSL files')
-        .action(async (inputPath: string, options: any) => {
-            const features = options.features
-                ? options.features.split(',').map((f: string) => f.trim())
-                : ['events', 'validation', 'webapi', 'coordination', 'saga', 'shared'];
-
-            await CodeGenerator.generateCode(inputPath, {
-                destination: options.destination,
-                name: options.name,
-                architecture: options.architecture,
-                features,
-                validate: options.validate
+        .option("-o, --output <dir>", "output directory for generated code", DEFAULT_OUTPUT_DIR)
+        .description('generates Java microservices code from Nebula DSL abstractions')
+        .action(async (abstractionsPath: string, options: any) => {
+            await CodeGenerator.generateCode(abstractionsPath, {
+                destination: options.output,
+                name: path.basename(path.resolve(abstractionsPath, "..")), // Use parent folder name as project name
+                validate: true
             });
         });
 
