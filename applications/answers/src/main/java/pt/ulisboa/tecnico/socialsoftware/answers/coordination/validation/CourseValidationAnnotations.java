@@ -49,38 +49,19 @@ public class CourseValidationAnnotations {
     }
 
     /**
-     * Validation annotations for acronym
+     * Validation annotations for type
      */
-    public static class AcronymValidation {
+    public static class TypeValidation {
         @NotNull
-    @NotBlank
-        private String acronym;
+        private CourseType type;
         
         // Getter and setter
-        public String getAcronym() {
-            return acronym;
+        public CourseType getType() {
+            return type;
         }
         
-        public void setAcronym(String acronym) {
-            this.acronym = acronym;
-        }
-    }
-
-    /**
-     * Validation annotations for courseType
-     */
-    public static class CourseTypeValidation {
-        @NotNull
-    @NotBlank
-        private String courseType;
-        
-        // Getter and setter
-        public String getCourseType() {
-            return courseType;
-        }
-        
-        public void setCourseType(String courseType) {
-            this.courseType = courseType;
+        public void setType(CourseType type) {
+            this.type = type;
         }
     }
 

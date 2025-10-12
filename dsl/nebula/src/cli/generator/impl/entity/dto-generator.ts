@@ -60,14 +60,12 @@ function generateDtoFields(entity: Entity): string {
     }
 
     for (const property of entity.properties) {
-        if (!property.isKey) {
-            const javaType = TypeResolver.resolveJavaType(property.type);
+        const javaType = TypeResolver.resolveJavaType(property.type);
 
-            if (javaType === 'Boolean' || javaType === 'boolean') {
-                fields.push(`\tprivate boolean ${property.name};`);
-            } else {
-                fields.push(`\tprivate ${javaType} ${property.name};`);
-            }
+        if (javaType === 'Boolean' || javaType === 'boolean') {
+            fields.push(`\tprivate boolean ${property.name};`);
+        } else {
+            fields.push(`\tprivate ${javaType} ${property.name};`);
         }
     }
 
@@ -93,7 +91,7 @@ function generateDtoConstructors(entity: Entity): string {
     }
 
     for (const property of entity.properties) {
-        if (!property.isKey) {
+        {
             const getter = getGetterName(property);
 
             // Check if this is an enum field (ends with "Type")
@@ -131,7 +129,7 @@ function generateDtoGettersSetters(entity: Entity): string {
     }
 
     for (const property of entity.properties) {
-        if (!property.isKey) {
+        {
             const javaType = TypeResolver.resolveJavaType(property.type);
             const capitalizedName = capitalize(property.name);
 

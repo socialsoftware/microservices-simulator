@@ -67,53 +67,19 @@ public class QuestionValidationAnnotations {
     }
 
     /**
-     * Validation annotations for numberOfOptions
+     * Validation annotations for creationDate
      */
-    public static class NumberOfOptionsValidation {
+    public static class CreationDateValidation {
         @NotNull
-        private Integer numberOfOptions;
+        private LocalDateTime creationDate;
         
         // Getter and setter
-        public Integer getNumberOfOptions() {
-            return numberOfOptions;
+        public LocalDateTime getCreationDate() {
+            return creationDate;
         }
         
-        public void setNumberOfOptions(Integer numberOfOptions) {
-            this.numberOfOptions = numberOfOptions;
-        }
-    }
-
-    /**
-     * Validation annotations for correctOption
-     */
-    public static class CorrectOptionValidation {
-        @NotNull
-        private Integer correctOption;
-        
-        // Getter and setter
-        public Integer getCorrectOption() {
-            return correctOption;
-        }
-        
-        public void setCorrectOption(Integer correctOption) {
-            this.correctOption = correctOption;
-        }
-    }
-
-    /**
-     * Validation annotations for order
-     */
-    public static class OrderValidation {
-        @NotNull
-        private Integer order;
-        
-        // Getter and setter
-        public Integer getOrder() {
-            return order;
-        }
-        
-        public void setOrder(Integer order) {
-            this.order = order;
+        public void setCreationDate(LocalDateTime creationDate) {
+            this.creationDate = creationDate;
         }
     }
 
@@ -158,14 +124,14 @@ public class QuestionValidationAnnotations {
     public static class OptionsValidation {
         @NotNull
     @NotEmpty
-        private Set<Option> options;
+        private List<Option> options;
         
         // Getter and setter
-        public Set<Option> getOptions() {
+        public List<Option> getOptions() {
             return options;
         }
         
-        public void setOptions(Set<Option> options) {
+        public void setOptions(List<Option> options) {
             this.options = options;
         }
     }

@@ -128,9 +128,9 @@ export class NebulaValidator {
 
     // Check for required properties in root entities
     if (entity.isRoot) {
-      const hasId = entity.properties.some(p => p.name && (p.name.toLowerCase() === 'id' || p.isKey));
+      const hasId = entity.properties.some(p => p.name && p.name.toLowerCase() === 'id');
       if (!hasId) {
-        accept("warning", "Root entity should have an 'id' property or a key property", {
+        accept("warning", "Root entity should have an 'id' property", {
           node: entity,
         });
       }

@@ -1,7 +1,7 @@
 import shared-dtos;
 
 Aggregate Answer {
-    Entity AnswerUser {
+    Entity AnswerUser uses dto UserDto{
         Long id;
         Integer userAggregateId;
         String userName;

@@ -34,9 +34,9 @@ public class CourseService {
     public CourseService() {}
 
     // CRUD Operations
-    public CourseDto createCourse(String name, String acronym, String courseType, LocalDateTime creationDate) {
+    public CourseDto createCourse(String name, CourseType type, LocalDateTime creationDate) {
         try {
-            Course course = new Course(name, acronym, courseType, creationDate);
+            Course course = new Course(name, type, creationDate);
             course = courseRepository.save(course);
             return new CourseDto(course);
         } catch (Exception e) {
@@ -74,11 +74,8 @@ public class CourseService {
                         if (courseDto.getName() != null) {
                 course.setName(courseDto.getName());
             }
-            if (courseDto.getAcronym() != null) {
-                course.setAcronym(courseDto.getAcronym());
-            }
-            if (courseDto.getCourseType() != null) {
-                course.setCourseType(courseDto.getCourseType());
+            if (courseDto.getType() != null) {
+                course.setType(courseDto.getType());
             }
             if (courseDto.getCreationDate() != null) {
                 course.setCreationDate(courseDto.getCreationDate());

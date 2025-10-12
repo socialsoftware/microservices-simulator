@@ -21,45 +21,5 @@ this.questionService = questionService;
 this.unitOfWorkService = unitOfWorkService;
 }
 
-    public void createQuestion(String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, QuestionCourse course, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for createQuestion
-        // This method should orchestrate the saga workflow
-        return null;
-    }
 
-    public void getQuestionById(Integer questionId, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for getQuestionById
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public void getAllQuestions(SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for getAllQuestions
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public void getQuestionsByCourse(Integer courseId, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for getQuestionsByCourse
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public void getQuestionsByTopic(Integer topicId, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for getQuestionsByTopic
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public void updateQuestion(Integer questionId, String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for updateQuestion
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public void deleteQuestion(Integer questionId, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for deleteQuestion
-        // This method should orchestrate the saga workflow
-        return null;
-    }
 }

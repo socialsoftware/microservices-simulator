@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import java.time.LocalDateTime;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 
@@ -38,9 +40,9 @@ public class QuestionService {
     public QuestionService() {}
 
     // CRUD Operations
-    public QuestionDto createQuestion(String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, QuestionCourse course, Set<QuestionTopic> topics, Set<Option> options) {
+    public QuestionDto createQuestion(String title, String content, LocalDateTime creationDate, QuestionCourse course, Set<QuestionTopic> topics, List<Option> options) {
         try {
-            Question question = new Question(title, content, numberOfOptions, correctOption, order, course, topics, options);
+            Question question = new Question(title, content, creationDate, course, topics, options);
             question = questionRepository.save(question);
             return new QuestionDto(question);
         } catch (Exception e) {
@@ -81,14 +83,8 @@ public class QuestionService {
             if (questionDto.getContent() != null) {
                 question.setContent(questionDto.getContent());
             }
-            if (questionDto.getNumberOfOptions() != null) {
-                question.setNumberOfOptions(questionDto.getNumberOfOptions());
-            }
-            if (questionDto.getCorrectOption() != null) {
-                question.setCorrectOption(questionDto.getCorrectOption());
-            }
-            if (questionDto.getOrder() != null) {
-                question.setOrder(questionDto.getOrder());
+            if (questionDto.getCreationDate() != null) {
+                question.setCreationDate(questionDto.getCreationDate());
             }
             if (questionDto.getCourse() != null) {
                 question.setCourse(questionDto.getCourse());

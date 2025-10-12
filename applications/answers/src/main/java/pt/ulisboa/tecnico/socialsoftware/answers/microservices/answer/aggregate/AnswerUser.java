@@ -5,7 +5,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
 public class AnswerUser {
@@ -21,10 +21,8 @@ public class AnswerUser {
     public AnswerUser() {
     }
 
-    public AnswerUser(AnswerDto answerDto) {
-        setUserAggregateId(answerDto.getUserAggregateId());
-        setUserName(answerDto.getUserName());
-        setUserState(answerDto.getUserState());
+    public AnswerUser(UserDto userDto) {
+
     }
 
     public AnswerUser(AnswerUser other) {

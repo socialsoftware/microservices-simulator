@@ -21,33 +21,5 @@ this.courseService = courseService;
 this.unitOfWorkService = unitOfWorkService;
 }
 
-    public Course createCourse(String name, String acronym, String courseType, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for createCourse
-        // This method should orchestrate the saga workflow
-        return null;
-    }
 
-    public Course getCourseById(Integer courseId, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for getCourseById
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public List<Course> getAllCourses(SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for getAllCourses
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public Course updateCourse(Integer courseId, String name, String acronym, String courseType, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for updateCourse
-        // This method should orchestrate the saga workflow
-        return null;
-    }
-
-    public void deleteCourse(Integer courseId, SagaUnitOfWork unitOfWork) {
-        // TODO: Implement saga functionality for deleteCourse
-        // This method should orchestrate the saga workflow
-        return null;
-    }
 }

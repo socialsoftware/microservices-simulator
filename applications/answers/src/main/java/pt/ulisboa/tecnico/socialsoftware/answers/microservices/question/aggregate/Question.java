@@ -8,8 +8,11 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 @Entity
@@ -17,15 +20,13 @@ public abstract class Question extends Aggregate {
     @Id
     private String title;
     private String content;
-    private Integer numberOfOptions;
-    private Integer correctOption;
-    private Integer order;
+    private LocalDateTime creationDate;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "question")
     private QuestionCourse course;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "question")
     private Set<QuestionTopic> topics = new HashSet<>();
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "question")
-    private Set<Option> options = new HashSet<>(); 
+    private List<Option> options = new ArrayList<>(); 
 
     public Question() {
     }
@@ -35,9 +36,7 @@ public abstract class Question extends Aggregate {
         setAggregateType(getClass().getSimpleName());
         setTitle(questionDto.getTitle());
         setContent(questionDto.getContent());
-        setNumberOfOptions(questionDto.getNumberOfOptions());
-        setCorrectOption(questionDto.getCorrectOption());
-        setOrder(questionDto.getOrder());
+        setCreationDate(questionDto.getCreationDate());
         setCourse(course);
     }
 
@@ -45,12 +44,10 @@ public abstract class Question extends Aggregate {
         super(other);
         setTitle(other.getTitle());
         setContent(other.getContent());
-        setNumberOfOptions(other.getNumberOfOptions());
-        setCorrectOption(other.getCorrectOption());
-        setOrder(other.getOrder());
+        setCreationDate(other.getCreationDate());
         setCourse(new QuestionCourse(other.getCourse()));
         setTopics(other.getTopics().stream().map(QuestionTopic::new).collect(Collectors.toSet()));
-        setOptions(other.getOptions().stream().map(Option::new).collect(Collectors.toSet()));
+        setOptions(other.getOptions().stream().map(Option::new).collect(Collectors.toList()));
     }
 
 
@@ -70,28 +67,12 @@ public abstract class Question extends Aggregate {
         this.content = content;
     }
 
-    public Integer getNumberOfOptions() {
-        return numberOfOptions;
+    public LocalDateTime getCreationDate() {
+        return creationDate;
     }
 
-    public void setNumberOfOptions(Integer numberOfOptions) {
-        this.numberOfOptions = numberOfOptions;
-    }
-
-    public Integer getCorrectOption() {
-        return correctOption;
-    }
-
-    public void setCorrectOption(Integer correctOption) {
-        this.correctOption = correctOption;
-    }
-
-    public Integer getOrder() {
-        return order;
-    }
-
-    public void setOrder(Integer order) {
-        this.order = order;
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
     }
 
     public QuestionCourse getCourse() {
@@ -116,43 +97,17 @@ public abstract class Question extends Aggregate {
         }
     }
 
-    public Set<Option> getOptions() {
+    public List<Option> getOptions() {
         return options;
     }
 
-    public void setOptions(Set<Option> options) {
+    public void setOptions(List<Option> options) {
         this.options = options;
         if (this.options != null) {
             this.options.forEach(option -> option.setQuestion(this));
         }
     }
 
-	public void createQuestion(String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, QuestionCourse course, UnitOfWork unitOfWork) {
 
-	}
-
-	public void getQuestionById(Integer questionId, UnitOfWork unitOfWork) {
-
-	}
-
-	public void getAllQuestions(UnitOfWork unitOfWork) {
-
-	}
-
-	public void getQuestionsByCourse(Integer courseId, UnitOfWork unitOfWork) {
-
-	}
-
-	public void getQuestionsByTopic(Integer topicId, UnitOfWork unitOfWork) {
-
-	}
-
-	public void updateQuestion(Integer questionId, String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, UnitOfWork unitOfWork) {
-
-	}
-
-	public void deleteQuestion(Integer questionId, UnitOfWork unitOfWork) {
-
-	}
 
 }

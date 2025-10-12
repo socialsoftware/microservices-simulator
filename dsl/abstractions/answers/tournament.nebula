@@ -117,7 +117,7 @@ Aggregate Tournament {
     }
 
     Entity TournamentExecution {
-        Long id key;
+        Long id;
         Integer executionAggregateId;
         Integer executionCourseId;
         String executionAcronym;
@@ -133,7 +133,7 @@ Aggregate Tournament {
     }
 
     Entity TournamentCreator {
-        Long id key;
+        Long id;
         Integer creatorAggregateId;
         String creatorName;
         String creatorUsername;
@@ -157,7 +157,7 @@ Aggregate Tournament {
 
     Entity TournamentParticipant {
 
-        Long id key;
+        Long id;
         Integer participantAggregateId;
         String participantName;
         String participantUsername;
@@ -170,7 +170,7 @@ Aggregate Tournament {
 
     Entity TournamentParticipantQuizAnswer {
 
-        Long id key;
+        Long id;
         Integer quizAnswerAggregateId;
         Integer quizAnswerVersion;
         Boolean answered;
@@ -180,7 +180,7 @@ Aggregate Tournament {
     }
 
     Entity TournamentTopic {
-        Long id key;
+        Long id;
         Integer topicAggregateId;
         String topicName;
         Integer topicCourseAggregateId;
@@ -190,7 +190,7 @@ Aggregate Tournament {
     }
 
     Entity TournamentQuiz {
-        Long id key;
+        Long id;
         Integer quizAggregateId;
         Integer quizVersion;
         Tournament tournament;

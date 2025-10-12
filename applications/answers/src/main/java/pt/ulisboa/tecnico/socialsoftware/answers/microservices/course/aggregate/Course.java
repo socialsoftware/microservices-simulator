@@ -7,14 +7,14 @@ import jakarta.persistence.EnumType;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import java.time.LocalDateTime;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
 @Entity
 public abstract class Course extends Aggregate {
     @Id
     private String name;
-    private String acronym;
     @Enumerated(EnumType.STRING)
-    private CourseType courseType;
+    private CourseType type;
     private LocalDateTime creationDate; 
 
     public Course() {
@@ -24,16 +24,14 @@ public abstract class Course extends Aggregate {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setName(courseDto.getName());
-        setAcronym(courseDto.getAcronym());
-        setCourseType(courseDto.getCourseType());
+        setType(CourseType.valueOf(courseDto.getType()));
         setCreationDate(courseDto.getCreationDate());
     }
 
     public Course(Course other) {
         super(other);
         setName(other.getName());
-        setAcronym(other.getAcronym());
-        setCourseType(other.getCourseType());
+        setType(other.getType());
         setCreationDate(other.getCreationDate());
     }
 
@@ -46,20 +44,12 @@ public abstract class Course extends Aggregate {
         this.name = name;
     }
 
-    public String getAcronym() {
-        return acronym;
+    public CourseType getType() {
+        return type;
     }
 
-    public void setAcronym(String acronym) {
-        this.acronym = acronym;
-    }
-
-    public CourseType getCourseType() {
-        return courseType;
-    }
-
-    public void setCourseType(CourseType courseType) {
-        this.courseType = courseType;
+    public void setType(CourseType type) {
+        this.type = type;
     }
 
     public LocalDateTime getCreationDate() {
@@ -70,28 +60,6 @@ public abstract class Course extends Aggregate {
         this.creationDate = creationDate;
     }
 
-	public Course createCourse(String name, String acronym, String courseType, UnitOfWork unitOfWork) {
 
-		return null; // TODO: Implement method
-	}
-
-	public Course getCourseById(Integer courseId, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public List<Course> getAllCourses(UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public Course updateCourse(Integer courseId, String name, String acronym, String courseType, UnitOfWork unitOfWork) {
-
-		return null; // TODO: Implement method
-	}
-
-	public void deleteCourse(Integer courseId, UnitOfWork unitOfWork) {
-
-	}
 
 }

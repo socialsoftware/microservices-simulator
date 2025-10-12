@@ -1,8 +1,9 @@
+import shared-enums;
+
 Aggregate Course {
     Root Entity Course {
         String name;
-        String acronym;
-        String courseType;
+        CourseType type;
         LocalDateTime creationDate;
 
         invariants {
@@ -31,11 +32,6 @@ Aggregate Course {
         }
 
         methods {
-            method createCourse(String name, String acronym, String courseType, UnitOfWork unitOfWork): Course;
-            method getCourseById(Integer courseId, UnitOfWork unitOfWork): Course;
-            method getAllCourses(UnitOfWork unitOfWork): List<Course>;
-            method updateCourse(Integer courseId, String name, String acronym, String courseType, UnitOfWork unitOfWork): Course;
-            method deleteCourse(Integer courseId, UnitOfWork unitOfWork): void;
         }
     }
 

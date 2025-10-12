@@ -282,7 +282,11 @@ function generateFields(properties: any[], entity: Entity, isRootEntity: boolean
         } else if (isEntityCollection) {
             // Collection of entities - @OneToMany
             relationshipAnnotation = `    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "${entity.name.toLowerCase()}")\n`;
-            initialization = ' = new HashSet<>()';
+            if (javaType.startsWith('List<')) {
+                initialization = ' = new ArrayList<>()';
+            } else if (javaType.startsWith('Set<')) {
+                initialization = ' = new HashSet<>()';
+            }
             imports.usesOneToMany = true;
             imports.usesCascadeType = true;
             imports.usesFetchType = true;
@@ -413,8 +417,18 @@ function generateEntityDtoConstructor(entity: Entity, projectName: string, allSh
     // Returns null if the field doesn't exist in the DTO
     // Dynamically reads from DSL mapping blocks in shared-dtos.nebula
     function mapEntityFieldToDtoField(entityFieldName: string, dtoType: string, dtoMappings?: any[], entity?: Entity): string | null {
+        // For direct DTO usage (like "Entity Option uses dto OptionDto"), 
+        // use simple field name matching instead of complex collection mapping
         if (!dtoMappings || !entity) {
             // Fallback: just capitalize (assuming the field exists in the DTO)
+            return entityFieldName.charAt(0).toUpperCase() + entityFieldName.slice(1);
+        }
+
+        // Check if this is a direct DTO usage (entity name matches DTO name pattern)
+        const entityName = entity.name;
+        const expectedDtoName = `${entityName}Dto`;
+        if (dtoType === expectedDtoName) {
+            // Direct DTO usage - use simple field name capitalization
             return entityFieldName.charAt(0).toUpperCase() + entityFieldName.slice(1);
         }
 

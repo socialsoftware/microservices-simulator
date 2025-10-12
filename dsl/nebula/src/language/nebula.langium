@@ -117,7 +117,7 @@ OptionalType:
     'Optional' '<' elementType=(PrimitiveType | ID) '>';
 
 Property:
-    type=Type name=ID (',' names+=ID)* (isKey?='key')? ';';
+    type=Type name=ID (',' names+=ID)* ';';
 
 Invariant:
     'check' name=ID '{'

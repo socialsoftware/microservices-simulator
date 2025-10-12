@@ -4,38 +4,57 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
 
 @Entity
 public class Option {
     @Id
     @GeneratedValue
-    private Integer optionNumber;
+    private Long id;
+    private Integer sequence;
+    private Boolean correct;
     private String content;
-    private Boolean isCorrect;
     @OneToOne
     private Question question; 
 
     public Option() {
     }
 
-    public Option(QuestionDto questionDto) {
-        setContent(questionDto.getContent());
-        setIsCorrect(questionDto.getIsCorrect());
+    public Option(OptionDto optionDto) {
+        setSequence(optionDto.getSequence());
+        setCorrect(optionDto.getCorrect());
+        setContent(optionDto.getContent());
     }
 
     public Option(Option other) {
+        setSequence(other.getSequence());
+        setCorrect(other.getCorrect());
         setContent(other.getContent());
-        setIsCorrect(other.getIsCorrect());
     }
 
 
-    public Integer getOptionNumber() {
-        return optionNumber;
+    public Long getId() {
+        return id;
     }
 
-    public void setOptionNumber(Integer optionNumber) {
-        this.optionNumber = optionNumber;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Integer getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(Integer sequence) {
+        this.sequence = sequence;
+    }
+
+    public Boolean getCorrect() {
+        return correct;
+    }
+
+    public void setCorrect(Boolean correct) {
+        this.correct = correct;
     }
 
     public String getContent() {
@@ -44,14 +63,6 @@ public class Option {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public Boolean getIsCorrect() {
-        return isCorrect;
-    }
-
-    public void setIsCorrect(Boolean isCorrect) {
-        this.isCorrect = isCorrect;
     }
 
     public Question getQuestion() {

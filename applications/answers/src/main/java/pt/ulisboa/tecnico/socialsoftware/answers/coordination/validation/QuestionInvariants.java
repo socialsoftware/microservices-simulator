@@ -66,29 +66,11 @@ public class QuestionInvariants {
     }
 
     /**
-     * NumberOfOptions cannot be null
+     * CreationDate cannot be null
      */
-    public static void invariantNumberOfOptionsNotNull(Question entity) {
-        if (entity.getNumberOfOptions() == null) {
-            throw new IllegalStateException("NumberOfOptions cannot be null");
-        }
-    }
-
-    /**
-     * CorrectOption cannot be null
-     */
-    public static void invariantCorrectOptionNotNull(Question entity) {
-        if (entity.getCorrectOption() == null) {
-            throw new IllegalStateException("CorrectOption cannot be null");
-        }
-    }
-
-    /**
-     * Order cannot be null
-     */
-    public static void invariantOrderNotNull(Question entity) {
-        if (entity.getOrder() == null) {
-            throw new IllegalStateException("Order cannot be null");
+    public static void invariantCreationDateNotNull(Question entity) {
+        if (entity.getCreationDate() == null) {
+            throw new IllegalStateException("CreationDate cannot be null");
         }
     }
 

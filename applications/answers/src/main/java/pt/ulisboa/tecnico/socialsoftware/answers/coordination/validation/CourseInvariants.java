@@ -48,38 +48,11 @@ public class CourseInvariants {
     }
 
     /**
-     * Acronym cannot be null
+     * Type cannot be null
      */
-    public static void invariantAcronymNotNull(Course entity) {
-        if (entity.getAcronym() == null) {
-            throw new IllegalStateException("Acronym cannot be null");
-        }
-    }
-
-    /**
-     * Acronym cannot be blank
-     */
-    public static void invariantAcronymNotBlank(Course entity) {
-        if (entity.getAcronym() == null || entity.getAcronym().trim().isEmpty()) {
-            throw new IllegalStateException("Acronym cannot be blank");
-        }
-    }
-
-    /**
-     * CourseType cannot be null
-     */
-    public static void invariantCourseTypeNotNull(Course entity) {
-        if (entity.getCourseType() == null) {
-            throw new IllegalStateException("CourseType cannot be null");
-        }
-    }
-
-    /**
-     * CourseType cannot be blank
-     */
-    public static void invariantCourseTypeNotBlank(Course entity) {
-        if (entity.getCourseType() == null || entity.getCourseType().trim().isEmpty()) {
-            throw new IllegalStateException("CourseType cannot be blank");
+    public static void invariantTypeNotNull(Course entity) {
+        if (entity.getType() == null) {
+            throw new IllegalStateException("Type cannot be null");
         }
     }
 

@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
@@ -11,7 +12,7 @@ public class QuestionDto implements Serializable {
     private AggregateState state;
     private String title;
     private String content;
-    private String creationDate;
+    private LocalDateTime creationDate;
     private CourseDto course;
     
     public QuestionDto() {
@@ -73,11 +74,11 @@ public class QuestionDto implements Serializable {
         this.content = content;
     }
 
-    public String getCreationDate() {
+    public LocalDateTime getCreationDate() {
         return creationDate;
     }
     
-    public void setCreationDate(String creationDate) {
+    public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
 

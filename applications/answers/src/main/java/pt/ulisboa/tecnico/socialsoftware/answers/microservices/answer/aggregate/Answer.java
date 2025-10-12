@@ -26,7 +26,7 @@ public abstract class Answer extends Aggregate {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
     private AnswerQuiz answerQuiz;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "answer")
-    private List<AnswerQuestion> answerQuestion = new HashSet<>(); 
+    private List<AnswerQuestion> answerQuestion = new ArrayList<>(); 
 
     public Answer() {
     }

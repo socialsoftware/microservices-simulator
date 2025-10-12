@@ -1,30 +1,30 @@
 Aggregate Question {
-    Entity QuestionCourse {
+    Entity QuestionCourse uses dto CourseDto {
+        Long id;
         Integer courseAggregateId;
         String courseName;
-        String courseAcronym;
+        Integer courseVersion;
     }
 
-    Entity QuestionTopic {
+    Entity QuestionTopic uses dto TopicDto {
         Integer topicId;
         String topicName;
     }
 
-    Entity Option {
-        Integer optionNumber;
+    Entity Option uses dto OptionDto{
+        Long id;
+        Integer sequence;
+        Boolean correct;
         String content;
-        Boolean isCorrect;
     }
 
     Root Entity Question {
         String title;
         String content;
-        Integer numberOfOptions;
-        Integer correctOption;
-        Integer order;
+        LocalDateTime creationDate;
         QuestionCourse course;
         Set<QuestionTopic> topics;
-        Set<Option> options;
+        List<Option> options;
 
         invariants {
             check titleNotEmpty {
@@ -72,13 +72,6 @@ Aggregate Question {
         }
 
         methods {
-            method createQuestion(String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, QuestionCourse course, UnitOfWork unitOfWork): void;
-            method getQuestionById(Integer questionId, UnitOfWork unitOfWork): void;
-            method getAllQuestions(UnitOfWork unitOfWork): void;
-            method getQuestionsByCourse(Integer courseId, UnitOfWork unitOfWork): void;
-            method getQuestionsByTopic(Integer topicId, UnitOfWork unitOfWork): void;
-            method updateQuestion(Integer questionId, String title, String content, Integer numberOfOptions, Integer correctOption, Integer order, UnitOfWork unitOfWork): void;
-            method deleteQuestion(Integer questionId, UnitOfWork unitOfWork): void;
         }
     }
 

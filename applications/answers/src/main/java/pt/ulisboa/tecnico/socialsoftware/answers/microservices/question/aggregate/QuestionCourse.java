@@ -4,31 +4,40 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 
 @Entity
 public class QuestionCourse {
     @Id
     @GeneratedValue
+    private Long id;
     private Integer courseAggregateId;
     private String courseName;
-    private String courseAcronym;
+    private Integer courseVersion;
     @OneToOne
     private Question question; 
 
     public QuestionCourse() {
     }
 
-    public QuestionCourse(QuestionDto questionDto) {
-        setCourseName(questionDto.getCourseName());
-        setCourseAcronym(questionDto.getCourseAcronym());
+    public QuestionCourse(CourseDto courseDto) {
+
     }
 
     public QuestionCourse(QuestionCourse other) {
+        setCourseAggregateId(other.getCourseAggregateId());
         setCourseName(other.getCourseName());
-        setCourseAcronym(other.getCourseAcronym());
+        setCourseVersion(other.getCourseVersion());
     }
 
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Integer getCourseAggregateId() {
         return courseAggregateId;
@@ -46,12 +55,12 @@ public class QuestionCourse {
         this.courseName = courseName;
     }
 
-    public String getCourseAcronym() {
-        return courseAcronym;
+    public Integer getCourseVersion() {
+        return courseVersion;
     }
 
-    public void setCourseAcronym(String courseAcronym) {
-        this.courseAcronym = courseAcronym;
+    public void setCourseVersion(Integer courseVersion) {
+        this.courseVersion = courseVersion;
     }
 
     public Question getQuestion() {

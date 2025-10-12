@@ -4,7 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 
 @Entity
 public class QuestionTopic {
@@ -18,8 +18,8 @@ public class QuestionTopic {
     public QuestionTopic() {
     }
 
-    public QuestionTopic(QuestionDto questionDto) {
-        setTopicName(questionDto.getTopicName());
+    public QuestionTopic(TopicDto topicDto) {
+        setTopicName(topicDto.getName());
     }
 
     public QuestionTopic(QuestionTopic other) {
