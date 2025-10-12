@@ -16,7 +16,7 @@ import {
   registerValidationChecks,
 } from "./nebula-validator.js";
 import { NebulaScopeComputation } from './nebula-scope-computation.js';
-import { NebulaScopeProvider } from '../cli/core/nebula-scope-provider.js';
+import { NebulaScopeProvider } from '../cli/engine/nebula-scope-provider.js';
 
 /**
  * Declaration of custom services - add your own service classes here.

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { GenerationConfig, initializeConfig, getGlobalConfig } from '../generator/base/config.js';
+import { GenerationConfig, initializeConfig, getGlobalConfig } from '../generators/shared/config.js';
 
 export interface NebulaConfig {
     projectName?: string;

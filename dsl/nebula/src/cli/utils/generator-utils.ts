@@ -2,7 +2,7 @@
  * Utility functions for template processing
  */
 
-import { ValidationError, ValidationWarning } from '../generator/template-engine/types.js';
+import { ValidationError, ValidationWarning } from '../generators/shared/types.js';
 
 export class Utils {
     /**

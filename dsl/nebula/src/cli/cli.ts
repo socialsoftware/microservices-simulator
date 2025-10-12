@@ -6,13 +6,13 @@ import { Command } from "commander";
 import { NebulaLanguageMetaData } from "../language/generated/module.js";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { CodeGenerator } from "./core/code-generator.js";
-import { DEFAULT_OUTPUT_DIR } from "./core/types.js";
+import { CodeGenerator } from "./engine/code-generator.js";
+import { DEFAULT_OUTPUT_DIR } from "./engine/types.js";
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const packagePath = path.resolve(__dirname, "..", "..", "package.json");
 
-export default async function (): Promise<void> {
+export default async function cli(): Promise<void> {
     const program = new Command();
 
     const packageContent = await fs.readFile(packagePath, "utf-8");
