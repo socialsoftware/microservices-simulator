@@ -1,5 +1,5 @@
 import { Aggregate } from "../../language/generated/ast.js";
-import { EventGenerator } from "../generator/impl/events/event-generator.js";
+import { EventGenerator } from "../generator/impl/microservices/events/event-generator.js";
 import { GenerationOptions } from "../core/types.js";
 import * as fs from 'fs/promises';
 import * as path from 'path';

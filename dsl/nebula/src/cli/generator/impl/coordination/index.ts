@@ -1,5 +1,5 @@
 import { Aggregate, Entity } from '../../base/model-parser.js';
-import { CoordinationGenerationOptions } from '../types.js';
+import { CoordinationGenerationOptions } from '../microservices/types.js';
 import { FunctionalitiesGenerator } from './functionalities-generator.js';
 import { EventProcessingGenerator } from './event-processing-generator.js';
 

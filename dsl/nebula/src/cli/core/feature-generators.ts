@@ -8,7 +8,7 @@ import {
     SagaFeature,
     ServiceFeature
 } from "../orchestration/index.js";
-import { SharedFeature } from "../generator/impl/shared/index.js";
+import { SharedFeature } from "../generator/impl/microservices/shared/index.js";
 
 export class FeatureGenerators {
     static async generateAggregate(aggregate: Aggregate, paths: ProjectPaths, options: GenerationOptions, generators: GeneratorRegistry, allAggregates?: Aggregate[]): Promise<void> {

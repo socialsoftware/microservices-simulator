@@ -371,7 +371,7 @@ export abstract class OrchestrationBase {
         const currentFileUrl = import.meta.url;
         const currentFilePath = new URL(currentFileUrl).pathname;
         const currentDir = path.dirname(currentFilePath);
-        const templateRoot = path.join(currentDir, '../../../../templates');
+        const templateRoot = path.join(currentDir, '../../templates');
         const fullPath = path.join(templateRoot, templatePath);
 
         try {

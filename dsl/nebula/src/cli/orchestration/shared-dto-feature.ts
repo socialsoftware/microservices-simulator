@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { GenerationOptions } from "../core/types.js";
-import { SharedDtoGenerator } from "../generator/impl/shared/shared-dto-generator.js";
+import { SharedDtoGenerator } from "../generator/impl/microservices/shared/shared-dto-generator.js";
 import { SharedDtos, Model } from "../../language/generated/ast.js";
 
 export class SharedDtoFeature {

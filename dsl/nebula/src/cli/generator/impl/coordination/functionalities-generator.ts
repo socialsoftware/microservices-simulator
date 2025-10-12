@@ -1,5 +1,5 @@
 import { Aggregate, Entity } from '../../base/model-parser.js';
-import { CoordinationGenerationOptions } from '../types.js';
+import { CoordinationGenerationOptions } from '../microservices/types.js';
 import { TypeResolver } from '../../base/type-resolver.js';
 import { EntityRegistry } from '../../base/entity-registry.js';
 import { OrchestrationBase } from '../../base/orchestration-base.js';
