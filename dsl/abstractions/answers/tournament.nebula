@@ -116,14 +116,19 @@ Aggregate Tournament {
        }
     }
 
-    Entity TournamentExecution {
+    Entity TournamentExecution uses dto ExecutionDto mapping {
+        aggregateId -> executionAggregateId;
+        courseAggregateId -> executionAggregateCourseId;
+        acronym -> executionAcronym;
+        state -> executionState;
+        version -> executionVersion;
+    } {
         Long id;
         Integer executionAggregateId;
-        Integer executionCourseId;
+        Integer executionAggregateCourseId;
         String executionAcronym;
-        String executionStatus;
+        AggregateState executionState;
         Integer executionVersion;
-        Tournament tournament;
 
         invariants {
             check validStatus {
@@ -132,68 +137,78 @@ Aggregate Tournament {
         }
     }
 
-    Entity TournamentCreator {
+    Entity TournamentCreator uses dto UserDto mapping {
+        aggregateId -> creatorAggregateId;
+        name -> creatorName;
+        username -> creatorUsername;
+        version -> creatorVersion;
+        state -> creatorState;
+
+    } {
         Long id;
         Integer creatorAggregateId;
         String creatorName;
         String creatorUsername;
         Integer creatorVersion;
         AggregateState creatorState;
-        Tournament tournament;
-        
-        constructor TournamentCreator(Integer userId) {
-            "setCreatorAggregateId(userId);
-            setCreatorName('Default Name');
-            setCreatorUsername('Default Username');
-            setCreatorVersion(1);"
-        }
         
         methods {
-            method buildDto(): String {
-                "return 'User: ' + getCreatorAggregateId();"
-            }
+            
         }
     }
 
-    Entity TournamentParticipant {
+    Entity TournamentParticipant uses dto UserDto mapping {
+        aggregateId -> participantAggregateId;
+        name -> participantName;
+        username -> participantUsername;
+        version -> participantVersion;
+        state -> participantState;
 
+    } {
         Long id;
         Integer participantAggregateId;
+        Integer participantVersion;
+        AggregateState participantState;
         String participantName;
         String participantUsername;
-        LocalDateTime enrollTime;
-        TournamentParticipantQuizAnswer participantAnswer;
-        Integer participantVersion;
-        AggregateState state;
-        Tournament tournament;
+        LocalDateTime participantEnrollTime;
+        TournamentParticipantQuizAnswer tournamentParticipantQuizAnswer;
     }
 
-    Entity TournamentParticipantQuizAnswer {
-
+    Entity TournamentParticipantQuizAnswer uses dto QuizDto mapping {
+        aggregateId -> participantQuizAnswerAggregateId;
+    } {
         Long id;
-        Integer quizAnswerAggregateId;
-        Integer quizAnswerVersion;
-        Boolean answered;
-        Integer numberOfAnswered;
-        Integer numberOfCorrect;
+        Integer participantQuizAnswerAggregateId;
+        Integer participantQuizAnswerVersion;
+        Boolean participantQuizAnswerAnswered;
+        Integer participantQuizAnswerNumberOfAnswered;
+        Integer participantQuizAnswerNumberOfCorrect;
         TournamentParticipant tournamentParticipant;
     }
 
-    Entity TournamentTopic {
+    Entity TournamentTopic uses dto TopicDto mapping {
+        aggregateId -> topicAggregateId;
+        version -> topicVersion;
+        state -> topicState;
+        name -> topicName;
+        courseId -> topicCourseAggregateId;
+    } {
         Long id;
         Integer topicAggregateId;
+        Integer topicVersion;
+        AggregateState topicState;
         String topicName;
         Integer topicCourseAggregateId;
-        Integer topicVersion;
-        AggregateState state;
-        Tournament tournament;
     }
 
-    Entity TournamentQuiz {
+    Entity TournamentQuiz uses dto QuizDto mapping {
+        aggregateId -> quizAggregateId;
+        version -> quizVersion;
+    } {
         Long id;
         Integer quizAggregateId;
         Integer quizVersion;
-        Tournament tournament;
     }
 
     // Service methods (remain as regular methods)

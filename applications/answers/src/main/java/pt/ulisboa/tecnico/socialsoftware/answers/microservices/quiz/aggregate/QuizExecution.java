@@ -4,7 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 @Entity
 public class QuizExecution {
@@ -20,10 +20,9 @@ public class QuizExecution {
     public QuizExecution() {
     }
 
-    public QuizExecution(QuizDto quizDto) {
-        setExecutionName(quizDto.getExecutionName());
-        setExecutionAcronym(quizDto.getExecutionAcronym());
-        setExecutionAcademicTerm(quizDto.getExecutionAcademicTerm());
+    public QuizExecution(ExecutionDto executionDto) {
+        setExecutionAcronym(executionDto.getAcronym());
+        setExecutionAcademicTerm(executionDto.getAcademicTerm());
     }
 
     public QuizExecution(QuizExecution other) {

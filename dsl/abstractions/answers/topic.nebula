@@ -1,14 +1,18 @@
+import shared-dtos;
+
 Aggregate Topic {
-    Entity TopicCourse {
+    Entity TopicCourse uses dto CourseDto mapping {
+        aggregateId -> courseAggregateId;
+        version -> courseVersion;
+    } {
+        Long id;
         Integer courseAggregateId;
-        String courseName;
-        String courseAcronym;
+        Integer courseVersion;
     }
 
     Root Entity Topic {
         String name;
         TopicCourse course;
-        LocalDateTime creationDate;
 
         invariants {
             check nameNotEmpty {
@@ -32,12 +36,6 @@ Aggregate Topic {
         }
 
         methods {
-            method createTopic(String name, TopicCourse course, UnitOfWork unitOfWork): void;
-            method getTopicById(Integer topicId, UnitOfWork unitOfWork): void;
-            method getAllTopics(UnitOfWork unitOfWork): void;
-            method getTopicsByCourse(Integer courseId, UnitOfWork unitOfWork): void;
-            method updateTopic(Integer topicId, String name, UnitOfWork unitOfWork): void;
-            method deleteTopic(Integer topicId, UnitOfWork unitOfWork): void;
         }
     }
 

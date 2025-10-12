@@ -4,8 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.CascadeType;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 @Entity
 public class TournamentExecution {
@@ -13,34 +13,30 @@ public class TournamentExecution {
     @GeneratedValue
     private Long id;
     private Integer executionAggregateId;
-    private Integer executionCourseId;
+    private Integer executionAggregateCourseId;
     private String executionAcronym;
-    private String executionStatus;
+    private AggregateState executionState;
     private Integer executionVersion;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentexecution")
-    private Tournament tournament;
     @OneToOne
     private Tournament tournament; 
 
     public TournamentExecution() {
     }
 
-    public TournamentExecution(TournamentDto tournamentDto) {
-        setExecutionAggregateId(tournamentDto.getExecutionAggregateId());
-        setExecutionCourseId(tournamentDto.getExecutionCourseId());
-        setExecutionAcronym(tournamentDto.getExecutionAcronym());
-        setExecutionStatus(tournamentDto.getExecutionStatus());
-        setExecutionVersion(tournamentDto.getExecutionVersion());
-        setTournament(tournament);
+    public TournamentExecution(ExecutionDto executionDto) {
+        setExecutionAggregateId(executionDto.getAggregateId());
+        setExecutionAggregateCourseId(executionDto.getCourseAggregateId());
+        setExecutionAcronym(executionDto.getAcronym());
+        setExecutionState(executionDto.getState());
+        setExecutionVersion(executionDto.getVersion());
     }
 
     public TournamentExecution(TournamentExecution other) {
         setExecutionAggregateId(other.getExecutionAggregateId());
-        setExecutionCourseId(other.getExecutionCourseId());
+        setExecutionAggregateCourseId(other.getExecutionAggregateCourseId());
         setExecutionAcronym(other.getExecutionAcronym());
-        setExecutionStatus(other.getExecutionStatus());
+        setExecutionState(other.getExecutionState());
         setExecutionVersion(other.getExecutionVersion());
-        setTournament(new Tournament(other.getTournament()));
     }
 
 
@@ -60,12 +56,12 @@ public class TournamentExecution {
         this.executionAggregateId = executionAggregateId;
     }
 
-    public Integer getExecutionCourseId() {
-        return executionCourseId;
+    public Integer getExecutionAggregateCourseId() {
+        return executionAggregateCourseId;
     }
 
-    public void setExecutionCourseId(Integer executionCourseId) {
-        this.executionCourseId = executionCourseId;
+    public void setExecutionAggregateCourseId(Integer executionAggregateCourseId) {
+        this.executionAggregateCourseId = executionAggregateCourseId;
     }
 
     public String getExecutionAcronym() {
@@ -76,12 +72,12 @@ public class TournamentExecution {
         this.executionAcronym = executionAcronym;
     }
 
-    public String getExecutionStatus() {
-        return executionStatus;
+    public AggregateState getExecutionState() {
+        return executionState;
     }
 
-    public void setExecutionStatus(String executionStatus) {
-        this.executionStatus = executionStatus;
+    public void setExecutionState(AggregateState executionState) {
+        this.executionState = executionState;
     }
 
     public Integer getExecutionVersion() {
@@ -90,17 +86,6 @@ public class TournamentExecution {
 
     public void setExecutionVersion(Integer executionVersion) {
         this.executionVersion = executionVersion;
-    }
-
-    public Tournament getTournament() {
-        return tournament;
-    }
-
-    public void setTournament(Tournament tournament) {
-        this.tournament = tournament;
-        if (this.tournament != null) {
-            this.tournament.setTournamentExecution(this);
-        }
     }
 
     public Tournament getTournament() {

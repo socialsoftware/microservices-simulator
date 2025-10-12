@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import java.time.LocalDateTime;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 
@@ -35,9 +33,9 @@ public class TopicService {
     public TopicService() {}
 
     // CRUD Operations
-    public TopicDto createTopic(String name, TopicCourse course, LocalDateTime creationDate) {
+    public TopicDto createTopic(String name, TopicCourse course) {
         try {
-            Topic topic = new Topic(name, course, creationDate);
+            Topic topic = new Topic(name, course);
             topic = topicRepository.save(topic);
             return new TopicDto(topic);
         } catch (Exception e) {
@@ -77,9 +75,6 @@ public class TopicService {
             }
             if (topicDto.getCourse() != null) {
                 topic.setCourse(topicDto.getCourse());
-            }
-            if (topicDto.getCreationDate() != null) {
-                topic.setCreationDate(topicDto.getCreationDate());
             }
             
             topic = topicRepository.save(topic);

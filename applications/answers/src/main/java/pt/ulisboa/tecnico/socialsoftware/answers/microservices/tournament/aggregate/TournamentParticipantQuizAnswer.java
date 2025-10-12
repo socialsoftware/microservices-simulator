@@ -5,18 +5,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.CascadeType;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 
 @Entity
 public class TournamentParticipantQuizAnswer {
     @Id
     @GeneratedValue
     private Long id;
-    private Integer quizAnswerAggregateId;
-    private Integer quizAnswerVersion;
-    private Boolean answered;
-    private Integer numberOfAnswered;
-    private Integer numberOfCorrect;
+    private Integer participantQuizAnswerAggregateId;
+    private Integer participantQuizAnswerVersion;
+    private Boolean participantQuizAnswerAnswered;
+    private Integer participantQuizAnswerNumberOfAnswered;
+    private Integer participantQuizAnswerNumberOfCorrect;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentparticipantquizanswer")
     private TournamentParticipant tournamentParticipant;
     @OneToOne
@@ -25,21 +25,16 @@ public class TournamentParticipantQuizAnswer {
     public TournamentParticipantQuizAnswer() {
     }
 
-    public TournamentParticipantQuizAnswer(TournamentDto tournamentDto) {
-        setQuizAnswerAggregateId(tournamentDto.getQuizAnswerAggregateId());
-        setQuizAnswerVersion(tournamentDto.getQuizAnswerVersion());
-        setAnswered(tournamentDto.getAnswered());
-        setNumberOfAnswered(tournamentDto.getNumberOfAnswered());
-        setNumberOfCorrect(tournamentDto.getNumberOfCorrect());
-        setTournamentParticipant(tournamentParticipant);
+    public TournamentParticipantQuizAnswer(QuizDto quizDto) {
+        setParticipantQuizAnswerAggregateId(quizDto.getAggregateId());
     }
 
     public TournamentParticipantQuizAnswer(TournamentParticipantQuizAnswer other) {
-        setQuizAnswerAggregateId(other.getQuizAnswerAggregateId());
-        setQuizAnswerVersion(other.getQuizAnswerVersion());
-        setAnswered(other.getAnswered());
-        setNumberOfAnswered(other.getNumberOfAnswered());
-        setNumberOfCorrect(other.getNumberOfCorrect());
+        setParticipantQuizAnswerAggregateId(other.getParticipantQuizAnswerAggregateId());
+        setParticipantQuizAnswerVersion(other.getParticipantQuizAnswerVersion());
+        setParticipantQuizAnswerAnswered(other.getParticipantQuizAnswerAnswered());
+        setParticipantQuizAnswerNumberOfAnswered(other.getParticipantQuizAnswerNumberOfAnswered());
+        setParticipantQuizAnswerNumberOfCorrect(other.getParticipantQuizAnswerNumberOfCorrect());
         setTournamentParticipant(new TournamentParticipant(other.getTournamentParticipant()));
     }
 
@@ -52,44 +47,44 @@ public class TournamentParticipantQuizAnswer {
         this.id = id;
     }
 
-    public Integer getQuizAnswerAggregateId() {
-        return quizAnswerAggregateId;
+    public Integer getParticipantQuizAnswerAggregateId() {
+        return participantQuizAnswerAggregateId;
     }
 
-    public void setQuizAnswerAggregateId(Integer quizAnswerAggregateId) {
-        this.quizAnswerAggregateId = quizAnswerAggregateId;
+    public void setParticipantQuizAnswerAggregateId(Integer participantQuizAnswerAggregateId) {
+        this.participantQuizAnswerAggregateId = participantQuizAnswerAggregateId;
     }
 
-    public Integer getQuizAnswerVersion() {
-        return quizAnswerVersion;
+    public Integer getParticipantQuizAnswerVersion() {
+        return participantQuizAnswerVersion;
     }
 
-    public void setQuizAnswerVersion(Integer quizAnswerVersion) {
-        this.quizAnswerVersion = quizAnswerVersion;
+    public void setParticipantQuizAnswerVersion(Integer participantQuizAnswerVersion) {
+        this.participantQuizAnswerVersion = participantQuizAnswerVersion;
     }
 
-    public Boolean getAnswered() {
-        return answered;
+    public Boolean getParticipantQuizAnswerAnswered() {
+        return participantQuizAnswerAnswered;
     }
 
-    public void setAnswered(Boolean answered) {
-        this.answered = answered;
+    public void setParticipantQuizAnswerAnswered(Boolean participantQuizAnswerAnswered) {
+        this.participantQuizAnswerAnswered = participantQuizAnswerAnswered;
     }
 
-    public Integer getNumberOfAnswered() {
-        return numberOfAnswered;
+    public Integer getParticipantQuizAnswerNumberOfAnswered() {
+        return participantQuizAnswerNumberOfAnswered;
     }
 
-    public void setNumberOfAnswered(Integer numberOfAnswered) {
-        this.numberOfAnswered = numberOfAnswered;
+    public void setParticipantQuizAnswerNumberOfAnswered(Integer participantQuizAnswerNumberOfAnswered) {
+        this.participantQuizAnswerNumberOfAnswered = participantQuizAnswerNumberOfAnswered;
     }
 
-    public Integer getNumberOfCorrect() {
-        return numberOfCorrect;
+    public Integer getParticipantQuizAnswerNumberOfCorrect() {
+        return participantQuizAnswerNumberOfCorrect;
     }
 
-    public void setNumberOfCorrect(Integer numberOfCorrect) {
-        this.numberOfCorrect = numberOfCorrect;
+    public void setParticipantQuizAnswerNumberOfCorrect(Integer participantQuizAnswerNumberOfCorrect) {
+        this.participantQuizAnswerNumberOfCorrect = participantQuizAnswerNumberOfCorrect;
     }
 
     public TournamentParticipant getTournamentParticipant() {

@@ -75,15 +75,6 @@ public class QuizInvariants {
     }
 
     /**
-     * QuizType cannot be blank
-     */
-    public static void invariantQuizTypeNotBlank(Quiz entity) {
-        if (entity.getQuizType() == null || entity.getQuizType().trim().isEmpty()) {
-            throw new IllegalStateException("QuizType cannot be blank");
-        }
-    }
-
-    /**
      * AvailableDate cannot be null
      */
     public static void invariantAvailableDateNotNull(Quiz entity) {

@@ -57,15 +57,6 @@ public class TopicInvariants {
     }
 
     /**
-     * CreationDate cannot be null
-     */
-    public static void invariantCreationDateNotNull(Topic entity) {
-        if (entity.getCreationDate() == null) {
-            throw new IllegalStateException("CreationDate cannot be null");
-        }
-    }
-
-    /**
      * Topic aggregate must be in a valid state
      */
     public static void invariantTopicValid(Topic entity) {

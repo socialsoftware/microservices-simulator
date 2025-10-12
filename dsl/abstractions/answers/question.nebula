@@ -1,3 +1,5 @@
+import shared-dtos;
+
 Aggregate Question {
     Entity QuestionCourse uses dto CourseDto {
         Long id;

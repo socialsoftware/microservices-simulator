@@ -65,21 +65,4 @@ public class TopicValidationAnnotations {
         }
     }
 
-    /**
-     * Validation annotations for creationDate
-     */
-    public static class CreationDateValidation {
-        @NotNull
-        private LocalDateTime creationDate;
-        
-        // Getter and setter
-        public LocalDateTime getCreationDate() {
-            return creationDate;
-        }
-        
-        public void setCreationDate(LocalDateTime creationDate) {
-            this.creationDate = creationDate;
-        }
-    }
-
 }

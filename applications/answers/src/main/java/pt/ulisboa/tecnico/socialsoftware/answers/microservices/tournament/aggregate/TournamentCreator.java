@@ -4,9 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.CascadeType;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
 public class TournamentCreator {
@@ -18,21 +17,18 @@ public class TournamentCreator {
     private String creatorUsername;
     private Integer creatorVersion;
     private AggregateState creatorState;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentcreator")
-    private Tournament tournament;
     @OneToOne
     private Tournament tournament; 
 
     public TournamentCreator() {
     }
 
-    public TournamentCreator(TournamentDto tournamentDto) {
-        setCreatorAggregateId(tournamentDto.getCreatorAggregateId());
-        setCreatorName(tournamentDto.getCreatorName());
-        setCreatorUsername(tournamentDto.getCreatorUsername());
-        setCreatorVersion(tournamentDto.getCreatorVersion());
-        setCreatorState(tournamentDto.getCreatorState());
-        setTournament(tournament);
+    public TournamentCreator(UserDto userDto) {
+        setCreatorAggregateId(userDto.getAggregateId());
+        setCreatorName(userDto.getName());
+        setCreatorUsername(userDto.getUsername());
+        setCreatorVersion(userDto.getVersion());
+        setCreatorState(userDto.getState());
     }
 
     public TournamentCreator(TournamentCreator other) {
@@ -41,14 +37,8 @@ public class TournamentCreator {
         setCreatorUsername(other.getCreatorUsername());
         setCreatorVersion(other.getCreatorVersion());
         setCreatorState(other.getCreatorState());
-        setTournament(new Tournament(other.getTournament()));
     }
-	public TournamentCreator(Integer userId) {
-		setCreatorAggregateId(userId);
-		            setCreatorName('Default Name');
-		            setCreatorUsername('Default Username');
-		            setCreatorVersion(1);
-	}
+
 
     public Long getId() {
         return id;
@@ -104,20 +94,7 @@ public class TournamentCreator {
 
     public void setTournament(Tournament tournament) {
         this.tournament = tournament;
-        if (this.tournament != null) {
-            this.tournament.setTournamentCreator(this);
-        }
     }
 
-    public Tournament getTournament() {
-        return tournament;
-    }
-
-    public void setTournament(Tournament tournament) {
-        this.tournament = tournament;
-    }
-	public String buildDto() {
-		return 'User: ' + getCreatorAggregateId();
-	}
 
 }

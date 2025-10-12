@@ -5,7 +5,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.CascadeType;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import java.time.LocalDateTime;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 
 @Entity
@@ -13,8 +12,7 @@ public abstract class Topic extends Aggregate {
     @Id
     private String name;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "topic")
-    private TopicCourse course;
-    private LocalDateTime creationDate; 
+    private TopicCourse course; 
 
     public Topic() {
     }
@@ -24,14 +22,12 @@ public abstract class Topic extends Aggregate {
         setAggregateType(getClass().getSimpleName());
         setName(topicDto.getName());
         setCourse(course);
-        setCreationDate(topicDto.getCreationDate());
     }
 
     public Topic(Topic other) {
         super(other);
         setName(other.getName());
         setCourse(new TopicCourse(other.getCourse()));
-        setCreationDate(other.getCreationDate());
     }
 
 
@@ -54,36 +50,6 @@ public abstract class Topic extends Aggregate {
         }
     }
 
-    public LocalDateTime getCreationDate() {
-        return creationDate;
-    }
 
-    public void setCreationDate(LocalDateTime creationDate) {
-        this.creationDate = creationDate;
-    }
-
-	public void createTopic(String name, TopicCourse course, UnitOfWork unitOfWork) {
-
-	}
-
-	public void getTopicById(Integer topicId, UnitOfWork unitOfWork) {
-
-	}
-
-	public void getAllTopics(UnitOfWork unitOfWork) {
-
-	}
-
-	public void getTopicsByCourse(Integer courseId, UnitOfWork unitOfWork) {
-
-	}
-
-	public void updateTopic(Integer topicId, String name, UnitOfWork unitOfWork) {
-
-	}
-
-	public void deleteTopic(Integer topicId, UnitOfWork unitOfWork) {
-
-	}
 
 }

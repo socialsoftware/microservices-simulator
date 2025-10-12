@@ -21,7 +21,6 @@ SharedDtos {
         String acronym;
         String academicTerm;
         LocalDateTime endDate;
-        Set<UserDto> users;
 
         Integer courseAggregateId;
         String courseName;
@@ -43,6 +42,7 @@ SharedDtos {
         String title;
         String content;
         LocalDateTime creationDate;
+        Integer sequence;
 
         CourseDto course;
 

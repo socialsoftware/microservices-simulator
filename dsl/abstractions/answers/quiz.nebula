@@ -1,19 +1,36 @@
+import shared-enums;
+import shared-dtos;
+
 Aggregate Quiz {
-    Entity QuizExecution {
+    Entity QuizExecution uses dto ExecutionDto mapping {
+        aggregateId -> executionAggregateId;
+        acronym -> executionAcronym;
+        academicTerm -> executionAcademicTerm;
+    } {
         Integer executionAggregateId;
         String executionName;
         String executionAcronym;
         String executionAcademicTerm;
     }
 
-    Entity QuizQuestion {
-        Integer questionId;
+    Entity QuizQuestion uses dto QuestionDto mapping {
+        aggregateId -> questionAggregateId;
+        version -> questionVersion;
+        state -> questionState;
+        title -> questionTitle;
+        content -> questionContent;
+        sequence -> questionSequence;
+    } {
+        Long id;
+        Integer questionAggregateId;
+        Integer questionVersion;
+        AggregateState questionState;
         String questionTitle;
         String questionContent;
-        Integer order;
+        Integer questionSequence;
     }
 
-    Entity QuizOption {
+    Entity QuizOption uses dto OptionDto {
         Integer optionNumber;
         String content;
         Boolean isCorrect;
@@ -22,7 +39,7 @@ Aggregate Quiz {
     Root Entity Quiz {
         String title;
         String description;
-        String quizType;
+        QuizType quizType;
         LocalDateTime availableDate;
         LocalDateTime conclusionDate;
         Integer numberOfQuestions;
@@ -68,13 +85,6 @@ Aggregate Quiz {
         }
 
         methods {
-            method createQuiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, QuizExecution execution, UnitOfWork unitOfWork): void;
-            method getQuizById(Integer quizId, UnitOfWork unitOfWork): void;
-            method getAllQuizzes(UnitOfWork unitOfWork): void;
-            method getQuizzesByExecution(Integer executionId, UnitOfWork unitOfWork): void;
-            method getQuizzesByType(String quizType, UnitOfWork unitOfWork): void;
-            method updateQuiz(Integer quizId, String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, UnitOfWork unitOfWork): void;
-            method deleteQuiz(Integer quizId, UnitOfWork unitOfWork): void;
         }
     }
 

@@ -4,31 +4,39 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 
 @Entity
 public class TopicCourse {
     @Id
     @GeneratedValue
+    private Long id;
     private Integer courseAggregateId;
-    private String courseName;
-    private String courseAcronym;
+    private Integer courseVersion;
     @OneToOne
     private Topic topic; 
 
     public TopicCourse() {
     }
 
-    public TopicCourse(TopicDto topicDto) {
-        setCourseName(topicDto.getCourseName());
-        setCourseAcronym(topicDto.getCourseAcronym());
+    public TopicCourse(CourseDto courseDto) {
+        setCourseAggregateId(courseDto.getAggregateId());
+        setCourseVersion(courseDto.getVersion());
     }
 
     public TopicCourse(TopicCourse other) {
-        setCourseName(other.getCourseName());
-        setCourseAcronym(other.getCourseAcronym());
+        setCourseAggregateId(other.getCourseAggregateId());
+        setCourseVersion(other.getCourseVersion());
     }
 
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Integer getCourseAggregateId() {
         return courseAggregateId;
@@ -38,20 +46,12 @@ public class TopicCourse {
         this.courseAggregateId = courseAggregateId;
     }
 
-    public String getCourseName() {
-        return courseName;
+    public Integer getCourseVersion() {
+        return courseVersion;
     }
 
-    public void setCourseName(String courseName) {
-        this.courseName = courseName;
-    }
-
-    public String getCourseAcronym() {
-        return courseAcronym;
-    }
-
-    public void setCourseAcronym(String courseAcronym) {
-        this.courseAcronym = courseAcronym;
+    public void setCourseVersion(Integer courseVersion) {
+        this.courseVersion = courseVersion;
     }
 
     public Topic getTopic() {

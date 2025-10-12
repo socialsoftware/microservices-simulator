@@ -4,41 +4,75 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 @Entity
 public class QuizQuestion {
     @Id
     @GeneratedValue
-    private Integer questionId;
+    private Long id;
+    private Integer questionAggregateId;
+    private Integer questionVersion;
+    private AggregateState questionState;
     private String questionTitle;
     private String questionContent;
-    private Integer order;
+    private Integer questionSequence;
     @OneToOne
     private Quiz quiz; 
 
     public QuizQuestion() {
     }
 
-    public QuizQuestion(QuizDto quizDto) {
-        setQuestionTitle(quizDto.getQuestionTitle());
-        setQuestionContent(quizDto.getQuestionContent());
-        setOrder(quizDto.getOrder());
+    public QuizQuestion(QuestionDto questionDto) {
+        setQuestionAggregateId(questionDto.getAggregateId());
+        setQuestionVersion(questionDto.getVersion());
+        setQuestionState(questionDto.getState());
+        setQuestionTitle(questionDto.getTitle());
+        setQuestionContent(questionDto.getContent());
+        setQuestionSequence(questionDto.getSequence());
     }
 
     public QuizQuestion(QuizQuestion other) {
+        setQuestionAggregateId(other.getQuestionAggregateId());
+        setQuestionVersion(other.getQuestionVersion());
+        setQuestionState(other.getQuestionState());
         setQuestionTitle(other.getQuestionTitle());
         setQuestionContent(other.getQuestionContent());
-        setOrder(other.getOrder());
+        setQuestionSequence(other.getQuestionSequence());
     }
 
 
-    public Integer getQuestionId() {
-        return questionId;
+    public Long getId() {
+        return id;
     }
 
-    public void setQuestionId(Integer questionId) {
-        this.questionId = questionId;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Integer getQuestionAggregateId() {
+        return questionAggregateId;
+    }
+
+    public void setQuestionAggregateId(Integer questionAggregateId) {
+        this.questionAggregateId = questionAggregateId;
+    }
+
+    public Integer getQuestionVersion() {
+        return questionVersion;
+    }
+
+    public void setQuestionVersion(Integer questionVersion) {
+        this.questionVersion = questionVersion;
+    }
+
+    public AggregateState getQuestionState() {
+        return questionState;
+    }
+
+    public void setQuestionState(AggregateState questionState) {
+        this.questionState = questionState;
     }
 
     public String getQuestionTitle() {
@@ -57,12 +91,12 @@ public class QuizQuestion {
         this.questionContent = questionContent;
     }
 
-    public Integer getOrder() {
-        return order;
+    public Integer getQuestionSequence() {
+        return questionSequence;
     }
 
-    public void setOrder(Integer order) {
-        this.order = order;
+    public void setQuestionSequence(Integer questionSequence) {
+        this.questionSequence = questionSequence;
     }
 
     public Quiz getQuiz() {

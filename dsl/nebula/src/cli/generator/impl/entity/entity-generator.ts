@@ -4,15 +4,7 @@ import { TypeResolver } from "../../base/type-resolver.js";
 import { getGlobalConfig } from "../../base/config.js";
 
 const resolveJavaType = (type: any, fieldName?: string) => {
-    const javaType = TypeResolver.resolveJavaType(type);
-
-    // Legacy: Map String fields ending with "Type" to corresponding enums (for backward compatibility)
-    if (javaType === 'String' && fieldName && fieldName.endsWith('Type')) {
-        const enumName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
-        return enumName;
-    }
-
-    return javaType;
+    return TypeResolver.resolveJavaType(type);
 };
 
 const isEnumType = (type: any) => {
@@ -33,8 +25,8 @@ const isEnumType = (type: any) => {
 };
 
 const isEnumTypeByNaming = (javaType: string) => {
-    // Check if this follows enum naming convention (ends with "Type")
-    return javaType.match(/^[A-Z][a-zA-Z]*Type$/) !== null;
+    // No longer using naming convention - enums must be explicitly defined
+    return false;
 };
 
 // Import the shared DTO generator to check if a DTO is shared
@@ -417,6 +409,20 @@ function generateEntityDtoConstructor(entity: Entity, projectName: string, allSh
     // Returns null if the field doesn't exist in the DTO
     // Dynamically reads from DSL mapping blocks in shared-dtos.nebula
     function mapEntityFieldToDtoField(entityFieldName: string, dtoType: string, dtoMappings?: any[], entity?: Entity): string | null {
+        // Check if entity has explicit DTO mapping
+        const entityAny = entity as any;
+        if (entityAny?.dtoMapping?.fieldMappings) {
+            // Look for explicit field mapping
+            for (const fieldMapping of entityAny.dtoMapping.fieldMappings) {
+                if (fieldMapping.entityField === entityFieldName) {
+                    // Found explicit mapping: entityField -> dtoField
+                    return capitalize(fieldMapping.dtoField);
+                }
+            }
+            // Entity has explicit mappings but this field is not mapped - skip it
+            return null;
+        }
+
         // For direct DTO usage (like "Entity Option uses dto OptionDto"), 
         // use simple field name matching instead of complex collection mapping
         if (!dtoMappings || !entity) {

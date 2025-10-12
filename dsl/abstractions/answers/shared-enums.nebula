@@ -18,9 +18,12 @@ SharedEnums {
     }
     
     enum QuizType {
-        PROPOSED,
-        IN_CLASS,
-        GENERATED
+        EXAM, 
+        TEST, 
+        GENERATED, 
+        PROPOSED, 
+        IN_CLASS, 
+        EXTERNAL_QUIZ
     }
     
     enum TournamentState {

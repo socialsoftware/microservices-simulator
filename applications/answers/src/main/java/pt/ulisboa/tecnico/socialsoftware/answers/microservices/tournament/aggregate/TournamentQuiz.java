@@ -4,8 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.CascadeType;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 
 @Entity
 public class TournamentQuiz {
@@ -14,24 +13,20 @@ public class TournamentQuiz {
     private Long id;
     private Integer quizAggregateId;
     private Integer quizVersion;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentquiz")
-    private Tournament tournament;
     @OneToOne
     private Tournament tournament; 
 
     public TournamentQuiz() {
     }
 
-    public TournamentQuiz(TournamentDto tournamentDto) {
-        setQuizAggregateId(tournamentDto.getQuizAggregateId());
-        setQuizVersion(tournamentDto.getQuizVersion());
-        setTournament(tournament);
+    public TournamentQuiz(QuizDto quizDto) {
+        setQuizAggregateId(quizDto.getAggregateId());
+        setQuizVersion(quizDto.getVersion());
     }
 
     public TournamentQuiz(TournamentQuiz other) {
         setQuizAggregateId(other.getQuizAggregateId());
         setQuizVersion(other.getQuizVersion());
-        setTournament(new Tournament(other.getTournament()));
     }
 
 
@@ -57,17 +52,6 @@ public class TournamentQuiz {
 
     public void setQuizVersion(Integer quizVersion) {
         this.quizVersion = quizVersion;
-    }
-
-    public Tournament getTournament() {
-        return tournament;
-    }
-
-    public void setTournament(Tournament tournament) {
-        this.tournament = tournament;
-        if (this.tournament != null) {
-            this.tournament.setTournamentQuiz(this);
-        }
     }
 
     public Tournament getTournament() {

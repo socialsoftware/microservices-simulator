@@ -22,7 +22,7 @@ Aggregate:
     '}';
 
 Entity:
-    (isRoot?='Root')? 'Entity' name=ID ('uses' 'dto' dtoType=[DtoDefinition:ID])? '{'
+    (isRoot?='Root')? 'Entity' name=ID ('uses' 'dto' dtoType=[DtoDefinition:ID] (dtoMapping=DtoEntityMapping)?)? '{'
         properties+=Property*
         constructors+=Constructor*
         ('invariants' '{'
@@ -35,6 +35,14 @@ Entity:
             methods+=Method*
         '}')?
     '}';
+
+DtoEntityMapping:
+    'mapping' '{'
+        fieldMappings+=DtoFieldMapping*
+    '}';
+
+DtoFieldMapping:
+    dtoField=ID '->' entityField=ID ';';
 
 Method:
     (annotations+=Annotation)*

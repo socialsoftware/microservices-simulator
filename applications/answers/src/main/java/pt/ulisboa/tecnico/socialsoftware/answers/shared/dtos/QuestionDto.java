@@ -13,6 +13,7 @@ public class QuestionDto implements Serializable {
     private String title;
     private String content;
     private LocalDateTime creationDate;
+    private Integer sequence;
     private CourseDto course;
     
     public QuestionDto() {
@@ -30,6 +31,7 @@ public class QuestionDto implements Serializable {
         setCreationDate(question.getCreationDate());
 
         // Fields from QuestionCourse
+        setSequence(question.getQuestionCourse().getSequence());
         setCourse(question.getQuestionCourse().getCourse());
 
     }
@@ -80,6 +82,14 @@ public class QuestionDto implements Serializable {
     
     public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
+    }
+
+    public Integer getSequence() {
+        return sequence;
+    }
+    
+    public void setSequence(Integer sequence) {
+        this.sequence = sequence;
     }
 
     public CourseDto getCourse() {

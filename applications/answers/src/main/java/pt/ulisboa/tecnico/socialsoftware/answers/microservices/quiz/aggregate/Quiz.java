@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 
 @Entity
 public abstract class Quiz extends Aggregate {
@@ -40,7 +41,7 @@ public abstract class Quiz extends Aggregate {
         setAggregateType(getClass().getSimpleName());
         setTitle(quizDto.getTitle());
         setDescription(quizDto.getDescription());
-        setQuizType(quizDto.getQuizType());
+        setQuizType(QuizType.valueOf(quizDto.getQuizType()));
         setAvailableDate(quizDto.getAvailableDate());
         setConclusionDate(quizDto.getConclusionDate());
         setNumberOfQuestions(quizDto.getNumberOfQuestions());
@@ -142,32 +143,6 @@ public abstract class Quiz extends Aggregate {
         }
     }
 
-	public void createQuiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, QuizExecution execution, UnitOfWork unitOfWork) {
 
-	}
-
-	public void getQuizById(Integer quizId, UnitOfWork unitOfWork) {
-
-	}
-
-	public void getAllQuizzes(UnitOfWork unitOfWork) {
-
-	}
-
-	public void getQuizzesByExecution(Integer executionId, UnitOfWork unitOfWork) {
-
-	}
-
-	public void getQuizzesByType(String quizType, UnitOfWork unitOfWork) {
-
-	}
-
-	public void updateQuiz(Integer quizId, String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, UnitOfWork unitOfWork) {
-
-	}
-
-	public void deleteQuiz(Integer quizId, UnitOfWork unitOfWork) {
-
-	}
 
 }

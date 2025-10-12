@@ -31,6 +31,10 @@ export class NebulaValidator {
 
   private readonly javaNamingPattern = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
 
+  // ============================================================================
+  // MODEL VALIDATION
+  // ============================================================================
+
   checkModel(model: Model, accept: ValidationAcceptor): void {
     const aggregateNames = new Set<string>();
     for (const aggregate of model.aggregates) {
@@ -104,6 +108,10 @@ export class NebulaValidator {
     }
   }
 
+  // ============================================================================
+  // ENTITY VALIDATION
+  // ============================================================================
+
   checkEntity(entity: Entity, accept: ValidationAcceptor): void {
     this.validateName(entity.name, "entity", entity, accept);
 
@@ -135,7 +143,22 @@ export class NebulaValidator {
         });
       }
     }
+
+    // Validate DTO usage and imports
+    const entityAny = entity as any;
+    if (entityAny.dtoType) {
+      this.validateDtoImport(entity, accept);
+    }
+
+    // Validate DTO mapping if present
+    if (entityAny.dtoMapping?.fieldMappings) {
+      this.validateEntityDtoMapping(entity, entityAny.dtoMapping.fieldMappings, accept);
+    }
   }
+
+  // ============================================================================
+  // PROPERTY VALIDATION
+  // ============================================================================
 
   checkProperty(property: Property, accept: ValidationAcceptor): void {
     // Validate property name
@@ -234,6 +257,10 @@ export class NebulaValidator {
       });
     }
   }
+
+  // ============================================================================
+  // HELPER METHODS & UTILITIES
+  // ============================================================================
 
   private validateName(name: string, type: string, node: any, accept: ValidationAcceptor): void {
     // Check for empty name
@@ -347,5 +374,70 @@ export class NebulaValidator {
       }
     }
     return null;
+  }
+
+  // ============================================================================
+  // DTO MAPPING VALIDATION
+  // ============================================================================
+
+  private validateDtoImport(entity: Entity, accept: ValidationAcceptor): void {
+    // Get the model to check imports
+    const model = entity.$container?.$container;
+    if (!model) return;
+
+    // Check if shared-dtos is imported
+    const modelAny = model as any;
+    const hasSharedDtosImport = modelAny.imports?.some((imp: any) =>
+      imp.sharedDtos === true
+    );
+
+    if (!hasSharedDtosImport) {
+      const entityAny = entity as any;
+      const dtoName = entityAny.dtoType?.ref?.name || entityAny.dtoType?.$refText || 'unknown';
+      accept("error", `Entity '${entity.name}' uses DTO '${dtoName}' but 'shared-dtos' is not imported. Add 'import shared-dtos;' at the top of the file.`, {
+        node: entity,
+        property: "dtoType",
+      });
+    }
+  }
+
+  private validateEntityDtoMapping(entity: Entity, fieldMappings: any[], accept: ValidationAcceptor): void {
+    const entityFields = entity.properties.map(p => p.name);
+
+    // Get the DTO definition
+    const entityAny = entity as any;
+    const dtoType = entityAny.dtoType;
+    const dtoDefinition = dtoType?.ref;
+
+    for (const mapping of fieldMappings) {
+      // Validate that entity field exists
+      if (!entityFields.includes(mapping.entityField)) {
+        accept("error", `Entity field '${mapping.entityField}' does not exist in entity '${entity.name}'. Available fields: ${entityFields.join(', ')}`, {
+          node: mapping,
+          property: "entityField",
+        });
+      }
+
+      // Validate that DTO field exists
+      if (dtoDefinition && dtoDefinition.fields) {
+        const explicitDtoFields = dtoDefinition.fields.map((f: any) => f.name);
+        // Add standard aggregate fields that are automatically added to all DTOs
+        const standardFields = ['aggregateId', 'version', 'state'];
+        const allDtoFields = [...standardFields, ...explicitDtoFields];
+
+        if (!allDtoFields.includes(mapping.dtoField)) {
+          accept("error", `DTO field '${mapping.dtoField}' does not exist in DTO '${dtoDefinition.name}'. Available fields: ${allDtoFields.join(', ')}`, {
+            node: mapping,
+            property: "dtoField",
+          });
+        }
+      } else if (dtoType && !dtoDefinition) {
+        // DTO reference is broken
+        accept("error", `Referenced DTO '${dtoType.$refText || 'unknown'}' not found`, {
+          node: entity,
+          property: "dtoType",
+        });
+      }
+    }
   }
 }

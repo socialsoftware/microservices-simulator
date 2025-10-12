@@ -40,7 +40,7 @@ public class QuizService {
     public QuizService() {}
 
     // CRUD Operations
-    public QuizDto createQuiz(String title, String description, String quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, QuizExecution execution, Set<QuizQuestion> questions, Set<QuizOption> options) {
+    public QuizDto createQuiz(String title, String description, QuizType quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, QuizExecution execution, Set<QuizQuestion> questions, Set<QuizOption> options) {
         try {
             Quiz quiz = new Quiz(title, description, quizType, availableDate, conclusionDate, numberOfQuestions, execution, questions, options);
             quiz = quizRepository.save(quiz);

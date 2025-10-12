@@ -71,15 +71,14 @@ public class QuizValidationAnnotations {
      */
     public static class QuizTypeValidation {
         @NotNull
-    @NotBlank
-        private String quizType;
+        private QuizType quizType;
         
         // Getter and setter
-        public String getQuizType() {
+        public QuizType getQuizType() {
             return quizType;
         }
         
-        public void setQuizType(String quizType) {
+        public void setQuizType(QuizType quizType) {
             this.quizType = quizType;
         }
     }
