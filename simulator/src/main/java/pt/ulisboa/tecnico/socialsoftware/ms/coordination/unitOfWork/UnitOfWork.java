@@ -30,7 +30,7 @@ public abstract class UnitOfWork implements Serializable {
     private Integer id;
     private Integer version;
     @JsonDeserialize(contentAs = Aggregate.class)
-    private Map<Integer, AggregateDto> aggregatesToCommit;
+    private Map<Integer, Aggregate> aggregatesToCommit;
     private final Set<Event> eventsToEmit;
     private String functionalityName;
 
@@ -70,7 +70,7 @@ public abstract class UnitOfWork implements Serializable {
         this.functionalityName = functionalityName;
     }
 
-    public Map<Integer, AggregateDto> getAggregatesToCommit() {
+    public Map<Integer, Aggregate> getAggregatesToCommit() {
         return this.aggregatesToCommit;
     }
 

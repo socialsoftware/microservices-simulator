@@ -70,5 +70,5 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public abstract void commitAllObjects(Integer commitVersion, Map<Integer, AggregateDto> aggregateMap);
+    public abstract void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap);
 }

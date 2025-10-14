@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,9 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.MessagingObjectMapperProvider;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService;
@@ -46,12 +43,6 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     @Autowired
     private EventRepository eventRepository;
 
-    private final ObjectMapper objectMapperProvider;
-
-    public CausalUnitOfWorkService(MessagingObjectMapperProvider mapperProvider) {
-        this.objectMapperProvider = mapperProvider.newMapper();
-    }
-
     @Retryable(
             retryFor = { SQLException.class,  CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
@@ -76,7 +67,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (aggregate.getState() == Aggregate.AggregateState.DELETED) {
-            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType().toString(), aggregate.getAggregateId());
+            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType(), aggregate.getAggregateId());
         }
 
         List<Event> allEvents = eventRepository.findAll();
@@ -91,7 +82,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (aggregate.getState() == Aggregate.AggregateState.DELETED) {
-            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType().toString(), aggregate.getAggregateId());
+            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType(), aggregate.getAggregateId());
         }
 
         return aggregate;
@@ -121,18 +112,17 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         // STEP 3 performs steps 1 and 2 until step 1 stops holding
         // STEP 4 perform a commit of the aggregates under SERIALIZABLE isolation
 
-        Map<Integer, AggregateDto> originalAggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
+        Map<Integer, Aggregate> originalAggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
         logger.info("Aggregates to commit: {}", originalAggregatesToCommit);
         // may contain merged aggregates
         // we do not want to compare intermediate merged aggregates with concurrent aggregate, so we separate
         // the comparison is always between the original written by the functionality and the concurrent
-        Map<Integer, AggregateDto> modifiedAggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
+        Map<Integer, Aggregate> modifiedAggregatesToCommit = new HashMap<>(unitOfWork.getAggregatesToCommit());
 
         while (concurrentAggregates) {
             concurrentAggregates = false;
             for (Integer aggregateId : originalAggregatesToCommit.keySet()) {
-                AggregateDto aggregateToWriteDto = originalAggregatesToCommit.get(aggregateId);
-                Aggregate aggregateToWrite = aggregateToWriteDto.toAggregate(objectMapperProvider);
+                Aggregate aggregateToWrite = originalAggregatesToCommit.get(aggregateId);
                 if (aggregateToWrite.getPrev() != null && aggregateToWrite.getPrev().getState() == Aggregate.AggregateState.INACTIVE) {
                     throw new SimulatorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregateToWrite.getAggregateId());
                 }
@@ -145,7 +135,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
                     Aggregate newAggregate = ((CausalAggregate) aggregateToWrite).merge(aggregateToWrite, concurrentAggregate);
                     newAggregate.verifyInvariants();
                     newAggregate.setId(null);
-                    modifiedAggregatesToCommit.put(aggregateId, new AggregateDto(newAggregate, objectMapperProvider));
+                    modifiedAggregatesToCommit.put(aggregateId, newAggregate);
                 }
             }
 
@@ -180,12 +170,11 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
             multiplierExpression = "${retry.db.multiplier}"
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void commitAllObjects(Integer commitVersion, Map<Integer, AggregateDto> aggregateMap) { // TODO for each aggregate go to the respective service
+    public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) { // TODO for each aggregate go to the respective service
         aggregateMap.values().forEach(aggregateToWrite -> {
-            Aggregate aggregate = aggregateToWrite.toAggregate(objectMapperProvider);
-            aggregate.setVersion(commitVersion);
-            aggregate.setCreationTs(DateHandler.now());
-            entityManager.persist(aggregate);
+            aggregateToWrite.setVersion(commitVersion);
+            aggregateToWrite.setCreationTs(DateHandler.now());
+            entityManager.persist(aggregateToWrite);
         });
     }
 
@@ -202,7 +191,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
 
         // if a concurrent version is deleted it means the object has been deleted in the meanwhile
         if (concurrentAggregate != null && (concurrentAggregate.getState() == Aggregate.AggregateState.DELETED || concurrentAggregate.getState() == Aggregate.AggregateState.INACTIVE)) {
-            throw new SimulatorException(SimulatorErrorMessage.AGGREGATE_DELETED, concurrentAggregate.getAggregateType().toString(), concurrentAggregate.getAggregateId());
+            throw new SimulatorException(SimulatorErrorMessage.AGGREGATE_DELETED, concurrentAggregate.getAggregateType(), concurrentAggregate.getAggregateId());
         }
 
         return concurrentAggregate;
@@ -217,15 +206,8 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     public void registerChanged(Aggregate aggregate, CausalUnitOfWork unitOfWork) {
         // the id set to null to force a new entry in the db
         aggregate.setId(null);
-        AggregateDto dto;
-        try {
-            dto = new AggregateDto(aggregate, objectMapperProvider);
-        } catch (Exception e) {
-            logger.error("Failed to serialize aggregate {}", aggregate, e);
-            throw new RuntimeException(e);
-        }
-        logger.info("aggregate to commit: {}", dto.getJsonAggregate());
-        unitOfWork.getAggregatesToCommit().put(aggregate.getAggregateId(), dto);
+        logger.info("aggregate to commit: {}", aggregate.getClass());
+        unitOfWork.getAggregatesToCommit().put(aggregate.getAggregateId(), aggregate);
     }
 
     @Override

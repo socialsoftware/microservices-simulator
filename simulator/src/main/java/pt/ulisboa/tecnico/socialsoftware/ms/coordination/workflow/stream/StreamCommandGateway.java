@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
@@ -45,33 +46,36 @@ public class StreamCommandGateway implements CommandGateway {
         String cmdPkg = command.getClass().getPackage().getName();
         boolean isSameServicePackage = !service.isEmpty() && (cmdPkg.contains(".command." + service));
 
-//        if (isSameServicePackage) {
-//            logger.info("Routing to LocalCommandGateway for command: " + command.getClass().getSimpleName());
-//            String handlerClassName = command.getServiceName() + "CommandHandler";
-//
-//            CommandHandler handler = applicationContext.getBeansOfType(CommandHandler.class)
-//                    .values()
-//                    .stream()
-//                    .filter(h -> h.getClass().getSimpleName().equalsIgnoreCase(handlerClassName))
-//                    .findFirst()
-//                    .orElseThrow(() -> new RuntimeException("No handler found for command: " + handlerClassName));
-//
-//            try {
-//                Object returnObject = handler.handle(command);
-//                if (returnObject instanceof SimulatorException) {
-//                    throw (SimulatorException) returnObject;
-//                }
-//                return returnObject;
-//            } catch (SimulatorException e) {
-//                Logger.getLogger(LocalCommandGateway.class.getName()).warning(e.getMessage());
-//                throw e;
-//            }
-//        }
+        // if (isSameServicePackage) {
+        // logger.info("Routing to LocalCommandGateway for command: " +
+        // command.getClass().getSimpleName());
+        // String handlerClassName = command.getServiceName() + "CommandHandler";
+        //
+        // CommandHandler handler =
+        // applicationContext.getBeansOfType(CommandHandler.class)
+        // .values()
+        // .stream()
+        // .filter(h -> h.getClass().getSimpleName().equalsIgnoreCase(handlerClassName))
+        // .findFirst()
+        // .orElseThrow(() -> new RuntimeException("No handler found for command: " +
+        // handlerClassName));
+        //
+        // try {
+        // Object returnObject = handler.handle(command);
+        // if (returnObject instanceof SimulatorException) {
+        // throw (SimulatorException) returnObject;
+        // }
+        // return returnObject;
+        // } catch (SimulatorException e) {
+        // Logger.getLogger(LocalCommandGateway.class.getName()).warning(e.getMessage());
+        // throw e;
+        // }
+        // }
 
         String destination = service + "-command-channel";
         String correlationId = java.util.UUID.randomUUID().toString();
 
-        CompletableFuture<Object> responseFuture = responseAggregator.createResponseFuture(correlationId);
+        CompletableFuture<CommandResponse> responseFuture = responseAggregator.createResponseFuture(correlationId);
         logger.info("Sending command to " + destination);
         String json;
         try {
@@ -93,12 +97,15 @@ public class StreamCommandGateway implements CommandGateway {
         logger.info("Command sent to " + destination);
 
         try {
-            Object response = responseFuture.get();
-            logger.info("GOT RESPONSE: " + response);
-            if (response instanceof SimulatorException) {
-                throw (SimulatorException) response;
+            CommandResponse resp = responseFuture.get();
+            mergeUnitOfWork(command.getUnitOfWork(), resp.unitOfWork());
+
+            Object result = resp.result();
+            logger.info("GOT RESPONSE: " + result);
+            if (result instanceof SimulatorException) {
+                throw (SimulatorException) result;
             }
-            return response;
+            return result;
         } catch (Exception e) {
             logger.warning("Error while waiting for response: " + e.getMessage());
             throw new RuntimeException("Error processing command", e);
@@ -115,4 +122,22 @@ public class StreamCommandGateway implements CommandGateway {
         }, executor);
     }
 
+    private void mergeUnitOfWork(UnitOfWork target, UnitOfWork source) {
+        if (target == null || source == null)
+            return;
+
+        if (source.getId() != null)
+            target.setId(source.getId());
+        if (source.getVersion() != null)
+            target.setVersion(source.getVersion());
+
+        // Aggregates and events
+        if (source.getAggregatesToCommit() != null) {
+            target.getAggregatesToCommit().putAll(source.getAggregatesToCommit());
+        }
+        if (source.getEventsToEmit() != null) {
+            target.getEventsToEmit().addAll(source.getEventsToEmit());
+        }
+
+    }
 }

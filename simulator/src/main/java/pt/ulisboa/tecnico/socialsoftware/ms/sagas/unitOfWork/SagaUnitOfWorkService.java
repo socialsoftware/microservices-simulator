@@ -172,7 +172,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             delayExpression = "${retry.db.delay}",
             multiplierExpression = "${retry.db.multiplier}"
         ))
-    public void commitAllObjects(Integer commitVersion, Map<Integer, AggregateDto> aggregateMap) {
+    public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
         // aggregates are committed at the end of each service
     }
 
