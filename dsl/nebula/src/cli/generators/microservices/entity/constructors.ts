@@ -108,16 +108,21 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         }
 
         if (javaType === 'LocalDateTime') {
+            // For LocalDateTime fields, use direct assignment (assuming DTO also has LocalDateTime)
+            // If DTO has String, it should be explicitly defined in the DSL as String type
             return `        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`;
         } else if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
             return `        set${capitalizedName}(${prop.name});`;
         } else if (isEnumType(prop.type) || isEnumTypeByNaming(javaType)) {
             // For enum types, use valueOf to convert from String DTO field
             return `        set${capitalizedName}(${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}()));`;
+        } else if (javaType.startsWith('List<') || javaType.startsWith('Set<')) {
+            // Handle collection mappings with potential field extraction
+            return generateCollectionMapping(prop, dtoParamName, dtoGetterName, javaType, customDtoType, dtoMappings, entity);
         } else if (!javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
             return `        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`;
         }
-        return ''; // Skip collections, they're initialized empty
+        return ''; // Skip other cases
     }).filter(call => call !== '').join('\n');
 
     // Different constructor body for root vs non-root entities
@@ -248,4 +253,73 @@ function mapEntityFieldToDtoField(entityFieldName: string, dtoType: string, dtoM
     // ... (rest of the existing mapping logic)
 
     return entityFieldName.charAt(0).toUpperCase() + entityFieldName.slice(1);
+}
+
+/**
+ * Generate collection mapping code with optional field extraction
+ */
+function generateCollectionMapping(
+    prop: any,
+    dtoParamName: string,
+    dtoGetterName: string,
+    javaType: string,
+    customDtoType: string,
+    dtoMappings?: any[],
+    entity?: Entity
+): string {
+    const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
+
+    // Check if there's an explicit mapping with extract field
+    const entityAny = entity as any;
+    if (entityAny?.dtoMapping?.fieldMappings) {
+        const fieldMapping = entityAny.dtoMapping.fieldMappings.find((fm: any) =>
+            fm.entityField === prop.name
+        );
+
+        if (fieldMapping && fieldMapping.extractField) {
+            // Generate collection mapping with field extraction
+            const extractField = fieldMapping.extractField;
+            const extractMethod = `get${extractField.charAt(0).toUpperCase() + extractField.slice(1)}`;
+            const collectorMethod = javaType.startsWith('List<') ? 'toList' : 'toSet';
+
+            // Determine the DTO type from the source collection
+            const sourceDtoType = fieldMapping.dtoField; // This should be the collection name
+            const elementDtoType = inferDtoTypeFromCollection(sourceDtoType, customDtoType);
+
+            return `        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}().stream()
+            .map(${elementDtoType}::${extractMethod})
+            .collect(Collectors.${collectorMethod}()));`;
+        }
+    }
+
+    // Default collection handling (no extraction)
+    return ''; // Skip collections without explicit mapping
+}
+
+/**
+ * Infer the DTO type from a collection field name dynamically
+ */
+function inferDtoTypeFromCollection(collectionName: string, baseDtoType: string): string {
+    // Convert collection name to singular DTO type
+    // Examples: questions -> QuestionDto, users -> UserDto, topics -> TopicDto
+
+    let singular: string;
+
+    // Handle common English pluralization patterns
+    if (collectionName.endsWith('ies')) {
+        // categories -> category, stories -> story
+        singular = collectionName.slice(0, -3) + 'y';
+    } else if (collectionName.endsWith('es') && collectionName.length > 3) {
+        // boxes -> box, classes -> class
+        singular = collectionName.slice(0, -2);
+    } else if (collectionName.endsWith('s') && collectionName.length > 1) {
+        // questions -> question, users -> user
+        singular = collectionName.slice(0, -1);
+    } else {
+        // Already singular or unknown pattern
+        singular = collectionName;
+    }
+
+    // Capitalize first letter and add Dto suffix
+    return `${singular.charAt(0).toUpperCase() + singular.slice(1)}Dto`;
 }

@@ -1,31 +1,46 @@
 import shared-dtos;
 
 Aggregate Answer {
-    Entity AnswerUser uses dto UserDto{
+    Entity AnswerUser uses dto UserDto mapping {
+        aggregateId -> userAggregateId;
+        name -> userName;
+        state -> userState;
+    } {
         Long id;
         Integer userAggregateId;
         String userName;
         AggregateState userState;
     }
 
-    Entity AnswerExecution uses dto ExecutionDto {
+    Entity AnswerExecution uses dto ExecutionDto mapping {
+        aggregateId -> executionAggregateId;
+        version -> executionVersion;
+    } {
         Long id;
         Integer executionAggregateId;
         Integer executionVersion;
     }
 
-    Entity AnswerQuestion uses dto QuestionDto {
+    Entity AnswerQuestion uses dto QuestionDto mapping {
+        aggregateId -> questionAggregateId;
+        sequence -> questionOptionSequenceChoice;
+        optionKey -> questionOptionKey;
+    } {
         Long id;
-        Integer questionOptionSequenceChoice;
         Integer questionAggregateId;
         Integer questionVersion;
+        AggregateState questionState;
+        Integer questionOptionSequenceChoice;
         Integer questionTimeTaken;
         Integer questionOptionKey;
         Boolean questionCorrect;
-        AggregateState questionState;
     }
 
-    Entity AnswerQuiz uses dto QuizDto {
+    Entity AnswerQuiz uses dto QuizDto mapping {
+        aggregateId -> quizAggregateId;
+        version -> quizVersion;
+        questions -> quizQuestionsAggregateIds extract aggregateId;
+    } {
         Long id;
         Integer quizAggregateId;
         Integer quizVersion;

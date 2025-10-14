@@ -39,7 +39,7 @@ DtoEntityMapping:
     '}';
 
 DtoFieldMapping:
-    dtoField=ID '->' entityField=ID ';';
+    dtoField=ID '->' entityField=ID ('extract' extractField=ID)? ';';
 
 Method:
     (annotations+=Annotation)*
@@ -403,7 +403,7 @@ DtoMapping:
     '}';
 
 FieldMapping:
-    dtoField=ID '->' entityField=ID ';';
+    dtoField=ID '->' entityField=ID ('extract' extractField=ID)? ';';
 
 DtoFieldType:
     PrimitiveType | DtoReference | ListType | SetType | OptionalType | AggregateStateType;

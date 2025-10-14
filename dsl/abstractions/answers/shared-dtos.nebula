@@ -43,8 +43,10 @@ SharedDtos {
         String content;
         LocalDateTime creationDate;
         Integer sequence;
+        Integer timeTaken;
+        Integer optionKey;
 
-        CourseDto course;
+        mapping CourseDto course;
 
         mapping Set<TopicDto> topics {
             aggregateId -> topicAggregateId;
@@ -79,6 +81,8 @@ SharedDtos {
         String description;
         String quizType;
         Integer numberOfQuestions;
+
+        List<QuestionDto> questions;
     }
     
     dto TournamentDto {

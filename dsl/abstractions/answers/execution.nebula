@@ -10,14 +10,21 @@ Aggregate Execution {
         Integer courseVersion;
     }
 
-    Entity ExecutionUser uses dto UserDto {
+    Entity ExecutionUser uses dto UserDto mapping {
+        aggregateId -> userAggregateId;
+        version -> userVersion;
+        state -> userState;
+        name -> userName;
+        username -> userUsername;
+        active -> userActive;
+    } {
         Long id;
         Integer userAggregateId;
         Integer userVersion;
+        AggregateState userState;
         String userName;
         String userUsername;
-        Boolean active;
-        AggregateState userState;
+        Boolean userActive;
     }
 
     Root Entity Execution {

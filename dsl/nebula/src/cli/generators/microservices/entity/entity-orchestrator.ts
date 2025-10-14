@@ -107,11 +107,14 @@ ${components.invariants}
     }
 
     private finalizeWithImports(javaCode: string, projectName: string, isRootEntity: boolean, aggregateName: string, entityName: string): string {
-        // Use improved import scanning with the import manager
-        this.importManager.clear();
+        // Use the legacy import scanning which works better for entity code
+        const detectedImports = this.scanCodeForImports(javaCode, projectName, isRootEntity, aggregateName, entityName);
 
-        // Scan the generated code for imports and add them to the manager
-        this.importManager.resolveAndAddImports(javaCode);
+        // Combine with any additional imports
+        this.importManager.clear();
+        detectedImports.forEach(imp => {
+            this.importManager.addCustomImport(imp);
+        });
 
         // Add any additional imports that might be needed
         this.addRequiredImports(isRootEntity, aggregateName);
@@ -121,6 +124,92 @@ ${components.invariants}
         const importsString = formattedImports.join('\n');
 
         return javaCode.replace('IMPORTS_PLACEHOLDER', importsString);
+    }
+
+    /**
+     * Scan code for required imports (copied from imports.ts for better integration)
+     */
+    private scanCodeForImports(javaCode: string, projectName: string, isRoot: boolean, aggregateName?: string, entityName?: string): string[] {
+        const imports: string[] = [];
+
+        // Basic JPA imports
+        if (javaCode.includes('@Entity')) imports.push('import jakarta.persistence.Entity;');
+        if (javaCode.includes('@Id')) imports.push('import jakarta.persistence.Id;');
+        if (javaCode.includes('@GeneratedValue')) imports.push('import jakarta.persistence.GeneratedValue;');
+        if (javaCode.includes('@OneToOne')) imports.push('import jakarta.persistence.OneToOne;');
+        if (javaCode.includes('@OneToMany')) imports.push('import jakarta.persistence.OneToMany;');
+        if (javaCode.includes('CascadeType')) imports.push('import jakarta.persistence.CascadeType;');
+        if (javaCode.includes('FetchType')) imports.push('import jakarta.persistence.FetchType;');
+        if (javaCode.includes('@Enumerated')) imports.push('import jakarta.persistence.Enumerated;');
+        if (javaCode.includes('EnumType')) imports.push('import jakarta.persistence.EnumType;');
+
+        // Java utility imports
+        if (javaCode.includes('LocalDateTime')) imports.push('import java.time.LocalDateTime;');
+        if (javaCode.includes('BigDecimal')) imports.push('import java.math.BigDecimal;');
+        if (javaCode.includes('Set<') || javaCode.includes('HashSet')) {
+            imports.push('import java.util.Set;');
+            imports.push('import java.util.HashSet;');
+        }
+        if (javaCode.includes('List<') || javaCode.includes('ArrayList')) {
+            imports.push('import java.util.List;');
+            imports.push('import java.util.ArrayList;');
+        }
+        if (javaCode.includes('Collectors')) imports.push('import java.util.stream.Collectors;');
+
+        // Get config once for all dynamic imports
+        const config = getGlobalConfig();
+
+        // Domain-specific imports
+        if (javaCode.includes('AggregateState')) {
+            const aggregateStateImport = `import ${config.getBasePackage()}.ms.domain.aggregate.Aggregate.AggregateState;`;
+            imports.push(aggregateStateImport);
+        }
+
+        // Aggregate imports
+        if (isRoot) {
+            const aggregateImport = `import ${config.getBasePackage()}.ms.domain.aggregate.Aggregate;`;
+            imports.push(aggregateImport);
+        }
+
+        // Scan for DTO imports (classes ending with 'Dto')
+        const dtoPattern = /\b([A-Z][a-zA-Z]*Dto)\b/g;
+        let dtoMatch;
+        while ((dtoMatch = dtoPattern.exec(javaCode)) !== null) {
+            const dtoType = dtoMatch[1];
+            const dtoImport = `import ${config.buildPackageName(projectName, 'shared', 'dtos')}.${dtoType};`;
+            imports.push(dtoImport);
+        }
+
+        // Scan for other entity imports (classes that are likely entities)
+        const entityPattern = /\b([A-Z][a-zA-Z]*(?:User|Course|Question|Quiz|Topic|Tournament|Answer|Execution|Option))\b/g;
+        let entityMatch;
+        const excludedEntityNames = ['String', 'Integer', 'Long', 'Double', 'Float', 'Boolean', 'LocalDateTime', 'BigDecimal'];
+
+        while ((entityMatch = entityPattern.exec(javaCode)) !== null) {
+            const entityType = entityMatch[1];
+            if (!excludedEntityNames.includes(entityType) && !entityType.endsWith('Dto')) {
+                // Check if it's likely another entity in the same aggregate
+                if (entityType !== entityName && entityType !== aggregateName) {
+                    const entityImport = `import ${config.buildPackageName(projectName, 'microservices', aggregateName?.toLowerCase() || 'unknown', 'aggregate')}.${entityType};`;
+                    imports.push(entityImport);
+                }
+            }
+        }
+
+        // Scan for custom enum types and add their imports (exclude JPA types)
+        const enumPattern = /\b([A-Z][a-zA-Z]*Type)\b/g;
+        let enumMatch;
+        const excludedEnums = ['EnumType', 'CascadeType', 'FetchType']; // JPA types should not be imported from shared.enums
+
+        while ((enumMatch = enumPattern.exec(javaCode)) !== null) {
+            const enumType = enumMatch[1];
+            if (!excludedEnums.includes(enumType)) {
+                const enumImport = `import ${config.buildPackageName(projectName, 'shared', 'enums')}.${enumType};`;
+                imports.push(enumImport);
+            }
+        }
+
+        return imports.flat(); // Flatten in case any push had multiple imports
     }
 
     private addRequiredImports(isRootEntity: boolean, aggregateName: string): void {

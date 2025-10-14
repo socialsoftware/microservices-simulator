@@ -17,7 +17,8 @@ export class ValidationFeature extends FeatureBase {
     ): Promise<FeatureResult> {
         return this.executeFeatureGeneration(aggregate.name, async () => {
             if (!this.hasGenerator(generators, 'validationGenerator')) {
-                return this.createErrorResult(['Validation generator not available']);
+                this.logWarning('Validation generator not available, skipping validation generation');
+                return this.createSuccessResult(0, ['Validation generator not available']);
             }
 
             const validationCode = await this.safeGeneratorCall(

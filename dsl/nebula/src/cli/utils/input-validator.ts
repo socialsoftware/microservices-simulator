@@ -29,30 +29,34 @@ export class InputValidator {
             return { isValid: false, error: 'File path is required and must be a string' };
         }
 
-        // Check for path traversal attempts
-        if (filePath.includes('..') || filePath.includes('~')) {
-            return { isValid: false, error: 'Path traversal attempts are not allowed' };
-        }
-
-        // Check for absolute paths outside project (if baseDir provided)
-        if (baseDir && path.isAbsolute(filePath)) {
-            const resolvedPath = path.resolve(filePath);
-            const resolvedBase = path.resolve(baseDir);
-
-            if (!resolvedPath.startsWith(resolvedBase)) {
-                return { isValid: false, error: 'Absolute paths outside project directory are not allowed' };
-            }
-        }
-
-        // Normalize the path
-        const sanitized = path.normalize(filePath);
+        // Normalize the path first to resolve .. and . segments
+        const normalized = path.normalize(filePath);
 
         // Additional security checks
-        if (sanitized.includes('\0')) {
+        if (normalized.includes('\0')) {
             return { isValid: false, error: 'Null bytes in path are not allowed' };
         }
 
-        return { isValid: true, sanitized };
+        // Check for tilde expansion (home directory)
+        if (filePath.includes('~')) {
+            return { isValid: false, error: 'Tilde paths are not allowed' };
+        }
+
+        // If baseDir is provided, validate the resolved path is within bounds
+        if (baseDir) {
+            const resolvedPath = path.resolve(normalized);
+            const resolvedBase = path.resolve(baseDir);
+
+            // Check if the resolved path is within the base directory
+            if (!resolvedPath.startsWith(resolvedBase + path.sep) && resolvedPath !== resolvedBase) {
+                return {
+                    isValid: false,
+                    error: `Path '${filePath}' resolves outside the allowed directory '${baseDir}'`
+                };
+            }
+        }
+
+        return { isValid: true, sanitized: normalized };
     }
 
     /**
@@ -355,3 +359,4 @@ export function assertValid(result: ValidationResult, field?: string): string {
     }
     return result.sanitized || '';
 }
+

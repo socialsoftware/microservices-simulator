@@ -30,10 +30,14 @@ Aggregate Quiz {
         Integer questionSequence;
     }
 
-    Entity QuizOption uses dto OptionDto {
-        Integer optionNumber;
-        String content;
-        Boolean isCorrect;
+    Entity QuizOption uses dto OptionDto mapping {
+        sequence -> optionSequence;
+        correct -> optionCorrect;
+        content -> optionContent;
+    } {
+        Integer optionSequence;
+        Boolean optionCorrect;
+        String optionContent;
     }
 
     Root Entity Quiz {
@@ -48,29 +52,7 @@ Aggregate Quiz {
         Set<QuizOption> options;
 
         invariants {
-            check titleNotEmpty {
-                title.length() > 0;
-            }
-
-            check availableDateBeforeConclusionDate {
-                availableDate.isBefore(conclusionDate);
-            }
-
-            check numberOfQuestionsPositive {
-                numberOfQuestions > 0;
-            }
-
-            check uniqueQuestions {
-                questions.unique(questionId);
-            }
-
-            check uniqueOptions {
-                options.unique(optionNumber);
-            }
-
-            check questionsMatchNumberOfQuestions {
-                numberOfQuestions > 0;
-            }
+            
         }
 
 

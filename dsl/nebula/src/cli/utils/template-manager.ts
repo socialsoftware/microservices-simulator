@@ -222,7 +222,8 @@ export class TemplateManager {
         const currentFileUrl = import.meta.url;
         const currentFilePath = new URL(currentFileUrl).pathname;
         const currentDir = path.dirname(currentFilePath);
-        return path.join(currentDir, '../../templates');
+        // Templates are in out/cli/templates, and this file is in out/cli/utils
+        return path.join(currentDir, '../templates');
     }
 
     private discoverTemplates(directoryPath: string): string[] {

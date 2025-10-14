@@ -39,7 +39,8 @@ export class SharedDtoGenerator extends OrchestrationBase {
             fields: [...standardAggregateFields, ...dslFields],
             allSharedDtos,
             dtoMappings: dtoDefinition.mappings || [],
-            models: models || []
+            models: models || [],
+            projectName: options.projectName
         };
 
         return this.generateSharedDtoCode(context);
@@ -65,7 +66,8 @@ export class SharedDtoGenerator extends OrchestrationBase {
                 type: this.resolveJavaType(field.type),
                 name: field.name,
                 capitalizedName: this.capitalize(field.name)
-            }))
+            })),
+            projectName: options.projectName
         };
 
         return this.generateSharedDtoCode(context);
@@ -124,16 +126,16 @@ export class SharedDtoGenerator extends OrchestrationBase {
     }
 
     private generateSharedDtoCode(context: any): string {
-        const { packageName, dtoName, fields, isGeneric, genericParams, allSharedDtos, dtoMappings, models } = context;
+        const { packageName, dtoName, fields, isGeneric, genericParams, allSharedDtos, dtoMappings, models, projectName } = context;
 
         const genericDeclaration = isGeneric ? `<${genericParams.join(', ')}>` : '';
 
         // Generate aggregate constructor for specific DTOs
-        const aggregateConstructor = this.generateAggregateConstructor(dtoName, fields, allSharedDtos, dtoMappings, models);
+        const aggregateConstructor = this.generateAggregateConstructor(dtoName, fields, allSharedDtos, dtoMappings, models, projectName);
 
         return `package ${packageName};
 
-${this.generateDynamicImports(dtoName, fields, dtoMappings)}
+${this.generateDynamicImports(dtoName, fields, dtoMappings, projectName)}
 
 public class ${dtoName}${genericDeclaration} implements Serializable {
     
@@ -214,7 +216,7 @@ ${fields.map((field: any) => `    public ${field.type} get${field.capitalizedNam
         return lines.join('\n');
     }
 
-    private generateDynamicImports(dtoName: string, fields: any[], dtoMappings?: any[]): string {
+    private generateDynamicImports(dtoName: string, fields: any[], dtoMappings?: any[], projectName?: string): string {
         const imports = new Set<string>();
 
         // Always needed for DTOs
@@ -240,11 +242,29 @@ ${fields.map((field: any) => `    public ${field.type} get${field.capitalizedNam
         }
 
         if (needsAggregateState) {
-            imports.add('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
+            const config = getGlobalConfig();
+            imports.add(`import ${config.getBasePackage()}.ms.domain.aggregate.Aggregate.AggregateState;`);
         }
 
         if (needsCollectors) {
             imports.add('import java.util.stream.Collectors;');
+        }
+
+        // Add aggregate import if this DTO has mappings (indicating it's an aggregate DTO)
+        if (dtoMappings && dtoMappings.length > 0 && projectName) {
+            const config = getGlobalConfig();
+            const aggregateName = dtoName.replace('Dto', '');
+            const aggregateVariable = aggregateName.toLowerCase();
+
+            // Build the aggregate package dynamically using the configuration
+            const aggregatePackage = config.buildPackageName(
+                projectName,
+                'microservices',
+                aggregateVariable,
+                'aggregate'
+            );
+
+            imports.add(`import ${aggregatePackage}.${aggregateName};`);
         }
 
         // Sort imports for consistency
@@ -252,7 +272,7 @@ ${fields.map((field: any) => `    public ${field.type} get${field.capitalizedNam
         return sortedImports.join('\n');
     }
 
-    private generateAggregateConstructor(dtoName: string, fields: any[], allSharedDtos?: DtoDefinition[], dtoMappings?: any[], models?: Model[]): string {
+    private generateAggregateConstructor(dtoName: string, fields: any[], allSharedDtos?: DtoDefinition[], dtoMappings?: any[], models?: Model[], projectName?: string): string {
         // Determine if this DTO needs an aggregate constructor or parameter constructor
         const hasAggregateMapping = dtoMappings && dtoMappings.length > 0;
 
@@ -264,10 +284,9 @@ ${fields.map((field: any) => `    public ${field.type} get${field.capitalizedNam
         // Generate dynamic aggregate constructor for root entity DTOs
         const aggregateName = dtoName.replace('Dto', '');
         const aggregateVariable = aggregateName.toLowerCase();
-        const packageName = `pt.ulisboa.tecnico.socialsoftware.answers.microservices.${aggregateVariable}.aggregate`;
 
         return `
-    public ${dtoName}(${packageName}.${aggregateName} ${aggregateVariable}) {
+    public ${dtoName}(${aggregateName} ${aggregateVariable}) {
 ${this.generateConstructorBody(fields, aggregateName, aggregateVariable, allSharedDtos, dtoMappings, models)}
     }`;
     }
@@ -295,67 +314,65 @@ ${setterCalls}
     private generateConstructorBody(fields: any[], aggregateName: string, aggregateVariable: string, allSharedDtos?: DtoDefinition[], dtoMappings?: any[], models?: Model[]): string {
         const lines: string[] = [];
 
-        // Group fields by their source
-        const standardFields = fields.filter(f => ['aggregateId', 'version', 'state'].includes(f.name));
-        const rootFields = fields.filter(f => !['aggregateId', 'version', 'state'].includes(f.name) && this.isRootEntityField(f.name, dtoMappings));
-        const nestedFields = fields.filter(f => !['aggregateId', 'version', 'state'].includes(f.name) && !this.isRootEntityField(f.name, dtoMappings) && !this.isCollectionField(f.name));
-        const collectionFields = fields.filter(f => this.isCollectionField(f.name));
-
-        // Standard aggregate fields
-        if (standardFields.length > 0) {
-            lines.push('        // Standard aggregate fields');
-            for (const field of standardFields) {
-                if (field.name === 'aggregateId') {
-                    lines.push(`        set${field.capitalizedName}(${aggregateVariable}.getAggregateId());`);
-                } else if (field.name === 'version') {
-                    lines.push(`        set${field.capitalizedName}(${aggregateVariable}.getVersion());`);
-                } else if (field.name === 'state') {
-                    lines.push(`        set${field.capitalizedName}(${aggregateVariable}.getState().toString());`);
-                }
-            }
-            lines.push('');
-        }
-
-        // Root entity fields
-        if (rootFields.length > 0) {
-            lines.push('        // Root entity fields');
-            for (const field of rootFields) {
-                if (this.isCollectionFieldType(field.name, dtoMappings)) {
-                    // Handle collections from root entity - create DTOs directly
-                    lines.push(this.generateCollectionMapping(field.name, field.capitalizedName, aggregateVariable, aggregateName, allSharedDtos, dtoMappings, models));
-                } else {
-                    // Handle regular root entity fields
-                    lines.push(`        set${field.capitalizedName}(${aggregateVariable}.get${field.capitalizedName}());`);
-                }
-            }
-            lines.push('');
-        }
-
-        // Nested entity fields (from child entities)
-        if (nestedFields.length > 0) {
-            const nestedEntityName = this.inferNestedEntityName(aggregateName, models);
-            lines.push(`        // Fields from ${nestedEntityName}`);
-            for (const field of nestedFields) {
-                const getterMethod = this.mapFieldToEntityGetter(field.name);
-                if (field.type.includes('String') && (field.name === 'type' || field.name.toLowerCase().includes('type'))) {
-                    lines.push(`        set${field.capitalizedName}(${aggregateVariable}.get${nestedEntityName}().${getterMethod}().toString());`);
-                } else {
-                    lines.push(`        set${field.capitalizedName}(${aggregateVariable}.get${nestedEntityName}().${getterMethod}());`);
-                }
-            }
-            lines.push('');
-        }
-
-        // Collection fields (only for collections NOT from root entity - rare cases)
-        if (collectionFields.length > 0) {
-            lines.push('        // Collections');
-            for (const field of collectionFields) {
-                const entityName = this.inferEntityNameFromCollection(field.name, aggregateName, models);
-                lines.push(`        set${field.capitalizedName}(${aggregateVariable}.get${field.capitalizedName}().stream().map(${entityName}::buildDto).collect(Collectors.toSet()));`);
-            }
+        // Process fields in their original order without grouping or comments
+        for (const field of fields) {
+            // Generate the setter call for this field
+            const setterCall = this.generateFieldSetterCall(field, aggregateVariable, aggregateName, allSharedDtos, dtoMappings, models);
+            lines.push(setterCall);
         }
 
         return lines.join('\n');
+    }
+
+
+    /**
+     * Generate the setter call for a specific field
+     */
+    private generateFieldSetterCall(
+        field: any,
+        aggregateVariable: string,
+        aggregateName: string,
+        allSharedDtos?: DtoDefinition[],
+        dtoMappings?: any[],
+        models?: Model[]
+    ): string {
+        // Handle standard aggregate fields
+        if (field.name === 'aggregateId') {
+            return `        set${field.capitalizedName}(${aggregateVariable}.getAggregateId());`;
+        } else if (field.name === 'version') {
+            return `        set${field.capitalizedName}(${aggregateVariable}.getVersion());`;
+        } else if (field.name === 'state') {
+            return `        set${field.capitalizedName}(${aggregateVariable}.getState());`;
+        }
+
+        // Handle root entity fields
+        if (this.isRootEntityField(field.name, dtoMappings)) {
+            if (this.isCollectionFieldType(field.name, dtoMappings)) {
+                // Handle collections from root entity - create DTOs directly
+                return this.generateCollectionMapping(field.name, field.capitalizedName, aggregateVariable, aggregateName, allSharedDtos, dtoMappings, models);
+            } else {
+                // Handle regular root entity fields
+                if (this.shouldConvertToString(field)) {
+                    return `        set${field.capitalizedName}(${aggregateVariable}.get${field.capitalizedName}().toString());`;
+                } else {
+                    return `        set${field.capitalizedName}(${aggregateVariable}.get${field.capitalizedName}());`;
+                }
+            }
+        }
+
+        // Handle nested entity fields
+        const nestedEntityName = this.inferNestedEntityName(aggregateName, models);
+        if (nestedEntityName) {
+            const getterMethod = this.mapFieldToEntityGetter(field.name);
+            if (this.shouldConvertToString(field)) {
+                return `        set${field.capitalizedName}(${aggregateVariable}.get${nestedEntityName}().${getterMethod}().toString());`;
+            } else {
+                return `        set${field.capitalizedName}(${aggregateVariable}.get${nestedEntityName}().${getterMethod}());`;
+            }
+        }
+
+        // Fallback for other fields
+        return `        set${field.capitalizedName}(${aggregateVariable}.get${field.capitalizedName}());`;
     }
 
     private isCollectionField(fieldName: string): boolean {
@@ -363,6 +380,28 @@ ${setterCalls}
         // Most collections belong to the root entity, so this should be empty or very specific
         const separateCollectionFields: string[] = [];
         return separateCollectionFields.includes(fieldName);
+    }
+
+    /**
+     * Determine if a field should be converted to string with .toString()
+     * This applies to enums and date types when the DTO field is String
+     */
+    private shouldConvertToString(field: any): boolean {
+        // If DTO field is not String, no conversion needed
+        if (!field.type.includes('String')) {
+            return false;
+        }
+
+        // Convert enums (fields with 'Type', 'State', 'Status' in name)
+        const enumPatterns = ['type', 'state', 'status', 'role'];
+        const fieldNameLower = field.name.toLowerCase();
+        const isLikelyEnum = enumPatterns.some(pattern => fieldNameLower.includes(pattern));
+
+        // Convert dates (fields with 'Date', 'Time' in name)
+        const datePatterns = ['date', 'time', 'datetime', 'timestamp'];
+        const isLikelyDate = datePatterns.some(pattern => fieldNameLower.includes(pattern));
+
+        return isLikelyEnum || isLikelyDate;
     }
 
     private inferNestedEntityName(aggregateName: string, models?: Model[]): string {

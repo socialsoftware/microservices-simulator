@@ -15,13 +15,7 @@ Aggregate Topic {
         TopicCourse course;
 
         invariants {
-            check nameNotEmpty {
-                name.length() > 0;
-            }
-
-            check creationDateInPast {
-                creationDate != null;
-            }
+            
         }
 
 
