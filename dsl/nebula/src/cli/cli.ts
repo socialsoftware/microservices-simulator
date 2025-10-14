@@ -1,7 +1,3 @@
-/**
- * CLI entry point for the Nebula DSL code generator
- */
-
 import { Command } from "commander";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";

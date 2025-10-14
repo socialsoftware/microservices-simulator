@@ -17,7 +17,6 @@ public class QuestionDto implements Serializable {
     private Integer sequence;
     private Integer timeTaken;
     private Integer optionKey;
-    private CourseDto course;
     
     public QuestionDto() {
     }
@@ -32,7 +31,6 @@ public class QuestionDto implements Serializable {
         setSequence(question.getQuestionCourse().getSequence());
         setTimeTaken(question.getQuestionCourse().getTimeTaken());
         setOptionKey(question.getQuestionCourse().getOptionKey());
-        setCourse(question.getQuestionCourse().getCourse());
     }
     
     public Integer getAggregateId() {
@@ -105,13 +103,5 @@ public class QuestionDto implements Serializable {
     
     public void setOptionKey(Integer optionKey) {
         this.optionKey = optionKey;
-    }
-
-    public CourseDto getCourse() {
-        return course;
-    }
-    
-    public void setCourse(CourseDto course) {
-        this.course = course;
     }
 }

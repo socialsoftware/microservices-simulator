@@ -46,7 +46,8 @@ SharedDtos {
         Integer timeTaken;
         Integer optionKey;
 
-        mapping CourseDto course;
+        mapping CourseDto course {
+        }
 
         mapping Set<TopicDto> topics {
             aggregateId -> topicAggregateId;
