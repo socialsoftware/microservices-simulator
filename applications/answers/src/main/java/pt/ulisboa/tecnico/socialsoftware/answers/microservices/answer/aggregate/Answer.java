@@ -1,15 +1,24 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.FetchType;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerExecution;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerQuestion;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerQuiz;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerUser;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 
 @Entity
@@ -50,7 +59,6 @@ public abstract class Answer extends Aggregate {
         setAnswerQuiz(new AnswerQuiz(other.getAnswerQuiz()));
         setAnswerQuestion(other.getAnswerQuestion().stream().map(AnswerQuestion::new).collect(Collectors.toList()));
     }
-
 
     public LocalDateTime getCreationDate() {
         return creationDate;
@@ -154,7 +162,6 @@ public abstract class Answer extends Aggregate {
             .findFirst()
             .orElse(null);
     }
-
 
 
 }

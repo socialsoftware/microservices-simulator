@@ -1,11 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
 public class ExecutionUser {
@@ -14,10 +16,10 @@ public class ExecutionUser {
     private Long id;
     private Integer userAggregateId;
     private Integer userVersion;
+    private AggregateState userState;
     private String userName;
     private String userUsername;
-    private Boolean active;
-    private AggregateState userState;
+    private Boolean userActive;
     @OneToOne
     private Execution execution;
 
@@ -25,23 +27,22 @@ public class ExecutionUser {
     }
 
     public ExecutionUser(UserDto userDto) {
-        setUserAggregateId(userDto.getUserAggregateId());
-        setUserVersion(userDto.getUserVersion());
-        setUserName(userDto.getUserName());
-        setUserUsername(userDto.getUserUsername());
-        setActive(userDto.getActive());
-        setUserState(userDto.getUserState());
+        setUserAggregateId(userDto.getAggregateId());
+        setUserVersion(userDto.getVersion());
+        setUserState(userDto.getState());
+        setUserName(userDto.getName());
+        setUserUsername(userDto.getUsername());
+        setUserActive(userDto.getActive());
     }
 
     public ExecutionUser(ExecutionUser other) {
         setUserAggregateId(other.getUserAggregateId());
         setUserVersion(other.getUserVersion());
+        setUserState(other.getUserState());
         setUserName(other.getUserName());
         setUserUsername(other.getUserUsername());
-        setActive(other.getActive());
-        setUserState(other.getUserState());
+        setUserActive(other.getUserActive());
     }
-
 
     public Long getId() {
         return id;
@@ -67,6 +68,14 @@ public class ExecutionUser {
         this.userVersion = userVersion;
     }
 
+    public AggregateState getUserState() {
+        return userState;
+    }
+
+    public void setUserState(AggregateState userState) {
+        this.userState = userState;
+    }
+
     public String getUserName() {
         return userName;
     }
@@ -83,20 +92,12 @@ public class ExecutionUser {
         this.userUsername = userUsername;
     }
 
-    public Boolean getActive() {
-        return active;
+    public Boolean getUserActive() {
+        return userActive;
     }
 
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public AggregateState getUserState() {
-        return userState;
-    }
-
-    public void setUserState(AggregateState userState) {
-        this.userState = userState;
+    public void setUserActive(Boolean userActive) {
+        this.userActive = userActive;
     }
 
     public Execution getExecution() {
@@ -106,6 +107,5 @@ public class ExecutionUser {
     public void setExecution(Execution execution) {
         this.execution = execution;
     }
-
 
 }

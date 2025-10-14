@@ -103,7 +103,7 @@ public class UserService {
 
     // No custom workflows defined
 
-    // Query methods disabled - repository methods not implemented
+    // Query methods not implemented
 
     // Event Processing Methods
     private void publishUserCreatedEvent(User user) {

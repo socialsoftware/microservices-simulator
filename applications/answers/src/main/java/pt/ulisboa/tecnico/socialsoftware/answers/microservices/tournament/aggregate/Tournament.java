@@ -1,17 +1,23 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.FetchType;
-import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentExecution;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentQuiz;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentTopic;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 
 @Entity
@@ -58,7 +64,6 @@ public abstract class Tournament extends Aggregate {
         setTournamentTopics(other.getTournamentTopics().stream().map(TournamentTopic::new).collect(Collectors.toSet()));
         setTournamentQuiz(new TournamentQuiz(other.getTournamentQuiz()));
     }
-
 
     public LocalDateTime getStartTime() {
         return startTime;
@@ -216,7 +221,6 @@ public abstract class Tournament extends Aggregate {
             this.tournamentQuiz.setTournament(this);
         }
     }
-
 
 
     // ============================================================================

@@ -1,11 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
 public class TournamentCreator {
@@ -38,7 +40,6 @@ public class TournamentCreator {
         setCreatorVersion(other.getCreatorVersion());
         setCreatorState(other.getCreatorState());
     }
-
 
     public Long getId() {
         return id;
@@ -95,6 +96,5 @@ public class TournamentCreator {
     public void setTournament(Tournament tournament) {
         this.tournament = tournament;
     }
-
 
 }

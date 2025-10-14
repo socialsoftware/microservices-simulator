@@ -138,7 +138,7 @@ public class TopicService {
         }
     }
 
-    // Query methods disabled - repository methods not implemented
+    // Query methods not implemented
 
     // Event Processing Methods
     private void publishTopicCreatedEvent(Topic topic) {

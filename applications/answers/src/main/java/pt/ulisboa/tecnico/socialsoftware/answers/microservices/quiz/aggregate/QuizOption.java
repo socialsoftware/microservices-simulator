@@ -1,18 +1,19 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
 
 @Entity
 public class QuizOption {
     @Id
     @GeneratedValue
-    private Integer optionNumber;
-    private String content;
-    private Boolean isCorrect;
+    private Integer optionSequence;
+    private Boolean optionCorrect;
+    private String optionContent;
     @OneToOne
     private Quiz quiz;
 
@@ -20,38 +21,37 @@ public class QuizOption {
     }
 
     public QuizOption(OptionDto optionDto) {
-        setContent(optionDto.getContent());
-        setIsCorrect(optionDto.getIsCorrect());
+        setOptionCorrect(optionDto.getCorrect());
+        setOptionContent(optionDto.getContent());
     }
 
     public QuizOption(QuizOption other) {
-        setContent(other.getContent());
-        setIsCorrect(other.getIsCorrect());
+        setOptionCorrect(other.getOptionCorrect());
+        setOptionContent(other.getOptionContent());
     }
 
-
-    public Integer getOptionNumber() {
-        return optionNumber;
+    public Integer getOptionSequence() {
+        return optionSequence;
     }
 
-    public void setOptionNumber(Integer optionNumber) {
-        this.optionNumber = optionNumber;
+    public void setOptionSequence(Integer optionSequence) {
+        this.optionSequence = optionSequence;
     }
 
-    public String getContent() {
-        return content;
+    public Boolean getOptionCorrect() {
+        return optionCorrect;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setOptionCorrect(Boolean optionCorrect) {
+        this.optionCorrect = optionCorrect;
     }
 
-    public Boolean getIsCorrect() {
-        return isCorrect;
+    public String getOptionContent() {
+        return optionContent;
     }
 
-    public void setIsCorrect(Boolean isCorrect) {
-        this.isCorrect = isCorrect;
+    public void setOptionContent(String optionContent) {
+        this.optionContent = optionContent;
     }
 
     public Quiz getQuiz() {
@@ -61,6 +61,5 @@ public class QuizOption {
     public void setQuiz(Quiz quiz) {
         this.quiz = quiz;
     }
-
 
 }

@@ -45,26 +45,8 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
-    container_name: answers-redis
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - answers-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-
 volumes:
   postgresql_data:
-    driver: local
-  redis_data:
     driver: local
 
 networks:

@@ -1,11 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 @Entity
 public class QuizQuestion {
@@ -41,7 +43,6 @@ public class QuizQuestion {
         setQuestionContent(other.getQuestionContent());
         setQuestionSequence(other.getQuestionSequence());
     }
-
 
     public Long getId() {
         return id;
@@ -106,6 +107,5 @@ public class QuizQuestion {
     public void setQuiz(Quiz quiz) {
         this.quiz = quiz;
     }
-
 
 }

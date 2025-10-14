@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 public class QuestionDto implements Serializable {
@@ -14,26 +15,24 @@ public class QuestionDto implements Serializable {
     private String content;
     private LocalDateTime creationDate;
     private Integer sequence;
+    private Integer timeTaken;
+    private Integer optionKey;
     private CourseDto course;
     
     public QuestionDto() {
     }
     
-    public QuestionDto(pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question question) {
-        // Standard aggregate fields
+    public QuestionDto(Question question) {
         setAggregateId(question.getAggregateId());
         setVersion(question.getVersion());
-        setState(question.getState().toString());
-
-        // Root entity fields
+        setState(question.getState());
         setTitle(question.getTitle());
         setContent(question.getContent());
         setCreationDate(question.getCreationDate());
-
-        // Fields from QuestionCourse
         setSequence(question.getQuestionCourse().getSequence());
+        setTimeTaken(question.getQuestionCourse().getTimeTaken());
+        setOptionKey(question.getQuestionCourse().getOptionKey());
         setCourse(question.getQuestionCourse().getCourse());
-
     }
     
     public Integer getAggregateId() {
@@ -90,6 +89,22 @@ public class QuestionDto implements Serializable {
     
     public void setSequence(Integer sequence) {
         this.sequence = sequence;
+    }
+
+    public Integer getTimeTaken() {
+        return timeTaken;
+    }
+    
+    public void setTimeTaken(Integer timeTaken) {
+        this.timeTaken = timeTaken;
+    }
+
+    public Integer getOptionKey() {
+        return optionKey;
+    }
+    
+    public void setOptionKey(Integer optionKey) {
+        this.optionKey = optionKey;
     }
 
     public CourseDto getCourse() {

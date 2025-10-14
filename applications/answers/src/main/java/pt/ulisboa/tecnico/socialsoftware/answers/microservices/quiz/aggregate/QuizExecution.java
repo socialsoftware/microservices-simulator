@@ -1,9 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 @Entity
@@ -30,7 +31,6 @@ public class QuizExecution {
         setExecutionAcronym(other.getExecutionAcronym());
         setExecutionAcademicTerm(other.getExecutionAcademicTerm());
     }
-
 
     public Integer getExecutionAggregateId() {
         return executionAggregateId;
@@ -71,6 +71,5 @@ public class QuizExecution {
     public void setQuiz(Quiz quiz) {
         this.quiz = quiz;
     }
-
 
 }

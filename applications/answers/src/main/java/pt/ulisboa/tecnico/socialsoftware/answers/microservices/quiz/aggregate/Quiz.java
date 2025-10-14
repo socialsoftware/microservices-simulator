@@ -1,19 +1,25 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.OneToMany;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import java.time.LocalDateTime;
+
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.FetchType;
+import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
-import java.time.LocalDateTime;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.stream.Collectors;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizExecution;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizOption;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizQuestion;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 
@@ -60,7 +66,6 @@ public abstract class Quiz extends Aggregate {
         setQuestions(other.getQuestions().stream().map(QuizQuestion::new).collect(Collectors.toSet()));
         setOptions(other.getOptions().stream().map(QuizOption::new).collect(Collectors.toSet()));
     }
-
 
     public String getTitle() {
         return title;
@@ -191,7 +196,7 @@ public abstract class Quiz extends Aggregate {
     public void removeQuizOption(Integer id) {
         if (this.options != null) {
             this.options.removeIf(item -> 
-                item.getOptionNumber() != null && item.getOptionNumber().equals(id));
+                item.getOptionSequence() != null && item.getOptionSequence().equals(id));
         }
     }
 
@@ -200,7 +205,7 @@ public abstract class Quiz extends Aggregate {
             return false;
         }
         return this.options.stream().anyMatch(item -> 
-            item.getOptionNumber() != null && item.getOptionNumber().equals(id));
+            item.getOptionSequence() != null && item.getOptionSequence().equals(id));
     }
 
     public QuizOption findQuizOptionById(Integer id) {
@@ -208,49 +213,10 @@ public abstract class Quiz extends Aggregate {
             return null;
         }
         return this.options.stream()
-            .filter(item -> item.getOptionNumber() != null && item.getOptionNumber().equals(id))
+            .filter(item -> item.getOptionSequence() != null && item.getOptionSequence().equals(id))
             .findFirst()
             .orElse(null);
     }
 
 
-
-    // ============================================================================
-    // INVARIANTS
-    // ============================================================================
-
-    public boolean invariantTitleNotEmpty() {
-        return this.title.length() > 0;
-    }
-
-    public boolean invariantAvailableDateBeforeConclusionDate() {
-        return this.availableDate.isBefore(this.conclusionDate);
-    }
-
-    public boolean invariantNumberOfQuestionsPositive() {
-        return this.numberOfQuestions > 0;
-    }
-
-    public boolean invariantUniqueQuestions() {
-        return this.questions.stream().map(item -> item.get${capitalize(questionId)}()).distinct().count() == this.questions.size();
-    }
-
-    public boolean invariantUniqueOptions() {
-        return this.options.stream().map(item -> item.get${capitalize(optionNumber)}()).distinct().count() == this.options.size();
-    }
-
-    public boolean invariantQuestionsMatchNumberOfQuestions() {
-        return this.numberOfQuestions > 0;
-    }
-    @Override
-    public void verifyInvariants() {
-        if (!(invariantTitleNotEmpty()
-               && invariantAvailableDateBeforeConclusionDate()
-               && invariantNumberOfQuestionsPositive()
-               && invariantUniqueQuestions()
-               && invariantUniqueOptions()
-               && invariantQuestionsMatchNumberOfQuestions())) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
-        }
-    }
 }

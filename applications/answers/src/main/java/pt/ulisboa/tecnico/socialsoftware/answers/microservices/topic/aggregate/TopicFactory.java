@@ -1,9 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
-
 public interface TopicFactory {
-    Topic createTopic(Integer aggregateId, TopicDto topicDto);
+    Topic createTopic(Integer aggregateId,  Dto);
     Topic createTopicFromExisting(Topic existingTopic);
-    TopicDto createTopicDto(Topic topic);
+     createTopicDto(Topic );
 }

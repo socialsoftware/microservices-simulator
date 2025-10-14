@@ -1,15 +1,22 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.FetchType;
-import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourse;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 @Entity
@@ -42,7 +49,6 @@ public abstract class Execution extends Aggregate {
         setExecutionCourse(new ExecutionCourse(other.getExecutionCourse()));
         setUsers(other.getUsers().stream().map(ExecutionUser::new).collect(Collectors.toSet()));
     }
-
 
     public String getAcronym() {
         return acronym;
@@ -124,7 +130,6 @@ public abstract class Execution extends Aggregate {
             .findFirst()
             .orElse(null);
     }
-
 
 
 }

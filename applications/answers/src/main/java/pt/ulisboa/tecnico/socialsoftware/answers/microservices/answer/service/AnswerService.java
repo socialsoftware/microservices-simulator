@@ -15,28 +15,81 @@ public class AnswerService {
     @Autowired
     private AnswerRepository answerRepository;
 
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public Answer createAnswer(AnswerDto answerDto) {
-        // TODO: Implement createAnswer method
-        return null; // Placeholder
+        if (!(answerDto != null)) {
+            throw new AnswersException(AnswersErrorMessage.IllegalArgumentException, "AnswerDto cannot be null");
+        }
+        Answer answer = executionFactory.createAnswerFromExisting(answerDto);
+        return answer;
     }
 
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(readOnly = true)
     public Optional<Answer> findAnswerById(Integer id) {
-        // TODO: Implement findAnswerById method
-        return null; // Placeholder
+        if (!(id != null && id > 0)) {
+            throw new AnswersException(AnswersErrorMessage.IllegalArgumentException, "ID must be positive");
+        }
     }
 
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public Answer updateAnswer(Integer id, AnswerDto answerDto) {
-        // TODO: Implement updateAnswer method
-        return null; // Placeholder
+        if (!(id != null && id > 0 && answerDto != null)) {
+            throw new AnswersException(AnswersErrorMessage.IllegalArgumentException, "Invalid parameters for update");
+        }
+          = () unitOfWorkService.aggregateLoadAndRegisterRead(id, );
+        return existingAnswer;
     }
 
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public void deleteAnswer(Integer id) {
-        // TODO: Implement deleteAnswer method
+        if (!(id != null && id > 0)) {
+            throw new AnswersException(AnswersErrorMessage.IllegalArgumentException, "ID must be positive");
+        }
+          = () unitOfWorkService.aggregateLoadAndRegisterRead(id, );
     }
 
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(readOnly = true)
     public List<Answer> findAllAnswers() {
-        // TODO: Implement findAllAnswers method
-        return null; // Placeholder
     }
 
     public Answer createAnswer(Answer answer, Integer userId) {

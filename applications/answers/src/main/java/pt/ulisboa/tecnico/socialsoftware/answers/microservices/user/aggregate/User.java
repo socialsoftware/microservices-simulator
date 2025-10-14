@@ -1,7 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate;
 
 import jakarta.persistence.Entity;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
@@ -28,7 +30,6 @@ public abstract class User extends Aggregate {
         setActive(other.getActive());
     }
 
-
     public String getName() {
         return name;
     }
@@ -52,7 +53,6 @@ public abstract class User extends Aggregate {
     public void setActive(Boolean active) {
         this.active = active;
     }
-
 
 
 }

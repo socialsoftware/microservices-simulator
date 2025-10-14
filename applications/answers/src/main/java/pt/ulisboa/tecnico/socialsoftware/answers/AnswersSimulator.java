@@ -24,9 +24,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 ".answers.*"})
 public class AnswersSimulator implements InitializingBean {
 
-@Autowired
-private EventService eventService;
-
 
 public static void main(String[] args) {
 SpringApplication.run(AnswersSimulator.class, args);
@@ -35,8 +32,6 @@ SpringApplication.run(AnswersSimulator.class, args);
 @Override
 public void afterPropertiesSet() {
 // Run on startup
-
-eventService.clearEventsAtApplicationStartUp();
 
 }
 }

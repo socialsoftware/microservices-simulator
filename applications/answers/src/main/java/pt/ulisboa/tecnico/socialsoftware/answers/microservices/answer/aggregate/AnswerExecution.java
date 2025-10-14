@@ -1,9 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 @Entity
@@ -20,15 +21,14 @@ public class AnswerExecution {
     }
 
     public AnswerExecution(ExecutionDto executionDto) {
-        setExecutionAggregateId(executionDto.getExecutionAggregateId());
-        setExecutionVersion(executionDto.getExecutionVersion());
+        setExecutionAggregateId(executionDto.getAggregateId());
+        setExecutionVersion(executionDto.getVersion());
     }
 
     public AnswerExecution(AnswerExecution other) {
         setExecutionAggregateId(other.getExecutionAggregateId());
         setExecutionVersion(other.getExecutionVersion());
     }
-
 
     public Long getId() {
         return id;
@@ -61,6 +61,5 @@ public class AnswerExecution {
     public void setAnswer(Answer answer) {
         this.answer = answer;
     }
-
 
 }

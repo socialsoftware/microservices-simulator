@@ -1,11 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
@@ -38,7 +39,6 @@ public class ExecutionCourse {
         setCourseType(other.getCourseType());
         setCourseVersion(other.getCourseVersion());
     }
-
 
     public Long getId() {
         return id;
@@ -87,6 +87,5 @@ public class ExecutionCourse {
     public void setExecution(Execution execution) {
         this.execution = execution;
     }
-
 
 }

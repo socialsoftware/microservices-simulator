@@ -1,11 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
 public class AnswerUser {
@@ -22,9 +24,9 @@ public class AnswerUser {
     }
 
     public AnswerUser(UserDto userDto) {
-        setUserAggregateId(userDto.getUserAggregateId());
-        setUserName(userDto.getUserName());
-        setUserState(userDto.getUserState());
+        setUserAggregateId(userDto.getAggregateId());
+        setUserName(userDto.getName());
+        setUserState(userDto.getState());
     }
 
     public AnswerUser(AnswerUser other) {
@@ -32,7 +34,6 @@ public class AnswerUser {
         setUserName(other.getUserName());
         setUserState(other.getUserState());
     }
-
 
     public Long getId() {
         return id;
@@ -73,6 +74,5 @@ public class AnswerUser {
     public void setAnswer(Answer answer) {
         this.answer = answer;
     }
-
 
 }

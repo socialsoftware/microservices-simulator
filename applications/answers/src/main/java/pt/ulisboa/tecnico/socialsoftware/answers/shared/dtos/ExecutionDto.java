@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 public class ExecutionDto implements Serializable {
@@ -23,16 +24,17 @@ public class ExecutionDto implements Serializable {
     public ExecutionDto() {
     }
     
-    public ExecutionDto(pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution execution) {
-        // Standard aggregate fields
+    public ExecutionDto(Execution execution) {
         setAggregateId(execution.getAggregateId());
         setVersion(execution.getVersion());
-        setState(execution.getState().toString());
-
-        // Root entity fields
+        setState(execution.getState());
         setAcronym(execution.getAcronym());
         setAcademicTerm(execution.getAcademicTerm());
         setEndDate(execution.getEndDate());
+        setCourseAggregateId(execution.getExecutionCourse().getCourseAggregateId());
+        setCourseName(execution.getExecutionCourse().getCourseName());
+        setCourseType(execution.getExecutionCourse().getCourseType().toString());
+        setCourseVersion(execution.getExecutionCourse().getCourseVersion());
         setUsers(execution.getUsers().stream()
             .map(executionuser -> ((java.util.function.Supplier<UserDto>) () -> {
             UserDto userdto = new UserDto();
@@ -45,13 +47,6 @@ public class ExecutionDto implements Serializable {
             return userdto;
         }).get())
             .collect(Collectors.toSet()));
-
-        // Fields from ExecutionCourse
-        setCourseAggregateId(execution.getExecutionCourse().getCourseAggregateId());
-        setCourseName(execution.getExecutionCourse().getCourseName());
-        setCourseType(execution.getExecutionCourse().getCourseType().toString());
-        setCourseVersion(execution.getExecutionCourse().getCourseVersion());
-
     }
     
     public Integer getAggregateId() {

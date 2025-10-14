@@ -1,10 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
-import java.time.LocalDateTime;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
@@ -33,7 +36,6 @@ public abstract class Course extends Aggregate {
         setCreationDate(other.getCreationDate());
     }
 
-
     public String getName() {
         return name;
     }
@@ -57,7 +59,6 @@ public abstract class Course extends Aggregate {
     public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
-
 
 
 }

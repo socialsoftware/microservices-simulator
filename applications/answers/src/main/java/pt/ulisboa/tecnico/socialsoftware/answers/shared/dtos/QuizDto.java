@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 public class QuizDto implements Serializable {
@@ -16,11 +17,12 @@ public class QuizDto implements Serializable {
     private String description;
     private String quizType;
     private Integer numberOfQuestions;
+    private List<QuestionDto> questions;
     
     public QuizDto() {
     }
     
-    public QuizDto(Integer aggregateId, Integer version, AggregateState state, String title, LocalDateTime availableDate, LocalDateTime conclusionDate, LocalDateTime resultsDate, String description, String quizType, Integer numberOfQuestions) {
+    public QuizDto(Integer aggregateId, Integer version, AggregateState state, String title, LocalDateTime availableDate, LocalDateTime conclusionDate, LocalDateTime resultsDate, String description, String quizType, Integer numberOfQuestions, List<QuestionDto> questions) {
         setAggregateId(aggregateId);
         setVersion(version);
         setState(state);
@@ -31,6 +33,7 @@ public class QuizDto implements Serializable {
         setDescription(description);
         setQuizType(quizType);
         setNumberOfQuestions(numberOfQuestions);
+        setQuestions(questions);
     }
     
     public Integer getAggregateId() {
@@ -111,5 +114,13 @@ public class QuizDto implements Serializable {
     
     public void setNumberOfQuestions(Integer numberOfQuestions) {
         this.numberOfQuestions = numberOfQuestions;
+    }
+
+    public List<QuestionDto> getQuestions() {
+        return questions;
+    }
+    
+    public void setQuestions(List<QuestionDto> questions) {
+        this.questions = questions;
     }
 }

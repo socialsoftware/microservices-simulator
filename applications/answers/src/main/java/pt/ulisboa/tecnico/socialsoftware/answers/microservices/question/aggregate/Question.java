@@ -1,19 +1,24 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.FetchType;
-import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionCourse;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionTopic;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 @Entity
@@ -49,7 +54,6 @@ public abstract class Question extends Aggregate {
         setTopics(other.getTopics().stream().map(QuestionTopic::new).collect(Collectors.toSet()));
         setOptions(other.getOptions().stream().map(Option::new).collect(Collectors.toList()));
     }
-
 
     public String getTitle() {
         return title;
@@ -177,7 +181,6 @@ public abstract class Question extends Aggregate {
             .findFirst()
             .orElse(null);
     }
-
 
 
     // ============================================================================

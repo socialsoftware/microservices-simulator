@@ -1,9 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 
 @Entity
@@ -28,7 +29,6 @@ public class TournamentQuiz {
         setQuizAggregateId(other.getQuizAggregateId());
         setQuizVersion(other.getQuizVersion());
     }
-
 
     public Long getId() {
         return id;
@@ -61,6 +61,5 @@ public class TournamentQuiz {
     public void setTournament(Tournament tournament) {
         this.tournament = tournament;
     }
-
 
 }

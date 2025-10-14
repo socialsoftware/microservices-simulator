@@ -274,7 +274,7 @@ public class TournamentService {
         }
     }
 
-    // Query methods disabled - repository methods not implemented
+    // Query methods not implemented
 
     // Event Processing Methods
     private void publishTournamentCreatedEvent(Tournament tournament) {

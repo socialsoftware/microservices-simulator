@@ -1,13 +1,18 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.CascadeType;
 import java.time.LocalDateTime;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipantQuizAnswer;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
 public class TournamentParticipant {
@@ -45,7 +50,6 @@ public class TournamentParticipant {
         setParticipantEnrollTime(other.getParticipantEnrollTime());
         setTournamentParticipantQuizAnswer(new TournamentParticipantQuizAnswer(other.getTournamentParticipantQuizAnswer()));
     }
-
 
     public Long getId() {
         return id;
@@ -121,6 +125,5 @@ public class TournamentParticipant {
     public void setTournament(Tournament tournament) {
         this.tournament = tournament;
     }
-
 
 }

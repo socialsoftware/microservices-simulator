@@ -28,28 +28,81 @@ public class ExecutionService {
     @Autowired
     private ExecutionFactory executionFactory;
 
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public Execution createExecution(ExecutionDto executionDto) {
-        // TODO: Implement createExecution method
-        return null; // Placeholder
+        if (!(executionDto != null)) {
+            throw new AnswersException(AnswersErrorMessage.IllegalArgumentException, "ExecutionDto cannot be null");
+        }
+        Execution execution = executionFactory.createExecutionFromExisting(executionDto);
+        return execution;
     }
 
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(readOnly = true)
     public Optional<Execution> findExecutionById(Integer id) {
-        // TODO: Implement findExecutionById method
-        return null; // Placeholder
+        if (!(id != null && id > 0)) {
+            throw new AnswersException(AnswersErrorMessage.IllegalArgumentException, "ID must be positive");
+        }
     }
 
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public Execution updateExecution(Integer id, ExecutionDto executionDto) {
-        // TODO: Implement updateExecution method
-        return null; // Placeholder
+        if (!(id != null && id > 0 && executionDto != null)) {
+            throw new AnswersException(AnswersErrorMessage.IllegalArgumentException, "Invalid parameters for update");
+        }
+          = () unitOfWorkService.aggregateLoadAndRegisterRead(id, );
+        return existingExecution;
     }
 
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public void deleteExecution(Integer id) {
-        // TODO: Implement deleteExecution method
+        if (!(id != null && id > 0)) {
+            throw new AnswersException(AnswersErrorMessage.IllegalArgumentException, "ID must be positive");
+        }
+          = () unitOfWorkService.aggregateLoadAndRegisterRead(id, );
     }
 
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.db.delay}",
+            multiplierExpression = "${retry.db.multiplier}"
+        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(readOnly = true)
     public List<Execution> findAllExecutions() {
-        // TODO: Implement findAllExecutions method
-        return null; // Placeholder
     }
 
     @Retryable(

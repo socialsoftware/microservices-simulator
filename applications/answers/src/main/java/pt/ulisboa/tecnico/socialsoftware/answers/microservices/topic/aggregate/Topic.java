@@ -1,11 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.CascadeType;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicCourse;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 
 @Entity
@@ -30,7 +32,6 @@ public abstract class Topic extends Aggregate {
         setCourse(new TopicCourse(other.getCourse()));
     }
 
-
     public String getName() {
         return name;
     }
@@ -51,23 +52,4 @@ public abstract class Topic extends Aggregate {
     }
 
 
-
-    // ============================================================================
-    // INVARIANTS
-    // ============================================================================
-
-    public boolean invariantNameNotEmpty() {
-        return this.name.length() > 0;
-    }
-
-    public boolean invariantCreationDateInPast() {
-        return this.creationDate != null;
-    }
-    @Override
-    public void verifyInvariants() {
-        if (!(invariantNameNotEmpty()
-               && invariantCreationDateInPast())) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
-        }
-    }
 }

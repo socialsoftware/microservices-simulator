@@ -166,7 +166,7 @@ public class CourseService {
 
     // No custom workflows defined
 
-    // Query methods disabled - repository methods not implemented
+    // Query methods not implemented
 
     // Event Processing Methods
     private void publishCourseCreatedEvent(Course course) {

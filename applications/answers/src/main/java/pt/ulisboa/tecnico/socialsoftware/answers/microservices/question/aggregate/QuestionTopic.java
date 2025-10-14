@@ -1,9 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 
 @Entity
@@ -25,7 +26,6 @@ public class QuestionTopic {
     public QuestionTopic(QuestionTopic other) {
         setTopicName(other.getTopicName());
     }
-
 
     public Integer getTopicId() {
         return topicId;
@@ -50,6 +50,5 @@ public class QuestionTopic {
     public void setQuestion(Question question) {
         this.question = question;
     }
-
 
 }

@@ -179,7 +179,7 @@ public class QuestionService {
         }
     }
 
-    // Query methods disabled - repository methods not implemented
+    // Query methods not implemented
 
     // Event Processing Methods
     private void publishQuestionCreatedEvent(Question question) {
