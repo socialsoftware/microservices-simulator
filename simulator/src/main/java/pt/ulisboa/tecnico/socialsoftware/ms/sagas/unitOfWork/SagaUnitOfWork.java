@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceManager;
@@ -30,7 +31,7 @@ public class SagaUnitOfWork extends UnitOfWork {
     private static final Logger logger = LoggerFactory.getLogger(SagaUnitOfWork.class);
 
     private final ArrayList<Runnable> compensatingActions;
-    private final ArrayList<Integer> aggregatesInSaga; //TODO CHANGE IN DISTRIBUTED
+    private final ArrayList<Aggregate> aggregatesInSaga; //TODO CHANGE IN DISTRIBUTED
     private final HashMap<Integer, SagaState> previousStates = new HashMap<>();
 
     private final TraceManager traceManager;
@@ -69,12 +70,12 @@ public class SagaUnitOfWork extends UnitOfWork {
         return CompletableFuture.allOf(compensationFutures.toArray(new CompletableFuture[0]));
     }
 
-    public ArrayList<Integer> getAggregatesInSaga() {
+    public ArrayList<Aggregate> getAggregatesInSaga() {
         return this.aggregatesInSaga;
     }
 
-    public void addToAggregatesInSaga(Integer aggregateId) {
-        this.aggregatesInSaga.add(aggregateId);
+    public void addToAggregatesInSaga(Aggregate aggregate) {
+        this.aggregatesInSaga.add(aggregate);
     }
 
     public HashMap<Integer, SagaState> getPreviousStates() {

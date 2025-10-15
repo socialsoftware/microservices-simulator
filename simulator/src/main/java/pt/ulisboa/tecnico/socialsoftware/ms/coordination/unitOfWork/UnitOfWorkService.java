@@ -71,4 +71,9 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
         ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public abstract void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap);
+
+    protected String resolveServiceName(Aggregate aggregate) {
+        String className = aggregate.getClass().getSimpleName();
+        return className.replaceAll("Saga", "").replaceAll("Causal", "").toLowerCase();
+    }
 }

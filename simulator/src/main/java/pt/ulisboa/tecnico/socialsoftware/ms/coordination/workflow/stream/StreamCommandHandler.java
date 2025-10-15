@@ -12,7 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import java.util.Objects;
 import java.util.logging.Logger;
 
 @Profile("stream")

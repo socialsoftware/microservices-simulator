@@ -34,25 +34,11 @@
             this.courseRepository = courseRepository;
         }
 
-        @Retryable(
-                retryFor = { SQLException.class },
-                maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
         @Transactional(isolation = Isolation.SERIALIZABLE)
         public CourseDto getCourseById(Integer aggregateId, UnitOfWork unitOfWorkWorkService) {
             return courseFactory.createCourseDto((Course) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWorkWorkService));
         }
 
-        @Retryable(
-                retryFor = { SQLException.class },
-                maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
         @Transactional(isolation = Isolation.SERIALIZABLE)
         public CourseExecutionDto getAndOrCreateCourseRemote(CourseExecutionDto courseExecutionDto, UnitOfWork unitOfWork) {
             Course course = getCourseByName(courseExecutionDto.getName(), unitOfWork);

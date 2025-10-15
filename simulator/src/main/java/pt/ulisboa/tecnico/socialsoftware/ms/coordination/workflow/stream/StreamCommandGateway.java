@@ -14,7 +14,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -43,8 +46,8 @@ public class StreamCommandGateway implements CommandGateway {
 
     public Object send(Command command) {
         String service = command.getServiceName() != null ? command.getServiceName().toLowerCase() : "";
-        String cmdPkg = command.getClass().getPackage().getName();
-        boolean isSameServicePackage = !service.isEmpty() && (cmdPkg.contains(".command." + service));
+//        String cmdPkg = command.getClass().getPackage().getName();
+//        boolean isSameServicePackage = !service.isEmpty() && (cmdPkg.contains(".command." + service));
 
         // if (isSameServicePackage) {
         // logger.info("Routing to LocalCommandGateway for command: " +
@@ -139,5 +142,17 @@ public class StreamCommandGateway implements CommandGateway {
             target.getEventsToEmit().addAll(source.getEventsToEmit());
         }
 
+        if (target instanceof SagaUnitOfWork t && source instanceof SagaUnitOfWork s) {
+            if (s.getAggregatesInSaga() != null) {
+                for (Aggregate a : s.getAggregatesInSaga()) {
+                    if (!t.getAggregatesInSaga().contains(a)) {
+                        t.getAggregatesInSaga().add(a);
+                    }
+                }
+            }
+            if (s.getPreviousStates() != null) {
+                t.getPreviousStates().putAll(s.getPreviousStates());
+            }
+        }
     }
 }
