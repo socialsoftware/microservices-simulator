@@ -9,8 +9,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService
@@ -20,8 +20,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas
 
 @DataJpaTest
 class AddParticipantAndRecoverTest extends QuizzesSpockTest {

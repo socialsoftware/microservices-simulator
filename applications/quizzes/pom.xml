@@ -15,16 +15,26 @@
     <description>Quizzes Tutor</description>
     <properties>
         <java.version>21</java.version>
+        <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator</start-class>
     </properties>
     <profiles>
         <profile>
-            <id>dev</id>
+            <id>course-service</id>
             <properties>
-                <activatedProperties>dev</activatedProperties>
+                <activatedProperties>sagas,stream</activatedProperties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.CourseServiceApplication</start-class>
             </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                    <version>4.3.0</version>
+                </dependency>
+            </dependencies>
         </profile>
         <profile>
             <id>sagas</id>
@@ -229,6 +239,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>${start-class}</mainClass>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -11,7 +11,9 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import pt.ulisboa.tecnico.socialsoftware.ms.GetAggregateCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
@@ -43,6 +45,8 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     private VersionService versionService;
     @Autowired
     private EventRepository eventRepository;
+    @Autowired
+    private CommandGateway commandGateway;
 
     @Retryable(
             retryFor = { SQLException.class,  CannotAcquireLockException.class },
@@ -55,13 +59,15 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         Integer lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
 
         SagaUnitOfWork unitOfWork = new SagaUnitOfWork(lastCommittedAggregateVersionNumber + 1, functionalityName);
-
         return unitOfWork;
     }
 
     public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) { // TODO use local aggregate repository
         Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
+
+//        GetAggregateCommand getAggregateCommand = new GetAggregateCommand(unitOfWork.getServiceName(), aggregateId);
+//        Aggregate aggregate = (Aggregate) commandGateway.send(getAggregateCommand);
 
         logger.info("Loaded and registered read for aggregate ID: {} - {}", aggregateId, aggregate.getAggregateType());
         return aggregate;
@@ -72,7 +78,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (aggregate.getState() == Aggregate.AggregateState.DELETED) {
-            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType().toString(), aggregate.getAggregateId());
+            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType(), aggregate.getAggregateId());
         }
 
         return aggregate;

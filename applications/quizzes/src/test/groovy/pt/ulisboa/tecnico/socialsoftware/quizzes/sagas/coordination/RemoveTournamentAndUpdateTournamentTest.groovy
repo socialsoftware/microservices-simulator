@@ -11,9 +11,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.QuizFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.functionalities.QuizFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
@@ -22,10 +22,10 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.Top
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaQuiz
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaTournament
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.SagaQuiz
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.SagaTournament
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas
 
 @DataJpaTest
 class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {

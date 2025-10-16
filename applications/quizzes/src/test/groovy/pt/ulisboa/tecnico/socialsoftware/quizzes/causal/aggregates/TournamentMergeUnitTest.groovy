@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggrega
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.*
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.causal.CausalTournament
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 import spock.lang.Shared
 import spock.lang.Unroll

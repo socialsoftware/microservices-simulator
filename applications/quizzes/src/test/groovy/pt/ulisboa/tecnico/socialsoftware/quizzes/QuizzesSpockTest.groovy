@@ -6,16 +6,19 @@ import pt.ulisboa.tecnico.socialsoftware.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.*
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.OptionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.functionalities.QuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.functionalities.TopicFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.SagaTournament
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.functionalities.UserFunctionalities
 
 import java.time.LocalDateTime
 

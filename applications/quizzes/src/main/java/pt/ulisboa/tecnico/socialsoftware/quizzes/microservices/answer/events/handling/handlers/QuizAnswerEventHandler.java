@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.eventProcessing.QuizAnswerEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.eventProcessing.QuizAnswerEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerRepository;
 

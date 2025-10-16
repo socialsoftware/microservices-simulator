@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.CommitCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
@@ -30,7 +31,7 @@ public class AnswerCommandHandler implements CommandHandler {
         }
         Object returnObject;
         switch (command) {
-//            case GetQuizAnswerByQuizIdAndUserIdCommand getQuizAnswerByQuizIdAndUserIdCommand -> returnObject = handleGetQuizAnswerByQuizIdAndUserId(getQuizAnswerByQuizIdAndUserIdCommand);
+            case CommitCommand commitCommand -> returnObject = handleCommitCommand(commitCommand);
             case GetQuizAnswerDtoByQuizIdAndUserIdCommand getQuizAnswerDtoByQuizIdAndUserIdCommand -> returnObject = handleGetQuizAnswerDtoByQuizIdAndUserId(getQuizAnswerDtoByQuizIdAndUserIdCommand);
             case StartQuizCommand startQuizCommand -> returnObject = handleStartQuiz(startQuizCommand);
             case ConcludeQuizCommand concludeQuizCommand -> returnObject = handleConcludeQuiz(concludeQuizCommand);
@@ -48,16 +49,9 @@ public class AnswerCommandHandler implements CommandHandler {
         return returnObject;
     }
 
-//    private Object handleGetQuizAnswerByQuizIdAndUserId(GetQuizAnswerByQuizIdAndUserIdCommand command) {
-//        logger.info("Getting quiz answer by quiz ID and user ID: " + command.getQuizAggregateId() + ", " + command.getUserAggregateId());
-//        try {
-//            QuizAnswer quizAnswerDto = quizAnswerService.getQuizAnswerByQuizIdAndUserId(command.getQuizAggregateId(), command.getUserAggregateId(), command.getUnitOfWork());
-//            return quizAnswerDto;
-//        } catch (Exception e) {
-//            logger.severe("Failed to get quiz answer: " + e.getMessage());
-//            return e;
-//        }
-//    }
+    private Object handleCommitCommand(CommitCommand command) {
+        return null;
+    }
 
     private Object handleGetQuizAnswerDtoByQuizIdAndUserId(GetQuizAnswerDtoByQuizIdAndUserIdCommand command) {
         logger.info("Getting quiz answer DTO by quiz ID and user ID: " + command.getQuizAggregateId() + ", " + command.getUserAggregateId());

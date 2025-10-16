@@ -1,0 +1,178 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.functionalities;
+
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
+import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.causal.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.TOPIC_MISSING_NAME;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
+
+@Service
+public class TopicFunctionalities {
+    @Autowired
+    private TopicService topicService;
+    @Autowired
+    private CourseService courseService;
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+    @Autowired(required = false)
+    private CausalUnitOfWorkService causalUnitOfWorkService;
+    @Autowired
+    private TopicFactory topicFactory;
+
+    @Autowired
+    private Environment env;
+
+    private TransactionalModel workflowType;
+    @Autowired
+    private CommandGateway commandGateway;
+
+    @PostConstruct
+    public void init() {
+        String[] activeProfiles = env.getActiveProfiles();
+        if (Arrays.asList(activeProfiles).contains(SAGAS.getValue())) {
+            workflowType = SAGAS;
+        } else if (Arrays.asList(activeProfiles).contains(TCC.getValue())) {
+            workflowType = TCC;
+        } else {
+            throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public List<TopicDto> findTopicsByCourseAggregateId(Integer courseAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                FindTopicsByCourseFunctionalitySagas findTopicsByCourseFunctionalitySagas = new FindTopicsByCourseFunctionalitySagas(
+                        topicService, sagaUnitOfWorkService, courseAggregateId, sagaUnitOfWork, commandGateway);
+                findTopicsByCourseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return findTopicsByCourseFunctionalitySagas.getTopics();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                FindTopicsByCourseFunctionalityTCC findTopicsByCourseFunctionalityTCC = new FindTopicsByCourseFunctionalityTCC(
+                        topicService, causalUnitOfWorkService, courseAggregateId, causalUnitOfWork, commandGateway);
+                findTopicsByCourseFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return findTopicsByCourseFunctionalityTCC.getTopics();
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public TopicDto getTopicByAggregateId(Integer topicAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetTopicByIdFunctionalitySagas getTopicByIdFunctionalitySagas = new GetTopicByIdFunctionalitySagas(
+                        topicService, sagaUnitOfWorkService, topicAggregateId, sagaUnitOfWork, commandGateway);
+                getTopicByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getTopicByIdFunctionalitySagas.getTopicDto();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetTopicByIdFunctionalityTCC getTopicByIdFunctionalityTCC = new GetTopicByIdFunctionalityTCC(
+                        topicService, causalUnitOfWorkService, topicAggregateId, causalUnitOfWork, commandGateway);
+                getTopicByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return getTopicByIdFunctionalityTCC.getTopicDto();
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public TopicDto createTopic(Integer courseAggregateId, TopicDto topicDto) throws QuizzesException {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(topicDto);
+                CreateTopicFunctionalitySagas createTopicFunctionalitySagas = new CreateTopicFunctionalitySagas(
+                        topicService, courseService, sagaUnitOfWorkService, courseAggregateId, topicDto, sagaUnitOfWork,
+                        commandGateway);
+                createTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return createTopicFunctionalitySagas.getCreatedTopicDto();
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(topicDto);
+                CreateTopicFunctionalityTCC createTopicFunctionalityTCC = new CreateTopicFunctionalityTCC(
+                        topicService, courseService, causalUnitOfWorkService, courseAggregateId, topicDto,
+                        causalUnitOfWork, commandGateway);
+                createTopicFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                return createTopicFunctionalityTCC.getCreatedTopicDto();
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void updateTopic(TopicDto topicDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(topicDto);
+                UpdateTopicFunctionalitySagas updateTopicFunctionalitySagas = new UpdateTopicFunctionalitySagas(
+                        topicService, sagaUnitOfWorkService, topicDto, topicFactory, sagaUnitOfWork, commandGateway);
+                updateTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(topicDto);
+                UpdateTopicFunctionalityTCC updateTopicFunctionalityTCC = new UpdateTopicFunctionalityTCC(
+                        topicService, causalUnitOfWorkService, topicDto, topicFactory, causalUnitOfWork,
+                        commandGateway);
+                updateTopicFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void deleteTopic(Integer topicAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeleteTopicFunctionalitySagas deleteTopicFunctionalitySagas = new DeleteTopicFunctionalitySagas(
+                        topicService, sagaUnitOfWorkService, topicAggregateId, sagaUnitOfWork, commandGateway);
+                deleteTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeleteTopicFunctionalityTCC deleteTopicFunctionalityTCC = new DeleteTopicFunctionalityTCC(
+                        topicService, causalUnitOfWorkService, topicAggregateId, causalUnitOfWork, commandGateway);
+                deleteTopicFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    private void checkInput(TopicDto topicDto) {
+        if (topicDto.getName() == null) {
+            throw new QuizzesException(TOPIC_MISSING_NAME);
+        }
+    }
+}
