@@ -105,7 +105,7 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
         def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
 
         when: 'start update tournament'
-        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
+        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
         updateTournamentFunctionality.executeUntilStep("updateTournamentStep",unitOfWork1)
 
         then: 'assert the tournament is updated'

@@ -14,19 +14,15 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.UpdateTourna
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("unused")
 public class UpdateTournamentFunctionalityTCC extends WorkflowFunctionality {
     private TournamentDto originalTournamentDto;
     private HashSet<CausalTopic> topics = new HashSet<CausalTopic>();
@@ -34,20 +30,13 @@ public class UpdateTournamentFunctionalityTCC extends WorkflowFunctionality {
     private TournamentDto newTournamentDto;
     private QuizDto quizDto;
     private Quiz oldQuiz;
-    private final TournamentService tournamentService;
-    private final TopicService topicService;
-    private final QuizService quizService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public UpdateTournamentFunctionalityTCC(TournamentService tournamentService, TopicService topicService,
-            QuizService quizService, CausalUnitOfWorkService unitOfWorkService,
-            TournamentFactory tournamentFactory, QuizFactory quizFactory,
-            TournamentDto tournamentDto, Set<Integer> topicsAggregateIds, CausalUnitOfWork unitOfWork,
-            CommandGateway commandGateway) {
-        this.tournamentService = tournamentService;
-        this.topicService = topicService;
-        this.quizService = quizService;
+    public UpdateTournamentFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                            TournamentFactory tournamentFactory, QuizFactory quizFactory,
+                                            TournamentDto tournamentDto, Set<Integer> topicsAggregateIds, CausalUnitOfWork unitOfWork,
+                                            CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentDto, topicsAggregateIds, tournamentFactory, quizFactory, unitOfWork);
@@ -58,19 +47,11 @@ public class UpdateTournamentFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // Set<TopicDto> topicDtos = topicsAggregateIds.stream()
-            // .map(topicAggregateId -> topicService.getTopicById(topicAggregateId,
-            // unitOfWork))
-            // .collect(Collectors.toSet());
             Set<TopicDto> topicDtos = topicsAggregateIds.stream()
-                    .map(topicAggregateId -> (TopicDto) commandGateway.send(new GetTopicByIdCommand(unitOfWork,
-                            ServiceMapping.TOPIC.getServiceName(), topicAggregateId)))
+                    .map(topicAggregateId -> (TopicDto) commandGateway.send(new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId)))
                     .collect(Collectors.toSet());
 
-            // TournamentDto newTournamentDto =
-            // tournamentService.updateTournament(tournamentDto, topicDtos, unitOfWork);
-            UpdateTournamentCommand UpdateTournamentCommand = new UpdateTournamentCommand(unitOfWork,
-                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, topicDtos);
+            UpdateTournamentCommand UpdateTournamentCommand = new UpdateTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, topicDtos);
             TournamentDto newTournamentDto = (TournamentDto) commandGateway.send(UpdateTournamentCommand);
 
             QuizDto quizDto = new QuizDto();
@@ -79,31 +60,12 @@ public class UpdateTournamentFunctionalityTCC extends WorkflowFunctionality {
             quizDto.setConclusionDate(newTournamentDto.getEndTime());
             quizDto.setResultsDate(newTournamentDto.getEndTime());
 
-            // NUMBER_OF_QUESTIONS
-            // this.numberOfQuestions == Quiz(tournamentQuiz.id).quizQuestions.size
-            // Quiz(this.tournamentQuiz.id) DEPENDS ON this.numberOfQuestions
-            // QUIZ_TOPICS
-            // Quiz(this.tournamentQuiz.id) DEPENDS ON this.topics // the topics of the quiz
-            // questions are related to the tournament topics
-            // START_TIME_AVAILABLE_DATE
-            // this.startTime == Quiz(tournamentQuiz.id).availableDate
-            // END_TIME_CONCLUSION_DATE
-            // this.endTime == Quiz(tournamentQuiz.id).conclusionDate
-
             /*
              * this if is required for the case of updating a quiz and not altering neither
              * the number of questions neither the topics
              */
-            if (topicsAggregateIds != null || tournamentDto.getNumberOfQuestions() != null) {
-                // quizService.updateGeneratedQuiz(quizDto, topicsAggregateIds,
-                // newTournamentDto.getNumberOfQuestions(), unitOfWork);
-                UpdateGeneratedQuizCommand UpdateGeneratedQuizCommand = new UpdateGeneratedQuizCommand(unitOfWork,
-                        ServiceMapping.QUIZ.getServiceName(), quizDto, topicsAggregateIds,
-                        newTournamentDto.getNumberOfQuestions());
-                commandGateway.send(UpdateGeneratedQuizCommand);
-            }
-            // quizService.updateGeneratedQuiz(quizDto, topicsAggregateIds,
-            // newTournamentDto.getNumberOfQuestions(), unitOfWork);
+            UpdateGeneratedQuizCommand UpdateGeneratedQuizCommand = new UpdateGeneratedQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto, topicsAggregateIds, newTournamentDto.getNumberOfQuestions());
+            commandGateway.send(UpdateGeneratedQuizCommand);
         });
 
         workflow.addStep(step);
@@ -122,7 +84,6 @@ public class UpdateTournamentFunctionalityTCC extends WorkflowFunctionality {
     }
 
     public HashSet<TopicDto> getTopicsDtos() {
-        ;
         HashSet<TopicDto> topicDtos = topics.stream()
                 .map(TopicDto::new)
                 .collect(Collectors.toCollection(HashSet::new));

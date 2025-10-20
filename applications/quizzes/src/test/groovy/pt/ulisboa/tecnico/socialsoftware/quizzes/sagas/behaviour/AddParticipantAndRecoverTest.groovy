@@ -114,7 +114,7 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
 
         and: 'one functionalities to add participants'
         def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
-            tournamentService, courseExecutionService, unitOfWorkService,
+                unitOfWorkService,
             tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
             userDto.getAggregateId(), unitOfWork1, commandGateway
         )
@@ -151,12 +151,12 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
 
         and: 'two functionalities to add participants'
         def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
-            tournamentService, courseExecutionService, unitOfWorkService,
+                unitOfWorkService,
             tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
             userDto.getAggregateId(), unitOfWork1, commandGateway
         )
         def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(
-            tournamentService, courseExecutionService, unitOfWorkService,
+                unitOfWorkService,
             tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
             userDto3.getAggregateId(), unitOfWork2, commandGateway
         )

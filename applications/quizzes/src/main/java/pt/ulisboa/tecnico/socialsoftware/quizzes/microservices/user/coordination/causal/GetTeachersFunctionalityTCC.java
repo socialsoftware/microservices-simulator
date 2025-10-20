@@ -9,20 +9,16 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetTeachersCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 
 import java.util.List;
 
-@SuppressWarnings("unused")
 public class GetTeachersFunctionalityTCC extends WorkflowFunctionality {
     private List<UserDto> teachers;
-    private final UserService userService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public GetTeachersFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,
-            CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.userService = userService;
+    public GetTeachersFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                       CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(unitOfWork);
@@ -32,9 +28,7 @@ public class GetTeachersFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.teachers = userService.getTeachers(unitOfWork);
-            GetTeachersCommand GetTeachersCommand = new GetTeachersCommand(unitOfWork,
-                    ServiceMapping.USER.getServiceName());
+            GetTeachersCommand GetTeachersCommand = new GetTeachersCommand(unitOfWork, ServiceMapping.USER.getServiceName());
             this.teachers = (List<UserDto>) commandGateway.send(GetTeachersCommand);
         });
 

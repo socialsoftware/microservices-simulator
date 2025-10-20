@@ -13,14 +13,11 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCour
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.CreateQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.states.QuestionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.states.QuestionSagaState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,20 +29,13 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
     private Set<QuestionDto> questions;
     private QuizDto createdQuizDto;
     private CourseExecutionDto courseExecutionDto;
-    private final CourseExecutionService courseExecutionService;
-    private final QuizService quizService;
-    private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public CreateQuizFunctionalitySagas(CourseExecutionService courseExecutionService, QuizService quizService,
-            QuestionService questionService, SagaUnitOfWorkService unitOfWorkService,
-            Integer courseExecutionId, QuizDto quizDto, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.courseExecutionService = courseExecutionService;
-        this.quizService = quizService;
-        this.questionService = questionService;
+    public CreateQuizFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                        Integer courseExecutionId, QuizDto quizDto, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = CommandGateway;
         this.buildWorkflow(courseExecutionId, quizDto, unitOfWork);
     }
 
@@ -53,40 +43,26 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {
-            // this.courseExecutionDto = (SagaCourseExecutionDto)
-            // courseExecutionService.getCourseExecutionById(courseExecutionId, unitOfWork);
-            // unitOfWorkService.registerSagaState(courseExecutionDto.getAggregateId(),
-            // CourseExecutionSagaState.READ_COURSE, unitOfWork);
-            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionId);
+            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionId);
             getCourseExecutionByIdCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
-            this.courseExecutionDto = (CourseExecutionDto) CommandGateway.send(getCourseExecutionByIdCommand);
+            this.courseExecutionDto = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
 
             QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionDto);
             this.setQuizCourseExecution(quizCourseExecution);
         });
 
         getCourseExecutionStep.registerCompensation(() -> {
-            // unitOfWorkService.registerSagaState(courseExecutionDto.getAggregateId(),
-            // GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            Command command = new Command(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(),
-                    courseExecutionId);
+            Command command = new Command(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionId);
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            CommandGateway.send(command);
+            commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep getQuestionsStep = new SagaSyncStep("getQuestionsStep", () -> {
+        SagaSyncStep getQuestionsStep = new SagaSyncStep("getQuestionsStep", () -> { // TODO
             Set<QuestionDto> questions = quizDto.getQuestionDtos().stream()
                     .map(questionDto -> {
-                        // QuestionDto question =
-                        // questionService.getQuestionById(questionDto.getAggregateId(), unitOfWork);
-                        // unitOfWorkService.registerSagaState(question.getAggregateId(),
-                        // QuestionSagaState.READ_QUESTION, unitOfWork);
-                        GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork,
-                                ServiceMapping.QUESTION.getServiceName(), questionDto.getAggregateId());
+                        GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionDto.getAggregateId());
                         getQuestionByIdCommand.setSemanticLock(QuestionSagaState.READ_QUESTION);
-                        QuestionDto question = (QuestionDto) CommandGateway.send(getQuestionByIdCommand);
-                        return question;
+                        return (QuestionDto) commandGateway.send(getQuestionByIdCommand);
                     })
                     .collect(Collectors.toSet());
             this.setQuestions(questions);
@@ -94,22 +70,15 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
 
         getQuestionsStep.registerCompensation(() -> {
             quizDto.getQuestionDtos().forEach(questionDto -> {
-                // unitOfWorkService.registerSagaState(questionDto.getAggregateId(),
-                // GenericSagaState.NOT_IN_SAGA, unitOfWork);
-                Command command = new Command(unitOfWork, ServiceMapping.QUESTION.getServiceName(),
-                        questionDto.getAggregateId());
+                Command command = new Command(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionDto.getAggregateId());
                 command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-                CommandGateway.send(command);
+                commandGateway.send(command);
             });
         }, unitOfWork);
 
         SagaSyncStep createQuizStep = new SagaSyncStep("createQuizStep", () -> {
-            // QuizDto createdQuizDto =
-            // quizService.createQuiz(this.getQuizCourseExecution(), this.getQuestions(),
-            // quizDto, unitOfWork);
-            CreateQuizCommand createQuizCommand = new CreateQuizCommand(unitOfWork,
-                    ServiceMapping.QUIZ.getServiceName(), this.getQuizCourseExecution(), this.getQuestions(), quizDto);
-            QuizDto createdQuizDto = (QuizDto) CommandGateway.send(createQuizCommand);
+            CreateQuizCommand createQuizCommand = new CreateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), this.getQuizCourseExecution(), this.getQuestions(), quizDto);
+            QuizDto createdQuizDto = (QuizDto) commandGateway.send(createQuizCommand);
             this.setCreatedQuizDto(createdQuizDto);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep, getQuestionsStep)));
 

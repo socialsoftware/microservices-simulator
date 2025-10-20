@@ -12,7 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.RemoveQuestionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.states.QuestionSagaState;
 
 import java.util.ArrayList;
@@ -21,15 +20,13 @@ import java.util.Arrays;
 public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
 
     private QuestionDto question;
-    private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public RemoveQuestionFunctionalitySagas(QuestionService questionService, SagaUnitOfWorkService unitOfWorkService,
-            Integer questionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.questionService = questionService;
+    public RemoveQuestionFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                            Integer questionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = CommandGateway;
         this.buildWorkflow(questionAggregateId, unitOfWork);
     }
 
@@ -37,30 +34,21 @@ public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
-            // QuestionDto question = (QuestionDto)
-            // questionService.getQuestionById(questionAggregateId, unitOfWork);
-            // unitOfWorkService.registerSagaState(questionAggregateId,
-            // QuestionSagaState.READ_QUESTION, unitOfWork);
-            GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork,
-                    ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
+            GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
             getQuestionByIdCommand.setSemanticLock(QuestionSagaState.READ_QUESTION);
-            QuestionDto question = (QuestionDto) CommandGateway.send(getQuestionByIdCommand);
+            QuestionDto question = (QuestionDto) commandGateway.send(getQuestionByIdCommand);
             this.setQuestion(question);
         });
 
         getQuestionStep.registerCompensation(() -> {
-            // unitOfWorkService.registerSagaState(questionAggregateId,
-            // GenericSagaState.NOT_IN_SAGA, unitOfWork);
             Command command = new Command(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            CommandGateway.send(command);
+            commandGateway.send(command);
         }, unitOfWork);
 
         SagaSyncStep removeQuestionStep = new SagaSyncStep("removeQuestionStep", () -> {
-            // questionService.removeQuestion(questionAggregateId, unitOfWork);
-            RemoveQuestionCommand removeQuestion = new RemoveQuestionCommand(unitOfWork,
-                    ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
-            CommandGateway.send(removeQuestion);
+            RemoveQuestionCommand removeQuestion = new RemoveQuestionCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
+            commandGateway.send(removeQuestion);
         }, new ArrayList<>(Arrays.asList(getQuestionStep)));
 
         workflow.addStep(getQuestionStep);

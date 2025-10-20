@@ -12,25 +12,20 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.DeleteTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.states.TopicSagaState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
-
     private TopicDto topic;
-
-    private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public DeleteTopicFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService,
-            Integer topicAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.topicService = topicService;
+    public DeleteTopicFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                         Integer topicAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(topicAggregateId, unitOfWork);
     }
 
@@ -38,30 +33,21 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
-            // TopicDto topicDto = (TopicDto) topicService.getTopicById(topicAggregateId,
-            // unitOfWork);
-            // unitOfWorkService.registerSagaState(topicAggregateId,
-            // TopicSagaState.READ_TOPIC, unitOfWork);
-            GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork,
-                    ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
+            GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
             getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
-            TopicDto topicDto = (TopicDto) CommandGateway.send(getTopicByIdCommand);
+            TopicDto topicDto = (TopicDto) commandGateway.send(getTopicByIdCommand);
             this.setTopic(topicDto);
         });
 
         getTopicStep.registerCompensation(() -> {
-            // unitOfWorkService.registerSagaState(topicAggregateId,
-            // GenericSagaState.NOT_IN_SAGA, unitOfWork);
             Command command = new Command(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            CommandGateway.send(command);
+            commandGateway.send(command);
         }, unitOfWork);
 
         SagaSyncStep deleteTopicStep = new SagaSyncStep("deleteTopicStep", () -> {
-            // topicService.deleteTopic(topicAggregateId, unitOfWork);
-            DeleteTopicCommand deleteTopicCommand = new DeleteTopicCommand(unitOfWork,
-                    ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
-            CommandGateway.send(deleteTopicCommand);
+            DeleteTopicCommand deleteTopicCommand = new DeleteTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
+            commandGateway.send(deleteTopicCommand);
         }, new ArrayList<>(Arrays.asList(getTopicStep)));
 
         workflow.addStep(getTopicStep);

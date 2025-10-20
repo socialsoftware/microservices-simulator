@@ -36,8 +36,8 @@ public class StreamCommandGateway implements CommandGateway {
 
     @Autowired
     public StreamCommandGateway(StreamBridge streamBridge,
-            CommandResponseAggregator responseAggregator,
-            MessagingObjectMapperProvider mapperProvider, ApplicationContext applicationContext) {
+                                CommandResponseAggregator responseAggregator,
+                                MessagingObjectMapperProvider mapperProvider, ApplicationContext applicationContext) {
         this.streamBridge = streamBridge;
         this.responseAggregator = responseAggregator;
         this.msgMapper = mapperProvider.newMapper();
@@ -46,34 +46,32 @@ public class StreamCommandGateway implements CommandGateway {
 
     public Object send(Command command) {
         String service = command.getServiceName() != null ? command.getServiceName().toLowerCase() : "";
-//        String cmdPkg = command.getClass().getPackage().getName();
-//        boolean isSameServicePackage = !service.isEmpty() && (cmdPkg.contains(".command." + service));
+        String cmdPkg = command.getClass().getPackage().getName();
+        boolean isSameServicePackage = !service.isEmpty() && (cmdPkg.contains(".command." + service));
 
-        // if (isSameServicePackage) {
-        // logger.info("Routing to LocalCommandGateway for command: " +
-        // command.getClass().getSimpleName());
-        // String handlerClassName = command.getServiceName() + "CommandHandler";
-        //
-        // CommandHandler handler =
-        // applicationContext.getBeansOfType(CommandHandler.class)
-        // .values()
-        // .stream()
-        // .filter(h -> h.getClass().getSimpleName().equalsIgnoreCase(handlerClassName))
-        // .findFirst()
-        // .orElseThrow(() -> new RuntimeException("No handler found for command: " +
-        // handlerClassName));
-        //
-        // try {
-        // Object returnObject = handler.handle(command);
-        // if (returnObject instanceof SimulatorException) {
-        // throw (SimulatorException) returnObject;
-        // }
-        // return returnObject;
-        // } catch (SimulatorException e) {
-        // Logger.getLogger(LocalCommandGateway.class.getName()).warning(e.getMessage());
-        // throw e;
-        // }
-        // }
+        if (isSameServicePackage) {
+            logger.info("Routing to LocalCommandGateway for command: " + command.getClass().getSimpleName());
+            String handlerClassName = command.getServiceName() + "CommandHandler";
+
+            CommandHandler handler =
+                    applicationContext.getBeansOfType(CommandHandler.class)
+                            .values()
+                            .stream()
+                            .filter(h -> h.getClass().getSimpleName().equalsIgnoreCase(handlerClassName))
+                            .findFirst()
+                            .orElseThrow(() -> new RuntimeException("No handler found for command: " + handlerClassName));
+
+            try {
+                Object returnObject = handler.handle(command);
+                if (returnObject instanceof SimulatorException) {
+                    throw (SimulatorException) returnObject;
+                }
+                return returnObject;
+            } catch (SimulatorException e) {
+                Logger.getLogger(LocalCommandGateway.class.getName()).warning(e.getMessage());
+                throw e;
+            }
+        }
 
         String destination = service + "-command-channel";
         String correlationId = java.util.UUID.randomUUID().toString();

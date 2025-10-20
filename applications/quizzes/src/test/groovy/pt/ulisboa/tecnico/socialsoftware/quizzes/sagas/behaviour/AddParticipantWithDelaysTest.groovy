@@ -105,7 +105,7 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
 
         and: 'one functionality to add a participant'
         def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
-            tournamentService, courseExecutionService, unitOfWorkService,
+                unitOfWorkService,
             tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
             userDto.getAggregateId(), unitOfWork1, commandGateway
         )

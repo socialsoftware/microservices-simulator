@@ -70,7 +70,7 @@ public class TournamentEventProcessing {
                 UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
 
                 AnonymizeUserTournamentFunctionalitySagas anonymizeUserTournamentFunctionalitySagas =
-                        new AnonymizeUserTournamentFunctionalitySagas(tournamentService, unitOfWorkService, aggregateId, anonymizeEvent.getPublisherAggregateId(), anonymizeEvent.getStudentAggregateId(), anonymizeEvent.getName(), anonymizeEvent.getUsername(), anonymizeEvent.getPublisherAggregateVersion(), unitOfWork, commandGateway);
+                        new AnonymizeUserTournamentFunctionalitySagas(unitOfWorkService, aggregateId, anonymizeEvent.getPublisherAggregateId(), anonymizeEvent.getStudentAggregateId(), anonymizeEvent.getName(), anonymizeEvent.getUsername(), anonymizeEvent.getPublisherAggregateVersion(), unitOfWork, commandGateway);
                 anonymizeUserTournamentFunctionalitySagas.executeWorkflow(unitOfWork);
                 break;
             case TCC:
@@ -120,7 +120,7 @@ public class TournamentEventProcessing {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
 
                 UpdateUserNameFunctionalitySagas updateUserNameFunctionalitySagas =
-                        new UpdateUserNameFunctionalitySagas(tournamentService, sagaUnitOfWorkService,updateStudentNameEvent.getPublisherAggregateVersion(), subscriberAggregateId ,updateStudentNameEvent.getPublisherAggregateId() ,updateStudentNameEvent.getStudentAggregateId() ,sagaUnitOfWork, updateStudentNameEvent.getUpdatedName(), commandGateway);
+                        new UpdateUserNameFunctionalitySagas(sagaUnitOfWorkService,updateStudentNameEvent.getPublisherAggregateVersion(), subscriberAggregateId ,updateStudentNameEvent.getPublisherAggregateId() ,updateStudentNameEvent.getStudentAggregateId() ,sagaUnitOfWork, updateStudentNameEvent.getUpdatedName(), commandGateway);
                                                       
                 updateUserNameFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;

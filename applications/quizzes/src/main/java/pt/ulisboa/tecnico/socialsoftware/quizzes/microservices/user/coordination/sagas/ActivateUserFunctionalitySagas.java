@@ -11,26 +11,19 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.ActivateUserCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetUserByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.logging.Logger;
 
 public class ActivateUserFunctionalitySagas extends WorkflowFunctionality {
-
-    private static final Logger LOGGER = Logger.getLogger(ActivateUserFunctionalitySagas.class.getName());
-
     private UserDto user;
-    private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public ActivateUserFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService,
-            Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.userService = userService;
+    public ActivateUserFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                          Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(userAggregateId, unitOfWork);
     }
 
@@ -38,20 +31,14 @@ public class ActivateUserFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            LOGGER.info("ActivateUserFunctionalitySagas: getUserStep");
-            // UserDto user = (UserDto) userService.getUserById(userAggregateId,
-            // unitOfWork);
-            GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork,
-                    ServiceMapping.USER.getServiceName(), userAggregateId);
-            UserDto user = (UserDto) CommandGateway.send(getUserByIdCommand);
+            GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
+            UserDto user = (UserDto) commandGateway.send(getUserByIdCommand);
             this.setUser(user);
         });
 
         SyncStep activateUserStep = new SyncStep("activateUserStep", () -> {
-            // userService.activateUser(userAggregateId, unitOfWork);
-            ActivateUserCommand activateUserCommand = new ActivateUserCommand(unitOfWork,
-                    ServiceMapping.USER.getServiceName(), userAggregateId);
-            CommandGateway.send(activateUserCommand);
+            ActivateUserCommand activateUserCommand = new ActivateUserCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
+            commandGateway.send(activateUserCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
         workflow.addStep(getUserStep);

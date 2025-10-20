@@ -9,19 +9,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
 
 public class FindQuestionByAggregateIdFunctionalityTCC extends WorkflowFunctionality {
     private QuestionDto questionDto;
-    @SuppressWarnings("unused")
-    private final QuestionService questionService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public FindQuestionByAggregateIdFunctionalityTCC(QuestionService questionService,
-            CausalUnitOfWorkService unitOfWorkService,
-            Integer aggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.questionService = questionService;
+    public FindQuestionByAggregateIdFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                                     Integer aggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(aggregateId, unitOfWork);
@@ -31,7 +26,6 @@ public class FindQuestionByAggregateIdFunctionalityTCC extends WorkflowFunctiona
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.questionDto = questionService.getQuestionById(aggregateId, unitOfWork);
             GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork,
                     ServiceMapping.QUESTION.getServiceName(), aggregateId);
             this.questionDto = (QuestionDto) commandGateway.send(getQuestionByIdCommand);

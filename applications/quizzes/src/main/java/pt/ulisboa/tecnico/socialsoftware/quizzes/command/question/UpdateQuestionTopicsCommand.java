@@ -11,7 +11,7 @@ public class UpdateQuestionTopicsCommand extends Command {
     private Set<QuestionTopic> topics;
 
     public UpdateQuestionTopicsCommand(UnitOfWork unitOfWork, String serviceName, Integer courseAggregateId, Set<QuestionTopic> topics) {
-        super(unitOfWork, serviceName, courseAggregateId);
+        super(unitOfWork, serviceName, null);
         this.courseAggregateId = courseAggregateId;
         this.topics = topics;
     }

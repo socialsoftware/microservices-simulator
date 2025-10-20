@@ -26,9 +26,7 @@ public class FindQuizFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
-            GetQuizByIdCommand GetQuizByIdCommand = new GetQuizByIdCommand(unitOfWork,
-                    ServiceMapping.QUIZ.getServiceName(), quizAggregateId);
+            GetQuizByIdCommand GetQuizByIdCommand = new GetQuizByIdCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizAggregateId);
             this.quizDto = (QuizDto) commandGateway.send(GetQuizByIdCommand);
         });
 

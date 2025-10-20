@@ -9,17 +9,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.causal.CausalUser;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.DeactivateUserCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 
 public class DeactivateUserFunctionalityTCC extends WorkflowFunctionality {
     private CausalUser user;
-    private final UserService userService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public DeactivateUserFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,  
-                            Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.userService = userService;
+    public DeactivateUserFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                          Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(userAggregateId, unitOfWork);
@@ -29,7 +26,6 @@ public class DeactivateUserFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-//            userService.deactivateUser(userAggregateId, unitOfWork);
             DeactivateUserCommand deactivateUserCommand = new DeactivateUserCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             commandGateway.send(deactivateUserCommand);
         });

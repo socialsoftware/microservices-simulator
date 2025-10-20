@@ -9,19 +9,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.CreateUserCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 
-@SuppressWarnings("unused")
 public class CreateUserFunctionalityTCC extends WorkflowFunctionality {
     private UserDto userDto;
     private UserDto createdUserDto;
-    private final UserService userService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public CreateUserFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,
-            UserDto userDto, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.userService = userService;
+    public CreateUserFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                      UserDto userDto, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(userDto, unitOfWork);
@@ -31,9 +27,7 @@ public class CreateUserFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.createdUserDto = userService.createUser(userDto, unitOfWork);
-            CreateUserCommand CreateUserCommand = new CreateUserCommand(unitOfWork,
-                    ServiceMapping.USER.getServiceName(), userDto);
+            CreateUserCommand CreateUserCommand = new CreateUserCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userDto);
             this.createdUserDto = (UserDto) commandGateway.send(CreateUserCommand);
         });
 

@@ -94,7 +94,7 @@ class AddParticipantAndUpdateTournamentTest extends QuizzesSpockTest {
     def "add participant find the tournament in update and aborts"() {
         given: 'the tournament is updating'
         def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
-        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
+        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
         
         updateTournamentFunctionality.executeUntilStep("getOriginalTournamentStep", unitOfWork1)
 

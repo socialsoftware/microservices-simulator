@@ -118,7 +118,7 @@ class CreateTournamentRecoveryTest extends QuizzesSpockTest {
 
         and: 'the create tournament functionality'
         def createTournamentFunctionality = new CreateTournamentFunctionalitySagas(
-            tournamentService, courseExecutionService, topicService, quizService, unitOfWorkService, userCreatorDto.getAggregateId(),
+                unitOfWorkService, userCreatorDto.getAggregateId(),
              courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], tournamentDto, unitOfWork1, commandGateway)
         
 

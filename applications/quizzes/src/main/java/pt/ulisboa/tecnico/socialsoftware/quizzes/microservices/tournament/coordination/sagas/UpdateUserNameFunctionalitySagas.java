@@ -12,7 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamentByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.UpdateUserNameCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 
@@ -22,23 +21,20 @@ import java.util.Arrays;
 public class UpdateUserNameFunctionalitySagas extends WorkflowFunctionality {
     private TournamentDto tournament;
     private UserDto participant;
-    private String name;
-    private final CommandGateway CommandGateway;
-    private Integer eventVersion;
-    private Integer executionAggregateId;
-    private final TournamentService tournamentService;
+    private final String name;
+    private final CommandGateway commandGateway;
+    private final Integer eventVersion;
+    private final Integer executionAggregateId;
     private final SagaUnitOfWorkService unitOfWorkService;
 
-    public UpdateUserNameFunctionalitySagas(TournamentService tournamentService,
-            SagaUnitOfWorkService unitOfWorkService, Integer eventVersion, Integer tournamentAggregateId,
-            Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork, String name,
-            CommandGateway CommandGateway) {
-        this.tournamentService = tournamentService;
+    public UpdateUserNameFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService, Integer eventVersion, Integer tournamentAggregateId,
+                                            Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork, String name,
+                                            CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.eventVersion = eventVersion;
         this.executionAggregateId = executionAggregateId;
         this.name = name;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -46,25 +42,17 @@ public class UpdateUserNameFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
-            // TournamentDto tournamentDTO = (TournamentDto)
-            // tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
-            // unitOfWorkService.registerSagaState(tournamentAggregateId,
-            // TournamentSagaState.READ_TOURNAMENT, unitOfWork);
-            GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork,
-                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             getTournamentByIdCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
-            TournamentDto tournamentDTO = (TournamentDto) CommandGateway.send(getTournamentByIdCommand);
+            TournamentDto tournamentDTO = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
             this.setTournament(tournamentDTO);
 
         });
 
         getTournamentStep.registerCompensation(() -> {
-            // unitOfWorkService.registerSagaState(tournamentAggregateId,
-            // GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            Command command = new Command(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),
-                    tournamentAggregateId);
+            Command command = new Command(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            CommandGateway.send(command);
+            commandGateway.send(command);
         }, unitOfWork);
 
         SagaSyncStep getParticipantStep = new SagaSyncStep("getParticipantStep", () -> {
@@ -74,20 +62,14 @@ public class UpdateUserNameFunctionalitySagas extends WorkflowFunctionality {
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
 
         getParticipantStep.registerCompensation(() -> {
-            // unitOfWorkService.registerSagaState(userAggregateId,
-            // GenericSagaState.NOT_IN_SAGA, unitOfWork);
             Command command = new Command(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            CommandGateway.send(command);
+            commandGateway.send(command);
         }, unitOfWork);
 
         SagaSyncStep updateParticipantNameStep = new SagaSyncStep("updateParticipantNameStep", () -> {
-            // tournamentService.updateUserName(tournamentAggregateId, executionAggregateId,
-            // eventVersion, userAggregateId, name, unitOfWork);
-            UpdateUserNameCommand updateUserNameCommand = new UpdateUserNameCommand(unitOfWork,
-                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, executionAggregateId,
-                    eventVersion, userAggregateId, name);
-            CommandGateway.send(updateUserNameCommand);
+            UpdateUserNameCommand updateUserNameCommand = new UpdateUserNameCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, executionAggregateId, eventVersion, userAggregateId, name);
+            commandGateway.send(updateUserNameCommand);
             this.setParticipant(getParticipant());
             this.setTournament(getTournament());
         }, new ArrayList<>(Arrays.asList(getTournamentStep, getParticipantStep)));

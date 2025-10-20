@@ -33,7 +33,6 @@ public class UserStreamCommandHandler extends StreamCommandHandler {
 
     @Bean
     public Consumer<Message<?>> userServiceCommandChannel() {
-        System.out.println("Registering user service command channel");
         return this::handleCommandMessage;
     }
 }

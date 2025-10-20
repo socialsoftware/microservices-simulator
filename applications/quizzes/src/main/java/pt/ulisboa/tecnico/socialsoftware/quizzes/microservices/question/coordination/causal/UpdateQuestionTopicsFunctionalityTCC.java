@@ -12,9 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdComma
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.Question;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionTopic;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 
 import java.util.List;
 import java.util.Set;
@@ -24,40 +22,27 @@ public class UpdateQuestionTopicsFunctionalityTCC extends WorkflowFunctionality 
     private Set<QuestionTopic> topics;
     private Question oldQuestion;
     private Set<QuestionTopic> oldTopics;
-    @SuppressWarnings("unused")
-    private final QuestionService questionService;
-    @SuppressWarnings("unused")
-    private final TopicService topicService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public UpdateQuestionTopicsFunctionalityTCC(QuestionService questionService, TopicService topicService,
-            QuestionFactory questionFactory, CausalUnitOfWorkService unitOfWorkService,
-            Integer courseAggregateId, List<Integer> topicIds, CausalUnitOfWork unitOfWork,
-            CommandGateway commandGateway) {
-        this.questionService = questionService;
-        this.topicService = topicService;
+    public UpdateQuestionTopicsFunctionalityTCC(QuestionFactory questionFactory, CausalUnitOfWorkService unitOfWorkService,
+                                                Integer courseAggregateId, List<Integer> topicIds, CausalUnitOfWork unitOfWork,
+                                                CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(courseAggregateId, topicIds, questionFactory, unitOfWork);
     }
 
-    public void buildWorkflow(Integer courseAggregateId, List<Integer> topicIds, QuestionFactory questionFactory,
-            CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer courseAggregateId, List<Integer> topicIds, QuestionFactory questionFactory, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // Set<QuestionTopic> topics = topicIds.stream()
-            // .map(id -> topicService.getTopicById(id, unitOfWork))
-            // .map(QuestionTopic::new)
-            // .collect(Collectors.toSet());
             Set<QuestionTopic> topics = topicIds.stream()
                     .map(id -> (TopicDto) commandGateway
                             .send(new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), id)))
                     .map(QuestionTopic::new)
                     .collect(Collectors.toSet());
 
-            // questionService.updateQuestionTopics(courseAggregateId, topics, unitOfWork);
             UpdateQuestionTopicsCommand cmd = new UpdateQuestionTopicsCommand(unitOfWork,
                     ServiceMapping.QUESTION.getServiceName(), courseAggregateId, topics);
             commandGateway.send(cmd);

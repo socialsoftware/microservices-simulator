@@ -11,19 +11,15 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateQuestion
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.Question;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
 
 public class UpdateQuestionFunctionalityTCC extends WorkflowFunctionality {
     private Question oldQuestion;
-    @SuppressWarnings("unused")
-    private final QuestionService questionService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public UpdateQuestionFunctionalityTCC(QuestionService questionService, CausalUnitOfWorkService unitOfWorkService,
-            QuestionFactory questionFactory, QuestionDto questionDto, CausalUnitOfWork unitOfWork,
-            CommandGateway commandGateway) {
-        this.questionService = questionService;
+    public UpdateQuestionFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                          QuestionFactory questionFactory, QuestionDto questionDto, CausalUnitOfWork unitOfWork,
+                                          CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(questionFactory, questionDto, unitOfWork);
@@ -33,9 +29,7 @@ public class UpdateQuestionFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // questionService.updateQuestion(questionDto, unitOfWork);
-            UpdateQuestionCommand cmd = new UpdateQuestionCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(),
-                    questionDto);
+            UpdateQuestionCommand cmd = new UpdateQuestionCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionDto);
             commandGateway.send(cmd);
         });
 

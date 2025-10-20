@@ -109,8 +109,8 @@ class AddParticipantTest extends QuizzesSpockTest {
         def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
         def unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
         and: 'two functionalities to add participants'
-        def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork1, commandGateway)
-        def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto3.getAggregateId(), unitOfWork2, commandGateway)
+        def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork1, commandGateway)
+        def addParticipantFunctionality2 = new AddParticipantFunctionalitySagas(unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto3.getAggregateId(), unitOfWork2, commandGateway)
         and: 'the first functionality reads one student'
         addParticipantFunctionality1.executeUntilStep("getUserStep", unitOfWork1)
         and: 'the second functionality read the other student'

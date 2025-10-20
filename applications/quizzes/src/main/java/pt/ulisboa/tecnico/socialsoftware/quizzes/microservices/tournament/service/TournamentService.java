@@ -52,11 +52,6 @@ public class TournamentService {
         this.tournamentRepository = tournamentRepository;
     }
 
-    // public void commit(Aggregate aggregate) {
-    //     tournamentRepository.
-        
-    // }
-
     // intended for requests from external functionalities
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public TournamentDto getTournamentById(Integer aggregateId, UnitOfWork unitOfWork) {

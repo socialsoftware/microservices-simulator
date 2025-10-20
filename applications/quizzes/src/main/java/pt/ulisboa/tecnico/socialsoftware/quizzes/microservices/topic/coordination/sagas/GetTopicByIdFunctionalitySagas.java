@@ -9,17 +9,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 
 public class GetTopicByIdFunctionalitySagas extends WorkflowFunctionality {
     private TopicDto topicDto;
-    private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CommandGateway CommandGateway;
 
-    public GetTopicByIdFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService,
-            Integer topicAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.topicService = topicService;
+    public GetTopicByIdFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                          Integer topicAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.CommandGateway = CommandGateway;
         this.buildWorkflow(topicAggregateId, unitOfWork);
@@ -29,9 +26,7 @@ public class GetTopicByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
-            // TopicDto topicDto = topicService.getTopicById(topicAggregateId, unitOfWork);
-            GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork,
-                    ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
+            GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
             TopicDto topicDto = (TopicDto) CommandGateway.send(getTopicByIdCommand);
             this.setTopicDto(topicDto);
         });

@@ -67,13 +67,13 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindQuestionByAggregateIdFunctionalitySagas findQuestionByAggregateIdFunctionalitySagas = new FindQuestionByAggregateIdFunctionalitySagas(
-                        questionService, sagaUnitOfWorkService, aggregateId, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, aggregateId, sagaUnitOfWork, commandGateway);
                 findQuestionByAggregateIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findQuestionByAggregateIdFunctionalitySagas.getQuestionDto();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindQuestionByAggregateIdFunctionalityTCC findQuestionByAggregateIdFunctionalityTCC = new FindQuestionByAggregateIdFunctionalityTCC(
-                        questionService, causalUnitOfWorkService, aggregateId, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, aggregateId, causalUnitOfWork, commandGateway);
                 findQuestionByAggregateIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findQuestionByAggregateIdFunctionalityTCC.getQuestionDto();
             default:
@@ -88,13 +88,13 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindQuestionsByCourseFunctionalitySagas findQuestionsByCourseFunctionalitySagas = new FindQuestionsByCourseFunctionalitySagas(
-                        questionService, sagaUnitOfWorkService, courseAggregateId, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, courseAggregateId, sagaUnitOfWork, commandGateway);
                 findQuestionsByCourseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findQuestionsByCourseFunctionalitySagas.getQuestions();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindQuestionsByCourseFunctionalityTCC findQuestionsByCourseFunctionalityTCC = new FindQuestionsByCourseFunctionalityTCC(
-                        questionService, causalUnitOfWorkService, courseAggregateId, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, courseAggregateId, causalUnitOfWork, commandGateway);
                 findQuestionsByCourseFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findQuestionsByCourseFunctionalityTCC.getQuestions();
             default:
@@ -109,14 +109,14 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 CreateQuestionFunctionalitySagas createQuestionFunctionalitySagas = new CreateQuestionFunctionalitySagas(
-                        questionService, topicService, courseService, sagaUnitOfWorkService, courseAggregateId,
+                        sagaUnitOfWorkService, courseAggregateId,
                         questionDto, sagaUnitOfWork, commandGateway);
                 createQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createQuestionFunctionalitySagas.getCreatedQuestion();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 CreateQuestionFunctionalityTCC createQuestionFunctionalityTCC = new CreateQuestionFunctionalityTCC(
-                        questionService, topicService, courseService, causalUnitOfWorkService, courseAggregateId,
+                        causalUnitOfWorkService, courseAggregateId,
                         questionDto, causalUnitOfWork, commandGateway);
                 createQuestionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return createQuestionFunctionalityTCC.getCreatedQuestion();
@@ -132,14 +132,14 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuestionFunctionalitySagas updateQuestionFunctionalitySagas = new UpdateQuestionFunctionalitySagas(
-                        questionService, sagaUnitOfWorkService, questionFactory, questionDto, sagaUnitOfWork,
+                        sagaUnitOfWorkService, questionFactory, questionDto, sagaUnitOfWork,
                         commandGateway);
                 updateQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuestionFunctionalityTCC updateQuestionFunctionalityTCC = new UpdateQuestionFunctionalityTCC(
-                        questionService, causalUnitOfWorkService, questionFactory, questionDto, causalUnitOfWork,
+                        causalUnitOfWorkService, questionFactory, questionDto, causalUnitOfWork,
                         commandGateway);
                 updateQuestionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -155,13 +155,13 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 RemoveQuestionFunctionalitySagas removeQuestionFunctionalitySagas = new RemoveQuestionFunctionalitySagas(
-                        questionService, sagaUnitOfWorkService, questionAggregateId, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, questionAggregateId, sagaUnitOfWork, commandGateway);
                 removeQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 RemoveQuestionFunctionalityTCC removeQuestionFunctionalityTCC = new RemoveQuestionFunctionalityTCC(
-                        questionService, causalUnitOfWorkService, questionAggregateId, causalUnitOfWork,
+                        causalUnitOfWorkService, questionAggregateId, causalUnitOfWork,
                         commandGateway);
                 removeQuestionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -177,14 +177,14 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuestionTopicsFunctionalitySagas updateQuestionTopicsFunctionalitySagas = new UpdateQuestionTopicsFunctionalitySagas(
-                        questionService, topicService, questionFactory, sagaUnitOfWorkService, courseAggregateId,
+                        questionFactory, sagaUnitOfWorkService, courseAggregateId,
                         topicIds, sagaUnitOfWork, commandGateway);
                 updateQuestionTopicsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuestionTopicsFunctionalityTCC updateQuestionTopicsFunctionalityTCC = new UpdateQuestionTopicsFunctionalityTCC(
-                        questionService, topicService, questionFactory, causalUnitOfWorkService, courseAggregateId,
+                        questionFactory, causalUnitOfWorkService, courseAggregateId,
                         topicIds, causalUnitOfWork, commandGateway);
                 updateQuestionTopicsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;

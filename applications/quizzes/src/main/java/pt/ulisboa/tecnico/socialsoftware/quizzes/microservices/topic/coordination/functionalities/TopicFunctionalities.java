@@ -65,13 +65,13 @@ public class TopicFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindTopicsByCourseFunctionalitySagas findTopicsByCourseFunctionalitySagas = new FindTopicsByCourseFunctionalitySagas(
-                        topicService, sagaUnitOfWorkService, courseAggregateId, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, courseAggregateId, sagaUnitOfWork, commandGateway);
                 findTopicsByCourseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findTopicsByCourseFunctionalitySagas.getTopics();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindTopicsByCourseFunctionalityTCC findTopicsByCourseFunctionalityTCC = new FindTopicsByCourseFunctionalityTCC(
-                        topicService, causalUnitOfWorkService, courseAggregateId, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, courseAggregateId, causalUnitOfWork, commandGateway);
                 findTopicsByCourseFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findTopicsByCourseFunctionalityTCC.getTopics();
             default:
@@ -86,13 +86,13 @@ public class TopicFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetTopicByIdFunctionalitySagas getTopicByIdFunctionalitySagas = new GetTopicByIdFunctionalitySagas(
-                        topicService, sagaUnitOfWorkService, topicAggregateId, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, topicAggregateId, sagaUnitOfWork, commandGateway);
                 getTopicByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getTopicByIdFunctionalitySagas.getTopicDto();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetTopicByIdFunctionalityTCC getTopicByIdFunctionalityTCC = new GetTopicByIdFunctionalityTCC(
-                        topicService, causalUnitOfWorkService, topicAggregateId, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, topicAggregateId, causalUnitOfWork, commandGateway);
                 getTopicByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getTopicByIdFunctionalityTCC.getTopicDto();
             default:
@@ -108,7 +108,7 @@ public class TopicFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(topicDto);
                 CreateTopicFunctionalitySagas createTopicFunctionalitySagas = new CreateTopicFunctionalitySagas(
-                        topicService, courseService, sagaUnitOfWorkService, courseAggregateId, topicDto, sagaUnitOfWork,
+                        sagaUnitOfWorkService, courseAggregateId, topicDto, sagaUnitOfWork,
                         commandGateway);
                 createTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createTopicFunctionalitySagas.getCreatedTopicDto();
@@ -116,7 +116,7 @@ public class TopicFunctionalities {
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(topicDto);
                 CreateTopicFunctionalityTCC createTopicFunctionalityTCC = new CreateTopicFunctionalityTCC(
-                        topicService, courseService, causalUnitOfWorkService, courseAggregateId, topicDto,
+                        causalUnitOfWorkService, courseAggregateId, topicDto,
                         causalUnitOfWork, commandGateway);
                 createTopicFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return createTopicFunctionalityTCC.getCreatedTopicDto();
@@ -133,14 +133,14 @@ public class TopicFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(topicDto);
                 UpdateTopicFunctionalitySagas updateTopicFunctionalitySagas = new UpdateTopicFunctionalitySagas(
-                        topicService, sagaUnitOfWorkService, topicDto, topicFactory, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, topicDto, topicFactory, sagaUnitOfWork, commandGateway);
                 updateTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(topicDto);
                 UpdateTopicFunctionalityTCC updateTopicFunctionalityTCC = new UpdateTopicFunctionalityTCC(
-                        topicService, causalUnitOfWorkService, topicDto, topicFactory, causalUnitOfWork,
+                        causalUnitOfWorkService, topicDto, topicFactory, causalUnitOfWork,
                         commandGateway);
                 updateTopicFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -156,13 +156,13 @@ public class TopicFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 DeleteTopicFunctionalitySagas deleteTopicFunctionalitySagas = new DeleteTopicFunctionalitySagas(
-                        topicService, sagaUnitOfWorkService, topicAggregateId, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, topicAggregateId, sagaUnitOfWork, commandGateway);
                 deleteTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 DeleteTopicFunctionalityTCC deleteTopicFunctionalityTCC = new DeleteTopicFunctionalityTCC(
-                        topicService, causalUnitOfWorkService, topicAggregateId, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, topicAggregateId, causalUnitOfWork, commandGateway);
                 deleteTopicFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:

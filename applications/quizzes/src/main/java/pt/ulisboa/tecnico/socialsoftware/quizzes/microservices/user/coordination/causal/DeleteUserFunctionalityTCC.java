@@ -9,18 +9,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.causal.CausalUser;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.DeleteUserCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 
-@SuppressWarnings("unused")
 public class DeleteUserFunctionalityTCC extends WorkflowFunctionality {
     private CausalUser user;
-    private final UserService userService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public DeleteUserFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,
-            Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.userService = userService;
+    public DeleteUserFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                      Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(userAggregateId, unitOfWork);
@@ -30,9 +26,7 @@ public class DeleteUserFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // userService.deleteUser(userAggregateId, unitOfWork);
-            DeleteUserCommand DeleteUserCommand = new DeleteUserCommand(unitOfWork,
-                    ServiceMapping.USER.getServiceName(), userAggregateId);
+            DeleteUserCommand DeleteUserCommand = new DeleteUserCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             commandGateway.send(DeleteUserCommand);
         });
 

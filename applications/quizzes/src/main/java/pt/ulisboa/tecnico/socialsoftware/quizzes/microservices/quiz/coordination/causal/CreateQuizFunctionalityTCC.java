@@ -36,27 +36,15 @@ public class CreateQuizFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // QuizCourseExecution quizCourseExecution = new
-            // QuizCourseExecution(courseExecutionService.getCourseExecutionById(courseExecutionId,
-            // unitOfWork));
-            GetCourseExecutionByIdCommand GetCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionId);
-            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) commandGateway
-                    .send(GetCourseExecutionByIdCommand);
+            GetCourseExecutionByIdCommand GetCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionId);
+            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) commandGateway.send(GetCourseExecutionByIdCommand);
             QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionDto);
 
-            // Set<QuestionDto> questions = quizDto.getQuestionDtos().stream()
-            // .map(qq -> questionService.getQuestionById(qq.getAggregateId(), unitOfWork))
-            // .collect(Collectors.toSet());
             Set<QuestionDto> questions = quizDto.getQuestionDtos().stream()
-                    .map(qq -> (QuestionDto) commandGateway.send(new GetQuestionByIdCommand(unitOfWork,
-                            ServiceMapping.QUESTION.getServiceName(), qq.getAggregateId())))
+                    .map(qq -> (QuestionDto) commandGateway.send(new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), qq.getAggregateId())))
                     .collect(Collectors.toSet());
 
-            // this.createdQuizDto = quizService.createQuiz(quizCourseExecution, questions,
-            // quizDto, unitOfWork);
-            CreateQuizCommand CreateQuizCommand = new CreateQuizCommand(unitOfWork,
-                    ServiceMapping.QUIZ.getServiceName(), quizCourseExecution, questions, quizDto);
+            CreateQuizCommand CreateQuizCommand = new CreateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizCourseExecution, questions, quizDto);
             this.createdQuizDto = (QuizDto) commandGateway.send(CreateQuizCommand);
         });
 

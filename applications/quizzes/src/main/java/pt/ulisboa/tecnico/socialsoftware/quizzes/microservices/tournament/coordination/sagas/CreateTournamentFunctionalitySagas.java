@@ -14,13 +14,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.RemoveQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.CreateTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.states.TopicSagaState;
@@ -29,30 +25,19 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
-
     private CourseExecutionDto courseExecutionDto;
     private UserDto userDto;
     private HashSet<TopicDto> topicDtos = new HashSet<>();
     private QuizDto quizDto;
     private TournamentDto tournamentDto;
-    private final TournamentService tournamentService;
-    private final CourseExecutionService courseExecutionService;
-    private final TopicService topicService;
-    private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public CreateTournamentFunctionalitySagas(TournamentService tournamentService,
-            CourseExecutionService courseExecutionService, TopicService topicService, QuizService quizService,
-            SagaUnitOfWorkService unitOfWorkService,
-            Integer userId, Integer executionId, List<Integer> topicsId, TournamentDto tournamentDto,
-            SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.tournamentService = tournamentService;
-        this.courseExecutionService = courseExecutionService;
-        this.topicService = topicService;
-        this.quizService = quizService;
+    public CreateTournamentFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                              Integer userId, Integer executionId, List<Integer> topicsId, TournamentDto tournamentDto,
+                                              SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(userId, executionId, topicsId, tournamentDto, unitOfWork);
     }
 
@@ -62,15 +47,9 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
 
         SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {
             // by making this call locks regarding the course execution are guaranteed
-            // CourseExecutionDto courseExecutionDto = (CourseExecutionDto)
-            // courseExecutionService.getCourseExecutionById(executionId, unitOfWork);
-            // unitOfWorkService.registerSagaState(executionId,
-            // CourseExecutionSagaState.READ_COURSE, unitOfWork);
-            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId);
+            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId);
             getCourseExecutionByIdCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
-            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) CommandGateway
-                    .send(getCourseExecutionByIdCommand);
+            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
             this.setCourseExecutionDto(courseExecutionDto);
         });
 
@@ -78,24 +57,16 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             // by making this call locks regarding the role of the creator are guaranteed
             // by making this call the invariants regarding the course execution and the
             // role of the creator are guaranteed
-//            UserDto creatorDto = courseExecutionService.getStudentByExecutionIdAndUserId(executionId, userId, unitOfWork);
-            // unitOfWorkService.registerSagaState(userId, UserSagaState.READ_USER,
-            // unitOfWork); // TODO calling another aggregate that is not courseExecution
-             GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId, userId);
-            // getStudentByExecutionIdAndUserIdCommand.setSemanticLock(UserSagaState.READ_USER);
-            UserDto creatorDto = (UserDto) CommandGateway.send(getStudentByExecutionIdAndUserIdCommand);
+            GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId, userId);
+            UserDto creatorDto = (UserDto) commandGateway.send(getStudentByExecutionIdAndUserIdCommand);
             this.setUserDto(creatorDto);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
 
         SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> { // TODO EACH TOPIC IN A SEPARATE STEP??
             topicsId.stream().forEach(topicId -> {
-                // TopicDto topic = (TopicDto) topicService.getTopicById(topicId, unitOfWork);
-                // unitOfWorkService.registerSagaState(topicId, TopicSagaState.READ_TOPIC,
-                // unitOfWork);
-                GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork,
-                        ServiceMapping.TOPIC.getServiceName(), topicId);
+                GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId);
                 getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
-                TopicDto topic = (TopicDto) CommandGateway.send(getTopicByIdCommand);
+                TopicDto topic = (TopicDto) commandGateway.send(getTopicByIdCommand);
                 this.addTopicDto(topic);
             });
         });
@@ -105,44 +76,21 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             quizDto.setAvailableDate(tournamentDto.getStartTime());
             quizDto.setConclusionDate(tournamentDto.getEndTime());
             quizDto.setResultsDate(tournamentDto.getEndTime());
-            // QuizDto quizResultDto = (QuizDto) quizService.generateQuiz(executionId,
-            // quizDto, topicsId, tournamentDto.getNumberOfQuestions(), unitOfWork);
-            GenerateQuizCommand generateQuizCommand = new GenerateQuizCommand(unitOfWork,
-                    ServiceMapping.QUIZ.getServiceName(), executionId, quizDto, topicsId,
-                    tournamentDto.getNumberOfQuestions());
-            QuizDto quizResultDto = (QuizDto) CommandGateway.send(generateQuizCommand);
+            GenerateQuizCommand generateQuizCommand = new GenerateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), executionId, quizDto, topicsId, tournamentDto.getNumberOfQuestions());
+            QuizDto quizResultDto = (QuizDto) commandGateway.send(generateQuizCommand);
             this.setQuizDto(quizResultDto);
         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
 
         generateQuizStep.registerCompensation(() -> {
             if (this.getQuizDto() != null) {
-                // quizService.removeQuiz(this.getQuizDto().getAggregateId(), unitOfWork);
-                RemoveQuizCommand removeQuizCommand = new RemoveQuizCommand(unitOfWork,
-                        ServiceMapping.QUIZ.getServiceName(), this.getQuizDto().getAggregateId());
-                CommandGateway.send(removeQuizCommand);
+                RemoveQuizCommand removeQuizCommand = new RemoveQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), this.getQuizDto().getAggregateId());
+                commandGateway.send(removeQuizCommand);
             }
         }, unitOfWork);
 
-        // NUMBER_OF_QUESTIONS
-        // this.numberOfQuestions == Quiz(tournamentQuiz.id).quizQuestions.size
-        // Quiz(this.tournamentQuiz.id) DEPENDS ON this.numberOfQuestions
-        // QUIZ_TOPICS
-        // Quiz(this.tournamentQuiz.id) DEPENDS ON this.topics // the topics of the quiz
-        // questions are related to the tournament topics
-        // START_TIME_AVAILABLE_DATE
-        // this.startTime == Quiz(tournamentQuiz.id).availableDate
-        // END_TIME_CONCLUSION_DATE
-        // this.endTime == Quiz(tournamentQuiz.id).conclusionDate
-
         SagaSyncStep createTournamentStep = new SagaSyncStep("createTournamentStep", () -> {
-            // TournamentDto tournamentResultDto =
-            // tournamentService.createTournament(tournamentDto, this.getUserDto(),
-            // this.getCourseExecutionDto(), this.getTopicsDtos(), this.getQuizDto(),
-            // unitOfWork);
-            CreateTournamentCommand createTournamentCommand = new CreateTournamentCommand(unitOfWork,
-                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, this.getUserDto(),
-                    this.getCourseExecutionDto(), this.getTopicsDtos(), this.getQuizDto());
-            TournamentDto tournamentResultDto = (TournamentDto) CommandGateway.send(createTournamentCommand);
+            CreateTournamentCommand createTournamentCommand = new CreateTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, this.getUserDto(), this.getCourseExecutionDto(), this.getTopicsDtos(), this.getQuizDto());
+            TournamentDto tournamentResultDto = (TournamentDto) commandGateway.send(createTournamentCommand);
             this.setTournamentDto(tournamentResultDto);
         }, new ArrayList<>(Arrays.asList(getCreatorStep, getCourseExecutionStep, getTopicsStep, generateQuizStep)));
 

@@ -33,12 +33,8 @@ public class UpdateQuizFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            Set<QuizQuestion> quizQuestions = quizDto.getQuestionDtos().stream().map(QuizQuestion::new)
-                    .collect(Collectors.toSet());
-            // this.updatedQuizDto = quizService.updateQuiz(quizDto, quizQuestions,
-            // unitOfWork);
-            UpdateQuizCommand UpdateQuizCommand = new UpdateQuizCommand(unitOfWork,
-                    ServiceMapping.QUIZ.getServiceName(), quizDto, quizQuestions);
+            Set<QuizQuestion> quizQuestions = quizDto.getQuestionDtos().stream().map(QuizQuestion::new).collect(Collectors.toSet());
+            UpdateQuizCommand UpdateQuizCommand = new UpdateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto, quizQuestions);
             this.updatedQuizDto = (QuizDto) commandGateway.send(UpdateQuizCommand);
         });
 

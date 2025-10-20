@@ -9,20 +9,16 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.FindQuestionsByCourseAggregateIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
 
 import java.util.List;
 
 public class FindQuestionsByCourseFunctionalityTCC extends WorkflowFunctionality {
     private List<QuestionDto> questions;
-    private final QuestionService questionService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public FindQuestionsByCourseFunctionalityTCC(QuestionService questionService,
-            CausalUnitOfWorkService unitOfWorkService,
-            Integer courseAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.questionService = questionService;
+    public FindQuestionsByCourseFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                                 Integer courseAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(courseAggregateId, unitOfWork);
@@ -32,9 +28,6 @@ public class FindQuestionsByCourseFunctionalityTCC extends WorkflowFunctionality
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.questions =
-            // questionService.findQuestionsByCourseAggregateId(courseAggregateId,
-            // unitOfWork);
             FindQuestionsByCourseAggregateIdCommand cmd = new FindQuestionsByCourseAggregateIdCommand(unitOfWork,
                     ServiceMapping.QUESTION.getServiceName(), courseAggregateId);
             List<QuestionDto> result = (List<QuestionDto>) commandGateway.send(cmd);

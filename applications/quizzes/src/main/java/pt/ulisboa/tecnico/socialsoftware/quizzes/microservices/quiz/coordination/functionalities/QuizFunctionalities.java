@@ -73,7 +73,7 @@ public class QuizFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 CreateQuizFunctionalitySagas createQuizFunctionalitySagas = new CreateQuizFunctionalitySagas(
-                        courseExecutionService, quizService, questionService, sagaUnitOfWorkService, courseExecutionId,
+                        sagaUnitOfWorkService, courseExecutionId,
                         quizDto, sagaUnitOfWork, commandGateway);
                 createQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createQuizFunctionalitySagas.getCreatedQuizDto();
@@ -95,7 +95,7 @@ public class QuizFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindQuizFunctionalitySagas findQuizFunctionalitySagas = new FindQuizFunctionalitySagas(
-                        quizService, sagaUnitOfWorkService, quizAggregateId, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, quizAggregateId, sagaUnitOfWork, commandGateway);
                 findQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findQuizFunctionalitySagas.getQuizDto();
             case TCC:
@@ -116,7 +116,7 @@ public class QuizFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetAvailableQuizzesFunctionalitySagas getAvailableQuizzesFunctionalitySagas = new GetAvailableQuizzesFunctionalitySagas(
-                        quizService, sagaUnitOfWorkService, courseExecutionAggregateId, courseExecutionAggregateId,
+                        sagaUnitOfWorkService, courseExecutionAggregateId, courseExecutionAggregateId,
                         sagaUnitOfWork, commandGateway);
                 getAvailableQuizzesFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getAvailableQuizzesFunctionalitySagas.getAvailableQuizzes();
@@ -139,7 +139,7 @@ public class QuizFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuizFunctionalitySagas updateQuizFunctionalitySagas = new UpdateQuizFunctionalitySagas(
-                        quizService, sagaUnitOfWorkService, quizFactory, quizDto, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, quizFactory, quizDto, sagaUnitOfWork, commandGateway);
                 updateQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateQuizFunctionalitySagas.getUpdatedQuizDto();
             case TCC:

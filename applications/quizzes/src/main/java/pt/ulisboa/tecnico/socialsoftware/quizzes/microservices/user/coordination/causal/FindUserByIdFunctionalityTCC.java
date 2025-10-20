@@ -9,18 +9,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetUserByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 
-@SuppressWarnings("unused")
 public class FindUserByIdFunctionalityTCC extends WorkflowFunctionality {
     private UserDto userDto;
-    private final UserService userService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public FindUserByIdFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,
-            Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.userService = userService;
+    public FindUserByIdFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                        Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(userAggregateId, unitOfWork);
@@ -30,9 +26,7 @@ public class FindUserByIdFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
-            GetUserByIdCommand GetUserByIdCommand = new GetUserByIdCommand(unitOfWork,
-                    ServiceMapping.USER.getServiceName(), userAggregateId);
+            GetUserByIdCommand GetUserByIdCommand = new GetUserByIdCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             UserDto userDto = (UserDto) commandGateway.send(GetUserByIdCommand);
             this.setUserDto(userDto);
         });

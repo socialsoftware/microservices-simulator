@@ -17,13 +17,15 @@ services:
       interval: 20s
       timeout: 5s
       retries: 5
+    networks:
+      - messaging-network
 
   quizzes-sagas:
     build:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: sagas,dev
+        PROFILE: sagas,local
     image: quizzes
     container_name: quizzes-sagas
     depends_on:
@@ -33,12 +35,40 @@ services:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=sagas,dev
+      - SPRING_PROFILES_ACTIVE=sagas,local
       - SPRING.DATASOURCE.USERNAME=postgres
       - SPRING.DATASOURCE.PASSWORD=postgres
       - SPRING.JPA.DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
       - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+
+  quizzes-sagas-stream:
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: sagas,stream
+    image: quizzes
+    container_name: quizzes-sagas-stream
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=sagas,stream
+      - SPRING.DATASOURCE.USERNAME=postgres
+      - SPRING.DATASOURCE.PASSWORD=postgres
+      - SPRING.JPA.DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - messaging-network
 
   quizzes-tcc:
     build:
@@ -185,6 +215,11 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - messaging-network
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mavencache:

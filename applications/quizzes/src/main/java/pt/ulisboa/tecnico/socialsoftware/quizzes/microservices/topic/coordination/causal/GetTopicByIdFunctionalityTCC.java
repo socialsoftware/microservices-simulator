@@ -9,18 +9,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 
 public class GetTopicByIdFunctionalityTCC extends WorkflowFunctionality {
     private TopicDto topicDto;
-    @SuppressWarnings("unused")
-    private final TopicService topicService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public GetTopicByIdFunctionalityTCC(TopicService topicService, CausalUnitOfWorkService unitOfWorkService,
-            Integer topicAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.topicService = topicService;
+    public GetTopicByIdFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                        Integer topicAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(topicAggregateId, unitOfWork);
@@ -30,9 +26,7 @@ public class GetTopicByIdFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.topicDto = topicService.getTopicById(topicAggregateId, unitOfWork);
-            GetTopicByIdCommand GetTopicByIdCommand = new GetTopicByIdCommand(unitOfWork,
-                    ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
+            GetTopicByIdCommand GetTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
             this.topicDto = (TopicDto) commandGateway.send(GetTopicByIdCommand);
         });
 

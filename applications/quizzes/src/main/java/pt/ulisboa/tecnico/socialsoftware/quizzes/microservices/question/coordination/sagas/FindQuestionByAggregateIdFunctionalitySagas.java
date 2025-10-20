@@ -9,20 +9,16 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
 
 public class FindQuestionByAggregateIdFunctionalitySagas extends WorkflowFunctionality {
     private QuestionDto questionDto;
-    private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public FindQuestionByAggregateIdFunctionalitySagas(QuestionService questionService,
-            SagaUnitOfWorkService unitOfWorkService,
-            Integer aggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.questionService = questionService;
+    public FindQuestionByAggregateIdFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                                       Integer aggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = CommandGateway;
         this.buildWorkflow(aggregateId, unitOfWork);
     }
 
@@ -30,11 +26,8 @@ public class FindQuestionByAggregateIdFunctionalitySagas extends WorkflowFunctio
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep findQuestionStep = new SagaSyncStep("findQuestionStep", () -> {
-            // QuestionDto questionDto = questionService.getQuestionById(aggregateId,
-            // unitOfWork);
-            GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork,
-                    ServiceMapping.QUESTION.getServiceName(), aggregateId);
-            QuestionDto questionDto = (QuestionDto) CommandGateway.send(getQuestionByIdCommand);
+            GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), aggregateId);
+            QuestionDto questionDto = (QuestionDto) commandGateway.send(getQuestionByIdCommand);
             this.setQuestionDto(questionDto);
         });
 

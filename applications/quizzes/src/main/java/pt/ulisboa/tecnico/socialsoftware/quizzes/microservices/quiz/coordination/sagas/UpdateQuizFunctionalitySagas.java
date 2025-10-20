@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
@@ -13,7 +14,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.UpdateQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizQuestion;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.states.QuizSagaState;
 
 import java.util.ArrayList;
@@ -24,16 +24,14 @@ import java.util.stream.Collectors;
 public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
     private QuizDto quiz;
     private QuizDto updatedQuizDto;
-    private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public UpdateQuizFunctionalitySagas(QuizService quizService, SagaUnitOfWorkService unitOfWorkService,
-            QuizFactory quizFactory,
-            QuizDto quizDto, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.quizService = quizService;
+    public UpdateQuizFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                        QuizFactory quizFactory,
+                                        QuizDto quizDto, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(quizDto, quizFactory, unitOfWork);
     }
 
@@ -41,27 +39,22 @@ public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getQuizStep = new SagaSyncStep("getQuizStep", () -> {
-            // QuizDto quiz = (QuizDto) quizService.getQuizById(quizDto.getAggregateId(),
-            // unitOfWork);
-            // unitOfWorkService.registerSagaState(quiz.getAggregateId(),
-            // QuizSagaState.READ_QUIZ, unitOfWork);
-            GetQuizByIdCommand getQuizByIdCommand = new GetQuizByIdCommand(unitOfWork,
-                    ServiceMapping.QUIZ.getServiceName(), quizDto.getAggregateId());
+            GetQuizByIdCommand getQuizByIdCommand = new GetQuizByIdCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto.getAggregateId());
             getQuizByIdCommand.setSemanticLock(QuizSagaState.READ_QUIZ);
-            QuizDto quiz = (QuizDto) CommandGateway.send(getQuizByIdCommand);
+            QuizDto quiz = (QuizDto) commandGateway.send(getQuizByIdCommand);
             this.setQuiz(quiz);
         });
 
         getQuizStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(quiz.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            Command command = new Command(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quiz.getAggregateId());
+            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep updateQuizStep = new SagaSyncStep("updateQuizStep", () -> { // TODO
-            Set<QuizQuestion> quizQuestions = quizDto.getQuestionDtos().stream().map(QuizQuestion::new)
-                    .collect(Collectors.toSet());
-//            QuizDto updatedQuizDto = quizService.updateQuiz(quizDto, quizQuestions, unitOfWork);
+        SagaSyncStep updateQuizStep = new SagaSyncStep("updateQuizStep", () -> {
+            Set<QuizQuestion> quizQuestions = quizDto.getQuestionDtos().stream().map(QuizQuestion::new).collect(Collectors.toSet());
             UpdateQuizCommand updateQuizCommand = new UpdateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto, quizQuestions);
-            updatedQuizDto = (QuizDto) CommandGateway.send(updateQuizCommand);
+            updatedQuizDto = (QuizDto) commandGateway.send(updateQuizCommand);
             this.setUpdatedQuizDto(updatedQuizDto);
         }, new ArrayList<>(Arrays.asList(getQuizStep)));
 

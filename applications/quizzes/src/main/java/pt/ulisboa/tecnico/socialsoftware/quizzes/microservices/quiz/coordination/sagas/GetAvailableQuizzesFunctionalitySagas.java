@@ -9,22 +9,19 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GetAvailableQuizzesCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 
 import java.util.List;
 
 public class GetAvailableQuizzesFunctionalitySagas extends WorkflowFunctionality {
     private List<QuizDto> availableQuizzes;
-    private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public GetAvailableQuizzesFunctionalitySagas(QuizService quizService, SagaUnitOfWorkService unitOfWorkService,
-            Integer userAggregateId, Integer courseExecutionAggregateId, SagaUnitOfWork unitOfWork,
-            CommandGateway CommandGateway) {
-        this.quizService = quizService;
+    public GetAvailableQuizzesFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                                 Integer userAggregateId, Integer courseExecutionAggregateId, SagaUnitOfWork unitOfWork,
+                                                 CommandGateway CommandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = CommandGateway;
         this.buildWorkflow(userAggregateId, courseExecutionAggregateId, unitOfWork);
     }
 
@@ -32,9 +29,8 @@ public class GetAvailableQuizzesFunctionalitySagas extends WorkflowFunctionality
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getAvailableQuizzesStep = new SagaSyncStep("getAvailableQuizzesStep", () -> {
-//            List<QuizDto> availableQuizzes = quizService.getAvailableQuizzes(courseExecutionAggregateId, unitOfWork); // TODO
             GetAvailableQuizzesCommand getAvailableQuizzesCommand = new GetAvailableQuizzesCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), null, courseExecutionAggregateId);
-            List<QuizDto> availableQuizzes = (List<QuizDto>) CommandGateway.send(getAvailableQuizzesCommand);
+            List<QuizDto> availableQuizzes = (List<QuizDto>) commandGateway.send(getAvailableQuizzesCommand);
             this.setAvailableQuizzes(availableQuizzes);
         });
 

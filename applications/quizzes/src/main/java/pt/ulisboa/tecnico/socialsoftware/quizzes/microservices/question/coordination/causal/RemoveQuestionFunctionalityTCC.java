@@ -9,18 +9,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.causal.CausalQuestion;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.RemoveQuestionCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
 
 public class RemoveQuestionFunctionalityTCC extends WorkflowFunctionality {
     private CausalQuestion question;
-    @SuppressWarnings("unused")
-    private final QuestionService questionService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public RemoveQuestionFunctionalityTCC(QuestionService questionService, CausalUnitOfWorkService unitOfWorkService,
-            Integer questionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.questionService = questionService;
+    public RemoveQuestionFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                          Integer questionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(questionAggregateId, unitOfWork);
@@ -30,9 +26,7 @@ public class RemoveQuestionFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // questionService.removeQuestion(questionAggregateId, unitOfWork);
-            RemoveQuestionCommand cmd = new RemoveQuestionCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(),
-                    questionAggregateId);
+            RemoveQuestionCommand cmd = new RemoveQuestionCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
             commandGateway.send(cmd);
         });
 

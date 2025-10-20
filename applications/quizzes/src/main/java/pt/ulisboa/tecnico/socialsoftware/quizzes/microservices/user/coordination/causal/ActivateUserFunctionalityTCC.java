@@ -9,18 +9,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.causal.CausalUser;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.ActivateUserCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 
-@SuppressWarnings("unused")
 public class ActivateUserFunctionalityTCC extends WorkflowFunctionality {
     private CausalUser user;
-    private final UserService userService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public ActivateUserFunctionalityTCC(UserService userService, CausalUnitOfWorkService unitOfWorkService,
-            Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.userService = userService;
+    public ActivateUserFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                        Integer userAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(userAggregateId, unitOfWork);
@@ -30,9 +26,7 @@ public class ActivateUserFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // userService.activateUser(userAggregateId, unitOfWork);
-            ActivateUserCommand ActivateUserCommand = new ActivateUserCommand(unitOfWork,
-                    ServiceMapping.USER.getServiceName(), userAggregateId);
+            ActivateUserCommand ActivateUserCommand = new ActivateUserCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             commandGateway.send(ActivateUserCommand);
         });
 

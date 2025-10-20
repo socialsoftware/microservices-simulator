@@ -96,13 +96,13 @@ class RemoveTournamentAndUpdateTournamentTest extends QuizzesSpockTest {
         updateTournamentDto.setAggregateId(tournamentDto.aggregateId)
         updateTournamentDto.setStartTime(DateHandler.toISOString(TIME_2))
         topics =  new HashSet<>(Arrays.asList(topicDto1.aggregateId,topicDto2.aggregateId))
-        updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService,
+        updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(unitOfWorkService,
                 updateTournamentDto, topics, unitOfWork1, commandGateway)
 
         and: 'information required to remove tournament'
         functionalityName2 = RemoveTournamentFunctionalitySagas.class.getSimpleName()
         unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
-        removeTournamentFunctionality = new RemoveTournamentFunctionalitySagas(tournamentService, quizService, unitOfWorkService, tournamentDto.aggregateId, unitOfWork2, commandGateway)
+        removeTournamentFunctionality = new RemoveTournamentFunctionalitySagas(unitOfWorkService, tournamentDto.aggregateId, unitOfWork2, commandGateway)
     }
 
     def cleanup() {}

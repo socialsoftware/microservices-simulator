@@ -12,24 +12,17 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByI
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuestionAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
 
 public class AnswerQuestionFunctionalityTCC extends WorkflowFunctionality {
     private QuestionDto questionDto;
     private QuizAnswer oldQuizAnswer;
-    private final QuizAnswerService quizAnswerService;
-    private final QuestionService questionService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public AnswerQuestionFunctionalityTCC(QuizAnswerService quizAnswerService, QuestionService questionService,
-            CausalUnitOfWorkService unitOfWorkService, QuizAnswerFactory quizAnswerFactory,
-            Integer quizAggregateId, Integer userAggregateId, QuestionAnswerDto userQuestionAnswerDto,
-            CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.quizAnswerService = quizAnswerService;
-        this.questionService = questionService;
+    public AnswerQuestionFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, QuizAnswerFactory quizAnswerFactory,
+                                          Integer quizAggregateId, Integer userAggregateId, QuestionAnswerDto userQuestionAnswerDto,
+                                          CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(quizAggregateId, userAggregateId, userQuestionAnswerDto, quizAnswerFactory, unitOfWork);
@@ -40,11 +33,6 @@ public class AnswerQuestionFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // QuestionDto questionDto =
-            // questionService.getQuestionById(userQuestionAnswerDto.getQuestionAggregateId(),
-            // unitOfWork);
-            // quizAnswerService.answerQuestion(quizAggregateId, userAggregateId,
-            // userQuestionAnswerDto, questionDto, unitOfWork);
             GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork,
                     ServiceMapping.QUESTION.getServiceName(), userQuestionAnswerDto.getQuestionAggregateId());
             QuestionDto questionDto = (QuestionDto) commandGateway.send(getQuestionByIdCommand);

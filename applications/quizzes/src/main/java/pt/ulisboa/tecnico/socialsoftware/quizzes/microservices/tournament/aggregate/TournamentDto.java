@@ -137,4 +137,9 @@ public class TournamentDto implements Serializable {
     public void setState(String state) {
         this.state = state;
     }
+
+    public UserDto findParticipant(Integer userAggregateId) {
+        return this.participants.stream().filter(p -> p.getAggregateId().equals(userAggregateId)).findFirst()
+                .orElse(null);
+    }
 }

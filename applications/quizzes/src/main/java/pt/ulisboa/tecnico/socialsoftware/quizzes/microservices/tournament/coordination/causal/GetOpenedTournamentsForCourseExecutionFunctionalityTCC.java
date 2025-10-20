@@ -9,21 +9,16 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetOpenedTournamentsForCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 
 import java.util.List;
 
-@SuppressWarnings("unused")
 public class GetOpenedTournamentsForCourseExecutionFunctionalityTCC extends WorkflowFunctionality {
     private List<TournamentDto> openedTournaments;
-    private final TournamentService tournamentService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public GetOpenedTournamentsForCourseExecutionFunctionalityTCC(TournamentService tournamentService,
-            CausalUnitOfWorkService unitOfWorkService,
-            Integer executionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.tournamentService = tournamentService;
+    public GetOpenedTournamentsForCourseExecutionFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                                                  Integer executionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(executionAggregateId, unitOfWork);
@@ -33,12 +28,7 @@ public class GetOpenedTournamentsForCourseExecutionFunctionalityTCC extends Work
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.openedTournaments =
-            // tournamentService.getOpenedTournamentsForCourseExecution(executionAggregateId,
-            // unitOfWork);
-            this.openedTournaments = (List<TournamentDto>) commandGateway
-                    .send(new GetOpenedTournamentsForCourseExecutionCommand(unitOfWork,
-                            ServiceMapping.TOURNAMENT.getServiceName(), executionAggregateId));
+            this.openedTournaments = (List<TournamentDto>) commandGateway.send(new GetOpenedTournamentsForCourseExecutionCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), executionAggregateId));
         });
 
         workflow.addStep(step);

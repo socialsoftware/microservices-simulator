@@ -10,8 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.AddParticipantCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 
@@ -22,20 +20,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class AddParticipantAsyncFunctionalitySagas extends WorkflowFunctionality {
-    private TournamentService tournamentService;
-    private CourseExecutionService courseExecutionService;
-    private SagaUnitOfWorkService unitOfWorkService;
+    private final SagaUnitOfWorkService unitOfWorkService;
     private CompletableFuture<UserDto> userDto;
-    private CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public AddParticipantAsyncFunctionalitySagas(TournamentService tournamentService,
-            CourseExecutionService courseExecutionService, SagaUnitOfWorkService unitOfWorkService,
-            Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
-            SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.tournamentService = tournamentService;
-        this.courseExecutionService = courseExecutionService;
+    public AddParticipantAsyncFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                                 Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
+                                                 SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentAggregateId, executionAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -44,32 +37,22 @@ public class AddParticipantAsyncFunctionalitySagas extends WorkflowFunctionality
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(
-                    unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId,
-                    userAggregateId);
-            this.userDto = CommandGateway.sendAsync(getStudentCommand).thenApply(dto -> (UserDto) dto);
+            GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, userAggregateId);
+            this.userDto = commandGateway.sendAsync(getStudentCommand).thenApply(dto -> (UserDto) dto);
         });
 
         SagaSyncStep addParticipantStep = new SagaSyncStep("addParticipantStep", () -> {
-//            TournamentParticipant participant = null;
-//            try {
-//                participant = new TournamentParticipant(this.userDto.get());
-//            } catch (InterruptedException | ExecutionException e) {
-//                throw new RuntimeException(e);
-//            }
             List<SagaAggregate.SagaState> states = new ArrayList<>();
             states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
 
-            AddParticipantCommand addParticipantCommand = null;
+            AddParticipantCommand addParticipantCommand;
             try {
-                addParticipantCommand = new AddParticipantCommand(unitOfWork,
-                        ServiceMapping.TOURNAMENT.getServiceName(),
-                        tournamentAggregateId, this.userDto.get());
+                addParticipantCommand = new AddParticipantCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, this.userDto.get());
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
             addParticipantCommand.setForbiddenStates(states);
-            CommandGateway.send(addParticipantCommand);
+            commandGateway.send(addParticipantCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
         this.workflow.addStep(getUserStep);

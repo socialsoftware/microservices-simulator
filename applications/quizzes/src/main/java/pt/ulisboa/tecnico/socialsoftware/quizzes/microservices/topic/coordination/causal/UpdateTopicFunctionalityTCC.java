@@ -11,18 +11,14 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.UpdateTopicComman
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.Topic;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 
 public class UpdateTopicFunctionalityTCC extends WorkflowFunctionality {
     private Topic oldTopic;
-    @SuppressWarnings("unused")
-    private final TopicService topicService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public UpdateTopicFunctionalityTCC(TopicService topicService, CausalUnitOfWorkService unitOfWorkService,
-            TopicDto topicDto, TopicFactory topicFactory, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.topicService = topicService;
+    public UpdateTopicFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                       TopicDto topicDto, TopicFactory topicFactory, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(topicDto, topicFactory, unitOfWork);
@@ -32,9 +28,7 @@ public class UpdateTopicFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // topicService.updateTopic(topicDto, unitOfWork);
-            UpdateTopicCommand UpdateTopicCommand = new UpdateTopicCommand(unitOfWork,
-                    ServiceMapping.TOPIC.getServiceName(), topicDto);
+            UpdateTopicCommand UpdateTopicCommand = new UpdateTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto);
             commandGateway.send(UpdateTopicCommand);
         });
 

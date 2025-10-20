@@ -14,12 +14,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamen
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.UpdateTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 
 import java.util.*;
@@ -32,21 +29,14 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
     private TournamentDto newTournamentDto;
     private QuizDto quizDto;
     private Quiz quiz;
-    private final TournamentService tournamentService;
-    private final TopicService topicService;
-    private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public UpdateTournamentFunctionalitySagas(TournamentService tournamentService, TopicService topicService,
-            QuizService quizService, SagaUnitOfWorkService unitOfWorkService,
-            TournamentDto tournamentDto, Set<Integer> topicsAggregateIds, SagaUnitOfWork unitOfWork,
-            CommandGateway CommandGateway) {
-        this.tournamentService = tournamentService;
-        this.topicService = topicService;
-        this.quizService = quizService;
+    public UpdateTournamentFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                              TournamentDto tournamentDto, Set<Integer> topicsAggregateIds, SagaUnitOfWork unitOfWork,
+                                              CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentDto, topicsAggregateIds, unitOfWork);
     }
 
@@ -57,44 +47,29 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
             List<SagaAggregate.SagaState> states = new ArrayList<>();
             states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
             states.add(TournamentSagaState.IN_DELETE_TOURNAMENT);
-            GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork,
-                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto.getAggregateId());
+            GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto.getAggregateId());
             getTournamentByIdCommand.setSemanticLock(TournamentSagaState.IN_UPDATE_TOURNAMENT);
             getTournamentByIdCommand.setForbiddenStates(states);
-            TournamentDto originalTournamentDto = (TournamentDto) CommandGateway.send(getTournamentByIdCommand);
-            // unitOfWorkService.verifyAndRegisterSagaState(tournamentDto.getAggregateId(),
-            // TournamentSagaState.IN_UPDATE_TOURNAMENT, states, unitOfWork);
-            // TournamentDto originalTournamentDto = (TournamentDto)
-            // tournamentService.getTournamentById(tournamentDto.getAggregateId(),
-            // unitOfWork);
+            TournamentDto originalTournamentDto = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
             setOriginalTournamentDto(originalTournamentDto);
         });
 
         SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> {
-            topicsAggregateIds.stream().forEach(topicId -> {
-                // TopicDto topic = (TopicDto) topicService.getTopicById(topicId, unitOfWork);
-                GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork,
-                        ServiceMapping.TOPIC.getServiceName(), topicId);
-                TopicDto topic = (TopicDto) CommandGateway.send(getTopicByIdCommand);
+            topicsAggregateIds.forEach(topicId -> {
+                GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId);
+                TopicDto topic = (TopicDto) commandGateway.send(getTopicByIdCommand);
                 this.addTopic(topic);
             });
         }, new ArrayList<>(Arrays.asList(getOriginalTournamentStep)));
 
         SagaSyncStep updateTournamentStep = new SagaSyncStep("updateTournamentStep", () -> {
-            // this.newTournamentDto = tournamentService.updateTournament(tournamentDto,
-            // this.getTopicsDtos(), unitOfWork);
-            UpdateTournamentCommand updateTournamentCommand = new UpdateTournamentCommand(unitOfWork,
-                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, this.getTopicsDtos());
-            this.newTournamentDto = (TournamentDto) CommandGateway.send(updateTournamentCommand);
+            UpdateTournamentCommand updateTournamentCommand = new UpdateTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, this.getTopicsDtos());
+            this.newTournamentDto = (TournamentDto) commandGateway.send(updateTournamentCommand);
         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
 
         updateTournamentStep.registerCompensation(() -> {
-            // tournamentService.updateTournament(originalTournamentDto,
-            // originalTournamentDto.getTopics(), unitOfWork);
-            UpdateTournamentCommand updateTournamentCommand = new UpdateTournamentCommand(unitOfWork,
-                    ServiceMapping.TOURNAMENT.getServiceName(), originalTournamentDto,
-                    originalTournamentDto.getTopics());
-            CommandGateway.send(updateTournamentCommand);
+            UpdateTournamentCommand updateTournamentCommand = new UpdateTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), originalTournamentDto, originalTournamentDto.getTopics());
+            commandGateway.send(updateTournamentCommand);
         }, unitOfWork);
 
         SagaSyncStep updateQuizStep = new SagaSyncStep("updateQuizStep", () -> {
@@ -107,22 +82,11 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
 
             if (topicsAggregateIds != null || getNewTournamentDto().getNumberOfQuestions() != null) {
                 if (topicsAggregateIds == null) {
-                    // quizService.updateGeneratedQuiz(quizDto, getTopics().stream()
-                    // .map(TopicDto::getAggregateId)
-                    // .collect(Collectors.toSet()), this.newTournamentDto.getNumberOfQuestions(),
-                    // unitOfWork);
-                    UpdateGeneratedQuizCommand updateGeneratedQuizCommand = new UpdateGeneratedQuizCommand(unitOfWork,
-                            ServiceMapping.QUIZ.getServiceName(), quizDto,
-                            getTopics().stream().map(TopicDto::getAggregateId).collect(Collectors.toSet()),
-                            this.newTournamentDto.getNumberOfQuestions());
-                    CommandGateway.send(updateGeneratedQuizCommand);
+                    UpdateGeneratedQuizCommand updateGeneratedQuizCommand = new UpdateGeneratedQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto, getTopics().stream().map(TopicDto::getAggregateId).collect(Collectors.toSet()), this.newTournamentDto.getNumberOfQuestions());
+                    commandGateway.send(updateGeneratedQuizCommand);
                 } else {
-                    // quizService.updateGeneratedQuiz(quizDto, topicsAggregateIds,
-                    // this.newTournamentDto.getNumberOfQuestions(), unitOfWork);
-                    UpdateGeneratedQuizCommand updateGeneratedQuizCommand = new UpdateGeneratedQuizCommand(unitOfWork,
-                            ServiceMapping.QUIZ.getServiceName(), quizDto, topicsAggregateIds,
-                            this.newTournamentDto.getNumberOfQuestions());
-                    CommandGateway.send(updateGeneratedQuizCommand);
+                    UpdateGeneratedQuizCommand updateGeneratedQuizCommand = new UpdateGeneratedQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto, topicsAggregateIds, this.newTournamentDto.getNumberOfQuestions());
+                    commandGateway.send(updateGeneratedQuizCommand);
                 }
             }
         }, new ArrayList<>(Arrays.asList(updateTournamentStep)));

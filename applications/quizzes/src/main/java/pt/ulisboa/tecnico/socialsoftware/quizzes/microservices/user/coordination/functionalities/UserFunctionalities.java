@@ -61,7 +61,7 @@ public class UserFunctionalities {
                 checkInput(userDto);
 
                 CreateUserFunctionalitySagas createUserFunctionalitySagas = new CreateUserFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userDto, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, userDto, sagaUnitOfWork, commandGateway);
 
                 createUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createUserFunctionalitySagas.getCreatedUserDto();
@@ -70,7 +70,7 @@ public class UserFunctionalities {
                 checkInput(userDto);
 
                 CreateUserFunctionalityTCC createUserFunctionalityTCC = new CreateUserFunctionalityTCC(
-                        userService, causalUnitOfWorkService, userDto, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, userDto, causalUnitOfWork, commandGateway);
 
                 createUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return createUserFunctionalityTCC.getCreatedUserDto();
@@ -86,14 +86,14 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindUserByIdFunctionalitySagas findUserByIdFunctionalitySagas = new FindUserByIdFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 findUserByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findUserByIdFunctionalitySagas.getUserDto();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindUserByIdFunctionalityTCC findUserByIdFunctionalityTCC = new FindUserByIdFunctionalityTCC(
-                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
 
                 findUserByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findUserByIdFunctionalityTCC.getUserDto();
@@ -109,14 +109,14 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 ActivateUserFunctionalitySagas activateUserFunctionalitySagas = new ActivateUserFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 activateUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 ActivateUserFunctionalityTCC activateUserFunctionalityTCC = new ActivateUserFunctionalityTCC(
-                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
 
                 activateUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -132,14 +132,14 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 DeactivateUserFunctionalitySagas deactivateUserFunctionalitySagas = new DeactivateUserFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 deactivateUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 DeactivateUserFunctionalityTCC deactivateUserFunctionalityTCC = new DeactivateUserFunctionalityTCC(
-                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
 
                 deactivateUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -161,7 +161,7 @@ public class UserFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 DeleteUserFunctionalityTCC deleteUserFunctionalityTCC = new DeleteUserFunctionalityTCC(
-                        userService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, userAggregateId, causalUnitOfWork, commandGateway);
 
                 deleteUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -177,14 +177,14 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetStudentsFunctionalitySagas getStudentsFunctionalitySagas = new GetStudentsFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, sagaUnitOfWork, commandGateway);
 
                 getStudentsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getStudentsFunctionalitySagas.getStudents();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetStudentsFunctionalityTCC getStudentsFunctionalityTCC = new GetStudentsFunctionalityTCC(
-                        userService, causalUnitOfWorkService, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, causalUnitOfWork, commandGateway);
 
                 getStudentsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getStudentsFunctionalityTCC.getStudents();
@@ -200,14 +200,14 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetTeachersFunctionalitySagas getTeachersFunctionalitySagas = new GetTeachersFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, sagaUnitOfWork, commandGateway);
 
                 getTeachersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getTeachersFunctionalitySagas.getTeachers();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetTeachersFunctionalityTCC getTeachersFunctionalityTCC = new GetTeachersFunctionalityTCC(
-                        userService, causalUnitOfWorkService, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, causalUnitOfWork, commandGateway);
 
                 getTeachersFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getTeachersFunctionalityTCC.getTeachers();

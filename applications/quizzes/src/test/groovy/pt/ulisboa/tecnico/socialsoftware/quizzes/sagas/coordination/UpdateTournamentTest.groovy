@@ -170,7 +170,7 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         tournamentDto2.setStartTime(DateHandler.toISOString(TIME_2))
         tournamentDto2.setEndTime(DateHandler.toISOString(TIME_4))
         and: 'the first execution occurs until getTopicsStep'
-        def updateTournamentFunctionalityOne = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
+        def updateTournamentFunctionalityOne = new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
         updateTournamentFunctionalityOne.executeUntilStep('getTopicsStep', unitOfWork1)
 
         when: 'the second execution occurs'

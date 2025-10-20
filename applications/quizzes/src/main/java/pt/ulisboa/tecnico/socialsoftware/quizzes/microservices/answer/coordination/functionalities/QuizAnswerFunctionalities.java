@@ -71,14 +71,14 @@ public class QuizAnswerFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 AnswerQuestionFunctionalitySagas answerQuestionFunctionalitySagas = new AnswerQuestionFunctionalitySagas(
-                        quizAnswerService, questionService, sagaUnitOfWorkService, quizAnswerFactory, quizAggregateId,
+                        sagaUnitOfWorkService, quizAnswerFactory, quizAggregateId,
                         userAggregateId, userQuestionAnswerDto, sagaUnitOfWork, commandGateway);
                 answerQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 AnswerQuestionFunctionalityTCC answerQuestionFunctionalityTCC = new AnswerQuestionFunctionalityTCC(
-                        quizAnswerService, questionService, causalUnitOfWorkService, quizAnswerFactory, quizAggregateId,
+                        causalUnitOfWorkService, quizAnswerFactory, quizAggregateId,
                         userAggregateId, userQuestionAnswerDto, causalUnitOfWork, commandGateway);
                 answerQuestionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -94,14 +94,14 @@ public class QuizAnswerFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 StartQuizFunctionalitySagas startQuizFunctionalitySagas = new StartQuizFunctionalitySagas(
-                        quizAnswerService, quizService, sagaUnitOfWorkService, quizAggregateId,
+                        sagaUnitOfWorkService, quizAggregateId,
                         courseExecutionAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
                 startQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 StartQuizFunctionalityTCC startQuizFunctionalityTCC = new StartQuizFunctionalityTCC(
-                        quizAnswerService, quizService, causalUnitOfWorkService, quizAggregateId,
+                        causalUnitOfWorkService, quizAggregateId,
                         courseExecutionAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
                 startQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -117,14 +117,14 @@ public class QuizAnswerFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 ConcludeQuizFunctionalitySagas concludeQuizFunctionalitySagas = new ConcludeQuizFunctionalitySagas(
-                        quizAnswerService, sagaUnitOfWorkService, quizAggregateId, userAggregateId, sagaUnitOfWork,
+                        sagaUnitOfWorkService, quizAggregateId, userAggregateId, sagaUnitOfWork,
                         commandGateway);
                 concludeQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 ConcludeQuizFunctionalityTCC concludeQuizFunctionalityTCC = new ConcludeQuizFunctionalityTCC(
-                        quizAnswerService, causalUnitOfWorkService, quizAggregateId, userAggregateId, causalUnitOfWork,
+                        causalUnitOfWorkService, quizAggregateId, userAggregateId, causalUnitOfWork,
                         commandGateway);
                 concludeQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;

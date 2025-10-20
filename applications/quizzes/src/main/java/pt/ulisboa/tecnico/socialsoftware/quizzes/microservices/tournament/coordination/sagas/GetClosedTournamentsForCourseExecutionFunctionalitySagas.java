@@ -9,22 +9,18 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetClosedTournamentsForCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 
 import java.util.List;
 
 public class GetClosedTournamentsForCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
     private List<TournamentDto> closedTournaments;
-    private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public GetClosedTournamentsForCourseExecutionFunctionalitySagas(TournamentService tournamentService,
-            SagaUnitOfWorkService unitOfWorkService,
-            Integer executionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.tournamentService = tournamentService;
+    public GetClosedTournamentsForCourseExecutionFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                                                    Integer executionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(executionAggregateId, unitOfWork);
     }
 
@@ -32,13 +28,8 @@ public class GetClosedTournamentsForCourseExecutionFunctionalitySagas extends Wo
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getClosedTournamentsStep = new SagaSyncStep("getClosedTournamentsStep", () -> {
-            // List<TournamentDto> closedTournaments =
-            // tournamentService.getClosedTournamentsForCourseExecution(executionAggregateId,
-            // unitOfWork);
-            GetClosedTournamentsForCourseExecutionCommand getClosedTournamentsForCourseExecutionCommand = new GetClosedTournamentsForCourseExecutionCommand(
-                    unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), executionAggregateId);
-            List<TournamentDto> closedTournaments = (List<TournamentDto>) CommandGateway
-                    .send(getClosedTournamentsForCourseExecutionCommand);
+            GetClosedTournamentsForCourseExecutionCommand getClosedTournamentsForCourseExecutionCommand = new GetClosedTournamentsForCourseExecutionCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), executionAggregateId);
+            List<TournamentDto> closedTournaments = (List<TournamentDto>) commandGateway.send(getClosedTournamentsForCourseExecutionCommand);
             this.setClosedTournaments(closedTournaments);
         });
 

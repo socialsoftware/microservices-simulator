@@ -9,18 +9,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.CausalQuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.ConcludeQuizCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
 
 public class ConcludeQuizFunctionalityTCC extends WorkflowFunctionality {
     private CausalQuizAnswer quizAnswer;
-    private final QuizAnswerService quizAnswerService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public ConcludeQuizFunctionalityTCC(QuizAnswerService quizAnswerService, CausalUnitOfWorkService unitOfWorkService,
-            Integer quizAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork,
-            CommandGateway commandGateway) {
-        this.quizAnswerService = quizAnswerService;
+    public ConcludeQuizFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                        Integer quizAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork,
+                                        CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(quizAggregateId, userAggregateId, unitOfWork);
@@ -30,7 +27,6 @@ public class ConcludeQuizFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // quizAnswerService.concludeQuiz(quizAggregateId, userAggregateId, unitOfWork);
             ConcludeQuizCommand concludeQuizCommand = new ConcludeQuizCommand(unitOfWork,
                     ServiceMapping.QUIZ.getServiceName(), quizAggregateId, userAggregateId);
             commandGateway.send(concludeQuizCommand);

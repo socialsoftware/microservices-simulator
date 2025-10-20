@@ -19,17 +19,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
-
     private UserDto user;
-    private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
     public DeleteUserFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService,
-            Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.userService = userService;
+            Integer userAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(userAggregateId, unitOfWork);
     }
 
@@ -37,30 +34,21 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            // UserDto user = (UserDto) userService.getUserById(userAggregateId,
-            // unitOfWork);
-            // unitOfWorkService.registerSagaState(userAggregateId, UserSagaState.READ_USER,
-            // unitOfWork);
-            GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork,
-                    ServiceMapping.USER.getServiceName(), userAggregateId);
+            GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             getUserByIdCommand.setSemanticLock(UserSagaState.READ_USER);
-            UserDto user = (UserDto) CommandGateway.send(getUserByIdCommand);
+            UserDto user = (UserDto) commandGateway.send(getUserByIdCommand);
             this.setUser(user);
         });
 
         getUserStep.registerCompensation(() -> {
-            // unitOfWorkService.registerSagaState(userAggregateId,
-            // GenericSagaState.NOT_IN_SAGA, unitOfWork);
             Command command = new Command(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            CommandGateway.send(command);
+            commandGateway.send(command);
         }, unitOfWork);
 
         SagaSyncStep deleteUserStep = new SagaSyncStep("deleteUserStep", () -> {
-            // userService.deleteUser(userAggregateId, unitOfWork);
-            DeleteUserCommand deleteUserCommand = new DeleteUserCommand(unitOfWork,
-                    ServiceMapping.USER.getServiceName(), userAggregateId);
-            CommandGateway.send(deleteUserCommand);
+            DeleteUserCommand deleteUserCommand = new DeleteUserCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
+            commandGateway.send(deleteUserCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
         workflow.addStep(getUserStep);

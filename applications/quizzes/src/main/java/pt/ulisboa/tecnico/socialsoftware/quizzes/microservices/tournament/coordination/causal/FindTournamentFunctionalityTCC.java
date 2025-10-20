@@ -9,19 +9,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamentByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 
-@SuppressWarnings("unused")
 public class FindTournamentFunctionalityTCC extends WorkflowFunctionality {
     private TournamentDto tournamentDto;
-    private final TournamentService tournamentService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public FindTournamentFunctionalityTCC(TournamentService tournamentService,
-            CausalUnitOfWorkService unitOfWorkService,
-            Integer tournamentAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.tournamentService = tournamentService;
+    public FindTournamentFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                          Integer tournamentAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentAggregateId, unitOfWork);
@@ -31,10 +26,7 @@ public class FindTournamentFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.tournamentDto =
-            // tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
-            GetTournamentByIdCommand GetTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork,
-                    ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
+            GetTournamentByIdCommand GetTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             this.tournamentDto = (TournamentDto) commandGateway.send(GetTournamentByIdCommand);
         });
 
