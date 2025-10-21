@@ -31,7 +31,7 @@ public class SagaUnitOfWork extends UnitOfWork {
     private static final Logger logger = LoggerFactory.getLogger(SagaUnitOfWork.class);
 
     private final ArrayList<Runnable> compensatingActions;
-    private final ArrayList<Aggregate> aggregatesInSaga; //TODO CHANGE IN DISTRIBUTED
+    private final ArrayList<Integer> aggregatesInSaga; //TODO CHANGE IN DISTRIBUTED
     private final HashMap<Integer, SagaState> previousStates = new HashMap<>();
 
     private final TraceManager traceManager;
@@ -70,12 +70,12 @@ public class SagaUnitOfWork extends UnitOfWork {
         return CompletableFuture.allOf(compensationFutures.toArray(new CompletableFuture[0]));
     }
 
-    public ArrayList<Aggregate> getAggregatesInSaga() {
+    public ArrayList<Integer> getAggregatesInSaga() {
         return this.aggregatesInSaga;
     }
 
-    public void addToAggregatesInSaga(Aggregate aggregate) {
-        this.aggregatesInSaga.add(aggregate);
+    public void addToAggregatesInSaga(Integer aggregateId) {
+        this.aggregatesInSaga.add(aggregateId);
     }
 
     public HashMap<Integer, SagaState> getPreviousStates() {

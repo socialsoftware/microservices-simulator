@@ -19,13 +19,4 @@ public enum ServiceMapping {
     public String getServiceName() {
         return serviceName;
     }
-
-    public static ServiceMapping fromServiceName(String serviceName) {
-        for (ServiceMapping mapping : values()) {
-            if (mapping.getServiceName().equals(serviceName)) {
-                return mapping;
-            }
-        }
-        throw new IllegalArgumentException("Unknown service name: " + serviceName);
-    }
 }

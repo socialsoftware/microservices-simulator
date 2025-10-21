@@ -103,7 +103,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
         aggregate.setSagaState(state);
         entityManager.persist(aggregate);
-        unitOfWork.addToAggregatesInSaga((Aggregate) aggregate);
+        unitOfWork.addToAggregatesInSaga(aggregateId);
     }
 
     
@@ -120,8 +120,8 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     
     public void commit(SagaUnitOfWork unitOfWork) {
         unitOfWork.getAggregatesInSaga().forEach(a -> {
-            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findAnySagaAggregate(a.getAggregateId())
-                    .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, a.getAggregateId()));
+            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findAnySagaAggregate(a)
+                    .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, a));
             aggregate.setSagaState(GenericSagaState.NOT_IN_SAGA);
             entityManager.persist(aggregate);
         });

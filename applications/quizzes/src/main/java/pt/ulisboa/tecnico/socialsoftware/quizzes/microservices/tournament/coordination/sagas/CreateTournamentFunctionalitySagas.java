@@ -63,7 +63,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
 
         SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> { // TODO EACH TOPIC IN A SEPARATE STEP??
-            topicsId.stream().forEach(topicId -> {
+            topicsId.forEach(topicId -> {
                 GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId);
                 getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
                 TopicDto topic = (TopicDto) commandGateway.send(getTopicByIdCommand);
