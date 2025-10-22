@@ -18,24 +18,24 @@
         <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator</start-class>
     </properties>
     <profiles>
-        <profile>
-            <id>course-service</id>
-            <properties>
-                <activatedProperties>sagas,stream</activatedProperties>
-                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.CourseServiceApplication</start-class>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-web</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
-                    <version>4.3.0</version>
-                </dependency>
-            </dependencies>
-        </profile>
+<!--        <profile>-->
+<!--            <id>course-service</id>-->
+<!--            <properties>-->
+<!--                <activatedProperties>sagas,stream</activatedProperties>-->
+<!--                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.CourseServiceApplication</start-class>-->
+<!--            </properties>-->
+<!--            <dependencies>-->
+<!--                <dependency>-->
+<!--                    <groupId>org.springframework.boot</groupId>-->
+<!--                    <artifactId>spring-boot-starter-web</artifactId>-->
+<!--                </dependency>-->
+<!--                <dependency>-->
+<!--                    <groupId>org.springframework.cloud</groupId>-->
+<!--                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>-->
+<!--                    <version>4.3.0</version>-->
+<!--                </dependency>-->
+<!--            </dependencies>-->
+<!--        </profile>-->
         <profile>
             <id>sagas</id>
             <properties>
@@ -75,12 +75,6 @@
             </dependencies>
         </profile>
         <profile>
-            <id>dev-sagas</id>
-            <properties>
-                <activatedProperties>dev,sagas</activatedProperties>
-            </properties>
-        </profile>
-        <profile>
             <id>test-sagas</id>
             <properties>
                 <activatedProperties>test,sagas,local</activatedProperties>
@@ -112,12 +106,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-        <profile>
-            <id>dev-tcc</id>
-            <properties>
-                <activatedProperties>dev,tcc</activatedProperties>
-            </properties>
         </profile>
         <profile>
             <id>test-tcc</id>

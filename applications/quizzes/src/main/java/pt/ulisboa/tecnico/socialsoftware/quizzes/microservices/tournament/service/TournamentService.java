@@ -88,13 +88,6 @@ public class TournamentService {
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
-    @Retryable(
-            retryFor = { SQLException.class,  CannotAcquireLockException.class},
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public TournamentDto updateTournament(TournamentDto tournamentDto, Set<TopicDto> topicDtos, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentDto.getAggregateId(), unitOfWork);

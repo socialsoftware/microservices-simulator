@@ -46,13 +46,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Autowired
     private CommandGateway commandGateway;
 
-    @Retryable(
-            retryFor = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     public SagaUnitOfWork createUnitOfWork(String functionalityName) {
         Integer lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
 
