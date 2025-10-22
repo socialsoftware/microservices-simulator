@@ -2,7 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.ApplicationContext;
@@ -10,14 +11,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -37,29 +34,32 @@ public class StreamCommandGateway implements CommandGateway {
     @Autowired
     public StreamCommandGateway(StreamBridge streamBridge,
                                 CommandResponseAggregator responseAggregator,
-                                MessagingObjectMapperProvider mapperProvider, ApplicationContext applicationContext) {
+                                MessagingObjectMapperProvider mapperProvider,
+                                ApplicationContext applicationContext) {
         this.streamBridge = streamBridge;
         this.responseAggregator = responseAggregator;
         this.msgMapper = mapperProvider.newMapper();
         this.applicationContext = applicationContext;
     }
 
+    @Override
+    @CircuitBreaker(name = "commandGateway", fallbackMethod = "fallbackSend")
+    @Retry(name = "commandGateway")
     public Object send(Command command) {
         String service = command.getServiceName() != null ? command.getServiceName().toLowerCase() : "";
 //        String cmdPkg = command.getClass().getPackage().getName();
 //        boolean isSameServicePackage = !service.isEmpty() && (cmdPkg.contains(".command." + service));
-//
+
 //        if (isSameServicePackage) {
 //            logger.info("Routing to LocalCommandGateway for command: " + command.getClass().getSimpleName());
 //            String handlerClassName = command.getServiceName() + "CommandHandler";
 //
-//            CommandHandler handler =
-//                    applicationContext.getBeansOfType(CommandHandler.class)
-//                            .values()
-//                            .stream()
-//                            .filter(h -> h.getClass().getSimpleName().equalsIgnoreCase(handlerClassName))
-//                            .findFirst()
-//                            .orElseThrow(() -> new RuntimeException("No handler found for command: " + handlerClassName));
+//            CommandHandler handler = applicationContext.getBeansOfType(CommandHandler.class)
+//                    .values()
+//                    .stream()
+//                    .filter(h -> h.getClass().getSimpleName().equalsIgnoreCase(handlerClassName))
+//                    .findFirst()
+//                    .orElseThrow(() -> new RuntimeException("No handler found for command: " + handlerClassName));
 //
 //            try {
 //                Object returnObject = handler.handle(command);
@@ -68,7 +68,7 @@ public class StreamCommandGateway implements CommandGateway {
 //                }
 //                return returnObject;
 //            } catch (SimulatorException e) {
-//                Logger.getLogger(LocalCommandGateway.class.getName()).warning(e.getMessage());
+//                logger.warning(e.getMessage());
 //                throw e;
 //            }
 //        }
@@ -84,7 +84,7 @@ public class StreamCommandGateway implements CommandGateway {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        logger.info(json);
+
         boolean sent = streamBridge.send(destination,
                 MessageBuilder.withPayload(json)
                         .setHeader("correlationId", correlationId)
@@ -100,9 +100,7 @@ public class StreamCommandGateway implements CommandGateway {
         try {
             CommandResponse resp = responseFuture.get();
             mergeUnitOfWork(command.getUnitOfWork(), resp.unitOfWork());
-
             Object result = resp.result();
-            logger.info("GOT RESPONSE: " + result);
             if (result instanceof SimulatorException) {
                 throw (SimulatorException) result;
             }
@@ -114,31 +112,20 @@ public class StreamCommandGateway implements CommandGateway {
     }
 
     public CompletableFuture<Object> sendAsync(Command command) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return send(command);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }, executor);
+        return CompletableFuture.supplyAsync(() -> send(command), executor);
     }
 
     private void mergeUnitOfWork(UnitOfWork target, UnitOfWork source) {
         if (target == null || source == null)
             return;
-
         if (source.getId() != null)
             target.setId(source.getId());
         if (source.getVersion() != null)
             target.setVersion(source.getVersion());
-
-        // Aggregates and events
-        if (source.getAggregatesToCommit() != null) {
+        if (source.getAggregatesToCommit() != null)
             target.getAggregatesToCommit().putAll(source.getAggregatesToCommit());
-        }
-        if (source.getEventsToEmit() != null) {
+        if (source.getEventsToEmit() != null)
             target.getEventsToEmit().addAll(source.getEventsToEmit());
-        }
 
         if (target instanceof SagaUnitOfWork t && source instanceof SagaUnitOfWork s) {
             if (s.getAggregatesInSaga() != null) {
@@ -152,5 +139,11 @@ public class StreamCommandGateway implements CommandGateway {
                 t.getPreviousStates().putAll(s.getPreviousStates());
             }
         }
+    }
+
+    public Object fallbackSend(Command command, Throwable t) {
+        logger.severe("Circuit breaker opened or retries exhausted for command: "
+                + command.getClass().getSimpleName() + " - " + t.getMessage());
+        throw new RuntimeException("Service unavailable: " + command.getServiceName(), t);
     }
 }

@@ -73,3 +73,16 @@ spring:
         binder:
           host: localhost
           port: 5672
+
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        max-attempts: 5
+        wait-duration: 5s
+        retry-exceptions:
+            - java.sql.SQLException
+            - org.springframework.dao.CannotAcquireLockException
+#          - java.lang.Exception
+        ignore-exceptions:
+          - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException

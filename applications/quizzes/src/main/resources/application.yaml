@@ -1,0 +1,64 @@
+## Profile specific properties
+spring:
+  profiles:
+    active: "@activatedProperties@"
+  jpa:
+    properties:
+      jakarta.persistence.sharedCache.mode: UNSPECIFIED
+  groovy:
+    template:
+      check-template-location: false
+  task:
+    scheduling:
+      pool:
+        size: 5
+
+maven:
+  basedir: "@project.basedir@"
+
+retry:
+  db:
+    maxAttempts: 3
+    delay: 200
+    multiplier: 2
+
+resilience4j:
+#  circuitbreaker:
+#    instances:
+#      commandGateway:
+#        failure-rate-threshold: 50
+#        sliding-window-size: 10
+#        wait-duration-in-open-state: 10s
+#        permitted-number-of-calls-in-half-open-state: 3
+#        registerHealthIndicator: true
+#        event-consumer-buffer-size: 10
+  retry:
+    instances:
+      commandGateway:
+        max-attempts: 3
+        wait-duration: 1s
+        retry-exceptions:
+#          - java.sql.SQLException
+#          - org.springframework.dao.CannotAcquireLockException
+          - java.lang.Exception
+        ignore-exceptions:
+          - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,circuitbreakers,circuitbreakerevents,metrics
+
+  endpoint:
+    health:
+      show-details: always
+
+  health:
+    circuitbreakers:
+      enabled: true
+
+  prometheus:
+    metrics:
+      export:
+        enabled: true
