@@ -1,0 +1,139 @@
+spring:
+  profiles:
+    active: "@activatedProperties@"
+  jpa:
+    properties:
+      jakarta.persistence.sharedCache.mode: UNSPECIFIED
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    datasource:
+      url: jdbc:postgresql://localhost:5432/msdb
+      driver-class-name: org.postgresql.Driver
+      username: {DB_USERNAME}
+      password: {DB_PASSWORD}
+  groovy:
+    template:
+      check-template-location: false
+  task:
+    scheduling:
+      pool:
+        size: 5
+  config:
+    activate:
+      on-profile: stream
+  cloud:
+    function:
+      definition: >
+        commandResponseChannel;
+        answerServiceCommandChannel;
+        courseExecutionServiceCommandChannel;
+        questionServiceCommandChannel;
+        quizServiceCommandChannel;
+        topicServiceCommandChannel;
+        tournamentServiceCommandChannel;
+        userServiceCommandChannel;
+        courseServiceCommandChannel
+
+    stream:
+      default:
+        contentType: application/json
+
+      bindings:
+        # --- Command producers (outputs) ---
+        quiz-command-channel:
+          destination: quiz-command-channel
+        topic-command-channel:
+          destination: topic-command-channel
+        user-command-channel:
+          destination: user-command-channel
+        answer-command-channel:
+          destination: answer-command-channel
+        course-execution-command-channel:
+          destination: courseexecution-command-channel
+        question-command-channel:
+          destination: question-command-channel
+        tournament-command-channel:
+          destination: tournament-command-channel
+        course-command-channel:
+          destination: course-command-channel
+
+        # --- Command consumers (inputs) ---
+        quizServiceCommandChannel-in-0:
+          destination: quiz-command-channel
+          group: quiz-service-group
+        topicServiceCommandChannel-in-0:
+          destination: topic-command-channel
+          group: topic-service-group
+        userServiceCommandChannel-in-0:
+          destination: user-command-channel
+          group: user-service-group
+        answerServiceCommandChannel-in-0:
+          destination: answer-command-channel
+          group: answer-service-group
+        courseExecutionServiceCommandChannel-in-0:
+          destination: courseexecution-command-channel
+          group: course-execution-service-group
+        questionServiceCommandChannel-in-0:
+          destination: question-command-channel
+          group: question-service-group
+        tournamentServiceCommandChannel-in-0:
+          destination: tournament-command-channel
+          group: tournament-service-group
+        courseServiceCommandChannel-in-0:
+          destination: course-command-channel
+          group: course-service-group
+
+        # --- Response channel ---
+        commandResponseChannel-in-0:
+          destination: command-responses
+          group: response-group
+
+      rabbit:
+        binder:
+          host: localhost
+          port: 5672
+
+
+maven:
+  basedir: "@project.basedir@"
+
+retry:
+  db:
+    maxAttempts: 3
+    delay: 200
+    multiplier: 2
+
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        max-attempts: 5
+        wait-duration: 1s
+        retry-exceptions:
+          - java.sql.SQLException
+#          - org.springframework.dao.CannotAcquireLockException
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,circuitbreakers,circuitbreakerevents,metrics
+
+  endpoint:
+    health:
+      show-details: always
+
+  health:
+    circuitbreakers:
+      enabled: true
+
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+
