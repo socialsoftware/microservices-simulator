@@ -3,12 +3,13 @@
   "displayName": "Nebula Language Support",
   "description": "Language support for Nebula DSL - A domain-specific language for defining aggregates and entities for the microservices simulator",
   "version": "0.0.1",
-  "publisher": "ponces",
   "license": "MIT",
+  "publisher": "LourencoPonces",
   "repository": {
     "type": "git",
     "url": "https://github.com/ponces/thesis-code"
   },
+  "main": "./out/extension/main.cjs",
   "type": "module",
   "scripts": {
     "build": "tsc -b tsconfig.src.json && node esbuild.mjs && cp -r src/cli/templates out/cli/",
@@ -45,9 +46,6 @@
     "vscode": "^1.67.0",
     "node": ">=18.0.0"
   },
-  "categories": [
-    "Programming Languages"
-  ],
   "contributes": {
     "languages": [
       {
@@ -73,7 +71,6 @@
   "activationEvents": [
     "onLanguage:nebula"
   ],
-  "main": "./out/extension/main.cjs",
   "bin": {
     "nebula-cli": "./bin/cli.js"
   }

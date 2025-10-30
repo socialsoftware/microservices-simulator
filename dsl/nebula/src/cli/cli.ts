@@ -24,7 +24,7 @@ export default async function cli(): Promise<void> {
         .action(async (abstractionsPath: string, options: any) => {
             await CodeGenerator.generateCode(abstractionsPath, {
                 destination: options.output,
-                name: path.basename(path.resolve(abstractionsPath)), // Use the actual folder name as project name
+                name: path.basename(path.resolve(abstractionsPath)),
                 validate: true
             });
         });
