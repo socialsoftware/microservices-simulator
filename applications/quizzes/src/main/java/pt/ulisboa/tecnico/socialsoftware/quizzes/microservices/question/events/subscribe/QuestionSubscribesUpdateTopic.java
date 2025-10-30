@@ -12,6 +12,8 @@ public class QuestionSubscribesUpdateTopic extends EventSubscription {
                 UpdateTopicEvent.class.getSimpleName());
     }
 
+    public QuestionSubscribesUpdateTopic() {}
+
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event);
     }

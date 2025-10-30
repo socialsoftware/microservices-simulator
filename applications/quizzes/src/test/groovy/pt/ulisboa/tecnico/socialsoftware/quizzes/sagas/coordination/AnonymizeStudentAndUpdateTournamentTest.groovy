@@ -11,9 +11,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.QuizFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.functionalities.QuizFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
@@ -28,8 +28,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.AnonymizeStudentFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas
 
 @DataJpaTest
 class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
@@ -204,7 +204,7 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         tournamentDto.setNumberOfQuestions(3)
         def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
         and: 'the tournament update executes first step'
-        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
+        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
         updateTournamentFunctionality.executeUntilStep("getOriginalTournamentStep", unitOfWork1)
         and: 'the creator is anonymized'
         courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
@@ -242,7 +242,7 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         tournamentDto.setNumberOfQuestions(3)
         def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
         and: 'the tournament update executes first step'
-        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
+        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
         updateTournamentFunctionality.executeUntilStep("getOriginalTournamentStep", unitOfWork1)
 
         when: 'the creator is anonymized'
@@ -281,7 +281,7 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         tournamentDto.setNumberOfQuestions(3)
         def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
         and: 'the tournament update executes first step'
-        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
+        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
         updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
 
         when: 'the creator is anonymized'
@@ -317,7 +317,7 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         tournamentDto.setNumberOfQuestions(3)
         def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
         and: 'the tournament update executes more steps and writes a new tournament'
-        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
+        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
         updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
 
         when: 'the creator is anonymized'
@@ -360,7 +360,7 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         tournamentDto.setNumberOfQuestions(4)
         def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
         and: 'the tournament update executes first step'
-        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
+        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
         updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
 
         when: 'the creator is anonymized'
@@ -402,7 +402,7 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         tournamentDto.setNumberOfQuestions(4)
         def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
         and: 'the tournament update executes first step'
-        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
+        def updateTournamentFunctionality = new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
         updateTournamentFunctionality.executeUntilStep("updateTournamentStep", unitOfWork1)
 
         when: 'the creator is anonymized'

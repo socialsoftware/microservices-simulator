@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
@@ -15,13 +14,12 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.CLASS,
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "@class",
-        defaultImpl = Aggregate.class // fallback when no @class is present
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "aggregateId"
 )
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public abstract class Aggregate implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
@@ -43,6 +41,7 @@ public abstract class Aggregate implements Serializable {
     private AggregateState state;
     private String aggregateType;
     @ManyToOne
+    @JsonIdentityReference(alwaysAsId = true)
     private Aggregate prev;
 
     public void remove() {

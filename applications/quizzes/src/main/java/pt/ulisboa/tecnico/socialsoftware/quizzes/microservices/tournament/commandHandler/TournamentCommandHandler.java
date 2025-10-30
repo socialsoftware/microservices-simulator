@@ -28,37 +28,37 @@ public class TournamentCommandHandler implements CommandHandler {
             sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
         }
         Object returnObject;
-        if (command instanceof GetTournamentByIdCommand) {
-            returnObject = handleGetTournamentById((GetTournamentByIdCommand) command);
-        } else if (command instanceof AddParticipantCommand) {
-            returnObject = handleAddParticipant((AddParticipantCommand) command);
-        } else if (command instanceof CreateTournamentCommand) {
-            returnObject = handleCreateTournament((CreateTournamentCommand) command);
-        } else if (command instanceof GetTournamentsByCourseExecutionIdCommand) {
-            returnObject = handleGetTournamentsByCourseExecutionId((GetTournamentsByCourseExecutionIdCommand) command);
-        } else if (command instanceof GetOpenedTournamentsForCourseExecutionCommand) {
-            returnObject = handleGetOpenedTournamentsForCourseExecution(
-                    (GetOpenedTournamentsForCourseExecutionCommand) command);
-        } else if (command instanceof GetClosedTournamentsForCourseExecutionCommand) {
-            returnObject = handleGetClosedTournamentsForCourseExecution(
-                    (GetClosedTournamentsForCourseExecutionCommand) command);
-        } else if (command instanceof LeaveTournamentCommand) {
-            returnObject = handleLeaveTournament((LeaveTournamentCommand) command);
-        } else if (command instanceof SolveQuizCommand) {
-            returnObject = handleSolveQuiz((SolveQuizCommand) command);
-        } else if (command instanceof RemoveTournamentCommand) {
-            returnObject = handleRemoveTournament((RemoveTournamentCommand) command);
-        } else if (command instanceof UpdateTournamentCommand) {
-            returnObject = handleUpdateTournament((UpdateTournamentCommand) command);
-        } else if (command instanceof CancelTournamentCommand) {
-            returnObject = handleCancelTournament((CancelTournamentCommand) command);
-        } else if (command instanceof AnonymizeUserCommand) {
-            returnObject = handleAnonymizeUser((AnonymizeUserCommand) command);
-        } else if (command instanceof UpdateUserNameCommand) {
-            returnObject = handleUpdateUserName((UpdateUserNameCommand) command);
-        } else {
-            logger.warning("Unknown command type: " + command.getClass().getName());
-            returnObject = null;
+        switch (command) {
+            case GetTournamentByIdCommand getTournamentByIdCommand ->
+                    returnObject = handleGetTournamentById(getTournamentByIdCommand);
+            case AddParticipantCommand addParticipantCommand ->
+                    returnObject = handleAddParticipant(addParticipantCommand);
+            case CreateTournamentCommand createTournamentCommand ->
+                    returnObject = handleCreateTournament(createTournamentCommand);
+            case GetTournamentsByCourseExecutionIdCommand getTournamentsByCourseExecutionIdCommand ->
+                    returnObject = handleGetTournamentsByCourseExecutionId(getTournamentsByCourseExecutionIdCommand);
+            case GetOpenedTournamentsForCourseExecutionCommand getOpenedTournamentsForCourseExecutionCommand ->
+                    returnObject = handleGetOpenedTournamentsForCourseExecution(
+                            getOpenedTournamentsForCourseExecutionCommand);
+            case GetClosedTournamentsForCourseExecutionCommand getClosedTournamentsForCourseExecutionCommand ->
+                    returnObject = handleGetClosedTournamentsForCourseExecution(
+                            getClosedTournamentsForCourseExecutionCommand);
+            case LeaveTournamentCommand leaveTournamentCommand ->
+                    returnObject = handleLeaveTournament(leaveTournamentCommand);
+            case SolveQuizCommand solveQuizCommand -> returnObject = handleSolveQuiz(solveQuizCommand);
+            case RemoveTournamentCommand removeTournamentCommand ->
+                    returnObject = handleRemoveTournament(removeTournamentCommand);
+            case UpdateTournamentCommand updateTournamentCommand ->
+                    returnObject = handleUpdateTournament(updateTournamentCommand);
+            case CancelTournamentCommand cancelTournamentCommand ->
+                    returnObject = handleCancelTournament(cancelTournamentCommand);
+            case AnonymizeUserCommand anonymizeUserCommand -> returnObject = handleAnonymizeUser(anonymizeUserCommand);
+            case UpdateUserNameCommand updateUserNameCommand ->
+                    returnObject = handleUpdateUserName(updateUserNameCommand);
+            default -> {
+                logger.warning("Unknown command type: " + command.getClass().getName());
+                returnObject = null;
+            }
         }
 
         if (command.getSemanticLock() != null) {

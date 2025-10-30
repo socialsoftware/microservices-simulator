@@ -43,13 +43,6 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     @Autowired
     private EventRepository eventRepository;
 
-    @Retryable(
-            retryFor = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public CausalUnitOfWork createUnitOfWork(String functionalityName) {
         Integer lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
@@ -67,7 +60,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (aggregate.getState() == Aggregate.AggregateState.DELETED) {
-            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType().toString(), aggregate.getAggregateId());
+            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType(), aggregate.getAggregateId());
         }
 
         List<Event> allEvents = eventRepository.findAll();
@@ -82,7 +75,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (aggregate.getState() == Aggregate.AggregateState.DELETED) {
-            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType().toString(), aggregate.getAggregateId());
+            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType(), aggregate.getAggregateId());
         }
 
         return aggregate;
@@ -96,13 +89,6 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         return aggregate;
     }
 
-    @Retryable(
-            retryFor = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commit(CausalUnitOfWork unitOfWork) {
         boolean concurrentAggregates = true;
@@ -127,7 +113,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
                     throw new SimulatorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregateToWrite.getAggregateId());
                 }
                 aggregateToWrite.verifyInvariants();
-                Aggregate concurrentAggregate = getConcurrentAggregate(aggregateToWrite);
+                Aggregate concurrentAggregate = getConcurrentAggregate(aggregateToWrite); // TODO this has to be distributed
                 // second condition is necessary for when a concurrent version is detected at first and then in the following detections it will have to do
                 // this verification in order to not detect the same as a version as concurrent again
                 if (concurrentAggregate != null && unitOfWork.getVersion() <= concurrentAggregate.getVersion()) {
@@ -162,15 +148,8 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     }
 
     // Must be serializable in order to ensure no other commits are made between the checking of concurrent versions and the actual persist
-    @Retryable(
-            retryFor = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
+    public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) { // TODO for each aggregate go to the respective service
         aggregateMap.values().forEach(aggregateToWrite -> {
             aggregateToWrite.setVersion(commitVersion);
             aggregateToWrite.setCreationTs(DateHandler.now());
@@ -186,12 +165,12 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
             return null;
         }
 
-        concurrentAggregate = causalAggregateRepository.findConcurrentVersions(aggregate.getAggregateId(), aggregate.getPrev().getVersion())
+        concurrentAggregate = causalAggregateRepository.findConcurrentVersions(aggregate.getAggregateId(), aggregate.getPrev().getVersion()) // TODO causalAggregateRepository can't be used
                 .orElse(null);
 
         // if a concurrent version is deleted it means the object has been deleted in the meanwhile
         if (concurrentAggregate != null && (concurrentAggregate.getState() == Aggregate.AggregateState.DELETED || concurrentAggregate.getState() == Aggregate.AggregateState.INACTIVE)) {
-            throw new SimulatorException(SimulatorErrorMessage.AGGREGATE_DELETED, concurrentAggregate.getAggregateType().toString(), concurrentAggregate.getAggregateId());
+            throw new SimulatorException(SimulatorErrorMessage.AGGREGATE_DELETED, concurrentAggregate.getAggregateType(), concurrentAggregate.getAggregateId());
         }
 
         return concurrentAggregate;
@@ -206,6 +185,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     public void registerChanged(Aggregate aggregate, CausalUnitOfWork unitOfWork) {
         // the id set to null to force a new entry in the db
         aggregate.setId(null);
+        logger.info("aggregate to commit: {}", aggregate.getClass());
         unitOfWork.getAggregatesToCommit().put(aggregate.getAggregateId(), aggregate);
     }
 

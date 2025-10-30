@@ -21,7 +21,7 @@ public class CommandResponseListener {
 
     @Autowired
     public CommandResponseListener(CommandResponseAggregator responseAggregator,
-                                   MessagingObjectMapperProvider mapperProvider) {
+            MessagingObjectMapperProvider mapperProvider) {
         this.responseAggregator = responseAggregator;
         this.objectMapper = mapperProvider.newMapper();
     }
@@ -66,9 +66,8 @@ public class CommandResponseListener {
                         correlationId,
                         new SimulatorException(response.errorMessage()));
             } else {
-                responseAggregator.completeResponse(
-                        correlationId,
-                        response.result());
+                // pass back the full response to allow UoW merge at the gateway
+                responseAggregator.completeResponse(correlationId, response);
             }
         };
     }

@@ -41,7 +41,7 @@ public class CausalUnitOfWork extends UnitOfWork {
                         .filter(e -> e.getClass().getSimpleName().equals(es.getEventType()))
                         .filter(e -> e.getPublisherAggregateVersion() <= snapshotAggregate.getVersion())
                         .filter(e -> e.getPublisherAggregateVersion() > es.getSubscribedVersion())
-                        .collect(Collectors.toList());
+                        .toList();
                 // snapshotAggregateEmittedEvents is a list of emitted events of the same type of the current sub emitted
                 // by the current snapshot aggregate emitted after the version of the current subscription
 
@@ -63,7 +63,7 @@ public class CausalUnitOfWork extends UnitOfWork {
                         .filter(e -> e.getClass().getSimpleName().equals(es.getEventType()))
                         .filter(e -> e.getPublisherAggregateVersion() <= snapshotAggregate.getVersion())
                         .filter(e -> e.getPublisherAggregateVersion() > es.getSubscribedVersion())
-                        .collect(Collectors.toList());
+                        .toList();
                 for (Event snapshotAggregateEmittedEvent : aggregateEmittedEvents) {
                     if (es.subscribesEvent(snapshotAggregateEmittedEvent)) {
                         throw new SimulatorException(CANNOT_PERFORM_CAUSAL_READ, aggregate.getAggregateId(), getVersion());

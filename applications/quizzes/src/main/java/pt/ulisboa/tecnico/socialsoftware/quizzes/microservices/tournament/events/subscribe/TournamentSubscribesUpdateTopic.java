@@ -12,6 +12,8 @@ public class TournamentSubscribesUpdateTopic extends EventSubscription {
                 UpdateTopicEvent.class.getSimpleName());
     }
 
+    public TournamentSubscribesUpdateTopic() {}
+
     @Override
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event);

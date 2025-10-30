@@ -136,7 +136,7 @@ public abstract class Quiz extends Aggregate {
             AVAILABLE_DATE_FINAL_AFTER_AVAILABLE_DATE
          */
         Quiz prev = (Quiz) getPrev();
-        if (prev != null && (DateHandler.now()).isAfter(prev.getAvailableDate())) {
+        if (prev != null && prev.getAvailableDate() != null && DateHandler.now().isAfter(prev.getAvailableDate())) {
             throw new QuizzesException(CANNOT_UPDATE_QUIZ, getAggregateId());
         }
         this.availableDate = availableDate;

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 
@@ -30,7 +31,7 @@ public abstract class UnitOfWork implements Serializable {
     private Integer version;
     @JsonDeserialize(contentAs = Aggregate.class)
     private Map<Integer, Aggregate> aggregatesToCommit;
-    private Set<Event> eventsToEmit;
+    private final Set<Event> eventsToEmit;
     private String functionalityName;
 
     protected UnitOfWork() {
@@ -73,16 +74,11 @@ public abstract class UnitOfWork implements Serializable {
         return this.aggregatesToCommit;
     }
 
-//    public void registerChanged(Aggregate aggregate) {
-//        // the id set to null to force a new entry in the db
-//        aggregate.setId(null);
-//        this.aggregatesToCommit.put(aggregate.getAggregateId(), aggregate);
-//    }
-
     public Set<Event> getEventsToEmit() {
         return eventsToEmit;
     }
 
     public void addEvent(Event event) {
         this.eventsToEmit.add(event);
-    }}
+    }
+}

@@ -44,3 +44,4 @@ jmeter.log
 .vscode/settings.json
 
 applications/quizzes/logs/
+/logs/

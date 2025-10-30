@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
@@ -15,6 +17,7 @@ import java.util.logging.Logger;
 @Profile("local")
 public class LocalCommandGateway implements CommandGateway {
 
+    private static final Logger logger = Logger.getLogger(LocalCommandGateway.class.getName());
     private final ApplicationContext applicationContext;
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -23,15 +26,15 @@ public class LocalCommandGateway implements CommandGateway {
         this.applicationContext = applicationContext;
     }
 
+    @Override
+    @CircuitBreaker(name = "commandGateway", fallbackMethod = "fallbackSend")
+    @Retry(name = "commandGateway")
     public Object send(Command command) {
         String handlerClassName = command.getServiceName() + "CommandHandler";
 
-        CommandHandler handler = applicationContext.getBeansOfType(CommandHandler.class)
-                .values()
-                .stream()
-                .filter(h -> h.getClass().getSimpleName().equalsIgnoreCase(handlerClassName))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("No handler found for command: " + handlerClassName));
+        CommandHandler handler = (CommandHandler) applicationContext.getBean(
+                command.getServiceName() + "CommandHandler"
+        );
 
         try {
             Object returnObject = handler.handle(command);
@@ -40,11 +43,12 @@ public class LocalCommandGateway implements CommandGateway {
             }
             return returnObject;
         } catch (SimulatorException e) {
-            Logger.getLogger(LocalCommandGateway.class.getName()).warning(e.getMessage());
+            logger.warning(e.getMessage());
             throw e;
         }
     }
 
+    @Override
     public CompletableFuture<Object> sendAsync(Command command) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -53,5 +57,11 @@ public class LocalCommandGateway implements CommandGateway {
                 throw new RuntimeException(e);
             }
         }, executor);
+    }
+
+    public Object fallbackSend(Command command, Throwable t) {
+        logger.severe("Circuit breaker opened or retries exhausted for command: "
+                + command.getClass().getSimpleName() + " - " + t.getMessage());
+        throw new RuntimeException("Service unavailable: " + command.getServiceName(), t);
     }
 }

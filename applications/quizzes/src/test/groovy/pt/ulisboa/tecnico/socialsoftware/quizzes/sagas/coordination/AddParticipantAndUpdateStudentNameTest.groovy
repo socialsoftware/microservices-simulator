@@ -10,8 +10,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService
@@ -21,8 +21,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas
 
 @DataJpaTest
 class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
@@ -142,7 +142,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
 
     def 'concurrent: add(1); update; add(2); event' () {
         given: 'add participant executes the first step'
-        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2, commandGateway)
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), unitOfWork2, commandGateway)
         addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2);
         and: 'student name is updated'
         def updateNameDto = new UserDto()
@@ -252,7 +252,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         updateNameDto.setName(UPDATED_NAME)
         courseExecutionFunctionalities.updateStudentName(courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), updateNameDto)
         and: 'creator is read for to be added as participant'
-        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2, commandGateway)
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2, commandGateway)
         addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2)
 
         when: 'the event is processed'
@@ -274,7 +274,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
 
     def 'concurrent - add creator: add-s1; update; event; add-s2' () {
         given: 'creator is read from course to be added'
-        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2, commandGateway)
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2, commandGateway)
         addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2)
         and: 'creator name is updated'
         def updateNameDto = new UserDto()
@@ -307,7 +307,7 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
 
     def 'concurrent - add creator: add-s1; update; add-s2; event' () {
         given: 'creator is read from course to be added'
-        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(tournamentService, courseExecutionService, unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2, commandGateway)
+        def addParticipantFunctionality = new AddParticipantFunctionalitySagas(unitOfWorkService, tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId(), unitOfWork2, commandGateway)
         addParticipantFunctionality.executeUntilStep("getUserStep", unitOfWork2)
         and: 'creator name is updated'
         def updateNameDto = new UserDto()

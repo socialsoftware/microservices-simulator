@@ -16,6 +16,8 @@ public class QuizAnswerSubscribesAnonymizeStudent extends EventSubscription {
         this.studentAggregateId = quizAnswer.getStudent().getStudentAggregateId();
     }
 
+    public QuizAnswerSubscribesAnonymizeStudent() {}
+
     public boolean subscribesEvent(Event event) {
         return super.subscribesEvent(event) && checkAnswerInfo((AnonymizeStudentEvent)event);
     }

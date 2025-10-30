@@ -10,23 +10,23 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @Profile("stream")
 public class CommandResponseAggregator {
-    private final Map<String, CompletableFuture<Object>> pendingResponses = new ConcurrentHashMap<>();
+    private final Map<String, CompletableFuture<CommandResponse>> pendingResponses = new ConcurrentHashMap<>();
 
-    public CompletableFuture<Object> createResponseFuture(String correlationId) {
-        CompletableFuture<Object> future = new CompletableFuture<>();
+    public CompletableFuture<CommandResponse> createResponseFuture(String correlationId) {
+        CompletableFuture<CommandResponse> future = new CompletableFuture<>();
         pendingResponses.put(correlationId, future);
         return future;
     }
 
-    public void completeResponse(String correlationId, Object response) {
-        CompletableFuture<Object> future = pendingResponses.remove(correlationId);
+    public void completeResponse(String correlationId, CommandResponse response) {
+        CompletableFuture<CommandResponse> future = pendingResponses.remove(correlationId);
         if (future != null) {
             future.complete(response);
         }
     }
 
     public void completeExceptionally(String correlationId, Throwable exception) {
-        CompletableFuture<Object> future = pendingResponses.remove(correlationId);
+        CompletableFuture<CommandResponse> future = pendingResponses.remove(correlationId);
         if (future != null) {
             future.completeExceptionally(exception);
         }

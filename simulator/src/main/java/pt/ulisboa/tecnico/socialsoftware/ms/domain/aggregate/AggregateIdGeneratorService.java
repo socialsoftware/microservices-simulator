@@ -14,13 +14,7 @@ import java.sql.SQLException;
 public class AggregateIdGeneratorService {
     @Autowired
     private AggregateIdRepository aggregateIdRepository;
-    @Retryable(
-            retryFor = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
+
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Integer getNewAggregateId() {
         AggregateIdGenerator aggregateId = new AggregateIdGenerator();

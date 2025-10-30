@@ -12,6 +12,8 @@ public class CourseExecutionSubscribesRemoveUser extends EventSubscription {
                 DeleteUserEvent.class.getSimpleName());
     }
 
+    public CourseExecutionSubscribesRemoveUser() {}
+
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event);
     }

@@ -16,6 +16,8 @@ public class QuizAnswerSubscribesUnerollStudentFromCourseExecution extends Event
         this.studentAggregateId = quizAnswer.getStudent().getStudentAggregateId();
     }
 
+    public QuizAnswerSubscribesUnerollStudentFromCourseExecution() {}
+
     public boolean subscribesEvent(Event event) {
         return super.subscribesEvent(event) && checkAnswerInfo((DisenrollStudentFromCourseExecutionEvent)event);
     }
