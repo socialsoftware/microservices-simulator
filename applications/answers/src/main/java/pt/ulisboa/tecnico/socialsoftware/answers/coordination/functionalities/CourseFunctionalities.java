@@ -3,8 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
-import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -48,26 +46,6 @@ public class CourseFunctionalities {
         } else {
             throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
-    }
-
-    public List<CourseDto> getCoursesByType(String courseType, UnitOfWork unitOfWork) {
-        return new ArrayList<>(); // TODO: Implement getCoursesByType
-    }
-
-    public List<CourseDto> searchCoursesByName(String name, UnitOfWork unitOfWork) {
-        return new ArrayList<>(); // TODO: Implement searchCoursesByName
-    }
-
-    public List<CourseDto> searchCoursesByAcronym(String acronym, UnitOfWork unitOfWork) {
-        return new ArrayList<>(); // TODO: Implement searchCoursesByAcronym
-    }
-
-    public Set<String> getUniqueCourseTypes(UnitOfWork unitOfWork) {
-        return new HashSet<>(); // TODO: Implement getUniqueCourseTypes
-    }
-
-    public Set<CourseDto> getCoursesAsSet(UnitOfWork unitOfWork) {
-        return new HashSet<>(); // TODO: Implement getCoursesAsSet
     }
 
 }

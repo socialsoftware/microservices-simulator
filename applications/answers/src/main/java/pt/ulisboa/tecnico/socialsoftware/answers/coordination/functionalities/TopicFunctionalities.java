@@ -3,8 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
-import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -105,22 +103,6 @@ public class TopicFunctionalities {
                 break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
-    }
-
-    public void searchTopicsByName(String name, UnitOfWork unitOfWork) {
-        // TODO: Implement searchTopicsByName
-    }
-
-    public void getTopicsByCourseAndName(Integer courseId, String name, UnitOfWork unitOfWork) {
-        // TODO: Implement getTopicsByCourseAndName
-    }
-
-    public void removeCourse(Integer courseId, Integer topicId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void updateTopic(Integer topicId, String name, UnitOfWork unitOfWork) {
-        
     }
 
 }

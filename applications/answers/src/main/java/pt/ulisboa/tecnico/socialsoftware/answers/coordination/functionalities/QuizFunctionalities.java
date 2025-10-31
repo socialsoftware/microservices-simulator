@@ -3,8 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
-import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -94,42 +92,6 @@ public class QuizFunctionalities {
                 return findQuizFunctionalitySagas.getResult();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
-    }
-
-    public void getQuizzesByStudent(Integer studentId, UnitOfWork unitOfWork) {
-        // TODO: Implement getQuizzesByStudent
-    }
-
-    public void getAvailableQuizzes(UnitOfWork unitOfWork) {
-        // TODO: Implement getAvailableQuizzes
-    }
-
-    public void getCompletedQuizzes(UnitOfWork unitOfWork) {
-        // TODO: Implement getCompletedQuizzes
-    }
-
-    public void searchQuizzesByTitle(String title, UnitOfWork unitOfWork) {
-        // TODO: Implement searchQuizzesByTitle
-    }
-
-    public void invalidateQuiz(Integer quizId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void removeExecution(Integer executionId, Integer quizId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void removeQuestion(Integer questionId, Integer quizId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void updateQuestion(Integer questionId, String questionTitle, String questionContent, Integer quizId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void removeUser(Integer userAggregateId, Integer quizId, UnitOfWork unitOfWork) {
-        
     }
 
 }

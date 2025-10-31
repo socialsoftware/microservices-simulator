@@ -24,6 +24,21 @@ export class CoordinationFeature {
                 await fs.writeFile(eventProcessingPath, coordinationCode['event-processing'], 'utf-8');
                 console.log(`\t- Generated event processing ${aggregate.name}EventProcessing`);
             }
+
+            try {
+                const { SagaFunctionalityGenerator } = await import('../generators/sagas/saga-functionality-generator.js');
+                const sagaGen = new SagaFunctionalityGenerator();
+                const sagaFiles = sagaGen.generateForAggregate(aggregate, { projectName: options.projectName! });
+                const sagaDir = path.join(paths.javaPath, 'sagas', 'coordination', aggregate.name.toLowerCase());
+                await fs.mkdir(sagaDir, { recursive: true });
+                for (const [fileName, content] of Object.entries(sagaFiles)) {
+                    const outPath = path.join(sagaDir, fileName);
+                    await fs.writeFile(outPath, content, 'utf-8');
+                    console.log(`\t- Generated saga functionality ${fileName}`);
+                }
+            } catch (err) {
+                console.log(`\t- Skipped saga functionality generation: ${err instanceof Error ? err.message : String(err)}`);
+            }
         } catch (error) {
             console.error(`\t- Error generating coordination for ${aggregate.name}: ${error instanceof Error ? error.message : String(error)}`);
         }

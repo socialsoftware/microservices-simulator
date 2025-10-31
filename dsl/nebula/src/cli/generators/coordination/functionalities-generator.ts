@@ -68,25 +68,11 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             });
         }
 
-        // Get consistency models from configuration
-        const consistencyModels = options.consistencyModels || [];
-
-        // Add unit of work services based on consistency models
-        if (consistencyModels.includes('sagas')) {
-            dependencies.push({
-                name: 'sagaUnitOfWorkService',
-                type: 'SagaUnitOfWorkService',
-                required: true
-            });
-        }
-
-        if (consistencyModels.includes('tcc')) {
-            dependencies.push({
-                name: 'causalUnitOfWorkService',
-                type: 'CausalUnitOfWorkService',
-                required: true
-            });
-        }
+        dependencies.push({
+            name: 'sagaUnitOfWorkService',
+            type: 'SagaUnitOfWorkService',
+            required: true
+        });
 
         // Add factory
         dependencies.push({
@@ -121,40 +107,6 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             });
         }
 
-        if (aggregate.methods) {
-            aggregate.methods.forEach((method: any) => {
-                const params = this.extractParameters(method.parameters);
-                const returnType = this.extractReturnType(method.returnType, entityRegistry);
-                const methodSignature = `${method.name}_${params.map((p: any) => p.type).join('_')}`;
-                if (!addedMethods.has(methodSignature)) {
-                    methods.push({
-                        name: method.name,
-                        returnType: returnType,
-                        parameters: params,
-                        body: method.body || this.generateMethodBody(method, returnType)
-                    });
-                    addedMethods.add(methodSignature);
-                }
-            });
-        }
-
-        if (aggregate.workflows) {
-            aggregate.workflows.forEach((workflow: any) => {
-                const params = this.extractParameters(workflow.parameters);
-                const returnType = this.extractReturnType(workflow.returnType, entityRegistry);
-                const methodSignature = `${workflow.name}_${params.map((p: any) => p.type).join('_')}`;
-                if (!addedMethods.has(methodSignature)) {
-                    methods.push({
-                        name: workflow.name,
-                        returnType: returnType,
-                        parameters: params,
-                        isSagaWorkflow: workflow.type === 'saga',
-                        body: workflow.body
-                    });
-                    addedMethods.add(methodSignature);
-                }
-            });
-        }
 
         return methods;
     }
@@ -164,8 +116,6 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         const projectName = options.projectName.toLowerCase();
 
         const basePackage = this.getBasePackage();
-        imports.push(`import static ${basePackage}.ms.TransactionalModel.${this.getTransactionModel()};`);
-        imports.push(`import static ${basePackage}.${projectName}.microservices.exception.${this.capitalize(options.projectName)}ErrorMessage.*;`);
 
         imports.push('import java.util.Arrays;');
         imports.push('import java.util.List;');
@@ -180,18 +130,8 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         imports.push(`import ${basePackage}.ms.TransactionalModel;`);
         imports.push(`import ${basePackage}.ms.coordination.unitOfWork.UnitOfWork;`);
 
-        // Get consistency models from configuration
-        const consistencyModels = options.consistencyModels || [];
-
-        if (consistencyModels.includes('sagas')) {
-            imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
-            imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
-        }
-
-        if (consistencyModels.includes('tcc')) {
-            imports.push(`import ${basePackage}.ms.causal.unitOfWork.CausalUnitOfWork;`);
-            imports.push(`import ${basePackage}.ms.causal.unitOfWork.CausalUnitOfWorkService;`);
-        }
+        imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
+        imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
 
         const usesUserDto = this.checkUserDtoUsage(aggregate, rootEntity);
         if (usesUserDto) {
@@ -367,40 +307,6 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         return 'void';
     }
 
-    private extractParameters(parameters: any): any[] {
-        if (!parameters) return [];
-
-        return parameters.map((param: any) => {
-            if (typeof param === 'string') {
-                const parts = param.trim().split(/\s+/);
-                if (parts.length >= 2) {
-                    return { type: parts[0], name: parts[1] };
-                }
-                return { type: 'Object', name: param };
-            }
-
-            let paramType = 'Object';
-            const paramName = param.name || 'param';
-
-            if (param.type) {
-                const type = param.type;
-
-                if (typeof type === 'string') {
-                    paramType = type;
-                } else if (type.$type === 'PrimitiveType') {
-                    paramType = TypeResolver.resolveJavaType(type);
-                } else if (type.$type === 'EntityType' && type.type && type.type.ref) {
-                    paramType = type.type.ref.name;
-                } else if (type.$type === 'BuiltinType') {
-                    paramType = type.name;
-                } else if (type.name) {
-                    paramType = type.name;
-                }
-            }
-
-            return { type: paramType, name: paramName };
-        });
-    }
 
     private addDtoImports(aggregate: Aggregate, imports: string[], projectName: string, entityRegistry: EntityRegistry): void {
         const usedDtoTypes = new Set<string>();
@@ -473,29 +379,15 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         const lowerAggregateName = aggregateName.toLowerCase();
         const params = this.extractEndpointParameters(endpoint.parameters);
 
-        // Generate workflow implementation based on configured consistency models
         const sagaParams = this.buildSagaParameters(params, lowerAggregateName);
         const sagaCall = this.buildSagaCall(methodName, returnType);
 
-        let cases = '';
-
-        if (consistencyModels.includes('sagas')) {
-            cases += `            case SAGAS:
+        const cases = `            case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 ${capitalizedMethodName}FunctionalitySagas ${methodName}FunctionalitySagas = new ${capitalizedMethodName}FunctionalitySagas(
                         ${sagaParams});
                 ${methodName}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 ${sagaCall}`;
-        }
-
-        if (consistencyModels.includes('tcc')) {
-            cases += `            case TCC:
-                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-                ${capitalizedMethodName}FunctionalityTCC ${methodName}FunctionalityTCC = new ${capitalizedMethodName}FunctionalityTCC(
-                        ${sagaParams.replace('sagaUnitOfWork', 'causalUnitOfWork')});
-                ${methodName}FunctionalityTCC.executeWorkflow(causalUnitOfWork);
-                ${sagaCall.replace('FunctionalitySagas', 'FunctionalityTCC')}`;
-        }
 
         let body = `String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
@@ -507,20 +399,6 @@ ${cases}
         return body;
     }
 
-
-    private generateMethodBody(method: any, returnType: string): string {
-        if (returnType === 'void') {
-            return `// TODO: Implement ${method.name}`;
-        } else if (returnType.startsWith('List<')) {
-            return `return new ArrayList<>(); // TODO: Implement ${method.name}`;
-        } else if (returnType.startsWith('Set<')) {
-            return `return new HashSet<>(); // TODO: Implement ${method.name}`;
-        } else if (returnType.includes('Dto')) {
-            return `return null; // TODO: Implement ${method.name}`;
-        } else {
-            return `return null; // TODO: Implement ${method.name}`;
-        }
-    }
 
     private checkUserServiceUsage(aggregate: Aggregate): boolean {
         // Check if any WebAPI endpoints use User-related parameters

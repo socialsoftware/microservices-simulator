@@ -19,6 +19,7 @@ Aggregate:
         (events=Events)?
         (webApiEndpoints=WebAPIEndpoints)?
         (serviceDefinition=ServiceDefinition)?
+        (functionalities=Functionalities)?
     '}';
 
 Entity:
@@ -313,6 +314,15 @@ ServiceDefinition:
             serviceMethods+=ServiceMethod*
         '}')?
     '}';
+
+Functionalities:
+    'Functionalities' '{'
+        functionalityMethods+=FunctionalityMethod*
+    '}';
+
+FunctionalityMethod:
+    name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
+    (':' returnType=ReturnType)? ('throws' exceptionType=ID)? ';';
 
 ServiceMethod:
     (annotations+=Annotation)*

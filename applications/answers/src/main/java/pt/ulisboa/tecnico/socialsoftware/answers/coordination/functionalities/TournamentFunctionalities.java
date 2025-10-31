@@ -3,8 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
-import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -200,58 +198,6 @@ public class TournamentFunctionalities {
                 break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
-    }
-
-    public List<TournamentDto> getTournamentsByExecutionId(Integer executionId, UnitOfWork unitOfWork) {
-        return new ArrayList<>(); // TODO: Implement getTournamentsByExecutionId
-    }
-
-    public List<TournamentDto> getOpenedTournamentsForExecution(Integer executionId, UnitOfWork unitOfWork) {
-        return new ArrayList<>(); // TODO: Implement getOpenedTournamentsForExecution
-    }
-
-    public List<TournamentDto> getClosedTournamentsForExecution(Integer executionId, UnitOfWork unitOfWork) {
-        return new ArrayList<>(); // TODO: Implement getClosedTournamentsForExecution
-    }
-
-    public TournamentParticipantDto getTournamentParticipant(Integer userAggregateId) {
-        return null; // TODO: Implement getTournamentParticipant
-    }
-
-    public void addParticipant(Integer userId, Integer tournamentId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void leaveTournament(Integer userAggregateId, Integer tournamentId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void solveQuiz(Integer userAggregateId, Integer tournamentId, Integer quizAnswerId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void cancelTournament(Integer tournamentId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void reopenTournament(Integer tournamentId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void anonymizeUser(Integer userAggregateId, Integer tournamentId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void removeUser(Integer userAggregateId, Integer tournamentId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void updateTopic(Integer topicAggregateId, Integer tournamentId, String topicName, AggregateState state, Integer version, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void removeTopic(Integer topicAggregateId, Integer tournamentId, UnitOfWork unitOfWork) {
-        
     }
 
 }

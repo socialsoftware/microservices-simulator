@@ -3,8 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
-import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -72,38 +70,6 @@ public class AnswerFunctionalities {
                 break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
-    }
-
-    public List<AnswerDto> getAnswersByExecution(Integer executionId, UnitOfWork unitOfWork) {
-        return new ArrayList<>(); // TODO: Implement getAnswersByExecution
-    }
-
-    public List<AnswerDto> getAnswersByStudentAndExecution(Integer studentId, Integer executionId, UnitOfWork unitOfWork) {
-        return new ArrayList<>(); // TODO: Implement getAnswersByStudentAndExecution
-    }
-
-    public List<AnswerDto> getAnswersByQuizAndExecution(Integer quizId, Integer executionId, UnitOfWork unitOfWork) {
-        return new ArrayList<>(); // TODO: Implement getAnswersByQuizAndExecution
-    }
-
-    public void anonymizeStudent(Integer studentAggregateId, Integer answerId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void invalidateQuiz(Integer quizAggregateId, Integer answerId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void removeExecution(Integer executionAggregateId, Integer answerId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void unenrollStudentFromExecution(Integer studentAggregateId, Integer executionAggregateId, Integer answerId, UnitOfWork unitOfWork) {
-        
-    }
-
-    public void updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer answerId, UnitOfWork unitOfWork) {
-        
     }
 
 }
