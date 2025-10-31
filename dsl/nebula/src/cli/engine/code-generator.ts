@@ -201,7 +201,7 @@ export class CodeGenerator {
                 });
                 console.log(`\t- Generated configuration files`);
             } catch (error) {
-                console.error(`\t- Error generating configuration files: ${error instanceof Error ? error.message : String(error)}`);
+                // console.error(`\t- Error generating configuration files: ${error instanceof Error ? error.message : String(error)}`);
             }
 
             // Note: Test generation is currently disabled
@@ -257,8 +257,8 @@ export class CodeGenerator {
     private static async setupConfiguration(opts: TemplateGenerateOptions, inputPath: string) {
         // Smart defaults - always generate everything
         const baseOutputDir = opts.destination || DEFAULT_OUTPUT_DIR;
-        const projectName = ProjectSetup.deriveProjectName(inputPath, opts.name);
-        const validate = true;
+        const projectName = opts.name || ProjectSetup.deriveProjectName(inputPath);
+        const validate = opts.validate || true;
 
         // Load additional config from file if exists
         const loadedConfig = await ConfigLoader.loadConfig(inputPath, {

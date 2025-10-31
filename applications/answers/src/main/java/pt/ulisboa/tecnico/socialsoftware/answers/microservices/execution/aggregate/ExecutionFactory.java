@@ -1,7 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+
 public interface ExecutionFactory {
-    Execution createExecution(Integer aggregateId,  Dto);
+    Execution createExecution(Integer aggregateId, ExecutionDto executionDto);
     Execution createExecutionFromExisting(Execution existingExecution);
-     createExecutionDto(Execution );
+    ExecutionDto createExecutionDto(Execution execution);
 }

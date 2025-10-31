@@ -17,14 +17,18 @@ export class FactoryGenerator extends BaseGenerator {
         this.validateAggregate(aggregate);
         const rootEntity = this.findRootEntity(aggregate);
 
-        // Use the new context builder
-        const context = ContextBuilderFactory.forEntity(options.projectName, aggregate)
-            .withCustomData('dtoName', `${rootEntity.name}Dto`)
-            .withCustomData('allSharedDtos', options.allSharedDtos)
-            .withCustomData('imports', this.generateFactoryImports(`${rootEntity.name}Dto`, options.projectName, options.allSharedDtos))
+        const baseContext: any = ContextBuilderFactory
+            .forEntity(options.projectName, aggregate)
             .build();
 
-        return this.render('entity/factory-interface.hbs', context);
+        const finalContext = {
+            ...baseContext,
+            dtoName: `${rootEntity.name}Dto`,
+            lowerAggregateName: baseContext.lowerAggregate ?? aggregate.name.toLowerCase(),
+            imports: this.generateFactoryImports(`${rootEntity.name}Dto`, options.projectName, options.allSharedDtos)
+        };
+
+        return this.render('entity/factory-interface.hbs', finalContext);
     }
 
     async generateFactory(aggregate: Aggregate, options: { projectName: string, allSharedDtos?: any[] }): Promise<string> {

@@ -77,7 +77,6 @@ Aggregate Execution {
         subscribe DeleteUserEvent from ExecutionUser {
             "event.getUserAggregateId().equals(executionUser.getStudentAggregateId())";
         }
-
     }
 
     WebAPIEndpoints {

@@ -66,11 +66,7 @@ export class ProjectSetup {
         }
     }
 
-    static deriveProjectName(inputPath: string, providedName?: string): string {
-        if (providedName) {
-            return providedName;
-        }
-
+    static deriveProjectName(inputPath: string): string {
         const resolvedInputPath = path.resolve(inputPath);
         const inputFolderName = path.basename(resolvedInputPath);
 
