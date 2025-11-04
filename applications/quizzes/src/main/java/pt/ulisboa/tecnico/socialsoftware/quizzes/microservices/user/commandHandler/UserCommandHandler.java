@@ -27,21 +27,18 @@ public class UserCommandHandler implements CommandHandler {
             sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
         }
         Object returnObject;
-        if (command instanceof GetUserByIdCommand) {
-            returnObject = handleGetUserById((GetUserByIdCommand) command);
-        } else if (command instanceof CreateUserCommand) {
-            returnObject = handleCreateUser((CreateUserCommand) command);
-        } else if (command instanceof ActivateUserCommand) {
-            returnObject = handleActivateUser((ActivateUserCommand) command);
-        } else if (command instanceof DeleteUserCommand) {
-            returnObject = handleDeleteUser((DeleteUserCommand) command);
-        } else if (command instanceof GetStudentsCommand) {
-            returnObject = handleGetStudents((GetStudentsCommand) command);
-        } else if (command instanceof GetTeachersCommand) {
-            returnObject = handleGetTeachers((GetTeachersCommand) command);
-        } else {
-            logger.warning("Unknown command type: " + command.getClass().getName());
-            returnObject = null;
+        switch (command) {
+            case GetUserByIdCommand getUserByIdCommand -> returnObject = handleGetUserById(getUserByIdCommand);
+            case CreateUserCommand createUserCommand -> returnObject = handleCreateUser(createUserCommand);
+            case ActivateUserCommand activateUserCommand -> returnObject = handleActivateUser(activateUserCommand);
+            case DeleteUserCommand deleteUserCommand -> returnObject = handleDeleteUser(deleteUserCommand);
+            case GetStudentsCommand getStudentsCommand -> returnObject = handleGetStudents(getStudentsCommand);
+            case GetTeachersCommand getTeachersCommand -> returnObject = handleGetTeachers(getTeachersCommand);
+            case DeactivateUserCommand deactivateUserCommand -> returnObject = handleDeactivateUser(deactivateUserCommand);
+            default -> {
+                logger.warning("Unknown command type: " + command.getClass().getName());
+                returnObject = null;
+            }
         }
         if (command.getSemanticLock() != null) {
             sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
@@ -108,6 +105,17 @@ public class UserCommandHandler implements CommandHandler {
             return userService.getTeachers(command.getUnitOfWork());
         } catch (Exception e) {
             logger.severe("Failed to get teachers: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleDeactivateUser(DeactivateUserCommand command) {
+        logger.info("Deactivating user: " + command.getUserAggregateId());
+        try {
+            userService.deactivateUser(command.getUserAggregateId(), command.getUnitOfWork());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to deactivate user: " + e.getMessage());
             return e;
         }
     }

@@ -1,6 +1,13 @@
 spring:
   profiles:
     active: "@activatedProperties@"
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/msdb
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+
   jpa:
     properties:
       jakarta.persistence.sharedCache.mode: UNSPECIFIED
@@ -10,21 +17,46 @@ spring:
     show-sql: false
     open-in-view: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-    datasource:
-      url: jdbc:postgresql://localhost:5432/msdb
-      driver-class-name: org.postgresql.Driver
-      username: {DB_USERNAME}
-      password: {DB_PASSWORD}
+
   groovy:
     template:
       check-template-location: false
+
   task:
     scheduling:
       pool:
         size: 5
+
+maven:
+  basedir: "@project.basedir@"
+
+retry:
+  db:
+    maxAttempts: 3
+    delay: 200
+    multiplier: 2
+
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        max-attempts: 5
+        wait-duration: 1s
+        retry-exceptions:
+          - org.springframework.dao.CannotAcquireLockException
+        ignore-exceptions:
+          - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+
+logging:
+  level:
+    org.springframework.retry: DEBUG
+---
+
+spring:
   config:
     activate:
       on-profile: stream
+
   cloud:
     function:
       definition: >
@@ -96,44 +128,3 @@ spring:
         binder:
           host: localhost
           port: 5672
-
-
-maven:
-  basedir: "@project.basedir@"
-
-retry:
-  db:
-    maxAttempts: 3
-    delay: 200
-    multiplier: 2
-
-resilience4j:
-  retry:
-    instances:
-      commandGateway:
-        max-attempts: 5
-        wait-duration: 1s
-        retry-exceptions:
-          - java.sql.SQLException
-#          - org.springframework.dao.CannotAcquireLockException
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,circuitbreakers,circuitbreakerevents,metrics
-
-  endpoint:
-    health:
-      show-details: always
-
-  health:
-    circuitbreakers:
-      enabled: true
-
-  prometheus:
-    metrics:
-      export:
-        enabled: true
-
-

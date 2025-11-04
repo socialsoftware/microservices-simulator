@@ -46,6 +46,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Autowired
     private CommandGateway commandGateway;
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public SagaUnitOfWork createUnitOfWork(String functionalityName) {
         Integer lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
 
@@ -53,17 +54,16 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return unitOfWork;
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) { // TODO use local aggregate repository
         Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
-
-//        GetAggregateCommand getAggregateCommand = new GetAggregateCommand(unitOfWork.getServiceName(), aggregateId);
-//        Aggregate aggregate = (Aggregate) commandGateway.send(getAggregateCommand);
 
         logger.info("Loaded and registered read for aggregate ID: {} - {}", aggregateId, aggregate.getAggregateType());
         return aggregate;
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Aggregate aggregateLoad(Integer aggregateId, SagaUnitOfWork unitOfWork) { // TODO use local aggregate repository
         Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
@@ -75,6 +75,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return aggregate;
     }
 
+    // used for testing with spock
     public Aggregate aggregateDeletedLoad(Integer aggregateId) {
         Aggregate aggregate = sagaAggregateRepository.findDeletedSagaAggregate(aggregateId) // TODO use local aggregate repository
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
@@ -82,6 +83,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return aggregate;
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Aggregate registerRead(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
         return aggregate;
     }
@@ -110,7 +112,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         }
     }
 
-    
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commit(SagaUnitOfWork unitOfWork) {
         unitOfWork.getAggregatesInSaga().forEach(a -> {
             SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findAnySagaAggregate(a)
@@ -144,6 +146,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         compensate(unitOfWork);
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public void registerChanged(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
         if (aggregate.getPrev() != null && aggregate.getPrev().getState() == Aggregate.AggregateState.INACTIVE) {
@@ -160,6 +163,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         unitOfWork.setVersion(commitVersion);
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public void registerEvent(Event event, SagaUnitOfWork unitOfWork) {
         Integer commitVersion = versionService.incrementAndGetVersionNumber();

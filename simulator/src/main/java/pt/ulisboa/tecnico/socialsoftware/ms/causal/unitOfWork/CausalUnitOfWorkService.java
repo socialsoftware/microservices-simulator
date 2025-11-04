@@ -176,11 +176,13 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         return concurrentAggregate;
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void abort(CausalUnitOfWork unitOfWork) {
         // Not needed
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public void registerChanged(Aggregate aggregate, CausalUnitOfWork unitOfWork) {
         // the id set to null to force a new entry in the db
@@ -189,6 +191,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         unitOfWork.getAggregatesToCommit().put(aggregate.getAggregateId(), aggregate);
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public void registerEvent(Event event, CausalUnitOfWork unitOfWork) {
         unitOfWork.addEvent(event);

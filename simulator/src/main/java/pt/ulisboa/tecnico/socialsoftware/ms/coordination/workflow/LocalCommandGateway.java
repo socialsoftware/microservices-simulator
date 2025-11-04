@@ -1,10 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
@@ -22,30 +24,44 @@ public class LocalCommandGateway implements CommandGateway {
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     @Autowired
-    public LocalCommandGateway(ApplicationContext applicationContext) {
+    public LocalCommandGateway(ApplicationContext applicationContext, RetryRegistry retryRegistry) {
         this.applicationContext = applicationContext;
+
+        retryRegistry.retry("commandGateway")
+                .getEventPublisher()
+                .onRetry(event -> {
+                    assert event.getLastThrowable() != null;
+                    logger.warning(String.format("Retry attempt #%d for operation. Reason: %s - %s",
+                            event.getNumberOfRetryAttempts(),
+                            event.getLastThrowable().getClass().getSimpleName(),
+                            event.getLastThrowable().getMessage()));
+                })
+                .onSuccess(event -> {
+                    if (event.getNumberOfRetryAttempts() > 0) {
+                        logger.info(String.format("Operation succeeded after %d retry attempts",
+                                event.getNumberOfRetryAttempts()));
+                    }
+                });
     }
 
     @Override
-    @CircuitBreaker(name = "commandGateway", fallbackMethod = "fallbackSend")
-    @Retry(name = "commandGateway")
+//    @Retry(name = "commandGateway", fallbackMethod = "fallbackSend")
+//    @CircuitBreaker(name = "commandGateway", fallbackMethod = "fallbackSend")
     public Object send(Command command) {
-        String handlerClassName = command.getServiceName() + "CommandHandler";
 
         CommandHandler handler = (CommandHandler) applicationContext.getBean(
                 command.getServiceName() + "CommandHandler"
         );
 
-        try {
-            Object returnObject = handler.handle(command);
-            if (returnObject instanceof SimulatorException) {
-                throw (SimulatorException) returnObject;
-            }
-            return returnObject;
-        } catch (SimulatorException e) {
-            logger.warning(e.getMessage());
-            throw e;
+        logger.info("Executing command: " + command.getClass().getSimpleName());
+        Object returnObject = handler.handle(command);
+        if (returnObject instanceof SimulatorException) {
+            throw (SimulatorException) returnObject;
         }
+        if (returnObject instanceof CannotAcquireLockException) {
+           throw (CannotAcquireLockException) returnObject;
+        }
+        return returnObject;
     }
 
     @Override
@@ -60,8 +76,14 @@ public class LocalCommandGateway implements CommandGateway {
     }
 
     public Object fallbackSend(Command command, Throwable t) {
-        logger.severe("Circuit breaker opened or retries exhausted for command: "
-                + command.getClass().getSimpleName() + " - " + t.getMessage());
-        throw new RuntimeException("Service unavailable: " + command.getServiceName(), t);
+        if (t instanceof SimulatorException) {
+            logger.severe("fallback: Command failed with business error: "
+                    + command.getClass().getSimpleName() + " - " + t.getMessage());
+            throw (SimulatorException) t;
+        } else {
+            logger.severe("Retries exhausted for command: "
+                    + command.getClass().getSimpleName() + " - " + t.getMessage());
+            throw new RuntimeException("Service unavailable: " + command.getServiceName(), t);
+        }
     }
 }
