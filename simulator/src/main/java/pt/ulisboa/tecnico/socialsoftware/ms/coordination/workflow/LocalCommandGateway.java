@@ -24,24 +24,24 @@ public class LocalCommandGateway implements CommandGateway {
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     @Autowired
-    public LocalCommandGateway(ApplicationContext applicationContext, RetryRegistry retryRegistry) {
+    public LocalCommandGateway(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
 
-        retryRegistry.retry("commandGateway")
-                .getEventPublisher()
-                .onRetry(event -> {
-                    assert event.getLastThrowable() != null;
-                    logger.warning(String.format("Retry attempt #%d for operation. Reason: %s - %s",
-                            event.getNumberOfRetryAttempts(),
-                            event.getLastThrowable().getClass().getSimpleName(),
-                            event.getLastThrowable().getMessage()));
-                })
-                .onSuccess(event -> {
-                    if (event.getNumberOfRetryAttempts() > 0) {
-                        logger.info(String.format("Operation succeeded after %d retry attempts",
-                                event.getNumberOfRetryAttempts()));
-                    }
-                });
+//        retryRegistry.retry("commandGateway")
+//                .getEventPublisher()
+//                .onRetry(event -> {
+//                    assert event.getLastThrowable() != null;
+//                    logger.warning(String.format("Retry attempt #%d for operation. Reason: %s - %s",
+//                            event.getNumberOfRetryAttempts(),
+//                            event.getLastThrowable().getClass().getSimpleName(),
+//                            event.getLastThrowable().getMessage()));
+//                })
+//                .onSuccess(event -> {
+//                    if (event.getNumberOfRetryAttempts() > 0) {
+//                        logger.info(String.format("Operation succeeded after %d retry attempts",
+//                                event.getNumberOfRetryAttempts()));
+//                    }
+//                });
     }
 
     @Override

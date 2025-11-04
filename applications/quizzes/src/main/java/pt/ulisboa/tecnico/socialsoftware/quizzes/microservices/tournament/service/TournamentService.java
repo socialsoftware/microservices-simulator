@@ -46,16 +46,14 @@ public class TournamentService {
 
     private final TournamentCustomRepository tournamentRepository;
 
-    private final TournamentTransactionalService tournamentTransactionalService;
+    private final TournamentTransactionalService tournamentTransactionalService = new TournamentTransactionalService();
 
     @Autowired
     private TournamentFactory tournamentFactory;
 
-    public TournamentService(UnitOfWorkService unitOfWorkService, TournamentCustomRepository tournamentRepository,
-            TournamentTransactionalService tournamentTransactionalService) {
+    public TournamentService(UnitOfWorkService unitOfWorkService, TournamentCustomRepository tournamentRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.tournamentRepository = tournamentRepository;
-        this.tournamentTransactionalService = tournamentTransactionalService;
     }
 
     // intended for requests from external functionalities

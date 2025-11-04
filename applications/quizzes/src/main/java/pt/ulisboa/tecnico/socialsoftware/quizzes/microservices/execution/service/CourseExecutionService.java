@@ -37,7 +37,6 @@ public class CourseExecutionService {
     private final CourseExecutionRepository courseExecutionRepository;
     private final CourseExecutionCustomRepository courseExecutionCustomRepository;
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
-    private final CourseExecutionTransactionalService courseExecutionTransactionalService;
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
     @Autowired
@@ -45,14 +44,14 @@ public class CourseExecutionService {
     @Autowired
     private CourseExecutionFactory courseExecutionFactory;
 
+    private final CourseExecutionTransactionalService courseExecutionTransactionalService = new CourseExecutionTransactionalService();
+
     public CourseExecutionService(UnitOfWorkService unitOfWorkService,
                                   CourseExecutionRepository courseExecutionRepository,
-                                  CourseExecutionCustomRepository courseExecutionCustomRepository,
-                                  CourseExecutionTransactionalService courseExecutionTransactionalService) {
+                                  CourseExecutionCustomRepository courseExecutionCustomRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.courseExecutionRepository = courseExecutionRepository;
         this.courseExecutionCustomRepository = courseExecutionCustomRepository;
-        this.courseExecutionTransactionalService = courseExecutionTransactionalService;
     }
 
     @Retryable(retryFor = {

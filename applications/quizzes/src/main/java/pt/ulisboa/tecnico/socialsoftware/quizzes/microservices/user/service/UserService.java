@@ -32,16 +32,14 @@ public class UserService {
 
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    private final UserTransactionalService userTransactionalService;
+    private final UserTransactionalService userTransactionalService = new UserTransactionalService();
 
     @Autowired
     private UserFactory userFactory;
 
-    public UserService(UnitOfWorkService unitOfWorkService, UserRepository userRepository,
-            UserTransactionalService userTransactionalService) {
+    public UserService(UnitOfWorkService unitOfWorkService, UserRepository userRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.userRepository = userRepository;
-        this.userTransactionalService = userTransactionalService;
     }
 
     @Retryable(retryFor = {
