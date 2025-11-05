@@ -24,12 +24,7 @@ public class {{className}} extends WorkflowFunctionality {
 
     public void buildWorkflow({{#if buildParams}}{{#each buildParams}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}) {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
-        // TODO: add Saga steps to implement the functionality
-        // Example:
-        // SagaSyncStep step = new SagaSyncStep("stepName", () -> {
-        //     // call services and set result
-        // });
-        // workflow.addStep(step);
+{{{stepsBody}}}
     }
 
     {{#if resultType}}

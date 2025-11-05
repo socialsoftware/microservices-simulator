@@ -17,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.course.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.coursefactory.service.CourseFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.CourseDto;

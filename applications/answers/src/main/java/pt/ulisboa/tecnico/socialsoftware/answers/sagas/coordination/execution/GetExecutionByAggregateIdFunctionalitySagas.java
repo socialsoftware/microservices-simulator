@@ -5,6 +5,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionDto;
 
 public class GetExecutionByAggregateIdFunctionalitySagas extends WorkflowFunctionality {
     
@@ -19,14 +21,13 @@ public class GetExecutionByAggregateIdFunctionalitySagas extends WorkflowFunctio
         this.unitOfWork = unitOfWork;
     }
 
-    public void buildWorkflow() {
+    public void buildWorkflow(Integer executionAggregateId) {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
-        // TODO: add Saga steps to implement the functionality
-        // Example:
-        // SagaSyncStep step = new SagaSyncStep("stepName", () -> {
-        //     // call services and set result
-        // });
-        // workflow.addStep(step);
+        SagaSyncStep findStep = new SagaSyncStep("find", () -> {
+            this.executionService.getExecutionByAggregateId(executionAggregateId);
+        });
+        workflow.addStep(findStep);
+
     }
 
 }

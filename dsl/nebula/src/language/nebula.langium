@@ -322,7 +322,33 @@ Functionalities:
 
 FunctionalityMethod:
     name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
-    (':' returnType=ReturnType)? ('throws' exceptionType=ID)? ';';
+    (':' returnType=ReturnType)? ('throws' exceptionType=ID)?
+    (
+        'dependencies' '{' dependencyRefs+=ID (',' dependencyRefs+=ID)* '}'
+    )?
+    (
+        'steps' '{'
+            functionalitySteps+=FunctionalityStep*
+        '}'
+    )?
+    ';';
+
+FunctionalityStep:
+    SyncStep;
+
+SyncStep:
+    'sync' stepName=ID '{'
+        stepActions+=StepAction*
+    '}';
+
+StepAction:
+    FuncCallServiceAction | FuncSetResultAction;
+
+FuncCallServiceAction:
+    'call' serviceRef=ID '.' method=ID '(' (args+=ID (',' args+=ID)*)? ')' ';';
+
+FuncSetResultAction:
+    'set' 'result' 'to' resultType=ID ('as' getterName=ID)? ';';
 
 ServiceMethod:
     (annotations+=Annotation)*

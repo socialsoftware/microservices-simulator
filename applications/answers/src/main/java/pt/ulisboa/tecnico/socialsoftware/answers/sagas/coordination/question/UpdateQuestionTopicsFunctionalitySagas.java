@@ -5,6 +5,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.service.QuestionService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionDto;
 
 public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionality {
     
@@ -21,12 +23,7 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
 
     public void buildWorkflow() {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
-        // TODO: add Saga steps to implement the functionality
-        // Example:
-        // SagaSyncStep step = new SagaSyncStep("stepName", () -> {
-        //     // call services and set result
-        // });
-        // workflow.addStep(step);
+
     }
 
 }

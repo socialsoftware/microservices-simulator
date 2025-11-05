@@ -202,4 +202,15 @@ Aggregate Execution {
             updateStudentName(Integer executionAggregateId, Integer userAggregateId, String newName, UnitOfWork unitOfWork): void;
         }
     }
+
+    Functionalities {
+        getExecutionByAggregateId(Integer executionAggregateId): Execution
+        steps {
+            sync find {
+                call executionService.getExecutionByAggregateId(executionAggregateId);
+                set result to ExecutionDto as getExecutionDto;
+            }
+        }
+        ;
+    }
 }

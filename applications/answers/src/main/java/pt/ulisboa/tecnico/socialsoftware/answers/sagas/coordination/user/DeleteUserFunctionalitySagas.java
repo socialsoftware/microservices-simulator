@@ -5,6 +5,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
 
 public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
     
@@ -21,12 +23,7 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
 
     public void buildWorkflow() {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
-        // TODO: add Saga steps to implement the functionality
-        // Example:
-        // SagaSyncStep step = new SagaSyncStep("stepName", () -> {
-        //     // call services and set result
-        // });
-        // workflow.addStep(step);
+
     }
 
 }

@@ -107,6 +107,24 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             });
         }
 
+        const functionalities = (aggregate as any).functionalities;
+        if (functionalities && functionalities.functionalityMethods) {
+            functionalities.functionalityMethods.forEach((func: any) => {
+                const params = this.extractFunctionalityParameters(func.parameters);
+                const returnType = this.extractReturnType(func.returnType, entityRegistry);
+                const methodSignature = `${func.name}_${params.map((p: any) => p.type).join('_')}`;
+                if (!addedMethods.has(methodSignature)) {
+                    methods.push({
+                        name: func.name,
+                        returnType,
+                        parameters: params,
+                        body: this.generateFunctionalityMethodBody(func, returnType, aggregateName),
+                        throwsException: false
+                    });
+                    addedMethods.add(methodSignature);
+                }
+            });
+        }
 
         return methods;
     }
@@ -132,6 +150,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
 
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
+        imports.push(`import ${basePackage}.${projectName}.sagas.coordination.${aggregate.name.toLowerCase()}.*;`);
 
         const usesUserDto = this.checkUserDtoUsage(aggregate, rootEntity);
         if (usesUserDto) {
@@ -373,6 +392,36 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         });
     }
 
+    private extractFunctionalityParameters(parameters: any): any[] {
+        if (!parameters) return [];
+        return parameters.map((param: any) => {
+            if (typeof param === 'string') {
+                const parts = param.trim().split(/\s+/);
+                if (parts.length >= 2) {
+                    return { type: parts[0], name: parts[1] };
+                }
+                return { type: 'Object', name: param };
+            }
+            const paramName = param.name || 'param';
+            let paramType = 'Object';
+            if (param.type) {
+                const type = param.type;
+                if (typeof type === 'string') {
+                    paramType = type;
+                } else if (type.$type === 'PrimitiveType') {
+                    paramType = TypeResolver.resolveJavaType(type);
+                } else if (type.$type === 'EntityType' && type.type && type.type.ref) {
+                    paramType = type.type.ref.name + 'Dto';
+                } else if (type.$type === 'BuiltinType') {
+                    paramType = type.name;
+                } else if ((type as any).typeName || (type as any).name) {
+                    paramType = (type as any).typeName || (type as any).name;
+                }
+            }
+            return { type: paramType, name: paramName };
+        });
+    }
+
     private generateWebApiMethodBody(endpoint: any, returnType: string, aggregateName: string, consistencyModels: string[]): string {
         const methodName = endpoint.methodName;
         const capitalizedMethodName = this.capitalize(methodName);
@@ -399,9 +448,29 @@ ${cases}
         return body;
     }
 
+    private generateFunctionalityMethodBody(func: any, returnType: string, aggregateName: string): string {
+        const methodName = func.name;
+        const capitalizedMethodName = this.capitalize(methodName);
+        const lowerAggregateName = aggregateName.toLowerCase();
+        const params = this.extractFunctionalityParameters(func.parameters);
+        const paramNames = params.map(p => p.name).join(', ');
+
+        const body = `String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                ${capitalizedMethodName}FunctionalitySagas ${methodName}FunctionalitySagas = new ${capitalizedMethodName}FunctionalitySagas(${lowerAggregateName}Service, sagaUnitOfWorkService, sagaUnitOfWork);
+                ${methodName}FunctionalitySagas.buildWorkflow(${paramNames});
+                ${methodName}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                ${returnType !== 'void' ? `return ${methodName}FunctionalitySagas.getResult();` : ''}
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }`;
+        return body;
+    }
+
 
     private checkUserServiceUsage(aggregate: Aggregate): boolean {
-        // Check if any WebAPI endpoints use User-related parameters
         if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints) {
             return aggregate.webApiEndpoints.endpoints.some((endpoint: any) =>
                 endpoint.parameters && endpoint.parameters.some((param: any) =>
