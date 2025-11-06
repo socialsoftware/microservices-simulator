@@ -15,7 +15,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentFactory;
 
 public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
     private TournamentDto tournamentDto;
@@ -26,16 +25,15 @@ public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public SolveQuizFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
-                                     TournamentFactory tournamentFactory,
                                      Integer tournamentAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork,
                                      CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(tournamentFactory, tournamentAggregateId, userAggregateId, unitOfWork);
+        this.buildWorkflow(tournamentAggregateId, userAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId,
-            Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer tournamentAggregateId,
+                              Integer userAggregateId, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {

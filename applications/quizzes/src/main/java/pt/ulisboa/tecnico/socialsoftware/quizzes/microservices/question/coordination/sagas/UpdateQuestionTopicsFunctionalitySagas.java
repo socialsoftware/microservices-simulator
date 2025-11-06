@@ -13,10 +13,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByI
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateQuestionTopicsCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionTopic;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.states.QuestionSagaState;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.states.TopicSagaState;
 
 import java.util.ArrayList;
@@ -32,16 +31,15 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public UpdateQuestionTopicsFunctionalitySagas(QuestionFactory questionFactory, SagaUnitOfWorkService unitOfWorkService,
+    public UpdateQuestionTopicsFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
                                                   Integer courseAggregateId, List<Integer> topicIds, SagaUnitOfWork unitOfWork,
                                                   CommandGateway CommandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = CommandGateway;
-        this.buildWorkflow(courseAggregateId, topicIds, questionFactory, unitOfWork);
+        this.buildWorkflow(courseAggregateId, topicIds, unitOfWork);
     }
 
-    public void buildWorkflow(Integer courseAggregateId, List<Integer> topicIds, QuestionFactory questionFactory,
-            SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer courseAggregateId, List<Integer> topicIds, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> { // TODO

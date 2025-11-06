@@ -9,7 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.LeaveTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentFactory;
 
 public class LeaveTournamentFunctionalityTCC extends WorkflowFunctionality {
     private Tournament oldTournament;
@@ -17,16 +16,14 @@ public class LeaveTournamentFunctionalityTCC extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public LeaveTournamentFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
-                                           TournamentFactory tournamentFactory,
                                            Integer tournamentAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork,
                                            CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(tournamentFactory, tournamentAggregateId, userAggregateId, unitOfWork);
+        this.buildWorkflow(tournamentAggregateId, userAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId,
-            Integer userAggregateId, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer tournamentAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {

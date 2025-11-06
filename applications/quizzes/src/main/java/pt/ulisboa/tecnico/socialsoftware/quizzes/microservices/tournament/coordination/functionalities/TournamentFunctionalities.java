@@ -8,21 +8,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.*;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
@@ -38,29 +30,13 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
 @Service
 public class TournamentFunctionalities {
     @Autowired
-    private TournamentService tournamentService;
+    private TournamentService tournamentService; // testing
     @Autowired
-    private UserService userService;
-    @Autowired
-    private CourseExecutionService courseExecutionService;
-    @Autowired
-    private TopicService topicService;
-    @Autowired
-    private QuizService quizService;
-    @Autowired
-    private QuizAnswerService quizAnswerService;
+    private UserService userService; // testing
     @Autowired(required = false)
     private SagaUnitOfWorkService sagaUnitOfWorkService;
     @Autowired(required = false)
     private CausalUnitOfWorkService causalUnitOfWorkService;
-    @Autowired
-    private TournamentFactory tournamentFactory;
-    @Autowired
-    private QuizFactory quizFactory;
-    @Autowired
-    private TournamentEventHandling tournamentEventHandling;
-    @Autowired
-    private EventService eventService;
     @Autowired
     private CommandGateway commandGateway;
 
@@ -180,8 +156,7 @@ public class TournamentFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateTournamentFunctionalityTCC updateTournamentFunctionalityTCC = new UpdateTournamentFunctionalityTCC(
-                        causalUnitOfWorkService, tournamentFactory,
-                        quizFactory,
+                        causalUnitOfWorkService,
                         tournamentDto, topicsAggregateIds, causalUnitOfWork, commandGateway);
 
                 updateTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
@@ -271,7 +246,7 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 LeaveTournamentFunctionalitySagas leaveTournamentFunctionalitySagas = new LeaveTournamentFunctionalitySagas(
-                        sagaUnitOfWorkService, tournamentFactory, tournamentAggregateId,
+                        sagaUnitOfWorkService, tournamentAggregateId,
                         userAggregateId, sagaUnitOfWork, commandGateway);
 
                 leaveTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
@@ -279,7 +254,7 @@ public class TournamentFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 LeaveTournamentFunctionalityTCC leaveTournamentFunctionalityTCC = new LeaveTournamentFunctionalityTCC(
-                        causalUnitOfWorkService, tournamentFactory, tournamentAggregateId,
+                        causalUnitOfWorkService, tournamentAggregateId,
                         userAggregateId, causalUnitOfWork, commandGateway);
 
                 leaveTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
@@ -296,7 +271,7 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 SolveQuizFunctionalitySagas solveQuizFunctionalitySagas = new SolveQuizFunctionalitySagas(
-                        sagaUnitOfWorkService, tournamentFactory,
+                        sagaUnitOfWorkService,
                         tournamentAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
 
                 solveQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
@@ -304,7 +279,7 @@ public class TournamentFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 SolveQuizFunctionalityTCC solveQuizFunctionalityTCC = new SolveQuizFunctionalityTCC(
-                        causalUnitOfWorkService, tournamentFactory,
+                        causalUnitOfWorkService,
                         tournamentAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
 
                 solveQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
@@ -321,7 +296,7 @@ public class TournamentFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 CancelTournamentFunctionalitySagas cancelTournamentFunctionalitySagas = new CancelTournamentFunctionalitySagas(
-                        sagaUnitOfWorkService, tournamentFactory, tournamentAggregateId,
+                        sagaUnitOfWorkService, tournamentAggregateId,
                         sagaUnitOfWork, commandGateway);
 
                 cancelTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
@@ -329,7 +304,7 @@ public class TournamentFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 CancelTournamentFunctionalityTCC cancelTournamentFunctionalityTCC = new CancelTournamentFunctionalityTCC(
-                        causalUnitOfWorkService, tournamentFactory, tournamentAggregateId,
+                        causalUnitOfWorkService, tournamentAggregateId,
                         causalUnitOfWork, commandGateway);
 
                 cancelTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
@@ -356,7 +331,7 @@ public class TournamentFunctionalities {
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
 
                 RemoveTournamentFunctionalityTCC removeTournamentFunctionalityTCC = new RemoveTournamentFunctionalityTCC(
-                        causalUnitOfWorkService, tournamentFactory,
+                        causalUnitOfWorkService,
                         tournamentAggregateId, causalUnitOfWork, commandGateway);
 
                 removeTournamentFunctionalityTCC.executeWorkflow(causalUnitOfWork);

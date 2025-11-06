@@ -13,12 +13,11 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.StartTournamentQui
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamentByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.SolveQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.sagas.states.QuizAnswerSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.states.QuizSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.sagas.states.QuizAnswerSagaState;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.states.QuizSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 
 import java.util.ArrayList;
@@ -33,16 +32,15 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public SolveQuizFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
-                                       TournamentFactory tournamentFactory,
                                        Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork,
                                        CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(tournamentFactory, tournamentAggregateId, userAggregateId, unitOfWork);
+        this.buildWorkflow(tournamentAggregateId, userAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId,
-            Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer tournamentAggregateId,
+                              Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {

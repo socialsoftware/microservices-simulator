@@ -10,16 +10,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.causal.CreateQuizFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.causal.FindQuizFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.causal.GetAvailableQuizzesFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.causal.UpdateQuizFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.FindQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.GetAvailableQuizzesFunctionalitySagas;
@@ -38,14 +34,6 @@ public class QuizFunctionalities {
     private SagaUnitOfWorkService sagaUnitOfWorkService;
     @Autowired(required = false)
     private CausalUnitOfWorkService causalUnitOfWorkService;
-    @Autowired
-    private QuizService quizService;
-    @Autowired
-    private CourseExecutionService courseExecutionService;
-    @Autowired
-    private QuestionService questionService;
-    @Autowired
-    private QuizFactory quizFactory;
 
     @Autowired
     private Environment env;
@@ -139,13 +127,13 @@ public class QuizFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuizFunctionalitySagas updateQuizFunctionalitySagas = new UpdateQuizFunctionalitySagas(
-                        sagaUnitOfWorkService, quizFactory, quizDto, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, quizDto, sagaUnitOfWork, commandGateway);
                 updateQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateQuizFunctionalitySagas.getUpdatedQuizDto();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuizFunctionalityTCC updateQuizFunctionalityTCC = new UpdateQuizFunctionalityTCC(
-                        causalUnitOfWorkService, quizFactory, quizDto, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, quizDto, causalUnitOfWork, commandGateway);
                 updateQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return updateQuizFunctionalityTCC.getUpdatedQuizDto();
             default:

@@ -10,7 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.EnrollStudentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetUserByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 public class AddStudentFunctionalityTCC extends WorkflowFunctionality {
@@ -19,16 +18,16 @@ public class AddStudentFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public AddStudentFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, CourseExecutionFactory courseExecutionFactory,
+    public AddStudentFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
                                       Integer executionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork,
                                       CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(executionAggregateId, userAggregateId, courseExecutionFactory, unitOfWork);
+        this.buildWorkflow(executionAggregateId, userAggregateId, unitOfWork);
     }
 
     public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId,
-            CourseExecutionFactory courseExecutionFactory, CausalUnitOfWork unitOfWork) {
+                              CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {

@@ -10,7 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateQuestionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.Question;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionFactory;
 
 public class UpdateQuestionFunctionalityTCC extends WorkflowFunctionality {
     private Question oldQuestion;
@@ -18,14 +17,14 @@ public class UpdateQuestionFunctionalityTCC extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public UpdateQuestionFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
-                                          QuestionFactory questionFactory, QuestionDto questionDto, CausalUnitOfWork unitOfWork,
+                                          QuestionDto questionDto, CausalUnitOfWork unitOfWork,
                                           CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(questionFactory, questionDto, unitOfWork);
+        this.buildWorkflow(questionDto, unitOfWork);
     }
 
-    public void buildWorkflow(QuestionFactory questionFactory, QuestionDto questionDto, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(QuestionDto questionDto, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {

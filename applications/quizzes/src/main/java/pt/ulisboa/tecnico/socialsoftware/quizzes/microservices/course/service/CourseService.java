@@ -1,8 +1,6 @@
     package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service;
 
     import org.springframework.beans.factory.annotation.Autowired;
-    import org.springframework.retry.annotation.Backoff;
-    import org.springframework.retry.annotation.Retryable;
     import org.springframework.stereotype.Service;
     import org.springframework.transaction.annotation.Isolation;
     import org.springframework.transaction.annotation.Transactional;
@@ -14,8 +12,6 @@
     import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
     import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseFactory;
     import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-
-    import java.sql.SQLException;
 
     @Service
     public class CourseService {

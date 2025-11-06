@@ -1,9 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.CannotAcquireLockException;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.*
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publish.DeleteTopicEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publish.UpdateTopicEvent;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 

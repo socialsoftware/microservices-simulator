@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.c
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.causal.CausalQuiz;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.causal.CausalQuiz;
 
 import java.util.Set;
 

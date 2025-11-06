@@ -11,7 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.FindTopicsByCours
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FindTopicsByCourseFunctionalityTCC extends WorkflowFunctionality {
     private List<TopicDto> topics;

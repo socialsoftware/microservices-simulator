@@ -12,7 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamentByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.LeaveTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 
 import java.util.ArrayList;
@@ -24,16 +23,14 @@ public class LeaveTournamentFunctionalitySagas extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public LeaveTournamentFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
-                                             TournamentFactory tournamentFactory,
                                              Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork,
                                              CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(tournamentFactory, tournamentAggregateId, userAggregateId, unitOfWork);
+        this.buildWorkflow(tournamentAggregateId, userAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId,
-            Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getOldTournamentStep = new SagaSyncStep("getOldTournamentStep", () -> {

@@ -12,7 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.RemoveStudentFromCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState;
 
 import java.util.ArrayList;
@@ -24,16 +23,16 @@ public class RemoveStudentFromCourseExecutionFunctionalitySagas extends Workflow
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public RemoveStudentFromCourseExecutionFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService, CourseExecutionFactory courseExecutionFactory,
+    public RemoveStudentFromCourseExecutionFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
                                                               Integer courseExecutionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork,
                                                               CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(courseExecutionAggregateId, userAggregateId, courseExecutionFactory, unitOfWork);
+        this.buildWorkflow(courseExecutionAggregateId, userAggregateId, unitOfWork);
     }
 
     public void buildWorkflow(Integer courseExecutionAggregateId, Integer userAggregateId,
-            CourseExecutionFactory courseExecutionFactory, SagaUnitOfWork unitOfWork) {
+                              SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getOldCourseExecutionStep = new SagaSyncStep("getOldCourseExecutionStep", () -> {

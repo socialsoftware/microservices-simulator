@@ -9,7 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.CancelTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentFactory;
 
 public class CancelTournamentFunctionalityTCC extends WorkflowFunctionality {
     private Tournament oldTournament;
@@ -17,15 +16,13 @@ public class CancelTournamentFunctionalityTCC extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public CancelTournamentFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
-                                            TournamentFactory tournamentFactory,
                                             Integer tournamentAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(tournamentFactory, tournamentAggregateId, unitOfWork);
+        this.buildWorkflow(tournamentAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(TournamentFactory tournamentFactory, Integer tournamentAggregateId,
-            CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer tournamentAggregateId, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {

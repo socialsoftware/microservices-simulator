@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.CausalQuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.CausalQuizAnswer;
 
 @Service
 @Profile("tcc")

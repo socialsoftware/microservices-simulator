@@ -9,23 +9,22 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.AnonymizeStudentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 
 public class AnonymizeStudentFunctionalityTCC extends WorkflowFunctionality {
     private CourseExecution oldCourseExecution;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public AnonymizeStudentFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, CourseExecutionFactory courseExecutionFactory,
+    public AnonymizeStudentFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
                                             Integer executionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork,
                                             CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(executionAggregateId, userAggregateId, courseExecutionFactory, unitOfWork);
+        this.buildWorkflow(executionAggregateId, userAggregateId, unitOfWork);
     }
 
     public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId,
-            CourseExecutionFactory courseExecutionFactory, CausalUnitOfWork unitOfWork) {
+                              CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {

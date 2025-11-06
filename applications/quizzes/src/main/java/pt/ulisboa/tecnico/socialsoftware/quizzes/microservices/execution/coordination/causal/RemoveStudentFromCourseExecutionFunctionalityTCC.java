@@ -9,23 +9,22 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.RemoveStudentFromCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 
 public class RemoveStudentFromCourseExecutionFunctionalityTCC extends WorkflowFunctionality {
     private CourseExecution oldCourseExecution;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public RemoveStudentFromCourseExecutionFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, CourseExecutionFactory courseExecutionFactory,
+    public RemoveStudentFromCourseExecutionFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
                                                             Integer courseExecutionAggregateId, Integer userAggregateId, CausalUnitOfWork unitOfWork,
                                                             CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(courseExecutionAggregateId, userAggregateId, courseExecutionFactory, unitOfWork);
+        this.buildWorkflow(courseExecutionAggregateId, userAggregateId, unitOfWork);
     }
 
     public void buildWorkflow(Integer courseExecutionAggregateId, Integer userAggregateId,
-            CourseExecutionFactory courseExecutionFactory, CausalUnitOfWork unitOfWork) {
+                              CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {

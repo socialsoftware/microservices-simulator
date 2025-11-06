@@ -10,13 +10,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.causal.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.*;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,16 +25,10 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
 
 @Service
 public class TopicFunctionalities {
-    @Autowired
-    private TopicService topicService;
-    @Autowired
-    private CourseService courseService;
     @Autowired(required = false)
     private SagaUnitOfWorkService sagaUnitOfWorkService;
     @Autowired(required = false)
     private CausalUnitOfWorkService causalUnitOfWorkService;
-    @Autowired
-    private TopicFactory topicFactory;
 
     @Autowired
     private Environment env;
@@ -133,14 +124,14 @@ public class TopicFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(topicDto);
                 UpdateTopicFunctionalitySagas updateTopicFunctionalitySagas = new UpdateTopicFunctionalitySagas(
-                        sagaUnitOfWorkService, topicDto, topicFactory, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, topicDto, sagaUnitOfWork, commandGateway);
                 updateTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(topicDto);
                 UpdateTopicFunctionalityTCC updateTopicFunctionalityTCC = new UpdateTopicFunctionalityTCC(
-                        causalUnitOfWorkService, topicDto, topicFactory, causalUnitOfWork,
+                        causalUnitOfWorkService, topicDto, causalUnitOfWork,
                         commandGateway);
                 updateTopicFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;

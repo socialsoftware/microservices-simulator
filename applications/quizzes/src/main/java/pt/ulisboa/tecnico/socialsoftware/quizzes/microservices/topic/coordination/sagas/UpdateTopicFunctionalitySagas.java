@@ -12,7 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.UpdateTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.states.TopicSagaState;
 
 import java.util.ArrayList;
@@ -24,13 +23,13 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public UpdateTopicFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
-                                         TopicDto topicDto, TopicFactory topicFactory, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+                                         TopicDto topicDto, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(topicDto, topicFactory, unitOfWork);
+        this.buildWorkflow(topicDto, unitOfWork);
     }
 
-    public void buildWorkflow(TopicDto topicDto, TopicFactory topicFactory, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(TopicDto topicDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {

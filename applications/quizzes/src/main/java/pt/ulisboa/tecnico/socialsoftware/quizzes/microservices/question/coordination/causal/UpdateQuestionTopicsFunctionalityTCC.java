@@ -10,7 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateQuestionTopicsCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.Question;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionTopic;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 
@@ -25,15 +24,15 @@ public class UpdateQuestionTopicsFunctionalityTCC extends WorkflowFunctionality 
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public UpdateQuestionTopicsFunctionalityTCC(QuestionFactory questionFactory, CausalUnitOfWorkService unitOfWorkService,
+    public UpdateQuestionTopicsFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
                                                 Integer courseAggregateId, List<Integer> topicIds, CausalUnitOfWork unitOfWork,
                                                 CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(courseAggregateId, topicIds, questionFactory, unitOfWork);
+        this.buildWorkflow(courseAggregateId, topicIds, unitOfWork);
     }
 
-    public void buildWorkflow(Integer courseAggregateId, List<Integer> topicIds, QuestionFactory questionFactory, CausalUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer courseAggregateId, List<Integer> topicIds, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {

@@ -12,7 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.AnonymizeStudentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState;
 
 import java.util.ArrayList;
@@ -26,16 +25,16 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public AnonymizeStudentFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService, CourseExecutionFactory courseExecutionFactory,
+    public AnonymizeStudentFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
                                               Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork,
                                               CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
-        this.buildWorkflow(executionAggregateId, userAggregateId, courseExecutionFactory, unitOfWork);
+        this.buildWorkflow(executionAggregateId, userAggregateId, unitOfWork);
     }
 
     public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId,
-            CourseExecutionFactory courseExecutionFactory, SagaUnitOfWork unitOfWork) {
+                              SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {

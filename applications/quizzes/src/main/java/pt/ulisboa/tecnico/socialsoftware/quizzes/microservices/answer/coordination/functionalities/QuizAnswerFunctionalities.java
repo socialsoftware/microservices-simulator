@@ -10,18 +10,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuestionAnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.causal.AnswerQuestionFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.causal.ConcludeQuizFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.causal.StartQuizFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuestionAnswerDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.AnswerQuestionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.ConcludeQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 
 import java.util.Arrays;
 
@@ -31,18 +28,12 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
 
 @Service
 public class QuizAnswerFunctionalities {
-    @Autowired
-    private QuizAnswerService quizAnswerService;
-    @Autowired
-    private QuestionService questionService;
     @Autowired(required = false)
     private SagaUnitOfWorkService sagaUnitOfWorkService;
     @Autowired(required = false)
     private CausalUnitOfWorkService causalUnitOfWorkService;
     @Autowired
     private QuizAnswerFactory quizAnswerFactory;
-    @Autowired
-    private QuizService quizService;
     @Autowired
     private CommandGateway commandGateway;
 

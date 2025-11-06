@@ -11,7 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GetAvailableQuizze
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class GetAvailableQuizzesFunctionalityTCC extends WorkflowFunctionality {
     private List<QuizDto> availableQuizzes;

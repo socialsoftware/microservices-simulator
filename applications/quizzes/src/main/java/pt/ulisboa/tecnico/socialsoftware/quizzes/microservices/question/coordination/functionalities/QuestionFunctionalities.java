@@ -10,14 +10,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.causal.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.*;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,14 +28,6 @@ public class QuestionFunctionalities {
     private SagaUnitOfWorkService sagaUnitOfWorkService;
     @Autowired(required = false)
     private CausalUnitOfWorkService causalUnitOfWorkService;
-    @Autowired
-    private QuestionService questionService;
-    @Autowired
-    private CourseService courseService;
-    @Autowired
-    private TopicService topicService;
-    @Autowired
-    private QuestionFactory questionFactory;
 
     @Autowired
     private Environment env;
@@ -132,14 +120,14 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuestionFunctionalitySagas updateQuestionFunctionalitySagas = new UpdateQuestionFunctionalitySagas(
-                        sagaUnitOfWorkService, questionFactory, questionDto, sagaUnitOfWork,
+                        sagaUnitOfWorkService, questionDto, sagaUnitOfWork,
                         commandGateway);
                 updateQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuestionFunctionalityTCC updateQuestionFunctionalityTCC = new UpdateQuestionFunctionalityTCC(
-                        causalUnitOfWorkService, questionFactory, questionDto, causalUnitOfWork,
+                        causalUnitOfWorkService, questionDto, causalUnitOfWork,
                         commandGateway);
                 updateQuestionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -177,14 +165,14 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuestionTopicsFunctionalitySagas updateQuestionTopicsFunctionalitySagas = new UpdateQuestionTopicsFunctionalitySagas(
-                        questionFactory, sagaUnitOfWorkService, courseAggregateId,
+                        sagaUnitOfWorkService, courseAggregateId,
                         topicIds, sagaUnitOfWork, commandGateway);
                 updateQuestionTopicsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuestionTopicsFunctionalityTCC updateQuestionTopicsFunctionalityTCC = new UpdateQuestionTopicsFunctionalityTCC(
-                        questionFactory, causalUnitOfWorkService, courseAggregateId,
+                        causalUnitOfWorkService, courseAggregateId,
                         topicIds, causalUnitOfWork, commandGateway);
                 updateQuestionTopicsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
