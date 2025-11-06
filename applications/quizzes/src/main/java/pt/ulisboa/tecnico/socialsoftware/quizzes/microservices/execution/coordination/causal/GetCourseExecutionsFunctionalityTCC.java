@@ -9,20 +9,16 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetAllCourseExecutionsCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 
 import java.util.List;
 
 public class GetCourseExecutionsFunctionalityTCC extends WorkflowFunctionality {
     private List<CourseExecutionDto> courseExecutions;
-    private final CourseExecutionService courseExecutionService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public GetCourseExecutionsFunctionalityTCC(CourseExecutionService courseExecutionService,
-            CausalUnitOfWorkService unitOfWorkService,
-            CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.courseExecutionService = courseExecutionService;
+    public GetCourseExecutionsFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                               CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(unitOfWork);
@@ -32,10 +28,7 @@ public class GetCourseExecutionsFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.courseExecutions =
-            // courseExecutionService.getAllCourseExecutions(unitOfWork);
-            GetAllCourseExecutionsCommand getAllCourseExecutionsCommand = new GetAllCourseExecutionsCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName());
+            GetAllCourseExecutionsCommand getAllCourseExecutionsCommand = new GetAllCourseExecutionsCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName());
             this.courseExecutions = (List<CourseExecutionDto>) commandGateway.send(getAllCourseExecutionsCommand);
         });
 

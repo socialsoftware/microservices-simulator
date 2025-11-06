@@ -9,21 +9,17 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.CreateCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 
 public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
     private CourseExecutionDto courseExecutionDto;
     private CourseExecutionDto createdCourseExecution;
-    private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public CreateCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService,
-            SagaUnitOfWorkService unitOfWorkService, CourseExecutionDto courseExecutionDto, SagaUnitOfWork unitOfWork,
-            CommandGateway CommandGateway) {
-        this.courseExecutionService = courseExecutionService;
+    public CreateCourseExecutionFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService, CourseExecutionDto courseExecutionDto, SagaUnitOfWork unitOfWork,
+                                                   CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(courseExecutionDto, unitOfWork);
     }
 
@@ -31,13 +27,8 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createCourseExecutionStep = new SagaSyncStep("createCourseExecutionStep", () -> {
-            // CourseExecutionDto createdCourseExecution = (CourseExecutionDto)
-            // courseExecutionService
-            // .createCourseExecution(courseExecutionDto, unitOfWork);
-            CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionDto);
-            CourseExecutionDto createdCourseExecution = (CourseExecutionDto) CommandGateway
-                    .send(createCourseExecutionCommand);
+            CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionDto);
+            CourseExecutionDto createdCourseExecution = (CourseExecutionDto) commandGateway.send(createCourseExecutionCommand);
             this.setCreatedCourseExecution(createdCourseExecution);
         });
 

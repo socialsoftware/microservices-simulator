@@ -67,7 +67,7 @@ public class CourseExecutionFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(courseExecutionDto);
                 CreateCourseExecutionFunctionalitySagas createCourseExecutionFunctionalitySagas = new CreateCourseExecutionFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, courseExecutionDto, sagaUnitOfWork,
+                        sagaUnitOfWorkService, courseExecutionDto, sagaUnitOfWork,
                         commandGateway);
                 createCourseExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
 
@@ -76,7 +76,7 @@ public class CourseExecutionFunctionalities {
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(courseExecutionDto);
                 CreateCourseExecutionFunctionalityTCC createCourseExecutionFunctionalityTCC = new CreateCourseExecutionFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, courseExecutionDto, causalUnitOfWork,
+                        causalUnitOfWorkService, courseExecutionDto, causalUnitOfWork,
                         commandGateway);
                 createCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
 
@@ -93,14 +93,14 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseExecutionByIdFunctionalitySagas getCourseExecutionByIdFunctionalitySagas = new GetCourseExecutionByIdFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork,
+                        sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork,
                         commandGateway);
                 getCourseExecutionByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getCourseExecutionByIdFunctionalitySagas.getCourseExecutionDto();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseExecutionByIdFunctionalityTCC getCourseExecutionByIdFunctionalityTCC = new GetCourseExecutionByIdFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork,
+                        causalUnitOfWorkService, executionAggregateId, causalUnitOfWork,
                         commandGateway);
                 getCourseExecutionByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getCourseExecutionByIdFunctionalityTCC.getCourseExecutionDto();
@@ -116,13 +116,13 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseExecutionsFunctionalitySagas functionality = new GetCourseExecutionsFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, sagaUnitOfWork, commandGateway);
                 functionality.executeWorkflow(sagaUnitOfWork);
                 return functionality.getCourseExecutions();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseExecutionsFunctionalityTCC getCourseExecutionsFunctionalityTCC = new GetCourseExecutionsFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, causalUnitOfWork, commandGateway);
+                        causalUnitOfWorkService, causalUnitOfWork, commandGateway);
                 getCourseExecutionsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getCourseExecutionsFunctionalityTCC.getCourseExecutions();
             default:
@@ -144,7 +144,7 @@ public class CourseExecutionFunctionalities {
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 RemoveCourseExecutionFunctionalityTCC removeCourseExecutionFunctionalityTCC = new RemoveCourseExecutionFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, executionAggregateId, causalUnitOfWork,
+                        causalUnitOfWorkService, executionAggregateId, causalUnitOfWork,
                         commandGateway);
                 removeCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -160,14 +160,14 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 AddStudentFunctionalitySagas addStudentFunctionalitySagas = new AddStudentFunctionalitySagas(
-                        courseExecutionService, userService, sagaUnitOfWorkService, executionAggregateId,
+                        sagaUnitOfWorkService, executionAggregateId,
                         userAggregateId, sagaUnitOfWork, commandGateway);
                 addStudentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 AddStudentFunctionalityTCC addStudentFunctionalityTCC = new AddStudentFunctionalityTCC(
-                        courseExecutionService, userService, causalUnitOfWorkService, courseExecutionFactory,
+                        causalUnitOfWorkService, courseExecutionFactory,
                         executionAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
                 addStudentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -183,13 +183,13 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseExecutionsByUserFunctionalitySagas getCourseExecutionsByUserFunctionalitySagas = new GetCourseExecutionsByUserFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
+                        sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork, commandGateway);
                 getCourseExecutionsByUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getCourseExecutionsByUserFunctionalitySagas.getCourseExecutions();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseExecutionsByUserFunctionalityTCC getCourseExecutionsByUserFunctionalityTCC = new GetCourseExecutionsByUserFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, userAggregateId, causalUnitOfWork,
+                        causalUnitOfWorkService, userAggregateId, causalUnitOfWork,
                         commandGateway);
                 getCourseExecutionsByUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getCourseExecutionsByUserFunctionalityTCC.getCourseExecutions();
@@ -205,14 +205,14 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 RemoveStudentFromCourseExecutionFunctionalitySagas removeStudentFromCourseExecutionFunctionalitySagas = new RemoveStudentFromCourseExecutionFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, courseExecutionFactory,
+                        sagaUnitOfWorkService, courseExecutionFactory,
                         courseExecutionAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
                 removeStudentFromCourseExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 RemoveStudentFromCourseExecutionFunctionalityTCC removeStudentFromCourseExecutionFunctionalityTCC = new RemoveStudentFromCourseExecutionFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, courseExecutionFactory,
+                        causalUnitOfWorkService, courseExecutionFactory,
                         courseExecutionAggregateId, userAggregateId, causalUnitOfWork, commandGateway);
                 removeStudentFromCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -228,14 +228,14 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 AnonymizeStudentFunctionalitySagas anonymizeStudentFunctionalitySagas = new AnonymizeStudentFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, courseExecutionFactory, executionAggregateId,
+                        sagaUnitOfWorkService, courseExecutionFactory, executionAggregateId,
                         userAggregateId, sagaUnitOfWork, commandGateway);
                 anonymizeStudentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 AnonymizeStudentFunctionalityTCC anonymizeStudentFunctionalityTCC = new AnonymizeStudentFunctionalityTCC(
-                        courseExecutionService, causalUnitOfWorkService, courseExecutionFactory, executionAggregateId,
+                        causalUnitOfWorkService, courseExecutionFactory, executionAggregateId,
                         userAggregateId, causalUnitOfWork, commandGateway);
                 anonymizeStudentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
@@ -251,14 +251,14 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateStudentNameFunctionalitySagas updateStudentNameFunctionalitySagas = new UpdateStudentNameFunctionalitySagas(
-                        courseExecutionService, courseExecutionFactory, sagaUnitOfWorkService, executionAggregateId,
+                        sagaUnitOfWorkService, executionAggregateId,
                         userAggregateId, userDto, sagaUnitOfWork, commandGateway);
                 updateStudentNameFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateStudentNameFunctionalityTCC updateStudentNameFunctionalityTCC = new UpdateStudentNameFunctionalityTCC(
-                        courseExecutionService, courseExecutionFactory, causalUnitOfWorkService, executionAggregateId,
+                        causalUnitOfWorkService, executionAggregateId,
                         userAggregateId, userDto, causalUnitOfWork, commandGateway);
                 updateStudentNameFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;

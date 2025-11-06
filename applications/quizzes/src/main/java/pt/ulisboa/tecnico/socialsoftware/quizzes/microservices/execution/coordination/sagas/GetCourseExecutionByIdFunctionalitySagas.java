@@ -9,20 +9,16 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 
 public class GetCourseExecutionByIdFunctionalitySagas extends WorkflowFunctionality {
     private CourseExecutionDto courseExecutionDto;
-    private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public GetCourseExecutionByIdFunctionalitySagas(CourseExecutionService courseExecutionService,
-            SagaUnitOfWorkService unitOfWorkService,
-            Integer executionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.courseExecutionService = courseExecutionService;
+    public GetCourseExecutionByIdFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                                    Integer executionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(executionAggregateId, unitOfWork);
     }
 
@@ -30,13 +26,8 @@ public class GetCourseExecutionByIdFunctionalitySagas extends WorkflowFunctional
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {
-            // CourseExecutionDto courseExecutionDto =
-            // courseExecutionService.getCourseExecutionById(executionAggregateId,
-            // unitOfWork);
-            GetCourseExecutionByIdCommand getCourseExecutionCommand = new GetCourseExecutionByIdCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
-            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) CommandGateway
-                    .send(getCourseExecutionCommand);
+            GetCourseExecutionByIdCommand getCourseExecutionCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
+            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) commandGateway.send(getCourseExecutionCommand);
             this.setCourseExecutionDto(courseExecutionDto);
         });
 

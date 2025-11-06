@@ -9,18 +9,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 
 public class GetCourseExecutionByIdFunctionalityTCC extends WorkflowFunctionality {
     private CourseExecutionDto courseExecutionDto;
-    private final CourseExecutionService courseExecutionService;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public GetCourseExecutionByIdFunctionalityTCC(CourseExecutionService courseExecutionService,
-            CausalUnitOfWorkService unitOfWorkService,
-            Integer executionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
-        this.courseExecutionService = courseExecutionService;
+    public GetCourseExecutionByIdFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
+                                                  Integer executionAggregateId, CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(executionAggregateId, unitOfWork);
@@ -30,11 +26,7 @@ public class GetCourseExecutionByIdFunctionalityTCC extends WorkflowFunctionalit
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            // this.courseExecutionDto =
-            // courseExecutionService.getCourseExecutionById(executionAggregateId,
-            // unitOfWork);
-            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
+            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
             this.courseExecutionDto = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
         });
 

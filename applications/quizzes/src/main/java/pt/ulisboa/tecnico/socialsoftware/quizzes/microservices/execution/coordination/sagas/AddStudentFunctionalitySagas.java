@@ -10,9 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.EnrollStudentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetUserByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,19 +19,14 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
 
     private UserDto userDto;
     private CourseExecutionDto courseExecution;
-    private final CourseExecutionService courseExecutionService;
-    private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
-    public AddStudentFunctionalitySagas(CourseExecutionService courseExecutionService, UserService userService,
-            SagaUnitOfWorkService unitOfWorkService,
-            Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork,
-            CommandGateway CommandGateway) {
-        this.courseExecutionService = courseExecutionService;
-        this.userService = userService;
+    public AddStudentFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                        Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork,
+                                        CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(executionAggregateId, userAggregateId, unitOfWork);
     }
 
@@ -41,16 +34,14 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork,
-                    ServiceMapping.USER.getServiceName(), userAggregateId);
-            UserDto user = (UserDto) CommandGateway.send(getUserByIdCommand);
+            GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
+            UserDto user = (UserDto) commandGateway.send(getUserByIdCommand);
             setUserDto(user);
         });
 
         SagaSyncStep enrollStudentStep = new SagaSyncStep("enrollStudentStep", () -> {
-            EnrollStudentCommand enrollStudentCommand = new EnrollStudentCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, this.getUserDto());
-            CourseExecutionDto courseExecution = (CourseExecutionDto) CommandGateway.send(enrollStudentCommand);
+            EnrollStudentCommand enrollStudentCommand = new EnrollStudentCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, this.getUserDto());
+            CourseExecutionDto courseExecution = (CourseExecutionDto) commandGateway.send(enrollStudentCommand);
             this.setCourseExecution(courseExecution);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 

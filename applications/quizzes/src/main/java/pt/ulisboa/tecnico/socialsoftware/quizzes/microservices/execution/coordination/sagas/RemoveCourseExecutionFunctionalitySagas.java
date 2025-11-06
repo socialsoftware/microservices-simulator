@@ -20,16 +20,14 @@ import java.util.Arrays;
 
 public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
     private CourseExecutionDto courseExecution;
-    private final CourseExecutionService courseExecutionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private final CommandGateway CommandGateway;
+    private final CommandGateway commandGateway;
 
     public RemoveCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService,
             SagaUnitOfWorkService unitOfWorkService,
-            Integer executionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway CommandGateway) {
-        this.courseExecutionService = courseExecutionService;
+            Integer executionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
-        this.CommandGateway = CommandGateway;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(executionAggregateId, unitOfWork);
     }
 
@@ -37,33 +35,21 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {
-            // CourseExecutionDto courseExecution = (CourseExecutionDto)
-            // courseExecutionService.getCourseExecutionById(executionAggregateId,
-            // unitOfWork);
-            GetCourseExecutionByIdCommand getCourseExecutionCommand = new GetCourseExecutionByIdCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
+            GetCourseExecutionByIdCommand getCourseExecutionCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
             getCourseExecutionCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
-            CourseExecutionDto courseExecution = (CourseExecutionDto) CommandGateway.send(getCourseExecutionCommand);
-            // unitOfWorkService.registerSagaState(executionAggregateId,
-            // CourseExecutionSagaState.READ_COURSE, unitOfWork);
+            CourseExecutionDto courseExecution = (CourseExecutionDto) commandGateway.send(getCourseExecutionCommand);
             this.setCourseExecution(courseExecution);
         });
 
         getCourseExecutionStep.registerCompensation(() -> {
-            // unitOfWorkService.registerSagaState(executionAggregateId,
-            // GenericSagaState.NOT_IN_SAGA, unitOfWork);
-            Command command = new Command(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(),
-                    executionAggregateId);
+            Command command = new Command(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            CommandGateway.send(command);
+            commandGateway.send(command);
         }, unitOfWork);
 
         SagaSyncStep removeCourseExecutionStep = new SagaSyncStep("removeCourseExecutionStep", () -> {
-            // courseExecutionService.removeCourseExecution(executionAggregateId,
-            // unitOfWork);
-            RemoveCourseExecutionCommand removeCourseExecutionCommand = new RemoveCourseExecutionCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
-            CommandGateway.send(removeCourseExecutionCommand);
+            RemoveCourseExecutionCommand removeCourseExecutionCommand = new RemoveCourseExecutionCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
+            commandGateway.send(removeCourseExecutionCommand);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
 
         workflow.addStep(getCourseExecutionStep);
