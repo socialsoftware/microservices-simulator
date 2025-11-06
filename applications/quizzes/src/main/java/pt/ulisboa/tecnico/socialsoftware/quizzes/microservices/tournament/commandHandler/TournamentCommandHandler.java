@@ -29,32 +29,25 @@ public class TournamentCommandHandler implements CommandHandler {
         }
         Object returnObject;
         switch (command) {
-            case GetTournamentByIdCommand getTournamentByIdCommand ->
-                    returnObject = handleGetTournamentById(getTournamentByIdCommand);
-            case AddParticipantCommand addParticipantCommand ->
-                    returnObject = handleAddParticipant(addParticipantCommand);
-            case CreateTournamentCommand createTournamentCommand ->
-                    returnObject = handleCreateTournament(createTournamentCommand);
-            case GetTournamentsByCourseExecutionIdCommand getTournamentsByCourseExecutionIdCommand ->
-                    returnObject = handleGetTournamentsByCourseExecutionId(getTournamentsByCourseExecutionIdCommand);
-            case GetOpenedTournamentsForCourseExecutionCommand getOpenedTournamentsForCourseExecutionCommand ->
-                    returnObject = handleGetOpenedTournamentsForCourseExecution(
-                            getOpenedTournamentsForCourseExecutionCommand);
-            case GetClosedTournamentsForCourseExecutionCommand getClosedTournamentsForCourseExecutionCommand ->
-                    returnObject = handleGetClosedTournamentsForCourseExecution(
-                            getClosedTournamentsForCourseExecutionCommand);
-            case LeaveTournamentCommand leaveTournamentCommand ->
-                    returnObject = handleLeaveTournament(leaveTournamentCommand);
+            case GetTournamentByIdCommand getTournamentByIdCommand -> returnObject = handleGetTournamentById(getTournamentByIdCommand);
+            case AddParticipantCommand addParticipantCommand -> returnObject = handleAddParticipant(addParticipantCommand);
+            case CreateTournamentCommand createTournamentCommand -> returnObject = handleCreateTournament(createTournamentCommand);
+            case GetTournamentsByCourseExecutionIdCommand getTournamentsByCourseExecutionIdCommand -> returnObject = handleGetTournamentsByCourseExecutionId(getTournamentsByCourseExecutionIdCommand);
+            case GetOpenedTournamentsForCourseExecutionCommand getOpenedTournamentsForCourseExecutionCommand -> returnObject = handleGetOpenedTournamentsForCourseExecution(getOpenedTournamentsForCourseExecutionCommand);
+            case GetClosedTournamentsForCourseExecutionCommand getClosedTournamentsForCourseExecutionCommand -> returnObject = handleGetClosedTournamentsForCourseExecution(getClosedTournamentsForCourseExecutionCommand);
+            case LeaveTournamentCommand leaveTournamentCommand -> returnObject = handleLeaveTournament(leaveTournamentCommand);
             case SolveQuizCommand solveQuizCommand -> returnObject = handleSolveQuiz(solveQuizCommand);
-            case RemoveTournamentCommand removeTournamentCommand ->
-                    returnObject = handleRemoveTournament(removeTournamentCommand);
-            case UpdateTournamentCommand updateTournamentCommand ->
-                    returnObject = handleUpdateTournament(updateTournamentCommand);
-            case CancelTournamentCommand cancelTournamentCommand ->
-                    returnObject = handleCancelTournament(cancelTournamentCommand);
+            case RemoveTournamentCommand removeTournamentCommand -> returnObject = handleRemoveTournament(removeTournamentCommand);
+            case UpdateTournamentCommand updateTournamentCommand -> returnObject = handleUpdateTournament(updateTournamentCommand);
+            case CancelTournamentCommand cancelTournamentCommand -> returnObject = handleCancelTournament(cancelTournamentCommand);
             case AnonymizeUserCommand anonymizeUserCommand -> returnObject = handleAnonymizeUser(anonymizeUserCommand);
-            case UpdateUserNameCommand updateUserNameCommand ->
-                    returnObject = handleUpdateUserName(updateUserNameCommand);
+            case UpdateUserNameCommand updateUserNameCommand -> returnObject = handleUpdateUserName(updateUserNameCommand);
+            case RemoveCourseExecutionCommand removeCourseExecutionCommand -> returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
+            case UpdateTopicCommand updateTopicCommand -> returnObject = handleUpdateTopic(updateTopicCommand);
+            case RemoveTopicCommand removeTopicCommand -> returnObject = handleRemoveTopic(removeTopicCommand);
+            case UpdateParticipantAnswerCommand updateParticipantAnswerCommand -> returnObject = handleUpdateParticipantAnswer(updateParticipantAnswerCommand);
+            case RemoveUserCommand removeUserCommand -> returnObject = handleRemoveUser(removeUserCommand);
+            case InvalidateQuizCommand invalidateQuizCommand -> returnObject = handleInvalidateQuiz(invalidateQuizCommand);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 returnObject = null;
@@ -247,6 +240,98 @@ public class TournamentCommandHandler implements CommandHandler {
             return null;
         } catch (Exception e) {
             logger.severe("Failed to update user name: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleRemoveCourseExecution(RemoveCourseExecutionCommand command) {
+        logger.info("Removing course execution from tournament: " + command.getTournamentAggregateId());
+        try {
+            return tournamentService.removeCourseExecution(
+                    command.getTournamentAggregateId(),
+                    command.getCourseExecutionId(),
+                    command.getEventVersion(),
+                    command.getUnitOfWork());
+        } catch (Exception e) {
+            logger.severe("Failed to remove course execution from tournament: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleUpdateTopic(UpdateTopicCommand command) {
+        logger.info("Updating tournament topic: tournament=" + command.getTournamentAggregateId() + ", topic="
+                + command.getTopicAggregateId());
+        try {
+            return tournamentService.updateTopic(
+                    command.getTournamentAggregateId(),
+                    command.getTopicAggregateId(),
+                    command.getTopicName(),
+                    command.getEventVersion(),
+                    command.getUnitOfWork());
+        } catch (Exception e) {
+            logger.severe("Failed to update tournament topic: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleRemoveTopic(RemoveTopicCommand command) {
+        logger.info("Removing tournament topic: tournament=" + command.getTournamentAggregateId() + ", topic="
+                + command.getTopicAggregateId());
+        try {
+            return tournamentService.removeTopic(
+                    command.getTournamentAggregateId(),
+                    command.getTopicAggregateId(),
+                    command.getEventVersion(),
+                    command.getUnitOfWork());
+        } catch (Exception e) {
+            logger.severe("Failed to remove tournament topic: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleUpdateParticipantAnswer(UpdateParticipantAnswerCommand command) {
+        logger.info("Updating participant answer: tournament=" + command.getTournamentAggregateId() + ", student="
+                + command.getStudentAggregateId());
+        try {
+            return tournamentService.updateParticipantAnswer(
+                    command.getTournamentAggregateId(),
+                    command.getStudentAggregateId(),
+                    command.getQuizAnswerAggregateId(),
+                    command.getQuestionAggregateId(),
+                    command.isCorrect(),
+                    command.getEventVersion(),
+                    command.getUnitOfWork());
+        } catch (Exception e) {
+            logger.severe("Failed to update participant answer: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleRemoveUser(RemoveUserCommand command) {
+        logger.info("Removing user from tournament: " + command.getTournamentAggregateId());
+        try {
+            return tournamentService.removeUser(
+                    command.getTournamentAggregateId(),
+                    command.getCourseExecutionAggregateId(),
+                    command.getUserAggregateId(),
+                    command.getEventVersion(),
+                    command.getUnitOfWork());
+        } catch (Exception e) {
+            logger.severe("Failed to remove user from tournament: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleInvalidateQuiz(InvalidateQuizCommand command) {
+        logger.info("Invalidating quiz for tournament: " + command.getTournamentAggregateId());
+        try {
+            return tournamentService.invalidateQuiz(
+                    command.getTournamentAggregateId(),
+                    command.getAggregateId(),
+                    command.getAggregateVersion(),
+                    command.getUnitOfWork());
+        } catch (Exception e) {
+            logger.severe("Failed to invalidate quiz for tournament: " + e.getMessage());
             return e;
         }
     }

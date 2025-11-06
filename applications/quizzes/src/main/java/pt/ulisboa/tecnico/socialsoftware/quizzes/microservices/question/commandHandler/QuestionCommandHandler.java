@@ -28,26 +28,24 @@ public class QuestionCommandHandler implements CommandHandler {
             sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
         }
         Object returnObject;
-        if (command instanceof CreateQuestionCommand) {
-            returnObject = handleCreateQuestion((CreateQuestionCommand) command);
-        } else if (command instanceof UpdateQuestionCommand) {
-            returnObject = handleUpdateQuestion((UpdateQuestionCommand) command);
-        } else if (command instanceof RemoveQuestionCommand) {
-            returnObject = handleRemoveQuestion((RemoveQuestionCommand) command);
-        } else if (command instanceof FindQuestionsByTopicIdsCommand) {
-            returnObject = handleFindQuestionsByTopicIds((FindQuestionsByTopicIdsCommand) command);
-        } else if (command instanceof UpdateQuestionTopicsCommand) {
-            returnObject = handleUpdateQuestionTopics((UpdateQuestionTopicsCommand) command);
-        } else if (command instanceof GetQuestionByIdCommand) {
-            returnObject = handleGetQuestionById((GetQuestionByIdCommand) command);
-        } else if (command instanceof FindQuestionsByCourseAggregateIdCommand) {
-            returnObject = handleFindQuestionsByCourseAggregateId((FindQuestionsByCourseAggregateIdCommand) command);
-        } else {
-            logger.warning("Unknown command type: " + command.getClass().getName());
-            returnObject = null;
+        switch (command) {
+            case CreateQuestionCommand createQuestionCommand -> returnObject = handleCreateQuestion(createQuestionCommand);
+            case UpdateQuestionCommand updateQuestionCommand -> returnObject = handleUpdateQuestion(updateQuestionCommand);
+            case RemoveQuestionCommand removeQuestionCommand -> returnObject = handleRemoveQuestion(removeQuestionCommand);
+            case FindQuestionsByTopicIdsCommand findQuestionsByTopicIdsCommand -> returnObject = handleFindQuestionsByTopicIds(findQuestionsByTopicIdsCommand);
+            case UpdateQuestionTopicsCommand updateQuestionTopicsCommand -> returnObject = handleUpdateQuestionTopics(updateQuestionTopicsCommand);
+            case GetQuestionByIdCommand getQuestionByIdCommand -> returnObject = handleGetQuestionById(getQuestionByIdCommand);
+            case FindQuestionsByCourseAggregateIdCommand findQuestionsByCourseAggregateIdCommand -> returnObject = handleFindQuestionsByCourseAggregateId(findQuestionsByCourseAggregateIdCommand);
+            case UpdateTopicCommand updateTopicCommand -> returnObject = handleUpdateTopic(updateTopicCommand);
+            case RemoveTopicCommand removeTopicCommand -> returnObject = handleRemoveTopic(removeTopicCommand);
+            default -> {
+                logger.warning("Unknown command type: " + command.getClass().getName());
+                returnObject = null;
+            }
         }
         if (command.getSemanticLock() != null) {
-            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(), (SagaUnitOfWork) command.getUnitOfWork());
+            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
+                    (SagaUnitOfWork) command.getUnitOfWork());
         }
         return returnObject;
     }
@@ -139,6 +137,37 @@ public class QuestionCommandHandler implements CommandHandler {
                     command.getUnitOfWork());
         } catch (Exception e) {
             logger.severe("Failed to find questions by course aggregate ID: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleUpdateTopic(UpdateTopicCommand command) {
+        logger.info("Updating topic in question: question=" + command.getQuestionAggregateId() + ", topic="
+                + command.getTopicAggregateId());
+        try {
+            return questionService.updateTopic(
+                    command.getQuestionAggregateId(),
+                    command.getTopicAggregateId(),
+                    command.getTopicName(),
+                    command.getAggregateVersion(),
+                    command.getUnitOfWork());
+        } catch (Exception e) {
+            logger.severe("Failed to update topic in question: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleRemoveTopic(RemoveTopicCommand command) {
+        logger.info("Removing topic from question: question=" + command.getQuestionAggregateId() + ", topic="
+                + command.getTopicAggregateId());
+        try {
+            return questionService.removeTopic(
+                    command.getQuestionAggregateId(),
+                    command.getTopicAggregateId(),
+                    command.getAggregateVersion(),
+                    command.getUnitOfWork());
+        } catch (Exception e) {
+            logger.severe("Failed to remove topic from question: " + e.getMessage());
             return e;
         }
     }

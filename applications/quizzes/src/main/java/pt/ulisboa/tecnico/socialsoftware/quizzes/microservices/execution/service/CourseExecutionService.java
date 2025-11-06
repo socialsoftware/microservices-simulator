@@ -4,7 +4,6 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.COURSE_EXECUTION_STUDENT_ALREADY_ENROLLED;
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,9 +11,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.CannotAcquireLockException;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -178,7 +174,7 @@ public class CourseExecutionService {
     /************************************************ EVENT PROCESSING ************************************************/
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public CourseExecutionDto removeUser(Integer executionAggregateId, Integer userAggregateId, Integer aggregateEventVersion, UnitOfWork unitOfWork) {
+    public CourseExecutionDto removeUser(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
         CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setState(Aggregate.AggregateState.INACTIVE);

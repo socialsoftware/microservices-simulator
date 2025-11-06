@@ -30,25 +30,17 @@ public class CourseExecutionCommandHandler implements CommandHandler {
         }
         Object returnObject;
         switch (command) {
-            case CreateCourseExecutionCommand createCourseExecutionCommand ->
-                    returnObject = handleCreateCourseExecution(createCourseExecutionCommand);
-            case RemoveCourseExecutionCommand removeCourseExecutionCommand ->
-                    returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
-            case RemoveStudentFromCourseExecutionCommand removeStudentFromCourseExecutionCommand ->
-                    returnObject = handleRemoveStudentFromCourseExecution(removeStudentFromCourseExecutionCommand);
-            case UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand ->
-                    returnObject = handleUpdateExecutionStudentName(updateExecutionStudentNameCommand);
-            case GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand ->
-                    returnObject = handleGetStudentByExecutionIdAndUserId(getStudentByExecutionIdAndUserIdCommand);
-            case GetCourseExecutionsByUserIdCommand getCourseExecutionsByUserIdCommand ->
-                    returnObject = handleGetCourseExecutionsByUserId(getCourseExecutionsByUserIdCommand);
-            case GetCourseExecutionByIdCommand getCourseExecutionByIdCommand ->
-                    returnObject = handleGetCourseExecutionById(getCourseExecutionByIdCommand);
-            case GetAllCourseExecutionsCommand getAllCourseExecutionsCommand ->
-                    returnObject = handleGetAllCourseExecutions(getAllCourseExecutionsCommand);
+            case CreateCourseExecutionCommand createCourseExecutionCommand -> returnObject = handleCreateCourseExecution(createCourseExecutionCommand);
+            case RemoveCourseExecutionCommand removeCourseExecutionCommand -> returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
+            case RemoveStudentFromCourseExecutionCommand removeStudentFromCourseExecutionCommand -> returnObject = handleRemoveStudentFromCourseExecution(removeStudentFromCourseExecutionCommand);
+            case UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand -> returnObject = handleUpdateExecutionStudentName(updateExecutionStudentNameCommand);
+            case GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand -> returnObject = handleGetStudentByExecutionIdAndUserId(getStudentByExecutionIdAndUserIdCommand);
+            case GetCourseExecutionsByUserIdCommand getCourseExecutionsByUserIdCommand -> returnObject = handleGetCourseExecutionsByUserId(getCourseExecutionsByUserIdCommand);
+            case GetCourseExecutionByIdCommand getCourseExecutionByIdCommand -> returnObject = handleGetCourseExecutionById(getCourseExecutionByIdCommand);
+            case GetAllCourseExecutionsCommand getAllCourseExecutionsCommand -> returnObject = handleGetAllCourseExecutions(getAllCourseExecutionsCommand);
             case EnrollStudentCommand enrollStudentCommand -> returnObject = handleEnrollStudent(enrollStudentCommand);
-            case AnonymizeStudentCommand anonymizeStudentCommand ->
-                    returnObject = handleAnonymizeStudent(anonymizeStudentCommand);
+            case AnonymizeStudentCommand anonymizeStudentCommand -> returnObject = handleAnonymizeStudent(anonymizeStudentCommand);
+            case RemoveUserCommand removeUserCommand -> returnObject = handleRemoveUser(removeUserCommand);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 returnObject = null;
@@ -190,6 +182,22 @@ public class CourseExecutionCommandHandler implements CommandHandler {
         try {
             courseExecutionService.anonymizeStudent(
                     command.getExecutionAggregateId(),
+                    command.getUserAggregateId(),
+                    command.getUnitOfWork());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to anonymize student: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleRemoveUser(RemoveUserCommand command) {
+        logger.info(
+                "Removing user: " + command.getUserAggregateId() + " in course execution: "
+                        + command.getCourseExecutionAggregateId());
+        try {
+            courseExecutionService.removeUser(
+                    command.getCourseExecutionAggregateId(),
                     command.getUserAggregateId(),
                     command.getUnitOfWork());
             return null;

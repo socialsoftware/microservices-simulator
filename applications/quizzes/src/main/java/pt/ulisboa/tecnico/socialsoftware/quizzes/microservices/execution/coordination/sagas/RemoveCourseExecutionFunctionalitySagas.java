@@ -12,7 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.RemoveCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState;
 
 import java.util.ArrayList;
@@ -23,9 +22,8 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public RemoveCourseExecutionFunctionalitySagas(CourseExecutionService courseExecutionService,
-            SagaUnitOfWorkService unitOfWorkService,
-            Integer executionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    public RemoveCourseExecutionFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                                   Integer executionAggregateId, SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(executionAggregateId, unitOfWork);

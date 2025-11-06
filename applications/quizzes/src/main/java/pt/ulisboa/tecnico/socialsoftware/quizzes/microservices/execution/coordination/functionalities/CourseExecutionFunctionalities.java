@@ -137,7 +137,7 @@ public class CourseExecutionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 RemoveCourseExecutionFunctionalitySagas removeCourseExecutionFunctionalitySagas = new RemoveCourseExecutionFunctionalitySagas(
-                        courseExecutionService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork,
+                        sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork,
                         commandGateway);
                 removeCourseExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;

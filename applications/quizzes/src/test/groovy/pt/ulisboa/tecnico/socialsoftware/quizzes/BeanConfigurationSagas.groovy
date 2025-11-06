@@ -6,6 +6,7 @@ import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.CommandResponseAggregator
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.StreamCommandGateway
@@ -101,8 +102,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    CourseExecutionEventProcessing courseExecutionEventProcessing(SagaUnitOfWorkService unitOfWorkService) {
-        return new CourseExecutionEventProcessing(unitOfWorkService)
+    CourseExecutionEventProcessing courseExecutionEventProcessing(SagaUnitOfWorkService unitOfWorkService, LocalCommandGateway commandGateway) {
+        return new CourseExecutionEventProcessing(unitOfWorkService, commandGateway)
     }
 
     @Bean
@@ -121,8 +122,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    QuestionEventProcessing questionEventProcessing(SagaUnitOfWorkService unitOfWorkService) {
-        return new QuestionEventProcessing(unitOfWorkService)
+    QuestionEventProcessing questionEventProcessing(SagaUnitOfWorkService unitOfWorkService, LocalCommandGateway commandGateway) {
+        return new QuestionEventProcessing(unitOfWorkService, commandGateway)
     }
 
     @Bean
@@ -131,8 +132,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    QuizEventProcessing quizEventProcessing(SagaUnitOfWorkService unitOfWorkService) {
-        return new QuizEventProcessing(unitOfWorkService)
+    QuizEventProcessing quizEventProcessing(SagaUnitOfWorkService unitOfWorkService, LocalCommandGateway commandGateway) {
+        return new QuizEventProcessing(unitOfWorkService, commandGateway)
     }
 
     @Bean
@@ -141,8 +142,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    QuizAnswerEventProcessing answerEventProcessing(SagaUnitOfWorkService unitOfWorkService) {
-        return new QuizAnswerEventProcessing(unitOfWorkService)
+    QuizAnswerEventProcessing answerEventProcessing(SagaUnitOfWorkService unitOfWorkService, LocalCommandGateway commandGateway) {
+        return new QuizAnswerEventProcessing(unitOfWorkService, commandGateway)
     }
 
     @Bean
