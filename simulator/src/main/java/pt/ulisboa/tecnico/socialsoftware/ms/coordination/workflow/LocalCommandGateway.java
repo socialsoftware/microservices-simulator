@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
@@ -22,6 +23,10 @@ public class LocalCommandGateway implements CommandGateway {
     private static final Logger logger = Logger.getLogger(LocalCommandGateway.class.getName());
     private final ApplicationContext applicationContext;
     private final ExecutorService executor = Executors.newCachedThreadPool();
+
+    public LocalCommandGateway(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
     @Autowired
     public LocalCommandGateway(ApplicationContext applicationContext, RetryRegistry retryRegistry) {
@@ -45,8 +50,7 @@ public class LocalCommandGateway implements CommandGateway {
     }
 
     @Override
-//    @Retry(name = "commandGateway", fallbackMethod = "fallbackSend")
-//    @CircuitBreaker(name = "commandGateway", fallbackMethod = "fallbackSend")
+    @Retry(name = "commandGateway", fallbackMethod = "fallbackSend")
     public Object send(Command command) {
 
         CommandHandler handler = (CommandHandler) applicationContext.getBean(
@@ -58,8 +62,8 @@ public class LocalCommandGateway implements CommandGateway {
         if (returnObject instanceof SimulatorException) {
             throw (SimulatorException) returnObject;
         }
-        if (returnObject instanceof CannotAcquireLockException) {
-           throw (CannotAcquireLockException) returnObject;
+        if (returnObject instanceof TransientDataAccessException) {
+           throw (TransientDataAccessException) returnObject;
         }
         return returnObject;
     }

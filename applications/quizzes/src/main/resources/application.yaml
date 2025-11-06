@@ -30,11 +30,6 @@ spring:
 maven:
   basedir: "@project.basedir@"
 
-retry:
-  db:
-    maxAttempts: 3
-    delay: 200
-    multiplier: 2
 
 resilience4j:
   retry:
@@ -43,13 +38,10 @@ resilience4j:
         max-attempts: 5
         wait-duration: 1s
         retry-exceptions:
-          - org.springframework.dao.CannotAcquireLockException
+          - org.springframework.dao.TransientDataAccessException
         ignore-exceptions:
           - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 
-logging:
-  level:
-    org.springframework.retry: DEBUG
 ---
 
 spring:

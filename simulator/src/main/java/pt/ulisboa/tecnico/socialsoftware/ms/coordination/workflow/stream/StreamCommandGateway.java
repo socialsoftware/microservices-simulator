@@ -3,11 +3,13 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
@@ -16,6 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 
+import java.beans.Transient;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,43 +38,33 @@ public class StreamCommandGateway implements CommandGateway {
     public StreamCommandGateway(StreamBridge streamBridge,
                                 CommandResponseAggregator responseAggregator,
                                 MessagingObjectMapperProvider mapperProvider,
-                                ApplicationContext applicationContext) {
+                                ApplicationContext applicationContext, RetryRegistry retryRegistry) {
         this.streamBridge = streamBridge;
         this.responseAggregator = responseAggregator;
         this.msgMapper = mapperProvider.newMapper();
         this.applicationContext = applicationContext;
+
+        retryRegistry.retry("commandGateway")
+                .getEventPublisher()
+                .onRetry(event -> {
+                    assert event.getLastThrowable() != null;
+                    logger.warning(String.format("Retry attempt #%d for operation. Reason: %s - %s",
+                            event.getNumberOfRetryAttempts(),
+                            event.getLastThrowable().getClass().getSimpleName(),
+                            event.getLastThrowable().getMessage()));
+                })
+                .onSuccess(event -> {
+                    if (event.getNumberOfRetryAttempts() > 0) {
+                        logger.info(String.format("Operation succeeded after %d retry attempts",
+                                event.getNumberOfRetryAttempts()));
+                    }
+                });
     }
 
     @Override
-    @CircuitBreaker(name = "commandGateway", fallbackMethod = "fallbackSend")
-    @Retry(name = "commandGateway")
+    @Retry(name = "commandGateway", fallbackMethod = "fallbackSend")
     public Object send(Command command) {
         String service = command.getServiceName() != null ? command.getServiceName().toLowerCase() : "";
-//        String cmdPkg = command.getClass().getPackage().getName();
-//        boolean isSameServicePackage = !service.isEmpty() && (cmdPkg.contains(".command." + service));
-
-//        if (isSameServicePackage) {
-//            logger.info("Routing to LocalCommandGateway for command: " + command.getClass().getSimpleName());
-//            String handlerClassName = command.getServiceName() + "CommandHandler";
-//
-//            CommandHandler handler = applicationContext.getBeansOfType(CommandHandler.class)
-//                    .values()
-//                    .stream()
-//                    .filter(h -> h.getClass().getSimpleName().equalsIgnoreCase(handlerClassName))
-//                    .findFirst()
-//                    .orElseThrow(() -> new RuntimeException("No handler found for command: " + handlerClassName));
-//
-//            try {
-//                Object returnObject = handler.handle(command);
-//                if (returnObject instanceof SimulatorException) {
-//                    throw (SimulatorException) returnObject;
-//                }
-//                return returnObject;
-//            } catch (SimulatorException e) {
-//                logger.warning(e.getMessage());
-//                throw e;
-//            }
-//        }
 
         String destination = service + "-command-channel";
         String correlationId = java.util.UUID.randomUUID().toString();
@@ -103,6 +96,8 @@ public class StreamCommandGateway implements CommandGateway {
             Object result = resp.result();
             if (result instanceof SimulatorException) {
                 throw (SimulatorException) result;
+            } else if (result instanceof TransientDataAccessException) {
+                throw (TransientDataAccessException) result;
             }
             return result;
         } catch (Exception e) {
@@ -142,8 +137,14 @@ public class StreamCommandGateway implements CommandGateway {
     }
 
     public Object fallbackSend(Command command, Throwable t) {
-        logger.severe("Circuit breaker opened or retries exhausted for command: "
-                + command.getClass().getSimpleName() + " - " + t.getMessage());
-        throw new RuntimeException("Service unavailable: " + command.getServiceName(), t);
+        if (t instanceof SimulatorException) {
+            logger.severe("fallback: Command failed with business error: "
+                    + command.getClass().getSimpleName() + " - " + t.getMessage());
+            throw (SimulatorException) t;
+        } else {
+            logger.severe("Retries exhausted for command: "
+                    + command.getClass().getSimpleName() + " - " + t.getMessage());
+            throw new RuntimeException("Service unavailable: " + command.getServiceName(), t);
+        }
     }
 }
