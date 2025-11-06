@@ -46,7 +46,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Autowired
     private CommandGateway commandGateway;
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public SagaUnitOfWork createUnitOfWork(String functionalityName) {
         Integer lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
 
@@ -54,7 +54,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return unitOfWork;
     }
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) { // TODO use local aggregate repository
         Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
@@ -63,7 +62,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return aggregate;
     }
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Aggregate aggregateLoad(Integer aggregateId, SagaUnitOfWork unitOfWork) { // TODO use local aggregate repository
         Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
@@ -83,7 +81,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return aggregate;
     }
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Aggregate registerRead(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
         return aggregate;
     }
@@ -97,7 +94,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
 
         aggregate.setSagaState(state);
-        entityManager.persist(aggregate);
+        entityManager.merge(aggregate);
         unitOfWork.addToAggregatesInSaga(aggregateId);
     }
 
@@ -118,7 +115,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findAnySagaAggregate(a)
                     .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, a));
             aggregate.setSagaState(GenericSagaState.NOT_IN_SAGA);
-            entityManager.persist(aggregate);
+            entityManager.merge(aggregate);
         });
     }
 
@@ -141,12 +138,12 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId) // TODO use local aggregate repository
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
             aggregate.setSagaState(previousState);
-            entityManager.persist(aggregate);
+            entityManager.merge(aggregate);
         }
         compensate(unitOfWork);
     }
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void registerChanged(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
         if (aggregate.getPrev() != null && aggregate.getPrev().getState() == Aggregate.AggregateState.INACTIVE) {
@@ -158,12 +155,12 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         aggregate.verifyInvariants();
         aggregate.setVersion(commitVersion);
         aggregate.setCreationTs(DateHandler.now());
-        entityManager.persist(aggregate);
+        entityManager.merge(aggregate);
         
         unitOfWork.setVersion(commitVersion);
     }
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void registerEvent(Event event, SagaUnitOfWork unitOfWork) {
         Integer commitVersion = versionService.incrementAndGetVersionNumber();

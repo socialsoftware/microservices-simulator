@@ -15,33 +15,24 @@ import java.util.Map;
 
 @Service
 public abstract class UnitOfWorkService<U extends UnitOfWork> {
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public abstract U createUnitOfWork(String functionalityName);
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public abstract Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, U unitOfWork);
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public abstract Aggregate aggregateLoad(Integer aggregateId, U unitOfWork);
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public abstract Aggregate registerRead(Aggregate aggregate, U unitOfWork);
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public abstract void registerChanged(Aggregate aggregate, U unitOfWork);
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public abstract void registerEvent(Event event, U unitOfWork);
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public abstract void commit(U unitOfWork);
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public abstract void abort(U unitOfWork);
 
 
     // Must be serializable in order to ensure no other commits are made between the checking of concurrent versions and the actual persist
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public abstract void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap);
 
     protected String resolveServiceName(Aggregate aggregate) {
