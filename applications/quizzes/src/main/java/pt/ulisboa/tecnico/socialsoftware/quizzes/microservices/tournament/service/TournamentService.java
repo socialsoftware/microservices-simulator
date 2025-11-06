@@ -1,11 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service;
 
-import org.postgresql.util.PSQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.CannotAcquireLockException;
-import org.springframework.dao.TransientDataAccessException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -46,253 +44,68 @@ public class TournamentService {
 
     private final TournamentCustomRepository tournamentRepository;
 
-    private final TournamentTransactionalService tournamentTransactionalService;
-
     @Autowired
     private TournamentFactory tournamentFactory;
 
-    public TournamentService(UnitOfWorkService unitOfWorkService, TournamentCustomRepository tournamentRepository,
-            TournamentTransactionalService tournamentTransactionalService) {
+    public TournamentService(UnitOfWorkService unitOfWorkService, TournamentCustomRepository tournamentRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.tournamentRepository = tournamentRepository;
-        this.tournamentTransactionalService = tournamentTransactionalService;
     }
 
     // intended for requests from external functionalities
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public TournamentDto getTournamentById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.getTournamentByIdTransactional(aggregateId, unitOfWork, unitOfWorkService,
-                tournamentFactory);
+        return tournamentFactory.createTournamentDto((Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public TournamentDto createTournament(TournamentDto tournamentDto, UserDto creatorDto,
-            CourseExecutionDto courseExecutionDto, Set<TopicDto> topicDtos,
-            QuizDto quizDto, UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.createTournamentTransactional(tournamentDto, creatorDto,
-                courseExecutionDto, topicDtos, quizDto, unitOfWork, aggregateIdGeneratorService, tournamentFactory,
-                unitOfWorkService);
-    }
+                                          CourseExecutionDto courseExecutionDto, Set<TopicDto> topicDtos,
+                                          QuizDto quizDto, UnitOfWork unitOfWork) {
 
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void addParticipant(Integer tournamentAggregateId, UserDto userDto, UnitOfWork unitOfWork) {
-        tournamentTransactionalService.addParticipantTransactional(tournamentAggregateId, userDto, unitOfWork,
-                unitOfWorkService, tournamentFactory, logger);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public TournamentDto updateTournament(TournamentDto tournamentDto, Set<TopicDto> topicDtos, UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.updateTournamentTransactional(tournamentDto, topicDtos, unitOfWork,
-                unitOfWorkService, tournamentFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public List<TournamentDto> getTournamentsByCourseExecutionId(Integer executionAggregateId, UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.getTournamentsByCourseExecutionIdTransactional(executionAggregateId,
-                unitOfWork, tournamentRepository, unitOfWorkService);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public List<TournamentDto> getOpenedTournamentsForCourseExecution(Integer executionAggregateId,
-            UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.getOpenedTournamentsForCourseExecutionTransactional(executionAggregateId,
-                unitOfWork, tournamentRepository, unitOfWorkService);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public List<TournamentDto> getClosedTournamentsForCourseExecution(Integer executionAggregateId,
-            UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.getClosedTournamentsForCourseExecutionTransactional(executionAggregateId,
-                unitOfWork, tournamentRepository, unitOfWorkService);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void leaveTournament(Integer tournamentAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
-        tournamentTransactionalService.leaveTournamentTransactional(tournamentAggregateId, userAggregateId, unitOfWork,
-                unitOfWorkService, tournamentFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void solveQuiz(Integer tournamentAggregateId, Integer userAggregateId, Integer answerAggregateId,
-            UnitOfWork unitOfWork) {
-        tournamentTransactionalService.solveQuizTransactional(tournamentAggregateId, userAggregateId, answerAggregateId,
-                unitOfWork, unitOfWorkService, tournamentFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void cancelTournament(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
-        tournamentTransactionalService.cancelTournamentTransactional(tournamentAggregateId, unitOfWork,
-                unitOfWorkService, tournamentFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void removeTournament(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
-        tournamentTransactionalService.removeTournamentTransactional(tournamentAggregateId, unitOfWork,
-                unitOfWorkService, tournamentFactory);
-    }
-
-    /*******************************************
-     * EVENT PROCESSING SERVICES
-     ********************************************/
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public TournamentDto anonymizeUser(Integer tournamentAggregateId, Integer executionAggregateId,
-            Integer userAggregateId, String name, String username, Integer eventVersion, UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.anonymizeUserTransactional(tournamentAggregateId, executionAggregateId,
-                userAggregateId, name, username, eventVersion, unitOfWork, unitOfWorkService, tournamentFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public TournamentDto removeCourseExecution(Integer tournamentAggregateId, Integer courseExecutionId,
-            Integer eventVersion, UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.removeCourseExecutionTransactional(tournamentAggregateId,
-                courseExecutionId, eventVersion, unitOfWork, unitOfWorkService, tournamentFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public TournamentDto removeUser(Integer tournamentAggregateId, Integer courseExecutionAggregateId,
-            Integer userAggregateId, Integer eventVersion, UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.removeUserTransactional(tournamentAggregateId, courseExecutionAggregateId,
-                userAggregateId, eventVersion, unitOfWork, unitOfWorkService, tournamentFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public TournamentDto updateTopic(Integer tournamentAggregateId, Integer topicAggregateId, String topicName,
-            Integer eventVersion, UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.updateTopicTransactional(tournamentAggregateId, topicAggregateId,
-                topicName, eventVersion, unitOfWork, unitOfWorkService, tournamentFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public TournamentDto removeTopic(Integer tournamentAggregateId, Integer topicAggregateId, Integer eventVersion,
-            UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.removeTopicTransactional(tournamentAggregateId, topicAggregateId,
-                eventVersion, unitOfWork, unitOfWorkService, tournamentFactory, quizService);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public TournamentDto updateParticipantAnswer(Integer tournamentAggregateId, Integer studentAggregateId,
-            Integer quizAnswerAggregateId, Integer questionAggregateId, boolean isCorrect, Integer eventVersion,
-            UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.updateParticipantAnswerTransactional(tournamentAggregateId,
-                studentAggregateId, quizAnswerAggregateId, questionAggregateId, isCorrect, eventVersion, unitOfWork,
-                unitOfWorkService, tournamentFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public TournamentDto invalidateQuiz(Integer tournamentAggregateId, Integer aggregateId, Integer aggregateVersion,
-            UnitOfWork unitOfWork) {
-        return tournamentTransactionalService.invalidateQuizTransactional(tournamentAggregateId, aggregateId,
-                aggregateVersion, unitOfWork, unitOfWorkService, tournamentFactory, quizService);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void updateUserName(Integer tournamentAggregateId, Integer executionAggregateId, Integer eventVersion,
-            Integer userAggregateId, String name, UnitOfWork unitOfWork) {
-        tournamentTransactionalService.updateUserNameTransactional(tournamentAggregateId, executionAggregateId,
-                eventVersion, userAggregateId, name, unitOfWork, unitOfWorkService, tournamentFactory);
-    }
-}
-
-@Service
-class TournamentTransactionalService {
-
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TournamentDto getTournamentByIdTransactional(Integer aggregateId, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, TournamentFactory tournamentFactory) {
-        return tournamentFactory.createTournamentDto(
-                (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
-    }
-
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TournamentDto createTournamentTransactional(TournamentDto tournamentDto, UserDto creatorDto,
-            CourseExecutionDto courseExecutionDto, Set<TopicDto> topicDtos, QuizDto quizDto, UnitOfWork unitOfWork,
-            AggregateIdGeneratorService aggregateIdGeneratorService, TournamentFactory tournamentFactory,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        Tournament tournament = tournamentFactory.createTournament(aggregateId, tournamentDto, creatorDto,
-                courseExecutionDto, topicDtos, quizDto);
+
+        Tournament tournament = tournamentFactory.createTournament(aggregateId, tournamentDto, creatorDto, courseExecutionDto, topicDtos, quizDto); /* should the skeleton creation be part of the functionality?? */
+
         unitOfWorkService.registerChanged(tournament, unitOfWork);
         return tournamentFactory.createTournamentDto(tournament);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void addParticipantTransactional(Integer tournamentAggregateId, UserDto userDto, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, TournamentFactory tournamentFactory, Logger logger) {
+    public void addParticipant(Integer tournamentAggregateId, UserDto userDto, UnitOfWork unitOfWork) {
         TournamentParticipant tournamentParticipant = new TournamentParticipant(userDto);
-        if (tournamentParticipant.getParticipantName().equals("ANONYMOUS")
-                || tournamentParticipant.getParticipantUsername().equals("ANONYMOUS")) {
-            throw new QuizzesException(QuizzesErrorMessage.USER_IS_ANONYMOUS,
-                    tournamentParticipant.getParticipantAggregateId());
+        if (tournamentParticipant.getParticipantName().equals("ANONYMOUS") || tournamentParticipant.getParticipantUsername().equals("ANONYMOUS")) {
+            throw new QuizzesException(QuizzesErrorMessage.USER_IS_ANONYMOUS, tournamentParticipant.getParticipantAggregateId());
         }
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
-        logger.info("Adding participant {} to tournament {}", tournamentParticipant.getParticipantName(),
-                tournamentAggregateId);
+
+        logger.info("Adding participant {} to tournament {}", tournamentParticipant.getParticipantName(), tournamentAggregateId);
+
         newTournament.addParticipant(tournamentParticipant);
+
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TournamentDto updateTournamentTransactional(TournamentDto tournamentDto, Set<TopicDto> topicDtos,
-            UnitOfWork unitOfWork, UnitOfWorkService<UnitOfWork> unitOfWorkService,
-            TournamentFactory tournamentFactory) {
-        Tournament oldTournament = (Tournament) unitOfWorkService
-                .aggregateLoadAndRegisterRead(tournamentDto.getAggregateId(), unitOfWork);
+    public TournamentDto updateTournament(TournamentDto tournamentDto, Set<TopicDto> topicDtos, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentDto.getAggregateId(), unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
-        if (tournamentDto.getStartTime() != null) {
+        if (tournamentDto.getStartTime() != null ) {
             newTournament.setStartTime(DateHandler.toLocalDateTime(tournamentDto.getStartTime()));
         }
 
-        if (tournamentDto.getEndTime() != null) {
+        if (tournamentDto.getEndTime() != null ) {
             newTournament.setEndTime(DateHandler.toLocalDateTime(tournamentDto.getEndTime()));
         }
 
-        if (tournamentDto.getNumberOfQuestions() != null) {
+        if (tournamentDto.getNumberOfQuestions() != null ) {
             newTournament.setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
         }
 
-        if (topicDtos != null && !topicDtos.isEmpty()) {
+        if (topicDtos != null && !topicDtos.isEmpty() ) {
             Set<TournamentTopic> tournamentTopics = topicDtos.stream()
                     .map(TournamentTopic::new)
                     .collect(Collectors.toSet());
@@ -300,24 +113,21 @@ class TournamentTransactionalService {
         }
 
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
+
         return tournamentFactory.createTournamentDto(newTournament);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<TournamentDto> getTournamentsByCourseExecutionIdTransactional(Integer executionAggregateId,
-            UnitOfWork unitOfWork, TournamentCustomRepository tournamentRepository,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService) {
+    public List<TournamentDto> getTournamentsByCourseExecutionId(Integer executionAggregateId, UnitOfWork unitOfWork) {
         return tournamentRepository.findAllRelevantTournamentIds(executionAggregateId).stream()
-                .map(aggregateId -> (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId,
-                        unitOfWork))
+                .map(aggregateId -> (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork))
                 .map(TournamentDto::new)
                 .collect(Collectors.toList());
+
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<TournamentDto> getOpenedTournamentsForCourseExecutionTransactional(Integer executionAggregateId,
-            UnitOfWork unitOfWork, TournamentCustomRepository tournamentRepository,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService) {
+    public List<TournamentDto> getOpenedTournamentsForCourseExecution(Integer executionAggregateId, UnitOfWork unitOfWork) {
         LocalDateTime now = DateHandler.now();
         return tournamentRepository.findAllRelevantTournamentIds(executionAggregateId).stream()
                 .map(aggregateId -> (Tournament) unitOfWorkService.aggregateLoad(aggregateId, unitOfWork))
@@ -329,9 +139,7 @@ class TournamentTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<TournamentDto> getClosedTournamentsForCourseExecutionTransactional(Integer executionAggregateId,
-            UnitOfWork unitOfWork, TournamentCustomRepository tournamentRepository,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService) {
+    public List<TournamentDto> getClosedTournamentsForCourseExecution(Integer executionAggregateId, UnitOfWork unitOfWork) {
         LocalDateTime now = DateHandler.now();
         return tournamentRepository.findAllRelevantTournamentIds(executionAggregateId).stream()
                 .map(aggregateId -> (Tournament) unitOfWorkService.aggregateLoad(aggregateId, unitOfWork))
@@ -343,11 +151,8 @@ class TournamentTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void leaveTournamentTransactional(Integer tournamentAggregateId, Integer userAggregateId,
-            UnitOfWork unitOfWork, UnitOfWorkService<UnitOfWork> unitOfWorkService,
-            TournamentFactory tournamentFactory) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
+    public void leaveTournament(Integer tournamentAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         TournamentParticipant participantToRemove = newTournament.findParticipant(userAggregateId);
         if (participantToRemove == null) {
@@ -358,11 +163,8 @@ class TournamentTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void solveQuizTransactional(Integer tournamentAggregateId, Integer userAggregateId,
-            Integer answerAggregateId, UnitOfWork unitOfWork, UnitOfWorkService<UnitOfWork> unitOfWorkService,
-            TournamentFactory tournamentFactory) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
+    public void solveQuiz(Integer tournamentAggregateId, Integer userAggregateId, Integer answerAggregateId, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         TournamentParticipant participant = newTournament.findParticipant(userAggregateId);
         if (participant == null) {
@@ -373,35 +175,30 @@ class TournamentTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void cancelTournamentTransactional(Integer tournamentAggregateId, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, TournamentFactory tournamentFactory) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
+    public void cancelTournament(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         newTournament.cancel();
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void removeTournamentTransactional(Integer tournamentAggregateId, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, TournamentFactory tournamentFactory) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
+    public void removeTournament(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         newTournament.remove();
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
+
+    /******************************************* EVENT PROCESSING SERVICES ********************************************/
+
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TournamentDto anonymizeUserTransactional(Integer tournamentAggregateId, Integer executionAggregateId,
-            Integer userAggregateId, String name, String username, Integer eventVersion, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, TournamentFactory tournamentFactory) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
+    public TournamentDto anonymizeUser(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId, String name, String username, Integer eventVersion, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
-        if (!newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId()
-                .equals(executionAggregateId)) {
+        if (!newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId().equals(executionAggregateId)) {
             return null;
         }
 
@@ -425,13 +222,9 @@ class TournamentTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TournamentDto removeCourseExecutionTransactional(Integer tournamentAggregateId, Integer courseExecutionId,
-            Integer eventVersion, UnitOfWork unitOfWork, UnitOfWorkService<UnitOfWork> unitOfWorkService,
-            TournamentFactory tournamentFactory) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
-        if (oldTournament.getTournamentCourseExecution() != null
-                && oldTournament.getTournamentCourseExecution().getCourseExecutionVersion() >= eventVersion) {
+    public TournamentDto removeCourseExecution(Integer tournamentAggregateId, Integer courseExecutionId, Integer eventVersion, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        if (oldTournament.getTournamentCourseExecution() != null && oldTournament.getTournamentCourseExecution().getCourseExecutionVersion() >= eventVersion) {
             return null;
         }
 
@@ -444,11 +237,8 @@ class TournamentTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TournamentDto removeUserTransactional(Integer tournamentAggregateId, Integer courseExecutionAggregateId,
-            Integer userAggregateId, Integer eventVersion, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, TournamentFactory tournamentFactory) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
+    public TournamentDto removeUser(Integer tournamentAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, Integer eventVersion, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
 
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         if (newTournament.getTournamentCreator().getCreatorAggregateId().equals(userAggregateId)) {
@@ -458,21 +248,19 @@ class TournamentTransactionalService {
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
 
-        TournamentParticipant tournamentParticipant = newTournament.findParticipant(userAggregateId);
+        TournamentParticipant tournamentParticipant  = newTournament.findParticipant(userAggregateId);
         if (tournamentParticipant != null) {
             tournamentParticipant.setState(Aggregate.AggregateState.DELETED);
             newTournament.getTournamentCourseExecution().setCourseExecutionVersion(eventVersion);
+            //tournamentParticipant.setVersion(eventVersion);
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
         return new TournamentDto(newTournament);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TournamentDto updateTopicTransactional(Integer tournamentAggregateId, Integer topicAggregateId,
-            String topicName, Integer eventVersion, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, TournamentFactory tournamentFactory) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
+    public TournamentDto updateTopic(Integer tournamentAggregateId, Integer topicAggregateId, String topicName, Integer eventVersion, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         TournamentTopic topic = newTournament.findTopic(topicAggregateId);
         if (topic == null) {
@@ -481,21 +269,19 @@ class TournamentTransactionalService {
         topic.setTopicName(topicName);
         topic.setTopicVersion(eventVersion);
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
+
         return new TournamentDto(newTournament);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TournamentDto removeTopicTransactional(Integer tournamentAggregateId, Integer topicAggregateId,
-            Integer eventVersion, UnitOfWork unitOfWork, UnitOfWorkService<UnitOfWork> unitOfWorkService,
-            TournamentFactory tournamentFactory, QuizService quizService) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
+    public TournamentDto removeTopic(Integer tournamentAggregateId, Integer topicAggregateId, Integer eventVersion, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         TournamentTopic oldTopic = oldTournament.findTopic(topicAggregateId);
         if (oldTopic != null && oldTopic.getTopicVersion() >= eventVersion) {
             return null;
         }
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
-        TournamentTopic tournamentTopic = newTournament.findTopic(topicAggregateId);
+        TournamentTopic tournamentTopic  = newTournament.findTopic(topicAggregateId);
         if (tournamentTopic == null) {
             throw new QuizzesException(TOURNAMENT_TOPIC_NOT_FOUND, topicAggregateId, tournamentAggregateId);
         }
@@ -506,11 +292,7 @@ class TournamentTransactionalService {
         quizDto.setConclusionDate(newTournament.getEndTime().toString());
         quizDto.setResultsDate(newTournament.getEndTime().toString());
         try {
-            quizService.updateGeneratedQuiz(quizDto,
-                    newTournament.getTournamentTopics().stream()
-                            .filter(t -> t.getState() == Aggregate.AggregateState.ACTIVE)
-                            .map(TournamentTopic::getTopicAggregateId).collect(Collectors.toSet()),
-                    newTournament.getNumberOfQuestions(), unitOfWork);
+            quizService.updateGeneratedQuiz(quizDto, newTournament.getTournamentTopics().stream().filter(t -> t.getState() == Aggregate.AggregateState.ACTIVE).map(TournamentTopic::getTopicAggregateId).collect(Collectors.toSet()), newTournament.getNumberOfQuestions(), unitOfWork);
         } catch (QuizzesException e) {
             newTournament.setState(Aggregate.AggregateState.INACTIVE);
         }
@@ -520,12 +302,8 @@ class TournamentTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TournamentDto updateParticipantAnswerTransactional(Integer tournamentAggregateId, Integer studentAggregateId,
-            Integer quizAnswerAggregateId, Integer questionAggregateId, boolean isCorrect, Integer eventVersion,
-            UnitOfWork unitOfWork, UnitOfWorkService<UnitOfWork> unitOfWorkService,
-            TournamentFactory tournamentFactory) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
+    public TournamentDto updateParticipantAnswer(Integer tournamentAggregateId, Integer studentAggregateId, Integer quizAnswerAggregateId, Integer questionAggregateId, boolean isCorrect, Integer eventVersion, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         TournamentParticipant oldParticipant = oldTournament.findParticipant(studentAggregateId);
         if (oldParticipant != null && oldParticipant.getParticipantAnswer().getQuizAnswerVersion() >= eventVersion) {
             return null;
@@ -535,27 +313,27 @@ class TournamentTransactionalService {
         if (tournamentParticipant == null) {
             throw new QuizzesException(TOURNAMENT_PARTICIPANT_NOT_FOUND, studentAggregateId, tournamentAggregateId);
         }
+        /*
+            AFTER_END
+                now > this.endTime => p: this.participant | final p.answer
+            IS_CANCELED
+                this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
+        */
         if (oldTournament != null) {
-            if ((oldTournament.getStartTime() != null && DateHandler.now().isAfter(oldTournament.getStartTime()))
-                    || oldTournament.isCancelled()) {
+            if ((oldTournament.getStartTime() != null && DateHandler.now().isAfter(oldTournament.getStartTime())) || oldTournament.isCancelled()) {
                 throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, oldTournament.getAggregateId());
             }
         }
-        tournamentParticipant.updateAnswerWithQuestion(quizAnswerAggregateId, quizAnswerAggregateId, isCorrect,
-                eventVersion);
+        tournamentParticipant.updateAnswerWithQuestion(quizAnswerAggregateId, quizAnswerAggregateId, isCorrect, eventVersion);
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
         return new TournamentDto(newTournament);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TournamentDto invalidateQuizTransactional(Integer tournamentAggregateId, Integer aggregateId,
-            Integer aggregateVersion, UnitOfWork unitOfWork, UnitOfWorkService<UnitOfWork> unitOfWorkService,
-            TournamentFactory tournamentFactory, QuizService quizService) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
+    public TournamentDto invalidateQuiz(Integer tournamentAggregateId, Integer aggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
-        List<Integer> topicsIds = newTournament.getTournamentTopics().stream().map(TournamentTopic::getTopicAggregateId)
-                .collect(Collectors.toList());
+        List<Integer> topicsIds = newTournament.getTournamentTopics().stream().map(TournamentTopic::getTopicAggregateId).collect(Collectors.toList());
 
         QuizDto quizDto = new QuizDto();
         quizDto.setAvailableDate(newTournament.getStartTime().toString());
@@ -564,9 +342,7 @@ class TournamentTransactionalService {
 
         QuizDto quizDto1 = null;
         try {
-            quizDto1 = quizService.generateQuiz(
-                    newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId(), quizDto, topicsIds,
-                    newTournament.getNumberOfQuestions(), unitOfWork);
+            quizDto1 = quizService.generateQuiz(newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId(), quizDto, topicsIds, newTournament.getNumberOfQuestions(), unitOfWork);
         } catch (QuizzesException e) {
             newTournament.setState(Aggregate.AggregateState.INACTIVE);
         }
@@ -581,16 +357,12 @@ class TournamentTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateUserNameTransactional(Integer tournamentAggregateId, Integer executionAggregateId,
-            Integer eventVersion, Integer userAggregateId, String name, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, TournamentFactory tournamentFactory) {
+    public void updateUserName(Integer tournamentAggregateId, Integer executionAggregateId, Integer eventVersion, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
         boolean changes = false;
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId,
-                unitOfWork);
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
-        if (!newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId()
-                .equals(executionAggregateId)) {
+        if (!newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId().equals(executionAggregateId)) {
             return;
         }
 
@@ -612,3 +384,4 @@ class TournamentTransactionalService {
         }
     }
 }
+

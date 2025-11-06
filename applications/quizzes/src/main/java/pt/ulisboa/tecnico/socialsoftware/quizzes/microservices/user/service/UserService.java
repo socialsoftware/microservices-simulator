@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.TransientDataAccessException;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -32,86 +32,22 @@ public class UserService {
 
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    private final UserTransactionalService userTransactionalService;
-
     @Autowired
     private UserFactory userFactory;
 
-    public UserService(UnitOfWorkService unitOfWorkService, UserRepository userRepository,
-            UserTransactionalService userTransactionalService) {
+    public UserService(UnitOfWorkService unitOfWorkService, UserRepository userRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.userRepository = userRepository;
-        this.userTransactionalService = userTransactionalService;
     }
 
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public UserDto getUserById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return userTransactionalService.getUserByIdTransactional(aggregateId, unitOfWork, unitOfWorkService,
-                userFactory);
+        return userFactory.createUserDto((User) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
-    /* simple user creation */
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
+    /*simple user creation*/
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public UserDto createUser(UserDto userDto, UnitOfWork unitOfWork) {
-        return userTransactionalService.createUserTransactional(userDto, unitOfWork, aggregateIdGeneratorService,
-                userFactory, unitOfWorkService);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void activateUser(Integer userAggregateId, UnitOfWork unitOfWork) {
-        userTransactionalService.activateUserTransactional(userAggregateId, unitOfWork, unitOfWorkService, userFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void deactivateUser(Integer userAggregateId, UnitOfWork unitOfWork) {
-        userTransactionalService.deactivateUserTransactional(userAggregateId, unitOfWork, unitOfWorkService,
-                userFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void deleteUser(Integer userAggregateId, UnitOfWork unitOfWork) {
-        userTransactionalService.deleteUserTransactional(userAggregateId, unitOfWork, unitOfWorkService, userFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public List<UserDto> getStudents(UnitOfWork unitOfWork) {
-        return userTransactionalService.getStudentsTransactional(unitOfWork, userRepository, unitOfWorkService);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public List<UserDto> getTeachers(UnitOfWork unitOfWork) {
-        return userTransactionalService.getTeachersTransactional(unitOfWork, userRepository, unitOfWorkService);
-    }
-}
-
-@Service
-class UserTransactionalService {
-
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public UserDto getUserByIdTransactional(Integer aggregateId, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, UserFactory userFactory) {
-        return userFactory
-                .createUserDto((User) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
-    }
-
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public UserDto createUserTransactional(UserDto userDto, UnitOfWork unitOfWork,
-            AggregateIdGeneratorService aggregateIdGeneratorService, UserFactory userFactory,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
         User user = userFactory.createUser(aggregateId, userDto);
         unitOfWorkService.registerChanged(user, unitOfWork);
@@ -119,8 +55,7 @@ class UserTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void activateUserTransactional(Integer userAggregateId, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, UserFactory userFactory) {
+    public void activateUser(Integer userAggregateId, UnitOfWork unitOfWork) {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
         if (oldUser.isActive()) {
             throw new QuizzesException(USER_ACTIVE);
@@ -131,8 +66,7 @@ class UserTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void deactivateUserTransactional(Integer userAggregateId, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, UserFactory userFactory) {
+    public void deactivateUser(Integer userAggregateId, UnitOfWork unitOfWork) {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
         if (!oldUser.isActive()) {
             throw new QuizzesException(USER_NOT_ACTIVE);
@@ -143,8 +77,7 @@ class UserTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void deleteUserTransactional(Integer userAggregateId, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, UserFactory userFactory) {
+    public void deleteUser(Integer userAggregateId, UnitOfWork unitOfWork) {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
         User newUser = userFactory.createUserFromExisting(oldUser);
         newUser.remove();
@@ -153,8 +86,7 @@ class UserTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<UserDto> getStudentsTransactional(UnitOfWork unitOfWork, UserRepository userRepository,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService) {
+    public List<UserDto> getStudents(UnitOfWork unitOfWork) {
         Set<Integer> studentsIds = userRepository.findAll().stream()
                 .filter(u -> u.getRole().equals(Role.STUDENT))
                 .map(User::getAggregateId)
@@ -166,8 +98,7 @@ class UserTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<UserDto> getTeachersTransactional(UnitOfWork unitOfWork, UserRepository userRepository,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService) {
+    public List<UserDto> getTeachers(UnitOfWork unitOfWork) {
         Set<Integer> teacherIds = userRepository.findAll().stream()
                 .filter(u -> u.getRole().equals(Role.TEACHER))
                 .map(User::getAggregateId)
@@ -178,3 +109,4 @@ class UserTransactionalService {
                 .collect(Collectors.toList());
     }
 }
+
