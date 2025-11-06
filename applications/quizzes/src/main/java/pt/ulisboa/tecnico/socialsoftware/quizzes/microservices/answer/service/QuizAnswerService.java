@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.TransientDataAccessException;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -37,8 +37,6 @@ public class QuizAnswerService {
 
     private final QuizAnswerCustomRepository quizAnswerRepository;
 
-    private final QuizAnswerTransactionalService quizAnswerTransactionalService = new QuizAnswerTransactionalService();
-
     @Autowired
     private QuizAnswerFactory quizAnswerFactory;
 
@@ -47,11 +45,22 @@ public class QuizAnswerService {
         this.quizAnswerRepository = quizAnswerRepository;
     }
 
-    public QuizAnswerDto getQuizAnswerDtoByQuizIdAndUserId(Integer quizAggregateId, Integer userAggregateId,
-            UnitOfWork unitOfWork) {
+    private QuizAnswer getQuizAnswerByQuizIdAndUserId(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         Integer quizAnswerId = quizAnswerRepository.findQuizAnswerIdByQuizIdAndUserId(quizAggregateId, userAggregateId)
-                .orElseThrow(() -> new QuizzesException(QuizzesErrorMessage.NO_USER_ANSWER_FOR_QUIZ, quizAggregateId,
-                        userAggregateId));
+                .orElseThrow(() -> new QuizzesException(QuizzesErrorMessage.NO_USER_ANSWER_FOR_QUIZ, quizAggregateId, userAggregateId));
+
+        QuizAnswer quizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerId, unitOfWork);
+
+        if (quizAnswer.getState() == Aggregate.AggregateState.DELETED) {
+            throw new QuizzesException(QuizzesErrorMessage.QUIZ_ANSWER_DELETED, quizAnswer.getAggregateId());
+        }
+
+        return quizAnswer;
+    }
+
+    public QuizAnswerDto getQuizAnswerDtoByQuizIdAndUserId(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+        Integer quizAnswerId = quizAnswerRepository.findQuizAnswerIdByQuizIdAndUserId(quizAggregateId, userAggregateId)
+                .orElseThrow(() -> new QuizzesException(QuizzesErrorMessage.NO_USER_ANSWER_FOR_QUIZ, quizAggregateId, userAggregateId));
 
         QuizAnswer quizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerId, unitOfWork);
 
@@ -62,103 +71,23 @@ public class QuizAnswerService {
         return quizAnswerFactory.createQuizAnswerDto(quizAnswer);
     }
 
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public QuizAnswerDto startQuiz(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId,
-            UnitOfWork unitOfWork) {
-        return quizAnswerTransactionalService.startQuizTransactional(quizAggregateId, courseExecutionAggregateId,
-                userAggregateId, unitOfWork, aggregateIdGeneratorService, quizService, courseExecutionService,
-                quizAnswerFactory, unitOfWorkService);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void answerQuestion(Integer quizAggregateId, Integer userAggregateId, QuestionAnswerDto userAnswerDto,
-            QuestionDto questionDto, UnitOfWork unitOfWork) {
-        quizAnswerTransactionalService.answerQuestionTransactional(quizAggregateId, userAggregateId, userAnswerDto,
-                questionDto, unitOfWork, unitOfWorkService, quizAnswerFactory, quizAnswerRepository);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void concludeQuiz(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
-        quizAnswerTransactionalService.concludeQuizTransactional(quizAggregateId, userAggregateId, unitOfWork,
-                unitOfWorkService, quizAnswerFactory, quizAnswerRepository);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void removeQuizAnswer(Integer quizAnswerAggregateId, UnitOfWork unitOfWork) {
-        quizAnswerTransactionalService.removeQuizAnswerTransactional(quizAnswerAggregateId, unitOfWork,
-                unitOfWorkService, quizAnswerFactory);
-    }
-
-    /************************************************
-     * EVENT PROCESSING
-     ************************************************/
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void updateUserName(Integer answerAggregateId, Integer executionAggregateId, Integer eventVersion,
-            Integer userAggregateId, String name, UnitOfWork unitOfWork) {
-        quizAnswerTransactionalService.updateUserNameTransactional(answerAggregateId, executionAggregateId,
-                eventVersion, userAggregateId, name, unitOfWork, unitOfWorkService, quizAnswerFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public QuizAnswer removeUser(Integer answerAggregateId, Integer userAggregateId, Integer aggregateVersion,
-            UnitOfWork unitOfWork) {
-        return quizAnswerTransactionalService.removeUserTransactional(answerAggregateId, userAggregateId,
-                aggregateVersion, unitOfWork, unitOfWorkService, quizAnswerFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public QuizAnswer removeQuestion(Integer answerAggregateId, Integer questionAggregateId, Integer aggregateVersion,
-            UnitOfWork unitOfWork) {
-        return quizAnswerTransactionalService.removeQuestionTransactional(answerAggregateId, questionAggregateId,
-                aggregateVersion, unitOfWork, unitOfWorkService, quizAnswerFactory);
-    }
-
-}
-
-@Service
-class QuizAnswerTransactionalService {
-
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizAnswerDto startQuizTransactional(Integer quizAggregateId, Integer courseExecutionAggregateId,
-            Integer userAggregateId, UnitOfWork unitOfWork,
-            AggregateIdGeneratorService aggregateIdGeneratorService, QuizService quizService,
-            CourseExecutionService courseExecutionService,
-            QuizAnswerFactory quizAnswerFactory, UnitOfWorkService<UnitOfWork> unitOfWorkService) {
+    public QuizAnswerDto startQuiz(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
         QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
 
         // COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION
         if (!courseExecutionAggregateId.equals(quizDto.getCourseExecutionAggregateId())) {
-            throw new QuizzesException(QuizzesErrorMessage.QUIZ_DOES_NOT_BELONG_TO_COURSE_EXECUTION, quizAggregateId,
-                    courseExecutionAggregateId);
+            throw new QuizzesException(QuizzesErrorMessage.QUIZ_DOES_NOT_BELONG_TO_COURSE_EXECUTION, quizAggregateId, courseExecutionAggregateId);
         }
 
         // QUIZ_COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
         // COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
-        UserDto userDto = courseExecutionService
-                .getStudentByExecutionIdAndUserId(quizDto.getCourseExecutionAggregateId(), userAggregateId, unitOfWork);
+        UserDto userDto = courseExecutionService.getStudentByExecutionIdAndUserId(quizDto.getCourseExecutionAggregateId(), userAggregateId, unitOfWork);
 
-        // QUESTIONS_ANSWER_QUESTIONS_BELONG_TO_QUIZ because questions come from the
-        // quiz
-        QuizAnswer quizAnswer = quizAnswerFactory.createQuizAnswer(aggregateId,
-                new AnswerCourseExecution(quizDto.getCourseExecutionAggregateId(), quizDto.getCourseExecutionVersion()),
-                new AnswerStudent(userDto), new AnsweredQuiz(quizDto));
-
+        // QUESTIONS_ANSWER_QUESTIONS_BELONG_TO_QUIZ because questions come from the quiz
+        QuizAnswer quizAnswer = quizAnswerFactory.createQuizAnswer(aggregateId, new AnswerCourseExecution(quizDto.getCourseExecutionAggregateId(), quizDto.getCourseExecutionVersion()), new AnswerStudent(userDto), new AnsweredQuiz(quizDto));
+        
         quizAnswer.setAnswerDate(DateHandler.now());
 
         unitOfWorkService.registerChanged(quizAnswer, unitOfWork);
@@ -166,28 +95,19 @@ class QuizAnswerTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void answerQuestionTransactional(Integer quizAggregateId, Integer userAggregateId,
-            QuestionAnswerDto userAnswerDto, QuestionDto questionDto, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, QuizAnswerFactory quizAnswerFactory,
-            QuizAnswerCustomRepository quizAnswerRepository) {
-        QuizAnswer oldQuizAnswer = getQuizAnswerByQuizIdAndUserIdTransactional(quizAggregateId, userAggregateId,
-                unitOfWork, unitOfWorkService, quizAnswerRepository);
+    public void answerQuestion(Integer quizAggregateId, Integer userAggregateId, QuestionAnswerDto userAnswerDto, QuestionDto questionDto, UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
         QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
 
         QuestionAnswer questionAnswer = new QuestionAnswer(userAnswerDto, questionDto);
         newQuizAnswer.addQuestionAnswer(questionAnswer);
         unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
-        unitOfWorkService.registerEvent(new QuizAnswerQuestionAnswerEvent(newQuizAnswer.getAggregateId(),
-                questionAnswer.getQuestionAggregateId(), quizAggregateId, userAggregateId, questionAnswer.isCorrect()),
-                unitOfWork);
+        unitOfWorkService.registerEvent(new QuizAnswerQuestionAnswerEvent(newQuizAnswer.getAggregateId(), questionAnswer.getQuestionAggregateId(), quizAggregateId, userAggregateId, questionAnswer.isCorrect()), unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void concludeQuizTransactional(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, QuizAnswerFactory quizAnswerFactory,
-            QuizAnswerCustomRepository quizAnswerRepository) {
-        QuizAnswer oldQuizAnswer = getQuizAnswerByQuizIdAndUserIdTransactional(quizAggregateId, userAggregateId,
-                unitOfWork, unitOfWorkService, quizAnswerRepository);
+    public void concludeQuiz(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = getQuizAnswerByQuizIdAndUserId(quizAggregateId, userAggregateId, unitOfWork);
         QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
 
         newQuizAnswer.setCompleted(true);
@@ -195,21 +115,18 @@ class QuizAnswerTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void removeQuizAnswerTransactional(Integer quizAnswerAggregateId, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, QuizAnswerFactory quizAnswerFactory) {
-        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId,
-                unitOfWork);
-        QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
-        newQuizAnswer.remove();
-        unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
+    public void removeQuizAnswer(Integer quizAnswerAggregateId, UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
+        QuizAnswer newQuizAnsewer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
+        newQuizAnsewer.remove();
+        unitOfWorkService.registerChanged(newQuizAnsewer, unitOfWork);
     }
 
+    /************************************************ EVENT PROCESSING ************************************************/
+
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateUserNameTransactional(Integer answerAggregateId, Integer executionAggregateId,
-            Integer eventVersion, Integer userAggregateId, String name, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, QuizAnswerFactory quizAnswerFactory) {
-        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId,
-                unitOfWork);
+    public void updateUserName(Integer answerAggregateId, Integer executionAggregateId, Integer eventVersion, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId, unitOfWork);
         QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerFromExisting(oldQuizAnswer);
 
         if (!newQuizAnswer.getAnswerCourseExecution().getCourseExecutionAggregateId().equals(executionAggregateId)) {
@@ -224,13 +141,9 @@ class QuizAnswerTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizAnswer removeUserTransactional(Integer answerAggregateId, Integer userAggregateId,
-            Integer aggregateVersion, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, QuizAnswerFactory quizAnswerFactory) {
-        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId,
-                unitOfWork);
-        if (oldQuizAnswer != null && oldQuizAnswer.getStudent().getStudentAggregateId().equals(userAggregateId)
-                && oldQuizAnswer.getVersion() >= aggregateVersion) {
+    public QuizAnswer removeUser(Integer answerAggregateId, Integer userAggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId, unitOfWork);
+        if (oldQuizAnswer != null && oldQuizAnswer.getStudent().getStudentAggregateId().equals(userAggregateId) && oldQuizAnswer.getVersion() >= aggregateVersion) {
             return null;
         }
 
@@ -241,12 +154,8 @@ class QuizAnswerTransactionalService {
         return newQuizAnswer;
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizAnswer removeQuestionTransactional(Integer answerAggregateId, Integer questionAggregateId,
-            Integer aggregateVersion, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, QuizAnswerFactory quizAnswerFactory) {
-        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId,
-                unitOfWork);
+    public QuizAnswer removeQuestion(Integer answerAggregateId, Integer questionAggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId, unitOfWork);
         QuestionAnswer questionAnswer = oldQuizAnswer.findQuestionAnswer(questionAggregateId);
 
         if (questionAnswer == null) {
@@ -258,21 +167,5 @@ class QuizAnswerTransactionalService {
         newQuizAnswer.setState(Aggregate.AggregateState.INACTIVE);
         unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
         return newQuizAnswer;
-    }
-
-    private QuizAnswer getQuizAnswerByQuizIdAndUserIdTransactional(Integer quizAggregateId, Integer userAggregateId,
-            UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, QuizAnswerCustomRepository quizAnswerRepository) {
-        Integer quizAnswerId = quizAnswerRepository.findQuizAnswerIdByQuizIdAndUserId(quizAggregateId, userAggregateId)
-                .orElseThrow(() -> new QuizzesException(QuizzesErrorMessage.NO_USER_ANSWER_FOR_QUIZ, quizAggregateId,
-                        userAggregateId));
-
-        QuizAnswer quizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerId, unitOfWork);
-
-        if (quizAnswer.getState() == Aggregate.AggregateState.DELETED) {
-            throw new QuizzesException(QuizzesErrorMessage.QUIZ_ANSWER_DELETED, quizAnswer.getAggregateId());
-        }
-
-        return quizAnswer;
     }
 }

@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.TransientDataAccessException;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -28,71 +28,21 @@ public class TopicService {
 
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    private final TopicTransactionalService topicTransactionalService;
-
     @Autowired
     private TopicFactory topicFactory;
-
+    
     public TopicService(UnitOfWorkService unitOfWorkService, TopicRepository topicRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.topicRepository = topicRepository;
-        this.topicTransactionalService = new TopicTransactionalService();
     }
 
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public TopicDto getTopicById(Integer topicAggregateId, UnitOfWork unitOfWork) {
-        return topicTransactionalService.getTopicByIdTransactional(topicAggregateId, unitOfWork, unitOfWorkService,
-                topicFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public TopicDto createTopic(TopicDto topicDto, TopicCourse course, UnitOfWork unitOfWork) { // TODO check this
-        return topicTransactionalService.createTopicTransactional(topicDto, course, unitOfWork,
-                aggregateIdGeneratorService, topicFactory, unitOfWorkService);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public List<TopicDto> findTopicsByCourseId(Integer courseAggregateId, UnitOfWork unitOfWork) {
-        return topicTransactionalService.findTopicsByCourseIdTransactional(courseAggregateId, unitOfWork,
-                topicRepository, unitOfWorkService);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void updateTopic(TopicDto topicDto, UnitOfWork unitOfWork) {
-        topicTransactionalService.updateTopicTransactional(topicDto, unitOfWork, unitOfWorkService, topicFactory);
-    }
-
-    @Retryable(retryFor = {
-            TransientDataAccessException.class,
-            SQLException.class }, maxAttempts = 5, backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-    public void deleteTopic(Integer topicAggregateId, UnitOfWork unitOfWork) {
-        topicTransactionalService.deleteTopicTransactional(topicAggregateId, unitOfWork, unitOfWorkService,
-                topicFactory);
-    }
-}
-
-@Service
-class TopicTransactionalService {
-
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TopicDto getTopicByIdTransactional(Integer topicAggregateId, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, TopicFactory topicFactory) {
-        return topicFactory
-                .createTopicDto((Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork));
+        return topicFactory.createTopicDto((Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork));
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TopicDto createTopicTransactional(TopicDto topicDto, TopicCourse course, UnitOfWork unitOfWork,
-            AggregateIdGeneratorService aggregateIdGeneratorService, TopicFactory topicFactory,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService) {
+    public TopicDto createTopic(TopicDto topicDto, TopicCourse course, UnitOfWork unitOfWork) { //TODO check this
         Topic topic = topicFactory.createTopic(aggregateIdGeneratorService.getNewAggregateId(),
                 topicDto.getName(), course);
         unitOfWorkService.registerChanged(topic, unitOfWork);
@@ -100,8 +50,7 @@ class TopicTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<TopicDto> findTopicsByCourseIdTransactional(Integer courseAggregateId, UnitOfWork unitOfWork,
-            TopicRepository topicRepository, UnitOfWorkService<UnitOfWork> unitOfWorkService) {
+    public List<TopicDto> findTopicsByCourseId(Integer courseAggregateId, UnitOfWork unitOfWork) {
         return topicRepository.findAll().stream()
                 .filter(t -> courseAggregateId == t.getTopicCourse().getCourseAggregateId())
                 .map(Topic::getAggregateId)
@@ -112,19 +61,16 @@ class TopicTransactionalService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateTopicTransactional(TopicDto topicDto, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, TopicFactory topicFactory) {
+    public void updateTopic(TopicDto topicDto, UnitOfWork unitOfWork) {
         Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
         Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
         newTopic.setName(topicDto.getName());
         unitOfWorkService.registerChanged(newTopic, unitOfWork);
-        unitOfWorkService.registerEvent(new UpdateTopicEvent(newTopic.getAggregateId(), newTopic.getName()),
-                unitOfWork);
+        unitOfWorkService.registerEvent(new UpdateTopicEvent(newTopic.getAggregateId(), newTopic.getName()), unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void deleteTopicTransactional(Integer topicAggregateId, UnitOfWork unitOfWork,
-            UnitOfWorkService<UnitOfWork> unitOfWorkService, TopicFactory topicFactory) {
+    public void deleteTopic(Integer topicAggregateId, UnitOfWork unitOfWork) {
         Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
         Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
         newTopic.remove();
