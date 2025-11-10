@@ -1,6 +1,7 @@
 import { DefaultScopeComputation, LangiumDocument, AstNodeDescription } from 'langium';
 import { CancellationToken } from 'vscode-languageserver';
 import { isModel } from './generated/ast.js';
+import { getEntities, getEvents } from '../cli/utils/aggregate-helpers.js';
 
 export class NebulaScopeComputation extends DefaultScopeComputation {
     override async computeExports(document: LangiumDocument, cancelToken?: CancellationToken): Promise<AstNodeDescription[]> {
@@ -11,7 +12,8 @@ export class NebulaScopeComputation extends DefaultScopeComputation {
 
             // Export all entities from all aggregates
             for (const aggregate of model.aggregates) {
-                for (const entity of aggregate.entities) {
+                const entities = getEntities(aggregate);
+                for (const entity of entities) {
                     descriptions.push(this.descriptions.createDescription(entity, entity.name));
                 }
             }
@@ -37,8 +39,9 @@ export class NebulaScopeComputation extends DefaultScopeComputation {
             // Export all published events from all aggregates
             // This allows them to be referenced in subscribed events across aggregates
             for (const aggregate of model.aggregates) {
-                if (aggregate.events?.publishedEvents) {
-                    for (const publishedEvent of aggregate.events.publishedEvents) {
+                const events = getEvents(aggregate);
+                if (events?.publishedEvents) {
+                    for (const publishedEvent of events.publishedEvents) {
                         descriptions.push(this.descriptions.createDescription(publishedEvent, publishedEvent.name, document));
                     }
                 }

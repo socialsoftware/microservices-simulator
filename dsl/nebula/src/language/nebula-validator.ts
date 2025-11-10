@@ -2,6 +2,7 @@ import type { ValidationAcceptor, ValidationChecks } from "langium";
 import type { NebulaAstType, Model, Aggregate, Entity, Property, Method, Invariant, Import } from "./generated/ast.js";
 import type { NebulaServices } from "./nebula-module.js";
 import { ErrorMessageProvider } from "./error-messages.js";
+import { getEntities, getMethods } from "../cli/utils/aggregate-helpers.js";
 
 export function registerValidationChecks(services: NebulaServices) {
   const registry = services.validation.ValidationRegistry;
@@ -69,8 +70,11 @@ export class NebulaValidator {
   checkAggregate(aggregate: Aggregate, accept: ValidationAcceptor): void {
     this.validateName(aggregate.name, "aggregate", aggregate, accept);
 
+    const entities = getEntities(aggregate);
+    const methods = getMethods(aggregate);
+
     const entityNames = new Set<string>();
-    for (const entity of aggregate.entities) {
+    for (const entity of entities) {
       if (entityNames.has(entity.name.toLowerCase())) {
         accept("error", `Duplicate entity name: ${entity.name}`, {
           node: entity,
@@ -82,7 +86,7 @@ export class NebulaValidator {
     }
 
     // Check for root entity
-    const rootEntities = aggregate.entities.filter((e: any) => e.isRoot);
+    const rootEntities = entities.filter((e: any) => e.isRoot);
     if (rootEntities.length === 0) {
       accept("warning", "Aggregate should have at least one root entity", {
         node: aggregate,
@@ -95,7 +99,7 @@ export class NebulaValidator {
 
     // Check for duplicate method names
     const methodNames = new Set<string>();
-    for (const method of aggregate.methods || []) {
+    for (const method of methods) {
       if (methodNames.has(method.name.toLowerCase())) {
         accept("error", `Duplicate method name: ${method.name}`, {
           node: method,
@@ -317,7 +321,8 @@ export class NebulaValidator {
 
     // Find the aggregate that contains this collection
     for (const aggregate of model.aggregates) {
-      const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+      const aggregateEntities = getEntities(aggregate);
+      const rootEntity = aggregateEntities.find((e: any) => e.isRoot);
       if (rootEntity) {
         // Check if this root entity has the collection
         const collectionProperty = rootEntity.properties?.find((prop: any) =>
@@ -329,7 +334,7 @@ export class NebulaValidator {
           const entityTypeName = this.extractEntityTypeFromCollection(collectionProperty);
 
           // Find the actual entity definition
-          const targetEntity = aggregate.entities.find((e: any) => e.name === entityTypeName);
+          const targetEntity = aggregateEntities.find((e: any) => e.name === entityTypeName);
 
           if (targetEntity) {
             // Validate each field mapping

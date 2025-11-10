@@ -10,15 +10,12 @@ const resolveJavaType = (type: any, fieldName?: string) => {
 
 
 const isEnumType = (type: any) => {
-    // Check if it's an EntityType that references an EnumDefinition
     if (type && typeof type === 'object' &&
         type.$type === 'EntityType' &&
         type.type) {
-        // Check if the reference text indicates an enum type
         if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
             return true;
         }
-        // Check if the resolved reference is an EnumDefinition
         if (type.type.ref && type.type.ref.$type === 'EnumDefinition') {
             return true;
         }
@@ -27,9 +24,56 @@ const isEnumType = (type: any) => {
 };
 
 const isEnumTypeByNaming = (javaType: string) => {
-    // No longer using naming convention - enums must be explicitly defined
     return false;
 };
+
+function convertDefaultValueToJava(defaultValue: any, javaType: string, prop: any): string {
+    if (!defaultValue) {
+        return 'null';
+    }
+
+    let valueText: string;
+    if (typeof defaultValue === 'string') {
+        valueText = defaultValue;
+    } else if (defaultValue.$cstNode && defaultValue.$cstNode.text) {
+        valueText = defaultValue.$cstNode.text.trim();
+    } else if (defaultValue.$text) {
+        valueText = defaultValue.$text.trim();
+    } else {
+        return 'null';
+    }
+
+    if (valueText === 'null') {
+        return 'null';
+    }
+
+    if (valueText === '[]') {
+        if (javaType.startsWith('List<')) {
+            return 'new ArrayList<>()';
+        } else if (javaType.startsWith('Set<')) {
+            return 'new HashSet<>()';
+        }
+        return 'null';
+    }
+
+    if (valueText.startsWith('"') && valueText.endsWith('"')) {
+        return valueText;
+    }
+
+    if (/^[A-Z][A-Z_0-9]*$/.test(valueText)) {
+        return valueText;
+    }
+
+    if (valueText === 'true' || valueText === 'false') {
+        return valueText;
+    }
+
+    if (/^-?[0-9]+(\.[0-9]+)?$/.test(valueText)) {
+        return valueText;
+    }
+
+    return valueText;
+}
 
 export function generateDefaultConstructor(entity: Entity): { code: string } {
     const entityName = entity.name;
@@ -46,23 +90,11 @@ export function generateDefaultConstructor(entity: Entity): { code: string } {
         }
 
         const javaType = resolveJavaType(prop.type);
-        const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
+        const defaultValue = (prop as any).defaultValue;
 
-        if (isCollection) {
-            if (javaType.startsWith('List<')) {
-                return `        this.${prop.name} = new ArrayList<>();`;
-            } else if (javaType.startsWith('Set<')) {
-                return `        this.${prop.name} = new HashSet<>();`;
-            }
-        } else if (TypeResolver.isPrimitiveType(javaType)) {
-            if (javaType === 'Boolean') {
-                return `        this.${prop.name} = null;`;
-            } else {
-                return `        this.${prop.name} = null;`;
-            }
-        }
+        const javaDefaultValue = convertDefaultValueToJava(defaultValue, javaType, prop);
 
-        return `        this.${prop.name} = null;`;
+        return `        this.${prop.name} = ${javaDefaultValue};`;
     }).filter(init => init !== '').join('\n');
 
     const constructorBody = finalFieldInitializations ? finalFieldInitializations : '';
@@ -76,28 +108,23 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
     const entityName = entity.name;
     const isRootEntity = entity.isRoot || false;
 
-    // Check if entity specifies a custom DTO type
     const entityAny = entity as any;
     const dtoTypeRef = entityAny.dtoType;
 
     const customDtoType = dtoTypeRef?.ref?.name || dtoTypeRef?.$refText;
 
-    // Determine DTO name and type
     let dtoName: string;
     let dtoTypeName: string;
 
     if (customDtoType) {
-        // Use the specified DTO type
         dtoName = customDtoType;
         dtoTypeName = customDtoType;
     } else {
-        // For non-root entities, use the root entity's DTO
         const rootEntityName = isRootEntity ? entityName : (entity.$container?.name || entityName);
         dtoName = `${rootEntityName}Dto`;
         dtoTypeName = dtoName;
     }
 
-    // Find entity relationships for constructor parameters
     const entityRelationships = entity.properties.filter((prop: any) => {
         const javaType = resolveJavaType(prop.type);
         return TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<');
@@ -107,12 +134,10 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         `${resolveJavaType(prop.type)} ${prop.name}`
     ).join(', ');
 
-    // Generate parameter name based on DTO type (preserve camelCase)
     const dtoParamName = customDtoType ?
         customDtoType.charAt(0).toLowerCase() + customDtoType.slice(1) :
         `${(isRootEntity ? entityName : (entity.$container?.name || entityName)).toLowerCase()}Dto`;
 
-    // For root entities, include aggregateId parameter; for non-root entities, don't
     const params = isRootEntity ?
         (relationshipParams ?
             `Integer aggregateId, ${dtoTypeName} ${dtoParamName}, ${relationshipParams}` :
@@ -170,13 +195,11 @@ ${setterCalls}` :
 ${constructorBody}
     }`;
 
-    // Add import for the DTO (always add since constructor uses it)
     const imports: ImportRequirements = {};
     if (!imports.customImports) imports.customImports = new Set();
     const dtoImportPath = `${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.${dtoTypeName}`;
     imports.customImports.add(`import ${dtoImportPath};`);
 
-    // Add imports for any enum types used in the entity
     entity.properties.forEach((prop: any) => {
         if (isEnumType(prop.type) || isEnumTypeByNaming(resolveJavaType(prop.type))) {
             const enumType = resolveJavaType(prop.type);
@@ -197,9 +220,7 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
     const isRootEntity = entity.isRoot || false;
     const imports: ImportRequirements = {};
 
-    // Generate setter calls for copy constructor
     const setterCalls = entity.properties.map((prop: any, index: number) => {
-        // Skip the first property (id) for non-root entities as it's @GeneratedValue
         if (!isRootEntity && index === 0) {
             return '';
         }
@@ -213,10 +234,8 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
         }
 
         if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
-            // Single entity relationship - create new instance
             return `        set${capitalizedName}(new ${javaType}(other.get${capitalizedName}()));`;
         } else if (javaType.startsWith('Set<')) {
-            // Collection relationship - deep copy with stream
             const elementType = TypeResolver.getElementType(prop.type);
             if (elementType && TypeResolver.isEntityType(elementType)) {
                 imports.usesCollectors = true; // Only set when actually using Collectors
@@ -226,22 +245,19 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
                 return `        set${capitalizedName}(new HashSet<>(other.get${capitalizedName}()));`;
             }
         } else if (javaType.startsWith('List<')) {
-            // List relationship - deep copy with stream
             const elementType = TypeResolver.getElementType(prop.type);
             if (elementType && TypeResolver.isEntityType(elementType)) {
-                imports.usesCollectors = true; // Only set when actually using Collectors
+                imports.usesCollectors = true;
                 return `        set${capitalizedName}(other.get${capitalizedName}().stream().map(${elementType}::new).collect(Collectors.toList()));`;
             } else {
-                imports.usesList = true; // Need ArrayList import
+                imports.usesList = true;
                 return `        set${capitalizedName}(new ArrayList<>(other.get${capitalizedName}()));`;
             }
         } else {
-            // Primitive types - direct copy
             return `        set${capitalizedName}(other.get${capitalizedName}());`;
         }
     }).filter(call => call !== '').join('\n');
 
-    // Different constructor body for root vs non-root entities
     const constructorBody = isRootEntity ?
         `        super(other);
 ${setterCalls}` :
@@ -257,46 +273,30 @@ ${constructorBody}
     };
 }
 
-// Helper function to map entity field names to DTO field names for custom DTOs
 function mapEntityFieldToDtoField(entityFieldName: string, dtoType: string, dtoMappings?: any[], entity?: Entity): string | null {
-    // Check if entity has explicit DTO mapping
     const entityAny = entity as any;
     if (entityAny?.dtoMapping?.fieldMappings) {
-        // Look for explicit field mapping
         for (const fieldMapping of entityAny.dtoMapping.fieldMappings) {
             if (fieldMapping.entityField === entityFieldName) {
-                // Found explicit mapping: entityField -> dtoField
                 return capitalize(fieldMapping.dtoField);
             }
         }
-        // Entity has explicit mappings but this field is not mapped - skip it
         return null;
     }
 
-    // For direct DTO usage (like "Entity Option uses dto OptionDto"), 
-    // use simple field name matching instead of complex collection mapping
     if (!dtoMappings || !entity) {
-        // Fallback: just capitalize (assuming the field exists in the DTO)
         return entityFieldName.charAt(0).toUpperCase() + entityFieldName.slice(1);
     }
 
-    // Check if this is a direct DTO usage (entity name matches DTO name pattern)
     const entityName = entity.name;
     const expectedDtoName = `${entityName}Dto`;
     if (dtoType === expectedDtoName) {
-        // Direct DTO usage - use simple field name capitalization
         return entityFieldName.charAt(0).toUpperCase() + entityFieldName.slice(1);
     }
-
-    // Complex collection mapping logic (existing logic preserved)
-    // ... (rest of the existing mapping logic)
 
     return entityFieldName.charAt(0).toUpperCase() + entityFieldName.slice(1);
 }
 
-/**
- * Generate collection mapping code with optional field extraction
- */
 function generateCollectionMapping(
     prop: any,
     dtoParamName: string,
@@ -308,7 +308,6 @@ function generateCollectionMapping(
 ): string {
     const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
 
-    // Check if there's an explicit mapping with extract field
     const entityAny = entity as any;
     if (entityAny?.dtoMapping?.fieldMappings) {
         const fieldMapping = entityAny.dtoMapping.fieldMappings.find((fm: any) =>
@@ -316,12 +315,10 @@ function generateCollectionMapping(
         );
 
         if (fieldMapping && fieldMapping.extractField) {
-            // Generate collection mapping with field extraction
             const extractField = fieldMapping.extractField;
             const extractMethod = `get${extractField.charAt(0).toUpperCase() + extractField.slice(1)}`;
             const collectorMethod = javaType.startsWith('List<') ? 'toList' : 'toSet';
 
-            // Determine the DTO type from the source collection
             const sourceDtoType = fieldMapping.dtoField; // This should be the collection name
             const elementDtoType = inferDtoTypeFromCollection(sourceDtoType, customDtoType);
 
@@ -331,34 +328,21 @@ function generateCollectionMapping(
         }
     }
 
-    // Default collection handling (no extraction)
-    return ''; // Skip collections without explicit mapping
+    return '';
 }
 
-/**
- * Infer the DTO type from a collection field name dynamically
- */
 function inferDtoTypeFromCollection(collectionName: string, baseDtoType: string): string {
-    // Convert collection name to singular DTO type
-    // Examples: questions -> QuestionDto, users -> UserDto, topics -> TopicDto
-
     let singular: string;
 
-    // Handle common English pluralization patterns
     if (collectionName.endsWith('ies')) {
-        // categories -> category, stories -> story
         singular = collectionName.slice(0, -3) + 'y';
     } else if (collectionName.endsWith('es') && collectionName.length > 3) {
-        // boxes -> box, classes -> class
         singular = collectionName.slice(0, -2);
     } else if (collectionName.endsWith('s') && collectionName.length > 1) {
-        // questions -> question, users -> user
         singular = collectionName.slice(0, -1);
     } else {
-        // Already singular or unknown pattern
         singular = collectionName;
     }
 
-    // Capitalize first letter and add Dto suffix
     return `${singular.charAt(0).toUpperCase() + singular.slice(1)}Dto`;
 }

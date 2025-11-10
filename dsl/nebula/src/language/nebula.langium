@@ -12,15 +12,11 @@ Aggregate:
     (annotations+=Annotation)*
     (metadata=AggregateMetadata)?
     'Aggregate' name=ID '{'
-        entities+=Entity*
-        methods+=Method*
-        workflows+=Workflow*
-        (customRepository=CustomRepository)?
-        (events=Events)?
-        (webApiEndpoints=WebAPIEndpoints)?
-        (serviceDefinition=ServiceDefinition)?
-        (functionalities=Functionalities)?
+        (aggregateElements+=AggregateElement)*
     '}';
+
+AggregateElement:
+    Entity | Method | Workflow | CustomRepository | Events | WebAPIEndpoints | ServiceDefinition | Functionalities;
 
 Entity:
     (isRoot?='Root')? 'Entity' name=ID ('uses' 'dto' dtoType=[DtoDefinition:ID] (dtoMapping=DtoEntityMapping)?)? '{'
@@ -123,7 +119,10 @@ OptionalType:
     'Optional' '<' elementType=(PrimitiveType | ID) '>';
 
 Property:
-    (isFinal?='final')? type=Type name=ID (',' names+=ID)* ';';
+    (isFinal?='final')? type=Type name=ID (',' names+=ID)* ('default' defaultValue=PropertyDefaultValue)? ';';
+
+PropertyDefaultValue returns string:
+    LITERAL | STRING | QualifiedName | 'null' | '[]';
 
 Invariant:
     'check' name=ID '{'

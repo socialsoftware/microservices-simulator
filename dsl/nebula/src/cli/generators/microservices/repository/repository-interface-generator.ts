@@ -72,7 +72,6 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
     private buildQueryMethods(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, options: RepositoryInterfaceGenerationOptions): any[] {
         const methods: any[] = [];
 
-        // Only generate methods from DSL CustomRepository block
         this.addCustomRepositoryMethods(aggregate, methods);
 
         return methods;
@@ -85,13 +84,10 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
                 const returnType = this.resolveRepositoryReturnType(method.returnType);
                 const parameters = method.parameters || [];
 
-                // Use query from DSL if provided, otherwise generate based on method name pattern
                 let query = '';
                 if (method.query) {
-                    // DSL-defined query - use as-is
                     query = method.query;
                 } else if (method.name.includes('findExecutionIdsOfAllNonDeletedForSaga')) {
-                    // Fallback: Generate query based on method name pattern
                     query = `select e1.aggregateId from ${aggregate.name} e1 where e1.aggregateId NOT IN (select e2.aggregateId from ${aggregate.name} e2 where e2.state = 'DELETED' AND e2.sagaState != 'NOT_IN_SAGA')`;
                 }
 
@@ -103,7 +99,7 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
                         type: this.resolveParameterType(param.type)
                     })),
                     returnType: returnType,
-                    forSaga: false // Custom methods handle saga logic themselves
+                    forSaga: false
                 });
             });
         }
@@ -168,7 +164,6 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
         const imports: string[] = [];
         const repositoryType = this.getRepositoryType(options);
 
-        // Add imports based on what's actually used in methods
         const hasOptionalReturnType = queryMethods.some(method => method.returnType.includes('Optional<'));
         const hasSetReturnType = queryMethods.some(method => method.returnType.includes('Set<'));
         const hasListReturnType = queryMethods.some(method => method.returnType.includes('List<'));

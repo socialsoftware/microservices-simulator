@@ -12,6 +12,7 @@ import {
     isEntityType,
     Model
 } from "../../language/generated/ast.js";
+import { getEntities } from "../utils/aggregate-helpers.js";
 
 export class NebulaScopeProvider extends DefaultScopeProvider {
     private astNodeDescriptionProvider: AstNodeDescriptionProvider;
@@ -69,12 +70,11 @@ export class NebulaScopeProvider extends DefaultScopeProvider {
             // 1. Collect all entities from aggregates in the current document
             if (model.aggregates) {
                 for (const aggregate of model.aggregates) {
-                    if (aggregate.entities) {
-                        for (const entity of aggregate.entities) {
-                            if (entity.name) {
-                                const desc = this.astNodeDescriptionProvider.createDescription(entity, entity.name);
-                                descriptions.push(desc);
-                            }
+                    const entities = getEntities(aggregate);
+                    for (const entity of entities) {
+                        if (entity.name) {
+                            const desc = this.astNodeDescriptionProvider.createDescription(entity, entity.name);
+                            descriptions.push(desc);
                         }
                     }
                 }

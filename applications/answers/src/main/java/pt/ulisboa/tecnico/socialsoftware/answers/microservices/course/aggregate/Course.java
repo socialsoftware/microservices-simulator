@@ -15,25 +15,25 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 public abstract class Course extends Aggregate {
     private String name;
     @Enumerated(EnumType.STRING)
-    private CourseType type;
+    private final CourseType type;
     private LocalDateTime creationDate;
 
     public Course() {
-
+        this.type = CourseType.TECNICO;
     }
 
     public Course(Integer aggregateId, CourseDto courseDto) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setName(courseDto.getName());
-        setType(CourseType.valueOf(courseDto.getType()));
+        this.type = CourseType.valueOf(courseDto.getType());
         setCreationDate(courseDto.getCreationDate());
     }
 
     public Course(Course other) {
         super(other);
         setName(other.getName());
-        setType(other.getType());
+        this.type = other.getType();
         setCreationDate(other.getCreationDate());
     }
 
@@ -47,10 +47,6 @@ public abstract class Course extends Aggregate {
 
     public CourseType getType() {
         return type;
-    }
-
-    public void setType(CourseType type) {
-        this.type = type;
     }
 
     public LocalDateTime getCreationDate() {

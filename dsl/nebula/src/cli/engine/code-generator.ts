@@ -1,4 +1,4 @@
-import type { Model } from "../../language/generated/ast.js";
+import { Model } from "../../language/generated/ast.js";
 import { createNebulaServices } from "../../language/nebula-module.js";
 import { extractAstNode } from "../utils/cli-util.js";
 import { collectNebulaFiles } from "../utils/file-utils.js";
@@ -6,6 +6,7 @@ import { NodeFileSystem } from "langium/node";
 import { URI, type LangiumDocument } from "langium";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
+import { initializeAggregateProperties } from "../utils/aggregate-helpers.js";
 
 import { TemplateGenerateOptions, GenerationOptions, DEFAULT_OUTPUT_DIR } from "./types.js";
 import { ProjectSetup } from "./project-setup.js";
@@ -117,6 +118,8 @@ export class CodeGenerator {
 
             for (const model of models) {
                 for (const aggregate of model.aggregates) {
+                    initializeAggregateProperties(aggregate);
+
                     console.log(`\nGenerating ${aggregate.name} components:`);
 
                     const aggregatePath = paths.javaPath + '/microservices/' + aggregate.name.toLowerCase();
@@ -235,6 +238,9 @@ export class CodeGenerator {
 
         } catch (error) {
             console.error(`Error: ${error}`);
+            if (error instanceof Error && error.stack) {
+                console.error(`Stack trace:\n${error.stack}`);
+            }
             process.exit(1);
         }
     }
@@ -254,6 +260,15 @@ export class CodeGenerator {
         );
 
         const allDocuments = Array.from(services.shared.workspace.LangiumDocuments.all) as LangiumDocument[];
+        for (const document of allDocuments) {
+            const model = document.parseResult?.value as Model | undefined;
+            if (model?.aggregates) {
+                for (const aggregate of model.aggregates) {
+                    initializeAggregateProperties(aggregate);
+                }
+            }
+        }
+
         const allValidationErrors: Array<{ file: string; error: any; document: LangiumDocument }> = [];
 
         for (const document of allDocuments) {
@@ -307,6 +322,9 @@ export class CodeGenerator {
 
         for (const filePath of nebulaFiles) {
             const model = await extractAstNode<Model>(filePath, services);
+            for (const aggregate of model.aggregates) {
+                initializeAggregateProperties(aggregate);
+            }
             allModels.push(model);
         }
 

@@ -1,9 +1,7 @@
-import shared-enums;
-
 Aggregate Course {
     Root Entity Course {
         String name;
-        CourseType type;
+        final CourseType type default CourseType.TECNICO;
         LocalDateTime creationDate;
 
         invariants {
@@ -15,6 +13,10 @@ Aggregate Course {
         }
     }
 
+    CustomRepository {
+        Optional<Integer> findCourseIdByName(String courseName);
+    }
+
     // Service methods
     method getCoursesByType(String courseType, UnitOfWork unitOfWork): List<Course>;
     method searchCoursesByName(String name, UnitOfWork unitOfWork): List<Course>;
@@ -22,7 +24,5 @@ Aggregate Course {
     method getUniqueCourseTypes(UnitOfWork unitOfWork): Set<String>;
     method getCoursesAsSet(UnitOfWork unitOfWork): Set<Course>;
     
-    CustomRepository {
-        Optional<Integer> findCourseIdByName(String courseName);
-    }
+    
 }
