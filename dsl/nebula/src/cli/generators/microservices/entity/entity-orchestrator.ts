@@ -7,6 +7,7 @@ import { generateGettersSetters, generateBackReferenceGetterSetter } from "./met
 import { generateInvariants } from "./invariants.js";
 import { ImportManager, ImportManagerFactory } from "../../../utils/import-manager.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../../../utils/error-handler.js";
+import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 
 // ============================================================================
 // ENTITY GENERATION ORCHESTRATION
@@ -53,7 +54,7 @@ export class EntityOrchestrator {
         const javaCode = this.assembleJavaCode(classStructure, components, entity.name);
 
         // Use improved import management
-        return this.finalizeWithImports(javaCode, projectName, isRootEntity, classStructure.aggregateName, entity.name);
+        return this.finalizeWithImports(javaCode, projectName, isRootEntity, classStructure.aggregateName, entity.name, entity);
     }
 
     private generateEntityComponents(entity: Entity, projectName: string, opts: EntityGenerationOptions, isRootEntity: boolean) {
@@ -106,9 +107,9 @@ ${components.invariants}
 }`;
     }
 
-    private finalizeWithImports(javaCode: string, projectName: string, isRootEntity: boolean, aggregateName: string, entityName: string): string {
+    private finalizeWithImports(javaCode: string, projectName: string, isRootEntity: boolean, aggregateName: string, entityName: string, entity: Entity): string {
         // Use the legacy import scanning which works better for entity code
-        const detectedImports = this.scanCodeForImports(javaCode, projectName, isRootEntity, aggregateName, entityName);
+        const detectedImports = this.scanCodeForImports(javaCode, projectName, isRootEntity, aggregateName, entityName, entity);
 
         // Combine with any additional imports
         this.importManager.clear();
@@ -129,7 +130,7 @@ ${components.invariants}
     /**
      * Scan code for required imports (copied from imports.ts for better integration)
      */
-    private scanCodeForImports(javaCode: string, projectName: string, isRoot: boolean, aggregateName?: string, entityName?: string): string[] {
+    private scanCodeForImports(javaCode: string, projectName: string, isRoot: boolean, aggregateName?: string, entityName?: string, entity?: Entity): string[] {
         const imports: string[] = [];
 
         // Basic JPA imports
@@ -196,15 +197,59 @@ ${components.invariants}
             }
         }
 
-        // Scan for custom enum types and add their imports (exclude JPA types)
-        const enumPattern = /\b([A-Z][a-zA-Z]*Type)\b/g;
+        if (entity) {
+            const enumTypes = new Set<string>();
+
+            for (const prop of entity.properties) {
+                if (prop.type && typeof prop.type === 'object' && prop.type.$type === 'EntityType' && prop.type.type) {
+                    const ref = prop.type.type.ref;
+                    if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
+                        const enumName = (ref as any).name;
+                        if (enumName) {
+                            enumTypes.add(enumName);
+                        }
+                    } else if (prop.type.type.$refText) {
+                        const refText = prop.type.type.$refText;
+                        const javaType = TypeResolver.resolveJavaType(prop.type);
+                        if (!TypeResolver.isPrimitiveType(javaType) &&
+                            !TypeResolver.isEntityType(javaType) &&
+                            !javaType.startsWith('List<') &&
+                            !javaType.startsWith('Set<')) {
+                            enumTypes.add(refText);
+                        }
+                    }
+                }
+            }
+
+            const excludedEnums = ['EnumType', 'CascadeType', 'FetchType', 'AggregateState'];
+            for (const enumType of enumTypes) {
+                if (!excludedEnums.includes(enumType)) {
+                    const enumImport = `import ${config.buildPackageName(projectName, 'shared', 'enums')}.${enumType};`;
+                    if (!imports.includes(enumImport)) {
+                        imports.push(enumImport);
+                    }
+                }
+            }
+        }
+
+        const enumPattern = /\b([A-Z][a-zA-Z]*(?:Type|Role|State))\b/g;
         let enumMatch;
-        const excludedEnums = ['EnumType', 'CascadeType', 'FetchType']; // JPA types should not be imported from shared.enums
+        const excludedEnums = ['EnumType', 'CascadeType', 'FetchType', 'AggregateState', 'LocalDateTime'];
+        const foundEnums = new Set<string>();
 
         while ((enumMatch = enumPattern.exec(javaCode)) !== null) {
             const enumType = enumMatch[1];
-            if (!excludedEnums.includes(enumType)) {
-                const enumImport = `import ${config.buildPackageName(projectName, 'shared', 'enums')}.${enumType};`;
+            if (!excludedEnums.includes(enumType) &&
+                !enumType.endsWith('Dto') &&
+                !enumType.includes('List') &&
+                !enumType.includes('Set')) {
+                foundEnums.add(enumType);
+            }
+        }
+
+        for (const enumType of foundEnums) {
+            const enumImport = `import ${config.buildPackageName(projectName, 'shared', 'enums')}.${enumType};`;
+            if (!imports.includes(enumImport)) {
                 imports.push(enumImport);
             }
         }

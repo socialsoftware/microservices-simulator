@@ -105,7 +105,10 @@ export function generateFields(properties: any[], entity: Entity, isRootEntity: 
             enumAnnotation = `    @Enumerated(EnumType.STRING)\n`;
         }
 
-        return `${idAnnotation}${relationshipAnnotation}${enumAnnotation}    private ${javaType} ${prop.name}${initialization};`;
+        // Check if field is final
+        const finalModifier = (prop as any).isFinal ? 'final ' : '';
+
+        return `${idAnnotation}${relationshipAnnotation}${enumAnnotation}    private ${finalModifier}${javaType} ${prop.name}${initialization};`;
     }).join('\n');
 
     // Add back-reference field for non-root entities

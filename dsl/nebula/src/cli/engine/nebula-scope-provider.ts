@@ -15,9 +15,11 @@ import {
 
 export class NebulaScopeProvider extends DefaultScopeProvider {
     private astNodeDescriptionProvider: AstNodeDescriptionProvider;
+    private services: LangiumCoreServices;
 
     constructor(services: LangiumCoreServices) {
         super(services);
+        this.services = services;
         this.astNodeDescriptionProvider = services.workspace.AstNodeDescriptionProvider;
     }
 
@@ -92,7 +94,7 @@ export class NebulaScopeProvider extends DefaultScopeProvider {
                 }
             }
 
-            // 3. Collect all enum definitions from SharedEnums
+            // 3. Collect all enum definitions from SharedEnums in the current document
             if (model.sharedEnums) {
                 for (const sharedEnum of model.sharedEnums) {
                     if (sharedEnum.enums) {
@@ -106,21 +108,24 @@ export class NebulaScopeProvider extends DefaultScopeProvider {
                 }
             }
 
-            // 4. Also check imported shared-enums from other files
-            // Use the global scope to get all exported enum definitions
-            const imports = model.imports || [];
-            for (const imp of imports) {
-                if (imp.sharedEnums) {
-                    // Get all globally exported symbols
+            // 4. Always include all globally exported enum definitions from all files
+            // This makes shared enums available without requiring explicit imports
+            try {
+                const indexManager = (this.services as any).shared?.workspace?.IndexManager;
+                if (indexManager) {
+                    const allDescriptions = indexManager.allElements();
+                    const enumDescriptions = allDescriptions.filter((desc: AstNodeDescription) =>
+                        desc.type === 'EnumDefinition'
+                    );
+                    descriptions.push(...enumDescriptions);
+                } else {
                     const globalScope = this.getGlobalScope('EnumDefinition', context);
-
-                    // Add all enum definitions from the global scope
-                    globalScope.getAllElements().forEach(desc => {
-                        if (desc.type === 'EnumDefinition') {
-                            descriptions.push(desc);
-                        }
-                    });
+                    const globalEnumDescriptions = globalScope.getAllElements().filter(desc =>
+                        desc.type === 'EnumDefinition'
+                    );
+                    descriptions.push(...globalEnumDescriptions);
                 }
+            } catch (error) {
             }
 
             if (descriptions.length > 0) {

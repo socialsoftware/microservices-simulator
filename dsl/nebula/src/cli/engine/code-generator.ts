@@ -3,7 +3,7 @@ import { createNebulaServices } from "../../language/nebula-module.js";
 import { extractAstNode } from "../utils/cli-util.js";
 import { collectNebulaFiles } from "../utils/file-utils.js";
 import { NodeFileSystem } from "langium/node";
-import { URI } from "langium";
+import { URI, type LangiumDocument } from "langium";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
@@ -252,6 +252,33 @@ export class CodeGenerator {
             Array.from(services.shared.workspace.LangiumDocuments.all),
             { validation: true }
         );
+
+        const allDocuments = Array.from(services.shared.workspace.LangiumDocuments.all) as LangiumDocument[];
+        const allValidationErrors: Array<{ file: string; error: any; document: LangiumDocument }> = [];
+
+        for (const document of allDocuments) {
+            const validationErrors = (document.diagnostics ?? []).filter((e: any) => e.severity === 1);
+            if (validationErrors.length > 0) {
+                const filePath = document.uri.fsPath || document.uri.path;
+                for (const error of validationErrors) {
+                    allValidationErrors.push({ file: filePath, error, document });
+                }
+            }
+        }
+
+        if (allValidationErrors.length > 0) {
+            console.error('There are validation errors:');
+            for (const { file, error, document } of allValidationErrors) {
+                const relativePath = path.relative(process.cwd(), file);
+                const lineNum = error.range.start.line + 1;
+                const colNum = error.range.start.character + 1;
+                const errorText = document.textDocument?.getText(error.range) || '';
+                console.error(
+                    `${relativePath}:${lineNum}:${colNum} - ${error.message}${errorText ? ` [${errorText}]` : ''}`
+                );
+            }
+            process.exit(1);
+        }
     }
 
     private static async setupConfiguration(opts: TemplateGenerateOptions, inputPath: string) {

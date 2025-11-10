@@ -2,6 +2,7 @@ Aggregate User {
     Root Entity User {
         String name;
         String username;
+        final UserRole role;
         Boolean active;
     }
     

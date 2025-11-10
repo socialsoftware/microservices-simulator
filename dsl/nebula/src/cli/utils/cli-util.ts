@@ -55,10 +55,15 @@ export async function extractDocument(fileName: string, services: LangiumCoreSer
 
     const validationErrors = (document.diagnostics ?? []).filter((e: any) => e.severity === 1);
     if (validationErrors.length > 0) {
+        const filePath = document.uri.fsPath || document.uri.path;
+        const relativePath = path.relative(process.cwd(), filePath);
         console.error(chalk.red('There are validation errors:'));
         for (const validationError of validationErrors) {
+            const lineNum = validationError.range.start.line + 1;
+            const colNum = validationError.range.start.character + 1;
+            const errorText = document.textDocument.getText(validationError.range);
             console.error(chalk.red(
-                `line ${validationError.range.start.line + 1}: ${validationError.message} [${document.textDocument.getText(validationError.range)}]`
+                `${relativePath}:${lineNum}:${colNum} - ${validationError.message}${errorText ? ` [${errorText}]` : ''}`
             ));
         }
         process.exit(1);

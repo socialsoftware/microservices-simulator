@@ -33,16 +33,15 @@ export function generateGettersSetters(properties: any[], entity?: Entity, proje
         const javaType = resolveJavaType(prop.type, prop.name);
         const capName = capitalize(prop.name);
         const getter = `get${capName}`;
+        const isFinal = (prop as any).isFinal || false;
 
         const getterMethod = `\n    public ${javaType} ${getter}() {\n        return ${prop.name};\n    }`;
 
-        // Generate setter with bidirectional relationship handling
-        const setterMethod = generateBidirectionalSetter(prop, javaType, capName, entityName);
+        const setterMethod = isFinal ? '' : generateBidirectionalSetter(prop, javaType, capName, entityName);
 
-        // Generate collection management methods for collection properties
         const collectionMethods = generateCollectionMethods(prop, javaType, capName, entityName, allEntities);
 
-        return `${getterMethod}\n\n${setterMethod}${collectionMethods}`;
+        return `${getterMethod}${setterMethod ? '\n\n' + setterMethod : ''}${collectionMethods}`;
     }).join('\n');
 
     return { code: methods };

@@ -123,7 +123,7 @@ OptionalType:
     'Optional' '<' elementType=(PrimitiveType | ID) '>';
 
 Property:
-    type=Type name=ID (',' names+=ID)* ';';
+    (isFinal?='final')? type=Type name=ID (',' names+=ID)* ';';
 
 Invariant:
     'check' name=ID '{'

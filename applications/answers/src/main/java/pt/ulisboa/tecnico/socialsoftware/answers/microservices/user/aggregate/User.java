@@ -1,25 +1,31 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.UserRole;
 
 @Entity
 public abstract class User extends Aggregate {
     private String name;
     private String username;
+    @Enumerated(EnumType.STRING)
+    private final UserRole role;
     private Boolean active;
 
     public User() {
     }
 
-    public User(Integer aggregateId, UserDto userDto) {
+    public User(Integer aggregateId, UserDto userDto, UserRole role) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setName(userDto.getName());
         setUsername(userDto.getUsername());
+        setRole(role);
         setActive(userDto.getActive());
     }
 
@@ -27,6 +33,7 @@ public abstract class User extends Aggregate {
         super(other);
         setName(other.getName());
         setUsername(other.getUsername());
+        setRole(new UserRole(other.getRole()));
         setActive(other.getActive());
     }
 
@@ -44,6 +51,10 @@ public abstract class User extends Aggregate {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public UserRole getRole() {
+        return role;
     }
 
     public Boolean getActive() {

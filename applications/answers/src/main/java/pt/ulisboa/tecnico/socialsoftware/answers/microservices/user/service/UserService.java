@@ -32,9 +32,9 @@ public class UserService {
     public UserService() {}
 
     // CRUD Operations
-    public UserDto createUser(String name, String username, Boolean active) {
+    public UserDto createUser(String name, String username, UserRole role, Boolean active) {
         try {
-            User user = new User(name, username, active);
+            User user = new User(name, username, role, active);
             user = userRepository.save(user);
             return new UserDto(user);
         } catch (Exception e) {
@@ -74,6 +74,9 @@ public class UserService {
             }
             if (userDto.getUsername() != null) {
                 user.setUsername(userDto.getUsername());
+            }
+            if (userDto.getRole() != null) {
+                user.setRole(userDto.getRole());
             }
             user.setActive(userDto.isActive());
             

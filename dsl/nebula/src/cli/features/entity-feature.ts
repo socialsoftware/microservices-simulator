@@ -5,21 +5,12 @@ import { FileWriter } from "../utils/file-writer.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../utils/error-handler.js";
 
 export class EntityFeature {
-    /**
-     * Check if a DTO is available as a shared DTO
-     */
-    private static isSharedDto(dtoName: string): boolean {
-        const sharedDtos = [
-            'UserDto',
-            'CourseDto',
-            'ExecutionDto',
-            'QuestionDto',
-            'TopicDto',
-            'QuizDto',
-            'TournamentDto',
-            'AnswerDto'
-        ];
-        return sharedDtos.includes(dtoName);
+    private static isSharedDto(dtoName: string, sharedDtos?: any[]): boolean {
+        if (!sharedDtos || sharedDtos.length === 0) {
+            return false;
+        }
+
+        return sharedDtos.some((dto: any) => dto?.name === dtoName);
     }
 
     static async generateCoreComponents(
@@ -29,7 +20,6 @@ export class EntityFeature {
         generators: GeneratorRegistry
     ): Promise<void> {
         for (const entity of aggregate.entities) {
-            // Pass shared metadata to entity generator
             const entityOptions = {
                 projectName: options.projectName,
                 allSharedDtos: options.allSharedDtos,
@@ -40,9 +30,8 @@ export class EntityFeature {
             const entityPath = path.join(aggregatePath, 'aggregate', `${entity.name}.java`);
             await FileWriter.writeGeneratedFile(entityPath, entityCode, `entity ${entity.name}`);
 
-            // Only generate DTO for root entities, and only if not available as shared DTO
             if ((entity as any).isRoot) {
-                if (!this.isSharedDto(entity.name + 'Dto')) {
+                if (!this.isSharedDto(entity.name + 'Dto', options.allSharedDtos)) {
                     const dtoCode = await generators.dtoGenerator.generateDto(entity, options);
                     const dtoPath = path.join(aggregatePath, 'aggregate', `${entity.name}Dto.java`);
                     await FileWriter.writeGeneratedFile(dtoPath, dtoCode, `DTO ${entity.name}Dto`);
@@ -104,7 +93,7 @@ export class EntityFeature {
                 ),
                 ErrorSeverity.FATAL
             );
-            return; // This will never be reached due to FATAL error, but satisfies TypeScript
+            return;
         }
 
         if (aggregate.name !== rootEntity.name) {
