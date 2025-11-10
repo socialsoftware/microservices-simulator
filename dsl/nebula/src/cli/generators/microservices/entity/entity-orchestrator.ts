@@ -186,11 +186,22 @@ ${components.invariants}
         let entityMatch;
         const excludedEntityNames = ['String', 'Integer', 'Long', 'Double', 'Float', 'Boolean', 'LocalDateTime', 'BigDecimal'];
 
+        const samePackageEntityNames = new Set<string>();
+        if (entity && entity.$container) {
+            const aggregate = entity.$container as any;
+            if (aggregate.entities && Array.isArray(aggregate.entities)) {
+                aggregate.entities.forEach((e: Entity) => {
+                    if (e.name) {
+                        samePackageEntityNames.add(e.name);
+                    }
+                });
+            }
+        }
+
         while ((entityMatch = entityPattern.exec(javaCode)) !== null) {
             const entityType = entityMatch[1];
             if (!excludedEntityNames.includes(entityType) && !entityType.endsWith('Dto')) {
-                // Check if it's likely another entity in the same aggregate
-                if (entityType !== entityName && entityType !== aggregateName) {
+                if (!samePackageEntityNames.has(entityType) && entityType !== entityName && entityType !== aggregateName) {
                     const entityImport = `import ${config.buildPackageName(projectName, 'microservices', aggregateName?.toLowerCase() || 'unknown', 'aggregate')}.${entityType};`;
                     imports.push(entityImport);
                 }

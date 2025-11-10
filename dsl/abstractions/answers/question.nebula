@@ -1,7 +1,11 @@
 import shared-dtos;
 
 Aggregate Question {
-    Entity QuestionCourse uses dto CourseDto {
+    Entity QuestionCourse uses dto CourseDto mapping {
+        aggregateId -> courseAggregateId;
+        name -> courseName;
+        version -> courseVersion;
+    } {
         Long id;
         Integer courseAggregateId;
         String courseName;

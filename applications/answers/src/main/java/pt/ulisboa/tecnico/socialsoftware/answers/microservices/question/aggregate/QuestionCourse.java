@@ -23,9 +23,9 @@ public class QuestionCourse {
     }
 
     public QuestionCourse(CourseDto courseDto) {
-        setCourseAggregateId(courseDto.getCourseAggregateId());
-        setCourseName(courseDto.getCourseName());
-        setCourseVersion(courseDto.getCourseVersion());
+        setCourseAggregateId(courseDto.getAggregateId());
+        setCourseName(courseDto.getName());
+        setCourseVersion(courseDto.getVersion());
     }
 
     public QuestionCourse(QuestionCourse other) {

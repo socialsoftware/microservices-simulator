@@ -31,10 +31,6 @@ Aggregate Topic {
     saga workflow removeCourse(Integer courseId, Integer topicId, UnitOfWork unitOfWork);
     saga workflow updateTopic(Integer topicId, String name, UnitOfWork unitOfWork);
     
-    CustomRepository {
-        Optional<Integer> findTopicIdByName(String topicName);
-    }
-
     WebAPIEndpoints {
         Endpoint FindTopicsByCourseAggregateId {
             httpMethod: GET
