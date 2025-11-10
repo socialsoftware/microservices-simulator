@@ -156,7 +156,7 @@ Aggregate Tournament {
     saga workflow removeTopic(Integer topicAggregateId, Integer tournamentId, UnitOfWork unitOfWork);
     
     CustomRepository {
-        Set<Integer> findAllRelevantTournamentIds(Integer executionAggregateId);
+        Set<Integer> findAllByTournamentExecutionExecutionAggregateId(Integer executionAggregateId);
     }
     
     WebAPIEndpoints {

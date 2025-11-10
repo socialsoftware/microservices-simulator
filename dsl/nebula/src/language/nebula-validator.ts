@@ -1,8 +1,9 @@
 import type { ValidationAcceptor, ValidationChecks } from "langium";
-import type { NebulaAstType, Model, Aggregate, Entity, Property, Method, Invariant, Import } from "./generated/ast.js";
+import type { NebulaAstType, Model, Aggregate, Entity, Property, Method, Invariant, Import, RepositoryMethod } from "./generated/ast.js";
 import type { NebulaServices } from "./nebula-module.js";
 import { ErrorMessageProvider } from "./error-messages.js";
 import { getEntities, getMethods } from "../cli/utils/aggregate-helpers.js";
+import { QueryMethodParser } from "../cli/utils/query-method-parser.js";
 
 export function registerValidationChecks(services: NebulaServices) {
   const registry = services.validation.ValidationRegistry;
@@ -15,6 +16,7 @@ export function registerValidationChecks(services: NebulaServices) {
     Method: validator.checkMethod,
     Invariant: validator.checkInvariant,
     Import: validator.checkImport,
+    RepositoryMethod: validator.checkRepositoryMethod,
   };
   registry.register(checks, validator);
 }
@@ -431,5 +433,95 @@ export class NebulaValidator {
         });
       }
     }
+  }
+
+  checkRepositoryMethod(method: RepositoryMethod, accept: ValidationAcceptor): void {
+    const aggregate = method.$container?.$container as Aggregate | undefined;
+    if (!aggregate) {
+      return;
+    }
+
+    const entities = getEntities(aggregate);
+    const rootEntity = entities.find((e: any) => e.isRoot);
+    if (!rootEntity) {
+      return;
+    }
+
+    if (method.query) {
+      if (method.query.trim() === '') {
+        accept("error", "Query string cannot be empty", {
+          node: method,
+          property: "query",
+        });
+      }
+      return;
+    }
+
+    const parsed = QueryMethodParser.parse(method.name);
+
+    if (!parsed.isValid) {
+      for (const error of parsed.errors) {
+        accept("error", error, {
+          node: method,
+          property: "name",
+        });
+      }
+      return;
+    }
+
+    const allEntities = entities;
+    const propertyValidation = QueryMethodParser.validateProperties(parsed, rootEntity, allEntities);
+    if (!propertyValidation.isValid) {
+      for (const error of propertyValidation.errors) {
+        accept("error", error, {
+          node: method,
+          property: "name",
+        });
+      }
+    }
+
+    const paramCount = method.parameters?.length || 0;
+    const paramValidation = QueryMethodParser.validateParameterCount(parsed, paramCount);
+    if (!paramValidation.isValid) {
+      for (const error of paramValidation.errors) {
+        accept("error", error, {
+          node: method,
+          property: "parameters",
+        });
+      }
+    }
+
+    const returnTypeText = this.getReturnTypeText(method.returnType);
+    if (returnTypeText) {
+      const returnTypeValidation = QueryMethodParser.validateReturnType(parsed.prefix, returnTypeText);
+      if (!returnTypeValidation.isValid) {
+        for (const error of returnTypeValidation.errors) {
+          accept("error", error, {
+            node: method,
+            property: "returnType",
+          });
+        }
+      }
+    }
+  }
+
+  private getReturnTypeText(returnType: any): string | null {
+    if (!returnType) {
+      return null;
+    }
+
+    if (returnType.$cstNode && returnType.$cstNode.text) {
+      return returnType.$cstNode.text.trim();
+    }
+
+    if (returnType.type) {
+      return this.getReturnTypeText(returnType.type);
+    }
+
+    if (returnType.name) {
+      return returnType.name;
+    }
+
+    return null;
   }
 }

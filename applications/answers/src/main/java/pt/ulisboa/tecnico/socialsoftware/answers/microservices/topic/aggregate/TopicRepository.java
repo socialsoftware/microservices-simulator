@@ -8,6 +8,5 @@ import jakarta.transaction.Transactional;
 @Repository
 @Transactional
 public interface TopicRepository extends JpaRepository<Topic, Integer> {
-    @Query(value = "")
     Optional<Integer> findTopicIdByName(String topicName);
 }

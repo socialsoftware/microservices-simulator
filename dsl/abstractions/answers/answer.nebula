@@ -79,7 +79,7 @@ Aggregate Answer {
     saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer answerId, UnitOfWork unitOfWork);
     
     CustomRepository {
-        Optional<Integer> findAnswerIdByQuizIdAndUserId(Integer quizAggregateId, Integer studentAggregateId);
+        Optional<Integer> findAnswerIdByAnswerQuizQuizAggregateIdAndAnswerUserUserAggregateId(Integer quizAggregateId, Integer studentAggregateId);
     }
 
     WebAPIEndpoints {

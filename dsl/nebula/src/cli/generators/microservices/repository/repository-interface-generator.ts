@@ -84,6 +84,9 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
                 const returnType = this.resolveRepositoryReturnType(method.returnType);
                 const parameters = method.parameters || [];
 
+                const isForSaga = method.name.endsWith('ForSaga');
+                const baseMethodName = isForSaga ? method.name.replace(/ForSaga$/, '') : method.name;
+
                 let query = '';
                 if (method.query) {
                     query = method.query;
@@ -92,14 +95,14 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
                 }
 
                 methods.push({
-                    methodName: method.name,
+                    methodName: baseMethodName,
                     query: query,
                     parameters: parameters.map((param: any) => ({
                         name: param.name,
                         type: this.resolveParameterType(param.type)
                     })),
                     returnType: returnType,
-                    forSaga: false
+                    forSaga: isForSaga
                 });
             });
         }
@@ -227,13 +230,21 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
 
         if (context.queryMethods && context.queryMethods.length > 0) {
             const queryMethodsText = context.queryMethods.map((method: any) => {
-                const sagaQuery = method.forSaga ?
-                    `${method.query} AND ${context.lowerAggregate}.sagaState = 'NOT_IN_SAGA'` :
-                    method.query;
-
                 const methodName = method.forSaga ? `${method.methodName}ForSaga` : method.methodName;
-                return `    @Query(value = "${sagaQuery}")
-    ${method.returnType} ${methodName}(${method.parameters.map((p: any) => `${p.type} ${p.name}`).join(', ')});`;
+                const methodSignature = `${method.returnType} ${methodName}(${method.parameters.map((p: any) => `${p.type} ${p.name}`).join(', ')});`;
+
+                if (method.query && method.query.trim() !== '') {
+                    let sagaQuery = method.query;
+                    if (method.forSaga) {
+                        const aliasMatch = method.query.match(/\bfrom\s+\w+\s+(\w+)\b/i);
+                        const alias = aliasMatch ? aliasMatch[1] : context.lowerAggregate.charAt(0) + '1';
+                        sagaQuery = `${method.query} AND ${alias}.sagaState = 'NOT_IN_SAGA'`;
+                    }
+                    return `    @Query(value = "${sagaQuery}")
+    ${methodSignature}`;
+                } else {
+                    return `    ${methodSignature}`;
+                }
             }).join('\n');
             result = result.replace(/\{\{queryMethods\}\}/g, queryMethodsText);
         } else {

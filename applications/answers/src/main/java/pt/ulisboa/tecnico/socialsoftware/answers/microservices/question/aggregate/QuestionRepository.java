@@ -8,6 +8,5 @@ import jakarta.transaction.Transactional;
 @Repository
 @Transactional
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
-    @Query(value = "")
     Optional<Integer> findQuestionIdByTitle(String questionTitle);
 }

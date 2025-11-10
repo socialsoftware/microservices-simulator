@@ -14,7 +14,8 @@ Aggregate Course {
     }
 
     CustomRepository {
-        Optional<Integer> findCourseIdByName(String courseName);
+        @Query("select c1.id from Course c1 where c1.name = :courseName AND c1.state = 'ACTIVE'")
+        Optional<Integer> findCourseIdByNameForSaga(String courseName);
     }
 
     // Service methods
