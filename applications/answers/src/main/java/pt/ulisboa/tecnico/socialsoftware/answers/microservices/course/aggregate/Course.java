@@ -58,4 +58,8 @@ public abstract class Course extends Aggregate {
     }
 
 
+    @Override
+    public void verifyInvariants() {
+        // No invariants defined
+    }
 }

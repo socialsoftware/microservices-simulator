@@ -3,8 +3,19 @@ import { capitalize } from "../../../utils/generator-utils.js";
 import { ImportRequirements } from "./types.js";
 
 export function generateInvariants(entity: Entity): { code: string, imports?: ImportRequirements } {
-    if (!entity.invariants || entity.invariants.length === 0) {
-        return { code: '', imports: undefined };
+    const hasInvariants = entity.invariants && entity.invariants.length > 0;
+
+    if (!hasInvariants) {
+        const verifyMethod = `
+    @Override
+    public void verifyInvariants() {
+        // No invariants defined
+    }`;
+
+        return {
+            code: verifyMethod,
+            imports: undefined
+        };
     }
 
     const imports: ImportRequirements = {};

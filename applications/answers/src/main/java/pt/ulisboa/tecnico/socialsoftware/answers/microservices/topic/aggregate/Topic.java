@@ -53,4 +53,8 @@ public abstract class Topic extends Aggregate {
     }
 
 
+    @Override
+    public void verifyInvariants() {
+        // No invariants defined
+    }
 }

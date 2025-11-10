@@ -133,4 +133,8 @@ public abstract class Execution extends Aggregate {
     }
 
 
+    @Override
+    public void verifyInvariants() {
+        // No invariants defined
+    }
 }
