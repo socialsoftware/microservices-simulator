@@ -6,10 +6,6 @@ Aggregate User {
         Boolean active;
     }
     
-    CustomRepository {
-        Optional<Integer> findUserIdByUsername(String username);
-    }
-
     Events {
         publish DeleteUserEvent {
             Integer userAggregateId;

@@ -40,6 +40,7 @@ public abstract class Quiz extends Aggregate {
     private Set<QuizOption> options = new HashSet<>();
 
     public Quiz() {
+
     }
 
     public Quiz(Integer aggregateId, QuizDto quizDto, QuizExecution execution) {

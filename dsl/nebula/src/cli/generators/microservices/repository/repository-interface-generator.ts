@@ -183,15 +183,21 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
             imports.push('import java.util.List;');
         }
 
+        const hasQueryMethods = queryMethods.some(method => method.query && method.query.trim() !== '');
+
         switch (repositoryType) {
             case 'MongoRepository':
                 imports.push('import org.springframework.data.mongodb.repository.MongoRepository;');
-                imports.push('import org.springframework.data.mongodb.repository.Query;');
+                if (hasQueryMethods) {
+                    imports.push('import org.springframework.data.mongodb.repository.Query;');
+                }
                 break;
             case 'JpaRepository':
             default:
                 imports.push('import org.springframework.data.jpa.repository.JpaRepository;');
-                imports.push('import org.springframework.data.jpa.repository.Query;');
+                if (hasQueryMethods) {
+                    imports.push('import org.springframework.data.jpa.repository.Query;');
+                }
                 break;
         }
 

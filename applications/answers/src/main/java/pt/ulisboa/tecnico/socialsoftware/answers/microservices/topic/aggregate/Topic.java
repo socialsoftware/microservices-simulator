@@ -17,6 +17,7 @@ public abstract class Topic extends Aggregate {
     private TopicCourse course;
 
     public Topic() {
+
     }
 
     public Topic(Integer aggregateId, TopicDto topicDto, TopicCourse course) {

@@ -24,6 +24,7 @@ public class AnswerQuiz {
     private Answer answer;
 
     public AnswerQuiz() {
+
     }
 
     public AnswerQuiz(QuizDto quizDto) {

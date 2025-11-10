@@ -19,6 +19,7 @@ public class QuestionCourse {
     private Question question;
 
     public QuestionCourse() {
+
     }
 
     public QuestionCourse(CourseDto courseDto) {

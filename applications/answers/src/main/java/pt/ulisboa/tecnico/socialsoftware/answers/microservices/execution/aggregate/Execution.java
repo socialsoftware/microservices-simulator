@@ -30,6 +30,7 @@ public abstract class Execution extends Aggregate {
     private Set<ExecutionUser> users = new HashSet<>();
 
     public Execution() {
+
     }
 
     public Execution(Integer aggregateId, ExecutionDto executionDto, ExecutionCourse executionCourse) {

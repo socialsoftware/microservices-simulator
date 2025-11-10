@@ -34,6 +34,7 @@ public abstract class Question extends Aggregate {
     private List<Option> options = new ArrayList<>();
 
     public Question() {
+
     }
 
     public Question(Integer aggregateId, QuestionDto questionDto, QuestionCourse course) {

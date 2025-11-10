@@ -23,6 +23,7 @@ public class TournamentExecution {
     private Tournament tournament;
 
     public TournamentExecution() {
+
     }
 
     public TournamentExecution(ExecutionDto executionDto) {

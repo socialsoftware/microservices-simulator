@@ -18,6 +18,7 @@ public class TournamentQuiz {
     private Tournament tournament;
 
     public TournamentQuiz() {
+
     }
 
     public TournamentQuiz(QuizDto quizDto) {

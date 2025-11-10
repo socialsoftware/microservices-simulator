@@ -19,6 +19,7 @@ public class Option {
     private Question question;
 
     public Option() {
+
     }
 
     public Option(OptionDto optionDto) {

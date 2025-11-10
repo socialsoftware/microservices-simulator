@@ -31,9 +31,44 @@ const isEnumTypeByNaming = (javaType: string) => {
     return false;
 };
 
-export function generateDefaultConstructor(name: string): { code: string } {
+export function generateDefaultConstructor(entity: Entity): { code: string } {
+    const entityName = entity.name;
+    const isRootEntity = entity.isRoot || false;
+
+    const finalFieldInitializations = entity.properties.map((prop: any, index: number) => {
+        if (!isRootEntity && index === 0) {
+            return '';
+        }
+
+        const isFinal = (prop as any).isFinal || false;
+        if (!isFinal) {
+            return '';
+        }
+
+        const javaType = resolveJavaType(prop.type);
+        const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
+
+        if (isCollection) {
+            if (javaType.startsWith('List<')) {
+                return `        this.${prop.name} = new ArrayList<>();`;
+            } else if (javaType.startsWith('Set<')) {
+                return `        this.${prop.name} = new HashSet<>();`;
+            }
+        } else if (TypeResolver.isPrimitiveType(javaType)) {
+            if (javaType === 'Boolean') {
+                return `        this.${prop.name} = null;`;
+            } else {
+                return `        this.${prop.name} = null;`;
+            }
+        }
+
+        return `        this.${prop.name} = null;`;
+    }).filter(init => init !== '').join('\n');
+
+    const constructorBody = finalFieldInitializations ? finalFieldInitializations : '';
+
     return {
-        code: `\n    public ${name}() {\n    }`
+        code: `\n    public ${entityName}() {\n${constructorBody}\n    }`
     };
 }
 
@@ -84,48 +119,47 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
             `Integer aggregateId, ${dtoTypeName} ${dtoParamName}`) :
         `${dtoTypeName} ${dtoParamName}`;
 
-    // Generate setter calls using DTO properties
     const setterCalls = entity.properties.map((prop: any, index: number) => {
-        // Skip the first property (id) for non-root entities as it's @GeneratedValue
         if (!isRootEntity && index === 0) {
             return '';
         }
 
         const javaType = resolveJavaType(prop.type);
         const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
+        const isFinal = (prop as any).isFinal || false;
 
-        // Determine the DTO getter method name
         let dtoGetterName = capitalizedName;
 
-        // If using a custom DTO, map entity field names to DTO field names
         if (customDtoType) {
             const mappedName = mapEntityFieldToDtoField(prop.name, customDtoType, dtoMappings, entity);
             if (mappedName === null) {
-                // Skip fields that don't exist in the custom DTO
                 return '';
             }
             dtoGetterName = mappedName;
         }
 
+        if (isFinal) {
+            if (isEnumType(prop.type) || isEnumTypeByNaming(javaType)) {
+                return `        this.${prop.name} = ${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}());`;
+            } else {
+                return `        this.${prop.name} = ${dtoParamName}.get${dtoGetterName}();`;
+            }
+        }
+
         if (javaType === 'LocalDateTime') {
-            // For LocalDateTime fields, use direct assignment (assuming DTO also has LocalDateTime)
-            // If DTO has String, it should be explicitly defined in the DSL as String type
             return `        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`;
         } else if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
             return `        set${capitalizedName}(${prop.name});`;
         } else if (isEnumType(prop.type) || isEnumTypeByNaming(javaType)) {
-            // For enum types, use valueOf to convert from String DTO field
             return `        set${capitalizedName}(${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}()));`;
         } else if (javaType.startsWith('List<') || javaType.startsWith('Set<')) {
-            // Handle collection mappings with potential field extraction
             return generateCollectionMapping(prop, dtoParamName, dtoGetterName, javaType, customDtoType, dtoMappings, entity);
         } else if (!javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
             return `        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`;
         }
-        return ''; // Skip other cases
+        return '';
     }).filter(call => call !== '').join('\n');
 
-    // Different constructor body for root vs non-root entities
     const constructorBody = isRootEntity ?
         `        super(aggregateId);
         setAggregateType(getClass().getSimpleName());
@@ -172,6 +206,11 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
 
         const javaType = resolveJavaType(prop.type);
         const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
+        const isFinal = (prop as any).isFinal || false;
+
+        if (isFinal) {
+            return `        this.${prop.name} = other.get${capitalizedName}();`;
+        }
 
         if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
             // Single entity relationship - create new instance

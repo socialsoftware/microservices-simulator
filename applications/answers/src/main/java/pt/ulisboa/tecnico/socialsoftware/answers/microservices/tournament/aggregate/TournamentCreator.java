@@ -23,6 +23,7 @@ public class TournamentCreator {
     private Tournament tournament;
 
     public TournamentCreator() {
+
     }
 
     public TournamentCreator(UserDto userDto) {

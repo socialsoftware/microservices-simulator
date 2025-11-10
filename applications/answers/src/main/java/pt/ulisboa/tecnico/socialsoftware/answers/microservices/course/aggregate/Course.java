@@ -19,6 +19,7 @@ public abstract class Course extends Aggregate {
     private LocalDateTime creationDate;
 
     public Course() {
+
     }
 
     public Course(Integer aggregateId, CourseDto courseDto) {

@@ -36,6 +36,7 @@ public abstract class Answer extends Aggregate {
     private List<AnswerQuestion> answerQuestion = new ArrayList<>();
 
     public Answer() {
+
     }
 
     public Answer(Integer aggregateId, AnswerDto answerDto, AnswerExecution answerExecution, AnswerUser answerUser, AnswerQuiz answerQuiz) {

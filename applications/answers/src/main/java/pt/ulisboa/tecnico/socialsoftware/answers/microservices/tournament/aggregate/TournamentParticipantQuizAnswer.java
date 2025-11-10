@@ -24,6 +24,7 @@ public class TournamentParticipantQuizAnswer {
     private Tournament tournament;
 
     public TournamentParticipantQuizAnswer() {
+
     }
 
     public TournamentParticipantQuizAnswer(QuizDto quizDto) {

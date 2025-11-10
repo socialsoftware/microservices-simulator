@@ -23,6 +23,7 @@ public class TournamentTopic {
     private Tournament tournament;
 
     public TournamentTopic() {
+
     }
 
     public TournamentTopic(TopicDto topicDto) {

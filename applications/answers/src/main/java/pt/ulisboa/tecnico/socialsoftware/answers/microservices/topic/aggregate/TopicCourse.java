@@ -18,6 +18,7 @@ public class TopicCourse {
     private Topic topic;
 
     public TopicCourse() {
+
     }
 
     public TopicCourse(CourseDto courseDto) {

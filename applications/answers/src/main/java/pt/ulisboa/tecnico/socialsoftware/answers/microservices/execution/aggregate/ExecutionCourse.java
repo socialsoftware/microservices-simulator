@@ -24,6 +24,7 @@ public class ExecutionCourse {
     private Execution execution;
 
     public ExecutionCourse() {
+
     }
 
     public ExecutionCourse(ExecutionDto executionDto) {

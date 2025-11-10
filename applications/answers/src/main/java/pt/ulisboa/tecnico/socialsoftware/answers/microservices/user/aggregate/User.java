@@ -18,6 +18,7 @@ public abstract class User extends Aggregate {
     private Boolean active;
 
     public User() {
+        this.role = null;
     }
 
     public User(Integer aggregateId, UserDto userDto, UserRole role) {
@@ -25,7 +26,7 @@ public abstract class User extends Aggregate {
         setAggregateType(getClass().getSimpleName());
         setName(userDto.getName());
         setUsername(userDto.getUsername());
-        setRole(role);
+        this.role = UserRole.valueOf(userDto.getRole());
         setActive(userDto.getActive());
     }
 
@@ -33,7 +34,7 @@ public abstract class User extends Aggregate {
         super(other);
         setName(other.getName());
         setUsername(other.getUsername());
-        setRole(new UserRole(other.getRole()));
+        this.role = other.getRole();
         setActive(other.getActive());
     }
 

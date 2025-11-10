@@ -19,6 +19,7 @@ public class QuizExecution {
     private Quiz quiz;
 
     public QuizExecution() {
+
     }
 
     public QuizExecution(ExecutionDto executionDto) {

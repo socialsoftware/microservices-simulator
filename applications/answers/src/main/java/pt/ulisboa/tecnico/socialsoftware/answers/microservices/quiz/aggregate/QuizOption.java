@@ -18,6 +18,7 @@ public class QuizOption {
     private Quiz quiz;
 
     public QuizOption() {
+
     }
 
     public QuizOption(OptionDto optionDto) {

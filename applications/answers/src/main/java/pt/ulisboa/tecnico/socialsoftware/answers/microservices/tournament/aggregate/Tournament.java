@@ -38,6 +38,7 @@ public abstract class Tournament extends Aggregate {
     private TournamentQuiz tournamentQuiz;
 
     public Tournament() {
+
     }
 
     public Tournament(Integer aggregateId, TournamentDto tournamentDto, TournamentCreator tournamentCreator, TournamentExecution tournamentExecution, TournamentQuiz tournamentQuiz) {

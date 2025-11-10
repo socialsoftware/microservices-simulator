@@ -7,8 +7,8 @@ SharedDtos {
         String username;
         String role;
         Boolean active;
-        Integer numberAnswered;
-        Integer numberCorrect;
+        // Integer numberAnswered;
+        // Integer numberCorrect;
     }
     
     dto CourseDto {

@@ -21,6 +21,7 @@ public class AnswerUser {
     private Answer answer;
 
     public AnswerUser() {
+
     }
 
     public AnswerUser(UserDto userDto) {

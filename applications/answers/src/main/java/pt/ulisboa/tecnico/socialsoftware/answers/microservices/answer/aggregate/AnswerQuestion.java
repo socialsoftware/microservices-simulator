@@ -25,6 +25,7 @@ public class AnswerQuestion {
     private Answer answer;
 
     public AnswerQuestion() {
+
     }
 
     public AnswerQuestion(QuestionDto questionDto) {

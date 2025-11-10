@@ -42,8 +42,6 @@ public class ExecutionDto implements Serializable {
                 userdto.setUsername(executionuser.getUserUsername());
                 userdto.setRole(executionuser.getRole());
                 userdto.setActive(executionuser.getActive());
-                userdto.setNumberAnswered(executionuser.getNumberAnswered());
-                userdto.setNumberCorrect(executionuser.getNumberCorrect());
             return userdto;
         }).get())
             .collect(Collectors.toSet()));

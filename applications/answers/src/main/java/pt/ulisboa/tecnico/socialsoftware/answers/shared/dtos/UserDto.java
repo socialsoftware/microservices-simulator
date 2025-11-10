@@ -12,13 +12,11 @@ public class UserDto implements Serializable {
     private String username;
     private String role;
     private Boolean active;
-    private Integer numberAnswered;
-    private Integer numberCorrect;
     
     public UserDto() {
     }
     
-    public UserDto(Integer aggregateId, Integer version, AggregateState state, String name, String username, String role, Boolean active, Integer numberAnswered, Integer numberCorrect) {
+    public UserDto(Integer aggregateId, Integer version, AggregateState state, String name, String username, String role, Boolean active) {
         setAggregateId(aggregateId);
         setVersion(version);
         setState(state);
@@ -26,8 +24,6 @@ public class UserDto implements Serializable {
         setUsername(username);
         setRole(role);
         setActive(active);
-        setNumberAnswered(numberAnswered);
-        setNumberCorrect(numberCorrect);
     }
     
     public Integer getAggregateId() {
@@ -84,21 +80,5 @@ public class UserDto implements Serializable {
     
     public void setActive(Boolean active) {
         this.active = active;
-    }
-
-    public Integer getNumberAnswered() {
-        return numberAnswered;
-    }
-    
-    public void setNumberAnswered(Integer numberAnswered) {
-        this.numberAnswered = numberAnswered;
-    }
-
-    public Integer getNumberCorrect() {
-        return numberCorrect;
-    }
-    
-    public void setNumberCorrect(Integer numberCorrect) {
-        this.numberCorrect = numberCorrect;
     }
 }

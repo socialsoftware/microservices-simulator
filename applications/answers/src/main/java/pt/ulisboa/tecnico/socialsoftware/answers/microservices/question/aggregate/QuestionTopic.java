@@ -17,6 +17,7 @@ public class QuestionTopic {
     private Question question;
 
     public QuestionTopic() {
+
     }
 
     public QuestionTopic(TopicDto topicDto) {

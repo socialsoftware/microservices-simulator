@@ -18,6 +18,7 @@ public class AnswerExecution {
     private Answer answer;
 
     public AnswerExecution() {
+
     }
 
     public AnswerExecution(ExecutionDto executionDto) {

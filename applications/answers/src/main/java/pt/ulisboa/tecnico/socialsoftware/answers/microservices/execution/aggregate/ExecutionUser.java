@@ -24,6 +24,7 @@ public class ExecutionUser {
     private Execution execution;
 
     public ExecutionUser() {
+
     }
 
     public ExecutionUser(UserDto userDto) {

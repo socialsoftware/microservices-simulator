@@ -60,7 +60,7 @@ export class EntityOrchestrator {
     private generateEntityComponents(entity: Entity, projectName: string, opts: EntityGenerationOptions, isRootEntity: boolean) {
         return {
             fields: generateFields(entity.properties, entity, isRootEntity, projectName).code,
-            defaultConstructor: generateDefaultConstructor(entity.name).code,
+            defaultConstructor: generateDefaultConstructor(entity).code,
             dtoConstructor: generateEntityDtoConstructor(entity, projectName, opts.allSharedDtos, opts.dtoMappings).code,
             copyConstructor: generateCopyConstructor(entity).code,
             gettersSetters: generateGettersSetters(entity.properties, entity, projectName, opts.allEntities).code,

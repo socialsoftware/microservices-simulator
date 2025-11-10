@@ -31,6 +31,7 @@ public class TournamentParticipant {
     private Tournament tournament;
 
     public TournamentParticipant() {
+
     }
 
     public TournamentParticipant(UserDto userDto) {
