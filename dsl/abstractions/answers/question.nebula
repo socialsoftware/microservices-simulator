@@ -24,8 +24,14 @@ Aggregate Question {
         AggregateState topicState;
     }
 
-    Entity Option uses dto OptionDto{
+    Entity Option uses dto OptionDto mapping {
+        key -> optionKey;
+        sequence -> sequence;
+        correct -> correct;
+        content -> content;
+    } {
         Long id;
+        Integer optionKey;
         Integer sequence;
         Boolean correct;
         String content;
@@ -89,9 +95,6 @@ Aggregate Question {
     saga workflow removeCourse(Integer courseId, Integer questionId, UnitOfWork unitOfWork);
     saga workflow removeTopic(Integer topicId, Integer questionId, UnitOfWork unitOfWork);
     
-    CustomRepository {
-        Optional<Integer> findQuestionIdByTitle(String questionTitle);
-    }
 
     WebAPIEndpoints {
         Endpoint FindQuestionByAggregateId {

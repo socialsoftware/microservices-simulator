@@ -1,0 +1,12 @@
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
+
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import jakarta.transaction.Transactional;
+
+@Repository
+@Transactional
+public interface AnswerRepository extends JpaRepository<Answer, Integer> {
+    Optional<Integer> findAnswerIdByAnswerQuizQuizAggregateIdAndAnswerUserUserAggregateId(Integer quizAggregateId, Integer studentAggregateId);
+}

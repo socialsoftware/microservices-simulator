@@ -19,7 +19,6 @@ Aggregate Quiz {
         state -> questionState;
         title -> questionTitle;
         content -> questionContent;
-        sequence -> questionSequence;
     } {
         Long id;
         Integer questionAggregateId;
@@ -31,7 +30,6 @@ Aggregate Quiz {
     }
 
     Entity QuizOption uses dto OptionDto mapping {
-        sequence -> optionSequence;
         correct -> optionCorrect;
         content -> optionContent;
     } {

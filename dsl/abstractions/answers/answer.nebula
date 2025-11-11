@@ -23,8 +23,6 @@ Aggregate Answer {
 
     Entity AnswerQuestion uses dto QuestionDto mapping {
         aggregateId -> questionAggregateId;
-        sequence -> questionOptionSequenceChoice;
-        optionKey -> questionOptionKey;
     } {
         Long id;
         Integer questionAggregateId;

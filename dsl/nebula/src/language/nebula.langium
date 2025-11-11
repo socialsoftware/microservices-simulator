@@ -423,22 +423,14 @@ SharedEnums:
 
 DtoDefinition:
     'dto' name=ID (genericParams=GenericParameters)? '{'
-        (fields+=DtoField | mappings+=DtoMapping)*
+        fields+=DtoField*
     '}';
 
 GenericParameters:
     '<' params+=ID (',' params+=ID)* '>';
 
 DtoField:
-    type=DtoFieldType name=ID ';';
-
-DtoMapping:
-    'mapping' (collectionType=('Set' | 'List'))? '<'? targetDto=[DtoDefinition:ID] '>'? collectionName=ID '{'
-        fieldMappings+=FieldMapping*
-    '}';
-
-FieldMapping:
-    dtoField=ID '->' entityField=ID ('extract' extractField=ID)? ';';
+    type=DtoFieldType name=ID ('->' sourceEntity=[Entity:ID])? ';';
 
 DtoFieldType:
     PrimitiveType | DtoReference | ListType | SetType | OptionalType | AggregateStateType;

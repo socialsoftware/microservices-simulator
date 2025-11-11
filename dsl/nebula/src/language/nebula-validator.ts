@@ -58,8 +58,6 @@ export class NebulaValidator {
       }
     }
 
-    // Validate DTO mappings
-    this.validateDtoMappings(model, accept);
 
     if (model.aggregates.length === 0) {
       const warningMsg = ErrorMessageProvider.getMessage('EMPTY_MODEL');
@@ -87,7 +85,6 @@ export class NebulaValidator {
       }
     }
 
-    // Check for root entity
     const rootEntities = entities.filter((e: any) => e.isRoot);
     if (rootEntities.length === 0) {
       accept("warning", "Aggregate should have at least one root entity", {
@@ -99,7 +96,6 @@ export class NebulaValidator {
       });
     }
 
-    // Check for duplicate method names
     const methodNames = new Set<string>();
     for (const method of methods) {
       if (methodNames.has(method.name.toLowerCase())) {
@@ -139,7 +135,6 @@ export class NebulaValidator {
       }
     }
 
-    // Check for required properties in root entities
     if (entity.isRoot) {
       const hasId = entity.properties.some(p => p.name && p.name.toLowerCase() === 'id');
       if (!hasId) {
@@ -149,18 +144,15 @@ export class NebulaValidator {
       }
     }
 
-    // Validate DTO usage and imports
     const entityAny = entity as any;
     if (entityAny.dtoType) {
       this.validateDtoImport(entity, accept);
     }
 
-    // Validate DTO mapping if present
     if (entityAny.dtoMapping?.fieldMappings) {
       this.validateEntityDtoMapping(entity, entityAny.dtoMapping.fieldMappings, accept);
     }
 
-    // Validate that only root entities have invariants
     if (!entity.isRoot && entity.invariants && entity.invariants.length > 0) {
       accept("error", "Only root entities can have invariants. Non-root entities should not define invariant blocks.", {
         node: entity,
@@ -174,10 +166,8 @@ export class NebulaValidator {
   // ============================================================================
 
   checkProperty(property: Property, accept: ValidationAcceptor): void {
-    // Validate property name
     this.validateName(property.name, "property", property, accept);
 
-    // Check for valid type
     if (!property.type) {
       accept("error", "Property must have a type", {
         node: property,
@@ -185,7 +175,6 @@ export class NebulaValidator {
       });
     }
 
-    // Check for collection properties with valid element types
     if (property.type && typeof property.type === 'object' && 'elementType' in property.type) {
       if (!property.type.elementType) {
         accept("error", "Collection property must specify element type", {
@@ -197,10 +186,8 @@ export class NebulaValidator {
   }
 
   checkMethod(method: Method, accept: ValidationAcceptor): void {
-    // Validate method name
     this.validateName(method.name, "method", method, accept);
 
-    // Check for duplicate parameter names
     const paramNames = new Set<string>();
     for (const param of method.parameters || []) {
       if (param.name && paramNames.has(param.name.toLowerCase())) {
@@ -213,7 +200,6 @@ export class NebulaValidator {
       }
     }
 
-    // Validate return type
     if (method.returnType && typeof method.returnType === 'string') {
       if (!this.javaNamingPattern.test(method.returnType)) {
         accept("error", `Invalid return type: ${method.returnType}`, {
@@ -225,10 +211,8 @@ export class NebulaValidator {
   }
 
   checkInvariant(invariant: Invariant, accept: ValidationAcceptor): void {
-    // Validate invariant name
     this.validateName(invariant.name, "invariant", invariant, accept);
 
-    // Check for empty conditions
     if (!invariant.conditions || invariant.conditions.length === 0) {
       accept("error", "Invariant must have at least one condition", {
         node: invariant,
@@ -236,7 +220,6 @@ export class NebulaValidator {
       });
     }
 
-    // Check for valid condition syntax (basic check)
     for (const condition of invariant.conditions || []) {
       if (condition && typeof condition === 'object' && 'expression' in condition) {
         const expr = (condition as any).expression;
@@ -256,7 +239,6 @@ export class NebulaValidator {
   // ============================================================================
 
   private validateName(name: string, type: string, node: any, accept: ValidationAcceptor): void {
-    // Check for empty name
     if (!name || name.trim() === '') {
       accept("error", `${type} name cannot be empty`, {
         node: node,
@@ -265,7 +247,6 @@ export class NebulaValidator {
       return;
     }
 
-    // Check for reserved words
     if (this.reservedWords.has(name.toLowerCase())) {
       accept("error", `'${name}' is a reserved word and cannot be used as ${type} name`, {
         node: node,
@@ -273,7 +254,6 @@ export class NebulaValidator {
       });
     }
 
-    // Check Java naming conventions
     if (!this.javaNamingPattern.test(name)) {
       accept("error", `Invalid ${type} name '${name}'. Must start with letter or underscore and contain only letters, digits, underscores, and dollar signs`, {
         node: node,
@@ -281,7 +261,6 @@ export class NebulaValidator {
       });
     }
 
-    // Check for proper casing
     if (type === 'entity' || type === 'aggregate') {
       if (name[0] !== name[0].toUpperCase()) {
         accept("warning", `${type} name should start with uppercase letter`, {
@@ -300,86 +279,17 @@ export class NebulaValidator {
   }
 
   checkImport(importNode: Import, accept: ValidationAcceptor): void {
-    // Import validation is now handled by the grammar itself
-    // Only 'import shared-dtos;' is allowed
   }
 
-  private validateDtoMappings(model: Model, accept: ValidationAcceptor): void {
-    // Check shared DTOs for mapping consistency
-    for (const sharedDtos of model.sharedDtos) {
-      for (const dto of sharedDtos.dtos) {
-        if (dto.mappings) {
-          for (const mapping of dto.mappings) {
-            this.validateDtoMapping(model, dto, mapping, accept);
-          }
-        }
-      }
-    }
-  }
-
-  private validateDtoMapping(model: Model, dto: any, mapping: any, accept: ValidationAcceptor): void {
-    const collectionName = mapping.collectionName;
-    const fieldMappings = mapping.fieldMappings || [];
-
-    // Find the aggregate that contains this collection
-    for (const aggregate of model.aggregates) {
-      const aggregateEntities = getEntities(aggregate);
-      const rootEntity = aggregateEntities.find((e: any) => e.isRoot);
-      if (rootEntity) {
-        // Check if this root entity has the collection
-        const collectionProperty = rootEntity.properties?.find((prop: any) =>
-          prop.name === collectionName
-        );
-
-        if (collectionProperty) {
-          // Find the entity type of the collection
-          const entityTypeName = this.extractEntityTypeFromCollection(collectionProperty);
-
-          // Find the actual entity definition
-          const targetEntity = aggregateEntities.find((e: any) => e.name === entityTypeName);
-
-          if (targetEntity) {
-            // Validate each field mapping
-            for (const fieldMapping of fieldMappings) {
-              const entityFieldName = fieldMapping.entityField;
-              const entityHasField = targetEntity.properties?.some((prop: any) =>
-                prop.name === entityFieldName
-              );
-
-              if (!entityHasField) {
-                accept("error", `Field '${entityFieldName}' does not exist in entity '${entityTypeName}'. Available fields: ${targetEntity.properties?.map((p: any) => p.name).join(', ') || 'none'}`, {
-                  node: fieldMapping,
-                  property: "entityField",
-                });
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  private extractEntityTypeFromCollection(property: any): string | null {
-    // Extract entity type from Set<EntityType> or List<EntityType>
-    if (property.type?.$type === 'SetType' || property.type?.$type === 'ListType') {
-      const elementType = property.type.elementType;
-      if (elementType?.$type === 'EntityType') {
-        return elementType.type?.ref?.name || elementType.type?.$refText;
-      }
-    }
-    return null;
-  }
 
   // ============================================================================
   // DTO MAPPING VALIDATION
   // ============================================================================
 
   private validateDtoImport(entity: Entity, accept: ValidationAcceptor): void {
-    // Get the model to check imports
     const model = entity.$container?.$container;
     if (!model) return;
 
-    // Check if shared-dtos is imported
     const modelAny = model as any;
     const hasSharedDtosImport = modelAny.imports?.some((imp: any) =>
       imp.sharedDtos === true
@@ -398,13 +308,11 @@ export class NebulaValidator {
   private validateEntityDtoMapping(entity: Entity, fieldMappings: any[], accept: ValidationAcceptor): void {
     const entityFields = entity.properties.map(p => p.name);
 
-    // Get the DTO definition
     const entityAny = entity as any;
     const dtoType = entityAny.dtoType;
     const dtoDefinition = dtoType?.ref;
 
     for (const mapping of fieldMappings) {
-      // Validate that entity field exists
       if (!entityFields.includes(mapping.entityField)) {
         accept("error", `Entity field '${mapping.entityField}' does not exist in entity '${entity.name}'. Available fields: ${entityFields.join(', ')}`, {
           node: mapping,
@@ -412,10 +320,8 @@ export class NebulaValidator {
         });
       }
 
-      // Validate that DTO field exists
       if (dtoDefinition && dtoDefinition.fields) {
         const explicitDtoFields = dtoDefinition.fields.map((f: any) => f.name);
-        // Add standard aggregate fields that are automatically added to all DTOs
         const standardFields = ['aggregateId', 'version', 'state'];
         const allDtoFields = [...standardFields, ...explicitDtoFields];
 
@@ -426,7 +332,6 @@ export class NebulaValidator {
           });
         }
       } else if (dtoType && !dtoDefinition) {
-        // DTO reference is broken
         accept("error", `Referenced DTO '${dtoType.$refText || 'unknown'}' not found`, {
           node: entity,
           property: "dtoType",

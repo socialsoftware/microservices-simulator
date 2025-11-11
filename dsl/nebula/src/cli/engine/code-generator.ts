@@ -82,7 +82,6 @@ export class CodeGenerator {
             console.log("Generating code...");
             const generators = GeneratorRegistryFactory.createRegistry();
 
-            // Extract shared metadata needed for cross-aggregate references
             const allDtoDefinitions: any[] = [];
             const allDtoMappings: any[] = [];
             for (const model of models) {
@@ -91,16 +90,12 @@ export class CodeGenerator {
                         if (sharedDtosBlock.dtos) {
                             for (const dtoDefinition of sharedDtosBlock.dtos) {
                                 allDtoDefinitions.push(dtoDefinition);
-                                if (dtoDefinition.mappings) {
-                                    allDtoMappings.push(...dtoDefinition.mappings);
-                                }
                             }
                         }
                     }
                 }
             }
 
-            // Prepare generation context with all necessary metadata
             const options: GenerationOptions = {
                 projectName: config.projectName,
                 outputPath: paths.projectPath,

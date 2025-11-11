@@ -21,48 +21,24 @@ SharedDtos {
         String acronym;
         String academicTerm;
         LocalDateTime endDate;
-
         Integer courseAggregateId;
         String courseName;
         String courseType;
         Integer courseVersion;
-        
         Set<UserDto> users;
-        
-        mapping UserDto users {
-            aggregateId -> userAggregateId;
-            version -> userVersion;
-            name -> userName;
-            username -> userUsername;
-            state -> userState;
-        }
     }
     
     dto QuestionDto {
         String title;
         String content;
         LocalDateTime creationDate;
-        Integer sequence;
-        Integer timeTaken;
-        Integer optionKey;
-
-        mapping CourseDto course {
-        }
-
-        mapping Set<TopicDto> topics {
-            aggregateId -> topicAggregateId;
-            version -> topicVersion;
-            name -> topicName;
-        }
-
-        mapping List<OptionDto> options {
-            aggregateId -> optionAggregateId;
-            version -> optionVersion;
-            name -> optionName;
-        }
+        CourseDto course;
+        Set<TopicDto> topics;
+        List<OptionDto> options -> Option;
     }
 
     dto OptionDto {
+        Integer key;
         Integer sequence;
         Boolean correct;
         String content;
@@ -78,11 +54,9 @@ SharedDtos {
         LocalDateTime availableDate;
         LocalDateTime conclusionDate;
         LocalDateTime resultsDate;
-         
         String description;
         String quizType;
         Integer numberOfQuestions;
-
         List<QuestionDto> questions;
     }
     
@@ -98,10 +72,8 @@ SharedDtos {
         LocalDateTime creationDate;
         LocalDateTime answerDate;
         Boolean completed;
-
         Integer userAggregateId;
         String userName;
-
         Integer quizAggregateId;
     }
 }
