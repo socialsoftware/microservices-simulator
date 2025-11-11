@@ -264,4 +264,5 @@ public abstract class Tournament extends Aggregate {
             throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
         }
     }
+
 }

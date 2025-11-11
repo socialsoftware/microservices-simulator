@@ -98,4 +98,14 @@ public class TournamentCreator {
         this.tournament = tournament;
     }
 
+
+    public UserDto buildDto() {
+        UserDto dto = new UserDto();
+        dto.setAggregateId(getCreatorAggregateId());
+        dto.setName(getCreatorName());
+        dto.setUsername(getCreatorUsername());
+        dto.setVersion(getCreatorVersion());
+        dto.setState(getCreatorState());
+        return dto;
+    }
 }

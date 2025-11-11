@@ -98,4 +98,14 @@ public class TournamentExecution {
         this.tournament = tournament;
     }
 
+
+    public ExecutionDto buildDto() {
+        ExecutionDto dto = new ExecutionDto();
+        dto.setAggregateId(getExecutionAggregateId());
+        dto.setCourseAggregateId(getExecutionAggregateCourseId());
+        dto.setAcronym(getExecutionAcronym());
+        dto.setState(getExecutionState());
+        dto.setVersion(getExecutionVersion());
+        return dto;
+    }
 }

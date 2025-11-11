@@ -62,4 +62,5 @@ public abstract class Course extends Aggregate {
     public void verifyInvariants() {
         // No invariants defined
     }
+
 }

@@ -63,4 +63,12 @@ public class QuizOption {
         this.quiz = quiz;
     }
 
+
+    public OptionDto buildDto() {
+        OptionDto dto = new OptionDto();
+        dto.setSequence(getOptionSequence());
+        dto.setCorrect(getOptionCorrect());
+        dto.setContent(getOptionContent());
+        return dto;
+    }
 }

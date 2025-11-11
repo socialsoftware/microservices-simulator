@@ -98,4 +98,14 @@ public class TournamentTopic {
         this.tournament = tournament;
     }
 
+
+    public TopicDto buildDto() {
+        TopicDto dto = new TopicDto();
+        dto.setAggregateId(getTopicAggregateId());
+        dto.setVersion(getTopicVersion());
+        dto.setState(getTopicState());
+        dto.setName(getTopicName());
+        dto.setCourseId(getTopicCourseAggregateId());
+        return dto;
+    }
 }

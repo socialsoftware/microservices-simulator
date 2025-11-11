@@ -74,4 +74,13 @@ public class Option {
         this.question = question;
     }
 
+
+    public OptionDto buildDto() {
+        OptionDto dto = new OptionDto();
+        dto.setId(getId());
+        dto.setSequence(getSequence());
+        dto.setCorrect(getCorrect());
+        dto.setContent(getContent());
+        return dto;
+    }
 }

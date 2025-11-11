@@ -109,4 +109,15 @@ public class ExecutionUser {
         this.execution = execution;
     }
 
+
+    public UserDto buildDto() {
+        UserDto dto = new UserDto();
+        dto.setAggregateId(getUserAggregateId());
+        dto.setVersion(getUserVersion());
+        dto.setState(getUserState());
+        dto.setName(getUserName());
+        dto.setUsername(getUserUsername());
+        dto.setActive(getUserActive());
+        return dto;
+    }
 }

@@ -125,4 +125,14 @@ public class TournamentParticipant {
         this.tournament = tournament;
     }
 
+
+    public UserDto buildDto() {
+        UserDto dto = new UserDto();
+        dto.setAggregateId(getParticipantAggregateId());
+        dto.setVersion(getParticipantVersion());
+        dto.setState(getParticipantState());
+        dto.setName(getParticipantName());
+        dto.setUsername(getParticipantUsername());
+        return dto;
+    }
 }

@@ -220,4 +220,5 @@ public abstract class Quiz extends Aggregate {
     public void verifyInvariants() {
         // No invariants defined
     }
+
 }

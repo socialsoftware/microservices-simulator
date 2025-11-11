@@ -109,4 +109,15 @@ public class QuizQuestion {
         this.quiz = quiz;
     }
 
+
+    public QuestionDto buildDto() {
+        QuestionDto dto = new QuestionDto();
+        dto.setAggregateId(getQuestionAggregateId());
+        dto.setVersion(getQuestionVersion());
+        dto.setState(getQuestionState());
+        dto.setTitle(getQuestionTitle());
+        dto.setContent(getQuestionContent());
+        dto.setSequence(getQuestionSequence());
+        return dto;
+    }
 }

@@ -74,4 +74,12 @@ public class QuestionCourse {
         this.question = question;
     }
 
+
+    public CourseDto buildDto() {
+        CourseDto dto = new CourseDto();
+        dto.setAggregateId(getCourseAggregateId());
+        dto.setName(getCourseName());
+        dto.setVersion(getCourseVersion());
+        return dto;
+    }
 }

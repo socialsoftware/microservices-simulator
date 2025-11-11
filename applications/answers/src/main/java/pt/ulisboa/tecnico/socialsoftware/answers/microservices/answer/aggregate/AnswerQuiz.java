@@ -81,4 +81,12 @@ public class AnswerQuiz {
         this.answer = answer;
     }
 
+
+    public QuizDto buildDto() {
+        QuizDto dto = new QuizDto();
+        dto.setAggregateId(getQuizAggregateId());
+        dto.setVersion(getQuizVersion());
+        dto.setQuestions(getQuizQuestionsAggregateIds());
+        return dto;
+    }
 }

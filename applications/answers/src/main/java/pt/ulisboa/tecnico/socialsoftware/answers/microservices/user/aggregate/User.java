@@ -71,4 +71,5 @@ public abstract class User extends Aggregate {
     public void verifyInvariants() {
         // No invariants defined
     }
+
 }

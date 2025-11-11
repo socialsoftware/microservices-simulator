@@ -164,4 +164,5 @@ public abstract class Answer extends Aggregate {
     public void verifyInvariants() {
         // No invariants defined
     }
+
 }

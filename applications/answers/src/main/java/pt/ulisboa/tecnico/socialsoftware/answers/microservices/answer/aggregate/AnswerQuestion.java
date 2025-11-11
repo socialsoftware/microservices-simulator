@@ -116,4 +116,12 @@ public class AnswerQuestion {
         this.answer = answer;
     }
 
+
+    public QuestionDto buildDto() {
+        QuestionDto dto = new QuestionDto();
+        dto.setAggregateId(getQuestionAggregateId());
+        dto.setSequence(getQuestionOptionSequenceChoice());
+        dto.setOptionKey(getQuestionOptionKey());
+        return dto;
+    }
 }

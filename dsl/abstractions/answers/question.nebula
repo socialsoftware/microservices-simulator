@@ -12,9 +12,16 @@ Aggregate Question {
         Integer courseVersion;
     }
 
-    Entity QuestionTopic uses dto TopicDto {
+    Entity QuestionTopic uses dto TopicDto mapping {
+        aggregateId -> topicAggregateId;
+        name -> topicName;
+        version -> topicVersion;
+    } {
         Integer topicId;
+        Integer topicAggregateId;
         String topicName;
+        Integer topicVersion;
+        AggregateState topicState;
     }
 
     Entity Option uses dto OptionDto{

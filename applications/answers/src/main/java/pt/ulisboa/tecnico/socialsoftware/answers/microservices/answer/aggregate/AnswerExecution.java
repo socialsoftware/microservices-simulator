@@ -63,4 +63,11 @@ public class AnswerExecution {
         this.answer = answer;
     }
 
+
+    public ExecutionDto buildDto() {
+        ExecutionDto dto = new ExecutionDto();
+        dto.setAggregateId(getExecutionAggregateId());
+        dto.setVersion(getExecutionVersion());
+        return dto;
+    }
 }

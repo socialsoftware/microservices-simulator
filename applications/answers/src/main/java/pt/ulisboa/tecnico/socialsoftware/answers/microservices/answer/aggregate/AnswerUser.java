@@ -76,4 +76,12 @@ public class AnswerUser {
         this.answer = answer;
     }
 
+
+    public UserDto buildDto() {
+        UserDto dto = new UserDto();
+        dto.setAggregateId(getUserAggregateId());
+        dto.setName(getUserName());
+        dto.setState(getUserState());
+        return dto;
+    }
 }

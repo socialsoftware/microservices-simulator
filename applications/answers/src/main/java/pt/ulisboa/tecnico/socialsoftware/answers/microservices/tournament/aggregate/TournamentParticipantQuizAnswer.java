@@ -107,4 +107,10 @@ public class TournamentParticipantQuizAnswer {
         this.tournament = tournament;
     }
 
+
+    public QuizDto buildDto() {
+        QuizDto dto = new QuizDto();
+        dto.setAggregateId(getParticipantQuizAnswerAggregateId());
+        return dto;
+    }
 }

@@ -229,4 +229,5 @@ public abstract class Question extends Aggregate {
             throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
         }
     }
+
 }

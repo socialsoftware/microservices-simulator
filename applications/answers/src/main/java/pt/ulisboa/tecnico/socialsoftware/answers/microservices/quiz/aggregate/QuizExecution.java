@@ -73,4 +73,12 @@ public class QuizExecution {
         this.quiz = quiz;
     }
 
+
+    public ExecutionDto buildDto() {
+        ExecutionDto dto = new ExecutionDto();
+        dto.setAggregateId(getExecutionAggregateId());
+        dto.setAcronym(getExecutionAcronym());
+        dto.setAcademicTerm(getExecutionAcademicTerm());
+        return dto;
+    }
 }

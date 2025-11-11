@@ -55,4 +55,5 @@ public abstract class Topic extends Aggregate {
     public void verifyInvariants() {
         // No invariants defined
     }
+
 }
