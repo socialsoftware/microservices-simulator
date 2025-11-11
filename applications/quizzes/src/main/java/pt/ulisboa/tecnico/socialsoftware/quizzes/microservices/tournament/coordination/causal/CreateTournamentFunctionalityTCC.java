@@ -9,10 +9,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetStudentByExecutionIdAndUserIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.FindQuestionsByTopicIdsCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GenerateQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.CreateTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
@@ -62,7 +64,10 @@ public class CreateTournamentFunctionalityTCC extends WorkflowFunctionality {
             quizDto.setConclusionDate(tournamentDto.getEndTime());
             quizDto.setResultsDate(tournamentDto.getEndTime());
 
-            GenerateQuizCommand GenerateQuizCommand = new GenerateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), executionId, quizDto, topicsId, tournamentDto.getNumberOfQuestions());
+            FindQuestionsByTopicIdsCommand findQuestionsByTopicIdsCommand = new FindQuestionsByTopicIdsCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), topicsId);
+            List<QuestionDto> questionDtos = (List<QuestionDto>) commandGateway.send(findQuestionsByTopicIdsCommand);
+
+            GenerateQuizCommand GenerateQuizCommand = new GenerateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), executionId, quizDto, questionDtos, tournamentDto.getNumberOfQuestions());
             QuizDto quizResultDto = (QuizDto) commandGateway.send(GenerateQuizCommand);
 
             CreateTournamentCommand CreateTournamentCommand = new CreateTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, creatorDto, courseExecutionDto, topicDtos, quizResultDto);

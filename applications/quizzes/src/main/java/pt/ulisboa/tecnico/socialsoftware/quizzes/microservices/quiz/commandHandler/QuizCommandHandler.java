@@ -88,7 +88,7 @@ public class QuizCommandHandler implements CommandHandler {
             return quizService.generateQuiz(
                     command.getCourseExecutionAggregateId(),
                     command.getQuizDto(),
-                    command.getTopicIds(),
+                    command.getQuestionDtos(),
                     command.getNumberOfQuestions(),
                     command.getUnitOfWork());
         } catch (Exception e) {

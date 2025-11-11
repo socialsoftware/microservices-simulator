@@ -21,6 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -338,7 +339,7 @@ public class TournamentService {
 
         QuizDto quizDto1 = null;
         try {
-            quizDto1 = quizService.generateQuiz(newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId(), quizDto, topicsIds, newTournament.getNumberOfQuestions(), unitOfWork);
+            quizDto1 = quizService.generateQuiz(newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId(), quizDto, new ArrayList<>(), newTournament.getNumberOfQuestions(), unitOfWork); // TODO - empty questionDtos
         } catch (QuizzesException e) {
             newTournament.setState(Aggregate.AggregateState.INACTIVE);
         }

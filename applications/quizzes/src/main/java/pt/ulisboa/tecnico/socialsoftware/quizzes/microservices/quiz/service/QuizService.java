@@ -57,12 +57,12 @@ public class QuizService {
     // intended for requests from local functionalities
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizDto generateQuiz(Integer courseExecutionAggregateId, QuizDto quizDto, List<Integer> topicIds, Integer numberOfQuestions, UnitOfWork unitOfWork) {
+    public QuizDto generateQuiz(Integer courseExecutionAggregateId, QuizDto quizDto, List<QuestionDto> questionDtos, Integer numberOfQuestions, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
 
         QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionService.getCourseExecutionById(courseExecutionAggregateId, unitOfWork));
 
-        List<QuestionDto> questionDtos = questionService.findQuestionsByTopicIds(topicIds, unitOfWork);
+//        List<QuestionDto> questionDtos = questionService.findQuestionsByTopicIds(topicIds, unitOfWork);
 
         if (questionDtos.size() < numberOfQuestions) {
             throw new QuizzesException(QuizzesErrorMessage.NOT_ENOUGH_QUESTIONS);
@@ -89,18 +89,7 @@ public class QuizService {
     public QuizDto startTournamentQuiz(Integer userAggregateId, Integer quizAggregateId, UnitOfWork unitOfWork) {
         /* must add more verifications */
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
-        QuizDto quizDto = quizFactory.createQuizDto(oldQuiz);
-        List<QuestionDto> questionDtoList = new ArrayList<>();
-        // TODO if I have time change the quiz to only store references to the questions (its easier)
-        oldQuiz.getQuizQuestions().forEach(quizQuestion -> {
-            QuestionDto questionDto = questionService.getQuestionById(quizQuestion.getQuestionAggregateId(), unitOfWork);
-            questionDto.getOptionDtos().forEach(o -> {
-                o.setCorrect(false); // by setting all to false frontend doesn't know which is correct
-            });
-            questionDtoList.add(questionDto);
-        });
-        quizDto.setQuestionDtos(questionDtoList);
-        return quizDto;
+        return quizFactory.createQuizDto(oldQuiz);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

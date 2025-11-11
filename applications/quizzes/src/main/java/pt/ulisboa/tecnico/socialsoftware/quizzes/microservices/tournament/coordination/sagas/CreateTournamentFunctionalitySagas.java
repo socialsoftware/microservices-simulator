@@ -9,12 +9,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetStudentByExecutionIdAndUserIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.FindQuestionsByTopicIdsCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GenerateQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.RemoveQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.CreateTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.states.TopicSagaState;
@@ -30,6 +32,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
     private HashSet<TopicDto> topicDtos = new HashSet<>();
     private QuizDto quizDto;
     private TournamentDto tournamentDto;
+    private List<QuestionDto> questionDtos;
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
@@ -71,15 +74,20 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             });
         });
 
+        SagaSyncStep findQuestionsByTopicIdsStep = new SagaSyncStep("findQuestionsByTopicIdsStep", () -> {
+            FindQuestionsByTopicIdsCommand findQuestionsByTopicIdsCommand = new FindQuestionsByTopicIdsCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), topicsId);
+            this.questionDtos = (List<QuestionDto>) commandGateway.send(findQuestionsByTopicIdsCommand);
+        }, new ArrayList<>(Arrays.asList(getTopicsStep)));
+
         SagaSyncStep generateQuizStep = new SagaSyncStep("generateQuizStep", () -> {
             QuizDto quizDto = new QuizDto();
             quizDto.setAvailableDate(tournamentDto.getStartTime());
             quizDto.setConclusionDate(tournamentDto.getEndTime());
             quizDto.setResultsDate(tournamentDto.getEndTime());
-            GenerateQuizCommand generateQuizCommand = new GenerateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), executionId, quizDto, topicsId, tournamentDto.getNumberOfQuestions());
+            GenerateQuizCommand generateQuizCommand = new GenerateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), executionId, quizDto, questionDtos, tournamentDto.getNumberOfQuestions());
             QuizDto quizResultDto = (QuizDto) commandGateway.send(generateQuizCommand);
             this.setQuizDto(quizResultDto);
-        }, new ArrayList<>(Arrays.asList(getTopicsStep)));
+        }, new ArrayList<>(Arrays.asList(findQuestionsByTopicIdsStep)));
 
         generateQuizStep.registerCompensation(() -> {
             if (this.getQuizDto() != null) {
@@ -97,6 +105,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow.addStep(getCreatorStep);
         this.workflow.addStep(getCourseExecutionStep);
         this.workflow.addStep(getTopicsStep);
+        this.workflow.addStep(findQuestionsByTopicIdsStep);
         this.workflow.addStep(generateQuizStep);
         this.workflow.addStep(createTournamentStep);
     }

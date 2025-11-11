@@ -8,13 +8,18 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.StartQuizCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.StartTournamentQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamentByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.SolveQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
     private TournamentDto tournamentDto;
@@ -41,6 +46,17 @@ public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
 
             StartTournamentQuizCommand StartTournamentQuizCommand = new StartTournamentQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), userAggregateId, tournamentDto.getQuiz().getAggregateId());
             this.quizDto = (QuizDto) commandGateway.send(StartTournamentQuizCommand);
+
+            List<QuestionDto> questionDtoList = new ArrayList<>();
+            quizDto.getQuestionDtos().forEach(quizQuestion -> {
+                GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), quizQuestion.getAggregateId());
+                QuestionDto questionDto = (QuestionDto) commandGateway.send(getQuestionByIdCommand);
+                questionDto.getOptionDtos().forEach(o -> {
+                    o.setCorrect(false); // by setting all to false frontend doesn't know which is correct
+                });
+                questionDtoList.add(questionDto);
+            });
+            quizDto.setQuestionDtos(questionDtoList);
 
             StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), quizDto.getAggregateId(), userAggregateId, tournamentDto.getCourseExecution().getAggregateId());
             quizAnswerDto = (QuizAnswerDto) commandGateway.send(startQuizCommand);
