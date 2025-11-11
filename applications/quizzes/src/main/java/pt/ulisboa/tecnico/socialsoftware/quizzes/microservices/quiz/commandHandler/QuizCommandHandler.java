@@ -27,31 +27,28 @@ public class QuizCommandHandler implements CommandHandler {
             sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
         }
         Object returnObject;
-        if (command instanceof StartTournamentQuizCommand) {
-            returnObject = handleStartTournamentQuiz((StartTournamentQuizCommand) command);
-        } else if (command instanceof GetQuizByIdCommand) {
-            returnObject = handleGetQuizById((GetQuizByIdCommand) command);
-        } else if (command instanceof GenerateQuizCommand) {
-            returnObject = handleGenerateQuiz((GenerateQuizCommand) command);
-        } else if (command instanceof CreateQuizCommand) {
-            returnObject = handleCreateQuiz((CreateQuizCommand) command);
-        } else if (command instanceof UpdateGeneratedQuizCommand) {
-            returnObject = handleUpdateGeneratedQuiz((UpdateGeneratedQuizCommand) command);
-        } else if (command instanceof UpdateQuizCommand) {
-            returnObject = handleUpdateQuiz((UpdateQuizCommand) command);
-        } else if (command instanceof GetAvailableQuizzesCommand) {
-            returnObject = handleGetAvailableQuizzes((GetAvailableQuizzesCommand) command);
-        } else if (command instanceof RemoveCourseExecutionCommand) {
-            returnObject = handleRemoveCourseExecution((RemoveCourseExecutionCommand) command);
-        } else if (command instanceof UpdateQuestionCommand) {
-            returnObject = handleUpdateQuestion((UpdateQuestionCommand) command);
-        } else if (command instanceof RemoveQuizQuestionCommand) {
-            returnObject = handleRemoveQuizQuestion((RemoveQuizQuestionCommand) command);
-        } else if (command instanceof RemoveQuizCommand) {
-            returnObject = handleRemoveQuiz((RemoveQuizCommand) command);
-        } else {
-            logger.warning("Unknown command type: " + command.getClass().getName());
-            returnObject = null;
+        switch (command) {
+            case StartTournamentQuizCommand startTournamentQuizCommand ->
+                    returnObject = handleStartTournamentQuiz(startTournamentQuizCommand);
+            case GetQuizByIdCommand getQuizByIdCommand -> returnObject = handleGetQuizById(getQuizByIdCommand);
+            case GenerateQuizCommand generateQuizCommand -> returnObject = handleGenerateQuiz(generateQuizCommand);
+            case CreateQuizCommand createQuizCommand -> returnObject = handleCreateQuiz(createQuizCommand);
+            case UpdateGeneratedQuizCommand updateGeneratedQuizCommand ->
+                    returnObject = handleUpdateGeneratedQuiz(updateGeneratedQuizCommand);
+            case UpdateQuizCommand updateQuizCommand -> returnObject = handleUpdateQuiz(updateQuizCommand);
+            case GetAvailableQuizzesCommand getAvailableQuizzesCommand ->
+                    returnObject = handleGetAvailableQuizzes(getAvailableQuizzesCommand);
+            case RemoveCourseExecutionCommand removeCourseExecutionCommand ->
+                    returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
+            case UpdateQuestionCommand updateQuestionCommand ->
+                    returnObject = handleUpdateQuestion(updateQuestionCommand);
+            case RemoveQuizQuestionCommand removeQuizQuestionCommand ->
+                    returnObject = handleRemoveQuizQuestion(removeQuizQuestionCommand);
+            case RemoveQuizCommand removeQuizCommand -> returnObject = handleRemoveQuiz(removeQuizCommand);
+            default -> {
+                logger.warning("Unknown command type: " + command.getClass().getName());
+                returnObject = null;
+            }
         }
         if (command.getSemanticLock() != null) {
             sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),

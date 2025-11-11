@@ -57,8 +57,7 @@ public class TournamentFunctionalities {
         }
     }
 
-    public TournamentDto createTournament(Integer userId, Integer executionId, List<Integer> topicsId,
-            TournamentDto tournamentDto) {
+    public TournamentDto createTournament(Integer userId, Integer executionId, List<Integer> topicsId, TournamentDto tournamentDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -112,8 +111,7 @@ public class TournamentFunctionalities {
         }
     }
 
-    public void addParticipantAsync(Integer tournamentAggregateId, Integer executionAggregateId,
-            Integer userAggregateId) {
+    public void addParticipantAsync(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -125,17 +123,6 @@ public class TournamentFunctionalities {
 
                 addParticipantAsyncFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
-            // case TCC:
-            // CausalUnitOfWork causalUnitOfWork =
-            // causalUnitOfWorkService.createUnitOfWork(functionalityName);
-            // AddParticipantAsyncFunctionalityTCC addParticipantAsyncFunctionalityTCC = new
-            // AddParticipantAsyncFunctionalityTCC(
-            // tournamentService, courseExecutionService, causalUnitOfWorkService,
-            // tournamentAggregateId, executionAggregateId, userAggregateId,
-            // causalUnitOfWork, commandGateway);
-
-            // addParticipantAsyncFunctionalityTCC.executeWorkflow(causalUnitOfWork);
-            // break;
             default:
                 throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
@@ -394,7 +381,9 @@ public class TournamentFunctionalities {
         }
     }
 
-    /** FOR TESTING PURPOSES **/
+    /**
+     * FOR TESTING PURPOSES
+     **/
     public void getTournamentAndUser(Integer tournamentAggregateId, Integer userAggregateId) {
         switch (workflowType) {
             case SAGAS:

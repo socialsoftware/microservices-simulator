@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.eventProcessing;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
@@ -16,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.events.publi
 
 @Service
 public class QuizAnswerEventProcessing {
+    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(QuizAnswerEventProcessing.class);
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
     private final CommandGateway commandGateway;
 
@@ -26,6 +28,7 @@ public class QuizAnswerEventProcessing {
     }
 
     public void processDeleteUserEvent(Integer aggregateId, DeleteUserEvent deleteUserEvent) {
+        logger.info("Processing DeleteUserEvent: aggregateId={}, event={}", aggregateId, deleteUserEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         RemoveUserFromQuizAnswerCommand command = new RemoveUserFromQuizAnswerCommand(
                 unitOfWork,
@@ -38,6 +41,7 @@ public class QuizAnswerEventProcessing {
     }
 
     public void processDeleteQuestionEvent(Integer aggregateId, DeleteQuestionEvent deleteQuestionEvent) {
+        logger.info("Processing DeleteQuestionEvent: aggregateId={}, event={}", aggregateId, deleteQuestionEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         RemoveQuestionFromQuizAnswerCommand command = new RemoveQuestionFromQuizAnswerCommand(
                 unitOfWork,
@@ -51,6 +55,8 @@ public class QuizAnswerEventProcessing {
 
     public void processDisenrollStudentEvent(Integer aggregateId,
             DisenrollStudentFromCourseExecutionEvent disenrollStudentFromCourseExecutionEvent) {
+        logger.info("Processing DisenrollStudentEvent: aggregateId={}, event={}", aggregateId,
+                disenrollStudentFromCourseExecutionEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         RemoveUserFromQuizAnswerCommand command = new RemoveUserFromQuizAnswerCommand(
                 unitOfWork,
@@ -64,6 +70,8 @@ public class QuizAnswerEventProcessing {
 
     public void processUpdateStudentNameEvent(Integer subscriberAggregateId,
             UpdateStudentNameEvent updateStudentNameEvent) {
+        logger.info("Processing UpdateStudentNameEvent: subscriberAggregateId={}, event={}", subscriberAggregateId,
+                updateStudentNameEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         UpdateUserNameCommand command = new UpdateUserNameCommand(
                 unitOfWork,

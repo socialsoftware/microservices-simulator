@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.eventProcessing;
 
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.publish.QuizAnswerQuestionAnswerEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.AnonymizeStudentEvent;
@@ -30,19 +33,21 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
 
 @Service
 public class TournamentEventProcessing {
-    // Removed direct service calls in favor of commands; service not needed here
-
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
     @Autowired(required = false)
     private SagaUnitOfWorkService sagaUnitOfWorkService;
-
-    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
-
     @Autowired
     private Environment env;
+
+    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(TournamentEventProcessing.class);
 
     private TransactionalModel workflowType;
     @Autowired
     private CommandGateway commandGateway;
+
+    public TournamentEventProcessing(UnitOfWorkService unitOfWorkService) {
+        this.unitOfWorkService = unitOfWorkService;
+    }
 
     @PostConstruct
     public void init() {
@@ -56,17 +61,13 @@ public class TournamentEventProcessing {
         }
     }
 
-    public TournamentEventProcessing(UnitOfWorkService unitOfWorkService) {
-        this.unitOfWorkService = unitOfWorkService;
-    }
-
-    public void processAnonymizeStudentEvent(Integer aggregateId, AnonymizeStudentEvent anonymizeEvent) { // TODO CHANGE TO TOURNAMENT FUNCTIONALITIES??
+    public void processAnonymizeStudentEvent(Integer aggregateId, AnonymizeStudentEvent anonymizeEvent) {
+        logger.info("Processing AnonymizeStudentEvent: aggregateId={}, event={}", aggregateId, anonymizeEvent);
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-
+        UnitOfWork unitOfWork;
         switch (workflowType) {
             case SAGAS:
-                UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-
+                unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
                 AnonymizeUserTournamentFunctionalitySagas anonymizeUserTournamentFunctionalitySagas = new AnonymizeUserTournamentFunctionalitySagas(
                         unitOfWorkService, aggregateId, anonymizeEvent.getPublisherAggregateId(),
                         anonymizeEvent.getStudentAggregateId(), anonymizeEvent.getName(), anonymizeEvent.getUsername(),
@@ -75,14 +76,9 @@ public class TournamentEventProcessing {
                 break;
             case TCC:
                 unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-                var command = new pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.AnonymizeUserCommand(
-                        unitOfWork,
-                        pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping.TOURNAMENT.getServiceName(),
-                        aggregateId,
-                        anonymizeEvent.getPublisherAggregateId(),
-                        anonymizeEvent.getStudentAggregateId(),
-                        anonymizeEvent.getName(),
-                        anonymizeEvent.getUsername(),
+                var command = new AnonymizeUserCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),
+                        aggregateId, anonymizeEvent.getPublisherAggregateId(), anonymizeEvent.getStudentAggregateId(),
+                        anonymizeEvent.getName(), anonymizeEvent.getUsername(),
                         anonymizeEvent.getPublisherAggregateVersion());
                 commandGateway.send(command);
                 unitOfWorkService.commit(unitOfWork);
@@ -94,53 +90,44 @@ public class TournamentEventProcessing {
 
     public void processRemoveCourseExecutionEvent(Integer aggregateId,
             DeleteCourseExecutionEvent deleteCourseExecutionEvent) {
+        logger.info("Processing RemoveCourseExecutionEvent: aggregateId={}, event={}", aggregateId,
+                deleteCourseExecutionEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        var command = new pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.RemoveCourseExecutionCommand(
-                unitOfWork,
-                pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping.TOURNAMENT.getServiceName(),
-                aggregateId,
-                deleteCourseExecutionEvent.getPublisherAggregateId(),
+        var command = new RemoveCourseExecutionCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),
+                aggregateId, deleteCourseExecutionEvent.getPublisherAggregateId(),
                 deleteCourseExecutionEvent.getPublisherAggregateVersion());
         commandGateway.send(command);
         unitOfWorkService.commit(unitOfWork);
     }
 
     public void processUpdateTopicEvent(Integer aggregateId, UpdateTopicEvent updateTopicEvent) {
+        logger.info("Processing UpdateTopicEvent: aggregateId={}, event={}", aggregateId, updateTopicEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        var command = new pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.UpdateTopicCommand(
-                unitOfWork,
-                pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping.TOURNAMENT.getServiceName(),
-                aggregateId,
-                updateTopicEvent.getPublisherAggregateId(),
-                updateTopicEvent.getTopicName(),
+        var command = new UpdateTopicCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), aggregateId,
+                updateTopicEvent.getPublisherAggregateId(), updateTopicEvent.getTopicName(),
                 updateTopicEvent.getPublisherAggregateVersion());
         commandGateway.send(command);
         unitOfWorkService.commit(unitOfWork);
     }
 
     public void processDeleteTopicEvent(Integer aggregateId, DeleteTopicEvent deleteTopicEvent) {
+        logger.info("Processing DeleteTopicEvent: aggregateId={}, event={}", aggregateId, deleteTopicEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        var command = new pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.RemoveTopicCommand(
-                unitOfWork,
-                pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping.TOURNAMENT.getServiceName(),
-                aggregateId,
-                deleteTopicEvent.getPublisherAggregateId(),
-                deleteTopicEvent.getPublisherAggregateVersion());
+        var command = new RemoveTopicCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), aggregateId,
+                deleteTopicEvent.getPublisherAggregateId(), deleteTopicEvent.getPublisherAggregateVersion());
         commandGateway.send(command);
         unitOfWorkService.commit(unitOfWork);
     }
 
     public void processAnswerQuestionEvent(Integer aggregateId,
             QuizAnswerQuestionAnswerEvent quizAnswerQuestionAnswerEvent) {
+        logger.info("Processing QuizAnswerQuestionAnswerEvent: aggregateId={}, event={}", aggregateId,
+                quizAnswerQuestionAnswerEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        var command = new pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.UpdateParticipantAnswerCommand(
-                unitOfWork,
-                pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping.TOURNAMENT.getServiceName(),
-                aggregateId,
-                quizAnswerQuestionAnswerEvent.getStudentAggregateId(),
+        var command = new UpdateParticipantAnswerCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),
+                aggregateId, quizAnswerQuestionAnswerEvent.getStudentAggregateId(),
                 quizAnswerQuestionAnswerEvent.getPublisherAggregateId(),
-                quizAnswerQuestionAnswerEvent.getQuestionAggregateId(),
-                quizAnswerQuestionAnswerEvent.isCorrect(),
+                quizAnswerQuestionAnswerEvent.getQuestionAggregateId(), quizAnswerQuestionAnswerEvent.isCorrect(),
                 quizAnswerQuestionAnswerEvent.getPublisherAggregateVersion());
         commandGateway.send(command);
         unitOfWorkService.commit(unitOfWork);
@@ -148,11 +135,10 @@ public class TournamentEventProcessing {
 
     public void processDisenrollStudentFromCourseExecutionEvent(Integer aggregateId,
             DisenrollStudentFromCourseExecutionEvent disenrollStudentFromCourseExecutionEvent) {
+        logger.info("Processing DisenrollStudentFromCourseExecutionEvent: aggregateId={}, event={}", aggregateId,
+                disenrollStudentFromCourseExecutionEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        var command = new pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.RemoveUserCommand(
-                unitOfWork,
-                pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping.TOURNAMENT.getServiceName(),
-                aggregateId,
+        var command = new RemoveUserCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), aggregateId,
                 disenrollStudentFromCourseExecutionEvent.getPublisherAggregateId(),
                 disenrollStudentFromCourseExecutionEvent.getStudentAggregateId(),
                 disenrollStudentFromCourseExecutionEvent.getPublisherAggregateVersion());
@@ -161,50 +147,42 @@ public class TournamentEventProcessing {
     }
 
     public void processInvalidateQuizEvent(Integer aggregateId, InvalidateQuizEvent invalidateQuizEvent) {
+        logger.info("Processing InvalidateQuizEvent: aggregateId={}, event={}", aggregateId, invalidateQuizEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        var command = new pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.InvalidateQuizCommand(
-                unitOfWork,
-                pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping.TOURNAMENT.getServiceName(),
-                aggregateId,
-                invalidateQuizEvent.getPublisherAggregateId(),
-                invalidateQuizEvent.getPublisherAggregateVersion());
+        var command = new InvalidateQuizCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), aggregateId,
+                invalidateQuizEvent.getPublisherAggregateId(), invalidateQuizEvent.getPublisherAggregateVersion());
         commandGateway.send(command);
         unitOfWorkService.commit(unitOfWork);
     }
 
     public void processUpdateStudentNameEvent(Integer subscriberAggregateId,
             UpdateStudentNameEvent updateStudentNameEvent) {
+        logger.info("Processing UpdateStudentNameEvent: subscriberAggregateId={}, event={}", subscriberAggregateId,
+                updateStudentNameEvent);
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-
                 UpdateUserNameFunctionalitySagas updateUserNameFunctionalitySagas = new UpdateUserNameFunctionalitySagas(
                         sagaUnitOfWorkService, updateStudentNameEvent.getPublisherAggregateVersion(),
                         subscriberAggregateId, updateStudentNameEvent.getPublisherAggregateId(),
                         updateStudentNameEvent.getStudentAggregateId(), sagaUnitOfWork,
                         updateStudentNameEvent.getUpdatedName(), commandGateway);
-
                 updateUserNameFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 UnitOfWork unitOfWork = unitOfWorkService
                         .createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-                var command = new pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.UpdateUserNameCommand(
-                        unitOfWork,
-                        pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping.TOURNAMENT.getServiceName(),
-                        subscriberAggregateId,
-                        updateStudentNameEvent.getPublisherAggregateId(),
+                var command = new UpdateUserNameCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),
+                        subscriberAggregateId, updateStudentNameEvent.getPublisherAggregateId(),
                         updateStudentNameEvent.getPublisherAggregateVersion(),
-                        updateStudentNameEvent.getStudentAggregateId(),
-                        updateStudentNameEvent.getUpdatedName());
+                        updateStudentNameEvent.getStudentAggregateId(), updateStudentNameEvent.getUpdatedName());
                 commandGateway.send(command);
                 unitOfWorkService.commit(unitOfWork);
                 break;
             default:
                 throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
-
     }
 }

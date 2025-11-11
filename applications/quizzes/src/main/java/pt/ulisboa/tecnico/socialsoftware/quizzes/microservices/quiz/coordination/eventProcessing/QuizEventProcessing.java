@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.eventProcessing;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
@@ -15,6 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.p
 
 @Service
 public class QuizEventProcessing {
+    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(QuizEventProcessing.class);
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
     private final CommandGateway commandGateway;
 
@@ -26,6 +28,8 @@ public class QuizEventProcessing {
 
     public void processDeleteCourseExecutionEvent(Integer aggregateId,
             DeleteCourseExecutionEvent deleteCourseExecutionEvent) {
+        logger.info("Processing DeleteCourseExecutionEvent: aggregateId={}, event={}", aggregateId,
+                deleteCourseExecutionEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         RemoveCourseExecutionCommand command = new RemoveCourseExecutionCommand(
                 unitOfWork,
@@ -38,6 +42,7 @@ public class QuizEventProcessing {
     }
 
     public void processUpdateQuestionEvent(Integer aggregateId, UpdateQuestionEvent updateQuestionEvent) {
+        logger.info("Processing UpdateQuestionEvent: aggregateId={}, event={}", aggregateId, updateQuestionEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         UpdateQuestionCommand command = new UpdateQuestionCommand(
                 unitOfWork,
@@ -52,6 +57,7 @@ public class QuizEventProcessing {
     }
 
     public void processDeleteQuizQuestionEvent(Integer aggregateId, DeleteQuestionEvent deleteQuestionEvent) {
+        logger.info("Processing DeleteQuizQuestionEvent: aggregateId={}, event={}", aggregateId, deleteQuestionEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         RemoveQuizQuestionCommand command = new RemoveQuizQuestionCommand(
                 unitOfWork,

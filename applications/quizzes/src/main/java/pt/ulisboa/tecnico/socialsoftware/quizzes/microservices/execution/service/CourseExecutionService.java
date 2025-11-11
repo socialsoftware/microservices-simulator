@@ -82,7 +82,7 @@ public class CourseExecutionService {
         /*
             REMOVE_COURSE_IS_VALID
          */
-        Integer numberOfExecutionsOfCourse = Math.toIntExact(getAllCourseExecutions(unitOfWork).stream()
+        int numberOfExecutionsOfCourse = Math.toIntExact(getAllCourseExecutions(unitOfWork).stream()
                 .filter(ce -> ce.getCourseAggregateId() == newCourseExecution.getExecutionCourse().getCourseAggregateId())
                 .count());
         if (numberOfExecutionsOfCourse == 1) {
@@ -173,6 +173,7 @@ public class CourseExecutionService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public CourseExecutionDto removeUser(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+        logger.info("Removing user by creating DisenrollStudentFromCourseExecutionEvent");
         CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
         CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setState(Aggregate.AggregateState.INACTIVE);

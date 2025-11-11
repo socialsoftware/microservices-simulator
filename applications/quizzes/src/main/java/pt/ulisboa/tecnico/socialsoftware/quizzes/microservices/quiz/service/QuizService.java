@@ -59,7 +59,6 @@ public class QuizService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public QuizDto generateQuiz(Integer courseExecutionAggregateId, QuizDto quizDto, List<Integer> topicIds, Integer numberOfQuestions, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        System.out.println("QUIZ AGGREGATE ID: " + aggregateId);
 
         QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionService.getCourseExecutionById(courseExecutionAggregateId, unitOfWork));
 

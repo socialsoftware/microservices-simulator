@@ -61,8 +61,7 @@ public class LocalCommandGateway implements CommandGateway {
         Object returnObject = handler.handle(command);
         if (returnObject instanceof SimulatorException) {
             throw (SimulatorException) returnObject;
-        }
-        if (returnObject instanceof TransientDataAccessException) {
+        } else if (returnObject instanceof TransientDataAccessException) {
            throw (TransientDataAccessException) returnObject;
         }
         return returnObject;

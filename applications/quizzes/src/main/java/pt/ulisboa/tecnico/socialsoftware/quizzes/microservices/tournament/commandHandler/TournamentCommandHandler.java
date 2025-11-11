@@ -308,7 +308,7 @@ public class TournamentCommandHandler implements CommandHandler {
     }
 
     private Object handleRemoveUser(RemoveUserCommand command) {
-        logger.info("Removing user from tournament: " + command.getTournamentAggregateId());
+        logger.info("Removing user " + command.getUserAggregateId() + " from tournament " + command.getTournamentAggregateId());
         try {
             return tournamentService.removeUser(
                     command.getTournamentAggregateId(),

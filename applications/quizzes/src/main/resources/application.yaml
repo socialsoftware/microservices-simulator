@@ -16,7 +16,6 @@ spring:
       ddl-auto: update
     show-sql: false
     open-in-view: false
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   groovy:
     template:

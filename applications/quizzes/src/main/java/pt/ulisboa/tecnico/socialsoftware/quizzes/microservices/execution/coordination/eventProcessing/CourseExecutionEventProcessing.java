@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
@@ -11,6 +12,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.events.publi
 
 @Service
 public class CourseExecutionEventProcessing {
+    private static final Logger logger = org.slf4j.LoggerFactory
+            .getLogger(CourseExecutionEventProcessing.class);
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     @Autowired
@@ -22,11 +25,12 @@ public class CourseExecutionEventProcessing {
     }
 
     public void processDeleteUserEvent(Integer aggregateId, DeleteUserEvent deleteUserEvent) {
+        logger.info("Processing DeleteUserEvent: aggregateId={}, event={}", aggregateId, deleteUserEvent);
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        RemoveUserCommand command = new RemoveUserCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), aggregateId, deleteUserEvent.getPublisherAggregateId());
+        RemoveUserCommand command = new RemoveUserCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(),
+                aggregateId, deleteUserEvent.getPublisherAggregateId());
         commandGateway.send(command);
         unitOfWorkService.commit(unitOfWork);
     }
-
 
 }
