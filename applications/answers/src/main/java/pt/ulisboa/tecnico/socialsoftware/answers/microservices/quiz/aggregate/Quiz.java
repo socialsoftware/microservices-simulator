@@ -25,15 +25,15 @@ public abstract class Quiz extends Aggregate {
     private String description;
     @Enumerated(EnumType.STRING)
     private QuizType quizType;
+    private LocalDateTime creationDate;
     private LocalDateTime availableDate;
     private LocalDateTime conclusionDate;
+    private LocalDateTime resultsDate;
     private Integer numberOfQuestions;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "quiz")
     private QuizExecution execution;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "quiz")
     private Set<QuizQuestion> questions = new HashSet<>();
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "quiz")
-    private Set<QuizOption> options = new HashSet<>();
 
     public Quiz() {
 
@@ -45,8 +45,10 @@ public abstract class Quiz extends Aggregate {
         setTitle(quizDto.getTitle());
         setDescription(quizDto.getDescription());
         setQuizType(QuizType.valueOf(quizDto.getQuizType()));
+        setCreationDate(quizDto.getCreationDate());
         setAvailableDate(quizDto.getAvailableDate());
         setConclusionDate(quizDto.getConclusionDate());
+        setResultsDate(quizDto.getResultsDate());
         setNumberOfQuestions(quizDto.getNumberOfQuestions());
         setExecution(execution);
     }
@@ -56,12 +58,13 @@ public abstract class Quiz extends Aggregate {
         setTitle(other.getTitle());
         setDescription(other.getDescription());
         setQuizType(other.getQuizType());
+        setCreationDate(other.getCreationDate());
         setAvailableDate(other.getAvailableDate());
         setConclusionDate(other.getConclusionDate());
+        setResultsDate(other.getResultsDate());
         setNumberOfQuestions(other.getNumberOfQuestions());
         setExecution(new QuizExecution(other.getExecution()));
         setQuestions(other.getQuestions().stream().map(QuizQuestion::new).collect(Collectors.toSet()));
-        setOptions(other.getOptions().stream().map(QuizOption::new).collect(Collectors.toSet()));
     }
 
     public String getTitle() {
@@ -88,6 +91,14 @@ public abstract class Quiz extends Aggregate {
         this.quizType = quizType;
     }
 
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
+
     public LocalDateTime getAvailableDate() {
         return availableDate;
     }
@@ -102,6 +113,14 @@ public abstract class Quiz extends Aggregate {
 
     public void setConclusionDate(LocalDateTime conclusionDate) {
         this.conclusionDate = conclusionDate;
+    }
+
+    public LocalDateTime getResultsDate() {
+        return resultsDate;
+    }
+
+    public void setResultsDate(LocalDateTime resultsDate) {
+        this.resultsDate = resultsDate;
     }
 
     public Integer getNumberOfQuestions() {
@@ -165,52 +184,6 @@ public abstract class Quiz extends Aggregate {
         }
         return this.questions.stream()
             .filter(item -> item.getId() != null && item.getId().equals(id))
-            .findFirst()
-            .orElse(null);
-    }
-
-    public Set<QuizOption> getOptions() {
-        return options;
-    }
-
-    public void setOptions(Set<QuizOption> options) {
-        this.options = options;
-        if (this.options != null) {
-            this.options.forEach(item -> item.setQuiz(this));
-        }
-    }
-
-    public void addQuizOption(QuizOption quizOption) {
-        if (this.options == null) {
-            this.options = new HashSet<>();
-        }
-        this.options.add(quizOption);
-        if (quizOption != null) {
-            quizOption.setQuiz(this);
-        }
-    }
-
-    public void removeQuizOption(Integer id) {
-        if (this.options != null) {
-            this.options.removeIf(item -> 
-                item.getOptionSequence() != null && item.getOptionSequence().equals(id));
-        }
-    }
-
-    public boolean containsQuizOption(Integer id) {
-        if (this.options == null) {
-            return false;
-        }
-        return this.options.stream().anyMatch(item -> 
-            item.getOptionSequence() != null && item.getOptionSequence().equals(id));
-    }
-
-    public QuizOption findQuizOptionById(Integer id) {
-        if (this.options == null) {
-            return null;
-        }
-        return this.options.stream()
-            .filter(item -> item.getOptionSequence() != null && item.getOptionSequence().equals(id))
             .findFirst()
             .orElse(null);
     }

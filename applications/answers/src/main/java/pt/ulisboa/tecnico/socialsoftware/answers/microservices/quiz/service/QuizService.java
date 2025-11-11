@@ -40,9 +40,9 @@ public class QuizService {
     public QuizService() {}
 
     // CRUD Operations
-    public QuizDto createQuiz(String title, String description, QuizType quizType, LocalDateTime availableDate, LocalDateTime conclusionDate, Integer numberOfQuestions, QuizExecution execution, Set<QuizQuestion> questions, Set<QuizOption> options) {
+    public QuizDto createQuiz(String title, String description, QuizType quizType, LocalDateTime creationDate, LocalDateTime availableDate, LocalDateTime conclusionDate, LocalDateTime resultsDate, Integer numberOfQuestions, QuizExecution execution, Set<QuizQuestion> questions) {
         try {
-            Quiz quiz = new Quiz(title, description, quizType, availableDate, conclusionDate, numberOfQuestions, execution, questions, options);
+            Quiz quiz = new Quiz(title, description, quizType, creationDate, availableDate, conclusionDate, resultsDate, numberOfQuestions, execution, questions);
             quiz = quizRepository.save(quiz);
             return new QuizDto(quiz);
         } catch (Exception e) {
@@ -86,11 +86,17 @@ public class QuizService {
             if (quizDto.getQuizType() != null) {
                 quiz.setQuizType(quizDto.getQuizType());
             }
+            if (quizDto.getCreationDate() != null) {
+                quiz.setCreationDate(quizDto.getCreationDate());
+            }
             if (quizDto.getAvailableDate() != null) {
                 quiz.setAvailableDate(quizDto.getAvailableDate());
             }
             if (quizDto.getConclusionDate() != null) {
                 quiz.setConclusionDate(quizDto.getConclusionDate());
+            }
+            if (quizDto.getResultsDate() != null) {
+                quiz.setResultsDate(quizDto.getResultsDate());
             }
             if (quizDto.getNumberOfQuestions() != null) {
                 quiz.setNumberOfQuestions(quizDto.getNumberOfQuestions());
@@ -100,9 +106,6 @@ public class QuizService {
             }
             if (quizDto.getQuestions() != null) {
                 quiz.setQuestions(quizDto.getQuestions());
-            }
-            if (quizDto.getOptions() != null) {
-                quiz.setOptions(quizDto.getOptions());
             }
             
             quiz = quizRepository.save(quiz);

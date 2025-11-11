@@ -40,14 +40,14 @@ Aggregate Quiz {
 
     Root Entity Quiz {
         String title;
-        String description;
         QuizType quizType;
+        LocalDateTime creationDate;
         LocalDateTime availableDate;
         LocalDateTime conclusionDate;
+        LocalDateTime resultsDate;
         Integer numberOfQuestions;
         QuizExecution execution;
         Set<QuizQuestion> questions;
-        Set<QuizOption> options;
 
         invariants {
             
