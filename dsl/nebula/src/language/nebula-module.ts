@@ -34,7 +34,7 @@ export const NebulaModule: Module<
   PartialLangiumServices & NebulaAddedServices
 > = {
   validation: {
-    NebulaValidator: () => new NebulaValidator(),
+    NebulaValidator: (services) => new NebulaValidator(services as NebulaServices),
   },
   references: {
     ScopeComputation: (services) => new NebulaScopeComputation(services),

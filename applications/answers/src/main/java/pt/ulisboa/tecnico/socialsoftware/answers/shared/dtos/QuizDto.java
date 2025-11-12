@@ -14,10 +14,10 @@ public class QuizDto implements Serializable {
     private Integer version;
     private AggregateState state;
     private String title;
+    private LocalDateTime creationDate;
     private LocalDateTime availableDate;
     private LocalDateTime conclusionDate;
     private LocalDateTime resultsDate;
-    private String description;
     private String quizType;
     private Integer numberOfQuestions;
     private List<QuestionDto> questions;
@@ -30,10 +30,10 @@ public class QuizDto implements Serializable {
         setVersion(quiz.getVersion());
         setState(quiz.getState());
         setTitle(quiz.getTitle());
+        setCreationDate(quiz.getCreationDate());
         setAvailableDate(quiz.getAvailableDate());
         setConclusionDate(quiz.getConclusionDate());
         setResultsDate(quiz.getResultsDate());
-        setDescription(quiz.getDescription());
         setQuizType(quiz.getQuizExecution().getQuizType().toString());
         setNumberOfQuestions(quiz.getNumberOfQuestions().stream().map(QuizNumberOfQuestion::buildDto).collect(Collectors.toSet()));
         setQuestions(quiz.getQuestions().stream().map(QuizQuestion::buildDto).collect(Collectors.toList()));
@@ -71,6 +71,14 @@ public class QuizDto implements Serializable {
         this.title = title;
     }
 
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+    
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
+
     public LocalDateTime getAvailableDate() {
         return availableDate;
     }
@@ -93,14 +101,6 @@ public class QuizDto implements Serializable {
     
     public void setResultsDate(LocalDateTime resultsDate) {
         this.resultsDate = resultsDate;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-    
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public String getQuizType() {

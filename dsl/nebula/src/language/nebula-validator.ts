@@ -22,6 +22,8 @@ export function registerValidationChecks(services: NebulaServices) {
 }
 
 export class NebulaValidator {
+  constructor(private readonly services?: NebulaServices) { }
+
   private readonly reservedWords = new Set([
     'class', 'interface', 'enum', 'package', 'import', 'public', 'private', 'protected',
     'static', 'final', 'abstract', 'extends', 'implements', 'new', 'this', 'super',
@@ -67,7 +69,7 @@ export class NebulaValidator {
     }
 
     this.validateSharedDtoFields(model, accept);
-    this.validateDtoCoversRootPrimitiveFields(model, accept);
+    this.validateRootEntityDtoCoverage(model, accept);
   }
 
   checkAggregate(aggregate: Aggregate, accept: ValidationAcceptor): void {
@@ -162,47 +164,160 @@ export class NebulaValidator {
     }
   }
 
-  private validateDtoCoversRootPrimitiveFields(model: Model, accept: ValidationAcceptor): void {
-    const sharedBlocks: any[] = (model as any).sharedDtos || [];
-    const allDtos: any[] = sharedBlocks.flatMap((b: any) => b.dtos || []);
-    if (!allDtos.length) return;
+  private validateRootEntityDtoCoverage(model: Model, accept: ValidationAcceptor): void {
+    const allDtos: any[] = this.collectAllSharedDtoDefinitions(model);
+    const standardDtoFields = new Set<string>(['aggregateId', 'version', 'state']);
 
     for (const aggregate of model.aggregates) {
       const aggregateName = aggregate.name;
-      const dtoName = `${aggregateName}Dto`;
-      const dto = allDtos.find((d: any) => d.name === dtoName);
-      if (!dto) continue;
-
       const entities = getEntities(aggregate);
       const root = entities.find((e: any) => e.isRoot);
       if (!root) continue;
 
+      const rootAny = root as any;
+      const explicitDtoRef = rootAny.dtoType;
+      const dtoName =
+        explicitDtoRef?.ref?.name ||
+        explicitDtoRef?.$refText ||
+        `${aggregateName}Dto`;
+
+      if (!dtoName) {
+        continue;
+      }
+
+      const dto = allDtos.find((d: any) => d.name === dtoName);
+      if (!dto) {
+        accept("error", `Root entity '${root.name}' requires DTO '${dtoName}' but it was not found. Create the DTO in a shared-dtos block or reference an existing one using 'uses dto'.`, {
+          node: root as any,
+          property: "name",
+        });
+        continue;
+      }
+
       const dtoFieldNames = new Set<string>((dto.fields || []).map((f: any) => f.name));
-      const standardDtoFields = new Set<string>(['aggregateId', 'version', 'state']);
+      for (const standardField of standardDtoFields) {
+        dtoFieldNames.add(standardField);
+      }
+
+      const fieldMappings = new Map<string, string>();
+      const mappings: any[] = rootAny.dtoMapping?.fieldMappings || [];
+      for (const mapping of mappings) {
+        if (mapping?.entityField && mapping?.dtoField) {
+          fieldMappings.set(mapping.entityField, mapping.dtoField);
+        }
+      }
 
       for (const prop of (root.properties || [])) {
         const propName: string = prop.name;
-        if (!propName || propName.toLowerCase() === 'id' || standardDtoFields.has(propName)) continue;
+        if (!propName) continue;
 
-        const t: any = prop.type;
-        const typeKind: string | undefined = t?.$type;
-        const isPrimitive =
-          typeKind === 'PrimitiveType' ||
-          (typeKind === 'BuiltinType' && (t?.name !== 'AggregateState'));
-        const isCollection = typeKind === 'CollectionType';
-        const isEntityType = typeKind === 'EntityType';
-        if (!isPrimitive || isCollection || isEntityType) {
+        if (propName.toLowerCase() === 'id') {
           continue;
         }
 
-        if (!dtoFieldNames.has(propName)) {
-          accept("error", `Shared DTO '${dtoName}' is missing primitive root field '${propName}' from aggregate '${aggregateName}'.`, {
-            node: dto as any,
-            property: "fields",
+        if (this.isEntityReferenceProperty(prop)) {
+          continue;
+        }
+
+        const mappedDtoField = fieldMappings.get(propName) || propName;
+        if (!dtoFieldNames.has(mappedDtoField)) {
+          accept("error", `DTO '${dtoName}' is missing field '${mappedDtoField}' required to represent root property '${propName}' in aggregate '${aggregateName}'.`, {
+            node: prop as any,
+            property: "name",
           });
         }
       }
     }
+  }
+
+  private collectAllSharedDtoDefinitions(model: Model): any[] {
+    const collected: any[] = [];
+    const seen = new Set<string>();
+
+    const collectFromModel = (target?: Model) => {
+      if (!target) return;
+      const sharedBlocks: any[] = (target as any).sharedDtos || [];
+      for (const block of sharedBlocks) {
+        for (const dto of (block.dtos || [])) {
+          if (dto?.name && !seen.has(dto.name)) {
+            seen.add(dto.name);
+            collected.push(dto);
+          }
+        }
+      }
+    };
+
+    collectFromModel(model);
+
+    const documentsService: any = (this.services as any)?.shared?.workspace?.LangiumDocuments;
+    const documentStream = documentsService?.all;
+
+    const iterateDocuments = (documents: any) => {
+      if (!documents) return;
+      if (typeof documents.forEach === 'function') {
+        documents.forEach((doc: any) => {
+          const root = doc?.parseResult?.value;
+          if (root && root.$type === 'Model') {
+            collectFromModel(root as Model);
+          }
+        });
+        return;
+      }
+      if (typeof documents[Symbol.iterator] === 'function') {
+        for (const doc of documents as any) {
+          const root = doc?.parseResult?.value;
+          if (root && root.$type === 'Model') {
+            collectFromModel(root as Model);
+          }
+        }
+      }
+    };
+
+    iterateDocuments(documentStream);
+
+    return collected;
+  }
+
+  private isEntityReferenceProperty(prop: Property): boolean {
+    const type: any = (prop as any).type;
+    return this.isEntityReferenceType(type);
+  }
+
+  private isEntityReferenceType(type: any): boolean {
+    if (!type || typeof type !== 'object') {
+      return false;
+    }
+
+    const typeKind: string | undefined = type.$type;
+    if (!typeKind) {
+      return false;
+    }
+
+    if (typeKind === 'EntityType') {
+      return true;
+    }
+
+    if (typeKind === 'CollectionType') {
+      const elementType = (type as any).elementType;
+      if (typeof elementType === 'object') {
+        return this.isEntityReferenceType(elementType);
+      }
+      return false;
+    }
+
+    if (typeKind === 'OptionalType') {
+      const elementType = (type as any).elementType;
+      if (typeof elementType === 'object') {
+        return this.isEntityReferenceType(elementType);
+      }
+      return false;
+    }
+
+    if (typeKind === 'AggregateStateType') {
+      return false;
+    }
+
+    return false;
   }
 
   // ============================================================================

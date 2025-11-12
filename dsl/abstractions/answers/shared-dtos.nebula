@@ -51,10 +51,10 @@ SharedDtos {
     
     dto QuizDto {
         String title;
+        LocalDateTime creationDate;
         LocalDateTime availableDate;
         LocalDateTime conclusionDate;
         LocalDateTime resultsDate;
-        String description;
         String quizType;
         Integer numberOfQuestions;
         List<QuestionDto> questions;
