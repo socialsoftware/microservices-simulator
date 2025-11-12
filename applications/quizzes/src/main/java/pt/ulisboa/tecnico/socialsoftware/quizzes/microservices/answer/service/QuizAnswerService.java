@@ -23,10 +23,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.Us
 public class QuizAnswerService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
-    @Autowired
-    private QuizService quizService;
-    @Autowired
-    private CourseExecutionService courseExecutionService;
 
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
@@ -67,9 +63,9 @@ public class QuizAnswerService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizAnswerDto startQuiz(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+    public QuizAnswerDto startQuiz(Integer quizAggregateId, Integer courseExecutionAggregateId, QuizDto quizDto, UserDto userDto, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
+//        QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
 
         // COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION
         if (!courseExecutionAggregateId.equals(quizDto.getCourseExecutionAggregateId())) {
@@ -78,11 +74,11 @@ public class QuizAnswerService {
 
         // QUIZ_COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
         // COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
-        UserDto userDto = courseExecutionService.getStudentByExecutionIdAndUserId(quizDto.getCourseExecutionAggregateId(), userAggregateId, unitOfWork);
+//        UserDto userDto = courseExecutionService.getStudentByExecutionIdAndUserId(quizDto.getCourseExecutionAggregateId(), userAggregateId, unitOfWork);
 
         // QUESTIONS_ANSWER_QUESTIONS_BELONG_TO_QUIZ because questions come from the quiz
         QuizAnswer quizAnswer = quizAnswerFactory.createQuizAnswer(aggregateId, new AnswerCourseExecution(quizDto.getCourseExecutionAggregateId(), quizDto.getCourseExecutionVersion()), new AnswerStudent(userDto), new AnsweredQuiz(quizDto));
-        
+
         quizAnswer.setAnswerDate(DateHandler.now());
 
         unitOfWorkService.registerChanged(quizAnswer, unitOfWork);

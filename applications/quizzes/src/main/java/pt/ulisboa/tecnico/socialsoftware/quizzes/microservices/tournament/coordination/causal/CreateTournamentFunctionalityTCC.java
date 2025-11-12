@@ -67,7 +67,10 @@ public class CreateTournamentFunctionalityTCC extends WorkflowFunctionality {
             FindQuestionsByTopicIdsCommand findQuestionsByTopicIdsCommand = new FindQuestionsByTopicIdsCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), topicsId);
             List<QuestionDto> questionDtos = (List<QuestionDto>) commandGateway.send(findQuestionsByTopicIdsCommand);
 
-            GenerateQuizCommand GenerateQuizCommand = new GenerateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), executionId, quizDto, questionDtos, tournamentDto.getNumberOfQuestions());
+            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork,  ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId);
+            this.courseExecutionDto = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
+
+            GenerateQuizCommand GenerateQuizCommand = new GenerateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), this.courseExecutionDto, quizDto, questionDtos, tournamentDto.getNumberOfQuestions());
             QuizDto quizResultDto = (QuizDto) commandGateway.send(GenerateQuizCommand);
 
             CreateTournamentCommand CreateTournamentCommand = new CreateTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, creatorDto, courseExecutionDto, topicDtos, quizResultDto);

@@ -33,8 +33,6 @@ public class TournamentService {
     private static final Logger logger = LoggerFactory.getLogger(TournamentService.class);
 
     @Autowired
-    private QuizService quizService;
-    @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
@@ -272,30 +270,31 @@ public class TournamentService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public TournamentDto removeTopic(Integer tournamentAggregateId, Integer topicAggregateId, Integer eventVersion, UnitOfWork unitOfWork) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-        TournamentTopic oldTopic = oldTournament.findTopic(topicAggregateId);
-        if (oldTopic != null && oldTopic.getTopicVersion() >= eventVersion) {
-            return null;
-        }
-        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
-        TournamentTopic tournamentTopic  = newTournament.findTopic(topicAggregateId);
-        if (tournamentTopic == null) {
-            throw new QuizzesException(TOURNAMENT_TOPIC_NOT_FOUND, topicAggregateId, tournamentAggregateId);
-        }
-        newTournament.removeTopic(tournamentTopic);
-        QuizDto quizDto = new QuizDto();
-        quizDto.setAggregateId(newTournament.getTournamentQuiz().getQuizAggregateId());
-        quizDto.setAvailableDate(newTournament.getStartTime().toString());
-        quizDto.setConclusionDate(newTournament.getEndTime().toString());
-        quizDto.setResultsDate(newTournament.getEndTime().toString());
-        try {
-            quizService.updateGeneratedQuiz(quizDto, newTournament.getTournamentTopics().stream().filter(t -> t.getState() == Aggregate.AggregateState.ACTIVE).map(TournamentTopic::getTopicAggregateId).collect(Collectors.toSet()), newTournament.getNumberOfQuestions(), unitOfWork);
-        } catch (QuizzesException e) {
-            newTournament.setState(Aggregate.AggregateState.INACTIVE);
-        }
-
-        unitOfWorkService.registerChanged(newTournament, unitOfWork);
-        return new TournamentDto(newTournament);
+//        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+//        TournamentTopic oldTopic = oldTournament.findTopic(topicAggregateId);
+//        if (oldTopic != null && oldTopic.getTopicVersion() >= eventVersion) {
+//            return null;
+//        }
+//        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+//        TournamentTopic tournamentTopic  = newTournament.findTopic(topicAggregateId);
+//        if (tournamentTopic == null) {
+//            throw new QuizzesException(TOURNAMENT_TOPIC_NOT_FOUND, topicAggregateId, tournamentAggregateId);
+//        }
+//        newTournament.removeTopic(tournamentTopic);
+//        QuizDto quizDto = new QuizDto();
+//        quizDto.setAggregateId(newTournament.getTournamentQuiz().getQuizAggregateId());
+//        quizDto.setAvailableDate(newTournament.getStartTime().toString());
+//        quizDto.setConclusionDate(newTournament.getEndTime().toString());
+//        quizDto.setResultsDate(newTournament.getEndTime().toString());
+//        try {
+//            quizService.updateGeneratedQuiz(quizDto, newTournament.getTournamentTopics().stream().filter(t -> t.getState() == Aggregate.AggregateState.ACTIVE).map(TournamentTopic::getTopicAggregateId).collect(Collectors.toSet()), newTournament.getNumberOfQuestions(), unitOfWork);
+//        } catch (QuizzesException e) {
+//            newTournament.setState(Aggregate.AggregateState.INACTIVE);
+//        }
+//
+//        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+//        return new TournamentDto(newTournament);
+        return null;
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -328,29 +327,30 @@ public class TournamentService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public TournamentDto invalidateQuiz(Integer tournamentAggregateId, Integer aggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
-        List<Integer> topicsIds = newTournament.getTournamentTopics().stream().map(TournamentTopic::getTopicAggregateId).collect(Collectors.toList());
-
-        QuizDto quizDto = new QuizDto();
-        quizDto.setAvailableDate(newTournament.getStartTime().toString());
-        quizDto.setConclusionDate(newTournament.getEndTime().toString());
-        quizDto.setResultsDate(newTournament.getEndTime().toString());
-
-        QuizDto quizDto1 = null;
-        try {
-            quizDto1 = quizService.generateQuiz(newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId(), quizDto, new ArrayList<>(), newTournament.getNumberOfQuestions(), unitOfWork); // TODO - empty questionDtos
-        } catch (QuizzesException e) {
-            newTournament.setState(Aggregate.AggregateState.INACTIVE);
-        }
-
-        if (quizDto1 != null) {
-            newTournament.getTournamentQuiz().setQuizAggregateId(quizDto1.getAggregateId());
-            newTournament.getTournamentQuiz().setQuizVersion(quizDto1.getVersion());
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
-        }
-
-        return new TournamentDto(newTournament);
+//        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+//        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+//        List<Integer> topicsIds = newTournament.getTournamentTopics().stream().map(TournamentTopic::getTopicAggregateId).collect(Collectors.toList());
+//
+//        QuizDto quizDto = new QuizDto();
+//        quizDto.setAvailableDate(newTournament.getStartTime().toString());
+//        quizDto.setConclusionDate(newTournament.getEndTime().toString());
+//        quizDto.setResultsDate(newTournament.getEndTime().toString());
+//
+//        QuizDto quizDto1 = null;
+//        try {
+//            quizDto1 = quizService.generateQuiz(newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId(), quizDto, new ArrayList<>(), newTournament.getNumberOfQuestions(), unitOfWork); // TODO - empty questionDtos
+//        } catch (QuizzesException e) {
+//            newTournament.setState(Aggregate.AggregateState.INACTIVE);
+//        }
+//
+//        if (quizDto1 != null) {
+//            newTournament.getTournamentQuiz().setQuizAggregateId(quizDto1.getAggregateId());
+//            newTournament.getTournamentQuiz().setQuizVersion(quizDto1.getVersion());
+//            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+//        }
+//
+//        return new TournamentDto(newTournament);
+        return null;
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

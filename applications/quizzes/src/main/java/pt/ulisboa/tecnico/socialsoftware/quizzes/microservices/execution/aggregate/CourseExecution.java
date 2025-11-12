@@ -140,7 +140,7 @@ public abstract class CourseExecution extends Aggregate {
 
     @Override
     public void verifyInvariants() {
-        if (!(removedNoStudents() && allStudentsAreActive())) {
+        if (!(removedNoStudents() /*&& allStudentsAreActive()*/)) {
             throw new QuizzesException(QuizzesErrorMessage.INVARIANT_BREAK, getAggregateId());
         }
     }

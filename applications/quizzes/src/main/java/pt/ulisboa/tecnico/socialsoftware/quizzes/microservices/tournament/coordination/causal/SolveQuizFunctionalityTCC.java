@@ -8,7 +8,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.StartQuizCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GetQuizByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.StartTournamentQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamentByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.SolveQuizCommand;
@@ -17,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +27,7 @@ import java.util.List;
 public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
     private TournamentDto tournamentDto;
     private QuizDto quizDto;
+    private UserDto userDto;
     private QuizAnswerDto quizAnswerDto;
     private Tournament oldTournament;
     private final CausalUnitOfWorkService unitOfWorkService;
@@ -58,7 +62,13 @@ public class SolveQuizFunctionalityTCC extends WorkflowFunctionality {
             });
             quizDto.setQuestionDtos(questionDtoList);
 
-            StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), quizDto.getAggregateId(), userAggregateId, tournamentDto.getCourseExecution().getAggregateId());
+            GetQuizByIdCommand getQuizByIdCommand = new GetQuizByIdCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), this.getQuizDto().getAggregateId());
+            this.quizDto = (QuizDto) commandGateway.send(getQuizByIdCommand);
+
+            GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), this.quizDto.getCourseExecutionAggregateId(), userAggregateId);
+            this.userDto = (UserDto) commandGateway.send(getStudentByExecutionIdAndUserIdCommand);
+
+            StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), quizDto.getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), this.quizDto, this.userDto);
             quizAnswerDto = (QuizAnswerDto) commandGateway.send(startQuizCommand);
 
             SolveQuizCommand SolveQuizCommand = new SolveQuizCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, userAggregateId, quizAnswerDto.getAggregateId());

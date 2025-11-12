@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetAndOrCreateCourseRemoteCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.CreateCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
@@ -27,8 +28,10 @@ public class CreateCourseExecutionFunctionalityTCC extends WorkflowFunctionality
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         SyncStep step = new SyncStep(() -> {
-            CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionDto);
+            GetAndOrCreateCourseRemoteCommand getAndOrCreateCourseRemoteCommand = new GetAndOrCreateCourseRemoteCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(),  courseExecutionDto);
+            this.courseExecutionDto = (CourseExecutionDto) commandGateway.send(getAndOrCreateCourseRemoteCommand);
+
+            CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), this.courseExecutionDto);
             this.createdCourseExecution = (CourseExecutionDto) commandGateway.send(createCourseExecutionCommand);
         });
 

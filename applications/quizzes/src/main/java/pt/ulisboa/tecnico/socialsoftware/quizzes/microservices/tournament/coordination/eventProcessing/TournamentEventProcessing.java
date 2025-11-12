@@ -112,11 +112,11 @@ public class TournamentEventProcessing {
 
     public void processDeleteTopicEvent(Integer aggregateId, DeleteTopicEvent deleteTopicEvent) {
         logger.info("Processing DeleteTopicEvent: aggregateId={}, event={}", aggregateId, deleteTopicEvent);
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        var command = new RemoveTopicCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), aggregateId,
-                deleteTopicEvent.getPublisherAggregateId(), deleteTopicEvent.getPublisherAggregateVersion());
-        commandGateway.send(command);
-        unitOfWorkService.commit(unitOfWork);
+//        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+//        var command = new RemoveTopicCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), aggregateId,
+//                deleteTopicEvent.getPublisherAggregateId(), deleteTopicEvent.getPublisherAggregateVersion());
+//        commandGateway.send(command);
+//        unitOfWorkService.commit(unitOfWork);
     }
 
     public void processAnswerQuestionEvent(Integer aggregateId,
@@ -148,11 +148,11 @@ public class TournamentEventProcessing {
 
     public void processInvalidateQuizEvent(Integer aggregateId, InvalidateQuizEvent invalidateQuizEvent) {
         logger.info("Processing InvalidateQuizEvent: aggregateId={}, event={}", aggregateId, invalidateQuizEvent);
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        var command = new InvalidateQuizCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), aggregateId,
-                invalidateQuizEvent.getPublisherAggregateId(), invalidateQuizEvent.getPublisherAggregateVersion());
-        commandGateway.send(command);
-        unitOfWorkService.commit(unitOfWork);
+//        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+//        var command = new InvalidateQuizCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), aggregateId,
+//                invalidateQuizEvent.getPublisherAggregateId(), invalidateQuizEvent.getPublisherAggregateVersion());
+//        commandGateway.send(command);
+//        unitOfWorkService.commit(unitOfWork);
     }
 
     public void processUpdateStudentNameEvent(Integer subscriberAggregateId,

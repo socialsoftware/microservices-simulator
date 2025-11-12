@@ -27,13 +27,13 @@ public class StartQuizFunctionalityTCC extends WorkflowFunctionality {
             CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep step = new SyncStep(() -> {
-            StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(),
-                    quizAggregateId, courseExecutionAggregateId, userAggregateId);
-            commandGateway.send(startQuizCommand);
-        });
+//        SyncStep step = new SyncStep(() -> {
+//            StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(),
+//                    quizAggregateId, courseExecutionAggregateId, userAggregateId);
+//            commandGateway.send(startQuizCommand);
+//        });
 
-        workflow.addStep(step);
+//        workflow.addStep(step);
     }
 
     public QuizDto getQuizDto() {

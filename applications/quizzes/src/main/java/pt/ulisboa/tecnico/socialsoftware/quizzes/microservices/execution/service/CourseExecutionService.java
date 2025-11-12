@@ -31,9 +31,6 @@ public class CourseExecutionService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    @Autowired
-    private CourseService courseService;
-
     private final CourseExecutionRepository courseExecutionRepository;
 
     private final CourseExecutionCustomRepository courseExecutionCustomRepository;
@@ -58,7 +55,8 @@ public class CourseExecutionService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public CourseExecutionDto createCourseExecution(CourseExecutionDto courseExecutionDto, UnitOfWork unitOfWork) {
-        CourseExecutionCourse courseExecutionCourse = new CourseExecutionCourse(courseService.getAndOrCreateCourseRemote(courseExecutionDto, unitOfWork));
+//        CourseExecutionCourse courseExecutionCourse = new CourseExecutionCourse(courseService.getAndOrCreateCourseRemote(courseExecutionDto, unitOfWork));
+        CourseExecutionCourse courseExecutionCourse = new CourseExecutionCourse(courseExecutionDto);
 
         CourseExecution courseExecution = courseExecutionFactory.createCourseExecution(aggregateIdGeneratorService.getNewAggregateId(), courseExecutionDto, courseExecutionCourse);
 
@@ -176,7 +174,7 @@ public class CourseExecutionService {
         logger.info("Removing user by creating DisenrollStudentFromCourseExecutionEvent");
         CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
         CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
-        newExecution.findStudent(userAggregateId).setState(Aggregate.AggregateState.INACTIVE);
+        newExecution.findStudent(userAggregateId).setActive(false);
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
         unitOfWorkService.registerEvent(new DisenrollStudentFromCourseExecutionEvent(executionAggregateId, userAggregateId), unitOfWork);
         return new CourseExecutionDto(newExecution);

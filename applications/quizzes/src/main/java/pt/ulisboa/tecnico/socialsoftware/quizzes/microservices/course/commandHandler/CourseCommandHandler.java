@@ -6,9 +6,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetAndOrCreateCourseRemoteCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
 import java.util.logging.Logger;
 
@@ -30,6 +32,8 @@ public class CourseCommandHandler implements CommandHandler {
         Object returnObject;
         if (command instanceof GetCourseByIdCommand) {
             returnObject = handleGetCourseById((GetCourseByIdCommand) command);
+        } else if (command instanceof GetAndOrCreateCourseRemoteCommand) {
+            returnObject = handleGetAndOrCreateCourseRemote((GetAndOrCreateCourseRemoteCommand) command);
         } else {
             logger.warning("Unknown command type: " + command.getClass().getName());
             returnObject = null;
@@ -50,6 +54,16 @@ public class CourseCommandHandler implements CommandHandler {
             return courseDto;
         } catch (Exception e) {
             logger.severe("Failed to get course by ID: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleGetAndOrCreateCourseRemote(GetAndOrCreateCourseRemoteCommand command) {
+        logger.info("Getting or creating course by ID: " + command.getCourseExecutionDto().getAggregateId());
+        try {
+            return courseService.getAndOrCreateCourseRemote(command.getCourseExecutionDto(), command.getUnitOfWork());
+        } catch (Exception e) {
+            logger.severe("Failed to get or create course remote by ID: " + e.getMessage());
             return e;
         }
     }

@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGenerato
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
@@ -32,11 +33,7 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggre
 public class QuizService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
-    @Autowired
-    private QuestionService questionService;
-    @Autowired
-    private CourseExecutionService courseExecutionService;
-    
+
     private final QuizRepository quizRepository;
     
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
@@ -57,10 +54,11 @@ public class QuizService {
     // intended for requests from local functionalities
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizDto generateQuiz(Integer courseExecutionAggregateId, QuizDto quizDto, List<QuestionDto> questionDtos, Integer numberOfQuestions, UnitOfWork unitOfWork) {
+    public QuizDto generateQuiz(CourseExecutionDto courseExecutionDto, QuizDto quizDto, List<QuestionDto> questionDtos, Integer numberOfQuestions, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
 
-        QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionService.getCourseExecutionById(courseExecutionAggregateId, unitOfWork));
+//        QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionService.getCourseExecutionById(courseExecutionAggregateId, unitOfWork));
+        QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionDto);
 
 //        List<QuestionDto> questionDtos = questionService.findQuestionsByTopicIds(topicIds, unitOfWork);
 
@@ -106,13 +104,13 @@ public class QuizService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizDto updateGeneratedQuiz(QuizDto quizDto, Set<Integer> topicsAggregateIds, Integer numberOfQuestions, UnitOfWork unitOfWork) {
+    public QuizDto updateGeneratedQuiz(QuizDto quizDto, Set<Integer> topicsAggregateIds, Integer numberOfQuestions, List<QuestionDto> questionDtos, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.getAggregateId(), unitOfWork);
         Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
         newQuiz.update(quizDto);
 
         if (topicsAggregateIds != null && numberOfQuestions != null) {
-            List<QuestionDto> questionDtos = questionService.findQuestionsByTopicIds(new ArrayList<>(topicsAggregateIds), unitOfWork);
+//            List<QuestionDto> questionDtos = questionService.findQuestionsByTopicIds(new ArrayList<>(topicsAggregateIds), unitOfWork);
 
             if (questionDtos.size() < numberOfQuestions) {
                 throw new QuizzesException(QuizzesErrorMessage.NOT_ENOUGH_QUESTIONS);

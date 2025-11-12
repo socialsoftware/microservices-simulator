@@ -66,8 +66,7 @@ public class AnswerCommandHandler implements CommandHandler {
     private Object handleStartQuiz(StartQuizCommand command) {
         logger.info("Starting quiz: " + command.getQuizAggregateId());
         try {
-            QuizAnswerDto quizAnswerDto = quizAnswerService.startQuiz(command.getQuizAggregateId(),
-                    command.getCourseExecutionAggregateId(), command.getUserAggregateId(), command.getUnitOfWork());
+            QuizAnswerDto quizAnswerDto = quizAnswerService.startQuiz(command.getQuizAggregateId(), command.getCourseExecutionAggregateId(), command.getQuizDto(), command.getUserDto(), command.getUnitOfWork());
             return quizAnswerDto;
         } catch (Exception e) {
             logger.severe("Failed to start quiz: " + e.getMessage());

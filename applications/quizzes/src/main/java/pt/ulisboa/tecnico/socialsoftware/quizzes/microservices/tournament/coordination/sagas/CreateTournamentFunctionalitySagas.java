@@ -79,15 +79,20 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             this.questionDtos = (List<QuestionDto>) commandGateway.send(findQuestionsByTopicIdsCommand);
         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
 
+        SagaSyncStep getCourseExecutionById = new SagaSyncStep("getCourseExecutionById", () -> {
+            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork,  ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId);
+            this.courseExecutionDto = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
+        }, new ArrayList<>(Arrays.asList(findQuestionsByTopicIdsStep)));
+
         SagaSyncStep generateQuizStep = new SagaSyncStep("generateQuizStep", () -> {
             QuizDto quizDto = new QuizDto();
             quizDto.setAvailableDate(tournamentDto.getStartTime());
             quizDto.setConclusionDate(tournamentDto.getEndTime());
             quizDto.setResultsDate(tournamentDto.getEndTime());
-            GenerateQuizCommand generateQuizCommand = new GenerateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), executionId, quizDto, questionDtos, tournamentDto.getNumberOfQuestions());
+            GenerateQuizCommand generateQuizCommand = new GenerateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), courseExecutionDto, quizDto, questionDtos, tournamentDto.getNumberOfQuestions());
             QuizDto quizResultDto = (QuizDto) commandGateway.send(generateQuizCommand);
             this.setQuizDto(quizResultDto);
-        }, new ArrayList<>(Arrays.asList(findQuestionsByTopicIdsStep)));
+        }, new ArrayList<>(Arrays.asList(findQuestionsByTopicIdsStep, getCourseExecutionById)));
 
         generateQuizStep.registerCompensation(() -> {
             if (this.getQuizDto() != null) {
@@ -106,6 +111,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow.addStep(getCourseExecutionStep);
         this.workflow.addStep(getTopicsStep);
         this.workflow.addStep(findQuestionsByTopicIdsStep);
+        this.workflow.addStep(getCourseExecutionById);
         this.workflow.addStep(generateQuizStep);
         this.workflow.addStep(createTournamentStep);
     }

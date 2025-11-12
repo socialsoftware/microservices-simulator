@@ -40,19 +40,19 @@ public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
             this.setQuizDto(quizDto);
         });
     
-        getQuizStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizAggregateId);
-            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
-        }, unitOfWork);
-    
-        SagaSyncStep startQuizStep = new SagaSyncStep("startQuizStep", () -> {
-            StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizAggregateId, courseExecutionAggregateId, userAggregateId);
-            commandGateway.send(startQuizCommand);
-        }, new ArrayList<>(Arrays.asList(getQuizStep)));
+//        getQuizStep.registerCompensation(() -> {
+//            Command command = new Command(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizAggregateId);
+//            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+//            commandGateway.send(command);
+//        }, unitOfWork);
+//
+//        SagaSyncStep startQuizStep = new SagaSyncStep("startQuizStep", () -> {
+//            StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizAggregateId, courseExecutionAggregateId, userAggregateId);
+//            commandGateway.send(startQuizCommand);
+//        }, new ArrayList<>(Arrays.asList(getQuizStep)));
     
         workflow.addStep(getQuizStep);
-        workflow.addStep(startQuizStep);
+//        workflow.addStep(startQuizStep);
     }
     
 

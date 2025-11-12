@@ -7,8 +7,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetAndOrCreateCourseRemoteCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.CreateCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
     private CourseExecutionDto courseExecutionDto;
@@ -26,12 +30,18 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
     public void buildWorkflow(CourseExecutionDto courseExecutionDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep createCourseExecutionStep = new SagaSyncStep("createCourseExecutionStep", () -> {
-            CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionDto);
-            CourseExecutionDto createdCourseExecution = (CourseExecutionDto) commandGateway.send(createCourseExecutionCommand);
-            this.setCreatedCourseExecution(createdCourseExecution);
+        SagaSyncStep getAndOrCreateCourseRemote = new SagaSyncStep("getAndOrCreateCourseRemote", () -> {
+            GetAndOrCreateCourseRemoteCommand getAndOrCreateCourseRemoteCommand = new GetAndOrCreateCourseRemoteCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(),  courseExecutionDto);
+            this.courseExecutionDto = (CourseExecutionDto) commandGateway.send(getAndOrCreateCourseRemoteCommand);
         });
 
+        SagaSyncStep createCourseExecutionStep = new SagaSyncStep("createCourseExecutionStep", () -> {
+            CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), this.courseExecutionDto);
+            CourseExecutionDto createdCourseExecution = (CourseExecutionDto) commandGateway.send(createCourseExecutionCommand);
+            this.setCreatedCourseExecution(createdCourseExecution);
+        }, new ArrayList<>(Arrays.asList(getAndOrCreateCourseRemote)));
+
+        workflow.addStep(getAndOrCreateCourseRemote);
         workflow.addStep(createCourseExecutionStep);
     }
 

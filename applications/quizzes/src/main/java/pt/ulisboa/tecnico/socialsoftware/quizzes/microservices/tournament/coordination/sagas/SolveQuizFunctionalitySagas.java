@@ -9,7 +9,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.RemoveQuizAnswerCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.StartQuizCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GetQuizByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.StartTournamentQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamentByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.SolveQuizCommand;
@@ -21,6 +23,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sa
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +32,7 @@ import java.util.List;
 public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
     private TournamentDto tournament;
     private QuizDto quizDto;
+    private UserDto userDto;
     private QuizAnswerDto quizAnswerDto;
     private Tournament oldTournament;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -42,8 +46,7 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
         this.buildWorkflow(tournamentAggregateId, userAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(Integer tournamentAggregateId,
-                              Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
@@ -73,12 +76,22 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
             quizDto.setQuestionDtos(questionDtoList);
         }, new ArrayList<>(Arrays.asList(startQuizStep)));
 
+        SagaSyncStep getQuizById = new SagaSyncStep("getQuizById", () -> {
+            GetQuizByIdCommand getQuizByIdCommand = new GetQuizByIdCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), this.getQuizDto().getAggregateId());
+            this.quizDto = (QuizDto) commandGateway.send(getQuizByIdCommand);
+        }, new ArrayList<>(Arrays.asList(getQuestionById)));
+
+        SagaSyncStep getStudentByExecutionIdAndUserId = new SagaSyncStep("getStudentByExecutionIdAndUserId", () -> {
+            GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), this.quizDto.getCourseExecutionAggregateId(), userAggregateId);
+            this.userDto = (UserDto) commandGateway.send(getStudentByExecutionIdAndUserIdCommand);
+        }, new ArrayList<>(Arrays.asList(getQuizById)));
+
         SagaSyncStep startQuizAnswerStep = new SagaSyncStep("startQuizAnswerStep", () -> {
-            StartQuizCommand startTournamentQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), userAggregateId);
+            StartQuizCommand startTournamentQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), this.quizDto, this.userDto);
             startTournamentQuizCommand.setSemanticLock(QuizAnswerSagaState.STARTED_QUIZ);
             QuizAnswerDto quizAnswerDto = (QuizAnswerDto) commandGateway.send(startTournamentQuizCommand);
             this.setQuizAnswerDto(quizAnswerDto);
-        }, new ArrayList<>(Arrays.asList(getQuestionById)));
+        }, new ArrayList<>(Arrays.asList(getQuestionById, getStudentByExecutionIdAndUserId)));
 
         startQuizAnswerStep.registerCompensation(() -> {
             if (this.getQuizAnswerDto() != null) {
@@ -95,6 +108,8 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getTournamentStep);
         workflow.addStep(startQuizStep);
         workflow.addStep(getQuestionById);
+        workflow.addStep(getQuizById);
+        workflow.addStep(getStudentByExecutionIdAndUserId);
         workflow.addStep(startQuizAnswerStep);
         workflow.addStep(solveQuizStep);
     }

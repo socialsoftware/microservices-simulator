@@ -7,9 +7,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.FindQuestionsByTopicIdsCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.UpdateGeneratedQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.UpdateTournamentCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
@@ -17,7 +19,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.c
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,6 +34,7 @@ public class UpdateTournamentFunctionalityTCC extends WorkflowFunctionality {
     private Quiz oldQuiz;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
+    private List<QuestionDto> questionDtos;
 
     public UpdateTournamentFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
                                             TournamentDto tournamentDto, Set<Integer> topicsAggregateIds, CausalUnitOfWork unitOfWork,
@@ -57,11 +62,13 @@ public class UpdateTournamentFunctionalityTCC extends WorkflowFunctionality {
             quizDto.setConclusionDate(newTournamentDto.getEndTime());
             quizDto.setResultsDate(newTournamentDto.getEndTime());
 
+            FindQuestionsByTopicIdsCommand findQuestionsByTopicIdsCommand = new FindQuestionsByTopicIdsCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), new ArrayList<>(topicsAggregateIds));
+            this.questionDtos = (List<QuestionDto>) commandGateway.send(findQuestionsByTopicIdsCommand);
             /*
              * this if is required for the case of updating a quiz and not altering neither
              * the number of questions neither the topics
              */
-            UpdateGeneratedQuizCommand UpdateGeneratedQuizCommand = new UpdateGeneratedQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto, topicsAggregateIds, newTournamentDto.getNumberOfQuestions());
+            UpdateGeneratedQuizCommand UpdateGeneratedQuizCommand = new UpdateGeneratedQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto, topicsAggregateIds, newTournamentDto.getNumberOfQuestions(), this.questionDtos);
             commandGateway.send(UpdateGeneratedQuizCommand);
         });
 

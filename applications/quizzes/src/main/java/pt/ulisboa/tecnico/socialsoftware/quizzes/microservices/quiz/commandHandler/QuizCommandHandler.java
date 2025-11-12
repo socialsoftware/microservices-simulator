@@ -83,10 +83,10 @@ public class QuizCommandHandler implements CommandHandler {
     }
 
     private Object handleGenerateQuiz(GenerateQuizCommand command) {
-        logger.info("Generating quiz for course execution: " + command.getCourseExecutionAggregateId());
+        logger.info("Generating quiz for course execution: " + command.getCourseExecutionDto().getAggregateId());
         try {
             return quizService.generateQuiz(
-                    command.getCourseExecutionAggregateId(),
+                    command.getCourseExecutionDto(),
                     command.getQuizDto(),
                     command.getQuestionDtos(),
                     command.getNumberOfQuestions(),
@@ -118,6 +118,7 @@ public class QuizCommandHandler implements CommandHandler {
                     command.getQuizDto(),
                     command.getTopicsAggregateIds(),
                     command.getNumberOfQuestions(),
+                    command.getQuestionDtos(),
                     command.getUnitOfWork());
         } catch (Exception e) {
             logger.severe("Failed to update generated quiz: " + e.getMessage());
