@@ -22,7 +22,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 @Entity
 public abstract class Quiz extends Aggregate {
     private String title;
-    private String description;
     @Enumerated(EnumType.STRING)
     private QuizType quizType;
     private LocalDateTime creationDate;
@@ -43,7 +42,6 @@ public abstract class Quiz extends Aggregate {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setTitle(quizDto.getTitle());
-        setDescription(quizDto.getDescription());
         setQuizType(QuizType.valueOf(quizDto.getQuizType()));
         setCreationDate(quizDto.getCreationDate());
         setAvailableDate(quizDto.getAvailableDate());
@@ -56,7 +54,6 @@ public abstract class Quiz extends Aggregate {
     public Quiz(Quiz other) {
         super(other);
         setTitle(other.getTitle());
-        setDescription(other.getDescription());
         setQuizType(other.getQuizType());
         setCreationDate(other.getCreationDate());
         setAvailableDate(other.getAvailableDate());
@@ -73,14 +70,6 @@ public abstract class Quiz extends Aggregate {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public QuizType getQuizType() {

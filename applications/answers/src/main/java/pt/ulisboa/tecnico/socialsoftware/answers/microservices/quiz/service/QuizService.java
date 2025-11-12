@@ -40,9 +40,9 @@ public class QuizService {
     public QuizService() {}
 
     // CRUD Operations
-    public QuizDto createQuiz(String title, String description, QuizType quizType, LocalDateTime creationDate, LocalDateTime availableDate, LocalDateTime conclusionDate, LocalDateTime resultsDate, Integer numberOfQuestions, QuizExecution execution, Set<QuizQuestion> questions) {
+    public QuizDto createQuiz(String title, QuizType quizType, LocalDateTime creationDate, LocalDateTime availableDate, LocalDateTime conclusionDate, LocalDateTime resultsDate, Integer numberOfQuestions, QuizExecution execution, Set<QuizQuestion> questions) {
         try {
-            Quiz quiz = new Quiz(title, description, quizType, creationDate, availableDate, conclusionDate, resultsDate, numberOfQuestions, execution, questions);
+            Quiz quiz = new Quiz(title, quizType, creationDate, availableDate, conclusionDate, resultsDate, numberOfQuestions, execution, questions);
             quiz = quizRepository.save(quiz);
             return new QuizDto(quiz);
         } catch (Exception e) {
@@ -79,9 +79,6 @@ public class QuizService {
             
                         if (quizDto.getTitle() != null) {
                 quiz.setTitle(quizDto.getTitle());
-            }
-            if (quizDto.getDescription() != null) {
-                quiz.setDescription(quizDto.getDescription());
             }
             if (quizDto.getQuizType() != null) {
                 quiz.setQuizType(quizDto.getQuizType());

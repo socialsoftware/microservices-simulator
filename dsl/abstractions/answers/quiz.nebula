@@ -48,6 +48,7 @@ Aggregate Quiz {
         Integer numberOfQuestions;
         QuizExecution execution;
         Set<QuizQuestion> questions;
+        
 
         invariants {
             

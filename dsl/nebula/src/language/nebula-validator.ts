@@ -65,6 +65,9 @@ export class NebulaValidator {
         node: model,
       });
     }
+
+    this.validateSharedDtoFields(model, accept);
+    this.validateDtoCoversRootPrimitiveFields(model, accept);
   }
 
   checkAggregate(aggregate: Aggregate, accept: ValidationAcceptor): void {
@@ -105,6 +108,99 @@ export class NebulaValidator {
         });
       } else {
         methodNames.add(method.name.toLowerCase());
+      }
+    }
+  }
+
+  private validateSharedDtoFields(model: Model, accept: ValidationAcceptor): void {
+    const sharedBlocks: any[] = (model as any).sharedDtos || [];
+    if (!sharedBlocks.length) return;
+
+    for (const block of sharedBlocks) {
+      for (const dto of (block.dtos || [])) {
+        const dtoName: string = dto.name;
+        if (!dtoName) continue;
+        const aggregateName = dtoName.endsWith('Dto') ? dtoName.slice(0, -3) : dtoName;
+        const aggregate = model.aggregates.find(a => a.name === aggregateName);
+        if (!aggregate) continue;
+
+        const entities = getEntities(aggregate);
+        const root = entities.find((e: any) => e.isRoot);
+        if (!root) continue;
+        const rootProps: string[] = (root.properties || []).map((p: any) => p.name);
+
+        for (const field of dto.fields || []) {
+          const f: any = field;
+          const fieldName: string = f.name;
+          if (!fieldName) continue;
+
+          const mappedEntityName: string | undefined = f.sourceEntity?.ref?.name || f.sourceEntity?.$refText;
+          if (mappedEntityName) {
+            const exists = entities.some((e: any) => e.name === mappedEntityName);
+            if (!exists) {
+              accept("error", `DTO '${dtoName}' field '${fieldName}' maps to entity '${mappedEntityName}', which does not exist in aggregate '${aggregateName}'.`, {
+                node: field as any,
+                property: "sourceEntity",
+              });
+            }
+          }
+
+          const typeText: string = (f.type?.$cstNode?.text || '').trim();
+          const isCollection = typeText.startsWith('List<') || typeText.startsWith('Set<');
+          const isSingleDto = !isCollection && typeText.endsWith('Dto');
+          if (isSingleDto || isCollection) {
+            if (!rootProps.includes(fieldName)) {
+              const accessor = `get${fieldName[0].toUpperCase()}${fieldName.slice(1)}()`;
+              accept("error", `DTO '${dtoName}' field '${fieldName}' requires root property '${fieldName}' in aggregate '${aggregateName}' to generate accessor ${accessor}.`, {
+                node: field as any,
+                property: "name",
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private validateDtoCoversRootPrimitiveFields(model: Model, accept: ValidationAcceptor): void {
+    const sharedBlocks: any[] = (model as any).sharedDtos || [];
+    const allDtos: any[] = sharedBlocks.flatMap((b: any) => b.dtos || []);
+    if (!allDtos.length) return;
+
+    for (const aggregate of model.aggregates) {
+      const aggregateName = aggregate.name;
+      const dtoName = `${aggregateName}Dto`;
+      const dto = allDtos.find((d: any) => d.name === dtoName);
+      if (!dto) continue;
+
+      const entities = getEntities(aggregate);
+      const root = entities.find((e: any) => e.isRoot);
+      if (!root) continue;
+
+      const dtoFieldNames = new Set<string>((dto.fields || []).map((f: any) => f.name));
+      const standardDtoFields = new Set<string>(['aggregateId', 'version', 'state']);
+
+      for (const prop of (root.properties || [])) {
+        const propName: string = prop.name;
+        if (!propName || propName.toLowerCase() === 'id' || standardDtoFields.has(propName)) continue;
+
+        const t: any = prop.type;
+        const typeKind: string | undefined = t?.$type;
+        const isPrimitive =
+          typeKind === 'PrimitiveType' ||
+          (typeKind === 'BuiltinType' && (t?.name !== 'AggregateState'));
+        const isCollection = typeKind === 'CollectionType';
+        const isEntityType = typeKind === 'EntityType';
+        if (!isPrimitive || isCollection || isEntityType) {
+          continue;
+        }
+
+        if (!dtoFieldNames.has(propName)) {
+          accept("error", `Shared DTO '${dtoName}' is missing primitive root field '${propName}' from aggregate '${aggregateName}'.`, {
+            node: dto as any,
+            property: "fields",
+          });
+        }
       }
     }
   }
