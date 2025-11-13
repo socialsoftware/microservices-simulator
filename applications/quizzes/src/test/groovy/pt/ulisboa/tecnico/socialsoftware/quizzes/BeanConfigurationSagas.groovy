@@ -101,8 +101,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    CourseExecutionEventProcessing courseExecutionEventProcessing(SagaUnitOfWorkService unitOfWorkService, LocalCommandGateway commandGateway) {
-        return new CourseExecutionEventProcessing(unitOfWorkService, commandGateway)
+    CourseExecutionEventProcessing courseExecutionEventProcessing() {
+        return new CourseExecutionEventProcessing()
     }
 
     @Bean
@@ -121,8 +121,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    QuestionEventProcessing questionEventProcessing(SagaUnitOfWorkService unitOfWorkService, LocalCommandGateway commandGateway) {
-        return new QuestionEventProcessing(unitOfWorkService, commandGateway)
+    QuestionEventProcessing questionEventProcessing() {
+        return new QuestionEventProcessing()
     }
 
     @Bean
@@ -131,8 +131,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    QuizEventProcessing quizEventProcessing(SagaUnitOfWorkService unitOfWorkService, LocalCommandGateway commandGateway) {
-        return new QuizEventProcessing(unitOfWorkService, commandGateway)
+    QuizEventProcessing quizEventProcessing() {
+        return new QuizEventProcessing()
     }
 
     @Bean
@@ -141,8 +141,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    QuizAnswerEventProcessing answerEventProcessing(SagaUnitOfWorkService unitOfWorkService, LocalCommandGateway commandGateway) {
-        return new QuizAnswerEventProcessing(unitOfWorkService, commandGateway)
+    QuizAnswerEventProcessing answerEventProcessing() {
+        return new QuizAnswerEventProcessing()
     }
 
     @Bean
@@ -151,8 +151,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    TournamentEventProcessing tournamentEventProcessing(SagaUnitOfWorkService unitOfWorkService) {
-        return new TournamentEventProcessing(unitOfWorkService)
+    TournamentEventProcessing tournamentEventProcessing() {
+        return new TournamentEventProcessing()
     }
 
     @Bean

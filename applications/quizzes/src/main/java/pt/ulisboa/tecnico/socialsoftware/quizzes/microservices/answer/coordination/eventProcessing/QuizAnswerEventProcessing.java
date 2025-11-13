@@ -3,13 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordinat
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.RemoveQuestionFromQuizAnswerCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.RemoveUserFromQuizAnswerCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.UpdateUserNameCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.functionalities.QuizAnswerFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.DisenrollStudentFromCourseExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.UpdateStudentNameEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.publish.DeleteQuestionEvent;
@@ -18,70 +12,27 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.events.publi
 @Service
 public class QuizAnswerEventProcessing {
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(QuizAnswerEventProcessing.class);
-    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
-    private final CommandGateway commandGateway;
 
     @Autowired
-    public QuizAnswerEventProcessing(UnitOfWorkService unitOfWorkService, CommandGateway commandGateway) {
-        this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
-    }
+    private QuizAnswerFunctionalities quizAnswerFunctionalities;
 
     public void processDeleteUserEvent(Integer aggregateId, DeleteUserEvent deleteUserEvent) {
         logger.info("Processing DeleteUserEvent: aggregateId={}, event={}", aggregateId, deleteUserEvent);
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        RemoveUserFromQuizAnswerCommand command = new RemoveUserFromQuizAnswerCommand(
-                unitOfWork,
-                ServiceMapping.ANSWER.getServiceName(),
-                aggregateId,
-                deleteUserEvent.getPublisherAggregateId(),
-                deleteUserEvent.getPublisherAggregateVersion());
-        commandGateway.send(command);
-        unitOfWorkService.commit(unitOfWork);
+        quizAnswerFunctionalities.removeUserFromQuizAnswer(aggregateId, deleteUserEvent.getPublisherAggregateId(), deleteUserEvent.getPublisherAggregateVersion());
     }
 
     public void processDeleteQuestionEvent(Integer aggregateId, DeleteQuestionEvent deleteQuestionEvent) {
         logger.info("Processing DeleteQuestionEvent: aggregateId={}, event={}", aggregateId, deleteQuestionEvent);
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        RemoveQuestionFromQuizAnswerCommand command = new RemoveQuestionFromQuizAnswerCommand(
-                unitOfWork,
-                ServiceMapping.ANSWER.getServiceName(),
-                aggregateId,
-                deleteQuestionEvent.getPublisherAggregateId(),
-                deleteQuestionEvent.getPublisherAggregateVersion());
-        commandGateway.send(command);
-        unitOfWorkService.commit(unitOfWork);
+        quizAnswerFunctionalities.removeQuestionFromQuizAnswer(aggregateId, deleteQuestionEvent.getPublisherAggregateId(), deleteQuestionEvent.getPublisherAggregateVersion());
     }
 
-    public void processDisenrollStudentEvent(Integer aggregateId,
-            DisenrollStudentFromCourseExecutionEvent disenrollStudentFromCourseExecutionEvent) {
-        logger.info("Processing DisenrollStudentEvent: aggregateId={}, event={}", aggregateId,
-                disenrollStudentFromCourseExecutionEvent);
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        RemoveUserFromQuizAnswerCommand command = new RemoveUserFromQuizAnswerCommand(
-                unitOfWork,
-                ServiceMapping.ANSWER.getServiceName(),
-                aggregateId,
-                disenrollStudentFromCourseExecutionEvent.getPublisherAggregateId(),
-                disenrollStudentFromCourseExecutionEvent.getPublisherAggregateVersion());
-        commandGateway.send(command);
-        unitOfWorkService.commit(unitOfWork);
+    public void processDisenrollStudentEvent(Integer aggregateId, DisenrollStudentFromCourseExecutionEvent disenrollStudentFromCourseExecutionEvent) {
+        logger.info("Processing DisenrollStudentEvent: aggregateId={}, event={}", aggregateId, disenrollStudentFromCourseExecutionEvent);
+        quizAnswerFunctionalities.removeUserFromQuizAnswer(aggregateId, disenrollStudentFromCourseExecutionEvent.getPublisherAggregateId(), disenrollStudentFromCourseExecutionEvent.getPublisherAggregateVersion());
     }
 
-    public void processUpdateStudentNameEvent(Integer subscriberAggregateId,
-            UpdateStudentNameEvent updateStudentNameEvent) {
-        logger.info("Processing UpdateStudentNameEvent: subscriberAggregateId={}, event={}", subscriberAggregateId,
-                updateStudentNameEvent);
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        UpdateUserNameCommand command = new UpdateUserNameCommand(
-                unitOfWork,
-                ServiceMapping.ANSWER.getServiceName(),
-                subscriberAggregateId,
-                updateStudentNameEvent.getPublisherAggregateId(),
-                updateStudentNameEvent.getPublisherAggregateVersion(),
-                updateStudentNameEvent.getStudentAggregateId(),
-                updateStudentNameEvent.getUpdatedName());
-        commandGateway.send(command);
-        unitOfWorkService.commit(unitOfWork);
+    public void processUpdateStudentNameEvent(Integer subscriberAggregateId, UpdateStudentNameEvent updateStudentNameEvent) {
+        logger.info("Processing UpdateStudentNameEvent: subscriberAggregateId={}, event={}", subscriberAggregateId, updateStudentNameEvent);
+        quizAnswerFunctionalities.updateUserNameInQuizAnswer(subscriberAggregateId, updateStudentNameEvent.getPublisherAggregateId(), updateStudentNameEvent.getPublisherAggregateVersion(), updateStudentNameEvent.getStudentAggregateId(), updateStudentNameEvent.getUpdatedName());
     }
 }

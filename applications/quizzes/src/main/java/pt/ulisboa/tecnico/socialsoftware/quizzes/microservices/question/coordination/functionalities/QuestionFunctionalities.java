@@ -14,6 +14,10 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.Quizzes
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.causal.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.causal.UpdateTopicInQuestionFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.causal.DeleteTopicInQuestionFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateTopicInQuestionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.DeleteTopicInQuestionFunctionalitySagas;
 
 import java.util.Arrays;
 import java.util.List;
@@ -175,6 +179,51 @@ public class QuestionFunctionalities {
                         causalUnitOfWorkService, courseAggregateId,
                         topicIds, causalUnitOfWork, commandGateway);
                 updateQuestionTopicsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void updateTopicInQuestion(Integer questionAggregateId, Integer aggregateTopicId, String topicName,
+            Integer eventVersion) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateTopicInQuestionFunctionalitySagas functionalitySagas = new UpdateTopicInQuestionFunctionalitySagas(
+                        sagaUnitOfWorkService, questionAggregateId, aggregateTopicId, topicName, eventVersion,
+                        sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateTopicInQuestionFunctionalityTCC functionalityTCC = new UpdateTopicInQuestionFunctionalityTCC(
+                        causalUnitOfWorkService, questionAggregateId, aggregateTopicId, topicName, eventVersion,
+                        causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void deleteTopicInQuestion(Integer questionAggregateId, Integer aggregateTopicId, Integer eventVersion) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeleteTopicInQuestionFunctionalitySagas functionalitySagas = new DeleteTopicInQuestionFunctionalitySagas(
+                        sagaUnitOfWorkService, questionAggregateId, aggregateTopicId, eventVersion, sagaUnitOfWork,
+                        commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeleteTopicInQuestionFunctionalityTCC functionalityTCC = new DeleteTopicInQuestionFunctionalityTCC(
+                        causalUnitOfWorkService, questionAggregateId, aggregateTopicId, eventVersion, causalUnitOfWork,
+                        commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
                 throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);

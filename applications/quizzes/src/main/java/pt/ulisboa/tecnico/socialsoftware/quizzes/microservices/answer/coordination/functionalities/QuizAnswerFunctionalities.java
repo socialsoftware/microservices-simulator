@@ -15,9 +15,15 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.causal.AnswerQuestionFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.causal.ConcludeQuizFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.causal.StartQuizFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.causal.RemoveUserFromQuizAnswerFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.causal.RemoveQuestionFromQuizAnswerFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.causal.UpdateUserNameInQuizAnswerFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.AnswerQuestionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.ConcludeQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveUserFromQuizAnswerFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveQuestionFromQuizAnswerFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.UpdateUserNameInQuizAnswerFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 
 import java.util.Arrays;
@@ -118,6 +124,75 @@ public class QuizAnswerFunctionalities {
                         causalUnitOfWorkService, quizAggregateId, userAggregateId, causalUnitOfWork,
                         commandGateway);
                 concludeQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void removeUserFromQuizAnswer(Integer quizAnswerAggregateId, Integer userAggregateId,
+            Integer publisherAggregateVersion) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveUserFromQuizAnswerFunctionalitySagas functionalitySagas = new RemoveUserFromQuizAnswerFunctionalitySagas(
+                        sagaUnitOfWorkService, quizAnswerAggregateId, userAggregateId, publisherAggregateVersion,
+                        sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveUserFromQuizAnswerFunctionalityTCC functionalityTCC = new RemoveUserFromQuizAnswerFunctionalityTCC(
+                        causalUnitOfWorkService, quizAnswerAggregateId, userAggregateId, publisherAggregateVersion,
+                        causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void removeQuestionFromQuizAnswer(Integer quizAnswerAggregateId, Integer questionAggregateId,
+            Integer publisherAggregateVersion) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveQuestionFromQuizAnswerFunctionalitySagas functionalitySagas = new RemoveQuestionFromQuizAnswerFunctionalitySagas(
+                        sagaUnitOfWorkService, quizAnswerAggregateId, questionAggregateId, publisherAggregateVersion,
+                        sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveQuestionFromQuizAnswerFunctionalityTCC functionalityTCC = new RemoveQuestionFromQuizAnswerFunctionalityTCC(
+                        causalUnitOfWorkService, quizAnswerAggregateId, questionAggregateId, publisherAggregateVersion,
+                        causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void updateUserNameInQuizAnswer(Integer quizAnswerAggregateId, Integer publisherAggregateId,
+            Integer publisherAggregateVersion, Integer studentAggregateId, String updatedName) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateUserNameInQuizAnswerFunctionalitySagas functionalitySagas = new UpdateUserNameInQuizAnswerFunctionalitySagas(
+                        sagaUnitOfWorkService, quizAnswerAggregateId, publisherAggregateId, publisherAggregateVersion,
+                        studentAggregateId, updatedName, sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateUserNameInQuizAnswerFunctionalityTCC functionalityTCC = new UpdateUserNameInQuizAnswerFunctionalityTCC(
+                        causalUnitOfWorkService, quizAnswerAggregateId, publisherAggregateId, publisherAggregateVersion,
+                        studentAggregateId, updatedName, causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
                 throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);

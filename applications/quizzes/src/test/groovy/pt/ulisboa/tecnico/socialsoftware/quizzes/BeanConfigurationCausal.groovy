@@ -96,8 +96,8 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    CourseExecutionEventProcessing courseExecutionEventProcessing(CausalUnitOfWorkService unitOfWorkService, LocalCommandGateway commandGateway) {
-        return new CourseExecutionEventProcessing(unitOfWorkService, commandGateway)
+    CourseExecutionEventProcessing courseExecutionEventProcessing() {
+        return new CourseExecutionEventProcessing()
     }
 
     @Bean
@@ -116,8 +116,8 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    QuestionEventProcessing questionEventProcessing(CausalUnitOfWorkService unitOfWorkService, LocalCommandGateway commandGateway) {
-        return new QuestionEventProcessing(unitOfWorkService, commandGateway);
+    QuestionEventProcessing questionEventProcessing() {
+        return new QuestionEventProcessing();
     }
 
     @Bean
@@ -126,8 +126,8 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    QuizEventProcessing quizEventProcessing(CausalUnitOfWorkService unitOfWorkService, LocalCommandGateway commandGateway) {
-        return new QuizEventProcessing(unitOfWorkService, commandGateway);
+    QuizEventProcessing quizEventProcessing() {
+        return new QuizEventProcessing();
     }
 
     @Bean
@@ -136,8 +136,8 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    QuizAnswerEventProcessing answerEventProcessing(CausalUnitOfWorkService unitOfWorkService, LocalCommandGateway commandGateway) {
-        return new QuizAnswerEventProcessing(unitOfWorkService, commandGateway)
+    QuizAnswerEventProcessing answerEventProcessing() {
+        return new QuizAnswerEventProcessing()
     }
 
     @Bean
@@ -146,8 +146,8 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    TournamentEventProcessing tournamentEventProcessing(CausalUnitOfWorkService unitOfWorkService) {
-        return new TournamentEventProcessing(unitOfWorkService)
+    TournamentEventProcessing tournamentEventProcessing() {
+        return new TournamentEventProcessing()
     }
 
     @Bean

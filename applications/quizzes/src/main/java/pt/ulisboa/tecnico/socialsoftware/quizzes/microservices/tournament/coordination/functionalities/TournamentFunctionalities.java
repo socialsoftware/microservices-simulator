@@ -27,6 +27,31 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.*;
 
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.DeleteCourseExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.AnonymizeStudentEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.DisenrollStudentFromCourseExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publish.UpdateTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publish.DeleteTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.publish.QuizAnswerQuestionAnswerEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.publish.InvalidateQuizEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveCourseExecutionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.RemoveCourseExecutionFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTopicFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.UpdateTopicFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.DeleteTopicFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.DeleteTopicFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateParticipantAnswerFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.UpdateParticipantAnswerFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveUserFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.RemoveUserFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.InvalidateQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.InvalidateQuizFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.AnonymizeUserTournamentFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AnonymizeUserTournamentFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.UpdateUserNameFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateUserNameFunctionalitySagas;
+
 @Service
 public class TournamentFunctionalities {
     @Autowired
@@ -57,7 +82,170 @@ public class TournamentFunctionalities {
         }
     }
 
-    public TournamentDto createTournament(Integer userId, Integer executionId, List<Integer> topicsId, TournamentDto tournamentDto) {
+    public void anonymizeStudent(Integer tournamentAggregateId, AnonymizeStudentEvent event) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AnonymizeUserTournamentFunctionalitySagas functionalitySagas = new AnonymizeUserTournamentFunctionalitySagas(
+                        sagaUnitOfWorkService, tournamentAggregateId, event.getPublisherAggregateId(),
+                        event.getStudentAggregateId(), event.getName(), event.getUsername(),
+                        event.getPublisherAggregateVersion(), sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                AnonymizeUserTournamentFunctionalityTCC functionalityTCC = new AnonymizeUserTournamentFunctionalityTCC(
+                        causalUnitOfWorkService, tournamentAggregateId, event.getPublisherAggregateId(),
+                        event.getStudentAggregateId(), event.getName(), event.getUsername(),
+                        event.getPublisherAggregateVersion(), causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void updateTopic(Integer tournamentAggregateId, UpdateTopicEvent event) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateTopicFunctionalitySagas functionalitySagas = new UpdateTopicFunctionalitySagas(
+                        sagaUnitOfWorkService, tournamentAggregateId, event.getPublisherAggregateId(),
+                        event.getTopicName(), event.getPublisherAggregateVersion(), sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateTopicFunctionalityTCC functionalityTCC = new UpdateTopicFunctionalityTCC(
+                        causalUnitOfWorkService, tournamentAggregateId, event.getPublisherAggregateId(),
+                        event.getTopicName(), event.getPublisherAggregateVersion(), causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void deleteTopic(Integer tournamentAggregateId, DeleteTopicEvent event) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeleteTopicFunctionalitySagas functionalitySagas = new DeleteTopicFunctionalitySagas(
+                        sagaUnitOfWorkService, tournamentAggregateId, event.getPublisherAggregateId(),
+                        event.getPublisherAggregateVersion(), sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeleteTopicFunctionalityTCC functionalityTCC = new DeleteTopicFunctionalityTCC(
+                        causalUnitOfWorkService, tournamentAggregateId, event.getPublisherAggregateId(),
+                        event.getPublisherAggregateVersion(), causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void updateParticipantAnswer(Integer tournamentAggregateId, QuizAnswerQuestionAnswerEvent event) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateParticipantAnswerFunctionalitySagas functionalitySagas = new UpdateParticipantAnswerFunctionalitySagas(
+                        sagaUnitOfWorkService, tournamentAggregateId, event.getStudentAggregateId(),
+                        event.getPublisherAggregateId(), event.getQuestionAggregateId(), event.isCorrect(),
+                        event.getPublisherAggregateVersion(), sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateParticipantAnswerFunctionalityTCC functionalityTCC = new UpdateParticipantAnswerFunctionalityTCC(
+                        causalUnitOfWorkService, tournamentAggregateId, event.getStudentAggregateId(),
+                        event.getPublisherAggregateId(), event.getQuestionAggregateId(), event.isCorrect(),
+                        event.getPublisherAggregateVersion(), causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void disenrollStudent(Integer tournamentAggregateId, DisenrollStudentFromCourseExecutionEvent event) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveUserFunctionalitySagas functionalitySagas = new RemoveUserFunctionalitySagas(
+                        sagaUnitOfWorkService, tournamentAggregateId, event.getPublisherAggregateId(),
+                        event.getStudentAggregateId(), event.getPublisherAggregateVersion(), sagaUnitOfWork,
+                        commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveUserFunctionalityTCC functionalityTCC = new RemoveUserFunctionalityTCC(
+                        causalUnitOfWorkService, tournamentAggregateId, event.getPublisherAggregateId(),
+                        event.getStudentAggregateId(), event.getPublisherAggregateVersion(), causalUnitOfWork,
+                        commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void invalidateQuiz(Integer tournamentAggregateId, InvalidateQuizEvent event) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                InvalidateQuizFunctionalitySagas functionalitySagas = new InvalidateQuizFunctionalitySagas(
+                        sagaUnitOfWorkService, tournamentAggregateId, event.getPublisherAggregateId(),
+                        event.getPublisherAggregateVersion(), sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                InvalidateQuizFunctionalityTCC functionalityTCC = new InvalidateQuizFunctionalityTCC(
+                        causalUnitOfWorkService, tournamentAggregateId, event.getPublisherAggregateId(),
+                        event.getPublisherAggregateVersion(), causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void updateStudentName(Integer tournamentAggregateId, UpdateStudentNameEvent event) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateUserNameFunctionalitySagas functionalitySagas = new UpdateUserNameFunctionalitySagas(
+                        sagaUnitOfWorkService, event.getPublisherAggregateVersion(), tournamentAggregateId,
+                        event.getPublisherAggregateId(), event.getStudentAggregateId(), sagaUnitOfWork,
+                        event.getUpdatedName(), commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateUserNameFunctionalityTCC functionalityTCC = new UpdateUserNameFunctionalityTCC(
+                        causalUnitOfWorkService, event.getPublisherAggregateVersion(), tournamentAggregateId,
+                        event.getPublisherAggregateId(), event.getStudentAggregateId(), event.getUpdatedName(),
+                        causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public TournamentDto createTournament(Integer userId, Integer executionId, List<Integer> topicsId,
+            TournamentDto tournamentDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -111,7 +299,8 @@ public class TournamentFunctionalities {
         }
     }
 
-    public void addParticipantAsync(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId) {
+    public void addParticipantAsync(Integer tournamentAggregateId, Integer executionAggregateId,
+            Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -221,6 +410,32 @@ public class TournamentFunctionalities {
 
                 getClosedTournamentsForCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getClosedTournamentsForCourseExecutionFunctionalityTCC.getClosedTournaments();
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void removeCourseExecution(Integer tournamentAggregateId,
+            DeleteCourseExecutionEvent deleteCourseExecutionEvent) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveCourseExecutionFunctionalitySagas functionalitySagas = new RemoveCourseExecutionFunctionalitySagas(
+                        sagaUnitOfWorkService, tournamentAggregateId,
+                        deleteCourseExecutionEvent.getPublisherAggregateId(),
+                        deleteCourseExecutionEvent.getPublisherAggregateVersion(), sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveCourseExecutionFunctionalityTCC functionalityTCC = new RemoveCourseExecutionFunctionalityTCC(
+                        causalUnitOfWorkService, tournamentAggregateId,
+                        deleteCourseExecutionEvent.getPublisherAggregateId(),
+                        deleteCourseExecutionEvent.getPublisherAggregateVersion(), causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
             default:
                 throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }

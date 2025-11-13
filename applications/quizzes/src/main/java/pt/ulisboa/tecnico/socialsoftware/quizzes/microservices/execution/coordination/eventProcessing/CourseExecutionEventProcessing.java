@@ -3,34 +3,19 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordi
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.RemoveUserCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.events.publish.DeleteUserEvent;
 
 @Service
 public class CourseExecutionEventProcessing {
-    private static final Logger logger = org.slf4j.LoggerFactory
-            .getLogger(CourseExecutionEventProcessing.class);
-    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(CourseExecutionEventProcessing.class);
 
     @Autowired
-    private final CommandGateway commandGateway;
-
-    public CourseExecutionEventProcessing(UnitOfWorkService unitOfWorkService, CommandGateway commandGateway) {
-        this.unitOfWorkService = unitOfWorkService;
-        this.commandGateway = commandGateway;
-    }
+    private CourseExecutionFunctionalities courseExecutionFunctionalities;
 
     public void processDeleteUserEvent(Integer aggregateId, DeleteUserEvent deleteUserEvent) {
         logger.info("Processing DeleteUserEvent: aggregateId={}, event={}", aggregateId, deleteUserEvent);
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        RemoveUserCommand command = new RemoveUserCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(),
-                aggregateId, deleteUserEvent.getPublisherAggregateId());
-        commandGateway.send(command);
-        unitOfWorkService.commit(unitOfWork);
+        courseExecutionFunctionalities.removeUserFromCourseExecution(aggregateId, deleteUserEvent.getPublisherAggregateId());
     }
 
 }

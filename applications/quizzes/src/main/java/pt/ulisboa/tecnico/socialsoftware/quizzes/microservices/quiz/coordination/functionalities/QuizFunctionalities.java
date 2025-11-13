@@ -16,10 +16,19 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.causal.FindQuizFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.causal.GetAvailableQuizzesFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.causal.UpdateQuizFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.causal.RemoveCourseExecutionFromQuizFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.causal.UpdateQuestionInQuizFunctionalityTCC;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.causal.RemoveQuizQuestionFunctionalityTCC;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.FindQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.GetAvailableQuizzesFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.UpdateQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.RemoveCourseExecutionFromQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.UpdateQuestionInQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.RemoveQuizQuestionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.DeleteCourseExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.publish.UpdateQuestionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.publish.DeleteQuestionEvent;
 
 import java.util.Arrays;
 import java.util.List;
@@ -136,6 +145,72 @@ public class QuizFunctionalities {
                         causalUnitOfWorkService, quizDto, causalUnitOfWork, commandGateway);
                 updateQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return updateQuizFunctionalityTCC.getUpdatedQuizDto();
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void removeCourseExecutionFromQuiz(Integer quizAggregateId, DeleteCourseExecutionEvent event) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveCourseExecutionFromQuizFunctionalitySagas functionalitySagas = new RemoveCourseExecutionFromQuizFunctionalitySagas(
+                        sagaUnitOfWorkService, quizAggregateId, event.getPublisherAggregateId(),
+                        event.getPublisherAggregateVersion(), sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveCourseExecutionFromQuizFunctionalityTCC functionalityTCC = new RemoveCourseExecutionFromQuizFunctionalityTCC(
+                        causalUnitOfWorkService, quizAggregateId, event.getPublisherAggregateId(),
+                        event.getPublisherAggregateVersion(), causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void updateQuestionInQuiz(Integer quizAggregateId, UpdateQuestionEvent event) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateQuestionInQuizFunctionalitySagas functionalitySagas = new UpdateQuestionInQuizFunctionalitySagas(
+                        sagaUnitOfWorkService, quizAggregateId, event.getPublisherAggregateId(), event.getTitle(),
+                        event.getContent(), event.getPublisherAggregateVersion(), sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateQuestionInQuizFunctionalityTCC functionalityTCC = new UpdateQuestionInQuizFunctionalityTCC(
+                        causalUnitOfWorkService, quizAggregateId, event.getPublisherAggregateId(), event.getTitle(),
+                        event.getContent(), event.getPublisherAggregateVersion(), causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void removeQuizQuestion(Integer quizAggregateId, DeleteQuestionEvent event) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveQuizQuestionFunctionalitySagas functionalitySagas = new RemoveQuizQuestionFunctionalitySagas(
+                        sagaUnitOfWorkService, quizAggregateId, event.getPublisherAggregateId(), sagaUnitOfWork,
+                        commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveQuizQuestionFunctionalityTCC functionalityTCC = new RemoveQuizQuestionFunctionalityTCC(
+                        causalUnitOfWorkService, quizAggregateId, event.getPublisherAggregateId(), causalUnitOfWork,
+                        commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
             default:
                 throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }

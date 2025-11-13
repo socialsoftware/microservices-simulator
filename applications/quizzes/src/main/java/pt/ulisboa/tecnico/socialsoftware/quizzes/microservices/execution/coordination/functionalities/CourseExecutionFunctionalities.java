@@ -258,6 +258,27 @@ public class CourseExecutionFunctionalities {
         }
     }
 
+    public void removeUserFromCourseExecution(Integer executionAggregateId, Integer userAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveUserFromCourseExecutionFunctionalitySagas functionalitySagas = new RemoveUserFromCourseExecutionFunctionalitySagas(
+                        sagaUnitOfWorkService, executionAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveUserFromCourseExecutionFunctionalityTCC functionalityTCC = new RemoveUserFromCourseExecutionFunctionalityTCC(
+                        causalUnitOfWorkService, executionAggregateId, userAggregateId, causalUnitOfWork,
+                        commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
     private void checkInput(CourseExecutionDto courseExecutionDto) {
         if (courseExecutionDto.getAcronym() == null) {
             throw new QuizzesException(COURSE_EXECUTION_MISSING_ACRONYM);
