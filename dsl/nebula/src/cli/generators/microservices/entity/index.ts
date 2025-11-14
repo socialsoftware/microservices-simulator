@@ -6,7 +6,7 @@
  */
 
 // Main exports
-export { EntityGenerator, generateEntityCode } from "./entity-orchestrator.js";
+export { EntityGenerator } from "./entity-orchestrator.js";
 export type { EntityGenerationOptions, ImportRequirements } from "./types.js";
 
 // Component generators (for advanced usage)

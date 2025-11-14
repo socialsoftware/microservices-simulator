@@ -24,6 +24,7 @@ import {
     ServiceFeature
 } from "../features/index.js";
 import { SharedFeature } from "../generators/microservices/shared/index.js";
+import { DtoSchemaService } from "../services/dto-schema-service.js";
 
 export class CodeGenerator {
     /**
@@ -82,27 +83,15 @@ export class CodeGenerator {
             console.log("Generating code...");
             const generators = GeneratorRegistryFactory.createRegistry();
 
-            const allDtoDefinitions: any[] = [];
-            const allDtoMappings: any[] = [];
-            for (const model of models) {
-                if (model.sharedDtos) {
-                    for (const sharedDtosBlock of model.sharedDtos) {
-                        if (sharedDtosBlock.dtos) {
-                            for (const dtoDefinition of sharedDtosBlock.dtos) {
-                                allDtoDefinitions.push(dtoDefinition);
-                            }
-                        }
-                    }
-                }
-            }
+            const dtoSchemaService = new DtoSchemaService();
+            const dtoSchemaRegistry = dtoSchemaService.buildFromModels(models);
 
             const options: GenerationOptions = {
                 projectName: config.projectName,
                 outputPath: paths.projectPath,
                 consistencyModels: config.consistencyModels,
-                allSharedDtos: allDtoDefinitions,
-                dtoMappings: allDtoMappings,
-                allModels: models
+                allModels: models,
+                dtoSchemaRegistry
             };
 
             const aggregates = models.flatMap(model => model.aggregates);
@@ -174,22 +163,16 @@ export class CodeGenerator {
                 );
             }
 
-            // Global web API components and shared DTOs
-            const { SharedDtoFeature } = await import('../features/shared-dto-feature.js');
-            await SharedDtoFeature.generateSharedDtos(models, paths, projectOptions);
             await WebApiFeature.generateGlobalWebApi(paths, projectOptions, generators);
 
-            // Maven build configuration
             const pomContent = TemplateGenerators.generatePomXml(config.projectName);
             await fs.writeFile(path.join(paths.projectPath, "pom.xml"), pomContent, 'utf-8');
             console.log(`\t- Generated pom.xml`);
 
-            // Git ignore file
             const gitignoreContent = TemplateGenerators.generateGitignore();
             await fs.writeFile(path.join(paths.projectPath, ".gitignore"), gitignoreContent, 'utf-8');
             console.log(`\t- Generated .gitignore`);
 
-            // Spring Boot configuration files
             try {
                 await generators.configurationGenerator.generate({
                     projectName: config.projectName,
@@ -199,10 +182,8 @@ export class CodeGenerator {
                 });
                 console.log(`\t- Generated configuration files`);
             } catch (error) {
-                // console.error(`\t- Error generating configuration files: ${error instanceof Error ? error.message : String(error)}`);
             }
 
-            // Note: Test generation is currently disabled
             console.log(`\t- Test generation skipped (disabled)`);
 
             // ───────────────────────────────────────────────────────────────

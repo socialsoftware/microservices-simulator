@@ -1,4 +1,5 @@
 import { Entity } from "../../../../language/generated/ast.js";
+import type { DtoSchemaRegistry } from "../../../services/dto-schema-service.js";
 
 export type ImportRequirements = {
     usesPersistence?: boolean;
@@ -23,7 +24,6 @@ export type ImportRequirements = {
 
 export type EntityGenerationOptions = {
     projectName: string;
-    allSharedDtos?: any[];
-    dtoMappings?: any[];
+    dtoSchemaRegistry?: DtoSchemaRegistry;
     allEntities?: Entity[];
 };

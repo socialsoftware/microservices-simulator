@@ -1,9 +1,12 @@
+import type { DtoSchemaRegistry } from "../../services/dto-schema-service.js";
+
 export interface GenerationOptions {
     projectName: string;
     outputPath: string;
     architecture?: 'default' | 'external-dto-removal' | 'causal-saga';
     features?: string[];
     consistencyModels?: string[];
+    dtoSchemaRegistry?: DtoSchemaRegistry;
 }
 
 export interface CoordinationGenerationOptions extends GenerationOptions { }

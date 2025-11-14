@@ -2,15 +2,17 @@ import { Entity, Property } from "../../../../language/generated/ast.js";
 import { capitalize } from "../../../utils/generator-utils.js";
 import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 import { getGlobalConfig } from "../../common/config.js";
+import type { DtoSchemaRegistry, DtoFieldSchema } from "../../../services/dto-schema-service.js";
 
-export function generateDtoCode(entity: Entity, projectName: string): string {
+export function generateDtoCode(entity: Entity, projectName: string, dtoSchemaRegistry?: DtoSchemaRegistry): string {
+    const aggregateName = entity.$container?.name || entity.name;
+    const packageName = `${getGlobalConfig().buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate')}`;
+    const dtoFields = resolveDtoFields(entity, dtoSchemaRegistry);
 
-    const packageName = `${getGlobalConfig().buildPackageName(projectName, 'microservices', entity.$container.name.toLowerCase(), 'aggregate')}`;
-
-    const imports = generateDtoImports(entity);
-    const fields = generateDtoFields(entity);
-    const constructors = generateDtoConstructors(entity);
-    const gettersSetters = generateDtoGettersSetters(entity);
+    const imports = generateDtoImports(dtoFields);
+    const fields = generateDtoFieldDeclarations(dtoFields);
+    const constructors = generateDtoConstructors(entity, dtoFields);
+    const gettersSetters = generateDtoGettersSetters(dtoFields);
 
     return `package ${packageName};
 
@@ -25,167 +27,216 @@ ${gettersSetters}
 }`;
 }
 
-function generateDtoImports(entity: Entity): string {
-    const imports: string[] = [
-        'import java.io.Serializable;'
-    ];
-
-    const needsLocalDateTime = entity.properties.some((p: any) =>
-        p.type.$type === 'PrimitiveType' && p.type.typeName === 'LocalDateTime'
-    );
-
-    const needsSet = entity.properties.some((p: any) =>
-        p.type.$type === 'CollectionType'
-    );
-
-    if (needsLocalDateTime) {
-        imports.push('import java.time.LocalDateTime;');
+function resolveDtoFields(entity: Entity, dtoSchemaRegistry?: DtoSchemaRegistry): DtoFieldSchema[] {
+    const schema = dtoSchemaRegistry?.entityToDto?.[entity.name];
+    if (schema) {
+        return schema.fields;
     }
 
-    if (needsSet) {
-        imports.push('import java.util.Set;');
-    }
-
-    imports.push('');
-    imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
-
-    return imports.join('\n');
-}
-
-function generateDtoFields(entity: Entity): string {
-    const fields: string[] = [];
+    const fields: DtoFieldSchema[] = [];
 
     if (entity.isRoot) {
-        fields.push('\tprivate Integer aggregateId;');
-    }
-
-    for (const property of entity.properties) {
-        const javaType = TypeResolver.resolveJavaType(property.type);
-
-        if (javaType === 'Boolean' || javaType === 'boolean') {
-            fields.push(`\tprivate boolean ${property.name};`);
-        } else {
-            fields.push(`\tprivate ${javaType} ${property.name};`);
-        }
-    }
-
-    if (entity.isRoot) {
-        fields.push('\tprivate Integer version;');
-        fields.push('\tprivate AggregateState state;');
-    }
-
-    return fields.join('\n');
-}
-
-function generateDtoConstructors(entity: Entity): string {
-    const constructors: string[] = [];
-
-    constructors.push('\tpublic ' + entity.name + 'Dto() {');
-    constructors.push('\t}');
-    constructors.push('');
-
-    constructors.push('\tpublic ' + entity.name + 'Dto(' + entity.name + ' ' + entity.name.toLowerCase() + ') {');
-
-    if (entity.isRoot) {
-        constructors.push('\t\tthis.aggregateId = ' + entity.name.toLowerCase() + '.getAggregateId();');
-    }
-
-    for (const property of entity.properties) {
-        {
-            const getter = getGetterName(property);
-
-            // Check if this is an enum field (ends with "Type")
-            if (property.name.endsWith('Type')) {
-                // Convert enum to string using toString()
-                constructors.push(`\t\tthis.${property.name} = ${entity.name.toLowerCase()}.${getter}() != null ? ${entity.name.toLowerCase()}.${getter}().toString() : null;`);
-            } else {
-                constructors.push(`\t\tthis.${property.name} = ${entity.name.toLowerCase()}.${getter}();`);
+        fields.push(
+            {
+                name: 'aggregateId',
+                javaType: 'Integer',
+                isCollection: false,
+                isAggregateField: true,
+                requiresConversion: false
+            },
+            {
+                name: 'version',
+                javaType: 'Integer',
+                isCollection: false,
+                isAggregateField: true,
+                requiresConversion: false
+            },
+            {
+                name: 'state',
+                javaType: 'AggregateState',
+                isCollection: false,
+                isAggregateField: true,
+                requiresConversion: false
             }
+        );
+    }
+
+    for (const property of entity.properties || []) {
+        if ((property as any).dtoExclude) {
+            continue;
+        }
+
+        const javaType = TypeResolver.resolveJavaType(property.type);
+        fields.push({
+            name: property.name,
+            javaType,
+            isCollection: javaType.startsWith('List<') || javaType.startsWith('Set<'),
+            sourceName: property.name,
+            sourceProperty: property,
+            requiresConversion: false
+        });
+    }
+
+    return fields;
+}
+
+function generateDtoImports(fields: DtoFieldSchema[]): string {
+    const imports = new Set<string>();
+    imports.add('import java.io.Serializable;');
+
+    const needsLocalDateTime = fields.some(field => field.javaType.includes('LocalDateTime'));
+    if (needsLocalDateTime) {
+        imports.add('import java.time.LocalDateTime;');
+    }
+
+    const needsBigDecimal = fields.some(field => field.javaType.includes('BigDecimal'));
+    if (needsBigDecimal) {
+        imports.add('import java.math.BigDecimal;');
+    }
+
+    const needsList = fields.some(field => field.javaType.startsWith('List<'));
+    if (needsList) {
+        imports.add('import java.util.List;');
+    }
+
+    const needsSet = fields.some(field => field.javaType.startsWith('Set<'));
+    if (needsSet) {
+        imports.add('import java.util.Set;');
+    }
+
+    const needsCollectors = fields.some(field => field.requiresConversion && field.isCollection);
+    if (needsCollectors) {
+        imports.add('import java.util.stream.Collectors;');
+    }
+
+    const needsAggregateState = fields.some(field => field.name === 'state' && field.javaType === 'AggregateState');
+    if (needsAggregateState) {
+        imports.add('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
+    }
+
+    return Array.from(imports).join('\n');
+}
+
+function generateDtoFieldDeclarations(fields: DtoFieldSchema[]): string {
+    const declarations: string[] = [];
+
+    for (const field of fields) {
+        const javaType = field.javaType === 'Boolean' ? 'Boolean' : field.javaType;
+        const declarationType = javaType === 'boolean' ? 'boolean' : javaType;
+        declarations.push(`    private ${declarationType} ${field.name};`);
+    }
+
+    return declarations.join('\n');
+}
+
+function generateDtoConstructors(entity: Entity, fields: DtoFieldSchema[]): string {
+    const lines: string[] = [];
+    const entityVar = entity.name.charAt(0).toLowerCase() + entity.name.slice(1);
+
+    lines.push(`    public ${entity.name}Dto() {`);
+    lines.push('    }');
+    lines.push('');
+    lines.push(`    public ${entity.name}Dto(${entity.name} ${entityVar}) {`);
+
+    for (const field of fields) {
+        const assignment = buildFieldAssignment(field, entity, entityVar);
+        if (assignment) {
+            lines.push(assignment);
         }
     }
 
-    if (entity.isRoot) {
-        constructors.push('\t\tthis.version = ' + entity.name.toLowerCase() + '.getVersion();');
-        constructors.push('\t\tthis.state = ' + entity.name.toLowerCase() + '.getState();');
-    }
+    lines.push('    }');
 
-    constructors.push('\t}');
-
-    return constructors.join('\n');
+    return lines.join('\n');
 }
 
-function generateDtoGettersSetters(entity: Entity): string {
+function buildFieldAssignment(field: DtoFieldSchema, entity: Entity, entityVar: string): string | null {
+    if (field.isAggregateField) {
+        switch (field.name) {
+            case 'aggregateId':
+                return `        this.aggregateId = ${entityVar}.getAggregateId();`;
+            case 'version':
+                return `        this.version = ${entityVar}.getVersion();`;
+            case 'state':
+                return `        this.state = ${entityVar}.getState();`;
+            default:
+                return null;
+        }
+    }
+
+    const getterCall = buildEntityGetterCall(field, entityVar);
+    if (!getterCall) {
+        return null;
+    }
+
+    if (field.requiresConversion) {
+        if (field.isCollection && field.referencedEntityName) {
+            const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
+            return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.stream().map(${field.referencedEntityName}::buildDto).collect(${collector}) : null;`;
+        }
+        if (!field.isCollection) {
+            return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.buildDto() : null;`;
+        }
+    }
+
+    if (field.sourceProperty && field.sourceProperty.name.endsWith('Type')) {
+        return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.toString() : null;`;
+    }
+
+    return `        this.${field.name} = ${getterCall};`;
+}
+
+function buildEntityGetterCall(field: DtoFieldSchema, entityVar: string): string | null {
+    const property = field.sourceProperty as Property | undefined;
+    if (!property) {
+        return null;
+    }
+
+    const javaType = TypeResolver.resolveJavaType(property.type);
+    const capitalized = capitalize(property.name);
+    const prefix = (javaType === 'Boolean' || javaType === 'boolean') ? 'is' : 'get';
+    return `${entityVar}.${prefix}${capitalized}()`;
+}
+
+function generateDtoGettersSetters(fields: DtoFieldSchema[]): string {
     const methods: string[] = [];
 
-    if (entity.isRoot) {
-        methods.push('\tpublic Integer getAggregateId() {');
-        methods.push('\t\treturn aggregateId;');
-        methods.push('\t}');
-        methods.push('');
-        methods.push('\tpublic void setAggregateId(Integer aggregateId) {');
-        methods.push('\t\tthis.aggregateId = aggregateId;');
-        methods.push('\t}');
-        methods.push('');
-    }
+    for (const field of fields) {
+        const javaType = field.javaType === 'boolean' ? 'boolean' : field.javaType;
+        const capitalized = capitalize(field.name);
 
-    for (const property of entity.properties) {
-        {
-            const javaType = TypeResolver.resolveJavaType(property.type);
-            const capitalizedName = capitalize(property.name);
-
-            if (javaType === 'Boolean' || javaType === 'boolean') {
-                methods.push(`\tpublic boolean is${capitalizedName}() {`);
-                methods.push(`\t\treturn ${property.name};`);
-                methods.push('\t}');
-            } else {
-                methods.push(`\tpublic ${javaType} get${capitalizedName}() {`);
-                methods.push(`\t\treturn ${property.name};`);
-                methods.push('\t}');
-            }
+        if (javaType === 'Boolean' || javaType === 'boolean') {
+            const booleanType = javaType === 'Boolean' ? 'Boolean' : 'boolean';
+            methods.push(`    public ${booleanType} is${capitalized}() {`);
+            methods.push(`        return ${field.name};`);
+            methods.push('    }');
             methods.push('');
-
-            methods.push(`\tpublic void set${capitalizedName}(${javaType} ${property.name}) {`);
-            methods.push(`\t\tthis.${property.name} = ${property.name};`);
-            methods.push('\t}');
+            methods.push(`    public void set${capitalized}(${booleanType} ${field.name}) {`);
+            methods.push(`        this.${field.name} = ${field.name};`);
+            methods.push('    }');
+        } else {
+            methods.push(`    public ${javaType} get${capitalized}() {`);
+            methods.push(`        return ${field.name};`);
+            methods.push('    }');
             methods.push('');
+            methods.push(`    public void set${capitalized}(${javaType} ${field.name}) {`);
+            methods.push(`        this.${field.name} = ${field.name};`);
+            methods.push('    }');
         }
+
+        methods.push('');
     }
 
-    if (entity.isRoot) {
-        methods.push('\tpublic Integer getVersion() {');
-        methods.push('\t\treturn version;');
-        methods.push('\t}');
-        methods.push('');
-        methods.push('\tpublic void setVersion(Integer version) {');
-        methods.push('\t\tthis.version = version;');
-        methods.push('\t}');
-        methods.push('');
-
-        methods.push('\tpublic AggregateState getState() {');
-        methods.push('\t\treturn state;');
-        methods.push('\t}');
-        methods.push('');
-        methods.push('\tpublic void setState(AggregateState state) {');
-        methods.push('\t\tthis.state = state;');
-        methods.push('\t}');
+    // Remove trailing empty line if present
+    if (methods.length > 0 && methods[methods.length - 1] === '') {
+        methods.pop();
     }
 
     return methods.join('\n');
 }
 
-function getGetterName(property: Property): string {
-    const javaType = TypeResolver.resolveJavaType(property.type);
-    const capitalizedName = capitalize(property.name);
-
-    if (javaType === 'Boolean' || javaType === 'boolean') {
-        return `is${capitalizedName}`;
-    } else {
-        return `get${capitalizedName}`;
-    }
-}
-
 export class DtoGenerator {
-    async generateDto(entity: Entity, options: { projectName: string }): Promise<string> {
-        return generateDtoCode(entity, options.projectName);
+    async generateDto(entity: Entity, options: { projectName: string; dtoSchemaRegistry?: DtoSchemaRegistry }): Promise<string> {
+        return generateDtoCode(entity, options.projectName, options.dtoSchemaRegistry);
     }
 }

@@ -1,5 +1,3 @@
-import shared-dtos;
-
 Aggregate Topic {
     Entity TopicCourse uses dto CourseDto mapping {
         aggregateId -> courseAggregateId;

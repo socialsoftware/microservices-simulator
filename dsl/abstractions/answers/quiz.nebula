@@ -1,5 +1,4 @@
 import shared-enums;
-import shared-dtos;
 
 Aggregate Quiz {
     Entity QuizExecution uses dto ExecutionDto mapping {

@@ -1,3 +1,5 @@
+import type { DtoSchemaRegistry } from "../services/dto-schema-service.js";
+
 export type TemplateGenerateOptions = {
     destination?: string;
     name?: string;
@@ -8,10 +10,8 @@ export type GenerationOptions = {
     projectName: string;
     outputPath: string;
     consistencyModels?: string[];
-    // Shared metadata extracted from all DSL models before generation
-    allSharedDtos?: any[];
-    dtoMappings?: any[];
     allModels?: any[];
+    dtoSchemaRegistry?: DtoSchemaRegistry;
 };
 
 export type ProjectPaths = {

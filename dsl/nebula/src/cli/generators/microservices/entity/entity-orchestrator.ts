@@ -8,6 +8,7 @@ import { generateInvariants } from "./invariants.js";
 import { ImportManager, ImportManagerFactory } from "../../../utils/import-manager.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../../../utils/error-handler.js";
 import { TypeResolver } from "../../common/resolvers/type-resolver.js";
+import type { DtoSchemaRegistry, DtoFieldSchema } from "../../../services/dto-schema-service.js";
 
 // ============================================================================
 // ENTITY GENERATION ORCHESTRATION
@@ -15,6 +16,7 @@ import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 
 export class EntityOrchestrator {
     private importManager: ImportManager;
+    private dtoRegistry?: DtoSchemaRegistry;
 
     constructor(projectName: string) {
         this.importManager = ImportManagerFactory.createForMicroservice(projectName);
@@ -38,6 +40,8 @@ export class EntityOrchestrator {
         const opts = options || { projectName };
         const isRootEntity = entity.isRoot || false;
 
+        this.dtoRegistry = opts.dtoSchemaRegistry;
+
         const components = this.generateEntityComponents(entity, projectName, opts, isRootEntity);
 
         const classStructure = this.buildClassStructure(entity, projectName, isRootEntity);
@@ -51,14 +55,14 @@ export class EntityOrchestrator {
         return {
             fields: generateFields(entity.properties, entity, isRootEntity, projectName).code,
             defaultConstructor: generateDefaultConstructor(entity).code,
-            dtoConstructor: generateEntityDtoConstructor(entity, projectName, opts.allSharedDtos, opts.dtoMappings).code,
+            dtoConstructor: generateEntityDtoConstructor(entity, projectName, this.dtoRegistry).code,
             copyConstructor: generateCopyConstructor(entity).code,
             gettersSetters: generateGettersSetters(entity.properties, entity, projectName, opts.allEntities).code,
             backRefGetterSetter: (!isRootEntity && entity.$container)
                 ? generateBackReferenceGetterSetter(entity.$container.name)
                 : '',
             invariants: isRootEntity ? generateInvariants(entity).code : '',
-            buildDtoMethod: !isRootEntity ? this.generateBuildDtoMethod(entity, projectName, opts.allSharedDtos, opts.dtoMappings) : ''
+            buildDtoMethod: !isRootEntity ? this.generateBuildDtoMethod(entity) : ''
         };
     }
 
@@ -99,7 +103,7 @@ ${components.buildDtoMethod}
 }`;
     }
 
-    private generateBuildDtoMethod(entity: Entity, projectName: string, allSharedDtos?: any[], dtoMappings?: any[]): string {
+    private generateBuildDtoMethod(entity: Entity): string {
         const entityAny = entity as any;
         const isRootEntity = entity.isRoot || false;
         const entityName = entity.name;
@@ -111,55 +115,18 @@ ${components.buildDtoMethod}
             return '';
         }
 
-        const dtoTypeRef = (entityAny as any).dtoType;
-        const customDtoType = dtoTypeRef?.ref?.name || dtoTypeRef?.$refText;
+        const dtoType = entityAny.dtoType as string | undefined;
+        const rootEntityName = isRootEntity ? entityName : (entity.$container?.name || entityName);
+        const dtoTypeName = dtoType || `${rootEntityName}Dto`;
+        const dtoSchema = this.dtoRegistry?.dtoByName?.[dtoTypeName];
 
-        let dtoTypeName: string;
-        if (customDtoType) {
-            dtoTypeName = customDtoType;
-        } else {
-            const rootEntityName = isRootEntity ? entityName : (entity.$container?.name || entityName);
-            dtoTypeName = `${rootEntityName}Dto`;
+        if (!dtoSchema) {
+            throw new Error(`DTO schema for ${dtoTypeName} was not found. Ensure a root entity defines this DTO.`);
         }
 
-        const mapEntityFieldToDtoField = (entityFieldName: string): string | null => {
-            if (entityAny?.dtoMapping?.fieldMappings) {
-                for (const fieldMapping of entityAny.dtoMapping.fieldMappings) {
-                    if (fieldMapping.entityField === entityFieldName) {
-                        const cap = fieldMapping.dtoField.charAt(0).toUpperCase() + fieldMapping.dtoField.slice(1);
-                        return cap;
-                    }
-                }
-                return null;
-            }
-            return entityFieldName.charAt(0).toUpperCase() + entityFieldName.slice(1);
-        };
-
-        const setterLines: string[] = [];
-
-        if (isRootEntity) {
-            setterLines.push(`        dto.setAggregateId(getAggregateId());`);
-        }
-
-        for (const prop of (entity.properties || [])) {
-            const capName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
-            let dtoSetterName = mapEntityFieldToDtoField(prop.name);
-            if (dtoSetterName === null) {
-                continue;
-            }
-
-            if (prop.name.endsWith('Type')) {
-                setterLines.push(`        dto.set${dtoSetterName}(${`get${capName}()`} != null ? ${`get${capName}()`}.toString() : null);`);
-                continue;
-            }
-
-            setterLines.push(`        dto.set${dtoSetterName}(${`get${capName}()`});`);
-        }
-
-        if (isRootEntity) {
-            setterLines.push(`        dto.setVersion(getVersion());`);
-            setterLines.push(`        dto.setState(getState());`);
-        }
+        const setterLines = dtoSchema.fields
+            .map(field => this.buildDtoSetterFromSchema(field, entity))
+            .filter((line): line is string => !!line);
 
         return `\n    public ${dtoTypeName} buildDto() {\n        ${dtoTypeName} dto = new ${dtoTypeName}();\n${setterLines.join('\n')}\n        return dto;\n    }`;
     }
@@ -182,6 +149,7 @@ ${components.buildDtoMethod}
 
     private scanCodeForImports(javaCode: string, projectName: string, isRoot: boolean, aggregateName?: string, entityName?: string, entity?: Entity): string[] {
         const imports: string[] = [];
+        const dtoRegistry = this.dtoRegistry;
 
         if (javaCode.includes('@Entity')) imports.push('import jakarta.persistence.Entity;');
         if (javaCode.includes('@Id')) imports.push('import jakarta.persistence.Id;');
@@ -221,8 +189,10 @@ ${components.buildDtoMethod}
         let dtoMatch;
         while ((dtoMatch = dtoPattern.exec(javaCode)) !== null) {
             const dtoType = dtoMatch[1];
-            const dtoImport = `import ${config.buildPackageName(projectName, 'shared', 'dtos')}.${dtoType};`;
-            imports.push(dtoImport);
+            const importPath = this.resolveDtoImportPath(dtoType, projectName, aggregateName, dtoRegistry);
+            if (importPath) {
+                imports.push(importPath);
+            }
         }
 
         const entityPattern = /\b([A-Z][a-zA-Z]*(?:User|Course|Question|Quiz|Topic|Tournament|Answer|Execution|Option))\b/g;
@@ -311,26 +281,90 @@ ${components.buildDtoMethod}
         return imports.flat();
     }
 
+    private buildDtoSetterFromSchema(field: DtoFieldSchema, entity: Entity): string | null {
+        const capName = field.name.charAt(0).toUpperCase() + field.name.slice(1);
+
+        if (field.isAggregateField) {
+            switch (field.name) {
+                case 'aggregateId':
+                    return '        dto.setAggregateId(getAggregateId());';
+                case 'version':
+                    return '        dto.setVersion(getVersion());';
+                case 'state':
+                    return '        dto.setState(getState());';
+                default:
+                    return null;
+            }
+        }
+
+        const prop = entity.properties.find(p => p.name === (field.sourceName || field.name));
+        if (!prop) {
+            return null;
+        }
+
+        const getterCall = this.buildEntityGetterCall(prop);
+        if (!getterCall) {
+            return null;
+        }
+
+        if (field.requiresConversion) {
+            if (field.isCollection && field.referencedEntityName) {
+                const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
+                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map(${field.referencedEntityName}::buildDto).collect(${collector}) : null);`;
+            }
+            if (!field.isCollection) {
+                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.buildDto() : null);`;
+            }
+        }
+
+        if (prop.name.endsWith('Type')) {
+            return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.toString() : null);`;
+        }
+
+        return `        dto.set${capName}(${getterCall});`;
+    }
+
+    private buildEntityGetterCall(prop: any): string | null {
+        if (!prop?.name) {
+            return null;
+        }
+        const javaType = TypeResolver.resolveJavaType(prop.type);
+        const capName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
+        const prefix = (javaType === 'Boolean' || javaType === 'boolean') ? 'is' : 'get';
+        return `${prefix}${capName}()`;
+    }
+
+    private resolveDtoImportPath(dtoType: string, projectName: string, owningAggregate?: string, dtoRegistry?: DtoSchemaRegistry): string | null {
+        const dtoInfo = dtoRegistry?.dtoByName?.[dtoType];
+        let targetAggregate = dtoInfo?.aggregateName;
+
+        if (!targetAggregate && dtoType.endsWith('Dto')) {
+            targetAggregate = dtoType.slice(0, -3);
+        }
+
+        if (!targetAggregate) {
+            return null;
+        }
+
+        if (owningAggregate && targetAggregate.toLowerCase() === owningAggregate.toLowerCase()) {
+            return null;
+        }
+
+        const config = getGlobalConfig();
+        const importPath = `${config.buildPackageName(projectName, 'microservices', targetAggregate.toLowerCase(), 'aggregate')}.${dtoType}`;
+        return `import ${importPath};`;
+    }
+
     private addRequiredImports(isRootEntity: boolean, aggregateName: string): void {
-        // Add JPA imports
         this.importManager.addJakartaImport('persistence.Entity');
 
         if (isRootEntity) {
-            // Add base aggregate import
             this.importManager.addBaseFrameworkImport('ms.domain.aggregate.Aggregate');
         }
     }
 }
 
 
-
-/**
- * Backward compatibility function for existing code
- */
-export function generateEntityCode(entity: Entity, projectName: string, options?: EntityGenerationOptions): string {
-    const orchestrator = new EntityOrchestrator(projectName);
-    return orchestrator.generateEntityCode(entity, projectName, options);
-}
 
 /**
  * Entity generator facade that uses the new orchestrator

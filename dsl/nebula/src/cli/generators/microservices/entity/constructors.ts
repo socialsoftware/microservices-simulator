@@ -1,8 +1,8 @@
 import { Entity } from "../../../../language/generated/ast.js";
-import { capitalize } from "../../../utils/generator-utils.js";
 import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 import { getGlobalConfig } from "../../common/config.js";
 import { ImportRequirements } from "./types.js";
+import type { DtoSchemaRegistry } from "../../../services/dto-schema-service.js";
 
 const resolveJavaType = (type: any, fieldName?: string) => {
     return TypeResolver.resolveJavaType(type);
@@ -20,10 +20,6 @@ const isEnumType = (type: any) => {
             return true;
         }
     }
-    return false;
-};
-
-const isEnumTypeByNaming = (javaType: string) => {
     return false;
 };
 
@@ -104,14 +100,14 @@ export function generateDefaultConstructor(entity: Entity): { code: string } {
     };
 }
 
-export function generateEntityDtoConstructor(entity: Entity, projectName: string, allSharedDtos?: any[], dtoMappings?: any[]): { code: string, imports: ImportRequirements } {
+export function generateEntityDtoConstructor(entity: Entity, projectName: string, dtoSchemaRegistry?: DtoSchemaRegistry): { code: string, imports: ImportRequirements } {
     const entityName = entity.name;
     const isRootEntity = entity.isRoot || false;
 
     const entityAny = entity as any;
-    const dtoTypeRef = entityAny.dtoType;
+    const dtoTypeRef = entityAny.dtoType as string | undefined;
 
-    const customDtoType = dtoTypeRef?.ref?.name || dtoTypeRef?.$refText;
+    const customDtoType = dtoTypeRef;
 
     let dtoName: string;
     let dtoTypeName: string;
@@ -125,94 +121,174 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         dtoTypeName = dtoName;
     }
 
-    const entityRelationships = entity.properties.filter((prop: any) => {
-        const javaType = resolveJavaType(prop.type);
-        return TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<');
-    });
-
-    const relationshipParams = entityRelationships.map((prop: any) =>
-        `${resolveJavaType(prop.type)} ${prop.name}`
-    ).join(', ');
-
+    const dtoSchema = dtoSchemaRegistry?.dtoByName?.[dtoTypeName];
+    if (!dtoSchema) {
+        throw new Error(`DTO schema for ${dtoTypeName} was not found. Ensure a root entity defines this DTO.`);
+    }
     const dtoParamName = customDtoType ?
         customDtoType.charAt(0).toLowerCase() + customDtoType.slice(1) :
         `${(isRootEntity ? entityName : (entity.$container?.name || entityName)).toLowerCase()}Dto`;
 
+    const entityRelationships: string[] = [];
+    if (isRootEntity) {
+        for (const prop of entity.properties || []) {
+            const javaType = resolveJavaType(prop.type);
+            if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
+                entityRelationships.push(`${javaType} ${prop.name}`);
+            }
+        }
+    }
+
+    const relationshipParams = entityRelationships.join(', ');
     const params = isRootEntity ?
         (relationshipParams ?
             `Integer aggregateId, ${dtoTypeName} ${dtoParamName}, ${relationshipParams}` :
             `Integer aggregateId, ${dtoTypeName} ${dtoParamName}`) :
         `${dtoTypeName} ${dtoParamName}`;
 
-    const setterCalls = entity.properties.map((prop: any, index: number) => {
-        if (!isRootEntity && index === 0) {
-            return '';
+    const setterCalls: string[] = [];
+
+    for (const field of dtoSchema.fields) {
+        if (field.isAggregateField) {
+            continue;
         }
 
-        const javaType = resolveJavaType(prop.type);
-        const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
-        const isFinal = (prop as any).isFinal || false;
+        const entityProp = field.sourceProperty;
+        if (!entityProp) {
+            continue;
+        }
 
-        let dtoGetterName = capitalizedName;
+        const propName = entityProp.name;
+        const capitalizedName = propName.charAt(0).toUpperCase() + propName.slice(1);
+        const isFinal = (entityProp as any).isFinal || false;
+        const dtoGetterName = field.name.charAt(0).toUpperCase() + field.name.slice(1);
+        const javaType = resolveJavaType(entityProp.type);
+        const isEntityRelationship = TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<');
 
-        if (customDtoType) {
-            const mappedName = mapEntityFieldToDtoField(prop.name, customDtoType, dtoMappings, entity);
-            if (mappedName === null) {
-                return '';
-            }
-            dtoGetterName = mappedName;
+        if (isRootEntity && (field.requiresConversion && field.referencedEntityName)) {
+            continue;
         }
 
         if (isFinal) {
-            if (isEnumType(prop.type) || isEnumTypeByNaming(javaType)) {
-                return `        this.${prop.name} = ${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}());`;
+            if (field.requiresConversion && field.referencedEntityName) {
+                setterCalls.push(`        this.${propName} = ${dtoParamName}.get${dtoGetterName}() != null ? new ${field.referencedEntityName}(${dtoParamName}.get${dtoGetterName}()) : null;`);
+            } else if (isEnumType(entityProp.type)) {
+                setterCalls.push(`        this.${propName} = ${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}());`);
             } else {
-                return `        this.${prop.name} = ${dtoParamName}.get${dtoGetterName}();`;
+                setterCalls.push(`        this.${propName} = ${dtoParamName}.get${dtoGetterName}();`);
             }
+            continue;
         }
 
-        if (javaType === 'LocalDateTime') {
-            return `        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`;
-        } else if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
-            return `        set${capitalizedName}(${prop.name});`;
-        } else if (isEnumType(prop.type) || isEnumTypeByNaming(javaType)) {
-            return `        set${capitalizedName}(${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}()));`;
-        } else if (javaType.startsWith('List<') || javaType.startsWith('Set<')) {
-            return generateCollectionMapping(prop, dtoParamName, dtoGetterName, javaType, customDtoType, dtoMappings, entity);
-        } else if (!javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
-            return `        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`;
+        if (field.requiresConversion) {
+            if (field.isCollection && field.referencedEntityName) {
+                const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
+                if (field.extractField) {
+                    const extractMethod = `get${field.extractField.charAt(0).toUpperCase() + field.extractField.slice(1)}()`;
+                    setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${dtoParamName}.get${dtoGetterName}().stream().map(dto -> dto.${extractMethod}).collect(${collector}) : null);`);
+                } else {
+                    setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${dtoParamName}.get${dtoGetterName}().stream().map(dto -> new ${field.referencedEntityName}(dto)).collect(${collector}) : null);`);
+                }
+            } else if (!field.isCollection && field.referencedEntityName) {
+                setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? new ${field.referencedEntityName}(${dtoParamName}.get${dtoGetterName}()) : null);`);
+            } else {
+                setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`);
+            }
+            continue;
         }
-        return '';
-    }).filter(call => call !== '').join('\n');
+
+        if (isEnumType(entityProp.type)) {
+            setterCalls.push(`        set${capitalizedName}(${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}()));`);
+            continue;
+        }
+
+        if (!isRootEntity && isEntityRelationship && field.referencedEntityName) {
+            setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? new ${field.referencedEntityName}(${dtoParamName}.get${dtoGetterName}()) : null);`);
+            continue;
+        }
+
+        setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`);
+    }
+
+    if (isRootEntity && entityRelationships.length > 0) {
+        for (const prop of entity.properties || []) {
+            const javaType = resolveJavaType(prop.type);
+            if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
+                const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
+                const isFinalProp = (prop as any).isFinal || false;
+                if (isFinalProp) {
+                    setterCalls.push(`        this.${prop.name} = ${prop.name};`);
+                } else {
+                    setterCalls.push(`        set${capitalizedName}(${prop.name});`);
+                }
+            }
+        }
+    }
 
     const constructorBody = isRootEntity ?
         `        super(aggregateId);
         setAggregateType(getClass().getSimpleName());
-${setterCalls}` :
-        setterCalls;
+${setterCalls.join('\n')}` :
+        setterCalls.join('\n');
 
     const code = `\n    public ${entityName}(${params}) {
 ${constructorBody}
     }`;
 
     const imports: ImportRequirements = {};
-    if (!imports.customImports) imports.customImports = new Set();
-    const dtoImportPath = `${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.${dtoTypeName}`;
-    imports.customImports.add(`import ${dtoImportPath};`);
+    addDtoImport(dtoTypeName, entity, projectName, dtoSchemaRegistry, imports);
 
-    entity.properties.forEach((prop: any) => {
-        if (isEnumType(prop.type) || isEnumTypeByNaming(resolveJavaType(prop.type))) {
-            const enumType = resolveJavaType(prop.type);
+    for (const field of dtoSchema.fields) {
+        if (field.sourceProperty && isEnumType(field.sourceProperty.type)) {
+            const enumType = resolveJavaType(field.sourceProperty.type);
             const enumImportPath = `${getGlobalConfig().buildPackageName(projectName, 'shared', 'enums')}.${enumType}`;
             if (!imports.customImports) imports.customImports = new Set();
             imports.customImports.add(`import ${enumImportPath};`);
         }
-    });
+    }
+
+    if (setterCalls.some(call => call.includes('Collectors.'))) {
+        imports.usesCollectors = true;
+    }
 
     return {
         code,
         imports
     };
+}
+
+function addDtoImport(
+    dtoTypeName: string,
+    entity: Entity,
+    projectName: string,
+    dtoSchemaRegistry: DtoSchemaRegistry | undefined,
+    imports: ImportRequirements
+): void {
+    if (!imports.customImports) {
+        imports.customImports = new Set<string>();
+    }
+
+    const config = getGlobalConfig();
+    const owningAggregateName = entity.$container?.name || entity.name;
+    let targetAggregateName = owningAggregateName;
+
+    const dtoSchema = dtoSchemaRegistry?.dtoByName?.[dtoTypeName];
+    if (dtoSchema) {
+        targetAggregateName = dtoSchema.aggregateName;
+    } else if (dtoTypeName.endsWith('Dto')) {
+        targetAggregateName = dtoTypeName.slice(0, -3);
+    }
+
+    if (!targetAggregateName) {
+        return;
+    }
+
+    if (targetAggregateName.toLowerCase() === (owningAggregateName || '').toLowerCase()) {
+        return;
+    }
+
+    const importPath = `${config.buildPackageName(projectName, 'microservices', targetAggregateName.toLowerCase(), 'aggregate')}.${dtoTypeName}`;
+    imports.customImports.add(`import ${importPath};`);
 }
 
 export function generateCopyConstructor(entity: Entity): { code: string, imports: ImportRequirements } {
@@ -238,10 +314,10 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
         } else if (javaType.startsWith('Set<')) {
             const elementType = TypeResolver.getElementType(prop.type);
             if (elementType && TypeResolver.isEntityType(elementType)) {
-                imports.usesCollectors = true; // Only set when actually using Collectors
+                imports.usesCollectors = true;
                 return `        set${capitalizedName}(other.get${capitalizedName}().stream().map(${elementType}::new).collect(Collectors.toSet()));`;
             } else {
-                imports.usesSet = true; // Need HashSet import
+                imports.usesSet = true;
                 return `        set${capitalizedName}(new HashSet<>(other.get${capitalizedName}()));`;
             }
         } else if (javaType.startsWith('List<')) {
@@ -271,78 +347,4 @@ ${constructorBody}
         code,
         imports
     };
-}
-
-function mapEntityFieldToDtoField(entityFieldName: string, dtoType: string, dtoMappings?: any[], entity?: Entity): string | null {
-    const entityAny = entity as any;
-    if (entityAny?.dtoMapping?.fieldMappings) {
-        for (const fieldMapping of entityAny.dtoMapping.fieldMappings) {
-            if (fieldMapping.entityField === entityFieldName) {
-                return capitalize(fieldMapping.dtoField);
-            }
-        }
-        return null;
-    }
-
-    if (!dtoMappings || !entity) {
-        return entityFieldName.charAt(0).toUpperCase() + entityFieldName.slice(1);
-    }
-
-    const entityName = entity.name;
-    const expectedDtoName = `${entityName}Dto`;
-    if (dtoType === expectedDtoName) {
-        return entityFieldName.charAt(0).toUpperCase() + entityFieldName.slice(1);
-    }
-
-    return entityFieldName.charAt(0).toUpperCase() + entityFieldName.slice(1);
-}
-
-function generateCollectionMapping(
-    prop: any,
-    dtoParamName: string,
-    dtoGetterName: string,
-    javaType: string,
-    customDtoType: string,
-    dtoMappings?: any[],
-    entity?: Entity
-): string {
-    const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
-
-    const entityAny = entity as any;
-    if (entityAny?.dtoMapping?.fieldMappings) {
-        const fieldMapping = entityAny.dtoMapping.fieldMappings.find((fm: any) =>
-            fm.entityField === prop.name
-        );
-
-        if (fieldMapping && fieldMapping.extractField) {
-            const extractField = fieldMapping.extractField;
-            const extractMethod = `get${extractField.charAt(0).toUpperCase() + extractField.slice(1)}`;
-            const collectorMethod = javaType.startsWith('List<') ? 'toList' : 'toSet';
-
-            const sourceDtoType = fieldMapping.dtoField; // This should be the collection name
-            const elementDtoType = inferDtoTypeFromCollection(sourceDtoType, customDtoType);
-
-            return `        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}().stream()
-            .map(${elementDtoType}::${extractMethod})
-            .collect(Collectors.${collectorMethod}()));`;
-        }
-    }
-
-    return '';
-}
-
-function inferDtoTypeFromCollection(collectionName: string, baseDtoType: string): string {
-    let singular: string;
-
-    if (collectionName.endsWith('ies')) {
-        singular = collectionName.slice(0, -3) + 'y';
-    } else if (collectionName.endsWith('es') && collectionName.length > 3) {
-        singular = collectionName.slice(0, -2);
-    } else if (collectionName.endsWith('s') && collectionName.length > 1) {
-        singular = collectionName.slice(0, -1);
-    } else {
-        singular = collectionName;
-    }
-
-    return `${singular.charAt(0).toUpperCase() + singular.slice(1)}Dto`;
 }

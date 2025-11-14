@@ -363,8 +363,7 @@ export class EntityPipeline extends BaseGenerationPipeline {
             for (const entity of aggregate.entities) {
                 const entityOptions = {
                     projectName: options.projectName,
-                    allSharedDtos: options.allSharedDtos,
-                    dtoMappings: options.dtoMappings,
+                    dtoSchemaRegistry: options.dtoSchemaRegistry,
                     allEntities: aggregate.entities
                 };
 
@@ -377,7 +376,7 @@ export class EntityPipeline extends BaseGenerationPipeline {
                 });
 
                 // Generate DTO if needed
-                if ((entity as any).isRoot && !this.isSharedDto(entity.name + 'Dto')) {
+                if ((entity as any).isRoot) {
                     const dtoCode = await this.generators.dtoGenerator.generateDto(entity, options);
                     files.push({
                         content: dtoCode,
@@ -391,7 +390,7 @@ export class EntityPipeline extends BaseGenerationPipeline {
             // Generate factory
             const factoryCode = await this.generators.factoryGenerator.generateFactory(aggregate, {
                 ...options,
-                allSharedDtos: options.allSharedDtos
+                dtoSchemaRegistry: options.dtoSchemaRegistry
             });
             files.push({
                 content: factoryCode,
@@ -448,10 +447,6 @@ export class EntityPipeline extends BaseGenerationPipeline {
         return `${options.outputPath}/src/main/java/pt/ulisboa/tecnico/socialsoftware/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${aggregate.name}Repository.java`;
     }
 
-    private isSharedDto(dtoName: string): boolean {
-        const sharedDtos = ['UserDto', 'CourseDto', 'ExecutionDto', 'QuestionDto', 'TopicDto', 'QuizDto', 'TournamentDto', 'AnswerDto'];
-        return sharedDtos.includes(dtoName);
-    }
 }
 
 /**

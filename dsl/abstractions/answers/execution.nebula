@@ -1,4 +1,3 @@
-import shared-dtos;
 import shared-enums;
 
 Aggregate Execution {

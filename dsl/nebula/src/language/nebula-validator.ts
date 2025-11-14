@@ -68,8 +68,6 @@ export class NebulaValidator {
       });
     }
 
-    this.validateSharedDtoFields(model, accept);
-    this.validateRootEntityDtoCoverage(model, accept);
   }
 
   checkAggregate(aggregate: Aggregate, accept: ValidationAcceptor): void {
@@ -114,134 +112,15 @@ export class NebulaValidator {
     }
   }
 
-  private validateSharedDtoFields(model: Model, accept: ValidationAcceptor): void {
-    const sharedBlocks: any[] = (model as any).sharedDtos || [];
-    if (!sharedBlocks.length) return;
-
-    for (const block of sharedBlocks) {
-      for (const dto of (block.dtos || [])) {
-        const dtoName: string = dto.name;
-        if (!dtoName) continue;
-        const aggregateName = dtoName.endsWith('Dto') ? dtoName.slice(0, -3) : dtoName;
-        const aggregate = model.aggregates.find(a => a.name === aggregateName);
-        if (!aggregate) continue;
-
-        const entities = getEntities(aggregate);
-        const root = entities.find((e: any) => e.isRoot);
-        if (!root) continue;
-        const rootProps: string[] = (root.properties || []).map((p: any) => p.name);
-
-        for (const field of dto.fields || []) {
-          const f: any = field;
-          const fieldName: string = f.name;
-          if (!fieldName) continue;
-
-          const mappedEntityName: string | undefined = f.sourceEntity?.ref?.name || f.sourceEntity?.$refText;
-          if (mappedEntityName) {
-            const exists = entities.some((e: any) => e.name === mappedEntityName);
-            if (!exists) {
-              accept("error", `DTO '${dtoName}' field '${fieldName}' maps to entity '${mappedEntityName}', which does not exist in aggregate '${aggregateName}'.`, {
-                node: field as any,
-                property: "sourceEntity",
-              });
-            }
-          }
-
-          const typeText: string = (f.type?.$cstNode?.text || '').trim();
-          const isCollection = typeText.startsWith('List<') || typeText.startsWith('Set<');
-          const isSingleDto = !isCollection && typeText.endsWith('Dto');
-          if (isSingleDto || isCollection) {
-            if (!rootProps.includes(fieldName)) {
-              const accessor = `get${fieldName[0].toUpperCase()}${fieldName.slice(1)}()`;
-              accept("error", `DTO '${dtoName}' field '${fieldName}' requires root property '${fieldName}' in aggregate '${aggregateName}' to generate accessor ${accessor}.`, {
-                node: field as any,
-                property: "name",
-              });
-            }
-          }
-        }
-      }
-    }
-  }
-
-  private validateRootEntityDtoCoverage(model: Model, accept: ValidationAcceptor): void {
-    const allDtos: any[] = this.collectAllSharedDtoDefinitions(model);
-    const standardDtoFields = new Set<string>(['aggregateId', 'version', 'state']);
-
-    for (const aggregate of model.aggregates) {
-      const aggregateName = aggregate.name;
-      const entities = getEntities(aggregate);
-      const root = entities.find((e: any) => e.isRoot);
-      if (!root) continue;
-
-      const rootAny = root as any;
-      const explicitDtoRef = rootAny.dtoType;
-      const dtoName =
-        explicitDtoRef?.ref?.name ||
-        explicitDtoRef?.$refText ||
-        `${aggregateName}Dto`;
-
-      if (!dtoName) {
-        continue;
-      }
-
-      const dto = allDtos.find((d: any) => d.name === dtoName);
-      if (!dto) {
-        accept("error", `Root entity '${root.name}' requires DTO '${dtoName}' but it was not found. Create the DTO in a shared-dtos block or reference an existing one using 'uses dto'.`, {
-          node: root as any,
-          property: "name",
-        });
-        continue;
-      }
-
-      const dtoFieldNames = new Set<string>((dto.fields || []).map((f: any) => f.name));
-      for (const standardField of standardDtoFields) {
-        dtoFieldNames.add(standardField);
-      }
-
-      const fieldMappings = new Map<string, string>();
-      const mappings: any[] = rootAny.dtoMapping?.fieldMappings || [];
-      for (const mapping of mappings) {
-        if (mapping?.entityField && mapping?.dtoField) {
-          fieldMappings.set(mapping.entityField, mapping.dtoField);
-        }
-      }
-
-      for (const prop of (root.properties || [])) {
-        const propName: string = prop.name;
-        if (!propName) continue;
-
-        if (propName.toLowerCase() === 'id') {
-          continue;
-        }
-
-        if (this.isEntityReferenceProperty(prop)) {
-          continue;
-        }
-
-        const mappedDtoField = fieldMappings.get(propName) || propName;
-        if (!dtoFieldNames.has(mappedDtoField)) {
-          accept("error", `DTO '${dtoName}' is missing field '${mappedDtoField}' required to represent root property '${propName}' in aggregate '${aggregateName}'.`, {
-            node: prop as any,
-            property: "name",
-          });
-        }
-      }
-    }
-  }
-
-  private collectAllSharedDtoDefinitions(model: Model): any[] {
-    const collected: any[] = [];
-    const seen = new Set<string>();
+  private collectAllRootEntities(model: Model): Map<string, Entity> {
+    const collected = new Map<string, Entity>();
 
     const collectFromModel = (target?: Model) => {
       if (!target) return;
-      const sharedBlocks: any[] = (target as any).sharedDtos || [];
-      for (const block of sharedBlocks) {
-        for (const dto of (block.dtos || [])) {
-          if (dto?.name && !seen.has(dto.name)) {
-            seen.add(dto.name);
-            collected.push(dto);
+      for (const aggregate of target.aggregates || []) {
+        for (const entity of getEntities(aggregate)) {
+          if (entity.isRoot && entity.name && !collected.has(entity.name)) {
+            collected.set(entity.name, entity);
           }
         }
       }
@@ -278,46 +157,14 @@ export class NebulaValidator {
     return collected;
   }
 
-  private isEntityReferenceProperty(prop: Property): boolean {
-    const type: any = (prop as any).type;
-    return this.isEntityReferenceType(type);
-  }
-
-  private isEntityReferenceType(type: any): boolean {
-    if (!type || typeof type !== 'object') {
-      return false;
+  private getRootEntityDtoFields(rootEntity: Entity): Set<string> {
+    const fields = new Set<string>(['aggregateId', 'version', 'state']);
+    for (const prop of rootEntity.properties || []) {
+      if (!prop.name) continue;
+      if (prop.dtoExclude) continue;
+      fields.add(prop.name);
     }
-
-    const typeKind: string | undefined = type.$type;
-    if (!typeKind) {
-      return false;
-    }
-
-    if (typeKind === 'EntityType') {
-      return true;
-    }
-
-    if (typeKind === 'CollectionType') {
-      const elementType = (type as any).elementType;
-      if (typeof elementType === 'object') {
-        return this.isEntityReferenceType(elementType);
-      }
-      return false;
-    }
-
-    if (typeKind === 'OptionalType') {
-      const elementType = (type as any).elementType;
-      if (typeof elementType === 'object') {
-        return this.isEntityReferenceType(elementType);
-      }
-      return false;
-    }
-
-    if (typeKind === 'AggregateStateType') {
-      return false;
-    }
-
-    return false;
+    return fields;
   }
 
   // ============================================================================
@@ -353,13 +200,18 @@ export class NebulaValidator {
           node: entity,
         });
       }
+
+      for (const property of entity.properties) {
+        if (property.dtoExclude && property.name && property.name.toLowerCase() === 'id') {
+          accept("error", "Root entity id property cannot be marked with 'dto-exclude'.", {
+            node: property as any,
+            property: "name",
+          });
+        }
+      }
     }
 
     const entityAny = entity as any;
-    if (entityAny.dtoType) {
-      this.validateDtoImport(entity, accept);
-    }
-
     if (entityAny.dtoMapping?.fieldMappings) {
       this.validateEntityDtoMapping(entity, entityAny.dtoMapping.fieldMappings, accept);
     }
@@ -497,31 +349,35 @@ export class NebulaValidator {
   // DTO MAPPING VALIDATION
   // ============================================================================
 
-  private validateDtoImport(entity: Entity, accept: ValidationAcceptor): void {
-    const model = entity.$container?.$container;
-    if (!model) return;
-
-    const modelAny = model as any;
-    const hasSharedDtosImport = modelAny.imports?.some((imp: any) =>
-      imp.sharedDtos === true
-    );
-
-    if (!hasSharedDtosImport) {
-      const entityAny = entity as any;
-      const dtoName = entityAny.dtoType?.ref?.name || entityAny.dtoType?.$refText || 'unknown';
-      accept("error", `Entity '${entity.name}' uses DTO '${dtoName}' but 'shared-dtos' is not imported. Add 'import shared-dtos;' at the top of the file.`, {
-        node: entity,
-        property: "dtoType",
-      });
-    }
-  }
-
   private validateEntityDtoMapping(entity: Entity, fieldMappings: any[], accept: ValidationAcceptor): void {
     const entityFields = entity.properties.map(p => p.name);
 
     const entityAny = entity as any;
     const dtoType = entityAny.dtoType;
-    const dtoDefinition = dtoType?.ref;
+    const model = entity.$container?.$container as Model | undefined;
+
+    let rootDtoFields: Set<string> | undefined;
+    if (model && dtoType) {
+      const dtoName = dtoType;
+      const rootEntities = this.collectAllRootEntities(model);
+      if (dtoName.endsWith('Dto')) {
+        const rootEntityName = dtoName.slice(0, -3);
+        const targetRoot = rootEntities.get(rootEntityName);
+        if (!targetRoot) {
+          accept("error", `DTO '${dtoName}' must correspond to root entity '${rootEntityName}', but none was found.`, {
+            node: entity,
+            property: "dtoType",
+          });
+        } else {
+          rootDtoFields = this.getRootEntityDtoFields(targetRoot);
+        }
+      } else {
+        accept("error", `DTO reference '${dtoName}' must end with 'Dto' to correspond to a root entity DTO.`, {
+          node: entity,
+          property: "dtoType",
+        });
+      }
+    }
 
     for (const mapping of fieldMappings) {
       if (!entityFields.includes(mapping.entityField)) {
@@ -531,23 +387,13 @@ export class NebulaValidator {
         });
       }
 
-      if (dtoDefinition && dtoDefinition.fields) {
-        const explicitDtoFields = dtoDefinition.fields.map((f: any) => f.name);
-        const standardFields = ['aggregateId', 'version', 'state'];
-        const allDtoFields = [...standardFields, ...explicitDtoFields];
-
-        if (!allDtoFields.includes(mapping.dtoField)) {
-          accept("error", `DTO field '${mapping.dtoField}' does not exist in DTO '${dtoDefinition.name}'. Available fields: ${allDtoFields.join(', ')}`, {
-            node: mapping,
-            property: "dtoField",
-          });
-        }
-      } else if (dtoType && !dtoDefinition) {
-        accept("error", `Referenced DTO '${dtoType.$refText || 'unknown'}' not found`, {
-          node: entity,
-          property: "dtoType",
+      if (rootDtoFields && !rootDtoFields.has(mapping.dtoField)) {
+        accept("error", `DTO field '${mapping.dtoField}' is not available on the root entity DTO. Available fields: ${Array.from(rootDtoFields).join(', ')}`, {
+          node: mapping,
+          property: "dtoField",
         });
       }
+
     }
   }
 

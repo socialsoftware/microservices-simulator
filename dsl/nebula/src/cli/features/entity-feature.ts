@@ -5,14 +5,6 @@ import { FileWriter } from "../utils/file-writer.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../utils/error-handler.js";
 
 export class EntityFeature {
-    private static isSharedDto(dtoName: string, sharedDtos?: any[]): boolean {
-        if (!sharedDtos || sharedDtos.length === 0) {
-            return false;
-        }
-
-        return sharedDtos.some((dto: any) => dto?.name === dtoName);
-    }
-
     static async generateCoreComponents(
         aggregate: Aggregate,
         aggregatePath: string,
@@ -22,8 +14,7 @@ export class EntityFeature {
         for (const entity of aggregate.entities) {
             const entityOptions = {
                 projectName: options.projectName,
-                allSharedDtos: options.allSharedDtos,
-                dtoMappings: options.dtoMappings,
+                dtoSchemaRegistry: options.dtoSchemaRegistry,
                 allEntities: aggregate.entities
             };
             const entityCode = await generators.entityGenerator.generateEntity(entity, entityOptions);
@@ -31,21 +22,16 @@ export class EntityFeature {
             await FileWriter.writeGeneratedFile(entityPath, entityCode, `entity ${entity.name}`);
 
             if ((entity as any).isRoot) {
-                if (!this.isSharedDto(entity.name + 'Dto', options.allSharedDtos)) {
-                    const dtoCode = await generators.dtoGenerator.generateDto(entity, options);
-                    const dtoPath = path.join(aggregatePath, 'aggregate', `${entity.name}Dto.java`);
-                    await FileWriter.writeGeneratedFile(dtoPath, dtoCode, `DTO ${entity.name}Dto`);
-                } else {
-                    console.log(`\t- Skipping DTO generation for ${entity.name}Dto (using shared DTO)`);
-                }
+                const dtoCode = await generators.dtoGenerator.generateDto(entity, options);
+                const dtoPath = path.join(aggregatePath, 'aggregate', `${entity.name}Dto.java`);
+                await FileWriter.writeGeneratedFile(dtoPath, dtoCode, `DTO ${entity.name}Dto`);
             } else {
                 console.log(`\t- Skipping DTO generation for ${entity.name} (non-root entity)`);
             }
         }
 
         const factoryCode = await generators.factoryGenerator.generateFactory(aggregate, {
-            ...options,
-            allSharedDtos: options.allSharedDtos
+            ...options
         });
         const factoryPath = path.join(aggregatePath, 'aggregate', `${aggregate.name}Factory.java`);
         await FileWriter.writeGeneratedFile(factoryPath, factoryCode, `factory ${aggregate.name}Factory`);

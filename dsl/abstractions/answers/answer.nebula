@@ -1,5 +1,3 @@
-import shared-dtos;
-
 Aggregate Answer {
     Entity AnswerUser uses dto UserDto mapping {
         aggregateId -> userAggregateId;

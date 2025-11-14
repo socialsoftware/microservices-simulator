@@ -1,5 +1,3 @@
-import shared-dtos;
-
 Aggregate Tournament {
     Root Entity Tournament { 
        LocalDateTime startTime;

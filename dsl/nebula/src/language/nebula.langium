@@ -2,11 +2,11 @@ grammar Nebula
 
 entry Model:
     imports+=Import*
-    (aggregates+=Aggregate | sharedDtos+=SharedDtos | sharedEnums+=SharedEnums)*
+    (aggregates+=Aggregate | sharedEnums+=SharedEnums)*
     (exceptions=ExceptionMessages)?;
 
 Import:
-    'import' (sharedDtos?='shared-dtos' | sharedEnums?='shared-enums') ';';
+    'import' sharedEnums?='shared-enums' ';';
 
 Aggregate:
     (annotations+=Annotation)*
@@ -19,7 +19,7 @@ AggregateElement:
     Entity | Method | Workflow | CustomRepository | Events | WebAPIEndpoints | ServiceDefinition | Functionalities;
 
 Entity:
-    (isRoot?='Root')? 'Entity' name=ID ('uses' 'dto' dtoType=[DtoDefinition:ID] (dtoMapping=DtoEntityMapping)?)? '{'
+    (isRoot?='Root')? 'Entity' name=ID ('uses' 'dto' dtoType=ID (dtoMapping=DtoEntityMapping)?)? '{'
         properties+=Property*
         constructors+=Constructor*
         ('invariants' '{'
@@ -119,7 +119,7 @@ OptionalType:
     'Optional' '<' elementType=(PrimitiveType | ID) '>';
 
 Property:
-    (isFinal?='final')? type=Type name=ID (',' names+=ID)* ('default' defaultValue=PropertyDefaultValue)? ';';
+    (isFinal?='final')? type=Type name=ID (',' names+=ID)* ('default' defaultValue=PropertyDefaultValue)? (dtoExclude?='dto-exclude')? ';';
 
 PropertyDefaultValue returns string:
     LITERAL | STRING | QualifiedName | 'null' | '[]';
@@ -409,35 +409,8 @@ EnumDefinition:
 EnumValue:
     name=ID;
 
-// Shared DTOs Support
-SharedDtos:
-    'SharedDtos' '{'
-        dtos+=DtoDefinition*
-    '}';
-
 // Shared Enums Support
 SharedEnums:
     'SharedEnums' '{'
         enums+=EnumDefinition*
     '}';
-
-DtoDefinition:
-    'dto' name=ID (genericParams=GenericParameters)? '{'
-        fields+=DtoField*
-    '}';
-
-GenericParameters:
-    '<' params+=ID (',' params+=ID)* '>';
-
-DtoField:
-    type=DtoFieldType name=ID ('->' sourceEntity=[Entity:ID])? ';';
-
-DtoFieldType:
-    PrimitiveType | DtoReference | ListType | SetType | OptionalType | AggregateStateType;
-
-DtoReference:
-    dto=[DtoDefinition:ID];
-
-
-
-

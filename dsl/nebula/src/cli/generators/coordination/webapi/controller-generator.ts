@@ -2,7 +2,7 @@ import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { WebApiGenerationOptions } from "./webapi-types.js";
 import { WebApiBaseGenerator } from "./webapi-base-generator.js";
 import { getGlobalConfig } from "../../common/config.js";
-import { SharedDtoGenerator } from "../../microservices/shared/shared-dto-generator.js";
+import type { DtoSchemaRegistry } from "../../../services/dto-schema-service.js";
 
 export class ControllerGenerator extends WebApiBaseGenerator {
     async generateController(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions): Promise<string> {
@@ -65,44 +65,28 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         imports.add('import org.springframework.http.ResponseEntity;');
         imports.add('import org.springframework.beans.factory.annotation.Autowired;');
 
-        if (options.architecture === 'external-dto-removal') {
-            endpoints.forEach(endpoint => {
-                if (endpoint.returnType && endpoint.returnType.includes('Dto')) {
-                    imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'aggregate', endpoint.returnType.replace('Dto', ''))}.${endpoint.returnType};`);
-                }
-                endpoint.parameters?.forEach((param: any) => {
-                    if (param.type && param.type.includes('Dto')) {
-                        imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'aggregate', param.type.replace('Dto', ''))}.${param.type};`);
-                    }
-                });
-            });
-        }
-
         imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'functionalities')}.${aggregate.name}Functionalities;`);
 
-        // Add collection imports if needed
         const hasSetType = endpoints.some(e => e.returnType && e.returnType.includes('Set<'));
         if (hasSetType) {
             imports.add('import java.util.Set;');
         }
 
-        // Collect all DTOs needed and add appropriate imports
         const dtoTypes = new Set<string>();
 
         endpoints.forEach(endpoint => {
-            // Extract DTOs from return type
             this.extractDtoTypes(endpoint.returnType, dtoTypes);
 
-            // Extract DTOs from parameters
             endpoint.parameters?.forEach((param: any) => {
                 this.extractDtoTypes(param.type, dtoTypes);
             });
         });
 
-        // Add imports for each DTO
         dtoTypes.forEach(dtoType => {
-            const importPath = SharedDtoGenerator.getDtoImportPath(dtoType, options);
-            imports.add(`import ${importPath};`);
+            const importPath = this.resolveDtoImportPath(dtoType, options);
+            if (importPath) {
+                imports.add(`import ${importPath};`);
+            }
         });
 
         if (endpoints.some(e => e.throwsException)) {
@@ -115,11 +99,10 @@ export class ControllerGenerator extends WebApiBaseGenerator {
     private extractDtoTypes(type: string, dtoSet: Set<string>): void {
         if (!type) return;
 
-        // Extract DTO names from types like "CourseExecutionDto", "List<CourseDto>", "Set<UserDto>"
         const dtoMatches = type.match(/(\w+Dto)/g);
         if (dtoMatches) {
             dtoMatches.forEach(dto => {
-                if (dto !== 'Dto') { // Avoid matching just "Dto"
+                if (dto !== 'Dto') {
                     dtoSet.add(dto);
                 }
             });
@@ -144,5 +127,27 @@ export class ControllerGenerator extends WebApiBaseGenerator {
 
     private getEmptyControllerTemplate(): string {
         return this.loadTemplate('web/empty-controller.hbs');
+    }
+
+    private resolveDtoImportPath(dtoType: string, options: WebApiGenerationOptions): string | null {
+        const dtoRegistry: DtoSchemaRegistry | undefined = options.dtoSchemaRegistry;
+        const dtoInfo = dtoRegistry?.dtoByName?.[dtoType];
+
+        let aggregateName = dtoInfo?.aggregateName;
+        if (!aggregateName && dtoType.endsWith('Dto')) {
+            aggregateName = dtoType.slice(0, -3);
+        }
+
+        if (!aggregateName) {
+            return null;
+        }
+
+        const packageName = getGlobalConfig().buildPackageName(
+            options.projectName,
+            'microservices',
+            aggregateName.toLowerCase(),
+            'aggregate'
+        );
+        return `${packageName}.${dtoType}`;
     }
 }
