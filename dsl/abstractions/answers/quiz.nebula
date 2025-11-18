@@ -29,6 +29,7 @@ Aggregate Quiz {
     }
 
     Entity QuizOption uses dto OptionDto mapping {
+        sequence -> optionSequence;
         correct -> optionCorrect;
         content -> optionContent;
     } {

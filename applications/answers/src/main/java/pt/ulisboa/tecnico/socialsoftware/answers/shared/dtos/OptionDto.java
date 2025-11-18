@@ -1,59 +1,38 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Option;
 
 public class OptionDto implements Serializable {
-    
-    private Integer aggregateId;
-    private Integer version;
-    private AggregateState state;
+    private Long id;
     private Integer key;
     private Integer sequence;
     private Boolean correct;
     private String content;
-    
+
     public OptionDto() {
     }
-    
-    public OptionDto(Integer aggregateId, Integer version, AggregateState state, Integer key, Integer sequence, Boolean correct, String content) {
-        setAggregateId(aggregateId);
-        setVersion(version);
-        setState(state);
-        setKey(key);
-        setSequence(sequence);
-        setCorrect(correct);
-        setContent(content);
-    }
-    
-    public Integer getAggregateId() {
-        return aggregateId;
-    }
-    
-    public void setAggregateId(Integer aggregateId) {
-        this.aggregateId = aggregateId;
+
+    public OptionDto(Option option) {
+        this.id = option.getId();
+        this.key = option.getKey();
+        this.sequence = option.getSequence();
+        this.correct = option.isCorrect();
+        this.content = option.getContent();
     }
 
-    public Integer getVersion() {
-        return version;
-    }
-    
-    public void setVersion(Integer version) {
-        this.version = version;
+    public Long getId() {
+        return id;
     }
 
-    public AggregateState getState() {
-        return state;
-    }
-    
-    public void setState(AggregateState state) {
-        this.state = state;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Integer getKey() {
         return key;
     }
-    
+
     public void setKey(Integer key) {
         this.key = key;
     }
@@ -61,15 +40,15 @@ public class OptionDto implements Serializable {
     public Integer getSequence() {
         return sequence;
     }
-    
+
     public void setSequence(Integer sequence) {
         this.sequence = sequence;
     }
 
-    public Boolean getCorrect() {
+    public Boolean isCorrect() {
         return correct;
     }
-    
+
     public void setCorrect(Boolean correct) {
         this.correct = correct;
     }
@@ -77,7 +56,7 @@ public class OptionDto implements Serializable {
     public String getContent() {
         return content;
     }
-    
+
     public void setContent(String content) {
         this.content = content;
     }

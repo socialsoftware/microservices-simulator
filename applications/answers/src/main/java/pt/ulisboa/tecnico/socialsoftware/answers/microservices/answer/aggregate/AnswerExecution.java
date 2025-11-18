@@ -5,7 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionDto;
 
 @Entity
 public class AnswerExecution {
@@ -22,8 +22,10 @@ public class AnswerExecution {
     }
 
     public AnswerExecution(ExecutionDto executionDto) {
-        setExecutionAggregateId(executionDto.getAggregateId());
-        setExecutionVersion(executionDto.getVersion());
+        setAcronym(executionDto.getAcronym());
+        setAcademicTerm(executionDto.getAcademicTerm());
+        setEndDate(executionDto.getEndDate());
+        setUsers(executionDto.getUsers());
     }
 
     public AnswerExecution(AnswerExecution other) {
@@ -66,8 +68,9 @@ public class AnswerExecution {
 
     public ExecutionDto buildDto() {
         ExecutionDto dto = new ExecutionDto();
-        dto.setAggregateId(getExecutionAggregateId());
-        dto.setVersion(getExecutionVersion());
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
         return dto;
     }
 }

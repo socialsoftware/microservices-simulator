@@ -6,7 +6,6 @@ import jakarta.persistence.EnumType;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.UserRole;
 
 @Entity
@@ -26,8 +25,8 @@ public abstract class User extends Aggregate {
         setAggregateType(getClass().getSimpleName());
         setName(userDto.getName());
         setUsername(userDto.getUsername());
-        this.role = UserRole.valueOf(userDto.getRole());
         setActive(userDto.getActive());
+        this.role = role;
     }
 
     public User(User other) {

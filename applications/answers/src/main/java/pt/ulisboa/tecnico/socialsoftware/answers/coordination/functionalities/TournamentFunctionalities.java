@@ -18,18 +18,20 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.tournament.*;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournamentfactory.service.TournamentFactory;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentCreatorDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipantDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipantQuizAnswerDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentTopicDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentQuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantQuizAnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentTopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantDto;
 
 @Service
 public class TournamentFunctionalities {

@@ -30,7 +30,7 @@ Aggregate Execution {
         String acronym;
         String academicTerm;
         LocalDateTime endDate;
-        ExecutionCourse executionCourse;
+        ExecutionCourse course;
         Set<ExecutionUser> users;
 
         invariants {

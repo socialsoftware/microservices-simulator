@@ -16,7 +16,6 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 
 @Entity
@@ -48,6 +47,7 @@ public abstract class Quiz extends Aggregate {
         setConclusionDate(quizDto.getConclusionDate());
         setResultsDate(quizDto.getResultsDate());
         setNumberOfQuestions(quizDto.getNumberOfQuestions());
+        setQuestions(quizDto.getQuestions());
         setExecution(execution);
     }
 

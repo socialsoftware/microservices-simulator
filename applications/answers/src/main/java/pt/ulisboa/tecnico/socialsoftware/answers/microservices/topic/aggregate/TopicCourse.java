@@ -5,7 +5,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.CourseDto;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
 @Entity
 public class TopicCourse {
@@ -22,8 +24,9 @@ public class TopicCourse {
     }
 
     public TopicCourse(CourseDto courseDto) {
-        setCourseAggregateId(courseDto.getAggregateId());
-        setCourseVersion(courseDto.getVersion());
+        setName(courseDto.getName());
+        this.type = CourseType.valueOf(courseDto.getType());
+        setCreationDate(courseDto.getCreationDate());
     }
 
     public TopicCourse(TopicCourse other) {
@@ -66,8 +69,9 @@ public class TopicCourse {
 
     public CourseDto buildDto() {
         CourseDto dto = new CourseDto();
-        dto.setAggregateId(getCourseAggregateId());
-        dto.setVersion(getCourseVersion());
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
         return dto;
     }
 }

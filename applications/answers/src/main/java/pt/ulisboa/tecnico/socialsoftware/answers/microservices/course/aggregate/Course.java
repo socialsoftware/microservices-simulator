@@ -8,7 +8,6 @@ import jakarta.persistence.EnumType;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
 @Entity

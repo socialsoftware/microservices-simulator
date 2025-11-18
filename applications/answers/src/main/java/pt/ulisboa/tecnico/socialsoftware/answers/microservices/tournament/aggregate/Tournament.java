@@ -14,8 +14,6 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
-
 @Entity
 public abstract class Tournament extends Aggregate {
     private LocalDateTime startTime;
@@ -23,30 +21,32 @@ public abstract class Tournament extends Aggregate {
     private Integer numberOfQuestions;
     private Boolean cancelled;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournament")
-    private TournamentCreator tournamentCreator;
+    private TournamentCreator creator;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "tournament")
-    private Set<TournamentParticipant> tournamentParticipants = new HashSet<>();
+    private Set<TournamentParticipant> participants = new HashSet<>();
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournament")
-    private TournamentExecution tournamentExecution;
+    private TournamentExecution execution;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "tournament")
-    private Set<TournamentTopic> tournamentTopics = new HashSet<>();
+    private Set<TournamentTopic> topics = new HashSet<>();
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournament")
-    private TournamentQuiz tournamentQuiz;
+    private TournamentQuiz quiz;
 
     public Tournament() {
 
     }
 
-    public Tournament(Integer aggregateId, TournamentDto tournamentDto, TournamentCreator tournamentCreator, TournamentExecution tournamentExecution, TournamentQuiz tournamentQuiz) {
+    public Tournament(Integer aggregateId, TournamentDto tournamentDto, TournamentCreator creator, TournamentExecution execution, TournamentQuiz quiz) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setStartTime(tournamentDto.getStartTime());
         setEndTime(tournamentDto.getEndTime());
         setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
         setCancelled(tournamentDto.getCancelled());
-        setTournamentCreator(tournamentCreator);
-        setTournamentExecution(tournamentExecution);
-        setTournamentQuiz(tournamentQuiz);
+        setParticipants(tournamentDto.getParticipants());
+        setTopics(tournamentDto.getTopics());
+        setCreator(creator);
+        setExecution(execution);
+        setQuiz(quiz);
     }
 
     public Tournament(Tournament other) {
@@ -55,11 +55,11 @@ public abstract class Tournament extends Aggregate {
         setEndTime(other.getEndTime());
         setNumberOfQuestions(other.getNumberOfQuestions());
         setCancelled(other.getCancelled());
-        setTournamentCreator(new TournamentCreator(other.getTournamentCreator()));
-        setTournamentParticipants(other.getTournamentParticipants().stream().map(TournamentParticipant::new).collect(Collectors.toSet()));
-        setTournamentExecution(new TournamentExecution(other.getTournamentExecution()));
-        setTournamentTopics(other.getTournamentTopics().stream().map(TournamentTopic::new).collect(Collectors.toSet()));
-        setTournamentQuiz(new TournamentQuiz(other.getTournamentQuiz()));
+        setCreator(new TournamentCreator(other.getCreator()));
+        setParticipants(other.getParticipants().stream().map(TournamentParticipant::new).collect(Collectors.toSet()));
+        setExecution(new TournamentExecution(other.getExecution()));
+        setTopics(other.getTopics().stream().map(TournamentTopic::new).collect(Collectors.toSet()));
+        setQuiz(new TournamentQuiz(other.getQuiz()));
     }
 
     public LocalDateTime getStartTime() {
@@ -94,128 +94,128 @@ public abstract class Tournament extends Aggregate {
         this.cancelled = cancelled;
     }
 
-    public TournamentCreator getTournamentCreator() {
-        return tournamentCreator;
+    public TournamentCreator getCreator() {
+        return creator;
     }
 
-    public void setTournamentCreator(TournamentCreator tournamentCreator) {
-        this.tournamentCreator = tournamentCreator;
-        if (this.tournamentCreator != null) {
-            this.tournamentCreator.setTournament(this);
+    public void setCreator(TournamentCreator creator) {
+        this.creator = creator;
+        if (this.creator != null) {
+            this.creator.setTournament(this);
         }
     }
 
-    public Set<TournamentParticipant> getTournamentParticipants() {
-        return tournamentParticipants;
+    public Set<TournamentParticipant> getParticipants() {
+        return participants;
     }
 
-    public void setTournamentParticipants(Set<TournamentParticipant> tournamentParticipants) {
-        this.tournamentParticipants = tournamentParticipants;
-        if (this.tournamentParticipants != null) {
-            this.tournamentParticipants.forEach(item -> item.setTournament(this));
+    public void setParticipants(Set<TournamentParticipant> participants) {
+        this.participants = participants;
+        if (this.participants != null) {
+            this.participants.forEach(item -> item.setTournament(this));
         }
     }
 
     public void addTournamentParticipant(TournamentParticipant tournamentParticipant) {
-        if (this.tournamentParticipants == null) {
-            this.tournamentParticipants = new HashSet<>();
+        if (this.participants == null) {
+            this.participants = new HashSet<>();
         }
-        this.tournamentParticipants.add(tournamentParticipant);
+        this.participants.add(tournamentParticipant);
         if (tournamentParticipant != null) {
             tournamentParticipant.setTournament(this);
         }
     }
 
     public void removeTournamentParticipant(Long id) {
-        if (this.tournamentParticipants != null) {
-            this.tournamentParticipants.removeIf(item -> 
+        if (this.participants != null) {
+            this.participants.removeIf(item -> 
                 item.getId() != null && item.getId().equals(id));
         }
     }
 
     public boolean containsTournamentParticipant(Long id) {
-        if (this.tournamentParticipants == null) {
+        if (this.participants == null) {
             return false;
         }
-        return this.tournamentParticipants.stream().anyMatch(item -> 
+        return this.participants.stream().anyMatch(item -> 
             item.getId() != null && item.getId().equals(id));
     }
 
     public TournamentParticipant findTournamentParticipantById(Long id) {
-        if (this.tournamentParticipants == null) {
+        if (this.participants == null) {
             return null;
         }
-        return this.tournamentParticipants.stream()
+        return this.participants.stream()
             .filter(item -> item.getId() != null && item.getId().equals(id))
             .findFirst()
             .orElse(null);
     }
 
-    public TournamentExecution getTournamentExecution() {
-        return tournamentExecution;
+    public TournamentExecution getExecution() {
+        return execution;
     }
 
-    public void setTournamentExecution(TournamentExecution tournamentExecution) {
-        this.tournamentExecution = tournamentExecution;
-        if (this.tournamentExecution != null) {
-            this.tournamentExecution.setTournament(this);
+    public void setExecution(TournamentExecution execution) {
+        this.execution = execution;
+        if (this.execution != null) {
+            this.execution.setTournament(this);
         }
     }
 
-    public Set<TournamentTopic> getTournamentTopics() {
-        return tournamentTopics;
+    public Set<TournamentTopic> getTopics() {
+        return topics;
     }
 
-    public void setTournamentTopics(Set<TournamentTopic> tournamentTopics) {
-        this.tournamentTopics = tournamentTopics;
-        if (this.tournamentTopics != null) {
-            this.tournamentTopics.forEach(item -> item.setTournament(this));
+    public void setTopics(Set<TournamentTopic> topics) {
+        this.topics = topics;
+        if (this.topics != null) {
+            this.topics.forEach(item -> item.setTournament(this));
         }
     }
 
     public void addTournamentTopic(TournamentTopic tournamentTopic) {
-        if (this.tournamentTopics == null) {
-            this.tournamentTopics = new HashSet<>();
+        if (this.topics == null) {
+            this.topics = new HashSet<>();
         }
-        this.tournamentTopics.add(tournamentTopic);
+        this.topics.add(tournamentTopic);
         if (tournamentTopic != null) {
             tournamentTopic.setTournament(this);
         }
     }
 
     public void removeTournamentTopic(Long id) {
-        if (this.tournamentTopics != null) {
-            this.tournamentTopics.removeIf(item -> 
+        if (this.topics != null) {
+            this.topics.removeIf(item -> 
                 item.getId() != null && item.getId().equals(id));
         }
     }
 
     public boolean containsTournamentTopic(Long id) {
-        if (this.tournamentTopics == null) {
+        if (this.topics == null) {
             return false;
         }
-        return this.tournamentTopics.stream().anyMatch(item -> 
+        return this.topics.stream().anyMatch(item -> 
             item.getId() != null && item.getId().equals(id));
     }
 
     public TournamentTopic findTournamentTopicById(Long id) {
-        if (this.tournamentTopics == null) {
+        if (this.topics == null) {
             return null;
         }
-        return this.tournamentTopics.stream()
+        return this.topics.stream()
             .filter(item -> item.getId() != null && item.getId().equals(id))
             .findFirst()
             .orElse(null);
     }
 
-    public TournamentQuiz getTournamentQuiz() {
-        return tournamentQuiz;
+    public TournamentQuiz getQuiz() {
+        return quiz;
     }
 
-    public void setTournamentQuiz(TournamentQuiz tournamentQuiz) {
-        this.tournamentQuiz = tournamentQuiz;
-        if (this.tournamentQuiz != null) {
-            this.tournamentQuiz.setTournament(this);
+    public void setQuiz(TournamentQuiz quiz) {
+        this.quiz = quiz;
+        if (this.quiz != null) {
+            this.quiz.setTournament(this);
         }
     }
 

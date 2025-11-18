@@ -203,7 +203,7 @@ export class SagaGenerator extends OrchestrationBase {
         imports.push('import ${this.getBasePackage()}.ms.sagas.aggregate.GenericSagaState;');
 
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${this.capitalize(aggregate.name)};`);
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${rootEntityName}Dto;`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntityName}Dto;`);
 
         return imports;
     }
@@ -216,7 +216,7 @@ export class SagaGenerator extends OrchestrationBase {
 
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${this.capitalize(aggregate.name)};`);
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${rootEntityName};`);
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${rootEntityName}Dto;`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntityName}Dto;`);
 
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.Saga${this.capitalize(aggregate.name)};`);
         imports.push('import ${this.getBasePackage()}.ms.sagas.aggregate.SagaAggregate.SagaState;');
@@ -242,7 +242,7 @@ export class SagaGenerator extends OrchestrationBase {
         imports.push('import org.springframework.stereotype.Service;');
 
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${this.capitalize(aggregate.name)};`);
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${rootEntityName}Dto;`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntityName}Dto;`);
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${this.capitalize(aggregate.name)}Factory;`);
 
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.Saga${this.capitalize(aggregate.name)};`);
@@ -276,7 +276,7 @@ export class SagaGenerator extends OrchestrationBase {
 
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.service.${this.capitalize(aggregate.name)}Service;`);
 
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${rootEntityName}Dto;`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntityName}Dto;`);
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.dtos.Saga${this.capitalize(aggregate.name)}Dto;`);
 
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.states.${this.capitalize(aggregate.name)}SagaState;`);

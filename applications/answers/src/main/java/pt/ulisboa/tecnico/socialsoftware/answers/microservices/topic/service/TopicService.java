@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;

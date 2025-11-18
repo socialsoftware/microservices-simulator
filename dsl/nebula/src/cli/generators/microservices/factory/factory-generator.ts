@@ -37,19 +37,12 @@ export class FactoryGenerator extends BaseGenerator {
     }
 
 
-    private generateFactoryImports(dtoName: string, projectName: string, dtoSchemaRegistry: DtoSchemaRegistry | undefined, owningAggregate: string): string {
+    private generateFactoryImports(dtoName: string, projectName: string, _dtoSchemaRegistry: DtoSchemaRegistry | undefined, _owningAggregate: string): string {
         const importBuilder = this.capabilities.importBuilder;
         importBuilder.reset();
 
-        const dtoInfo = dtoSchemaRegistry?.dtoByName?.[dtoName];
-        if (dtoInfo && dtoInfo.aggregateName.toLowerCase() !== owningAggregate.toLowerCase()) {
-            const dtoPackage = this.capabilities.packageBuilder.buildMicroservicePackage(
-                projectName,
-                dtoInfo.aggregateName.toLowerCase(),
-                'aggregate'
-            );
-            importBuilder.addCustomImport(`${dtoPackage}.${dtoName}`);
-        }
+        const dtoPackage = this.capabilities.packageBuilder.buildSharedPackage(projectName, 'dtos');
+        importBuilder.addCustomImport(`${dtoPackage}.${dtoName}`);
 
         const imports = importBuilder.formatImports();
         return imports.join('\n');

@@ -21,12 +21,14 @@ export class EntityFeature {
             const entityPath = path.join(aggregatePath, 'aggregate', `${entity.name}.java`);
             await FileWriter.writeGeneratedFile(entityPath, entityCode, `entity ${entity.name}`);
 
-            if ((entity as any).isRoot) {
+            const shouldGenerateDto = (entity as any).isRoot || (entity as any).generateDto;
+            if (shouldGenerateDto) {
+                const sharedDtoDir = path.join(aggregatePath, '..', '..', 'shared', 'dtos');
                 const dtoCode = await generators.dtoGenerator.generateDto(entity, options);
-                const dtoPath = path.join(aggregatePath, 'aggregate', `${entity.name}Dto.java`);
-                await FileWriter.writeGeneratedFile(dtoPath, dtoCode, `DTO ${entity.name}Dto`);
+                const dtoPath = path.join(sharedDtoDir, `${entity.name}Dto.java`);
+                await FileWriter.writeGeneratedFile(dtoPath, dtoCode, `shared DTO ${entity.name}Dto`);
             } else {
-                console.log(`\t- Skipping DTO generation for ${entity.name} (non-root entity)`);
+                console.log(`\t- Skipping DTO generation for ${entity.name} (no DTO marker)`);
             }
         }
 

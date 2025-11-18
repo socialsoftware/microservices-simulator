@@ -19,7 +19,7 @@ AggregateElement:
     Entity | Method | Workflow | CustomRepository | Events | WebAPIEndpoints | ServiceDefinition | Functionalities;
 
 Entity:
-    (isRoot?='Root')? 'Entity' name=ID ('uses' 'dto' dtoType=ID (dtoMapping=DtoEntityMapping)?)? '{'
+    (isRoot?='Root')? (generateDto?='Dto')? 'Entity' name=ID ('uses' 'dto' dtoType=ID (dtoMapping=DtoEntityMapping)?)? '{'
         properties+=Property*
         constructors+=Constructor*
         ('invariants' '{'

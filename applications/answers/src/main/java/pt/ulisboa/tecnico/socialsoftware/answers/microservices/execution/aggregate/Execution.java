@@ -14,15 +14,13 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
-
 @Entity
 public abstract class Execution extends Aggregate {
     private String acronym;
     private String academicTerm;
     private LocalDateTime endDate;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "execution")
-    private ExecutionCourse executionCourse;
+    private ExecutionCourse course;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "execution")
     private Set<ExecutionUser> users = new HashSet<>();
 
@@ -30,13 +28,14 @@ public abstract class Execution extends Aggregate {
 
     }
 
-    public Execution(Integer aggregateId, ExecutionDto executionDto, ExecutionCourse executionCourse) {
+    public Execution(Integer aggregateId, ExecutionDto executionDto, ExecutionCourse course) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setAcronym(executionDto.getAcronym());
         setAcademicTerm(executionDto.getAcademicTerm());
         setEndDate(executionDto.getEndDate());
-        setExecutionCourse(executionCourse);
+        setUsers(executionDto.getUsers());
+        setCourse(course);
     }
 
     public Execution(Execution other) {
@@ -44,7 +43,7 @@ public abstract class Execution extends Aggregate {
         setAcronym(other.getAcronym());
         setAcademicTerm(other.getAcademicTerm());
         setEndDate(other.getEndDate());
-        setExecutionCourse(new ExecutionCourse(other.getExecutionCourse()));
+        setCourse(new ExecutionCourse(other.getCourse()));
         setUsers(other.getUsers().stream().map(ExecutionUser::new).collect(Collectors.toSet()));
     }
 
@@ -72,14 +71,14 @@ public abstract class Execution extends Aggregate {
         this.endDate = endDate;
     }
 
-    public ExecutionCourse getExecutionCourse() {
-        return executionCourse;
+    public ExecutionCourse getCourse() {
+        return course;
     }
 
-    public void setExecutionCourse(ExecutionCourse executionCourse) {
-        this.executionCourse = executionCourse;
-        if (this.executionCourse != null) {
-            this.executionCourse.setExecution(this);
+    public void setCourse(ExecutionCourse course) {
+        this.course = course;
+        if (this.course != null) {
+            this.course.setExecution(this);
         }
     }
 

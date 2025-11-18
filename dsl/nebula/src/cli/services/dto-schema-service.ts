@@ -10,10 +10,12 @@ export interface DtoFieldSchema {
     sourceName?: string;
     sourceProperty?: Property;
     referencedEntityName?: string;
+    referencedAggregateName?: string;
     referencedDtoName?: string;
     requiresConversion?: boolean;
     extractField?: string;
     isAggregateField?: boolean;
+    derivedAggregateId?: boolean;
 }
 
 export interface DtoSchema {
@@ -36,14 +38,20 @@ export class DtoSchemaService {
         const entityToDto: Record<string, DtoSchema> = {};
 
         const entityLookup = this.collectAllEntities(models);
-        const rootEntities = this.collectAllRootEntities(models);
+        const dtoEnabledEntities = this.collectAllDtoEnabledEntities(models);
 
         for (const model of models) {
             for (const aggregate of model.aggregates || []) {
                 for (const entity of getEntities(aggregate)) {
-                    if (!entity.isRoot) continue;
+                    const shouldGenerateDto = entity.isRoot || (entity as any).generateDto;
+                    if (!shouldGenerateDto) continue;
 
-                    const dtoSchema = this.buildDtoSchemaForRootEntity(entity, aggregate, entityLookup, rootEntities);
+                    const dtoSchema = this.buildDtoSchemaForEntity(
+                        entity,
+                        aggregate,
+                        entityLookup,
+                        dtoEnabledEntities
+                    );
                     dtoSchemas.push(dtoSchema);
                     dtoByName[dtoSchema.dtoName] = dtoSchema;
                     entityToDto[dtoSchema.entityName] = dtoSchema;
@@ -54,26 +62,27 @@ export class DtoSchemaService {
         return { dtos: dtoSchemas, dtoByName, entityToDto };
     }
 
-    private buildDtoSchemaForRootEntity(
-        rootEntity: Entity,
+    private buildDtoSchemaForEntity(
+        entity: Entity,
         aggregate: Aggregate,
         entityLookup: Map<string, Entity>,
-        rootEntities: Map<string, Entity>
+        dtoEnabledEntities: Map<string, Entity>
     ): DtoSchema {
-        const dtoName = `${rootEntity.name}Dto`;
+        const dtoName = `${entity.name}Dto`;
         const aggregateName = aggregate.name;
 
         const fields: DtoFieldSchema[] = [];
-        const fieldMappings = this.createFieldMappingMap(rootEntity as any);
+        const fieldMappings = this.createFieldMappingMap(entity as any);
 
-        // Standard aggregate metadata fields
-        fields.push(
-            this.createStandardField('aggregateId', 'Integer'),
-            this.createStandardField('version', 'Integer'),
-            this.createStandardField('state', 'AggregateState')
-        );
+        if (entity.isRoot) {
+            fields.push(
+                this.createStandardField('aggregateId', 'Integer'),
+                this.createStandardField('version', 'Integer'),
+                this.createStandardField('state', 'AggregateState')
+            );
+        }
 
-        for (const property of rootEntity.properties || []) {
+        for (const property of entity.properties || []) {
             if (!property?.name) continue;
             if ((property as any).dtoExclude) {
                 continue;
@@ -88,7 +97,7 @@ export class DtoSchemaService {
                 property,
                 resolved,
                 entityLookup,
-                rootEntities
+                dtoEnabledEntities
             );
 
             if (mappingInfo?.extractField) {
@@ -100,7 +109,7 @@ export class DtoSchemaService {
 
         return {
             dtoName,
-            entityName: rootEntity.name,
+            entityName: entity.name,
             aggregateName,
             fields,
         };
@@ -111,19 +120,21 @@ export class DtoSchemaService {
         property: Property,
         resolved: ResolvedType,
         entityLookup: Map<string, Entity>,
-        rootEntities: Map<string, Entity>
+        dtoEnabledEntities: Map<string, Entity>
     ): DtoFieldSchema {
         let javaType = resolved.javaType;
         let referencedEntityName: string | undefined;
+        let referencedAggregateName: string | undefined;
         let referencedDtoName: string | undefined;
         let requiresConversion = false;
         let elementType = resolved.elementType;
 
         if (resolved.isCollection && resolved.elementType) {
-            const elementEntity = this.lookupEntity(resolved.elementType, entityLookup, rootEntities);
+            const elementEntity = this.lookupEntity(resolved.elementType, entityLookup, dtoEnabledEntities);
             if (elementEntity) {
                 referencedEntityName = elementEntity.name;
-                referencedDtoName = this.resolveEntityDtoName(elementEntity, rootEntities);
+                referencedAggregateName = elementEntity.$container?.name;
+                referencedDtoName = this.resolveEntityDtoName(elementEntity, dtoEnabledEntities);
                 if (referencedDtoName) {
                     javaType = javaType.replace(resolved.elementType, referencedDtoName);
                     elementType = referencedDtoName;
@@ -131,15 +142,23 @@ export class DtoSchemaService {
                 }
             }
         } else if (resolved.isEntity) {
-            const targetEntity = this.lookupEntity(resolved.javaType, entityLookup, rootEntities);
+            const aggregateFieldName = `${dtoFieldName}AggregateId`;
+            const targetEntity = this.lookupEntity(resolved.javaType, entityLookup, dtoEnabledEntities);
             if (targetEntity) {
                 referencedEntityName = targetEntity.name;
-                referencedDtoName = this.resolveEntityDtoName(targetEntity, rootEntities);
-                if (referencedDtoName) {
-                    javaType = referencedDtoName;
-                    requiresConversion = true;
-                }
+                referencedAggregateName = targetEntity.$container?.name;
             }
+
+            return {
+                name: aggregateFieldName,
+                javaType: 'Integer',
+                isCollection: false,
+                sourceName: property.name,
+                sourceProperty: property,
+                referencedEntityName,
+                referencedAggregateName,
+                derivedAggregateId: true
+            };
         }
 
         return {
@@ -150,6 +169,7 @@ export class DtoSchemaService {
             sourceName: property.name,
             sourceProperty: property,
             referencedEntityName,
+            referencedAggregateName,
             referencedDtoName,
             requiresConversion,
         };
@@ -183,8 +203,8 @@ export class DtoSchemaService {
         return map;
     }
 
-    private resolveEntityDtoName(entity: Entity, rootEntities: Map<string, Entity>): string | undefined {
-        if (entity.isRoot) {
+    private resolveEntityDtoName(entity: Entity, dtoEnabledEntities: Map<string, Entity>): string | undefined {
+        if (entity.isRoot || (entity as any).generateDto) {
             return `${entity.name}Dto`;
         }
 
@@ -197,7 +217,7 @@ export class DtoSchemaService {
             return dtoType.$refText;
         }
 
-        if (rootEntities.has(entity.name)) {
+        if (dtoEnabledEntities.has(entity.name)) {
             return `${entity.name}Dto`;
         }
 
@@ -220,13 +240,14 @@ export class DtoSchemaService {
         return map;
     }
 
-    private collectAllRootEntities(models: Model[]): Map<string, Entity> {
+    private collectAllDtoEnabledEntities(models: Model[]): Map<string, Entity> {
         const map = new Map<string, Entity>();
 
         for (const model of models) {
             for (const aggregate of model.aggregates || []) {
                 for (const entity of getEntities(aggregate)) {
-                    if (entity?.isRoot && entity.name && !map.has(entity.name)) {
+                    const shouldGenerateDto = entity?.isRoot || (entity as any)?.generateDto;
+                    if (shouldGenerateDto && entity?.name && !map.has(entity.name)) {
                         map.set(entity.name, entity);
                     }
                 }

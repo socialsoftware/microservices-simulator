@@ -2,30 +2,31 @@ package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.Topic;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicCourse;
 
 public class TopicDto implements Serializable {
-    
     private Integer aggregateId;
     private Integer version;
     private AggregateState state;
     private String name;
-    private Integer courseId;
-    
+    private Integer courseAggregateId;
+
     public TopicDto() {
     }
-    
-    public TopicDto(Integer aggregateId, Integer version, AggregateState state, String name, Integer courseId) {
-        setAggregateId(aggregateId);
-        setVersion(version);
-        setState(state);
-        setName(name);
-        setCourseId(courseId);
+
+    public TopicDto(Topic topic) {
+        this.aggregateId = topic.getAggregateId();
+        this.version = topic.getVersion();
+        this.state = topic.getState();
+        this.name = topic.getName();
+        this.courseAggregateId = topic.getCourse() != null ? topic.getCourse().getAggregateId() : null;
     }
-    
+
     public Integer getAggregateId() {
         return aggregateId;
     }
-    
+
     public void setAggregateId(Integer aggregateId) {
         this.aggregateId = aggregateId;
     }
@@ -33,7 +34,7 @@ public class TopicDto implements Serializable {
     public Integer getVersion() {
         return version;
     }
-    
+
     public void setVersion(Integer version) {
         this.version = version;
     }
@@ -41,7 +42,7 @@ public class TopicDto implements Serializable {
     public AggregateState getState() {
         return state;
     }
-    
+
     public void setState(AggregateState state) {
         this.state = state;
     }
@@ -49,16 +50,16 @@ public class TopicDto implements Serializable {
     public String getName() {
         return name;
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }
 
-    public Integer getCourseId() {
-        return courseId;
+    public Integer getCourseAggregateId() {
+        return courseAggregateId;
     }
-    
-    public void setCourseId(Integer courseId) {
-        this.courseId = courseId;
+
+    public void setCourseAggregateId(Integer courseAggregateId) {
+        this.courseAggregateId = courseAggregateId;
     }
 }

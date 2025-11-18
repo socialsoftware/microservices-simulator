@@ -18,16 +18,17 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.answer.*;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service.AnswerService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answerfactory.service.AnswerFactory;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerUserDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerQuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerQuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerUserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 
 @Service
 public class AnswerFunctionalities {

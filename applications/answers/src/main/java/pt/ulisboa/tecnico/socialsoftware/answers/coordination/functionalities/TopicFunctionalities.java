@@ -20,8 +20,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topicfactory.service.TopicFactory;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicCourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicCourseDto;
 
 @Service
 public class TopicFunctionalities {

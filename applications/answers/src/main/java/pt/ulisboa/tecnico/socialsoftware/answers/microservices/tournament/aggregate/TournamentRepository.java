@@ -8,5 +8,5 @@ import jakarta.transaction.Transactional;
 @Repository
 @Transactional
 public interface TournamentRepository extends JpaRepository<Tournament, Integer> {
-    Set<Integer> findAllByTournamentExecutionExecutionAggregateId(Integer executionAggregateId);
+    Set<Integer> findAllByExecutionExecutionAggregateId(Integer executionAggregateId);
 }

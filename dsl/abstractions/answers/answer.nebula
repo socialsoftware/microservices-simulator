@@ -47,10 +47,10 @@ Aggregate Answer {
         LocalDateTime creationDate;
         LocalDateTime answerDate;
         Boolean completed;
-        AnswerExecution answerExecution;
-        AnswerUser answerUser;
-        AnswerQuiz answerQuiz;
-        List<AnswerQuestion> answerQuestion;
+        AnswerExecution execution;
+        AnswerUser user;
+        AnswerQuiz quiz;
+        List<AnswerQuestion> question;
 
         invariants {
 
@@ -75,7 +75,7 @@ Aggregate Answer {
     saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer answerId, UnitOfWork unitOfWork);
     
     CustomRepository {
-        Optional<Integer> findAnswerIdByAnswerQuizQuizAggregateIdAndAnswerUserUserAggregateId(Integer quizAggregateId, Integer studentAggregateId);
+        Optional<Integer> findAnswerIdByQuizQuizAggregateIdAndUserUserAggregateId(Integer quizAggregateId, Integer studentAggregateId);
     }
 
     WebAPIEndpoints {

@@ -3,13 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Set;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourse;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
 
 public class ExecutionDto implements Serializable {
-    
     private Integer aggregateId;
     private Integer version;
     private AggregateState state;
@@ -17,32 +16,26 @@ public class ExecutionDto implements Serializable {
     private String academicTerm;
     private LocalDateTime endDate;
     private Integer courseAggregateId;
-    private String courseName;
-    private String courseType;
-    private Integer courseVersion;
-    private Set<UserDto> users;
-    
+    private Set<ExecutionUser> users;
+
     public ExecutionDto() {
     }
-    
+
     public ExecutionDto(Execution execution) {
-        setAggregateId(execution.getAggregateId());
-        setVersion(execution.getVersion());
-        setState(execution.getState());
-        setAcronym(execution.getAcronym());
-        setAcademicTerm(execution.getAcademicTerm());
-        setEndDate(execution.getEndDate());
-        setCourseAggregateId(execution.getExecutionCourse().getCourseAggregateId());
-        setCourseName(execution.getExecutionCourse().getCourseName());
-        setCourseType(execution.getExecutionCourse().getCourseType().toString());
-        setCourseVersion(execution.getExecutionCourse().getCourseVersion());
-        setUsers(execution.getUsers().stream().map(ExecutionUser::buildDto).collect(Collectors.toSet()));
+        this.aggregateId = execution.getAggregateId();
+        this.version = execution.getVersion();
+        this.state = execution.getState();
+        this.acronym = execution.getAcronym();
+        this.academicTerm = execution.getAcademicTerm();
+        this.endDate = execution.getEndDate();
+        this.courseAggregateId = execution.getCourse() != null ? execution.getCourse().getAggregateId() : null;
+        this.users = execution.getUsers();
     }
-    
+
     public Integer getAggregateId() {
         return aggregateId;
     }
-    
+
     public void setAggregateId(Integer aggregateId) {
         this.aggregateId = aggregateId;
     }
@@ -50,7 +43,7 @@ public class ExecutionDto implements Serializable {
     public Integer getVersion() {
         return version;
     }
-    
+
     public void setVersion(Integer version) {
         this.version = version;
     }
@@ -58,7 +51,7 @@ public class ExecutionDto implements Serializable {
     public AggregateState getState() {
         return state;
     }
-    
+
     public void setState(AggregateState state) {
         this.state = state;
     }
@@ -66,7 +59,7 @@ public class ExecutionDto implements Serializable {
     public String getAcronym() {
         return acronym;
     }
-    
+
     public void setAcronym(String acronym) {
         this.acronym = acronym;
     }
@@ -74,7 +67,7 @@ public class ExecutionDto implements Serializable {
     public String getAcademicTerm() {
         return academicTerm;
     }
-    
+
     public void setAcademicTerm(String academicTerm) {
         this.academicTerm = academicTerm;
     }
@@ -82,7 +75,7 @@ public class ExecutionDto implements Serializable {
     public LocalDateTime getEndDate() {
         return endDate;
     }
-    
+
     public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
     }
@@ -90,40 +83,16 @@ public class ExecutionDto implements Serializable {
     public Integer getCourseAggregateId() {
         return courseAggregateId;
     }
-    
+
     public void setCourseAggregateId(Integer courseAggregateId) {
         this.courseAggregateId = courseAggregateId;
     }
 
-    public String getCourseName() {
-        return courseName;
-    }
-    
-    public void setCourseName(String courseName) {
-        this.courseName = courseName;
-    }
-
-    public String getCourseType() {
-        return courseType;
-    }
-    
-    public void setCourseType(String courseType) {
-        this.courseType = courseType;
-    }
-
-    public Integer getCourseVersion() {
-        return courseVersion;
-    }
-    
-    public void setCourseVersion(Integer courseVersion) {
-        this.courseVersion = courseVersion;
-    }
-
-    public Set<UserDto> getUsers() {
+    public Set<ExecutionUser> getUsers() {
         return users;
     }
-    
-    public void setUsers(Set<UserDto> users) {
+
+    public void setUsers(Set<ExecutionUser> users) {
         this.users = users;
     }
 }

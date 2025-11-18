@@ -6,10 +6,10 @@ import type { DtoSchemaRegistry, DtoFieldSchema } from "../../../services/dto-sc
 
 export function generateDtoCode(entity: Entity, projectName: string, dtoSchemaRegistry?: DtoSchemaRegistry): string {
     const aggregateName = entity.$container?.name || entity.name;
-    const packageName = `${getGlobalConfig().buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate')}`;
+    const packageName = `${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}`;
     const dtoFields = resolveDtoFields(entity, dtoSchemaRegistry);
 
-    const imports = generateDtoImports(dtoFields);
+    const imports = generateDtoImports(entity, projectName, aggregateName, dtoFields);
     const fields = generateDtoFieldDeclarations(dtoFields);
     const constructors = generateDtoConstructors(entity, dtoFields);
     const gettersSetters = generateDtoGettersSetters(dtoFields);
@@ -80,7 +80,7 @@ function resolveDtoFields(entity: Entity, dtoSchemaRegistry?: DtoSchemaRegistry)
     return fields;
 }
 
-function generateDtoImports(fields: DtoFieldSchema[]): string {
+function generateDtoImports(entity: Entity, projectName: string, aggregateName: string, fields: DtoFieldSchema[]): string {
     const imports = new Set<string>();
     imports.add('import java.io.Serializable;');
 
@@ -113,6 +113,25 @@ function generateDtoImports(fields: DtoFieldSchema[]): string {
     if (needsAggregateState) {
         imports.add('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
     }
+
+    const config = getGlobalConfig();
+    const entityPackage = config.buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate');
+    imports.add(`import ${entityPackage}.${entity.name};`);
+
+    const referencedImports = new Set<string>();
+    for (const field of fields) {
+        if (field.referencedEntityName && field.referencedAggregateName) {
+            const referencedPackage = config.buildPackageName(
+                projectName,
+                'microservices',
+                field.referencedAggregateName.toLowerCase(),
+                'aggregate'
+            );
+            referencedImports.add(`import ${referencedPackage}.${field.referencedEntityName};`);
+        }
+    }
+
+    referencedImports.forEach(imp => imports.add(imp));
 
     return Array.from(imports).join('\n');
 }
@@ -167,6 +186,10 @@ function buildFieldAssignment(field: DtoFieldSchema, entity: Entity, entityVar: 
     const getterCall = buildEntityGetterCall(field, entityVar);
     if (!getterCall) {
         return null;
+    }
+
+    if (field.derivedAggregateId) {
+        return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.getAggregateId() : null;`;
     }
 
     if (field.requiresConversion) {

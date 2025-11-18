@@ -6,7 +6,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizDto;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 
 @Entity
 public class TournamentParticipantQuizAnswer {
@@ -28,7 +30,14 @@ public class TournamentParticipantQuizAnswer {
     }
 
     public TournamentParticipantQuizAnswer(QuizDto quizDto) {
-        setParticipantQuizAnswerAggregateId(quizDto.getAggregateId());
+        setTitle(quizDto.getTitle());
+        setQuizType(QuizType.valueOf(quizDto.getQuizType()));
+        setCreationDate(quizDto.getCreationDate());
+        setAvailableDate(quizDto.getAvailableDate());
+        setConclusionDate(quizDto.getConclusionDate());
+        setResultsDate(quizDto.getResultsDate());
+        setNumberOfQuestions(quizDto.getNumberOfQuestions());
+        setQuestions(quizDto.getQuestions());
     }
 
     public TournamentParticipantQuizAnswer(TournamentParticipantQuizAnswer other) {
@@ -110,7 +119,9 @@ public class TournamentParticipantQuizAnswer {
 
     public QuizDto buildDto() {
         QuizDto dto = new QuizDto();
-        dto.setAggregateId(getParticipantQuizAnswerAggregateId());
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
         return dto;
     }
 }

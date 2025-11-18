@@ -44,7 +44,7 @@ export class ServiceStructureGenerator {
         imports.push('import java.util.List;');
         imports.push('import java.util.stream.Collectors;');
 
-        imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', 'user', 'aggregate')}.UserDto;`);
+        imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.UserDto;`);
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
 
         const hasDateTime = aggregate.entities.some(entity =>

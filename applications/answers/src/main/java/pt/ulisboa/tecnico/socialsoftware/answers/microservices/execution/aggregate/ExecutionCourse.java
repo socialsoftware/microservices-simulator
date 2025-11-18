@@ -7,7 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
 @Entity
@@ -28,10 +27,10 @@ public class ExecutionCourse {
     }
 
     public ExecutionCourse(ExecutionDto executionDto) {
-        setCourseAggregateId(executionDto.getCourseAggregateId());
-        setCourseName(executionDto.getCourseName());
-        setCourseType(CourseType.valueOf(executionDto.getCourseType()));
-        setCourseVersion(executionDto.getCourseVersion());
+        setAcronym(executionDto.getAcronym());
+        setAcademicTerm(executionDto.getAcademicTerm());
+        setEndDate(executionDto.getEndDate());
+        setUsers(executionDto.getUsers());
     }
 
     public ExecutionCourse(ExecutionCourse other) {

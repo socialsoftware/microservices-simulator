@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate;
 
+import java.util.stream.Collectors;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -7,7 +9,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionDto;
 
 @Entity
 public class QuizQuestion {
@@ -28,11 +30,11 @@ public class QuizQuestion {
     }
 
     public QuizQuestion(QuestionDto questionDto) {
-        setQuestionAggregateId(questionDto.getAggregateId());
-        setQuestionVersion(questionDto.getVersion());
-        setQuestionState(questionDto.getState());
-        setQuestionTitle(questionDto.getTitle());
-        setQuestionContent(questionDto.getContent());
+        setTitle(questionDto.getTitle());
+        setContent(questionDto.getContent());
+        setCreationDate(questionDto.getCreationDate());
+        setTopics(questionDto.getTopics());
+        setOptions(questionDto.getOptions() != null ? questionDto.getOptions().stream().map(dto -> new Option(dto)).collect(Collectors.toList()) : null);
     }
 
     public QuizQuestion(QuizQuestion other) {
@@ -111,11 +113,9 @@ public class QuizQuestion {
 
     public QuestionDto buildDto() {
         QuestionDto dto = new QuestionDto();
-        dto.setAggregateId(getQuestionAggregateId());
-        dto.setVersion(getQuestionVersion());
-        dto.setState(getQuestionState());
-        dto.setTitle(getQuestionTitle());
-        dto.setContent(getQuestionContent());
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
         return dto;
     }
 }

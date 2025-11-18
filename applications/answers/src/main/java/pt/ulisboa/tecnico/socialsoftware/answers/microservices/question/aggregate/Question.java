@@ -16,8 +16,6 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
-
 @Entity
 public abstract class Question extends Aggregate {
     private String title;
@@ -40,6 +38,7 @@ public abstract class Question extends Aggregate {
         setTitle(questionDto.getTitle());
         setContent(questionDto.getContent());
         setCreationDate(questionDto.getCreationDate());
+        setTopics(questionDto.getTopics());
         setCourse(course);
     }
 

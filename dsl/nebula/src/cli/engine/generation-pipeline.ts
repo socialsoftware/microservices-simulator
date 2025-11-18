@@ -376,7 +376,8 @@ export class EntityPipeline extends BaseGenerationPipeline {
                 });
 
                 // Generate DTO if needed
-                if ((entity as any).isRoot) {
+                const shouldGenerateDto = (entity as any).isRoot || (entity as any).generateDto;
+                if (shouldGenerateDto) {
                     const dtoCode = await this.generators.dtoGenerator.generateDto(entity, options);
                     files.push({
                         content: dtoCode,
@@ -431,8 +432,8 @@ export class EntityPipeline extends BaseGenerationPipeline {
         return `${options.outputPath}/src/main/java/pt/ulisboa/tecnico/socialsoftware/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${entity.name}.java`;
     }
 
-    private buildDtoPath(aggregate: Aggregate, entity: any, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/pt/ulisboa/tecnico/socialsoftware/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${entity.name}Dto.java`;
+    private buildDtoPath(_aggregate: Aggregate, entity: any, options: GenerationOptions): string {
+        return `${options.outputPath}/src/main/java/pt/ulisboa/tecnico/socialsoftware/${options.projectName.toLowerCase()}/shared/dtos/${entity.name}Dto.java`;
     }
 
     private buildFactoryPath(aggregate: Aggregate, options: GenerationOptions): string {

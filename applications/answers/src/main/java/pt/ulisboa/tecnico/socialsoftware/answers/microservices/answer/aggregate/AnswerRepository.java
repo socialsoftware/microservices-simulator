@@ -8,5 +8,5 @@ import jakarta.transaction.Transactional;
 @Repository
 @Transactional
 public interface AnswerRepository extends JpaRepository<Answer, Integer> {
-    Optional<Integer> findAnswerIdByAnswerQuizQuizAggregateIdAndAnswerUserUserAggregateId(Integer quizAggregateId, Integer studentAggregateId);
+    Optional<Integer> findAnswerIdByQuizQuizAggregateIdAndUserUserAggregateId(Integer quizAggregateId, Integer studentAggregateId);
 }

@@ -2,15 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizDto;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 
 @Entity
 public class AnswerQuiz {
@@ -28,11 +28,14 @@ public class AnswerQuiz {
     }
 
     public AnswerQuiz(QuizDto quizDto) {
-        setQuizAggregateId(quizDto.getAggregateId());
-        setQuizVersion(quizDto.getVersion());
-        setQuizQuestionsAggregateIds(quizDto.getQuestions().stream()
-            .map(QuestionDto::getAggregateId)
-            .collect(Collectors.toList()));
+        setTitle(quizDto.getTitle());
+        setQuizType(QuizType.valueOf(quizDto.getQuizType()));
+        setCreationDate(quizDto.getCreationDate());
+        setAvailableDate(quizDto.getAvailableDate());
+        setConclusionDate(quizDto.getConclusionDate());
+        setResultsDate(quizDto.getResultsDate());
+        setNumberOfQuestions(quizDto.getNumberOfQuestions());
+        setQuestions(quizDto.getQuestions());
     }
 
     public AnswerQuiz(AnswerQuiz other) {
@@ -84,9 +87,9 @@ public class AnswerQuiz {
 
     public QuizDto buildDto() {
         QuizDto dto = new QuizDto();
-        dto.setAggregateId(getQuizAggregateId());
-        dto.setVersion(getQuizVersion());
-        dto.setQuestions(getQuizQuestionsAggregateIds());
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
         return dto;
     }
 }

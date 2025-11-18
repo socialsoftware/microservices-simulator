@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service.AnswerService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 
 public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
     

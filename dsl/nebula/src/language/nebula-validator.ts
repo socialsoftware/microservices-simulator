@@ -112,14 +112,15 @@ export class NebulaValidator {
     }
   }
 
-  private collectAllRootEntities(model: Model): Map<string, Entity> {
+  private collectAllDtoEnabledEntities(model: Model): Map<string, Entity> {
     const collected = new Map<string, Entity>();
 
     const collectFromModel = (target?: Model) => {
       if (!target) return;
       for (const aggregate of target.aggregates || []) {
         for (const entity of getEntities(aggregate)) {
-          if (entity.isRoot && entity.name && !collected.has(entity.name)) {
+          const generateDto = (entity as any)?.generateDto;
+          if ((entity.isRoot || generateDto) && entity.name && !collected.has(entity.name)) {
             collected.set(entity.name, entity);
           }
         }
@@ -157,14 +158,36 @@ export class NebulaValidator {
     return collected;
   }
 
-  private getRootEntityDtoFields(rootEntity: Entity): Set<string> {
-    const fields = new Set<string>(['aggregateId', 'version', 'state']);
-    for (const prop of rootEntity.properties || []) {
-      if (!prop.name) continue;
+  private getDtoFieldsForEntity(entity: Entity): Set<string> {
+    const fields = new Set<string>();
+    if (entity.isRoot) {
+      fields.add('aggregateId');
+      fields.add('version');
+      fields.add('state');
+    }
+
+    for (const prop of entity.properties || []) {
+      if (!prop?.name) continue;
       if (prop.dtoExclude) continue;
-      fields.add(prop.name);
+
+      const propertyNames = [prop.name, ...(prop.names || [])];
+      for (const propName of propertyNames) {
+        if (!propName) continue;
+        fields.add(propName);
+
+        if (this.isEntityReferenceProperty(prop)) {
+          fields.add(`${propName}AggregateId`);
+        }
+      }
     }
     return fields;
+  }
+
+  private isEntityReferenceProperty(property: Property): boolean {
+    if (!property?.type) {
+      return false;
+    }
+    return (property.type as any).$type === 'EntityType';
   }
 
   // ============================================================================
@@ -212,6 +235,11 @@ export class NebulaValidator {
     }
 
     const entityAny = entity as any;
+    if (entity.generateDto && entityAny.dtoMapping) {
+      accept("error", "Entities marked with 'Dto' cannot declare a DTO mapping block.", {
+        node: entityAny.dtoMapping,
+      });
+    }
     if (entityAny.dtoMapping?.fieldMappings) {
       this.validateEntityDtoMapping(entity, entityAny.dtoMapping.fieldMappings, accept);
     }
@@ -356,23 +384,23 @@ export class NebulaValidator {
     const dtoType = entityAny.dtoType;
     const model = entity.$container?.$container as Model | undefined;
 
-    let rootDtoFields: Set<string> | undefined;
+    let targetDtoFields: Set<string> | undefined;
     if (model && dtoType) {
       const dtoName = dtoType;
-      const rootEntities = this.collectAllRootEntities(model);
+      const dtoEnabledEntities = this.collectAllDtoEnabledEntities(model);
       if (dtoName.endsWith('Dto')) {
-        const rootEntityName = dtoName.slice(0, -3);
-        const targetRoot = rootEntities.get(rootEntityName);
-        if (!targetRoot) {
-          accept("error", `DTO '${dtoName}' must correspond to root entity '${rootEntityName}', but none was found.`, {
+        const targetEntityName = dtoName.slice(0, -3);
+        const targetEntity = dtoEnabledEntities.get(targetEntityName);
+        if (!targetEntity) {
+          accept("error", `DTO '${dtoName}' must correspond to entity '${targetEntityName}' that is marked as 'Root' or 'Dto', but none was found.`, {
             node: entity,
             property: "dtoType",
           });
         } else {
-          rootDtoFields = this.getRootEntityDtoFields(targetRoot);
+          targetDtoFields = this.getDtoFieldsForEntity(targetEntity);
         }
       } else {
-        accept("error", `DTO reference '${dtoName}' must end with 'Dto' to correspond to a root entity DTO.`, {
+        accept("error", `DTO reference '${dtoName}' must end with 'Dto' to correspond to a generated DTO.`, {
           node: entity,
           property: "dtoType",
         });
@@ -387,8 +415,8 @@ export class NebulaValidator {
         });
       }
 
-      if (rootDtoFields && !rootDtoFields.has(mapping.dtoField)) {
-        accept("error", `DTO field '${mapping.dtoField}' is not available on the root entity DTO. Available fields: ${Array.from(rootDtoFields).join(', ')}`, {
+      if (targetDtoFields && !targetDtoFields.has(mapping.dtoField)) {
+        accept("error", `DTO field '${mapping.dtoField}' is not available on the target DTO. Available fields: ${Array.from(targetDtoFields).join(', ')}`, {
           node: mapping,
           property: "dtoField",
         });

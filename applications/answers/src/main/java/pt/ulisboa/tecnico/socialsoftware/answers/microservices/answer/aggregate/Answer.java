@@ -14,35 +14,34 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
-
 @Entity
 public abstract class Answer extends Aggregate {
     private LocalDateTime creationDate;
     private LocalDateTime answerDate;
     private Boolean completed;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
-    private AnswerExecution answerExecution;
+    private AnswerExecution execution;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
-    private AnswerUser answerUser;
+    private AnswerUser user;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
-    private AnswerQuiz answerQuiz;
+    private AnswerQuiz quiz;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "answer")
-    private List<AnswerQuestion> answerQuestion = new ArrayList<>();
+    private List<AnswerQuestion> question = new ArrayList<>();
 
     public Answer() {
 
     }
 
-    public Answer(Integer aggregateId, AnswerDto answerDto, AnswerExecution answerExecution, AnswerUser answerUser, AnswerQuiz answerQuiz) {
+    public Answer(Integer aggregateId, AnswerDto answerDto, AnswerExecution execution, AnswerUser user, AnswerQuiz quiz) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setCreationDate(answerDto.getCreationDate());
         setAnswerDate(answerDto.getAnswerDate());
         setCompleted(answerDto.getCompleted());
-        setAnswerExecution(answerExecution);
-        setAnswerUser(answerUser);
-        setAnswerQuiz(answerQuiz);
+        setQuestion(answerDto.getQuestion());
+        setExecution(execution);
+        setUser(user);
+        setQuiz(quiz);
     }
 
     public Answer(Answer other) {
@@ -50,10 +49,10 @@ public abstract class Answer extends Aggregate {
         setCreationDate(other.getCreationDate());
         setAnswerDate(other.getAnswerDate());
         setCompleted(other.getCompleted());
-        setAnswerExecution(new AnswerExecution(other.getAnswerExecution()));
-        setAnswerUser(new AnswerUser(other.getAnswerUser()));
-        setAnswerQuiz(new AnswerQuiz(other.getAnswerQuiz()));
-        setAnswerQuestion(other.getAnswerQuestion().stream().map(AnswerQuestion::new).collect(Collectors.toList()));
+        setExecution(new AnswerExecution(other.getExecution()));
+        setUser(new AnswerUser(other.getUser()));
+        setQuiz(new AnswerQuiz(other.getQuiz()));
+        setQuestion(other.getQuestion().stream().map(AnswerQuestion::new).collect(Collectors.toList()));
     }
 
     public LocalDateTime getCreationDate() {
@@ -80,80 +79,80 @@ public abstract class Answer extends Aggregate {
         this.completed = completed;
     }
 
-    public AnswerExecution getAnswerExecution() {
-        return answerExecution;
+    public AnswerExecution getExecution() {
+        return execution;
     }
 
-    public void setAnswerExecution(AnswerExecution answerExecution) {
-        this.answerExecution = answerExecution;
-        if (this.answerExecution != null) {
-            this.answerExecution.setAnswer(this);
+    public void setExecution(AnswerExecution execution) {
+        this.execution = execution;
+        if (this.execution != null) {
+            this.execution.setAnswer(this);
         }
     }
 
-    public AnswerUser getAnswerUser() {
-        return answerUser;
+    public AnswerUser getUser() {
+        return user;
     }
 
-    public void setAnswerUser(AnswerUser answerUser) {
-        this.answerUser = answerUser;
-        if (this.answerUser != null) {
-            this.answerUser.setAnswer(this);
+    public void setUser(AnswerUser user) {
+        this.user = user;
+        if (this.user != null) {
+            this.user.setAnswer(this);
         }
     }
 
-    public AnswerQuiz getAnswerQuiz() {
-        return answerQuiz;
+    public AnswerQuiz getQuiz() {
+        return quiz;
     }
 
-    public void setAnswerQuiz(AnswerQuiz answerQuiz) {
-        this.answerQuiz = answerQuiz;
-        if (this.answerQuiz != null) {
-            this.answerQuiz.setAnswer(this);
+    public void setQuiz(AnswerQuiz quiz) {
+        this.quiz = quiz;
+        if (this.quiz != null) {
+            this.quiz.setAnswer(this);
         }
     }
 
-    public List<AnswerQuestion> getAnswerQuestion() {
-        return answerQuestion;
+    public List<AnswerQuestion> getQuestion() {
+        return question;
     }
 
-    public void setAnswerQuestion(List<AnswerQuestion> answerQuestion) {
-        this.answerQuestion = answerQuestion;
-        if (this.answerQuestion != null) {
-            this.answerQuestion.forEach(item -> item.setAnswer(this));
+    public void setQuestion(List<AnswerQuestion> question) {
+        this.question = question;
+        if (this.question != null) {
+            this.question.forEach(item -> item.setAnswer(this));
         }
     }
 
     public void addAnswerQuestion(AnswerQuestion answerQuestion) {
-        if (this.answerQuestion == null) {
-            this.answerQuestion = new ArrayList<>();
+        if (this.question == null) {
+            this.question = new ArrayList<>();
         }
-        this.answerQuestion.add(answerQuestion);
+        this.question.add(answerQuestion);
         if (answerQuestion != null) {
             answerQuestion.setAnswer(this);
         }
     }
 
     public void removeAnswerQuestion(Long id) {
-        if (this.answerQuestion != null) {
-            this.answerQuestion.removeIf(item -> 
+        if (this.question != null) {
+            this.question.removeIf(item -> 
                 item.getId() != null && item.getId().equals(id));
         }
     }
 
     public boolean containsAnswerQuestion(Long id) {
-        if (this.answerQuestion == null) {
+        if (this.question == null) {
             return false;
         }
-        return this.answerQuestion.stream().anyMatch(item -> 
+        return this.question.stream().anyMatch(item -> 
             item.getId() != null && item.getId().equals(id));
     }
 
     public AnswerQuestion findAnswerQuestionById(Long id) {
-        if (this.answerQuestion == null) {
+        if (this.question == null) {
             return null;
         }
-        return this.answerQuestion.stream()
+        return this.question.stream()
             .filter(item -> item.getId() != null && item.getId().equals(id))
             .findFirst()
             .orElse(null);

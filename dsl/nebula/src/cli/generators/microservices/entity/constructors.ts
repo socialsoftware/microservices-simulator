@@ -149,6 +149,9 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
     const setterCalls: string[] = [];
 
     for (const field of dtoSchema.fields) {
+        if (field.derivedAggregateId) {
+            continue;
+        }
         if (field.isAggregateField) {
             continue;
         }
@@ -259,9 +262,9 @@ ${constructorBody}
 
 function addDtoImport(
     dtoTypeName: string,
-    entity: Entity,
+    _entity: Entity,
     projectName: string,
-    dtoSchemaRegistry: DtoSchemaRegistry | undefined,
+    _dtoSchemaRegistry: DtoSchemaRegistry | undefined,
     imports: ImportRequirements
 ): void {
     if (!imports.customImports) {
@@ -269,26 +272,8 @@ function addDtoImport(
     }
 
     const config = getGlobalConfig();
-    const owningAggregateName = entity.$container?.name || entity.name;
-    let targetAggregateName = owningAggregateName;
-
-    const dtoSchema = dtoSchemaRegistry?.dtoByName?.[dtoTypeName];
-    if (dtoSchema) {
-        targetAggregateName = dtoSchema.aggregateName;
-    } else if (dtoTypeName.endsWith('Dto')) {
-        targetAggregateName = dtoTypeName.slice(0, -3);
-    }
-
-    if (!targetAggregateName) {
-        return;
-    }
-
-    if (targetAggregateName.toLowerCase() === (owningAggregateName || '').toLowerCase()) {
-        return;
-    }
-
-    const importPath = `${config.buildPackageName(projectName, 'microservices', targetAggregateName.toLowerCase(), 'aggregate')}.${dtoTypeName}`;
-    imports.customImports.add(`import ${importPath};`);
+    const dtoPackage = config.buildPackageName(projectName, 'shared', 'dtos');
+    imports.customImports.add(`import ${dtoPackage}.${dtoTypeName};`);
 }
 
 export function generateCopyConstructor(entity: Entity): { code: string, imports: ImportRequirements } {

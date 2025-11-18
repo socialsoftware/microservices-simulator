@@ -16,7 +16,7 @@ export class SagaFunctionalityGenerator extends OrchestrationBase {
             const imports: string[] = [];
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${this.capitalize(aggregate.name)}Service;`);
             const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
-            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate.${rootEntity.name}Dto;`);
+            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
 
             const constructorDependencies = [
                 { type: `${this.capitalize(aggregate.name)}Service`, name: `${lowerAggregate}Service` },
@@ -65,7 +65,7 @@ export class SagaFunctionalityGenerator extends OrchestrationBase {
             const imports: string[] = [];
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${this.capitalize(aggregate.name)}Service;`);
             const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
-            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate.${rootEntity.name}Dto;`);
+            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
 
             const constructorDependencies: Array<{ type: string; name: string }> = [
                 { type: `${this.capitalize(aggregate.name)}Service`, name: `${lowerAggregate}Service` },

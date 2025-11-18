@@ -20,7 +20,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.course.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.coursefactory.service.CourseFactory;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 
 @Service
 public class CourseFunctionalities {

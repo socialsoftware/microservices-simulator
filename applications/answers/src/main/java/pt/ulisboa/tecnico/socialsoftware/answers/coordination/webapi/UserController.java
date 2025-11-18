@@ -4,7 +4,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.UserFunctionalities;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.*;
 
 import java.util.List;

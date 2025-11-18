@@ -101,7 +101,7 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
         );
 
         if (hasUserDto) {
-            imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.user.UserDto;');
+            imports.push(`import ${getGlobalConfig().buildPackageName(options.projectName, 'shared', 'dtos')}.UserDto;`);
         }
 
         if (hasAggregateState) {

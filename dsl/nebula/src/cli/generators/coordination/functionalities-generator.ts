@@ -154,7 +154,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
 
         const usesUserDto = this.checkUserDtoUsage(aggregate, rootEntity);
         if (usesUserDto) {
-            imports.push(`import ${basePackage}.${projectName}.microservices.user.aggregate.UserDto;`);
+            imports.push(`import ${basePackage}.${projectName}.shared.dtos.UserDto;`);
         }
 
         const usesAggregateState = this.checkAggregateStateUsage(aggregate, rootEntity);
@@ -170,13 +170,13 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         });
 
         if (rootEntity) {
-            imports.push(`import ${basePackage}.${projectName}.microservices.${aggregate.name.toLowerCase()}.aggregate.${rootEntity.name}Dto;`);
+            imports.push(`import ${basePackage}.${projectName}.shared.dtos.${rootEntity.name}Dto;`);
         }
 
         if (aggregate.entities) {
             aggregate.entities.forEach((entity: any) => {
                 if (entity.name !== rootEntity?.name) {
-                    imports.push(`import ${basePackage}.${projectName}.microservices.${aggregate.name.toLowerCase()}.aggregate.${entity.name}Dto;`);
+                    imports.push(`import ${basePackage}.${projectName}.shared.dtos.${entity.name}Dto;`);
                 }
             });
         }
@@ -344,14 +344,9 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             });
         }
 
+        const dtoPackage = `${this.getBasePackage()}.${projectName}.shared.dtos`;
         usedDtoTypes.forEach(dtoType => {
-            const entityName = dtoType.replace('Dto', '');
-            if (entityName !== aggregate.entities?.find(e => e.name === entityName)?.name) {
-                const aggregateName = entityRegistry.getAggregateForEntity(entityName);
-                if (aggregateName) {
-                    imports.push(`import ${this.getBasePackage()}.${projectName}.microservices.${aggregateName.toLowerCase()}.aggregate.${dtoType};`);
-                }
-            }
+            imports.push(`import ${dtoPackage}.${dtoType};`);
         });
     }
 

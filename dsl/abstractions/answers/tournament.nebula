@@ -4,11 +4,11 @@ Aggregate Tournament {
        LocalDateTime endTime;
        Integer numberOfQuestions;
        Boolean cancelled;
-       TournamentCreator tournamentCreator;
-       Set<TournamentParticipant> tournamentParticipants;
-       TournamentExecution tournamentExecution;
-       Set<TournamentTopic> tournamentTopics;
-       TournamentQuiz tournamentQuiz;
+       TournamentCreator creator;
+       Set<TournamentParticipant> participants;
+       TournamentExecution execution;
+       Set<TournamentTopic> topics;
+       TournamentQuiz quiz;
 
        invariants {
            check startTimeBeforeEndTime {
@@ -48,14 +48,14 @@ Aggregate Tournament {
 
     Entity TournamentExecution uses dto ExecutionDto mapping {
         aggregateId -> executionAggregateId;
-        courseAggregateId -> executionAggregateCourseId;
+        courseAggregateId -> executionCourseAggregateId;
         acronym -> executionAcronym;
         state -> executionState;
         version -> executionVersion;
     } {
         Long id;
         Integer executionAggregateId;
-        Integer executionAggregateCourseId;
+        Integer executionCourseAggregateId;
         String executionAcronym;
         AggregateState executionState;
         Integer executionVersion;
@@ -115,7 +115,7 @@ Aggregate Tournament {
         version -> topicVersion;
         state -> topicState;
         name -> topicName;
-        courseId -> topicCourseAggregateId;
+        courseAggregateId -> topicCourseAggregateId;
     } {
         Long id;
         Integer topicAggregateId;
@@ -154,7 +154,7 @@ Aggregate Tournament {
     saga workflow removeTopic(Integer topicAggregateId, Integer tournamentId, UnitOfWork unitOfWork);
     
     CustomRepository {
-        Set<Integer> findAllByTournamentExecutionExecutionAggregateId(Integer executionAggregateId);
+        Set<Integer> findAllByExecutionExecutionAggregateId(Integer executionAggregateId);
     }
     
     WebAPIEndpoints {

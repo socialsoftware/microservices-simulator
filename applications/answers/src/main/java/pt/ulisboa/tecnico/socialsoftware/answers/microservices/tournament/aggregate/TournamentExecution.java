@@ -7,7 +7,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionDto;
 
 @Entity
 public class TournamentExecution {
@@ -15,7 +15,7 @@ public class TournamentExecution {
     @GeneratedValue
     private Long id;
     private Integer executionAggregateId;
-    private Integer executionAggregateCourseId;
+    private Integer executionCourseAggregateId;
     private String executionAcronym;
     private AggregateState executionState;
     private Integer executionVersion;
@@ -27,16 +27,15 @@ public class TournamentExecution {
     }
 
     public TournamentExecution(ExecutionDto executionDto) {
-        setExecutionAggregateId(executionDto.getAggregateId());
-        setExecutionAggregateCourseId(executionDto.getCourseAggregateId());
-        setExecutionAcronym(executionDto.getAcronym());
-        setExecutionState(executionDto.getState());
-        setExecutionVersion(executionDto.getVersion());
+        setAcronym(executionDto.getAcronym());
+        setAcademicTerm(executionDto.getAcademicTerm());
+        setEndDate(executionDto.getEndDate());
+        setUsers(executionDto.getUsers());
     }
 
     public TournamentExecution(TournamentExecution other) {
         setExecutionAggregateId(other.getExecutionAggregateId());
-        setExecutionAggregateCourseId(other.getExecutionAggregateCourseId());
+        setExecutionCourseAggregateId(other.getExecutionCourseAggregateId());
         setExecutionAcronym(other.getExecutionAcronym());
         setExecutionState(other.getExecutionState());
         setExecutionVersion(other.getExecutionVersion());
@@ -58,12 +57,12 @@ public class TournamentExecution {
         this.executionAggregateId = executionAggregateId;
     }
 
-    public Integer getExecutionAggregateCourseId() {
-        return executionAggregateCourseId;
+    public Integer getExecutionCourseAggregateId() {
+        return executionCourseAggregateId;
     }
 
-    public void setExecutionAggregateCourseId(Integer executionAggregateCourseId) {
-        this.executionAggregateCourseId = executionAggregateCourseId;
+    public void setExecutionCourseAggregateId(Integer executionCourseAggregateId) {
+        this.executionCourseAggregateId = executionCourseAggregateId;
     }
 
     public String getExecutionAcronym() {
@@ -101,11 +100,9 @@ public class TournamentExecution {
 
     public ExecutionDto buildDto() {
         ExecutionDto dto = new ExecutionDto();
-        dto.setAggregateId(getExecutionAggregateId());
-        dto.setCourseAggregateId(getExecutionAggregateCourseId());
-        dto.setAcronym(getExecutionAcronym());
-        dto.setState(getExecutionState());
-        dto.setVersion(getExecutionVersion());
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
         return dto;
     }
 }

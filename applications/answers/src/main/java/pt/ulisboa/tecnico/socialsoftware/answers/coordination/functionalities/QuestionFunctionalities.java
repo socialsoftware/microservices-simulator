@@ -21,10 +21,10 @@ import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.question.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.questionfactory.service.QuestionFactory;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionCourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionTopicDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.OptionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionTopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
 
 @Service
 public class QuestionFunctionalities {

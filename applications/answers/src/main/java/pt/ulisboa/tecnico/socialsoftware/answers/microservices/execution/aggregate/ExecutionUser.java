@@ -7,7 +7,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
 
 @Entity
 public class ExecutionUser {
@@ -28,12 +28,9 @@ public class ExecutionUser {
     }
 
     public ExecutionUser(UserDto userDto) {
-        setUserAggregateId(userDto.getAggregateId());
-        setUserVersion(userDto.getVersion());
-        setUserState(userDto.getState());
-        setUserName(userDto.getName());
-        setUserUsername(userDto.getUsername());
-        setUserActive(userDto.getActive());
+        setName(userDto.getName());
+        setUsername(userDto.getUsername());
+        setActive(userDto.getActive());
     }
 
     public ExecutionUser(ExecutionUser other) {
@@ -112,12 +109,9 @@ public class ExecutionUser {
 
     public UserDto buildDto() {
         UserDto dto = new UserDto();
-        dto.setAggregateId(getUserAggregateId());
-        dto.setVersion(getUserVersion());
-        dto.setState(getUserState());
-        dto.setName(getUserName());
-        dto.setUsername(getUserUsername());
-        dto.setActive(getUserActive());
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
         return dto;
     }
 }

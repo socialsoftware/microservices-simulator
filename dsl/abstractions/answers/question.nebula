@@ -22,14 +22,9 @@ Aggregate Question {
         AggregateState topicState;
     }
 
-    Entity Option uses dto OptionDto mapping {
-        key -> optionKey;
-        sequence -> sequence;
-        correct -> correct;
-        content -> content;
-    } {
+    Dto Entity Option {
         Long id;
-        Integer optionKey;
+        Integer key;
         Integer sequence;
         Boolean correct;
         String content;
