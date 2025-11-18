@@ -14,15 +14,7 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-@JsonIdentityInfo(
-        generator = ObjectIdGenerators.PropertyGenerator.class,
-        property = "aggregateId"
-)
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public abstract class Aggregate implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
 
     public enum AggregateState {
         ACTIVE,

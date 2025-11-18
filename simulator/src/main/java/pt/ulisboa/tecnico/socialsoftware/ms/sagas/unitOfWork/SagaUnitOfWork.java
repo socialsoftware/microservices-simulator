@@ -21,12 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 @Profile("sagas")
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class SagaUnitOfWork extends UnitOfWork {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = LoggerFactory.getLogger(SagaUnitOfWork.class);
 

@@ -17,15 +17,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = SagaUnitOfWork.class, name = "sagaUnitOfWork"),
-        @JsonSubTypes.Type(value = CausalUnitOfWork.class, name = "causalUnitOfWork")
-})
 public abstract class UnitOfWork implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
 
     private Integer id;
     private Integer version;

@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
 
 @Component
-//@Profile("stream")
 public class MessagingObjectMapperProvider {
     private final ObjectMapper base;
 
@@ -48,6 +47,9 @@ public class MessagingObjectMapperProvider {
                 if (t.isArrayType() || t.isCollectionLikeType() || t.isMapLikeType() || t.isContainerType())
                     return false;
                 Class<?> raw = t.getRawClass();
+                if (raw.getSimpleName().endsWith("Dto")) {
+                    return false;
+                }
                 Package p = raw.getPackage();
                 String pkg = (p == null) ? "" : p.getName();
                 return pkg.startsWith("pt.ulisboa.tecnico");

@@ -9,11 +9,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
+
 public class Command implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
 
     private Integer rootAggregateId;
     private List<SagaAggregate.SagaState> forbiddenStates; // sagas

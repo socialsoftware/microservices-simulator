@@ -13,8 +13,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publ
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publish.UpdateTopicEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities;
 
-// Removed transactional model switching; delegation handles model-specific logic.
-
 @Service
 public class TournamentEventProcessing {
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(TournamentEventProcessing.class);
