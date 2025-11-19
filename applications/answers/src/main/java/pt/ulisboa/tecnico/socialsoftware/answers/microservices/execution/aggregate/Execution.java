@@ -14,6 +14,8 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+
 @Entity
 public abstract class Execution extends Aggregate {
     private String acronym;
@@ -103,27 +105,27 @@ public abstract class Execution extends Aggregate {
         }
     }
 
-    public void removeExecutionUser(Long id) {
+    public void removeExecutionUser(Integer id) {
         if (this.users != null) {
             this.users.removeIf(item -> 
-                item.getId() != null && item.getId().equals(id));
+                item.getUserAggregateId() != null && item.getUserAggregateId().equals(id));
         }
     }
 
-    public boolean containsExecutionUser(Long id) {
+    public boolean containsExecutionUser(Integer id) {
         if (this.users == null) {
             return false;
         }
         return this.users.stream().anyMatch(item -> 
-            item.getId() != null && item.getId().equals(id));
+            item.getUserAggregateId() != null && item.getUserAggregateId().equals(id));
     }
 
-    public ExecutionUser findExecutionUserById(Long id) {
+    public ExecutionUser findExecutionUserById(Integer id) {
         if (this.users == null) {
             return null;
         }
         return this.users.stream()
-            .filter(item -> item.getId() != null && item.getId().equals(id))
+            .filter(item -> item.getUserAggregateId() != null && item.getUserAggregateId().equals(id))
             .findFirst()
             .orElse(null);
     }

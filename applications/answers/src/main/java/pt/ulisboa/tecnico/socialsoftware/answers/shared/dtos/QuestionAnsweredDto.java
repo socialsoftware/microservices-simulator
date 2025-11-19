@@ -1,0 +1,65 @@
+package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
+
+import java.io.Serializable;
+import jakarta.persistence.Embeddable;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuestionAnswered;
+
+@Embeddable
+public class QuestionAnsweredDto implements Serializable {
+    private Integer sequence;
+    private Integer key;
+    private Integer timeTaken;
+    private Boolean correct;
+    private Integer questionAggregateId;
+
+    public QuestionAnsweredDto() {
+    }
+
+    public QuestionAnsweredDto(QuestionAnswered questionAnswered) {
+        this.sequence = questionAnswered.getSequence();
+        this.key = questionAnswered.getKey();
+        this.timeTaken = questionAnswered.getTimeTaken();
+        this.correct = questionAnswered.getCorrect();
+        this.questionAggregateId = questionAnswered.getQuestionAggregateId();
+    }
+
+    public Integer getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(Integer sequence) {
+        this.sequence = sequence;
+    }
+
+    public Integer getKey() {
+        return key;
+    }
+
+    public void setKey(Integer key) {
+        this.key = key;
+    }
+
+    public Integer getTimeTaken() {
+        return timeTaken;
+    }
+
+    public void setTimeTaken(Integer timeTaken) {
+        this.timeTaken = timeTaken;
+    }
+
+    public Boolean getCorrect() {
+        return correct;
+    }
+
+    public void setCorrect(Boolean correct) {
+        this.correct = correct;
+    }
+
+    public Integer getQuestionAggregateId() {
+        return questionAggregateId;
+    }
+
+    public void setQuestionAggregateId(Integer questionAggregateId) {
+        this.questionAggregateId = questionAggregateId;
+    }
+}

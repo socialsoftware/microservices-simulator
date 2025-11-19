@@ -49,10 +49,8 @@ export class TypeResolver {
                     isBuiltin: false
                 };
             }
-            // Handle CollectionType (generic collection type)
             if (fieldType.$type === 'CollectionType' && fieldType.elementType) {
                 const elementTypeName = this.extractElementTypeName(fieldType.elementType);
-                // Determine collection type from the AST node text
                 const sourceText = fieldType.$cstNode?.text || '';
                 const collectionTypeName = sourceText.startsWith('List<') ? 'List' : 'Set';
                 return {
@@ -64,7 +62,6 @@ export class TypeResolver {
                     isBuiltin: false
                 };
             }
-            // Handle AggregateStateType
             if (fieldType.$type === 'AggregateStateType') {
                 return {
                     javaType: 'AggregateState',
@@ -75,23 +72,29 @@ export class TypeResolver {
                     isBuiltin: true
                 };
             }
-            // Handle EntityType references (can be Entity or EnumDefinition)
             if (fieldType.$type === 'EntityType' && fieldType.type) {
-                // Try to get the name from the resolved reference
-                if (fieldType.type.ref && fieldType.type.ref.name) {
-                    const typeName = fieldType.type.ref.name;
+                const ref: any = fieldType.type.ref;
+                if (ref && ref.$type === 'EnumDefinition' && ref.name) {
+                    return {
+                        javaType: ref.name,
+                        isCollection: false,
+                        elementType: undefined,
+                        isPrimitive: false,
+                        isEntity: false,
+                        isBuiltin: false
+                    };
+                }
+                if (ref && ref.name) {
+                    const typeName = ref.name;
                     return this.resolveTypeFromName(typeName);
                 }
-                // Fall back to the reference text if the reference is not resolved yet
                 if (fieldType.type.$refText) {
                     return this.resolveTypeFromName(fieldType.type.$refText);
                 }
             }
-            // Handle PrimitiveType
             if (fieldType.$type === 'PrimitiveType' && fieldType.name) {
                 return this.resolveTypeFromName(fieldType.name);
             }
-            // Handle ReturnType (method return types)
             if (fieldType.$type === 'ReturnType') {
                 return {
                     javaType: 'void',
@@ -134,7 +137,6 @@ export class TypeResolver {
     private static resolveTypeFromName(typeName: string): ResolvedType {
         const normalizedName = typeName.toLowerCase();
 
-        // More precise check for collections - must start with set< or list<
         const isCollection = normalizedName.startsWith('set<') || normalizedName.startsWith('list<') ||
             normalizedName === 'set' || normalizedName === 'list';
 
@@ -179,7 +181,6 @@ export class TypeResolver {
             return elementType;
         }
         if (elementType && typeof elementType === 'object') {
-            // Handle EntityType (can be Entity or EnumDefinition)
             if (elementType.$type === 'EntityType' && elementType.type) {
                 if (elementType.type.ref && elementType.type.ref.name) {
                     return elementType.type.ref.name;
@@ -191,11 +192,9 @@ export class TypeResolver {
                     return elementType.type.name;
                 }
             }
-            // Handle PrimitiveType
             if (elementType.$type === 'PrimitiveType') {
                 return elementType.name || elementType.typeName || 'UnknownPrimitive';
             }
-            // Handle ID references
             if (elementType.$refText) {
                 return elementType.$refText;
             }

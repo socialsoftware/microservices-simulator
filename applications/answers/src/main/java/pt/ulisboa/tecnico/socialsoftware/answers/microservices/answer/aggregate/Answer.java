@@ -14,6 +14,8 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
+
 @Entity
 public abstract class Answer extends Aggregate {
     private LocalDateTime creationDate;
@@ -26,7 +28,7 @@ public abstract class Answer extends Aggregate {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
     private AnswerQuiz quiz;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "answer")
-    private List<AnswerQuestion> question = new ArrayList<>();
+    private List<QuestionAnswered> question = new ArrayList<>();
 
     public Answer() {
 
@@ -38,7 +40,6 @@ public abstract class Answer extends Aggregate {
         setCreationDate(answerDto.getCreationDate());
         setAnswerDate(answerDto.getAnswerDate());
         setCompleted(answerDto.getCompleted());
-        setQuestion(answerDto.getQuestion());
         setExecution(execution);
         setUser(user);
         setQuiz(quiz);
@@ -52,7 +53,7 @@ public abstract class Answer extends Aggregate {
         setExecution(new AnswerExecution(other.getExecution()));
         setUser(new AnswerUser(other.getUser()));
         setQuiz(new AnswerQuiz(other.getQuiz()));
-        setQuestion(other.getQuestion().stream().map(AnswerQuestion::new).collect(Collectors.toList()));
+        setQuestion(other.getQuestion().stream().map(QuestionAnswered::new).collect(Collectors.toList()));
     }
 
     public LocalDateTime getCreationDate() {
@@ -112,48 +113,48 @@ public abstract class Answer extends Aggregate {
         }
     }
 
-    public List<AnswerQuestion> getQuestion() {
+    public List<QuestionAnswered> getQuestion() {
         return question;
     }
 
-    public void setQuestion(List<AnswerQuestion> question) {
+    public void setQuestion(List<QuestionAnswered> question) {
         this.question = question;
         if (this.question != null) {
             this.question.forEach(item -> item.setAnswer(this));
         }
     }
 
-    public void addAnswerQuestion(AnswerQuestion answerQuestion) {
+    public void addQuestionAnswered(QuestionAnswered questionAnswered) {
         if (this.question == null) {
             this.question = new ArrayList<>();
         }
-        this.question.add(answerQuestion);
-        if (answerQuestion != null) {
-            answerQuestion.setAnswer(this);
+        this.question.add(questionAnswered);
+        if (questionAnswered != null) {
+            questionAnswered.setAnswer(this);
         }
     }
 
-    public void removeAnswerQuestion(Long id) {
+    public void removeQuestionAnswered(Integer id) {
         if (this.question != null) {
             this.question.removeIf(item -> 
-                item.getId() != null && item.getId().equals(id));
+                item.getSequence() != null && item.getSequence().equals(id));
         }
     }
 
-    public boolean containsAnswerQuestion(Long id) {
+    public boolean containsQuestionAnswered(Integer id) {
         if (this.question == null) {
             return false;
         }
         return this.question.stream().anyMatch(item -> 
-            item.getId() != null && item.getId().equals(id));
+            item.getSequence() != null && item.getSequence().equals(id));
     }
 
-    public AnswerQuestion findAnswerQuestionById(Long id) {
+    public QuestionAnswered findQuestionAnsweredById(Integer id) {
         if (this.question == null) {
             return null;
         }
         return this.question.stream()
-            .filter(item -> item.getId() != null && item.getId().equals(id))
+            .filter(item -> item.getSequence() != null && item.getSequence().equals(id))
             .findFirst()
             .orElse(null);
     }

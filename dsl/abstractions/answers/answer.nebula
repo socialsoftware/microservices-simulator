@@ -4,7 +4,6 @@ Aggregate Answer {
         name -> userName;
         state -> userState;
     } {
-        Long id;
         Integer userAggregateId;
         String userName;
         AggregateState userState;
@@ -14,22 +13,16 @@ Aggregate Answer {
         aggregateId -> executionAggregateId;
         version -> executionVersion;
     } {
-        Long id;
         Integer executionAggregateId;
         Integer executionVersion;
     }
 
-    Entity AnswerQuestion uses dto QuestionDto mapping {
-        aggregateId -> questionAggregateId;
-    } {
-        Long id;
+    Dto Entity QuestionAnswered {
+        Integer sequence;
+        Integer key;
+        Integer timeTaken;
+        Boolean correct;
         Integer questionAggregateId;
-        Integer questionVersion;
-        AggregateState questionState;
-        Integer questionOptionSequenceChoice;
-        Integer questionTimeTaken;
-        Integer questionOptionKey;
-        Boolean questionCorrect;
     }
 
     Entity AnswerQuiz uses dto QuizDto mapping {
@@ -37,7 +30,6 @@ Aggregate Answer {
         version -> quizVersion;
         questions -> quizQuestionsAggregateIds extract aggregateId;
     } {
-        Long id;
         Integer quizAggregateId;
         Integer quizVersion;
         List<Integer> quizQuestionsAggregateIds;
@@ -50,7 +42,7 @@ Aggregate Answer {
         AnswerExecution execution;
         AnswerUser user;
         AnswerQuiz quiz;
-        List<AnswerQuestion> question;
+        List<QuestionAnswered> question;
 
         invariants {
 

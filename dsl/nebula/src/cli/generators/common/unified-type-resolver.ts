@@ -21,52 +21,35 @@ export interface TypeResolutionContext {
     projectName?: string;
 }
 
-/**
- * Unified type resolver that handles all type resolution scenarios across the DSL system.
- * Replaces scattered type resolution logic with a single, consistent implementation.
- */
 export class UnifiedTypeResolver {
 
-    /**
-     * Main type resolution method - resolves any type to Java type string
-     */
     static resolve(type: any, context: TypeResolutionContext = {}): string {
         const resolved = this.resolveDetailed(type, context);
         return resolved.javaType;
     }
 
-    /**
-     * Detailed type resolution that returns full type information
-     */
     static resolveDetailed(type: any, context: TypeResolutionContext = {}): ResolvedType {
         if (!type) {
             return this.createResolvedType('Object', false, false, false, false);
         }
 
-        // Handle AST object types
         if (typeof type === 'object' && type !== null) {
             return this.resolveObjectType(type, context);
         }
 
-        // Handle string types
         if (typeof type === 'string') {
             return this.resolveStringType(type, context);
         }
 
-        // Fallback
         return this.createResolvedType(String(type), false, false, false, false);
     }
 
-    /**
-     * Context-specific resolution methods
-     */
     static resolveForEntity(type: any): string {
         return this.resolve(type, { targetContext: 'entity', convertToDtos: false });
     }
 
     static resolveForDto(type: any): string {
         const resolved = this.resolveDetailed(type, { targetContext: 'dto', convertToDtos: false });
-        // For DTOs, we want the actual type, not converted to DTO
         return resolved.javaType;
     }
 
@@ -82,9 +65,6 @@ export class UnifiedTypeResolver {
         return this.resolve(type, { targetContext: 'repository', convertToDtos: false });
     }
 
-    /**
-     * Collection type handling
-     */
     static isCollectionType(type: any): boolean {
         const resolved = this.resolveDetailed(type);
         return resolved.isCollection;
@@ -95,9 +75,6 @@ export class UnifiedTypeResolver {
         return resolved.elementType;
     }
 
-    /**
-     * Type classification methods
-     */
     static isPrimitiveType(typeName: string): boolean {
         const primitives = [
             'string', 'integer', 'long', 'boolean', 'localdatetime',
@@ -143,11 +120,7 @@ export class UnifiedTypeResolver {
         return this.isEntityType(typeName) && !typeName.endsWith('Dto');
     }
 
-    /**
-     * Private helper methods
-     */
     private static resolveObjectType(type: any, context: TypeResolutionContext): ResolvedType {
-        // Handle AST ListType
         if (type.$type === 'ListType' && type.elementType) {
             const elementType = this.extractElementTypeName(type.elementType);
             const resolvedElementType = this.applyContextConversion(elementType, context);
@@ -161,7 +134,6 @@ export class UnifiedTypeResolver {
             );
         }
 
-        // Handle AST SetType
         if (type.$type === 'SetType' && type.elementType) {
             const elementType = this.extractElementTypeName(type.elementType);
             const resolvedElementType = this.applyContextConversion(elementType, context);
@@ -175,11 +147,9 @@ export class UnifiedTypeResolver {
             );
         }
 
-        // Handle CollectionType (generic collection type)
         if (type.$type === 'CollectionType' && type.elementType) {
             const elementType = this.extractElementTypeName(type.elementType);
             const resolvedElementType = this.applyContextConversion(elementType, context);
-            // Determine collection type from the AST node text
             const sourceText = type.$cstNode?.text || '';
             const collectionTypeName = sourceText.startsWith('List<') ? 'List' : 'Set';
             return this.createResolvedType(
@@ -192,14 +162,23 @@ export class UnifiedTypeResolver {
             );
         }
 
-        // Handle AggregateStateType
         if (type.$type === 'AggregateStateType') {
             return this.createResolvedType('AggregateState', false, false, false, true);
         }
 
-        // Handle EntityType references
         if (type.$type === 'EntityType' && type.type) {
-            const typeName = type.type.ref?.name || type.type.$refText;
+            const ref: any = type.type.ref;
+            if (ref && ref.$type === 'EnumDefinition' && ref.name) {
+                const enumName = ref.name;
+                return this.createResolvedType(
+                    enumName,
+                    false,
+                    false,
+                    false,
+                    false
+                );
+            }
+            const typeName = ref?.name || type.type.$refText;
             if (typeName) {
                 const resolvedType = this.applyContextConversion(typeName, context);
                 return this.createResolvedType(
@@ -212,32 +191,27 @@ export class UnifiedTypeResolver {
             }
         }
 
-        // Handle PrimitiveType
         if (type.$type === 'PrimitiveType' && type.name) {
             const mappedType = this.mapPrimitiveType(type.name);
             return this.createResolvedType(mappedType, false, true, false, false);
         }
 
-        // Handle ReturnType (method return types)
         if (type.$type === 'ReturnType') {
             return this.createResolvedType('void', false, true, false, true);
         }
 
-        // Handle objects with name or typeName properties
         if ('name' in type) {
             return this.resolveStringType(type.name, context);
         } else if ('typeName' in type) {
             return this.resolveStringType(type.typeName, context);
         }
 
-        // Fallback for unknown object types
         return this.createResolvedType('Object', false, false, false, false);
     }
 
     private static resolveStringType(typeName: string, context: TypeResolutionContext): ResolvedType {
         const normalizedName = typeName.toLowerCase();
 
-        // Handle collection types in string format
         if (normalizedName.startsWith('set<') || normalizedName.startsWith('list<')) {
             const isSet = normalizedName.startsWith('set<');
             const elementType = this.extractElementTypeFromString(typeName);
@@ -254,7 +228,6 @@ export class UnifiedTypeResolver {
             );
         }
 
-        // Handle primitive and entity types
         const mappedType = this.mapPrimitiveType(typeName);
         const resolvedType = this.applyContextConversion(mappedType, context);
 
@@ -268,7 +241,6 @@ export class UnifiedTypeResolver {
     }
 
     private static applyContextConversion(typeName: string, context: TypeResolutionContext): string {
-        // Apply DTO conversion for WebAPI context
         if (context.convertToDtos && context.targetContext === 'webapi') {
             if (this.shouldConvertToDto(typeName)) {
                 return `${typeName}Dto`;
@@ -279,7 +251,6 @@ export class UnifiedTypeResolver {
     }
 
     private static shouldConvertToDto(typeName: string): boolean {
-        // Don't convert primitives and built-in Java types
         const doNotConvert = [
             'String', 'Integer', 'Boolean', 'Double', 'Float', 'Long',
             'LocalDateTime', 'Object', 'void', 'BigDecimal',
@@ -290,12 +261,10 @@ export class UnifiedTypeResolver {
             return false;
         }
 
-        // Don't convert types that already end with 'Dto'
         if (typeName.endsWith('Dto')) {
             return false;
         }
 
-        // Convert entity types to DTOs
         return this.isEntityType(typeName);
     }
 
@@ -305,7 +274,6 @@ export class UnifiedTypeResolver {
         }
 
         if (elementType && typeof elementType === 'object') {
-            // Handle EntityType
             if (elementType.$type === 'EntityType' && elementType.type) {
                 if (elementType.type.ref && elementType.type.ref.name) {
                     return elementType.type.ref.name;
@@ -318,12 +286,10 @@ export class UnifiedTypeResolver {
                 }
             }
 
-            // Handle PrimitiveType
             if (elementType.$type === 'PrimitiveType') {
                 return elementType.name || elementType.typeName || 'UnknownPrimitive';
             }
 
-            // Handle ID references
             if (elementType.$refText) {
                 return elementType.$refText;
             }
@@ -364,7 +330,7 @@ export class UnifiedTypeResolver {
             'object': 'Object'
         };
 
-        return typeMap[lowerTypeName] || typeName; // Return original case-sensitive name for entities
+        return typeMap[lowerTypeName] || typeName;
     }
 
     private static createResolvedType(
@@ -386,9 +352,6 @@ export class UnifiedTypeResolver {
         };
     }
 
-    /**
-     * Utility method to safely get type name from various type objects
-     */
     static safeGetTypeName(fieldType: any): string | null {
         if (!fieldType || typeof fieldType !== 'object') {
             return null;
@@ -405,9 +368,6 @@ export class UnifiedTypeResolver {
         return null;
     }
 
-    /**
-     * Legacy compatibility methods (to ease migration)
-     */
     static resolveJavaType(fieldType: any): string {
         return this.resolve(fieldType);
     }

@@ -7,7 +7,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
 public class TournamentCreator {
@@ -27,25 +27,18 @@ public class TournamentCreator {
     }
 
     public TournamentCreator(UserDto userDto) {
-        setName(userDto.getName());
-        setUsername(userDto.getUsername());
-        setActive(userDto.getActive());
+        setCreatorAggregateId(userDto.getAggregateId());
+        setCreatorVersion(userDto.getVersion());
+        setCreatorState(userDto.getState());
+        setCreatorName(userDto.getName());
+        setCreatorUsername(userDto.getUsername());
     }
 
     public TournamentCreator(TournamentCreator other) {
-        setCreatorAggregateId(other.getCreatorAggregateId());
         setCreatorName(other.getCreatorName());
         setCreatorUsername(other.getCreatorUsername());
         setCreatorVersion(other.getCreatorVersion());
         setCreatorState(other.getCreatorState());
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getCreatorAggregateId() {
@@ -99,9 +92,11 @@ public class TournamentCreator {
 
     public UserDto buildDto() {
         UserDto dto = new UserDto();
-        dto.setAggregateId(getAggregateId());
-        dto.setVersion(getVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getCreatorAggregateId());
+        dto.setVersion(getCreatorVersion());
+        dto.setState(getCreatorState());
+        dto.setName(getCreatorName());
+        dto.setUsername(getCreatorUsername());
         return dto;
     }
 }

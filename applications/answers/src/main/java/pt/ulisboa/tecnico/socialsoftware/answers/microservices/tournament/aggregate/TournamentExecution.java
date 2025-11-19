@@ -7,7 +7,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 @Entity
 public class TournamentExecution {
@@ -27,26 +27,18 @@ public class TournamentExecution {
     }
 
     public TournamentExecution(ExecutionDto executionDto) {
-        setAcronym(executionDto.getAcronym());
-        setAcademicTerm(executionDto.getAcademicTerm());
-        setEndDate(executionDto.getEndDate());
-        setUsers(executionDto.getUsers());
+        setExecutionAggregateId(executionDto.getAggregateId());
+        setExecutionVersion(executionDto.getVersion());
+        setExecutionState(executionDto.getState());
+        setExecutionAcronym(executionDto.getAcronym());
+        setExecutionCourseAggregateId(executionDto.getCourseAggregateId());
     }
 
     public TournamentExecution(TournamentExecution other) {
-        setExecutionAggregateId(other.getExecutionAggregateId());
         setExecutionCourseAggregateId(other.getExecutionCourseAggregateId());
         setExecutionAcronym(other.getExecutionAcronym());
         setExecutionState(other.getExecutionState());
         setExecutionVersion(other.getExecutionVersion());
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getExecutionAggregateId() {
@@ -100,9 +92,11 @@ public class TournamentExecution {
 
     public ExecutionDto buildDto() {
         ExecutionDto dto = new ExecutionDto();
-        dto.setAggregateId(getAggregateId());
-        dto.setVersion(getVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getExecutionAggregateId());
+        dto.setVersion(getExecutionVersion());
+        dto.setState(getExecutionState());
+        dto.setAcronym(getExecutionAcronym());
+        dto.setCourseAggregateId(getExecutionCourseAggregateId());
         return dto;
     }
 }

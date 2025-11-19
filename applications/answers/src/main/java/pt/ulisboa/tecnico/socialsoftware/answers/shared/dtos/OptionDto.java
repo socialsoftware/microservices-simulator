@@ -1,10 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
+import jakarta.persistence.Embeddable;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Option;
 
+@Embeddable
 public class OptionDto implements Serializable {
-    private Long id;
     private Integer key;
     private Integer sequence;
     private Boolean correct;
@@ -14,19 +15,10 @@ public class OptionDto implements Serializable {
     }
 
     public OptionDto(Option option) {
-        this.id = option.getId();
         this.key = option.getKey();
         this.sequence = option.getSequence();
-        this.correct = option.isCorrect();
+        this.correct = option.getCorrect();
         this.content = option.getContent();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getKey() {
@@ -45,7 +37,7 @@ public class OptionDto implements Serializable {
         this.sequence = sequence;
     }
 
-    public Boolean isCorrect() {
+    public Boolean getCorrect() {
         return correct;
     }
 

@@ -20,7 +20,7 @@ public class TopicDto implements Serializable {
         this.version = topic.getVersion();
         this.state = topic.getState();
         this.name = topic.getName();
-        this.courseAggregateId = topic.getCourse() != null ? topic.getCourse().getAggregateId() : null;
+        this.courseAggregateId = topic.getCourse() != null ? topic.getCourse().getCourseAggregateId() : null;
     }
 
     public Integer getAggregateId() {

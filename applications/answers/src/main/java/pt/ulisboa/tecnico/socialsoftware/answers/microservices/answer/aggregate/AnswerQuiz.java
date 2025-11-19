@@ -8,9 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizDto;
-
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 
 @Entity
 public class AnswerQuiz {
@@ -28,28 +26,14 @@ public class AnswerQuiz {
     }
 
     public AnswerQuiz(QuizDto quizDto) {
-        setTitle(quizDto.getTitle());
-        setQuizType(QuizType.valueOf(quizDto.getQuizType()));
-        setCreationDate(quizDto.getCreationDate());
-        setAvailableDate(quizDto.getAvailableDate());
-        setConclusionDate(quizDto.getConclusionDate());
-        setResultsDate(quizDto.getResultsDate());
-        setNumberOfQuestions(quizDto.getNumberOfQuestions());
-        setQuestions(quizDto.getQuestions());
+        setQuizAggregateId(quizDto.getAggregateId());
+        setQuizVersion(quizDto.getVersion());
+        setQuizQuestionsAggregateIds(quizDto.getQuestions() != null ? quizDto.getQuestions().getAggregateId() : null);
     }
 
     public AnswerQuiz(AnswerQuiz other) {
-        setQuizAggregateId(other.getQuizAggregateId());
         setQuizVersion(other.getQuizVersion());
         setQuizQuestionsAggregateIds(new ArrayList<>(other.getQuizQuestionsAggregateIds()));
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getQuizAggregateId() {
@@ -87,9 +71,9 @@ public class AnswerQuiz {
 
     public QuizDto buildDto() {
         QuizDto dto = new QuizDto();
-        dto.setAggregateId(getAggregateId());
-        dto.setVersion(getVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getQuizAggregateId());
+        dto.setVersion(getQuizVersion());
+        dto.setQuestions(getQuizQuestionsAggregateIds() != null ? getQuizQuestionsAggregateIds().getAggregateId() : null);
         return dto;
     }
 }

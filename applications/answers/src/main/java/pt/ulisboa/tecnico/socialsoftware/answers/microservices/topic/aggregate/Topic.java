@@ -6,6 +6,8 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
+
 @Entity
 public abstract class Topic extends Aggregate {
     private String name;

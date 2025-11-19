@@ -106,6 +106,21 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
 
     const entityAny = entity as any;
     const dtoTypeRef = entityAny.dtoType as string | undefined;
+    const dtoFieldMappingEntries: { dtoField: string; entityField: string; extractField?: string }[] =
+        (entityAny.dtoMapping?.fieldMappings || [])
+            .filter((mapping: any) => mapping?.dtoField && mapping?.entityField)
+            .map((mapping: any) => ({
+                dtoField: mapping.dtoField,
+                entityField: mapping.entityField,
+                extractField: mapping.extractField
+            }));
+    const dtoFieldToEntityProp = new Map<string, { property: any; extractField?: string }>();
+    dtoFieldMappingEntries.forEach(entry => {
+        const targetProp = entity.properties.find(prop => prop.name === entry.entityField);
+        if (targetProp) {
+            dtoFieldToEntityProp.set(entry.dtoField, { property: targetProp, extractField: entry.extractField });
+        }
+    });
 
     const customDtoType = dtoTypeRef;
 
@@ -116,24 +131,31 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         dtoName = customDtoType;
         dtoTypeName = customDtoType;
     } else {
-        const rootEntityName = isRootEntity ? entityName : (entity.$container?.name || entityName);
-        dtoName = `${rootEntityName}Dto`;
-        dtoTypeName = dtoName;
+        if (isRootEntity) {
+            dtoName = `${entityName}Dto`;
+            dtoTypeName = dtoName;
+        } else {
+            dtoName = `${entityName}Dto`;
+            dtoTypeName = dtoName;
+        }
     }
 
     const dtoSchema = dtoSchemaRegistry?.dtoByName?.[dtoTypeName];
     if (!dtoSchema) {
         throw new Error(`DTO schema for ${dtoTypeName} was not found. Ensure a root entity defines this DTO.`);
     }
-    const dtoParamName = customDtoType ?
-        customDtoType.charAt(0).toLowerCase() + customDtoType.slice(1) :
-        `${(isRootEntity ? entityName : (entity.$container?.name || entityName)).toLowerCase()}Dto`;
+    const dtoParamName = customDtoType
+        ? customDtoType.charAt(0).toLowerCase() + customDtoType.slice(1)
+        : `${entityName.toLowerCase()}Dto`;
 
     const entityRelationships: string[] = [];
     if (isRootEntity) {
         for (const prop of entity.properties || []) {
             const javaType = resolveJavaType(prop.type);
-            if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
+            if (!isEnumType(prop.type) &&
+                TypeResolver.isEntityType(javaType) &&
+                !javaType.startsWith('Set<') &&
+                !javaType.startsWith('List<')) {
                 entityRelationships.push(`${javaType} ${prop.name}`);
             }
         }
@@ -150,14 +172,25 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
 
     for (const field of dtoSchema.fields) {
         if (field.derivedAggregateId) {
-            continue;
+            const mappingOverride = dtoFieldToEntityProp.get(field.name);
+            if (!mappingOverride) {
+                continue;
+            }
         }
         if (field.isAggregateField) {
-            continue;
+            const mappingOverride = dtoFieldToEntityProp.get(field.name);
+            if (!mappingOverride) {
+                continue;
+            }
         }
 
-        const entityProp = field.sourceProperty;
+        const mappingOverride = dtoFieldToEntityProp.get(field.name);
+        const entityProp = mappingOverride?.property || field.sourceProperty;
         if (!entityProp) {
+            continue;
+        }
+        const propertyBelongsToEntity = entityProp.$container?.name === entity.name;
+        if (!propertyBelongsToEntity && !mappingOverride) {
             continue;
         }
 
@@ -166,7 +199,13 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         const isFinal = (entityProp as any).isFinal || false;
         const dtoGetterName = field.name.charAt(0).toUpperCase() + field.name.slice(1);
         const javaType = resolveJavaType(entityProp.type);
-        const isEntityRelationship = TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<');
+        const isEntityRelationship =
+            !isEnumType(entityProp.type) &&
+            TypeResolver.isEntityType(javaType) &&
+            !javaType.startsWith('Set<') &&
+            !javaType.startsWith('List<');
+
+        const effectiveExtractField = mappingOverride?.extractField || field.extractField;
 
         if (isRootEntity && (field.requiresConversion && field.referencedEntityName)) {
             continue;
@@ -186,8 +225,8 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         if (field.requiresConversion) {
             if (field.isCollection && field.referencedEntityName) {
                 const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
-                if (field.extractField) {
-                    const extractMethod = `get${field.extractField.charAt(0).toUpperCase() + field.extractField.slice(1)}()`;
+                if (effectiveExtractField) {
+                    const extractMethod = `get${effectiveExtractField.charAt(0).toUpperCase() + effectiveExtractField.slice(1)}()`;
                     setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${dtoParamName}.get${dtoGetterName}().stream().map(dto -> dto.${extractMethod}).collect(${collector}) : null);`);
                 } else {
                     setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${dtoParamName}.get${dtoGetterName}().stream().map(dto -> new ${field.referencedEntityName}(dto)).collect(${collector}) : null);`);
@@ -210,13 +249,21 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
             continue;
         }
 
-        setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`);
+        if (effectiveExtractField) {
+            const extractMethod = `get${effectiveExtractField.charAt(0).toUpperCase() + effectiveExtractField.slice(1)}()`;
+            setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${dtoParamName}.get${dtoGetterName}().${extractMethod} : null);`);
+        } else {
+            setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`);
+        }
     }
 
     if (isRootEntity && entityRelationships.length > 0) {
         for (const prop of entity.properties || []) {
             const javaType = resolveJavaType(prop.type);
-            if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
+            if (!isEnumType(prop.type) &&
+                TypeResolver.isEntityType(javaType) &&
+                !javaType.startsWith('Set<') &&
+                !javaType.startsWith('List<')) {
                 const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
                 const isFinalProp = (prop as any).isFinal || false;
                 if (isFinalProp) {

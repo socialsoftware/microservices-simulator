@@ -28,7 +28,7 @@ public class ExecutionDto implements Serializable {
         this.acronym = execution.getAcronym();
         this.academicTerm = execution.getAcademicTerm();
         this.endDate = execution.getEndDate();
-        this.courseAggregateId = execution.getCourse() != null ? execution.getCourse().getAggregateId() : null;
+        this.courseAggregateId = execution.getCourse() != null ? execution.getCourse().getCourseAggregateId() : null;
         this.users = execution.getUsers();
     }
 

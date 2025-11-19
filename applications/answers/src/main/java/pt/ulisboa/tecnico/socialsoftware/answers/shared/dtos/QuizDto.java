@@ -13,12 +13,11 @@ public class QuizDto implements Serializable {
     private Integer version;
     private AggregateState state;
     private String title;
-    private QuizType quizType;
+    private String quizType;
     private LocalDateTime creationDate;
     private LocalDateTime availableDate;
     private LocalDateTime conclusionDate;
     private LocalDateTime resultsDate;
-    private Integer numberOfQuestions;
     private Integer executionAggregateId;
     private Set<QuizQuestion> questions;
 
@@ -30,13 +29,12 @@ public class QuizDto implements Serializable {
         this.version = quiz.getVersion();
         this.state = quiz.getState();
         this.title = quiz.getTitle();
-        this.quizType = quiz.getQuizType() != null ? quiz.getQuizType().toString() : null;
+        this.quizType = quiz.getQuizType() != null ? quiz.getQuizType().name() : null;
         this.creationDate = quiz.getCreationDate();
         this.availableDate = quiz.getAvailableDate();
         this.conclusionDate = quiz.getConclusionDate();
         this.resultsDate = quiz.getResultsDate();
-        this.numberOfQuestions = quiz.getNumberOfQuestions();
-        this.executionAggregateId = quiz.getExecution() != null ? quiz.getExecution().getAggregateId() : null;
+        this.executionAggregateId = quiz.getExecution() != null ? quiz.getExecution().getExecutionAggregateId() : null;
         this.questions = quiz.getQuestions();
     }
 
@@ -72,11 +70,11 @@ public class QuizDto implements Serializable {
         this.title = title;
     }
 
-    public QuizType getQuizType() {
+    public String getQuizType() {
         return quizType;
     }
 
-    public void setQuizType(QuizType quizType) {
+    public void setQuizType(String quizType) {
         this.quizType = quizType;
     }
 
@@ -110,14 +108,6 @@ public class QuizDto implements Serializable {
 
     public void setResultsDate(LocalDateTime resultsDate) {
         this.resultsDate = resultsDate;
-    }
-
-    public Integer getNumberOfQuestions() {
-        return numberOfQuestions;
-    }
-
-    public void setNumberOfQuestions(Integer numberOfQuestions) {
-        this.numberOfQuestions = numberOfQuestions;
     }
 
     public Integer getExecutionAggregateId() {

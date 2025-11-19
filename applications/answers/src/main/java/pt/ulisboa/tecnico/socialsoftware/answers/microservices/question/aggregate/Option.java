@@ -1,11 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate;
 
-import java.util.stream.Collectors;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
 
 @Entity
 public class Option {
@@ -23,27 +23,17 @@ public class Option {
 
     }
 
-    public Option(QuestionDto questionDto) {
-        setTitle(questionDto.getTitle());
-        setContent(questionDto.getContent());
-        setCreationDate(questionDto.getCreationDate());
-        setTopics(questionDto.getTopics());
-        setOptions(questionDto.getOptions() != null ? questionDto.getOptions().stream().map(dto -> new Option(dto)).collect(Collectors.toList()) : null);
+    public Option(OptionDto optionDto) {
+        setKey(optionDto.getKey());
+        setSequence(optionDto.getSequence());
+        setCorrect(optionDto.getCorrect());
+        setContent(optionDto.getContent());
     }
 
     public Option(Option other) {
-        setKey(other.getKey());
         setSequence(other.getSequence());
         setCorrect(other.getCorrect());
         setContent(other.getContent());
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getKey() {

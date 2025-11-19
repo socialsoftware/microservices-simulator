@@ -4,7 +4,6 @@ Aggregate Question {
         name -> courseName;
         version -> courseVersion;
     } {
-        Long id;
         Integer courseAggregateId;
         String courseName;
         Integer courseVersion;
@@ -23,7 +22,6 @@ Aggregate Question {
     }
 
     Dto Entity Option {
-        Long id;
         Integer key;
         Integer sequence;
         Boolean correct;

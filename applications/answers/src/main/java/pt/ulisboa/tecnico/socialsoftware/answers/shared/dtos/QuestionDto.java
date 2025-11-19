@@ -32,7 +32,7 @@ public class QuestionDto implements Serializable {
         this.title = question.getTitle();
         this.content = question.getContent();
         this.creationDate = question.getCreationDate();
-        this.courseAggregateId = question.getCourse() != null ? question.getCourse().getAggregateId() : null;
+        this.courseAggregateId = question.getCourse() != null ? question.getCourse().getCourseAggregateId() : null;
         this.topics = question.getTopics();
         this.options = question.getOptions() != null ? question.getOptions().stream().map(Option::buildDto).collect(Collectors.toList()) : null;
     }

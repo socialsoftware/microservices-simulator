@@ -7,7 +7,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
 public class ExecutionUser {
@@ -28,26 +28,20 @@ public class ExecutionUser {
     }
 
     public ExecutionUser(UserDto userDto) {
-        setName(userDto.getName());
-        setUsername(userDto.getUsername());
-        setActive(userDto.getActive());
+        setUserAggregateId(userDto.getAggregateId());
+        setUserVersion(userDto.getVersion());
+        setUserState(userDto.getState());
+        setUserName(userDto.getName());
+        setUserUsername(userDto.getUsername());
+        setUserActive(userDto.getActive());
     }
 
     public ExecutionUser(ExecutionUser other) {
-        setUserAggregateId(other.getUserAggregateId());
         setUserVersion(other.getUserVersion());
         setUserState(other.getUserState());
         setUserName(other.getUserName());
         setUserUsername(other.getUserUsername());
         setUserActive(other.getUserActive());
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getUserAggregateId() {
@@ -109,9 +103,12 @@ public class ExecutionUser {
 
     public UserDto buildDto() {
         UserDto dto = new UserDto();
-        dto.setAggregateId(getAggregateId());
-        dto.setVersion(getVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getUserAggregateId());
+        dto.setVersion(getUserVersion());
+        dto.setState(getUserState());
+        dto.setName(getUserName());
+        dto.setUsername(getUserUsername());
+        dto.setActive(getUserActive());
         return dto;
     }
 }

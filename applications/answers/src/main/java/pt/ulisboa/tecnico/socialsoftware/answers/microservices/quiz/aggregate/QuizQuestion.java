@@ -1,7 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate;
 
-import java.util.stream.Collectors;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -9,7 +7,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 @Entity
 public class QuizQuestion {
@@ -30,28 +28,19 @@ public class QuizQuestion {
     }
 
     public QuizQuestion(QuestionDto questionDto) {
-        setTitle(questionDto.getTitle());
-        setContent(questionDto.getContent());
-        setCreationDate(questionDto.getCreationDate());
-        setTopics(questionDto.getTopics());
-        setOptions(questionDto.getOptions() != null ? questionDto.getOptions().stream().map(dto -> new Option(dto)).collect(Collectors.toList()) : null);
+        setQuestionAggregateId(questionDto.getAggregateId());
+        setQuestionVersion(questionDto.getVersion());
+        setQuestionState(questionDto.getState());
+        setQuestionTitle(questionDto.getTitle());
+        setQuestionContent(questionDto.getContent());
     }
 
     public QuizQuestion(QuizQuestion other) {
-        setQuestionAggregateId(other.getQuestionAggregateId());
         setQuestionVersion(other.getQuestionVersion());
         setQuestionState(other.getQuestionState());
         setQuestionTitle(other.getQuestionTitle());
         setQuestionContent(other.getQuestionContent());
         setQuestionSequence(other.getQuestionSequence());
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getQuestionAggregateId() {
@@ -113,9 +102,11 @@ public class QuizQuestion {
 
     public QuestionDto buildDto() {
         QuestionDto dto = new QuestionDto();
-        dto.setAggregateId(getAggregateId());
-        dto.setVersion(getVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getQuestionAggregateId());
+        dto.setVersion(getQuestionVersion());
+        dto.setState(getQuestionState());
+        dto.setTitle(getQuestionTitle());
+        dto.setContent(getQuestionContent());
         return dto;
     }
 }

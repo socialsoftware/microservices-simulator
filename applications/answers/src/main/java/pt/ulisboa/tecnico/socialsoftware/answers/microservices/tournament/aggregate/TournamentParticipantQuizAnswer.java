@@ -6,9 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizDto;
-
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 
 @Entity
 public class TournamentParticipantQuizAnswer {
@@ -30,31 +28,15 @@ public class TournamentParticipantQuizAnswer {
     }
 
     public TournamentParticipantQuizAnswer(QuizDto quizDto) {
-        setTitle(quizDto.getTitle());
-        setQuizType(QuizType.valueOf(quizDto.getQuizType()));
-        setCreationDate(quizDto.getCreationDate());
-        setAvailableDate(quizDto.getAvailableDate());
-        setConclusionDate(quizDto.getConclusionDate());
-        setResultsDate(quizDto.getResultsDate());
-        setNumberOfQuestions(quizDto.getNumberOfQuestions());
-        setQuestions(quizDto.getQuestions());
+        setParticipantQuizAnswerAggregateId(quizDto.getAggregateId());
     }
 
     public TournamentParticipantQuizAnswer(TournamentParticipantQuizAnswer other) {
-        setParticipantQuizAnswerAggregateId(other.getParticipantQuizAnswerAggregateId());
         setParticipantQuizAnswerVersion(other.getParticipantQuizAnswerVersion());
         setParticipantQuizAnswerAnswered(other.getParticipantQuizAnswerAnswered());
         setParticipantQuizAnswerNumberOfAnswered(other.getParticipantQuizAnswerNumberOfAnswered());
         setParticipantQuizAnswerNumberOfCorrect(other.getParticipantQuizAnswerNumberOfCorrect());
         setTournamentParticipant(new TournamentParticipant(other.getTournamentParticipant()));
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getParticipantQuizAnswerAggregateId() {
@@ -119,9 +101,7 @@ public class TournamentParticipantQuizAnswer {
 
     public QuizDto buildDto() {
         QuizDto dto = new QuizDto();
-        dto.setAggregateId(getAggregateId());
-        dto.setVersion(getVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getParticipantQuizAnswerAggregateId());
         return dto;
     }
 }

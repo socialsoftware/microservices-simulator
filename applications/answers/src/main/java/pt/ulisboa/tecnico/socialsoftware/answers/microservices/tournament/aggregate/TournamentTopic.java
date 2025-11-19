@@ -7,7 +7,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 
 @Entity
 public class TournamentTopic {
@@ -27,23 +27,18 @@ public class TournamentTopic {
     }
 
     public TournamentTopic(TopicDto topicDto) {
-        setName(topicDto.getName());
+        setTopicAggregateId(topicDto.getAggregateId());
+        setTopicVersion(topicDto.getVersion());
+        setTopicState(topicDto.getState());
+        setTopicName(topicDto.getName());
+        setTopicCourseAggregateId(topicDto.getCourseAggregateId());
     }
 
     public TournamentTopic(TournamentTopic other) {
-        setTopicAggregateId(other.getTopicAggregateId());
         setTopicVersion(other.getTopicVersion());
         setTopicState(other.getTopicState());
         setTopicName(other.getTopicName());
         setTopicCourseAggregateId(other.getTopicCourseAggregateId());
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getTopicAggregateId() {
@@ -97,9 +92,11 @@ public class TournamentTopic {
 
     public TopicDto buildDto() {
         TopicDto dto = new TopicDto();
-        dto.setAggregateId(getAggregateId());
-        dto.setVersion(getVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getTopicAggregateId());
+        dto.setVersion(getTopicVersion());
+        dto.setState(getTopicState());
+        dto.setName(getTopicName());
+        dto.setCourseAggregateId(getTopicCourseAggregateId());
         return dto;
     }
 }

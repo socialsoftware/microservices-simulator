@@ -1,7 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
 
-import java.util.stream.Collectors;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -9,7 +7,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 @Entity
 public class AnswerQuestion {
@@ -31,11 +29,7 @@ public class AnswerQuestion {
     }
 
     public AnswerQuestion(QuestionDto questionDto) {
-        setTitle(questionDto.getTitle());
-        setContent(questionDto.getContent());
-        setCreationDate(questionDto.getCreationDate());
-        setTopics(questionDto.getTopics());
-        setOptions(questionDto.getOptions() != null ? questionDto.getOptions().stream().map(dto -> new Option(dto)).collect(Collectors.toList()) : null);
+        setQuestionAggregateId(questionDto.getAggregateId());
     }
 
     public AnswerQuestion(AnswerQuestion other) {
@@ -123,9 +117,7 @@ public class AnswerQuestion {
 
     public QuestionDto buildDto() {
         QuestionDto dto = new QuestionDto();
-        dto.setAggregateId(getAggregateId());
-        dto.setVersion(getVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getQuestionAggregateId());
         return dto;
     }
 }

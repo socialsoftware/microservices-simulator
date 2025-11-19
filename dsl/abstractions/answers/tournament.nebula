@@ -53,7 +53,6 @@ Aggregate Tournament {
         state -> executionState;
         version -> executionVersion;
     } {
-        Long id;
         Integer executionAggregateId;
         Integer executionCourseAggregateId;
         String executionAcronym;
@@ -69,7 +68,6 @@ Aggregate Tournament {
         version -> creatorVersion;
         state -> creatorState;
     } {
-        Long id;
         Integer creatorAggregateId;
         String creatorName;
         String creatorUsername;
@@ -88,7 +86,6 @@ Aggregate Tournament {
         version -> participantVersion;
         state -> participantState;
     } {
-        Long id;
         Integer participantAggregateId;
         Integer participantVersion;
         AggregateState participantState;
@@ -101,7 +98,6 @@ Aggregate Tournament {
     Entity TournamentParticipantQuizAnswer uses dto QuizDto mapping {
         aggregateId -> participantQuizAnswerAggregateId;
     } {
-        Long id;
         Integer participantQuizAnswerAggregateId;
         Integer participantQuizAnswerVersion;
         Boolean participantQuizAnswerAnswered;
@@ -117,7 +113,6 @@ Aggregate Tournament {
         name -> topicName;
         courseAggregateId -> topicCourseAggregateId;
     } {
-        Long id;
         Integer topicAggregateId;
         Integer topicVersion;
         AggregateState topicState;
@@ -129,7 +124,6 @@ Aggregate Tournament {
         aggregateId -> quizAggregateId;
         version -> quizVersion;
     } {
-        Long id;
         Integer quizAggregateId;
         Integer quizVersion;
     }

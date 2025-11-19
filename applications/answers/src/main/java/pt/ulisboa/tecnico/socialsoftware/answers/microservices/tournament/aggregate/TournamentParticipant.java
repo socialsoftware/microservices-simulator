@@ -10,7 +10,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
 public class TournamentParticipant {
@@ -33,27 +33,20 @@ public class TournamentParticipant {
     }
 
     public TournamentParticipant(UserDto userDto) {
-        setName(userDto.getName());
-        setUsername(userDto.getUsername());
-        setActive(userDto.getActive());
+        setParticipantAggregateId(userDto.getAggregateId());
+        setParticipantVersion(userDto.getVersion());
+        setParticipantState(userDto.getState());
+        setParticipantName(userDto.getName());
+        setParticipantUsername(userDto.getUsername());
     }
 
     public TournamentParticipant(TournamentParticipant other) {
-        setParticipantAggregateId(other.getParticipantAggregateId());
         setParticipantVersion(other.getParticipantVersion());
         setParticipantState(other.getParticipantState());
         setParticipantName(other.getParticipantName());
         setParticipantUsername(other.getParticipantUsername());
         setParticipantEnrollTime(other.getParticipantEnrollTime());
         setTournamentParticipantQuizAnswer(new TournamentParticipantQuizAnswer(other.getTournamentParticipantQuizAnswer()));
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getParticipantAggregateId() {
@@ -126,9 +119,11 @@ public class TournamentParticipant {
 
     public UserDto buildDto() {
         UserDto dto = new UserDto();
-        dto.setAggregateId(getAggregateId());
-        dto.setVersion(getVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getParticipantAggregateId());
+        dto.setVersion(getParticipantVersion());
+        dto.setState(getParticipantState());
+        dto.setName(getParticipantName());
+        dto.setUsername(getParticipantUsername());
         return dto;
     }
 }

@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
 @Entity
@@ -26,26 +27,17 @@ public class ExecutionCourse {
 
     }
 
-    public ExecutionCourse(ExecutionDto executionDto) {
-        setAcronym(executionDto.getAcronym());
-        setAcademicTerm(executionDto.getAcademicTerm());
-        setEndDate(executionDto.getEndDate());
-        setUsers(executionDto.getUsers());
+    public ExecutionCourse(CourseDto courseDto) {
+        setCourseAggregateId(courseDto.getAggregateId());
+        setCourseVersion(courseDto.getVersion());
+        setCourseName(courseDto.getName());
+        setCourseType(CourseType.valueOf(courseDto.getType()));
     }
 
     public ExecutionCourse(ExecutionCourse other) {
-        setCourseAggregateId(other.getCourseAggregateId());
         setCourseName(other.getCourseName());
         setCourseType(other.getCourseType());
         setCourseVersion(other.getCourseVersion());
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getCourseAggregateId() {
@@ -89,4 +81,12 @@ public class ExecutionCourse {
     }
 
 
+    public CourseDto buildDto() {
+        CourseDto dto = new CourseDto();
+        dto.setAggregateId(getCourseAggregateId());
+        dto.setVersion(getCourseVersion());
+        dto.setName(getCourseName());
+        dto.setType(getCourseType() != null ? getCourseType().name() : null);
+        return dto;
+    }
 }

@@ -10,7 +10,7 @@ public class CourseDto implements Serializable {
     private Integer version;
     private AggregateState state;
     private String name;
-    private CourseType type;
+    private String type;
     private LocalDateTime creationDate;
 
     public CourseDto() {
@@ -21,7 +21,7 @@ public class CourseDto implements Serializable {
         this.version = course.getVersion();
         this.state = course.getState();
         this.name = course.getName();
-        this.type = course.getType();
+        this.type = course.getType() != null ? course.getType().name() : null;
         this.creationDate = course.getCreationDate();
     }
 
@@ -57,11 +57,11 @@ public class CourseDto implements Serializable {
         this.name = name;
     }
 
-    public CourseType getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(CourseType type) {
+    public void setType(String type) {
         this.type = type;
     }
 

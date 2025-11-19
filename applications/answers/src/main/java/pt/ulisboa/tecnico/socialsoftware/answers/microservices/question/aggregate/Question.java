@@ -16,6 +16,8 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+
 @Entity
 public abstract class Question extends Aggregate {
     private String title;
@@ -154,27 +156,27 @@ public abstract class Question extends Aggregate {
         }
     }
 
-    public void removeOption(Long id) {
+    public void removeOption(Integer id) {
         if (this.options != null) {
             this.options.removeIf(item -> 
-                item.getId() != null && item.getId().equals(id));
+                item.getKey() != null && item.getKey().equals(id));
         }
     }
 
-    public boolean containsOption(Long id) {
+    public boolean containsOption(Integer id) {
         if (this.options == null) {
             return false;
         }
         return this.options.stream().anyMatch(item -> 
-            item.getId() != null && item.getId().equals(id));
+            item.getKey() != null && item.getKey().equals(id));
     }
 
-    public Option findOptionById(Long id) {
+    public Option findOptionById(Integer id) {
         if (this.options == null) {
             return null;
         }
         return this.options.stream()
-            .filter(item -> item.getId() != null && item.getId().equals(id))
+            .filter(item -> item.getKey() != null && item.getKey().equals(id))
             .findFirst()
             .orElse(null);
     }

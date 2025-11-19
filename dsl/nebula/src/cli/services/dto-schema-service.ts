@@ -16,6 +16,10 @@ export interface DtoFieldSchema {
     extractField?: string;
     isAggregateField?: boolean;
     derivedAggregateId?: boolean;
+    isEnum?: boolean;
+    enumType?: string;
+    isMappingOverride?: boolean;
+    derivedAccessor?: string;
 }
 
 export interface DtoSchema {
@@ -97,7 +101,8 @@ export class DtoSchemaService {
                 property,
                 resolved,
                 entityLookup,
-                dtoEnabledEntities
+                dtoEnabledEntities,
+                !!mappingInfo
             );
 
             if (mappingInfo?.extractField) {
@@ -120,7 +125,8 @@ export class DtoSchemaService {
         property: Property,
         resolved: ResolvedType,
         entityLookup: Map<string, Entity>,
-        dtoEnabledEntities: Map<string, Entity>
+        dtoEnabledEntities: Map<string, Entity>,
+        isMappingOverride: boolean
     ): DtoFieldSchema {
         let javaType = resolved.javaType;
         let referencedEntityName: string | undefined;
@@ -128,6 +134,34 @@ export class DtoSchemaService {
         let referencedDtoName: string | undefined;
         let requiresConversion = false;
         let elementType = resolved.elementType;
+        const enumInfo = this.detectEnumProperty(property, resolved);
+
+        if (enumInfo.isEnum) {
+            if (resolved.isCollection) {
+                const isSet = javaType.startsWith('Set<');
+                const collectionType = isSet ? 'Set' : 'List';
+                javaType = `${collectionType}<String>`;
+                elementType = 'String';
+            } else {
+                javaType = 'String';
+            }
+
+            return {
+                name: dtoFieldName,
+                javaType,
+                isCollection: resolved.isCollection,
+                elementType,
+                sourceName: property.name,
+                sourceProperty: property,
+                referencedEntityName,
+                referencedAggregateName,
+                referencedDtoName,
+                requiresConversion,
+                isEnum: true,
+                enumType: enumInfo.enumType,
+                isMappingOverride
+            };
+        }
 
         if (resolved.isCollection && resolved.elementType) {
             const elementEntity = this.lookupEntity(resolved.elementType, entityLookup, dtoEnabledEntities);
@@ -149,6 +183,12 @@ export class DtoSchemaService {
                 referencedAggregateName = targetEntity.$container?.name;
             }
 
+            let derivedAccessor = 'getAggregateId';
+            if (targetEntity && !targetEntity.isRoot) {
+                const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
+                derivedAccessor = `get${capField}`;
+            }
+
             return {
                 name: aggregateFieldName,
                 javaType: 'Integer',
@@ -157,7 +197,9 @@ export class DtoSchemaService {
                 sourceProperty: property,
                 referencedEntityName,
                 referencedAggregateName,
-                derivedAggregateId: true
+                derivedAggregateId: true,
+                isMappingOverride,
+                derivedAccessor
             };
         }
 
@@ -172,6 +214,9 @@ export class DtoSchemaService {
             referencedAggregateName,
             referencedDtoName,
             requiresConversion,
+            isEnum: false,
+            enumType: undefined,
+            isMappingOverride
         };
     }
 
@@ -263,6 +308,26 @@ export class DtoSchemaService {
         rootEntities: Map<string, Entity>
     ): Entity | undefined {
         return entityLookup.get(entityName) || rootEntities.get(entityName);
+    }
+
+    private detectEnumProperty(property: Property, resolved: ResolvedType): { isEnum: boolean; enumType?: string } {
+        const typeNode: any = property.type;
+
+        if (typeNode && typeof typeNode === 'object' && typeNode.$type === 'EntityType' && typeNode.type) {
+            const ref = typeNode.type.ref as any;
+            if (ref && ref.$type === 'EnumDefinition' && ref.name) {
+                return { isEnum: true, enumType: ref.name };
+            }
+            if (typeNode.type.$refText && UnifiedTypeResolver.isEnumType(typeNode.type.$refText)) {
+                return { isEnum: true, enumType: typeNode.type.$refText };
+            }
+        }
+
+        if (UnifiedTypeResolver.isEnumType(resolved.javaType)) {
+            return { isEnum: true, enumType: resolved.javaType };
+        }
+
+        return { isEnum: false };
     }
 }
 

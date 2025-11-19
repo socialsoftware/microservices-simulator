@@ -7,12 +7,13 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 
 @Entity
 public class QuestionTopic {
     @Id
     @GeneratedValue
+    private Long id;
     private Integer topicId;
     private Integer topicAggregateId;
     private String topicName;
@@ -26,7 +27,9 @@ public class QuestionTopic {
     }
 
     public QuestionTopic(TopicDto topicDto) {
-        setName(topicDto.getName());
+        setTopicAggregateId(topicDto.getAggregateId());
+        setTopicVersion(topicDto.getVersion());
+        setTopicName(topicDto.getName());
     }
 
     public QuestionTopic(QuestionTopic other) {
@@ -87,9 +90,9 @@ public class QuestionTopic {
 
     public TopicDto buildDto() {
         TopicDto dto = new TopicDto();
-        dto.setAggregateId(getAggregateId());
-        dto.setVersion(getVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getTopicAggregateId());
+        dto.setVersion(getTopicVersion());
+        dto.setName(getTopicName());
         return dto;
     }
 }

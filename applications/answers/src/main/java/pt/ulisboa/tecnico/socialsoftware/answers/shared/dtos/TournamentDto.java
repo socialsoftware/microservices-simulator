@@ -35,12 +35,12 @@ public class TournamentDto implements Serializable {
         this.startTime = tournament.getStartTime();
         this.endTime = tournament.getEndTime();
         this.numberOfQuestions = tournament.getNumberOfQuestions();
-        this.cancelled = tournament.isCancelled();
-        this.creatorAggregateId = tournament.getCreator() != null ? tournament.getCreator().getAggregateId() : null;
+        this.cancelled = tournament.getCancelled();
+        this.creatorAggregateId = tournament.getCreator() != null ? tournament.getCreator().getCreatorAggregateId() : null;
         this.participants = tournament.getParticipants();
-        this.executionAggregateId = tournament.getExecution() != null ? tournament.getExecution().getAggregateId() : null;
+        this.executionAggregateId = tournament.getExecution() != null ? tournament.getExecution().getExecutionAggregateId() : null;
         this.topics = tournament.getTopics();
-        this.quizAggregateId = tournament.getQuiz() != null ? tournament.getQuiz().getAggregateId() : null;
+        this.quizAggregateId = tournament.getQuiz() != null ? tournament.getQuiz().getQuizAggregateId() : null;
     }
 
     public Integer getAggregateId() {
@@ -91,7 +91,7 @@ public class TournamentDto implements Serializable {
         this.numberOfQuestions = numberOfQuestions;
     }
 
-    public Boolean isCancelled() {
+    public Boolean getCancelled() {
         return cancelled;
     }
 

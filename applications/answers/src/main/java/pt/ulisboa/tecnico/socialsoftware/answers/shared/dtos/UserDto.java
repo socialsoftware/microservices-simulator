@@ -10,7 +10,7 @@ public class UserDto implements Serializable {
     private AggregateState state;
     private String name;
     private String username;
-    private Integer roleAggregateId;
+    private String role;
     private Boolean active;
 
     public UserDto() {
@@ -22,8 +22,8 @@ public class UserDto implements Serializable {
         this.state = user.getState();
         this.name = user.getName();
         this.username = user.getUsername();
-        this.roleAggregateId = user.getRole() != null ? user.getRole().getAggregateId() : null;
-        this.active = user.isActive();
+        this.role = user.getRole() != null ? user.getRole().name() : null;
+        this.active = user.getActive();
     }
 
     public Integer getAggregateId() {
@@ -66,15 +66,15 @@ public class UserDto implements Serializable {
         this.username = username;
     }
 
-    public Integer getRoleAggregateId() {
-        return roleAggregateId;
+    public String getRole() {
+        return role;
     }
 
-    public void setRoleAggregateId(Integer roleAggregateId) {
-        this.roleAggregateId = roleAggregateId;
+    public void setRole(String role) {
+        this.role = role;
     }
 
-    public Boolean isActive() {
+    public Boolean getActive() {
         return active;
     }
 

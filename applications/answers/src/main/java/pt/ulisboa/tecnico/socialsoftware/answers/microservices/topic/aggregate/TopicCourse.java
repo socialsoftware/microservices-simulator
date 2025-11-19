@@ -5,9 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.CourseDto;
-
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 
 @Entity
 public class TopicCourse {
@@ -24,22 +22,12 @@ public class TopicCourse {
     }
 
     public TopicCourse(CourseDto courseDto) {
-        setName(courseDto.getName());
-        this.type = CourseType.valueOf(courseDto.getType());
-        setCreationDate(courseDto.getCreationDate());
+        setCourseAggregateId(courseDto.getAggregateId());
+        setCourseVersion(courseDto.getVersion());
     }
 
     public TopicCourse(TopicCourse other) {
-        setCourseAggregateId(other.getCourseAggregateId());
         setCourseVersion(other.getCourseVersion());
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getCourseAggregateId() {
@@ -69,9 +57,8 @@ public class TopicCourse {
 
     public CourseDto buildDto() {
         CourseDto dto = new CourseDto();
-        dto.setAggregateId(getAggregateId());
-        dto.setVersion(getVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getCourseAggregateId());
+        dto.setVersion(getCourseVersion());
         return dto;
     }
 }

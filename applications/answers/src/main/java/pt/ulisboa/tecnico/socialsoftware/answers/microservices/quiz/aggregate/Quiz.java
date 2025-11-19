@@ -16,6 +16,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 
 @Entity
@@ -27,7 +28,6 @@ public abstract class Quiz extends Aggregate {
     private LocalDateTime availableDate;
     private LocalDateTime conclusionDate;
     private LocalDateTime resultsDate;
-    private Integer numberOfQuestions;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "quiz")
     private QuizExecution execution;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "quiz")
@@ -46,7 +46,6 @@ public abstract class Quiz extends Aggregate {
         setAvailableDate(quizDto.getAvailableDate());
         setConclusionDate(quizDto.getConclusionDate());
         setResultsDate(quizDto.getResultsDate());
-        setNumberOfQuestions(quizDto.getNumberOfQuestions());
         setQuestions(quizDto.getQuestions());
         setExecution(execution);
     }
@@ -59,7 +58,6 @@ public abstract class Quiz extends Aggregate {
         setAvailableDate(other.getAvailableDate());
         setConclusionDate(other.getConclusionDate());
         setResultsDate(other.getResultsDate());
-        setNumberOfQuestions(other.getNumberOfQuestions());
         setExecution(new QuizExecution(other.getExecution()));
         setQuestions(other.getQuestions().stream().map(QuizQuestion::new).collect(Collectors.toSet()));
     }
@@ -112,14 +110,6 @@ public abstract class Quiz extends Aggregate {
         this.resultsDate = resultsDate;
     }
 
-    public Integer getNumberOfQuestions() {
-        return numberOfQuestions;
-    }
-
-    public void setNumberOfQuestions(Integer numberOfQuestions) {
-        this.numberOfQuestions = numberOfQuestions;
-    }
-
     public QuizExecution getExecution() {
         return execution;
     }
@@ -152,27 +142,27 @@ public abstract class Quiz extends Aggregate {
         }
     }
 
-    public void removeQuizQuestion(Long id) {
+    public void removeQuizQuestion(Integer id) {
         if (this.questions != null) {
             this.questions.removeIf(item -> 
-                item.getId() != null && item.getId().equals(id));
+                item.getQuestionAggregateId() != null && item.getQuestionAggregateId().equals(id));
         }
     }
 
-    public boolean containsQuizQuestion(Long id) {
+    public boolean containsQuizQuestion(Integer id) {
         if (this.questions == null) {
             return false;
         }
         return this.questions.stream().anyMatch(item -> 
-            item.getId() != null && item.getId().equals(id));
+            item.getQuestionAggregateId() != null && item.getQuestionAggregateId().equals(id));
     }
 
-    public QuizQuestion findQuizQuestionById(Long id) {
+    public QuizQuestion findQuizQuestionById(Integer id) {
         if (this.questions == null) {
             return null;
         }
         return this.questions.stream()
-            .filter(item -> item.getId() != null && item.getId().equals(id))
+            .filter(item -> item.getQuestionAggregateId() != null && item.getQuestionAggregateId().equals(id))
             .findFirst()
             .orElse(null);
     }

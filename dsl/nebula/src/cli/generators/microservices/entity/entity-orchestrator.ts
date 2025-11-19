@@ -124,8 +124,9 @@ ${components.buildDtoMethod}
             throw new Error(`DTO schema for ${dtoTypeName} was not found. Ensure a root entity defines this DTO.`);
         }
 
+        const dtoFieldOverrides = this.resolveDtoFieldMappings(entity);
         const setterLines = dtoSchema.fields
-            .map(field => this.buildDtoSetterFromSchema(field, entity))
+            .map(field => this.buildDtoSetterFromSchema(field, entity, dtoFieldOverrides))
             .filter((line): line is string => !!line);
 
         return `\n    public ${dtoTypeName} buildDto() {\n        ${dtoTypeName} dto = new ${dtoTypeName}();\n${setterLines.join('\n')}\n        return dto;\n    }`;
@@ -281,10 +282,19 @@ ${components.buildDtoMethod}
         return imports.flat();
     }
 
-    private buildDtoSetterFromSchema(field: DtoFieldSchema, entity: Entity): string | null {
+    private buildDtoSetterFromSchema(
+        field: DtoFieldSchema,
+        entity: Entity,
+        dtoFieldOverrides?: Map<string, { property: any; extractField?: string }>
+    ): string | null {
         const capName = field.name.charAt(0).toUpperCase() + field.name.slice(1);
+        const override = dtoFieldOverrides?.get(field.name);
+        const isRootEntity = entity.isRoot || false;
 
-        if (field.isAggregateField) {
+        if (field.isAggregateField && !override) {
+            if (!isRootEntity) {
+                return null;
+            }
             switch (field.name) {
                 case 'aggregateId':
                     return '        dto.setAggregateId(getAggregateId());';
@@ -297,14 +307,36 @@ ${components.buildDtoMethod}
             }
         }
 
-        const prop = entity.properties.find(p => p.name === (field.sourceName || field.name));
+        const prop = override?.property || entity.properties.find(p => p.name === (field.sourceName || field.name));
         if (!prop) {
+            return null;
+        }
+        const belongsToEntity = prop.$container?.name === entity.name;
+        if (!belongsToEntity && !override) {
             return null;
         }
 
         const getterCall = this.buildEntityGetterCall(prop);
         if (!getterCall) {
             return null;
+        }
+
+        const effectiveExtractField = override?.extractField || field.extractField;
+
+        if (override) {
+            if (this.isEnumProperty(prop)) {
+                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.name() : null);`;
+            }
+            if (effectiveExtractField) {
+                const extractMethod = `get${effectiveExtractField.charAt(0).toUpperCase() + effectiveExtractField.slice(1)}()`;
+                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${extractMethod} : null);`;
+            }
+            return `        dto.set${capName}(${getterCall});`;
+        }
+
+        if (field.derivedAggregateId && field.sourceProperty) {
+            const accessor = field.derivedAccessor || 'getAggregateId';
+            return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${accessor}() : null);`;
         }
 
         if (field.requiresConversion) {
@@ -321,6 +353,11 @@ ${components.buildDtoMethod}
             return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.toString() : null);`;
         }
 
+        if (effectiveExtractField) {
+            const extractMethod = `get${effectiveExtractField.charAt(0).toUpperCase() + effectiveExtractField.slice(1)}()`;
+            return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${extractMethod} : null);`;
+        }
+
         return `        dto.set${capName}(${getterCall});`;
     }
 
@@ -328,10 +365,38 @@ ${components.buildDtoMethod}
         if (!prop?.name) {
             return null;
         }
-        const javaType = TypeResolver.resolveJavaType(prop.type);
         const capName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
-        const prefix = (javaType === 'Boolean' || javaType === 'boolean') ? 'is' : 'get';
-        return `${prefix}${capName}()`;
+        return `get${capName}()`;
+    }
+
+    private resolveDtoFieldMappings(entity: Entity): Map<string, { property: any; extractField?: string }> {
+        const overrides = new Map<string, { property: any; extractField?: string }>();
+        const entityAny = entity as any;
+        const fieldMappings = entityAny?.dtoMapping?.fieldMappings as any[] | undefined;
+        if (!fieldMappings) {
+            return overrides;
+        }
+
+        for (const mapping of fieldMappings) {
+            if (!mapping?.dtoField || !mapping?.entityField) continue;
+            const targetProp = entity.properties.find(prop => prop.name === mapping.entityField);
+            if (targetProp) {
+                overrides.set(mapping.dtoField, {
+                    property: targetProp,
+                    extractField: mapping.extractField
+                });
+            }
+        }
+
+        return overrides;
+    }
+
+    private isEnumProperty(prop: any): boolean {
+        if (!prop?.type) {
+            return false;
+        }
+        const javaType = TypeResolver.resolveJavaType(prop.type);
+        return TypeResolver.isEnumType(javaType);
     }
 
     private resolveDtoImportPath(dtoType: string, projectName: string, owningAggregate?: string, dtoRegistry?: DtoSchemaRegistry): string | null {
@@ -346,12 +411,9 @@ ${components.buildDtoMethod}
             return null;
         }
 
-        if (owningAggregate && targetAggregate.toLowerCase() === owningAggregate.toLowerCase()) {
-            return null;
-        }
-
         const config = getGlobalConfig();
-        const importPath = `${config.buildPackageName(projectName, 'microservices', targetAggregate.toLowerCase(), 'aggregate')}.${dtoType}`;
+        const dtoPackage = config.buildPackageName(projectName, 'shared', 'dtos');
+        const importPath = `${dtoPackage}.${dtoType}`;
         return `import ${importPath};`;
     }
 

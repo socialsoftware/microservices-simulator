@@ -13,12 +13,13 @@ export function generateDtoCode(entity: Entity, projectName: string, dtoSchemaRe
     const fields = generateDtoFieldDeclarations(dtoFields);
     const constructors = generateDtoConstructors(entity, dtoFields);
     const gettersSetters = generateDtoGettersSetters(dtoFields);
+    const embeddableAnnotation = entity.isRoot ? '' : '@Embeddable\n';
 
     return `package ${packageName};
 
 ${imports}
 
-public class ${entity.name}Dto implements Serializable {
+${embeddableAnnotation}public class ${entity.name}Dto implements Serializable {
 ${fields}
 
 ${constructors}
@@ -104,7 +105,10 @@ function generateDtoImports(entity: Entity, projectName: string, aggregateName: 
         imports.add('import java.util.Set;');
     }
 
-    const needsCollectors = fields.some(field => field.requiresConversion && field.isCollection);
+    const needsCollectors = fields.some(field =>
+        (field.requiresConversion && field.isCollection) ||
+        (field.isEnum && field.isCollection)
+    );
     if (needsCollectors) {
         imports.add('import java.util.stream.Collectors;');
     }
@@ -112,6 +116,10 @@ function generateDtoImports(entity: Entity, projectName: string, aggregateName: 
     const needsAggregateState = fields.some(field => field.name === 'state' && field.javaType === 'AggregateState');
     if (needsAggregateState) {
         imports.add('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
+    }
+
+    if (!entity.isRoot) {
+        imports.add('import jakarta.persistence.Embeddable;');
     }
 
     const config = getGlobalConfig();
@@ -189,7 +197,16 @@ function buildFieldAssignment(field: DtoFieldSchema, entity: Entity, entityVar: 
     }
 
     if (field.derivedAggregateId) {
-        return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.getAggregateId() : null;`;
+        const accessor = field.derivedAccessor || 'getAggregateId';
+        return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.${accessor}() : null;`;
+    }
+
+    if (field.isEnum) {
+        if (field.isCollection) {
+            const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
+            return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.stream().map(value -> value != null ? value.name() : null).collect(${collector}) : null;`;
+        }
+        return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.name() : null;`;
     }
 
     if (field.requiresConversion) {
@@ -202,10 +219,6 @@ function buildFieldAssignment(field: DtoFieldSchema, entity: Entity, entityVar: 
         }
     }
 
-    if (field.sourceProperty && field.sourceProperty.name.endsWith('Type')) {
-        return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.toString() : null;`;
-    }
-
     return `        this.${field.name} = ${getterCall};`;
 }
 
@@ -215,10 +228,8 @@ function buildEntityGetterCall(field: DtoFieldSchema, entityVar: string): string
         return null;
     }
 
-    const javaType = TypeResolver.resolveJavaType(property.type);
     const capitalized = capitalize(property.name);
-    const prefix = (javaType === 'Boolean' || javaType === 'boolean') ? 'is' : 'get';
-    return `${entityVar}.${prefix}${capitalized}()`;
+    return `${entityVar}.get${capitalized}()`;
 }
 
 function generateDtoGettersSetters(fields: DtoFieldSchema[]): string {
@@ -228,24 +239,13 @@ function generateDtoGettersSetters(fields: DtoFieldSchema[]): string {
         const javaType = field.javaType === 'boolean' ? 'boolean' : field.javaType;
         const capitalized = capitalize(field.name);
 
-        if (javaType === 'Boolean' || javaType === 'boolean') {
-            const booleanType = javaType === 'Boolean' ? 'Boolean' : 'boolean';
-            methods.push(`    public ${booleanType} is${capitalized}() {`);
-            methods.push(`        return ${field.name};`);
-            methods.push('    }');
-            methods.push('');
-            methods.push(`    public void set${capitalized}(${booleanType} ${field.name}) {`);
-            methods.push(`        this.${field.name} = ${field.name};`);
-            methods.push('    }');
-        } else {
-            methods.push(`    public ${javaType} get${capitalized}() {`);
-            methods.push(`        return ${field.name};`);
-            methods.push('    }');
-            methods.push('');
-            methods.push(`    public void set${capitalized}(${javaType} ${field.name}) {`);
-            methods.push(`        this.${field.name} = ${field.name};`);
-            methods.push('    }');
-        }
+        methods.push(`    public ${javaType} get${capitalized}() {`);
+        methods.push(`        return ${field.name};`);
+        methods.push('    }');
+        methods.push('');
+        methods.push(`    public void set${capitalized}(${javaType} ${field.name}) {`);
+        methods.push(`        this.${field.name} = ${field.name};`);
+        methods.push('    }');
 
         methods.push('');
     }

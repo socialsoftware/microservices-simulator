@@ -38,7 +38,18 @@ export function generateFields(properties: any[], entity: Entity, isRootEntity: 
         customImports: new Set<string>()
     };
 
-    let fields = properties.map((prop: any, index: number) => {
+    const processedProperties = [...properties];
+    if (!isRootEntity) {
+        const hasIdField = processedProperties.some(prop => prop?.name === 'id');
+        if (!hasIdField) {
+            processedProperties.unshift({
+                name: 'id',
+                type: { $type: 'PrimitiveType', name: 'Long' }
+            });
+        }
+    }
+
+    let fields = processedProperties.map((prop: any, index: number) => {
         const javaType = resolveJavaType(prop.type, prop.name);
         if (javaType.includes('LocalDateTime')) imports.usesLocalDateTime = true;
         if (javaType.includes('BigDecimal')) imports.usesBigDecimal = true;

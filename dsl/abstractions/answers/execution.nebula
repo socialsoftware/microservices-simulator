@@ -1,8 +1,12 @@
 import shared-enums;
 
-Aggregate Execution {
-    Entity ExecutionCourse {
-        Long id;
+Aggregate Execution  {
+    Entity ExecutionCourse uses dto CourseDto mapping {
+        aggregateId -> courseAggregateId;
+        version -> courseVersion;
+        type -> courseType;
+        name -> courseName;
+    } {
         Integer courseAggregateId;
         String courseName;
         CourseType courseType;
@@ -17,7 +21,6 @@ Aggregate Execution {
         username -> userUsername;
         active -> userActive;
     } {
-        Long id;
         Integer userAggregateId;
         Integer userVersion;
         AggregateState userState;

@@ -5,12 +5,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 @Entity
 public class QuizExecution {
     @Id
     @GeneratedValue
+    private Long id;
     private Integer executionAggregateId;
     private String executionName;
     private String executionAcronym;
@@ -23,10 +24,9 @@ public class QuizExecution {
     }
 
     public QuizExecution(ExecutionDto executionDto) {
-        setAcronym(executionDto.getAcronym());
-        setAcademicTerm(executionDto.getAcademicTerm());
-        setEndDate(executionDto.getEndDate());
-        setUsers(executionDto.getUsers());
+        setExecutionAggregateId(executionDto.getAggregateId());
+        setExecutionAcronym(executionDto.getAcronym());
+        setExecutionAcademicTerm(executionDto.getAcademicTerm());
     }
 
     public QuizExecution(QuizExecution other) {
@@ -78,9 +78,9 @@ public class QuizExecution {
 
     public ExecutionDto buildDto() {
         ExecutionDto dto = new ExecutionDto();
-        dto.setAggregateId(getAggregateId());
-        dto.setVersion(getVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getExecutionAggregateId());
+        dto.setAcronym(getExecutionAcronym());
+        dto.setAcademicTerm(getExecutionAcademicTerm());
         return dto;
     }
 }
