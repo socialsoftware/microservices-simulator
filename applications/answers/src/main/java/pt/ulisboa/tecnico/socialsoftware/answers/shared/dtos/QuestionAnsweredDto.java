@@ -12,6 +12,7 @@ public class QuestionAnsweredDto implements Serializable {
     private Integer timeTaken;
     private Boolean correct;
     private Integer questionAggregateId;
+    private Integer questionVersion;
     private AggregateState state;
 
     public QuestionAnsweredDto() {
@@ -23,6 +24,7 @@ public class QuestionAnsweredDto implements Serializable {
         this.timeTaken = questionAnswered.getTimeTaken();
         this.correct = questionAnswered.getCorrect();
         this.questionAggregateId = questionAnswered.getQuestionAggregateId();
+        this.questionVersion = questionAnswered.getQuestionVersion();
         this.state = questionAnswered.getState();
     }
 
@@ -64,6 +66,14 @@ public class QuestionAnsweredDto implements Serializable {
 
     public void setQuestionAggregateId(Integer questionAggregateId) {
         this.questionAggregateId = questionAggregateId;
+    }
+
+    public Integer getQuestionVersion() {
+        return questionVersion;
+    }
+
+    public void setQuestionVersion(Integer questionVersion) {
+        this.questionVersion = questionVersion;
     }
 
     public AggregateState getState() {

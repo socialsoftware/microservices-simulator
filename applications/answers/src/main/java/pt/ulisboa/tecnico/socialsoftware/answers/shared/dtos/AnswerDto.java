@@ -17,7 +17,7 @@ public class AnswerDto implements Serializable {
     private ExecutionDto execution;
     private UserDto user;
     private QuizDto quiz;
-    private List<QuestionAnsweredDto> question;
+    private List<QuestionAnsweredDto> questions;
 
     public AnswerDto() {
     }
@@ -32,7 +32,7 @@ public class AnswerDto implements Serializable {
         this.execution = answer.getExecution() != null ? answer.getExecution().buildDto() : null;
         this.user = answer.getUser() != null ? answer.getUser().buildDto() : null;
         this.quiz = answer.getQuiz() != null ? answer.getQuiz().buildDto() : null;
-        this.question = answer.getQuestion() != null ? answer.getQuestion().stream().map(QuestionAnsweredDto::new).collect(Collectors.toList()) : null;
+        this.questions = answer.getQuestions() != null ? answer.getQuestions().stream().map(QuestionAnsweredDto::new).collect(Collectors.toList()) : null;
     }
 
     public Integer getAggregateId() {
@@ -107,11 +107,11 @@ public class AnswerDto implements Serializable {
         this.quiz = quiz;
     }
 
-    public List<QuestionAnsweredDto> getQuestion() {
-        return question;
+    public List<QuestionAnsweredDto> getQuestions() {
+        return questions;
     }
 
-    public void setQuestion(List<QuestionAnsweredDto> question) {
-        this.question = question;
+    public void setQuestions(List<QuestionAnsweredDto> questions) {
+        this.questions = questions;
     }
 }

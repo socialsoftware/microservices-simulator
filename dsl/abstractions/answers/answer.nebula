@@ -23,6 +23,7 @@ Aggregate Answer {
         Integer timeTaken;
         Boolean correct;
         Integer questionAggregateId;
+        Integer questionVersion;
         AggregateState state default AggregateState.ACTIVE;
     }
 
@@ -43,7 +44,7 @@ Aggregate Answer {
         AnswerExecution execution;
         AnswerUser user;
         AnswerQuiz quiz;
-        List<QuestionAnswered> question;
+        List<QuestionAnswered> questions;
 
         invariants {
 
@@ -68,7 +69,7 @@ Aggregate Answer {
     saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer answerId, UnitOfWork unitOfWork);
     
     CustomRepository {
-        Optional<Integer> findAnswerIdByQuizQuizAggregateIdAndUserUserAggregateId(Integer quizAggregateId, Integer studentAggregateId);
+        Optional<Integer> findAnswerIdByQuizQuizAggregateIdAndUserUserAggregateId(Integer quizAggregateId, Integer userAggregateId);
     }
 
     WebAPIEndpoints {

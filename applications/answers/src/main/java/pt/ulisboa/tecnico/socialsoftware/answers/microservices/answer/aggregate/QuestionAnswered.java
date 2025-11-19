@@ -19,6 +19,7 @@ public class QuestionAnswered {
     private Integer timeTaken;
     private Boolean correct;
     private Integer questionAggregateId;
+    private Integer questionVersion;
     private AggregateState state;
     @OneToOne
     private Answer answer;
@@ -27,13 +28,14 @@ public class QuestionAnswered {
         this.state = AggregateState.ACTIVE;
     }
 
-    public QuestionAnswered(QuestionAnsweredDto questionansweredDto) {
-        setSequence(questionansweredDto.getSequence());
-        setKey(questionansweredDto.getKey());
-        setTimeTaken(questionansweredDto.getTimeTaken());
-        setCorrect(questionansweredDto.getCorrect());
-        setQuestionAggregateId(questionansweredDto.getQuestionAggregateId());
-        setState(questionansweredDto.getState());
+    public QuestionAnswered(QuestionAnsweredDto questionAnsweredDto) {
+        setSequence(questionAnsweredDto.getSequence());
+        setKey(questionAnsweredDto.getKey());
+        setTimeTaken(questionAnsweredDto.getTimeTaken());
+        setCorrect(questionAnsweredDto.getCorrect());
+        setQuestionAggregateId(questionAnsweredDto.getQuestionAggregateId());
+        setQuestionVersion(questionAnsweredDto.getQuestionVersion());
+        setState(questionAnsweredDto.getState());
     }
 
     public QuestionAnswered(QuestionAnswered other) {
@@ -41,6 +43,7 @@ public class QuestionAnswered {
         setTimeTaken(other.getTimeTaken());
         setCorrect(other.getCorrect());
         setQuestionAggregateId(other.getQuestionAggregateId());
+        setQuestionVersion(other.getQuestionVersion());
         setState(other.getState());
     }
 
@@ -82,6 +85,14 @@ public class QuestionAnswered {
 
     public void setQuestionAggregateId(Integer questionAggregateId) {
         this.questionAggregateId = questionAggregateId;
+    }
+
+    public Integer getQuestionVersion() {
+        return questionVersion;
+    }
+
+    public void setQuestionVersion(Integer questionVersion) {
+        this.questionVersion = questionVersion;
     }
 
     public AggregateState getState() {

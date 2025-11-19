@@ -30,7 +30,7 @@ public class AnswerQuiz {
     public AnswerQuiz(QuizDto quizDto) {
         setQuizAggregateId(quizDto.getAggregateId());
         setQuizVersion(quizDto.getVersion());
-        setQuizQuestionsAggregateIds(quizDto.getQuestions() != null ? quizDto.getQuestions().stream().map((QuestionDto dto) -> dto.getAggregateId()).collect(Collectors.toSet()) : null);
+        setQuizQuestionsAggregateIds(quizDto.getQuestions() != null ? quizDto.getQuestions().stream().map((QuestionDto dto) -> dto.getAggregateId()).collect(Collectors.toList()) : null);
     }
 
     public AnswerQuiz(AnswerQuiz other) {

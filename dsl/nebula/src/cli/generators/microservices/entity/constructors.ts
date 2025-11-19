@@ -173,7 +173,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
     }
     const dtoParamName = customDtoType
         ? customDtoType.charAt(0).toLowerCase() + customDtoType.slice(1)
-        : `${entityName.toLowerCase()}Dto`;
+        : `${entityName.charAt(0).toLowerCase() + entityName.slice(1)}Dto`;
 
     const entityRelationships: string[] = [];
     if (isRootEntity) {
@@ -257,7 +257,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
 
         if (field.requiresConversion) {
             if (field.isCollection && field.referencedEntityName) {
-                const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
+                const collector = javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
                 if (effectiveExtractField) {
                     const extractMethod = `get${effectiveExtractField.charAt(0).toUpperCase() + effectiveExtractField.slice(1)}()`;
                     let elementType = 'dto';

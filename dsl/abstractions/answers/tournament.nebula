@@ -92,17 +92,17 @@ Aggregate Tournament {
         String participantName;
         String participantUsername;
         LocalDateTime participantEnrollTime;
-        TournamentParticipantQuizAnswer tournamentParticipantQuizAnswer;
+        TournamentParticipantQuiz participantQuiz;
     }
 
-    Entity TournamentParticipantQuizAnswer uses dto QuizDto mapping {
-        aggregateId -> participantQuizAnswerAggregateId;
+    Entity TournamentParticipantQuiz uses dto QuizDto mapping {
+        aggregateId -> participantQuizAggregateId;
     } {
-        Integer participantQuizAnswerAggregateId;
-        Integer participantQuizAnswerVersion;
-        Boolean participantQuizAnswerAnswered;
-        Integer participantQuizAnswerNumberOfAnswered;
-        Integer participantQuizAnswerNumberOfCorrect;
+        Integer participantQuizAggregateId;
+        Integer participantQuizVersion;
+        Boolean participantQuizAnswered;
+        Integer participantQuizNumberOfAnswered;
+        Integer participantQuizNumberOfCorrect;
         TournamentParticipant tournamentParticipant;
     }
 

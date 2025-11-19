@@ -24,7 +24,7 @@ public class TournamentParticipant {
     private String participantUsername;
     private LocalDateTime participantEnrollTime;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentparticipant")
-    private TournamentParticipantQuizAnswer tournamentParticipantQuizAnswer;
+    private TournamentParticipantQuiz participantQuiz;
     @OneToOne
     private Tournament tournament;
 
@@ -46,7 +46,7 @@ public class TournamentParticipant {
         setParticipantName(other.getParticipantName());
         setParticipantUsername(other.getParticipantUsername());
         setParticipantEnrollTime(other.getParticipantEnrollTime());
-        setTournamentParticipantQuizAnswer(new TournamentParticipantQuizAnswer(other.getTournamentParticipantQuizAnswer()));
+        setParticipantQuiz(new TournamentParticipantQuiz(other.getParticipantQuiz()));
     }
 
     public Integer getParticipantAggregateId() {
@@ -97,14 +97,14 @@ public class TournamentParticipant {
         this.participantEnrollTime = participantEnrollTime;
     }
 
-    public TournamentParticipantQuizAnswer getTournamentParticipantQuizAnswer() {
-        return tournamentParticipantQuizAnswer;
+    public TournamentParticipantQuiz getParticipantQuiz() {
+        return participantQuiz;
     }
 
-    public void setTournamentParticipantQuizAnswer(TournamentParticipantQuizAnswer tournamentParticipantQuizAnswer) {
-        this.tournamentParticipantQuizAnswer = tournamentParticipantQuizAnswer;
-        if (this.tournamentParticipantQuizAnswer != null) {
-            this.tournamentParticipantQuizAnswer.setTournamentParticipant(this);
+    public void setParticipantQuiz(TournamentParticipantQuiz participantQuiz) {
+        this.participantQuiz = participantQuiz;
+        if (this.participantQuiz != null) {
+            this.participantQuiz.setTournamentParticipant(this);
         }
     }
 

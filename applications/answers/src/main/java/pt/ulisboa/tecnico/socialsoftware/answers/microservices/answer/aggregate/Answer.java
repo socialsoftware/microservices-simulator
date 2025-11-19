@@ -28,7 +28,7 @@ public abstract class Answer extends Aggregate {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
     private AnswerQuiz quiz;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "answer")
-    private List<QuestionAnswered> question = new ArrayList<>();
+    private List<QuestionAnswered> questions = new ArrayList<>();
 
     public Answer() {
 
@@ -53,7 +53,7 @@ public abstract class Answer extends Aggregate {
         setExecution(new AnswerExecution(other.getExecution()));
         setUser(new AnswerUser(other.getUser()));
         setQuiz(new AnswerQuiz(other.getQuiz()));
-        setQuestion(other.getQuestion().stream().map(QuestionAnswered::new).collect(Collectors.toList()));
+        setQuestions(other.getQuestions().stream().map(QuestionAnswered::new).collect(Collectors.toList()));
     }
 
     public LocalDateTime getCreationDate() {
@@ -113,47 +113,47 @@ public abstract class Answer extends Aggregate {
         }
     }
 
-    public List<QuestionAnswered> getQuestion() {
-        return question;
+    public List<QuestionAnswered> getQuestions() {
+        return questions;
     }
 
-    public void setQuestion(List<QuestionAnswered> question) {
-        this.question = question;
-        if (this.question != null) {
-            this.question.forEach(item -> item.setAnswer(this));
+    public void setQuestions(List<QuestionAnswered> questions) {
+        this.questions = questions;
+        if (this.questions != null) {
+            this.questions.forEach(item -> item.setAnswer(this));
         }
     }
 
     public void addQuestionAnswered(QuestionAnswered questionAnswered) {
-        if (this.question == null) {
-            this.question = new ArrayList<>();
+        if (this.questions == null) {
+            this.questions = new ArrayList<>();
         }
-        this.question.add(questionAnswered);
+        this.questions.add(questionAnswered);
         if (questionAnswered != null) {
             questionAnswered.setAnswer(this);
         }
     }
 
     public void removeQuestionAnswered(Integer id) {
-        if (this.question != null) {
-            this.question.removeIf(item -> 
+        if (this.questions != null) {
+            this.questions.removeIf(item -> 
                 item.getSequence() != null && item.getSequence().equals(id));
         }
     }
 
     public boolean containsQuestionAnswered(Integer id) {
-        if (this.question == null) {
+        if (this.questions == null) {
             return false;
         }
-        return this.question.stream().anyMatch(item -> 
+        return this.questions.stream().anyMatch(item -> 
             item.getSequence() != null && item.getSequence().equals(id));
     }
 
     public QuestionAnswered findQuestionAnsweredById(Integer id) {
-        if (this.question == null) {
+        if (this.questions == null) {
             return null;
         }
-        return this.question.stream()
+        return this.questions.stream()
             .filter(item -> item.getSequence() != null && item.getSequence().equals(id))
             .findFirst()
             .orElse(null);

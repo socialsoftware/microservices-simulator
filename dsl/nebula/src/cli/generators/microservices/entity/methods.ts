@@ -26,6 +26,59 @@ const detectPrimaryKey = (elementType: string, allEntities?: Entity[]): { pkType
     return { pkType: 'Long', pkGetter: 'getId' };
 };
 
+function propertyTypeMatchesEntity(prop: any, entityName: string, allEntities?: Entity[]): boolean {
+    const propType = TypeResolver.resolveJavaType(prop.type);
+    const propElementType = TypeResolver.getElementType(prop.type);
+
+    if (propType === entityName || propElementType === entityName) {
+        return true;
+    }
+
+    if (prop.type && typeof prop.type === 'object') {
+        if (prop.type.$type === 'EntityType' && prop.type.type) {
+            const ref: any = prop.type.type.ref;
+            if (ref) {
+                if (ref.$type === 'Entity' && ref.name === entityName) {
+                    return true;
+                }
+                if (ref.name === entityName) {
+                    return true;
+                }
+                if (allEntities) {
+                    const referencedEntity = allEntities.find(e => e === ref);
+                    if (referencedEntity && referencedEntity.name === entityName) {
+                        return true;
+                    }
+                }
+            }
+            if (prop.type.type.$refText === entityName) {
+                return true;
+            }
+        } else if ((prop.type.$type === 'ListType' || prop.type.$type === 'SetType' || prop.type.$type === 'CollectionType') && prop.type.elementType) {
+            const elementRef: any = prop.type.elementType.ref;
+            if (elementRef) {
+                if (elementRef.$type === 'Entity' && elementRef.name === entityName) {
+                    return true;
+                }
+                if (elementRef.name === entityName) {
+                    return true;
+                }
+                if (allEntities) {
+                    const referencedEntity = allEntities.find(e => e === elementRef);
+                    if (referencedEntity && referencedEntity.name === entityName) {
+                        return true;
+                    }
+                }
+            }
+            if (prop.type.elementType.$refText === entityName) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 export function generateGettersSetters(properties: any[], entity?: Entity, projectName?: string, allEntities?: Entity[]): { code: string } {
     const entityName = entity?.name || 'Unknown';
 
@@ -37,7 +90,7 @@ export function generateGettersSetters(properties: any[], entity?: Entity, proje
 
         const getterMethod = `\n    public ${javaType} ${getter}() {\n        return ${prop.name};\n    }`;
 
-        const setterMethod = isFinal ? '' : generateBidirectionalSetter(prop, javaType, capName, entityName);
+        const setterMethod = isFinal ? '' : generateBidirectionalSetter(prop, javaType, capName, entityName, allEntities);
 
         const collectionMethods = generateCollectionMethods(prop, javaType, capName, entityName, allEntities);
 
@@ -47,14 +100,35 @@ export function generateGettersSetters(properties: any[], entity?: Entity, proje
     return { code: methods };
 }
 
-function generateBidirectionalSetter(prop: any, javaType: string, capName: string, entityName: string): string {
+function generateBidirectionalSetter(prop: any, javaType: string, capName: string, entityName: string, allEntities?: Entity[]): string {
     const propName = prop.name;
     const isEntityType = TypeResolver.isEntityType(javaType);
     const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
 
+    const findBackRefFieldName = (targetEntityType: string): string | null => {
+        if (!allEntities) return null;
+        const targetEntity = allEntities.find(e => e.name === targetEntityType);
+        if (!targetEntity) return null;
+
+        const backRefProp = targetEntity.properties.find((p: any) => {
+            if (propertyTypeMatchesEntity(p, entityName, allEntities)) {
+                return true;
+            }
+            const resolvedType = TypeResolver.resolveJavaType(p.type);
+            const elementType = TypeResolver.getElementType(p.type);
+            return resolvedType === entityName || elementType === entityName;
+        });
+
+        if (backRefProp) {
+            const backRefCapName = capitalize(backRefProp.name);
+            return `set${backRefCapName}`;
+        }
+
+        return null;
+    };
+
     if (isEntityType && !isCollection) {
-        // Single entity relationship - set back-reference
-        const backRefMethod = `set${entityName}`;
+        const backRefMethod = findBackRefFieldName(javaType) || `set${entityName}`;
 
         return `    public void set${capName}(${javaType} ${propName}) {
         this.${propName} = ${propName};
@@ -63,8 +137,8 @@ function generateBidirectionalSetter(prop: any, javaType: string, capName: strin
         }
     }`;
     } else if (isCollection && TypeResolver.isEntityType(TypeResolver.getElementType(prop.type) || '')) {
-        // Collection of entities - set back-reference for each element
-        const backRefMethod = `set${entityName}`;
+        const elementType = TypeResolver.getElementType(prop.type) || '';
+        const backRefMethod = findBackRefFieldName(elementType) || `set${entityName}`;
 
         return `    public void set${capName}(${javaType} ${propName}) {
         this.${propName} = ${propName};
@@ -73,7 +147,6 @@ function generateBidirectionalSetter(prop: any, javaType: string, capName: strin
         }
     }`;
     } else {
-        // Simple property - no bidirectional relationship
         return `    public void set${capName}(${javaType} ${propName}) {
         this.${propName} = ${propName};
     }`;
@@ -81,25 +154,43 @@ function generateBidirectionalSetter(prop: any, javaType: string, capName: strin
 }
 
 function generateCollectionMethods(prop: any, javaType: string, capName: string, entityName: string, allEntities?: Entity[]): string {
-    // Only generate collection methods for collection types (Set<> or List<>)
     if (!javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
         return '';
     }
 
     const elementType = TypeResolver.getElementType(prop.type);
     if (!elementType || !TypeResolver.isEntityType(elementType)) {
-        // Only generate collection methods for entity collections, not primitive collections
         return '';
     }
 
+    const findBackRefFieldName = (targetEntityType: string): string | null => {
+        if (!allEntities) return null;
+        const targetEntity = allEntities.find(e => e.name === targetEntityType);
+        if (!targetEntity) return null;
+
+        const backRefProp = targetEntity.properties.find((p: any) => {
+            if (propertyTypeMatchesEntity(p, entityName, allEntities)) {
+                return true;
+            }
+            const resolvedType = TypeResolver.resolveJavaType(p.type);
+            const elementType = TypeResolver.getElementType(p.type);
+            return resolvedType === entityName || elementType === entityName;
+        });
+
+        if (backRefProp) {
+            const backRefCapName = capitalize(backRefProp.name);
+            return `set${backRefCapName}`;
+        }
+
+        return null;
+    };
+
     const propName = prop.name;
     const elementTypeCamelCase = toCamelCase(elementType);
-    const backRefMethod = `set${entityName}`;
+    const backRefMethod = findBackRefFieldName(elementType) || `set${entityName}`;
 
-    // Determine collection type for initialization
     const collectionImpl = javaType.startsWith('List<') ? 'ArrayList' : 'HashSet';
 
-    // Detect the primary key of the element type
     const { pkType, pkGetter } = detectPrimaryKey(elementType, allEntities);
 
     return `
