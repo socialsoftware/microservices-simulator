@@ -126,16 +126,26 @@ function generateDtoImports(entity: Entity, projectName: string, aggregateName: 
     const entityPackage = config.buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate');
     imports.add(`import ${entityPackage}.${entity.name};`);
 
+    const currentDtoPackage = config.buildPackageName(projectName, 'shared', 'dtos');
+
     const referencedImports = new Set<string>();
     for (const field of fields) {
-        if (field.referencedEntityName && field.referencedAggregateName) {
-            const referencedPackage = config.buildPackageName(
-                projectName,
-                'microservices',
-                field.referencedAggregateName.toLowerCase(),
-                'aggregate'
-            );
-            referencedImports.add(`import ${referencedPackage}.${field.referencedEntityName};`);
+        if (field.referencedDtoName && field.referencedAggregateName) {
+            const dtoPackage = config.buildPackageName(projectName, 'shared', 'dtos');
+            if (dtoPackage !== currentDtoPackage) {
+                referencedImports.add(`import ${dtoPackage}.${field.referencedDtoName};`);
+            }
+        }
+        if (field.referencedEntityName && field.referencedAggregateName && field.requiresConversion) {
+            if (field.isCollection && (field.referencedEntityIsRoot || !field.referencedEntityHasGenerateDto)) {
+                const referencedPackage = config.buildPackageName(
+                    projectName,
+                    'microservices',
+                    field.referencedAggregateName.toLowerCase(),
+                    'aggregate'
+                );
+                referencedImports.add(`import ${referencedPackage}.${field.referencedEntityName};`);
+            }
         }
     }
 
@@ -212,10 +222,18 @@ function buildFieldAssignment(field: DtoFieldSchema, entity: Entity, entityVar: 
     if (field.requiresConversion) {
         if (field.isCollection && field.referencedEntityName) {
             const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
-            return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.stream().map(${field.referencedEntityName}::buildDto).collect(${collector}) : null;`;
+            if (field.referencedEntityIsRoot || !field.referencedEntityHasGenerateDto) {
+                return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.stream().map(${field.referencedEntityName}::buildDto).collect(${collector}) : null;`;
+            } else {
+                return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.stream().map(${field.referencedDtoName}::new).collect(${collector}) : null;`;
+            }
         }
         if (!field.isCollection) {
-            return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.buildDto() : null;`;
+            if (field.referencedEntityIsRoot || !field.referencedEntityHasGenerateDto) {
+                return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.buildDto() : null;`;
+            } else {
+                return `        this.${field.name} = ${getterCall} != null ? new ${field.referencedDtoName}(${getterCall}) : null;`;
+            }
         }
     }
 

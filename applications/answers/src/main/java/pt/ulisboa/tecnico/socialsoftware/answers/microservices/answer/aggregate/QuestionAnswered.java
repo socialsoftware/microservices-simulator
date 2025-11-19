@@ -5,6 +5,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionAnsweredDto;
 
 @Entity
@@ -17,11 +19,12 @@ public class QuestionAnswered {
     private Integer timeTaken;
     private Boolean correct;
     private Integer questionAggregateId;
+    private AggregateState state;
     @OneToOne
     private Answer answer;
 
     public QuestionAnswered() {
-
+        this.state = AggregateState.ACTIVE;
     }
 
     public QuestionAnswered(QuestionAnsweredDto questionansweredDto) {
@@ -30,6 +33,7 @@ public class QuestionAnswered {
         setTimeTaken(questionansweredDto.getTimeTaken());
         setCorrect(questionansweredDto.getCorrect());
         setQuestionAggregateId(questionansweredDto.getQuestionAggregateId());
+        setState(questionansweredDto.getState());
     }
 
     public QuestionAnswered(QuestionAnswered other) {
@@ -37,6 +41,7 @@ public class QuestionAnswered {
         setTimeTaken(other.getTimeTaken());
         setCorrect(other.getCorrect());
         setQuestionAggregateId(other.getQuestionAggregateId());
+        setState(other.getState());
     }
 
     public Integer getSequence() {
@@ -77,6 +82,14 @@ public class QuestionAnswered {
 
     public void setQuestionAggregateId(Integer questionAggregateId) {
         this.questionAggregateId = questionAggregateId;
+    }
+
+    public AggregateState getState() {
+        return state;
+    }
+
+    public void setState(AggregateState state) {
+        this.state = state;
     }
 
     public Answer getAnswer() {

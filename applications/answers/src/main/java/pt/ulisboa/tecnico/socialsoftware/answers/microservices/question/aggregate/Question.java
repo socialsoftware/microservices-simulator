@@ -40,7 +40,6 @@ public abstract class Question extends Aggregate {
         setTitle(questionDto.getTitle());
         setContent(questionDto.getContent());
         setCreationDate(questionDto.getCreationDate());
-        setTopics(questionDto.getTopics());
         setCourse(course);
     }
 

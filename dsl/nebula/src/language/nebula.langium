@@ -122,7 +122,15 @@ Property:
     (isFinal?='final')? type=Type name=ID (',' names+=ID)* ('default' defaultValue=PropertyDefaultValue)? (dtoExclude?='dto-exclude')? ';';
 
 PropertyDefaultValue returns string:
-    LITERAL | STRING | QualifiedName | 'null' | '[]';
+    LITERAL
+  | STRING
+  | QualifiedName
+  | AggregateStateQualified
+  | 'null'
+  | '[]';
+
+AggregateStateQualified returns string:
+    'AggregateState' '.' ID;
 
 Invariant:
     'check' name=ID '{'

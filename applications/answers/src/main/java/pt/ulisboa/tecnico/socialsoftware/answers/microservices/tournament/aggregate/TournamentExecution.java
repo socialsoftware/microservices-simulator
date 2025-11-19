@@ -31,7 +31,6 @@ public class TournamentExecution {
         setExecutionVersion(executionDto.getVersion());
         setExecutionState(executionDto.getState());
         setExecutionAcronym(executionDto.getAcronym());
-        setExecutionCourseAggregateId(executionDto.getCourseAggregateId());
     }
 
     public TournamentExecution(TournamentExecution other) {
@@ -96,7 +95,6 @@ public class TournamentExecution {
         dto.setVersion(getExecutionVersion());
         dto.setState(getExecutionState());
         dto.setAcronym(getExecutionAcronym());
-        dto.setCourseAggregateId(getExecutionCourseAggregateId());
         return dto;
     }
 }

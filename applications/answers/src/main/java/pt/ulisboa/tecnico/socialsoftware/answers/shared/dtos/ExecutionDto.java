@@ -3,9 +3,9 @@ package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourse;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
 
 public class ExecutionDto implements Serializable {
@@ -15,8 +15,8 @@ public class ExecutionDto implements Serializable {
     private String acronym;
     private String academicTerm;
     private LocalDateTime endDate;
-    private Integer courseAggregateId;
-    private Set<ExecutionUser> users;
+    private CourseDto course;
+    private Set<UserDto> users;
 
     public ExecutionDto() {
     }
@@ -28,8 +28,8 @@ public class ExecutionDto implements Serializable {
         this.acronym = execution.getAcronym();
         this.academicTerm = execution.getAcademicTerm();
         this.endDate = execution.getEndDate();
-        this.courseAggregateId = execution.getCourse() != null ? execution.getCourse().getCourseAggregateId() : null;
-        this.users = execution.getUsers();
+        this.course = execution.getCourse() != null ? execution.getCourse().buildDto() : null;
+        this.users = execution.getUsers() != null ? execution.getUsers().stream().map(ExecutionUser::buildDto).collect(Collectors.toSet()) : null;
     }
 
     public Integer getAggregateId() {
@@ -80,19 +80,19 @@ public class ExecutionDto implements Serializable {
         this.endDate = endDate;
     }
 
-    public Integer getCourseAggregateId() {
-        return courseAggregateId;
+    public CourseDto getCourse() {
+        return course;
     }
 
-    public void setCourseAggregateId(Integer courseAggregateId) {
-        this.courseAggregateId = courseAggregateId;
+    public void setCourse(CourseDto course) {
+        this.course = course;
     }
 
-    public Set<ExecutionUser> getUsers() {
+    public Set<UserDto> getUsers() {
         return users;
     }
 
-    public void setUsers(Set<ExecutionUser> users) {
+    public void setUsers(Set<UserDto> users) {
         this.users = users;
     }
 }

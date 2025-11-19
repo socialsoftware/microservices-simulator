@@ -46,7 +46,6 @@ public abstract class Quiz extends Aggregate {
         setAvailableDate(quizDto.getAvailableDate());
         setConclusionDate(quizDto.getConclusionDate());
         setResultsDate(quizDto.getResultsDate());
-        setQuestions(quizDto.getQuestions());
         setExecution(execution);
     }
 

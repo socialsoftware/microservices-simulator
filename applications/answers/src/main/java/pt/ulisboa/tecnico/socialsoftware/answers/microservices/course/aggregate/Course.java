@@ -26,7 +26,7 @@ public abstract class Course extends Aggregate {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setName(courseDto.getName());
-        this.type = CourseType.valueOf(courseDto.getType());
+        this.type = courseDto.getType() != null ? CourseType.valueOf(courseDto.getType()) : CourseType.TECNICO;
         setCreationDate(courseDto.getCreationDate());
     }
 

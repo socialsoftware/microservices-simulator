@@ -7,9 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionCourse;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionTopic;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Option;
 
 public class QuestionDto implements Serializable {
     private Integer aggregateId;
@@ -18,8 +16,8 @@ public class QuestionDto implements Serializable {
     private String title;
     private String content;
     private LocalDateTime creationDate;
-    private Integer courseAggregateId;
-    private Set<QuestionTopic> topics;
+    private CourseDto course;
+    private Set<TopicDto> topics;
     private List<OptionDto> options;
 
     public QuestionDto() {
@@ -32,9 +30,9 @@ public class QuestionDto implements Serializable {
         this.title = question.getTitle();
         this.content = question.getContent();
         this.creationDate = question.getCreationDate();
-        this.courseAggregateId = question.getCourse() != null ? question.getCourse().getCourseAggregateId() : null;
-        this.topics = question.getTopics();
-        this.options = question.getOptions() != null ? question.getOptions().stream().map(Option::buildDto).collect(Collectors.toList()) : null;
+        this.course = question.getCourse() != null ? question.getCourse().buildDto() : null;
+        this.topics = question.getTopics() != null ? question.getTopics().stream().map(QuestionTopic::buildDto).collect(Collectors.toSet()) : null;
+        this.options = question.getOptions() != null ? question.getOptions().stream().map(OptionDto::new).collect(Collectors.toList()) : null;
     }
 
     public Integer getAggregateId() {
@@ -85,19 +83,19 @@ public class QuestionDto implements Serializable {
         this.creationDate = creationDate;
     }
 
-    public Integer getCourseAggregateId() {
-        return courseAggregateId;
+    public CourseDto getCourse() {
+        return course;
     }
 
-    public void setCourseAggregateId(Integer courseAggregateId) {
-        this.courseAggregateId = courseAggregateId;
+    public void setCourse(CourseDto course) {
+        this.course = course;
     }
 
-    public Set<QuestionTopic> getTopics() {
+    public Set<TopicDto> getTopics() {
         return topics;
     }
 
-    public void setTopics(Set<QuestionTopic> topics) {
+    public void setTopics(Set<TopicDto> topics) {
         this.topics = topics;
     }
 

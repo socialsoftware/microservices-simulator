@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import jakarta.persistence.Embeddable;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuestionAnswered;
 
@@ -11,6 +12,7 @@ public class QuestionAnsweredDto implements Serializable {
     private Integer timeTaken;
     private Boolean correct;
     private Integer questionAggregateId;
+    private AggregateState state;
 
     public QuestionAnsweredDto() {
     }
@@ -21,6 +23,7 @@ public class QuestionAnsweredDto implements Serializable {
         this.timeTaken = questionAnswered.getTimeTaken();
         this.correct = questionAnswered.getCorrect();
         this.questionAggregateId = questionAnswered.getQuestionAggregateId();
+        this.state = questionAnswered.getState();
     }
 
     public Integer getSequence() {
@@ -61,5 +64,13 @@ public class QuestionAnsweredDto implements Serializable {
 
     public void setQuestionAggregateId(Integer questionAggregateId) {
         this.questionAggregateId = questionAggregateId;
+    }
+
+    public AggregateState getState() {
+        return state;
+    }
+
+    public void setState(AggregateState state) {
+        this.state = state;
     }
 }

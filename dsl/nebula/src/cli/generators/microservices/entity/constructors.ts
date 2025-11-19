@@ -75,25 +75,52 @@ export function generateDefaultConstructor(entity: Entity): { code: string } {
     const entityName = entity.name;
     const isRootEntity = entity.isRoot || false;
 
-    const finalFieldInitializations = entity.properties.map((prop: any, index: number) => {
+    const defaultInitializations = entity.properties.map((prop: any, index: number) => {
         if (!isRootEntity && index === 0) {
             return '';
         }
 
         const isFinal = (prop as any).isFinal || false;
-        if (!isFinal) {
-            return '';
-        }
-
         const javaType = resolveJavaType(prop.type);
         const defaultValue = (prop as any).defaultValue;
+        const isEnumType = (type: any) => {
+            if (type && typeof type === 'object' &&
+                type.$type === 'EntityType' &&
+                type.type) {
+                if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
+                    return true;
+                }
+                if (type.type.ref && type.type.ref.$type === 'EnumDefinition') {
+                    return true;
+                }
+            }
+            return false;
+        };
+        const isEnum = isEnumType(prop.type) || javaType === 'AggregateState';
+        const hasEnumDefault = defaultValue && isEnum;
+        const hasFinalDefault = isFinal && defaultValue;
 
-        const javaDefaultValue = convertDefaultValueToJava(defaultValue, javaType, prop);
+        if (isFinal) {
+            if (hasFinalDefault || hasEnumDefault) {
+                const javaDefaultValue = convertDefaultValueToJava(defaultValue, javaType, prop);
+                if (javaDefaultValue && javaDefaultValue !== 'null') {
+                    return `        this.${prop.name} = ${javaDefaultValue};`;
+                }
+            }
+            return `        this.${prop.name} = null;`;
+        }
 
-        return `        this.${prop.name} = ${javaDefaultValue};`;
+        if (hasEnumDefault) {
+            const javaDefaultValue = convertDefaultValueToJava(defaultValue, javaType, prop);
+            if (javaDefaultValue && javaDefaultValue !== 'null') {
+                return `        this.${prop.name} = ${javaDefaultValue};`;
+            }
+        }
+
+        return '';
     }).filter(init => init !== '').join('\n');
 
-    const constructorBody = finalFieldInitializations ? finalFieldInitializations : '';
+    const constructorBody = defaultInitializations ? defaultInitializations : '';
 
     return {
         code: `\n    public ${entityName}() {\n${constructorBody}\n    }`
@@ -215,7 +242,13 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
             if (field.requiresConversion && field.referencedEntityName) {
                 setterCalls.push(`        this.${propName} = ${dtoParamName}.get${dtoGetterName}() != null ? new ${field.referencedEntityName}(${dtoParamName}.get${dtoGetterName}()) : null;`);
             } else if (isEnumType(entityProp.type)) {
-                setterCalls.push(`        this.${propName} = ${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}());`);
+                const defaultValue = (entityProp as any).defaultValue;
+                const javaDefaultValue = defaultValue ? convertDefaultValueToJava(defaultValue, javaType, entityProp) : null;
+                if (javaDefaultValue && javaDefaultValue !== 'null') {
+                    setterCalls.push(`        this.${propName} = ${dtoParamName}.get${dtoGetterName}() != null ? ${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}()) : ${javaDefaultValue};`);
+                } else {
+                    setterCalls.push(`        this.${propName} = ${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}());`);
+                }
             } else {
                 setterCalls.push(`        this.${propName} = ${dtoParamName}.get${dtoGetterName}();`);
             }
@@ -227,9 +260,23 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
                 const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
                 if (effectiveExtractField) {
                     const extractMethod = `get${effectiveExtractField.charAt(0).toUpperCase() + effectiveExtractField.slice(1)}()`;
-                    setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${dtoParamName}.get${dtoGetterName}().stream().map(dto -> dto.${extractMethod}).collect(${collector}) : null);`);
+                    let elementType = 'dto';
+                    if (field.javaType) {
+                        const elementTypeMatch = field.javaType.match(/<(.*)>/);
+                        if (elementTypeMatch) {
+                            elementType = elementTypeMatch[1];
+                        }
+                    }
+                    setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${dtoParamName}.get${dtoGetterName}().stream().map((${elementType} dto) -> dto.${extractMethod}).collect(${collector}) : null);`);
                 } else {
-                    setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${dtoParamName}.get${dtoGetterName}().stream().map(dto -> new ${field.referencedEntityName}(dto)).collect(${collector}) : null);`);
+                    let elementType = 'dto';
+                    if (field.javaType) {
+                        const elementTypeMatch = field.javaType.match(/<(.*)>/);
+                        if (elementTypeMatch) {
+                            elementType = elementTypeMatch[1];
+                        }
+                    }
+                    setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${dtoParamName}.get${dtoGetterName}().stream().map((${elementType} dto) -> new ${field.referencedEntityName}(dto)).collect(${collector}) : null);`);
                 }
             } else if (!field.isCollection && field.referencedEntityName) {
                 setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? new ${field.referencedEntityName}(${dtoParamName}.get${dtoGetterName}()) : null);`);
@@ -240,7 +287,13 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         }
 
         if (isEnumType(entityProp.type)) {
-            setterCalls.push(`        set${capitalizedName}(${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}()));`);
+            const defaultValue = (entityProp as any).defaultValue;
+            const javaDefaultValue = defaultValue ? convertDefaultValueToJava(defaultValue, javaType, entityProp) : null;
+            if (javaDefaultValue && javaDefaultValue !== 'null') {
+                setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}()) : ${javaDefaultValue});`);
+            } else {
+                setterCalls.push(`        set${capitalizedName}(${javaType}.valueOf(${dtoParamName}.get${dtoGetterName}()));`);
+            }
             continue;
         }
 
@@ -251,7 +304,22 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
 
         if (effectiveExtractField) {
             const extractMethod = `get${effectiveExtractField.charAt(0).toUpperCase() + effectiveExtractField.slice(1)}()`;
-            setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${dtoParamName}.get${dtoGetterName}().${extractMethod} : null);`);
+            const isDtoCollection = field.isCollection;
+            const isEntityCollection = javaType.startsWith('List<') || javaType.startsWith('Set<');
+
+            if (isDtoCollection && isEntityCollection) {
+                const collector = javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
+                let elementType = 'item';
+                if (field.javaType) {
+                    const elementTypeMatch = field.javaType.match(/<(.*)>/);
+                    if (elementTypeMatch) {
+                        elementType = elementTypeMatch[1];
+                    }
+                }
+                setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${dtoParamName}.get${dtoGetterName}().stream().map((${elementType} item) -> item.${extractMethod}).collect(${collector}) : null);`);
+            } else {
+                setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? ${dtoParamName}.get${dtoGetterName}().${extractMethod} : null);`);
+            }
         } else {
             setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}());`);
         }

@@ -2,12 +2,14 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 
 @Entity
@@ -28,7 +30,7 @@ public class AnswerQuiz {
     public AnswerQuiz(QuizDto quizDto) {
         setQuizAggregateId(quizDto.getAggregateId());
         setQuizVersion(quizDto.getVersion());
-        setQuizQuestionsAggregateIds(quizDto.getQuestions() != null ? quizDto.getQuestions().getAggregateId() : null);
+        setQuizQuestionsAggregateIds(quizDto.getQuestions() != null ? quizDto.getQuestions().stream().map((QuestionDto dto) -> dto.getAggregateId()).collect(Collectors.toSet()) : null);
     }
 
     public AnswerQuiz(AnswerQuiz other) {
@@ -73,7 +75,6 @@ public class AnswerQuiz {
         QuizDto dto = new QuizDto();
         dto.setAggregateId(getQuizAggregateId());
         dto.setVersion(getQuizVersion());
-        dto.setQuestions(getQuizQuestionsAggregateIds() != null ? getQuizQuestionsAggregateIds().getAggregateId() : null);
         return dto;
     }
 }

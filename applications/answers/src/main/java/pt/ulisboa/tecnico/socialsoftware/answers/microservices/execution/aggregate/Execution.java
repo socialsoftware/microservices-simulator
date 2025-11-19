@@ -36,7 +36,6 @@ public abstract class Execution extends Aggregate {
         setAcronym(executionDto.getAcronym());
         setAcademicTerm(executionDto.getAcademicTerm());
         setEndDate(executionDto.getEndDate());
-        setUsers(executionDto.getUsers());
         setCourse(course);
     }
 

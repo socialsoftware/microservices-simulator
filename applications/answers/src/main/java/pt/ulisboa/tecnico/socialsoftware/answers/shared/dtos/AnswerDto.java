@@ -6,10 +6,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerExecution;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerUser;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerQuiz;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuestionAnswered;
 
 public class AnswerDto implements Serializable {
     private Integer aggregateId;
@@ -18,9 +14,9 @@ public class AnswerDto implements Serializable {
     private LocalDateTime creationDate;
     private LocalDateTime answerDate;
     private Boolean completed;
-    private Integer executionAggregateId;
-    private Integer userAggregateId;
-    private Integer quizAggregateId;
+    private ExecutionDto execution;
+    private UserDto user;
+    private QuizDto quiz;
     private List<QuestionAnsweredDto> question;
 
     public AnswerDto() {
@@ -33,10 +29,10 @@ public class AnswerDto implements Serializable {
         this.creationDate = answer.getCreationDate();
         this.answerDate = answer.getAnswerDate();
         this.completed = answer.getCompleted();
-        this.executionAggregateId = answer.getExecution() != null ? answer.getExecution().getExecutionAggregateId() : null;
-        this.userAggregateId = answer.getUser() != null ? answer.getUser().getUserAggregateId() : null;
-        this.quizAggregateId = answer.getQuiz() != null ? answer.getQuiz().getQuizAggregateId() : null;
-        this.question = answer.getQuestion() != null ? answer.getQuestion().stream().map(QuestionAnswered::buildDto).collect(Collectors.toList()) : null;
+        this.execution = answer.getExecution() != null ? answer.getExecution().buildDto() : null;
+        this.user = answer.getUser() != null ? answer.getUser().buildDto() : null;
+        this.quiz = answer.getQuiz() != null ? answer.getQuiz().buildDto() : null;
+        this.question = answer.getQuestion() != null ? answer.getQuestion().stream().map(QuestionAnsweredDto::new).collect(Collectors.toList()) : null;
     }
 
     public Integer getAggregateId() {
@@ -87,28 +83,28 @@ public class AnswerDto implements Serializable {
         this.completed = completed;
     }
 
-    public Integer getExecutionAggregateId() {
-        return executionAggregateId;
+    public ExecutionDto getExecution() {
+        return execution;
     }
 
-    public void setExecutionAggregateId(Integer executionAggregateId) {
-        this.executionAggregateId = executionAggregateId;
+    public void setExecution(ExecutionDto execution) {
+        this.execution = execution;
     }
 
-    public Integer getUserAggregateId() {
-        return userAggregateId;
+    public UserDto getUser() {
+        return user;
     }
 
-    public void setUserAggregateId(Integer userAggregateId) {
-        this.userAggregateId = userAggregateId;
+    public void setUser(UserDto user) {
+        this.user = user;
     }
 
-    public Integer getQuizAggregateId() {
-        return quizAggregateId;
+    public QuizDto getQuiz() {
+        return quiz;
     }
 
-    public void setQuizAggregateId(Integer quizAggregateId) {
-        this.quizAggregateId = quizAggregateId;
+    public void setQuiz(QuizDto quiz) {
+        this.quiz = quiz;
     }
 
     public List<QuestionAnsweredDto> getQuestion() {

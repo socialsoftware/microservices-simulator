@@ -329,7 +329,37 @@ ${components.buildDtoMethod}
             }
             if (effectiveExtractField) {
                 const extractMethod = `get${effectiveExtractField.charAt(0).toUpperCase() + effectiveExtractField.slice(1)}()`;
-                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${extractMethod} : null);`;
+                const javaType = TypeResolver.resolveJavaType(prop.type);
+                const isEntityCollection = javaType.startsWith('List<') || javaType.startsWith('Set<');
+                const isDtoCollection = field.isCollection;
+
+                if (isEntityCollection) {
+                    const elementTypeMatch = javaType.match(/<(.*)>/);
+                    if (elementTypeMatch) {
+                        const elementType = elementTypeMatch[1];
+                        if (TypeResolver.isPrimitiveType(elementType) ||
+                            elementType === 'Integer' ||
+                            elementType === 'String' ||
+                            elementType === 'Boolean' ||
+                            elementType === 'Long') {
+                            return null;
+                        }
+                    }
+                }
+
+                if (isEntityCollection && isDtoCollection) {
+                    const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
+                    let elementType = 'item';
+                    if (javaType) {
+                        const elementTypeMatch = javaType.match(/<(.*)>/);
+                        if (elementTypeMatch) {
+                            elementType = elementTypeMatch[1];
+                        }
+                    }
+                    return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map((${elementType} item) -> item.${extractMethod}).collect(${collector}) : null);`;
+                } else {
+                    return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${extractMethod} : null);`;
+                }
             }
             return `        dto.set${capName}(${getterCall});`;
         }
@@ -342,10 +372,18 @@ ${components.buildDtoMethod}
         if (field.requiresConversion) {
             if (field.isCollection && field.referencedEntityName) {
                 const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
-                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map(${field.referencedEntityName}::buildDto).collect(${collector}) : null);`;
+                if (field.referencedEntityIsRoot || !field.referencedEntityHasGenerateDto) {
+                    return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map(${field.referencedEntityName}::buildDto).collect(${collector}) : null);`;
+                } else {
+                    return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map(${field.referencedDtoName}::new).collect(${collector}) : null);`;
+                }
             }
             if (!field.isCollection) {
-                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.buildDto() : null);`;
+                if (field.referencedEntityIsRoot || !field.referencedEntityHasGenerateDto) {
+                    return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.buildDto() : null);`;
+                } else {
+                    return `        dto.set${capName}(${getterCall} != null ? new ${field.referencedDtoName}(${getterCall}) : null);`;
+                }
             }
         }
 
@@ -355,7 +393,37 @@ ${components.buildDtoMethod}
 
         if (effectiveExtractField) {
             const extractMethod = `get${effectiveExtractField.charAt(0).toUpperCase() + effectiveExtractField.slice(1)}()`;
-            return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${extractMethod} : null);`;
+            const javaType = TypeResolver.resolveJavaType(prop.type);
+            const isEntityCollection = javaType.startsWith('List<') || javaType.startsWith('Set<');
+            const isDtoCollection = field.isCollection;
+
+            if (isEntityCollection) {
+                const elementTypeMatch = javaType.match(/<(.*)>/);
+                if (elementTypeMatch) {
+                    const elementType = elementTypeMatch[1];
+                    if (TypeResolver.isPrimitiveType(elementType) ||
+                        elementType === 'Integer' ||
+                        elementType === 'String' ||
+                        elementType === 'Boolean' ||
+                        elementType === 'Long') {
+                        return null;
+                    }
+                }
+            }
+
+            if (isEntityCollection && isDtoCollection) {
+                const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
+                let elementType = 'item';
+                if (javaType) {
+                    const elementTypeMatch = javaType.match(/<(.*)>/);
+                    if (elementTypeMatch) {
+                        elementType = elementTypeMatch[1];
+                    }
+                }
+                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map((${elementType} item) -> item.${extractMethod}).collect(${collector}) : null);`;
+            } else {
+                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${extractMethod} : null);`;
+            }
         }
 
         return `        dto.set${capName}(${getterCall});`;

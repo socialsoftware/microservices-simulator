@@ -44,8 +44,6 @@ public abstract class Tournament extends Aggregate {
         setEndTime(tournamentDto.getEndTime());
         setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
         setCancelled(tournamentDto.getCancelled());
-        setParticipants(tournamentDto.getParticipants());
-        setTopics(tournamentDto.getTopics());
         setCreator(creator);
         setExecution(execution);
         setQuiz(quiz);

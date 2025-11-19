@@ -23,6 +23,7 @@ Aggregate Answer {
         Integer timeTaken;
         Boolean correct;
         Integer questionAggregateId;
+        AggregateState state default AggregateState.ACTIVE;
     }
 
     Entity AnswerQuiz uses dto QuizDto mapping {

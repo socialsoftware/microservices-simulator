@@ -12,6 +12,8 @@ export interface DtoFieldSchema {
     referencedEntityName?: string;
     referencedAggregateName?: string;
     referencedDtoName?: string;
+    referencedEntityIsRoot?: boolean;
+    referencedEntityHasGenerateDto?: boolean;
     requiresConversion?: boolean;
     extractField?: string;
     isAggregateField?: boolean;
@@ -170,19 +172,38 @@ export class DtoSchemaService {
                 referencedAggregateName = elementEntity.$container?.name;
                 referencedDtoName = this.resolveEntityDtoName(elementEntity, dtoEnabledEntities);
                 if (referencedDtoName) {
-                    javaType = javaType.replace(resolved.elementType, referencedDtoName);
+                    const elementTypeName = elementEntity.name;
+                    javaType = javaType.replace(new RegExp(`\\b${elementTypeName}\\b`, 'g'), referencedDtoName);
                     elementType = referencedDtoName;
                     requiresConversion = true;
                 }
             }
         } else if (resolved.isEntity) {
-            const aggregateFieldName = `${dtoFieldName}AggregateId`;
             const targetEntity = this.lookupEntity(resolved.javaType, entityLookup, dtoEnabledEntities);
             if (targetEntity) {
                 referencedEntityName = targetEntity.name;
                 referencedAggregateName = targetEntity.$container?.name;
+                referencedDtoName = this.resolveEntityDtoName(targetEntity, dtoEnabledEntities);
             }
 
+            if (referencedDtoName) {
+                return {
+                    name: dtoFieldName,
+                    javaType: referencedDtoName,
+                    isCollection: false,
+                    sourceName: property.name,
+                    sourceProperty: property,
+                    referencedEntityName,
+                    referencedAggregateName,
+                    referencedDtoName,
+                    referencedEntityIsRoot: targetEntity?.isRoot || false,
+                    referencedEntityHasGenerateDto: !!(targetEntity as any)?.generateDto,
+                    requiresConversion: true,
+                    isMappingOverride
+                };
+            }
+
+            const aggregateFieldName = `${dtoFieldName}AggregateId`;
             let derivedAccessor = 'getAggregateId';
             if (targetEntity && !targetEntity.isRoot) {
                 const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
@@ -203,6 +224,22 @@ export class DtoSchemaService {
             };
         }
 
+        let referencedEntityIsRoot: boolean | undefined;
+        let referencedEntityHasGenerateDto: boolean | undefined;
+        if (resolved.isCollection && resolved.elementType) {
+            const elementEntity = this.lookupEntity(resolved.elementType, entityLookup, dtoEnabledEntities);
+            if (elementEntity) {
+                referencedEntityIsRoot = elementEntity.isRoot || false;
+                referencedEntityHasGenerateDto = !!(elementEntity as any).generateDto;
+            }
+        } else if (resolved.isEntity) {
+            const targetEntity = this.lookupEntity(resolved.javaType, entityLookup, dtoEnabledEntities);
+            if (targetEntity) {
+                referencedEntityIsRoot = targetEntity.isRoot || false;
+                referencedEntityHasGenerateDto = !!(targetEntity as any).generateDto;
+            }
+        }
+
         return {
             name: dtoFieldName,
             javaType,
@@ -213,6 +250,8 @@ export class DtoSchemaService {
             referencedEntityName,
             referencedAggregateName,
             referencedDtoName,
+            referencedEntityIsRoot,
+            referencedEntityHasGenerateDto,
             requiresConversion,
             isEnum: false,
             enumType: undefined,
@@ -255,11 +294,20 @@ export class DtoSchemaService {
 
         const entityAny = entity as any;
         const dtoType = entityAny.dtoType;
-        if (dtoType?.ref?.name) {
-            return dtoType.ref.name;
+        if (dtoType) {
+            if (dtoType.ref?.name) {
+                return dtoType.ref.name;
+            }
+            if (dtoType.$refText) {
+                return dtoType.$refText;
+            }
+            if (typeof dtoType === 'string') {
+                return dtoType;
+            }
         }
-        if (dtoType?.$refText) {
-            return dtoType.$refText;
+
+        if (entityAny.dtoMapping) {
+            // This case is handled by checking dtoEnabledEntities below
         }
 
         if (dtoEnabledEntities.has(entity.name)) {
