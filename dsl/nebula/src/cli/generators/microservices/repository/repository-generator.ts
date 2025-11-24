@@ -1,4 +1,4 @@
-import { Aggregate, CustomRepository, RepositoryMethod } from "../../../../language/generated/ast.js";
+import { Aggregate, Repository, RepositoryMethod } from "../../../../language/generated/ast.js";
 import { capitalize } from "../../../utils/generator-utils.js";
 import { getGlobalConfig } from "../../common/config.js";
 
@@ -7,7 +7,7 @@ export function generateRepositoryCode(aggregate: Aggregate, projectName: string
     const capitalizedAggregate = capitalize(aggregateName);
     const packageName = `${getGlobalConfig().buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate')}`;
 
-    const imports = generateRepositoryImports(aggregate.customRepository);
+    const imports = generateRepositoryImports(aggregate.repository);
     const interfaceDeclaration = generateInterfaceDeclaration(capitalizedAggregate);
     const methods = generateCustomRepositoryMethods(aggregate, capitalizedAggregate);
 
@@ -20,16 +20,16 @@ ${methods}
 }`;
 }
 
-function generateRepositoryImports(customRepository: CustomRepository | undefined): string {
+function generateRepositoryImports(repository: Repository | undefined): string {
     const imports = new Set<string>();
 
     // Add imports based on what's actually used in methods
-    if (customRepository && customRepository.repositoryMethods) {
-        const hasOptional = customRepository.repositoryMethods.some(method =>
+    if (repository && repository.repositoryMethods) {
+        const hasOptional = repository.repositoryMethods.some(method =>
             resolveRepositoryReturnType(method.returnType).includes('Optional<'));
-        const hasList = customRepository.repositoryMethods.some(method =>
+        const hasList = repository.repositoryMethods.some(method =>
             resolveRepositoryReturnType(method.returnType).includes('List<'));
-        const hasSet = customRepository.repositoryMethods.some(method =>
+        const hasSet = repository.repositoryMethods.some(method =>
             resolveRepositoryReturnType(method.returnType).includes('Set<'));
 
         if (hasOptional) imports.add('import java.util.Optional;');
@@ -45,11 +45,11 @@ function generateInterfaceDeclaration(aggregateName: string): string {
 }
 
 function generateCustomRepositoryMethods(aggregate: Aggregate, capitalizedAggregate: string): string {
-    if (aggregate.customRepository && aggregate.customRepository.repositoryMethods.length > 0) {
+    if (aggregate.repository && aggregate.repository.repositoryMethods.length > 0) {
         // Remove "For" suffix and deduplicate method names
         const uniqueMethods = new Map<string, any>();
 
-        aggregate.customRepository.repositoryMethods.forEach(method => {
+        aggregate.repository.repositoryMethods.forEach(method => {
             // Remove everything after "For" to get the base method name
             const baseMethodName = method.name.split('For')[0];
 

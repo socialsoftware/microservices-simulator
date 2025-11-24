@@ -94,12 +94,12 @@ export interface AggregateData {
     entities: EntityData[];
     methods: MethodData[];
     workflows: WorkflowData[];
-    customRepository?: CustomRepositoryData;
+    repository?: RepositoryData;
     webApiEndpoints?: WebAPIEndpointsData;
     relationships: RelationshipData[];
 }
 
-export interface CustomRepositoryData {
+export interface RepositoryData {
     name: string;
     methods: MethodData[];
     returnType: string;
@@ -169,7 +169,7 @@ export class ModelParser {
             entities,
             methods,
             workflows,
-            customRepository: aggregate.customRepository ? this.parseCustomRepository(aggregate.customRepository) : undefined,
+            repository: aggregate.repository ? this.parseRepository(aggregate.repository) : undefined,
             webApiEndpoints: aggregate.webApiEndpoints ? this.parseWebAPIEndpoints(aggregate.webApiEndpoints) : undefined,
             relationships
         };
@@ -283,7 +283,7 @@ export class ModelParser {
         };
     }
 
-    parseCustomRepository(repository: any): CustomRepositoryData {
+    parseRepository(repository: any): RepositoryData {
         const methods = repository.methods?.map((method: any) => this.parseMethod(method)) || [];
         const returnType = this.extractReturnType(repository.returnType);
         const javaReturnType = this.resolveJavaType(returnType);

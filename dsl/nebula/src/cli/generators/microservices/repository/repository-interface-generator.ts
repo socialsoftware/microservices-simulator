@@ -72,15 +72,15 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
     private buildQueryMethods(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, options: RepositoryInterfaceGenerationOptions): any[] {
         const methods: any[] = [];
 
-        this.addCustomRepositoryMethods(aggregate, methods);
+        this.addRepositoryMethods(aggregate, methods);
 
         return methods;
     }
 
 
-    private addCustomRepositoryMethods(aggregate: Aggregate, methods: any[]): void {
-        if (aggregate.customRepository && aggregate.customRepository.repositoryMethods) {
-            aggregate.customRepository.repositoryMethods.forEach((method: any) => {
+    private addRepositoryMethods(aggregate: Aggregate, methods: any[]): void {
+        if (aggregate.repository && aggregate.repository.repositoryMethods) {
+            aggregate.repository.repositoryMethods.forEach((method: any) => {
                 const returnType = this.resolveRepositoryReturnType(method.returnType);
                 const parameters = method.parameters || [];
 

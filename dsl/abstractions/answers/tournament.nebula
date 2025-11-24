@@ -147,7 +147,7 @@ Aggregate Tournament {
     saga workflow updateTopic(Integer topicAggregateId, Integer tournamentId, String topicName, AggregateState state, Integer version, UnitOfWork unitOfWork);
     saga workflow removeTopic(Integer topicAggregateId, Integer tournamentId, UnitOfWork unitOfWork);
     
-    CustomRepository {
+    Repository {
         Set<Integer> findAllByExecutionExecutionAggregateId(Integer executionAggregateId);
     }
     

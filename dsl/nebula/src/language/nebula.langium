@@ -16,7 +16,7 @@ Aggregate:
     '}';
 
 AggregateElement:
-    Entity | Method | Workflow | CustomRepository | Events | WebAPIEndpoints | ServiceDefinition | Functionalities;
+    Entity | Method | Workflow | Repository | Events | WebAPIEndpoints | ServiceDefinition | Functionalities;
 
 Entity:
     (isRoot?='Root')? (generateDto?='Dto')? 'Entity' name=ID ('uses' 'dto' dtoType=ID (dtoMapping=DtoEntityMapping)?)? '{'
@@ -56,8 +56,8 @@ Workflow:
 WorkflowType returns string:
     'causal' | 'saga';
 
-CustomRepository:
-    'CustomRepository' '{'
+Repository:
+    'Repository' '{'
         repositoryMethods+=RepositoryMethod*
     '}';
 

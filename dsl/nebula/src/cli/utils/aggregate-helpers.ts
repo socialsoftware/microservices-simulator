@@ -1,4 +1,4 @@
-import { Aggregate, Entity, Method, Workflow, CustomRepository, Events, WebAPIEndpoints, ServiceDefinition, Functionalities, isEntity, isMethod, isWorkflow, isCustomRepository, isEvents, isWebAPIEndpoints, isServiceDefinition, isFunctionalities } from "../../language/generated/ast.js";
+import { Aggregate, Entity, Method, Workflow, Repository, Events, WebAPIEndpoints, ServiceDefinition, Functionalities, isEntity, isMethod, isWorkflow, isRepository, isEvents, isWebAPIEndpoints, isServiceDefinition, isFunctionalities } from "../../language/generated/ast.js";
 
 export function getEntities(aggregate: Aggregate): Entity[] {
     if (!aggregate.aggregateElements || !Array.isArray(aggregate.aggregateElements)) {
@@ -15,8 +15,8 @@ export function getWorkflows(aggregate: Aggregate): Workflow[] {
     return aggregate.aggregateElements.filter((el): el is Workflow => isWorkflow(el));
 }
 
-export function getCustomRepository(aggregate: Aggregate): CustomRepository | undefined {
-    return aggregate.aggregateElements.find((el): el is CustomRepository => isCustomRepository(el));
+export function getRepository(aggregate: Aggregate): Repository | undefined {
+    return aggregate.aggregateElements.find((el): el is Repository => isRepository(el));
 }
 
 export function getEvents(aggregate: Aggregate): Events | undefined {
@@ -40,7 +40,7 @@ declare module "../../language/generated/ast.js" {
         entities: Entity[];
         methods: Method[];
         workflows: Workflow[];
-        customRepository?: CustomRepository;
+        repository?: Repository;
         events?: Events;
         webApiEndpoints?: WebAPIEndpoints;
         serviceDefinition?: ServiceDefinition;
@@ -91,8 +91,8 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
         configurable: true
     });
 
-    Object.defineProperty(aggregate, 'customRepository', {
-        get: () => getCustomRepository(aggregate),
+    Object.defineProperty(aggregate, 'repository', {
+        get: () => getRepository(aggregate),
         enumerable: true,
         configurable: true
     });

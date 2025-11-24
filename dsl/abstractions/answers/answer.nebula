@@ -68,7 +68,7 @@ Aggregate Answer {
     saga workflow unenrollStudentFromExecution(Integer studentAggregateId, Integer executionAggregateId, Integer answerId, UnitOfWork unitOfWork);
     saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer answerId, UnitOfWork unitOfWork);
     
-    CustomRepository {
+    Repository {
         Optional<Integer> findAnswerIdByQuizQuizAggregateIdAndUserUserAggregateId(Integer quizAggregateId, Integer userAggregateId);
     }
 
