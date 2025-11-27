@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -25,6 +26,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregateReposit
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +47,8 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     private EventRepository eventRepository;
     @Autowired
     private CommandGateway commandGateway;
+    @Autowired
+    private Environment environment;
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public SagaUnitOfWork createUnitOfWork(String functionalityName) {
@@ -165,6 +169,10 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     public void registerEvent(Event event, SagaUnitOfWork unitOfWork) {
         Integer commitVersion = versionService.incrementAndGetVersionNumber();
         event.setPublisherAggregateVersion(commitVersion);
+        // If running with "local" profile, mark event as published immediately
+        if (Arrays.asList(environment.getActiveProfiles()).contains("local")) {
+            event.setPublished(true);
+        }
         eventRepository.save(event);
         unitOfWork.setVersion(unitOfWork.getVersion()+1);
     }

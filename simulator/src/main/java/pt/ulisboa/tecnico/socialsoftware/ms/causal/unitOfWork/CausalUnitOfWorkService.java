@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -23,6 +24,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,8 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     private VersionService versionService;
     @Autowired
     private EventRepository eventRepository;
+    @Autowired
+    private Environment environment;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public CausalUnitOfWork createUnitOfWork(String functionalityName) {
@@ -141,6 +145,10 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         unitOfWork.getEventsToEmit().forEach(e -> {
             /* this is so event detectors can compare this version to those of running transactions */
             e.setPublisherAggregateVersion(commitVersion);
+            // If running with "local" profile, mark event as published immediately
+            if (Arrays.asList(environment.getActiveProfiles()).contains("local")) {
+                e.setPublished(true);
+            }
             eventRepository.save(e);
         });
 
