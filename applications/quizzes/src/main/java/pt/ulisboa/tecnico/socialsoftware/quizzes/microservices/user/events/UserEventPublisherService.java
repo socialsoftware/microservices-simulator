@@ -18,9 +18,4 @@ public class UserEventPublisherService extends EventPublisherService {
             EventSubscriptionConfig eventSubscriptionConfig) {
         super(eventRepository, streamBridge, mapperProvider, eventSubscriptionConfig, "user");
     }
-
-    @Override
-    protected String getAggregatePackageName() {
-        return "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user";
-    }
 }

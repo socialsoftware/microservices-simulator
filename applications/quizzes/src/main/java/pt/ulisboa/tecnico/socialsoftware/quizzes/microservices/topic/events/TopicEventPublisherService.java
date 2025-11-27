@@ -18,9 +18,4 @@ public class TopicEventPublisherService extends EventPublisherService {
             EventSubscriptionConfig eventSubscriptionConfig) {
         super(eventRepository, streamBridge, mapperProvider, eventSubscriptionConfig, "topic");
     }
-
-    @Override
-    protected String getAggregatePackageName() {
-        return "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic";
-    }
 }

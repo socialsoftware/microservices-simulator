@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 @Profile("stream")
-public abstract class EventPublisherService {
+public class EventPublisherService {
     private static final Logger logger = LoggerFactory.getLogger(EventPublisherService.class);
 
     private final EventRepository eventRepository;
@@ -54,13 +54,10 @@ public abstract class EventPublisherService {
         });
     }
 
-    protected abstract String getAggregatePackageName();
-
     private void publishPendingEventsBySimpleName(String eventSimpleName, List<String> destinations) {
-        String packageName = getAggregatePackageName();
         List<Event> pending = eventRepository.findAll().stream()
                 .filter(e -> e.getClass().getSimpleName().equals(eventSimpleName))
-                .filter(e -> e.getClass().getPackage().getName().startsWith(packageName))
+                .filter(e -> e.getClass().getPackage().getName().contains("." + this.aggregateName + "."))
                 .filter(e -> !e.isPublished())
                 .toList();
 
@@ -79,7 +76,8 @@ public abstract class EventPublisherService {
                     if (sent) {
                         logger.info("{}: Published event '{}' to '{}'", aggregateName, eventSimpleName, destination);
                     } else {
-                        logger.error("{}: Failed to publish event '{}' to '{}'", aggregateName, eventSimpleName, destination);
+                        logger.error("{}: Failed to publish event '{}' to '{}'", aggregateName, eventSimpleName,
+                                destination);
                         allSent = false;
                     }
                 }

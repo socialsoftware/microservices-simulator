@@ -16,11 +16,6 @@ public class CourseExecutionEventPublisherService extends EventPublisherService 
     public CourseExecutionEventPublisherService(EventRepository eventRepository, StreamBridge streamBridge,
             MessagingObjectMapperProvider mapperProvider,
             EventSubscriptionConfig eventSubscriptionConfig) {
-        super(eventRepository, streamBridge, mapperProvider, eventSubscriptionConfig, "courseexecution");
-    }
-
-    @Override
-    protected String getAggregatePackageName() {
-        return "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution";
+        super(eventRepository, streamBridge, mapperProvider, eventSubscriptionConfig, "execution");
     }
 }
