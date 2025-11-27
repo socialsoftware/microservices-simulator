@@ -70,6 +70,12 @@ Aggregate Execution  {
             String acronym;
         }
 
+        publish EnrollStudentInExecutionEvent {
+            Integer executionAggregateId;
+            Integer studentAggregateId;
+            String studentName;
+        }
+
         publish DisenrollStudentFromExecutionEvent {
             Integer executionAggregateId;
             Integer studentAggregateId;
@@ -77,7 +83,7 @@ Aggregate Execution  {
         }
 
         subscribe DeleteUserEvent from ExecutionUser {
-            "event.getUserAggregateId().equals(executionUser.getStudentAggregateId())";
+            event.getUserAggregateId() == executionUser.getStudentAggregateId();
         }
     }
 

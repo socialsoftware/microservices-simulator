@@ -81,7 +81,7 @@ EventField:
     type=Type name=ID ';';
 
 EventCondition:
-    condition=STRING ';';
+    condition=Expression? ';';
 
 RepositoryMethod:
     ('@Query' '(' query=STRING ')')? returnType=RepositoryReturnType name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' ';';
@@ -144,7 +144,7 @@ Expression:
     BooleanExpression;
 
 BooleanExpression:
-    {infer BooleanExpression} left=Comparison 
+    {infer BooleanExpression} (left=LiteralExpression | left=Comparison)
     (op=("||"|"&&"|"OR"|"AND") right=Comparison)*;
 
 Comparison:
@@ -182,7 +182,7 @@ AtomicExpression:
 
 LiteralExpression:
     {infer LiteralExpression} 
-    value=(LITERAL | 'null');
+    value=(LITERAL | 'true' | 'false' | 'null');
 
 TernaryExpression:
     {infer TernaryExpression}
@@ -260,7 +260,7 @@ terminal ID:
     /[_a-zA-Z][a-zA-Z0-9_]*/;
 
 terminal LITERAL:
-    /'[^']*'/ | /[0-9]+(\.[0-9]+)?/ | 'true' | 'false' | 'DELETED' | 'ANONYMOUS';
+    /'[^']*'/ | /[0-9]+(\.[0-9]+)?/ | 'DELETED' | 'ANONYMOUS';
 
 terminal STRING:
     /"[^"]*"/;

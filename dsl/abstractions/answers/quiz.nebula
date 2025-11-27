@@ -57,6 +57,11 @@ Aggregate Quiz {
         }
     }
 
+    Events {
+        publish InvalidateQuizEvent {
+        }
+    }
+
     // Service methods
     method getQuizzesByStudent(Integer studentId, UnitOfWork unitOfWork): void;
     method getAvailableQuizzes(UnitOfWork unitOfWork): void;

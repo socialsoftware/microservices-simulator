@@ -93,10 +93,16 @@ export class EventGenerator extends OrchestrationBase {
         // The actual event comes from the User aggregate (based on event type)
         const eventSourceAggregate = 'user'; // DeleteUserEvent comes from User aggregate
 
-        // Process conditions
-        const conditions = event.conditions?.map((condition: any) => ({
-            condition: condition.condition
-        })) || [];
+        // Process conditions - convert expressions to Java code
+        const conditions = event.conditions?.map((condition: any) => {
+            if (!condition.condition) {
+                // Empty condition means always true
+                return { condition: 'true' };
+            }
+            return {
+                condition: this.convertEventConditionToJava(condition.condition, subscribingEntityVariable, eventTypeName)
+            };
+        }).filter((c: any) => c.condition) || [];
 
         return {
             packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregateName}.events.subscribe`,
@@ -205,5 +211,129 @@ export class EventGenerator extends OrchestrationBase {
             coordinationPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.coordination.eventProcessing`,
             aggregatePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.aggregate`
         };
+    }
+
+    /**
+     * Convert event condition expression AST to Java code
+     * Handles special variables: 'event' and entity variable (e.g., 'executionUser')
+     */
+    private convertEventConditionToJava(expression: any, entityVariable: string, eventTypeName: string): string {
+        if (!expression) {
+            return 'true';
+        }
+
+        // Try to get source text first (simpler approach)
+        if (expression.$cstNode?.text) {
+            let javaCode = expression.$cstNode.text.trim();
+            // Convert event.property -> ((EventTypeName)event).getProperty()
+            javaCode = javaCode.replace(/\bevent\.(\w+)/g, (_match: string, prop: string) => {
+                const capitalized = prop.charAt(0).toUpperCase() + prop.slice(1);
+                return `((${eventTypeName})event).get${capitalized}()`;
+            });
+            // Convert entityVariable.property -> entityVariable.getProperty()
+            javaCode = javaCode.replace(new RegExp(`\\b${entityVariable}\\.(\\w+)`, 'g'), (_match: string, prop: string) => {
+                const capitalized = prop.charAt(0).toUpperCase() + prop.slice(1);
+                return `${entityVariable}.get${capitalized}()`;
+            });
+            return javaCode;
+        }
+
+        // Fallback: parse AST structure
+        return this.convertExpressionASTToJava(expression, entityVariable, eventTypeName);
+    }
+
+    private convertExpressionASTToJava(expression: any, entityVariable: string, eventTypeName: string): string {
+        if (!expression) {
+            return 'true';
+        }
+
+        const type = expression.$type;
+
+        if (type === 'BooleanExpression') {
+            const left = this.convertExpressionASTToJava(expression.left, entityVariable, eventTypeName);
+            if (expression.right && expression.op) {
+                const right = this.convertExpressionASTToJava(expression.right, entityVariable, eventTypeName);
+                const op = expression.op === '&&' || expression.op === 'AND' ? '&&' : '||';
+                return `${left} ${op} ${right}`;
+            }
+            return left;
+        }
+
+        if (type === 'Comparison') {
+            const left = this.convertExpressionASTToJava(expression.left, entityVariable, eventTypeName);
+            if (expression.right && expression.op) {
+                const right = this.convertExpressionASTToJava(expression.right, entityVariable, eventTypeName);
+                // Convert == to .equals() for objects, keep == for primitives
+                if (expression.op === '==') {
+                    // Simple heuristic: if it's a property access, use .equals()
+                    if (this.isPropertyAccess(expression.left)) {
+                        return `${left}.equals(${right})`;
+                    }
+                }
+                return `${left} ${expression.op} ${right}`;
+            }
+            return left;
+        }
+
+        if (type === 'PropertyChainExpression') {
+            return this.convertPropertyChainToJava(expression, entityVariable, eventTypeName);
+        }
+
+        if (type === 'PropertyReference') {
+            const name = expression.name;
+            // Check if it's 'event' or the entity variable
+            if (name === 'event') {
+                return `((${eventTypeName})event)`;
+            }
+            if (name === entityVariable) {
+                return entityVariable;
+            }
+            // Default: assume it's a property on 'this'
+            const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
+            return `this.get${capitalized}()`;
+        }
+
+        if (type === 'LiteralExpression') {
+            return expression.value || 'null';
+        }
+
+        // Fallback
+        return 'true';
+    }
+
+    private convertPropertyChainToJava(expression: any, entityVariable: string, eventTypeName: string): string {
+        const head = expression.head;
+        let result = '';
+
+        // Determine the base object
+        if (head.name === 'event') {
+            result = `((${eventTypeName})event)`;
+        } else if (head.name === entityVariable) {
+            result = entityVariable;
+        } else {
+            const capitalized = head.name.charAt(0).toUpperCase() + head.name.slice(1);
+            result = `this.get${capitalized}()`;
+        }
+
+        // Process the chain
+        let current = expression;
+        while (current && (current.receiver || current.$type === 'MethodCall' || current.$type === 'PropertyAccess')) {
+            if (current.$type === 'MethodCall') {
+                const args = current.arguments?.map((arg: any) =>
+                    this.convertExpressionASTToJava(arg, entityVariable, eventTypeName)
+                ).join(', ') || '';
+                result += `.${current.method}(${args})`;
+            } else if (current.$type === 'PropertyAccess') {
+                const capitalized = current.member.charAt(0).toUpperCase() + current.member.slice(1);
+                result += `.get${capitalized}()`;
+            }
+            current = current.receiver;
+        }
+
+        return result;
+    }
+
+    private isPropertyAccess(expression: any): boolean {
+        return expression?.$type === 'PropertyReference' || expression?.$type === 'PropertyChainExpression';
     }
 }

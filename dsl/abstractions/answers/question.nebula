@@ -75,6 +75,24 @@ Aggregate Question {
         }
     }
 
+    Events {
+        publish DeleteQuestionEvent {
+        }
+
+        publish UpdateQuestionEvent {
+            String title;
+            String content;
+        }
+
+        subscribe DeleteTopicEvent from QuestionTopic {
+            event.getPublisherAggregateId() == questionTopic.getTopicAggregateId();
+        }
+
+        subscribe UpdateTopicEvent from QuestionTopic {
+            event.getPublisherAggregateId() == questionTopic.getTopicAggregateId();
+        }
+    }
+
     // Service methods
     method getQuestionsByCourseAndTopic(Integer courseId, Integer topicId, UnitOfWork unitOfWork): void;
     method searchQuestionsByTitle(String title, UnitOfWork unitOfWork): void;

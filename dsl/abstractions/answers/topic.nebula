@@ -20,6 +20,15 @@ Aggregate Topic {
         }
     }
 
+    Events {
+        publish DeleteTopicEvent {
+        }
+
+        publish UpdateTopicEvent {
+            String topicName;
+        }
+    }
+
     // Service methods
     method searchTopicsByName(String name, UnitOfWork unitOfWork): void;
     method getTopicsByCourseAndName(Integer courseId, String name, UnitOfWork unitOfWork): void;

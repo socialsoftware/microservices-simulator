@@ -13,6 +13,6 @@ public class ExecutionSubscribesDeleteUser extends EventSubscription {
     }
 
     public boolean subscribesEvent(Event event) {
-        return super.subscribesEvent(event);
+        return super.subscribesEvent(event) && ((DeleteUserEvent)event).getGetUserAggregateId()() == executionUser.getStudentAggregateId();
     }
 }

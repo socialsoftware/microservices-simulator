@@ -56,6 +56,39 @@ Aggregate Answer {
         }
     }
 
+    Events {
+        publish QuestionAnswerEvent {
+            Integer questionAggregateId;
+            Integer quizAggregateId;
+            Integer studentAggregateId;
+            Boolean correct;
+        }
+
+        subscribe AnonymizeStudentEvent from AnswerUser {
+            event.getStudentAggregateId() == answerUser.getUserAggregateId();
+        }
+
+        subscribe UpdateStudentNameEvent from AnswerUser {
+            event.getStudentAggregateId() == answerUser.getUserAggregateId();
+        }
+
+        subscribe DisenrollStudentFromExecutionEvent from AnswerExecution {
+            event.getExecutionAggregateId() == answerExecution.getExecutionAggregateId();
+        }
+
+        subscribe DeleteExecutionEvent from AnswerExecution {
+            event.getExecutionAggregateId() == answerExecution.getExecutionAggregateId();
+        }
+
+        subscribe InvalidateQuizEvent from AnswerQuiz {
+            event.getPublisherAggregateId() == answerQuiz.getQuizAggregateId();
+        }
+
+        subscribe DeleteQuestionEvent from AnswerQuiz {
+            true;
+        }
+    }
+
     // Service methods
     method getAnswersByExecution(Integer executionId, UnitOfWork unitOfWork): List<Answer>;
     method getAnswersByStudentAndExecution(Integer studentId, Integer executionId, UnitOfWork unitOfWork): List<Answer>;

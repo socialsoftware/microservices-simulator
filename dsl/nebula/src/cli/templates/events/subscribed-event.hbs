@@ -13,6 +13,10 @@ public class {{subscriptionName}} extends EventSubscription {
     }
 
     public boolean subscribesEvent(Event event) {
+        {{#if conditions}}
+        return super.subscribesEvent(event){{#each conditions}} && {{condition}}{{/each}};
+        {{else}}
         return super.subscribesEvent(event);
+        {{/if}}
     }
 }
