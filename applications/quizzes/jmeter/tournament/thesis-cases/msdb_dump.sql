@@ -404,6 +404,7 @@ CREATE TABLE public.event (
     publisher_aggregate_id integer,
     publisher_aggregate_version integer,
     "timestamp" timestamp(6) without time zone,
+    published boolean DEFAULT false NOT NULL,
     correct boolean,
     question_aggregate_id integer,
     quiz_aggregate_id integer,
@@ -1165,7 +1166,7 @@ COPY public.course_execution_student (id, active, name, state, user_aggregate_id
 -- Data for Name: event; Type: TABLE DATA; Schema: public; Owner: tomasnascimento
 --
 
-COPY public.event (dtype, id, publisher_aggregate_id, publisher_aggregate_version, "timestamp", correct, question_aggregate_id, quiz_aggregate_id, student_aggregate_id, name, username, updated_name, content, title, topic_name) FROM stdin;
+COPY public.event (dtype, id, publisher_aggregate_id, publisher_aggregate_version, "timestamp", published, correct, question_aggregate_id, quiz_aggregate_id, student_aggregate_id, name, username, updated_name, content, title, topic_name) FROM stdin;
 \.
 
 

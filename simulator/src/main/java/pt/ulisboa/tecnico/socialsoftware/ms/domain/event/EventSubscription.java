@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.event;
 
+import java.util.Objects;
+
 public abstract class EventSubscription {
     private Integer subscribedAggregateId;
     private Integer subscribedVersion;
@@ -12,11 +14,7 @@ public abstract class EventSubscription {
     public EventSubscription(Integer subscribedAggregateId, Integer subscribedVersion, String eventType) {
         setSubscribedAggregateId(subscribedAggregateId);
         // this is for complex functionalities where we don't know the id of an aggregate we are creating
-        if (subscribedVersion == null) {
-            setSubscribedVersion(0);
-        } else {
-            setSubscribedVersion(subscribedVersion);
-        }
+        setSubscribedVersion(Objects.requireNonNullElse(subscribedVersion, 0));
         setEventType(eventType);
         setSubscriberAggregateId(subscribedAggregateId);
     }

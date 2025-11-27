@@ -112,7 +112,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
                 if (aggregateToWrite.getPrev() != null && aggregateToWrite.getPrev().getState() == Aggregate.AggregateState.INACTIVE) {
                     throw new SimulatorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregateToWrite.getAggregateId());
                 }
-                aggregateToWrite.verifyInvariants();
+                aggregateToWrite.verifyInvariants(); // TODO see if this will have problems later
                 Aggregate concurrentAggregate = getConcurrentAggregate(aggregateToWrite); // TODO this has to be distributed
                 // second condition is necessary for when a concurrent version is detected at first and then in the following detections it will have to do
                 // this verification in order to not detect the same as a version as concurrent again
@@ -187,7 +187,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     public void registerChanged(Aggregate aggregate, CausalUnitOfWork unitOfWork) {
         // the id set to null to force a new entry in the db
         aggregate.setId(null);
-        logger.info("aggregate to commit: {}", aggregate.getClass());
+        logger.info("aggregate to commit: {}", aggregate.getClass().getSimpleName());
         unitOfWork.getAggregatesToCommit().put(aggregate.getAggregateId(), aggregate);
     }
 

@@ -18,6 +18,9 @@ public abstract class Event {
     private Integer publisherAggregateVersion;
     private LocalDateTime timestamp;
 
+    @Column(nullable = false)
+    private boolean published = false;
+
     public Event() {
 
     }
@@ -49,6 +52,14 @@ public abstract class Event {
 
     public void setPublisherAggregateVersion(Integer publisherAggregateVersion) {
         this.publisherAggregateVersion = publisherAggregateVersion;
+    }
+
+    public boolean isPublished() {
+        return published;
+    }
+
+    public void setPublished(boolean published) {
+        this.published = published;
     }
 
     public LocalDateTime getTimestamp() {

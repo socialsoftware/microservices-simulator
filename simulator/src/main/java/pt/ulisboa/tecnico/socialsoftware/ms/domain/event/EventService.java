@@ -20,7 +20,7 @@ public class EventService {
     EventRepository eventRepository;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public Set<EventSubscription> getEventSubscriptions(Integer subscriberAggregateId, Class<? extends Event> eventClass) {
+    public Set<EventSubscription> getEventSubscriptions(Integer subscriberAggregateId,Class<? extends Event> eventClass) {
         Aggregate aggregate = aggregateRepository.findLastAggregateVersion(subscriberAggregateId).orElse(null);
 
         if (aggregate != null) {
@@ -33,8 +33,9 @@ public class EventService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<? extends Event> getSubscribedEvents(EventSubscription eventSubscription, Class<? extends Event> eventClass) {
         return eventRepository.findAll().stream()
+                .filter(Event::isPublished) // Only process events that were published
                 .filter(eventSubscription::subscribesEvent)
-                .filter(eventClass::isInstance) 
+                .filter(eventClass::isInstance)
                 .map(eventClass::cast)
                 .sorted(Comparator.comparing(Event::getTimestamp).reversed())
                 .toList();
