@@ -2,7 +2,7 @@ import type { ValidationAcceptor } from "langium";
 import type { Aggregate, Entity, RepositoryMethod } from "../generated/ast.js";
 import { getEntities } from "../../cli/utils/aggregate-helpers.js";
 import { QueryMethodParser } from "../../cli/utils/query-method-parser.js";
-import { JpqlValidatorUtils } from "./utils/jpql-validator-utils.js";
+import { JpqlParser } from "./utils/jpql-parser.js";
 import { PropertyValidatorUtils } from "./utils/property-validator-utils.js";
 
 export class RepositoryValidator {
@@ -27,7 +27,15 @@ export class RepositoryValidator {
                 return;
             }
 
-            const queryParams = JpqlValidatorUtils.extractQueryParameters(method.query);
+            const paramPattern = /:(\w+)/g;
+            const queryParams: string[] = [];
+            let paramMatch;
+            while ((paramMatch = paramPattern.exec(method.query)) !== null) {
+                const paramName = paramMatch[1];
+                if (!queryParams.includes(paramName)) {
+                    queryParams.push(paramName);
+                }
+            }
             const methodParamNames = (method.parameters || []).map((p: any) => p.name);
 
             for (const queryParam of queryParams) {
@@ -127,152 +135,182 @@ export class RepositoryValidator {
         accept: ValidationAcceptor,
         method: RepositoryMethod
     ): void {
-        let cleanQuery = query.trim();
-        if ((cleanQuery.startsWith('"') && cleanQuery.endsWith('"')) ||
-            (cleanQuery.startsWith("'") && cleanQuery.endsWith("'"))) {
-            cleanQuery = cleanQuery.slice(1, -1);
-        }
-        const queryUpper = cleanQuery.toUpperCase().trim();
+        const parser = new JpqlParser();
+        const parseResult = parser.parse(query);
 
-        if (!queryUpper.match(/\b(SELECT|FROM)\b/i)) {
-            accept("error", "Query must contain SELECT and FROM clauses", {
-                node: method,
-                property: "query",
-            });
-            return;
-        }
-
-        const syntaxErrors = JpqlValidatorUtils.validateJpqlSyntax(cleanQuery);
-        for (const error of syntaxErrors) {
-            accept("error", error.message, {
-                node: method,
-                property: "query",
-            });
-        }
-
-        if (syntaxErrors.length > 0) {
-            return;
-        }
-
-        const fromPattern = /\bFROM\s+(?:AS\s+)?(\w+)(?:\s+(?:AS\s+)?(\w+))?/gi;
-        const fromMatches = Array.from(cleanQuery.matchAll(fromPattern));
-        const entityAliases = new Map<string, string>(); // alias -> entityName
-
-        if (fromMatches.length > 0) {
-            for (const fromMatch of fromMatches) {
-                const entityName = fromMatch[1];
-                const alias = fromMatch[2] || entityName.charAt(0).toLowerCase();
-
-                const entity = entities.find((e: any) => e.name === entityName);
-                if (!entity) {
-                    const suggestions = entities
-                        .map((e: any) => e.name)
-                        .filter((name: string) => {
-                            const nameLower = name.toLowerCase();
-                            const entityLower = entityName.toLowerCase();
-                            return nameLower === entityLower ||
-                                nameLower.includes(entityLower) ||
-                                entityLower.includes(nameLower);
-                        })
-                        .slice(0, 3);
-                    const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
-                    accept("error", `Entity '${entityName}' not found in aggregate.${suggestionText}`, {
-                        node: method,
-                        property: "query",
-                    });
-                } else {
-                    entityAliases.set(alias, entityName);
-                }
+        if (!parseResult.isValid) {
+            for (const error of parseResult.errors) {
+                accept("error", error.message, {
+                    node: method,
+                    property: "query",
+                });
             }
+            return;
+        }
+
+        if (!parseResult.ast) {
+            accept("error", "Failed to parse query", {
+                node: method,
+                property: "query",
+            });
+            return;
+        }
+
+        const { ast, aliases } = parseResult;
+
+        const fromEntity = entities.find((e: any) => e.name === ast.from.entity);
+        if (!fromEntity) {
+            const suggestions = entities
+                .map((e: any) => e.name)
+                .filter((name: string) => {
+                    const nameLower = name.toLowerCase();
+                    const entityLower = ast.from.entity.toLowerCase();
+                    return nameLower === entityLower ||
+                        nameLower.includes(entityLower) ||
+                        entityLower.includes(nameLower);
+                })
+                .slice(0, 3);
+            const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
+            accept("error", `Entity '${ast.from.entity}' not found in aggregate.${suggestionText}`, {
+                node: method,
+                property: "query",
+            });
+        }
+
+        for (const item of ast.select.items) {
+            this.validatePropertyPath(item.path, aliases, entities, method, accept);
+        }
+
+        if (ast.where) {
+            this.validateCondition(ast.where.condition, aliases, entities, method, accept);
+        }
+    }
+
+    private validateCondition(
+        condition: any,
+        aliases: Map<string, string>,
+        entities: Entity[],
+        method: RepositoryMethod,
+        accept: ValidationAcceptor
+    ): void {
+        if (condition.type === 'grouped' && condition.left) {
+            this.validateCondition(condition.left, aliases, entities, method, accept);
+        } else if (condition.type === 'and' || condition.type === 'or') {
+            if (condition.left) {
+                this.validateCondition(condition.left, aliases, entities, method, accept);
+            }
+            if (condition.right) {
+                this.validateCondition(condition.right, aliases, entities, method, accept);
+            }
+        } else if (condition.comparison) {
+            this.validateComparison(condition.comparison, aliases, entities, method, accept);
+        }
+    }
+
+    private validateComparison(
+        comparison: any,
+        aliases: Map<string, string>,
+        entities: Entity[],
+        method: RepositoryMethod,
+        accept: ValidationAcceptor
+    ): void {
+        this.validatePropertyPath(comparison.left, aliases, entities, method, accept);
+
+        if (comparison.right && comparison.right.type === 'property') {
+            this.validatePropertyPath(comparison.right, aliases, entities, method, accept);
+        }
+    }
+
+    private validatePropertyPath(
+        path: any,
+        aliases: Map<string, string>,
+        entities: Entity[],
+        method: RepositoryMethod,
+        accept: ValidationAcceptor
+    ): void {
+        if (!path.properties || path.properties.length === 0) {
+            return;
+        }
+
+        const firstProperty = path.properties[0];
+        const remainingProperties = path.properties.slice(1);
+
+        let entityName: string | undefined;
+        let entity: Entity | undefined;
+
+        if (path.alias) {
+            entityName = aliases.get(path.alias);
+            if (!entityName) {
+                const definedAliases = Array.from(aliases.keys());
+                const suggestions = definedAliases.filter(alias => {
+                    const aliasLower = alias.toLowerCase();
+                    const undefinedLower = path.alias.toLowerCase();
+                    return aliasLower.includes(undefinedLower) || undefinedLower.includes(aliasLower);
+                }).slice(0, 3);
+                const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
+                accept("error", `Undefined alias '${path.alias}' in query.${suggestionText} Available aliases: ${definedAliases.length > 0 ? definedAliases.join(', ') : 'none'}`, {
+                    node: method,
+                    property: "query",
+                });
+                return;
+            }
+            entity = entities.find((e: any) => e.name === entityName);
         } else {
-            const simpleFromMatch = cleanQuery.match(/\bFROM\s+(\w+)/i);
-            if (simpleFromMatch) {
-                const entityName = simpleFromMatch[1];
-                const entity = entities.find((e: any) => e.name === entityName);
-                if (!entity) {
-                    const suggestions = entities
-                        .map((e: any) => e.name)
-                        .filter((name: string) => {
-                            const nameLower = name.toLowerCase();
-                            const entityLower = entityName.toLowerCase();
-                            return nameLower === entityLower ||
-                                nameLower.includes(entityLower) ||
-                                entityLower.includes(nameLower);
-                        })
-                        .slice(0, 3);
-                    const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
-                    accept("error", `Entity '${entityName}' not found in aggregate.${suggestionText}`, {
+            entity = entities.find((e: any) => e.name === firstProperty);
+            if (entity) {
+                entityName = firstProperty;
+                if (remainingProperties.length === 0) {
+                    accept("error", `Expected property after entity '${firstProperty}'`, {
                         node: method,
                         property: "query",
                     });
-                }
-            }
-        }
-
-        const propertyPattern = /(\w+)\.(\w+)/g;
-        let propertyMatch;
-        const validatedProperties = new Set<string>();
-        const validatedAliases = new Set<string>();
-
-        while ((propertyMatch = propertyPattern.exec(cleanQuery)) !== null) {
-            const aliasOrEntity = propertyMatch[1];
-            const propertyName = propertyMatch[2];
-
-            if (cleanQuery.substring(propertyMatch.index - 1, propertyMatch.index) === ':') {
-                continue;
-            }
-
-            if (entityAliases.has(aliasOrEntity)) {
-                const entityName = entityAliases.get(aliasOrEntity)!;
-                const entity = entities.find((e: any) => e.name === entityName);
-
-                if (entity) {
-                    const property = PropertyValidatorUtils.findPropertyInEntity(propertyName, entity, entities);
-                    if (!property) {
-                        const propertyKey = `${aliasOrEntity}.${propertyName}`;
-                        if (!validatedProperties.has(propertyKey)) {
-                            validatedProperties.add(propertyKey);
-                            const suggestions = PropertyValidatorUtils.suggestPropertyNames(propertyName, entity, entities);
-                            const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
-                            accept("error", `Property '${propertyName}' not found on entity '${entityName}'.${suggestionText}`, {
-                                node: method,
-                                property: "query",
-                            });
-                        }
-                    }
+                    return;
                 }
             } else {
-                const entity = entities.find((e: any) => e.name === aliasOrEntity);
-                if (entity) {
-                    const property = PropertyValidatorUtils.findPropertyInEntity(propertyName, entity, entities);
-                    if (!property) {
-                        const propertyKey = `${aliasOrEntity}.${propertyName}`;
-                        if (!validatedProperties.has(propertyKey)) {
-                            validatedProperties.add(propertyKey);
-                            const suggestions = PropertyValidatorUtils.suggestPropertyNames(propertyName, entity, entities);
-                            const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
-                            accept("error", `Property '${propertyName}' not found on entity '${aliasOrEntity}'.${suggestionText}`, {
-                                node: method,
-                                property: "query",
-                            });
+                entityName = Array.from(aliases.values())[0];
+                entity = entities.find((e: any) => e.name === entityName);
+            }
+        }
+
+        if (!entity) {
+            return;
+        }
+
+        let currentEntity = entity;
+        const propertiesToValidate = entityName === firstProperty ? remainingProperties : path.properties;
+
+        for (let i = 0; i < propertiesToValidate.length; i++) {
+            const propName = propertiesToValidate[i];
+
+            const property = PropertyValidatorUtils.findPropertyInEntity(propName, currentEntity, entities);
+            if (!property) {
+                const suggestions = PropertyValidatorUtils.suggestPropertyNames(propName, currentEntity, entities);
+                const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
+                accept("error", `Property '${propName}' not found on entity '${currentEntity.name}'.${suggestionText}`, {
+                    node: method,
+                    property: "query",
+                });
+                return;
+            }
+
+            if (i < propertiesToValidate.length - 1) {
+                const propType = (property as any).type;
+                if (propType?.$type === 'EntityType' && propType.type) {
+                    const relatedEntityName = propType.type.ref?.name || propType.type.$refText;
+                    if (relatedEntityName) {
+                        currentEntity = entities.find((e: any) => e.name === relatedEntityName)!;
+                        if (!currentEntity) {
+                            return;
                         }
+                    } else {
+                        return;
                     }
                 } else {
-                    const aliasKey = `alias_${aliasOrEntity}`;
-                    if (!validatedAliases.has(aliasKey)) {
-                        validatedAliases.add(aliasKey);
-                        const definedAliases = Array.from(entityAliases.keys());
-                        const suggestions = definedAliases.filter(alias => {
-                            const aliasLower = alias.toLowerCase();
-                            const undefinedLower = aliasOrEntity.toLowerCase();
-                            return aliasLower.includes(undefinedLower) || undefinedLower.includes(aliasLower);
-                        }).slice(0, 3);
-                        const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
-                        accept("error", `Undefined alias '${aliasOrEntity}' in query.${suggestionText} Available aliases: ${definedAliases.length > 0 ? definedAliases.join(', ') : 'none'}`, {
-                            node: method,
-                            property: "query",
-                        });
-                    }
+                    accept("error", `Property '${propName}' on entity '${currentEntity.name}' is not an entity reference and cannot have nested properties`, {
+                        node: method,
+                        property: "query",
+                    });
+                    return;
                 }
             }
         }
