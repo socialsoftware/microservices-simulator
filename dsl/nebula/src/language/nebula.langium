@@ -144,7 +144,7 @@ Expression:
     BooleanExpression;
 
 BooleanExpression:
-    {infer BooleanExpression} (left=LiteralExpression | left=Comparison)
+    {infer BooleanExpression} left=Comparison
     (op=("||"|"&&"|"OR"|"AND") right=Comparison)*;
 
 Comparison:
@@ -376,10 +376,10 @@ FuncRegisterSagaStateAction:
     'register' 'sagaState' aggregateId=StepArgument 'as' sagaState=ID 'in' unitOfWork=ID ';';
 
 StepArgument:
-    ID | Expression | STRING | LITERAL;
+    STRING | LITERAL | Expression | ID;
 
 StepExpression:
-    Expression | ID | STRING | LITERAL;
+    STRING | LITERAL | Expression | ID;
 
 ServiceMethod:
     (annotations+=Annotation)*
