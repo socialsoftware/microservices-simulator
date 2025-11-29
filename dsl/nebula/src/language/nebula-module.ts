@@ -14,7 +14,7 @@ import {
 import {
   NebulaValidator,
   registerValidationChecks,
-} from "./nebula-validator.js";
+} from "./validation/index.js";
 import { NebulaScopeComputation } from './nebula-scope-computation.js';
 import { NebulaScopeProvider } from '../cli/engine/nebula-scope-provider.js';
 
