@@ -212,6 +212,7 @@ export class RepositoryValidator {
         const propertyPattern = /(\w+)\.(\w+)/g;
         let propertyMatch;
         const validatedProperties = new Set<string>();
+        const validatedAliases = new Set<string>();
 
         while ((propertyMatch = propertyPattern.exec(cleanQuery)) !== null) {
             const aliasOrEntity = propertyMatch[1];
@@ -221,27 +222,57 @@ export class RepositoryValidator {
                 continue;
             }
 
-            const entityName = entityAliases.get(aliasOrEntity) || aliasOrEntity;
-            const entity = entities.find((e: any) => e.name === entityName);
+            if (entityAliases.has(aliasOrEntity)) {
+                const entityName = entityAliases.get(aliasOrEntity)!;
+                const entity = entities.find((e: any) => e.name === entityName);
 
-            if (entity) {
-                const property = PropertyValidatorUtils.findPropertyInEntity(propertyName, entity, entities);
-                if (!property) {
-                    const propertyKey = `${aliasOrEntity}.${propertyName}`;
-                    if (!validatedProperties.has(propertyKey)) {
-                        validatedProperties.add(propertyKey);
-                        const suggestions = PropertyValidatorUtils.suggestPropertyNames(propertyName, entity, entities);
+                if (entity) {
+                    const property = PropertyValidatorUtils.findPropertyInEntity(propertyName, entity, entities);
+                    if (!property) {
+                        const propertyKey = `${aliasOrEntity}.${propertyName}`;
+                        if (!validatedProperties.has(propertyKey)) {
+                            validatedProperties.add(propertyKey);
+                            const suggestions = PropertyValidatorUtils.suggestPropertyNames(propertyName, entity, entities);
+                            const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
+                            accept("error", `Property '${propertyName}' not found on entity '${entityName}'.${suggestionText}`, {
+                                node: method,
+                                property: "query",
+                            });
+                        }
+                    }
+                }
+            } else {
+                const entity = entities.find((e: any) => e.name === aliasOrEntity);
+                if (entity) {
+                    const property = PropertyValidatorUtils.findPropertyInEntity(propertyName, entity, entities);
+                    if (!property) {
+                        const propertyKey = `${aliasOrEntity}.${propertyName}`;
+                        if (!validatedProperties.has(propertyKey)) {
+                            validatedProperties.add(propertyKey);
+                            const suggestions = PropertyValidatorUtils.suggestPropertyNames(propertyName, entity, entities);
+                            const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
+                            accept("error", `Property '${propertyName}' not found on entity '${aliasOrEntity}'.${suggestionText}`, {
+                                node: method,
+                                property: "query",
+                            });
+                        }
+                    }
+                } else {
+                    const aliasKey = `alias_${aliasOrEntity}`;
+                    if (!validatedAliases.has(aliasKey)) {
+                        validatedAliases.add(aliasKey);
+                        const definedAliases = Array.from(entityAliases.keys());
+                        const suggestions = definedAliases.filter(alias => {
+                            const aliasLower = alias.toLowerCase();
+                            const undefinedLower = aliasOrEntity.toLowerCase();
+                            return aliasLower.includes(undefinedLower) || undefinedLower.includes(aliasLower);
+                        }).slice(0, 3);
                         const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
-                        accept("error", `Property '${propertyName}' not found on entity '${entityName}'.${suggestionText}`, {
+                        accept("error", `Undefined alias '${aliasOrEntity}' in query.${suggestionText} Available aliases: ${definedAliases.length > 0 ? definedAliases.join(', ') : 'none'}`, {
                             node: method,
                             property: "query",
                         });
                     }
-                }
-            } else if (!entityAliases.has(aliasOrEntity) && !entities.find((e: any) => e.name === aliasOrEntity)) {
-                const entityKey = `entity_${aliasOrEntity}`;
-                if (!validatedProperties.has(entityKey)) {
-                    validatedProperties.add(entityKey);
                 }
             }
         }
