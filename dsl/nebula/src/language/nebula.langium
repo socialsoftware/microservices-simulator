@@ -376,7 +376,7 @@ FuncRegisterSagaStateAction:
     'register' 'sagaState' aggregateId=StepArgument 'as' sagaState=ID 'in' unitOfWork=ID ';';
 
 StepArgument:
-    STRING | LITERAL | Expression | ID;
+    {infer StepArgument} (STRING | ID);
 
 StepExpression:
     STRING | LITERAL | Expression | ID;
