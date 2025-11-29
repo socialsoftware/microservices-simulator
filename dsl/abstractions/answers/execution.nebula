@@ -212,11 +212,107 @@ Aggregate Execution  {
     }
 
     Functionalities {
+        createExecution(Execution executionDto): Execution
+        steps {
+            sync createExecutionStep {
+                call executionService.createExecution(executionDto, unitOfWork) assign to createdExecution;
+                set result to ExecutionDto as getExecutionDto;
+            }
+        }
+        ;
+        
         getExecutionByAggregateId(Integer executionAggregateId): Execution
         steps {
-            sync find {
-                call executionService.getExecutionByAggregateId(executionAggregateId);
+            sync getExecutionStep {
+                call executionService.getExecutionByAggregateId(executionAggregateId, unitOfWork) assign to executionDto;
                 set result to ExecutionDto as getExecutionDto;
+            }
+        }
+        ;
+        
+        getExecutions(): List<Execution>
+        steps {
+            sync getExecutionsStep {
+                call executionService.getAllExecutions(unitOfWork) assign to executions;
+                set result to ExecutionDto as getExecutions;
+            }
+        }
+        ;
+        
+        removeExecution(Integer executionAggregateId): void
+        steps {
+            sync getExecutionStep {
+                call executionService.getExecutionByAggregateId(executionAggregateId, unitOfWork) assign to courseExecution;
+                register sagaState executionAggregateId as READ_COURSE in unitOfWork;
+            }
+            compensation {
+                register sagaState executionAggregateId as NOT_IN_SAGA in unitOfWork;
+            }
+            
+            sync removeExecutionStep depends on getExecutionStep {
+                call executionService.removeExecution(executionAggregateId, unitOfWork);
+            }
+        }
+        ;
+        
+        addStudent(Integer executionAggregateId, Integer userAggregateId): void
+        dependencies { UserService }
+        steps {
+            sync getUserStep {
+                call userService.getUserById(userAggregateId, unitOfWork) assign to userDto;
+            }
+            
+            sync enrollStudentStep depends on getUserStep {
+                call executionService.enrollStudent(executionAggregateId, userDto, unitOfWork);
+            }
+        }
+        ;
+        
+        getExecutionsByUser(Integer userAggregateId): Set<Execution>
+        steps {
+            sync getExecutionsByUserStep {
+                call executionService.getExecutionsByUser(userAggregateId, unitOfWork) assign to executions;
+                set result to ExecutionDto as getExecutions;
+            }
+        }
+        ;
+        
+        removeStudentFromExecution(Integer executionAggregateId, Integer userAggregateId): void
+        steps {
+            sync getExecutionStep {
+                call executionService.getExecutionByAggregateId(executionAggregateId, unitOfWork) assign to oldExecution;
+                register sagaState executionAggregateId as READ_COURSE in unitOfWork;
+            }
+            compensation {
+                register sagaState executionAggregateId as NOT_IN_SAGA in unitOfWork;
+            }
+            
+            sync removeStudentStep depends on getExecutionStep {
+                call executionService.removeStudentFromExecution(executionAggregateId, userAggregateId, unitOfWork);
+            }
+        }
+        ;
+        
+        anonymizeStudent(Integer executionAggregateId, Integer userAggregateId): void
+        steps {
+            sync getExecutionStep {
+                call executionService.getExecutionByAggregateId(executionAggregateId, unitOfWork) assign to courseExecution;
+                register sagaState executionAggregateId as READ_COURSE in unitOfWork;
+            }
+            compensation {
+                register sagaState executionAggregateId as NOT_IN_SAGA in unitOfWork;
+            }
+            
+            sync anonymizeStudentStep depends on getExecutionStep {
+                call executionService.anonymizeStudent(executionAggregateId, userAggregateId, unitOfWork);
+            }
+        }
+        ;
+        
+        updateStudentName(Integer executionAggregateId, Integer userAggregateId, String newName): void
+        steps {
+            sync updateStudentNameStep {
+                call executionService.updateStudentName(executionAggregateId, userAggregateId, newName, unitOfWork);
             }
         }
         ;

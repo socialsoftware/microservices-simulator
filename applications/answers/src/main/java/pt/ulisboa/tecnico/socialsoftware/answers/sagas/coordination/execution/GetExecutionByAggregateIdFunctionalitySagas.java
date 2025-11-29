@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 public class GetExecutionByAggregateIdFunctionalitySagas extends WorkflowFunctionality {
     
-
+    private Object executionDto;
     private final ExecutionService executionService;
     private final SagaUnitOfWorkService sagaUnitOfWorkService;
     private final SagaUnitOfWork unitOfWork;
@@ -23,10 +23,12 @@ public class GetExecutionByAggregateIdFunctionalitySagas extends WorkflowFunctio
 
     public void buildWorkflow(Integer executionAggregateId) {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
-        SagaSyncStep findStep = new SagaSyncStep("find", () -> {
-            this.executionService.getExecutionByAggregateId(executionAggregateId);
+        SagaSyncStep getExecutionStepStep = new SagaSyncStep("getExecutionStep", () -> {
+            executionDto = this.executionService.getExecutionByAggregateId([object Object], [object Object]);
+            this.result = ExecutionDto.getExecutionDto();
         });
-        workflow.addStep(findStep);
+        workflow.addStep(getExecutionStepStep);
+
 
     }
 

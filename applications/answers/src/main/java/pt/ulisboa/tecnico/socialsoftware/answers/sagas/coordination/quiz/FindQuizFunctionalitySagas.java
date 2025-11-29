@@ -10,8 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 
 public class FindQuizFunctionalitySagas extends WorkflowFunctionality {
     
-
-    private final QuizService quizService;
+        private final QuizService quizService;
     private final SagaUnitOfWorkService sagaUnitOfWorkService;
     private final SagaUnitOfWork unitOfWork;
 

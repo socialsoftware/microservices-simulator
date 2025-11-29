@@ -5,16 +5,12 @@ package {{packageName}};
 {{/each}}
 
 public enum {{aggregateName}}SagaState implements SagaState {
-CREATED_{{upperAggregateName}} {
-@Override
-public String getStateName() {
-return "CREATED_{{upperAggregateName}}";
-}
-},
-READ_{{upperAggregateName}} {
-@Override
-public String getStateName() {
-return "READ_{{upperAggregateName}}";
-}
-}
+{{#each sagaStates}}
+    {{this}} {
+        @Override
+        public String getStateName() {
+            return "{{this}}";
+        }
+    }{{#unless @last}},{{/unless}}
+{{/each}}
 }

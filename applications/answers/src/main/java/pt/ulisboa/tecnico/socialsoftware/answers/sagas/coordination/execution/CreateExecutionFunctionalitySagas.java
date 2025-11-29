@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
     
-
+    private Object createdExecution;
     private final ExecutionService executionService;
     private final SagaUnitOfWorkService sagaUnitOfWorkService;
     private final SagaUnitOfWork unitOfWork;
@@ -21,8 +21,14 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
         this.unitOfWork = unitOfWork;
     }
 
-    public void buildWorkflow() {
+    public void buildWorkflow(Object executionDto) {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
+        SagaSyncStep createExecutionStepStep = new SagaSyncStep("createExecutionStep", () -> {
+            createdExecution = this.executionService.createExecution([object Object], [object Object]);
+            this.result = ExecutionDto.getExecutionDto();
+        });
+        workflow.addStep(createExecutionStepStep);
+
 
     }
 

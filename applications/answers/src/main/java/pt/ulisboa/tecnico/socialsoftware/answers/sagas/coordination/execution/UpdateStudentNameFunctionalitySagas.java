@@ -10,8 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
     
-
-    private final ExecutionService executionService;
+        private final ExecutionService executionService;
     private final SagaUnitOfWorkService sagaUnitOfWorkService;
     private final SagaUnitOfWork unitOfWork;
 
@@ -21,8 +20,13 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
         this.unitOfWork = unitOfWork;
     }
 
-    public void buildWorkflow() {
+    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, String newName) {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
+        SagaSyncStep updateStudentNameStepStep = new SagaSyncStep("updateStudentNameStep", () -> {
+            this.executionService.updateStudentName([object Object], [object Object], [object Object], [object Object]);
+        });
+        workflow.addStep(updateStudentNameStepStep);
+
 
     }
 

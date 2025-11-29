@@ -102,7 +102,8 @@ Aggregate Answer {
     saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer answerId, UnitOfWork unitOfWork);
     
     Repository {
-        Optional<Integer> findAnswerIdByQuizQuizAggregateIdAndUserUserAggregateId(Integer quizAggregateId, Integer userAggregateId);
+        @Query("select a.aggregateId from Answer a where a.quiz.quizAggregateId = :quizAggregateId AND a.user.userAggregateId = :userAggregateId AND a.sagaState = 'NOT_IN_SAGA'")
+        Optional<Integer> findAnswerIdByQuizAggregateIdAndUserAggregateIdForSaga(Integer quizAggregateId, Integer userAggregateId);
     }
 
     WebAPIEndpoints {

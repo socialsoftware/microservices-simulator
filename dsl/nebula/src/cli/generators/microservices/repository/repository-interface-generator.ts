@@ -90,8 +90,6 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
                 let query = '';
                 if (method.query) {
                     query = method.query;
-                } else if (method.name.includes('findExecutionIdsOfAllNonDeletedForSaga')) {
-                    query = `select e1.aggregateId from ${aggregate.name} e1 where e1.aggregateId NOT IN (select e2.aggregateId from ${aggregate.name} e2 where e2.state = 'DELETED' AND e2.sagaState != 'NOT_IN_SAGA')`;
                 }
 
                 methods.push({

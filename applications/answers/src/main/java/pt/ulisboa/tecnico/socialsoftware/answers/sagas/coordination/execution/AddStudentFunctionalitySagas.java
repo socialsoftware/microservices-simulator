@@ -7,22 +7,36 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
     
-
+    private Object userDto;
     private final ExecutionService executionService;
     private final SagaUnitOfWorkService sagaUnitOfWorkService;
     private final SagaUnitOfWork unitOfWork;
+    private final UserService userService;
 
-    public AddStudentFunctionalitySagas(ExecutionService executionService, SagaUnitOfWorkService sagaUnitOfWorkService, SagaUnitOfWork unitOfWork) {
+    public AddStudentFunctionalitySagas(ExecutionService executionService, SagaUnitOfWorkService sagaUnitOfWorkService, SagaUnitOfWork unitOfWork, UserService userService) {
         this.executionService = executionService;
         this.sagaUnitOfWorkService = sagaUnitOfWorkService;
         this.unitOfWork = unitOfWork;
+        this.userService = userService;
     }
 
-    public void buildWorkflow() {
+    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId) {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
+        SagaSyncStep getUserStepStep = new SagaSyncStep("getUserStep", () -> {
+            userDto = this.userService.getUserById([object Object], [object Object]);
+        });
+        workflow.addStep(getUserStepStep);
+
+        SagaSyncStep enrollStudentStepStep = new SagaSyncStep("enrollStudentStep", () -> {
+            this.executionService.enrollStudent([object Object], [object Object], [object Object]);
+        }, new ArrayList<>(Arrays.asList(getUserStepStep)));
+        workflow.addStep(enrollStudentStepStep);
+
 
     }
 

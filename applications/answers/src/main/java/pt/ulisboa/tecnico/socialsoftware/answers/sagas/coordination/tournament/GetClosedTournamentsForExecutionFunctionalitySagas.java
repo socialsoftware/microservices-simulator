@@ -10,8 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 
 public class GetClosedTournamentsForExecutionFunctionalitySagas extends WorkflowFunctionality {
     
-
-    private final TournamentService tournamentService;
+        private final TournamentService tournamentService;
     private final SagaUnitOfWorkService sagaUnitOfWorkService;
     private final SagaUnitOfWork unitOfWork;
 

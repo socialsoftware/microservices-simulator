@@ -443,7 +443,32 @@ export class NebulaValidator {
           node: method,
           property: "query",
         });
+        return;
       }
+
+      const queryParams = this.extractQueryParameters(method.query);
+      const methodParamNames = (method.parameters || []).map((p: any) => p.name);
+
+      for (const queryParam of queryParams) {
+        if (!methodParamNames.includes(queryParam)) {
+          accept("error", `Query parameter ':${queryParam}' does not match any method parameter. Available parameters: ${methodParamNames.length > 0 ? methodParamNames.join(', ') : 'none'}`, {
+            node: method,
+            property: "query",
+          });
+        }
+      }
+
+      for (const methodParam of methodParamNames) {
+        if (!queryParams.includes(methodParam)) {
+          accept("warning", `Method parameter '${methodParam}' is not used in the query`, {
+            node: method,
+            property: "parameters",
+          });
+        }
+      }
+
+      this.validateJpqlQuery(method.query, entities, rootEntity, accept, method);
+
       return;
     }
 
@@ -513,5 +538,190 @@ export class NebulaValidator {
     }
 
     return null;
+  }
+
+  private validateJpqlQuery(
+    query: string,
+    entities: Entity[],
+    rootEntity: Entity,
+    accept: ValidationAcceptor,
+    method: RepositoryMethod
+  ): void {
+    const cleanQuery = query.trim().replace(/^["']|["']$/g, '');
+    const queryUpper = cleanQuery.toUpperCase().trim();
+
+    if (!queryUpper.match(/\b(SELECT|FROM)\b/i)) {
+      accept("error", "Query must contain SELECT and FROM clauses", {
+        node: method,
+        property: "query",
+      });
+      return;
+    }
+
+    const fromPattern = /\bFROM\s+(?:AS\s+)?(\w+)(?:\s+(?:AS\s+)?(\w+))?/gi;
+    const fromMatches = Array.from(cleanQuery.matchAll(fromPattern));
+    const entityAliases = new Map<string, string>(); // alias -> entityName
+
+    if (fromMatches.length > 0) {
+      for (const fromMatch of fromMatches) {
+        const entityName = fromMatch[1];
+        const alias = fromMatch[2] || entityName.charAt(0).toLowerCase();
+
+        const entity = entities.find((e: any) => e.name === entityName);
+        if (!entity) {
+          const suggestions = entities
+            .map((e: any) => e.name)
+            .filter((name: string) => {
+              const nameLower = name.toLowerCase();
+              const entityLower = entityName.toLowerCase();
+              return nameLower === entityLower ||
+                nameLower.includes(entityLower) ||
+                entityLower.includes(nameLower);
+            })
+            .slice(0, 3);
+          const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
+          accept("error", `Entity '${entityName}' not found in aggregate.${suggestionText}`, {
+            node: method,
+            property: "query",
+          });
+        } else {
+          entityAliases.set(alias, entityName);
+        }
+      }
+    } else {
+      const simpleFromMatch = cleanQuery.match(/\bFROM\s+(\w+)/i);
+      if (simpleFromMatch) {
+        const entityName = simpleFromMatch[1];
+        const entity = entities.find((e: any) => e.name === entityName);
+        if (!entity) {
+          const suggestions = entities
+            .map((e: any) => e.name)
+            .filter((name: string) => {
+              const nameLower = name.toLowerCase();
+              const entityLower = entityName.toLowerCase();
+              return nameLower === entityLower ||
+                nameLower.includes(entityLower) ||
+                entityLower.includes(nameLower);
+            })
+            .slice(0, 3);
+          const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
+          accept("error", `Entity '${entityName}' not found in aggregate.${suggestionText}`, {
+            node: method,
+            property: "query",
+          });
+        }
+      }
+    }
+
+    const propertyPattern = /(\w+)\.(\w+)/g;
+    let propertyMatch;
+    const validatedProperties = new Set<string>();
+
+    while ((propertyMatch = propertyPattern.exec(cleanQuery)) !== null) {
+      const aliasOrEntity = propertyMatch[1];
+      const propertyName = propertyMatch[2];
+
+      if (cleanQuery.substring(propertyMatch.index - 1, propertyMatch.index) === ':') {
+        continue;
+      }
+
+      const entityName = entityAliases.get(aliasOrEntity) || aliasOrEntity;
+      const entity = entities.find((e: any) => e.name === entityName);
+
+      if (entity) {
+        const property = this.findPropertyInEntity(propertyName, entity, entities);
+        if (!property) {
+          const propertyKey = `${aliasOrEntity}.${propertyName}`;
+          if (!validatedProperties.has(propertyKey)) {
+            validatedProperties.add(propertyKey);
+            const suggestions = this.suggestPropertyNames(propertyName, entity, entities);
+            const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
+            accept("error", `Property '${propertyName}' not found on entity '${entityName}'.${suggestionText}`, {
+              node: method,
+              property: "query",
+            });
+          }
+        }
+      } else if (!entityAliases.has(aliasOrEntity) && !entities.find((e: any) => e.name === aliasOrEntity)) {
+        const entityKey = `entity_${aliasOrEntity}`;
+        if (!validatedProperties.has(entityKey)) {
+          validatedProperties.add(entityKey);
+        }
+      }
+    }
+  }
+
+  private findPropertyInEntity(propertyName: string, entity: Entity, allEntities: Entity[]): Property | null {
+    const camelCaseName = propertyName.charAt(0).toLowerCase() + propertyName.slice(1);
+
+    const directMatch = entity.properties?.find((p: any) =>
+      p.name.toLowerCase() === propertyName.toLowerCase() ||
+      p.name.toLowerCase() === camelCaseName.toLowerCase()
+    );
+    if (directMatch) {
+      return directMatch;
+    }
+
+    const camelCaseMatch = entity.properties?.find((p: any) => p.name === camelCaseName);
+    if (camelCaseMatch) {
+      return camelCaseMatch;
+    }
+
+    if (entity.properties && allEntities) {
+      for (const prop of entity.properties) {
+        const relationPascalCase = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
+        if (propertyName.startsWith(relationPascalCase)) {
+          const remaining = propertyName.substring(relationPascalCase.length);
+          if (remaining) {
+            const propType = (prop as any).type;
+            if (propType?.$type === 'EntityType' && propType.type) {
+              const relatedEntityName = propType.type.ref?.name || propType.type.$refText;
+              if (relatedEntityName) {
+                const relatedEntity = allEntities.find((e: any) => e.name === relatedEntityName);
+                if (relatedEntity) {
+                  const nestedProperty = this.findPropertyInEntity(remaining, relatedEntity, allEntities);
+                  if (nestedProperty) {
+                    return prop;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private suggestPropertyNames(propertyName: string, entity: Entity, allEntities?: Entity[]): string[] {
+    const suggestions: string[] = [];
+    const propertyNameLower = propertyName.toLowerCase();
+
+    if (entity.properties) {
+      for (const prop of entity.properties) {
+        const propNameLower = prop.name.toLowerCase();
+        if (propNameLower.includes(propertyNameLower) || propertyNameLower.includes(propNameLower)) {
+          suggestions.push(prop.name);
+        }
+      }
+    }
+
+    return suggestions.slice(0, 3);
+  }
+
+  private extractQueryParameters(query: string): string[] {
+    const paramPattern = /:(\w+)/g;
+    const params: string[] = [];
+    let match;
+
+    while ((match = paramPattern.exec(query)) !== null) {
+      const paramName = match[1];
+      if (!params.includes(paramName)) {
+        params.push(paramName);
+      }
+    }
+
+    return params;
   }
 }

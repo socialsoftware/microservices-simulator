@@ -183,4 +183,18 @@ public class ExecutionFunctionalities {
         }
     }
 
+    public void updateStudentName(Integer executionAggregateId, Integer userAggregateId, String newName) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateStudentNameFunctionalitySagas updateStudentNameFunctionalitySagas = new UpdateStudentNameFunctionalitySagas(executionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                updateStudentNameFunctionalitySagas.buildWorkflow(executionAggregateId, userAggregateId, newName);
+                updateStudentNameFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
 }

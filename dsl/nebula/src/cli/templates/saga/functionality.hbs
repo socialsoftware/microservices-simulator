@@ -11,7 +11,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 
 public class {{className}} extends WorkflowFunctionality {
     {{#if resultType}}private {{resultType}} result;{{/if}}
-
+    {{#if variableDeclarations}}{{variableDeclarations}}
+    {{/if}}
     {{#each constructorDependencies}}
     private final {{type}} {{name}};
     {{/each}}

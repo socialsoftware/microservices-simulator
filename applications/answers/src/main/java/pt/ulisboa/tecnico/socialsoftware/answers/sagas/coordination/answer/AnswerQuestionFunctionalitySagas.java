@@ -10,8 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 
 public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
     
-
-    private final AnswerService answerService;
+        private final AnswerService answerService;
     private final SagaUnitOfWorkService sagaUnitOfWorkService;
     private final SagaUnitOfWork unitOfWork;
 

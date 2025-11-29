@@ -10,8 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 public class FindQuestionByAggregateIdFunctionalitySagas extends WorkflowFunctionality {
     
-
-    private final QuestionService questionService;
+        private final QuestionService questionService;
     private final SagaUnitOfWorkService sagaUnitOfWorkService;
     private final SagaUnitOfWork unitOfWork;
 

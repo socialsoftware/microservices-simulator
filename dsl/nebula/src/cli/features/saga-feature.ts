@@ -70,11 +70,13 @@ export class SagaFeature {
                 console.log(`\t- Generated saga workflows ${aggregate.name}Workflows`);
             }
 
-            const sagaFunctionalityCode = await generators.sagaFunctionalityGenerator.generateSagaFunctionality(aggregate, options);
-            const sagaFunctionalityPath = path.join(paths.javaPath, 'sagas', 'coordination', `${aggregate.name.toLowerCase()}`, `${aggregate.name}SagaFunctionality.java`);
-            await fs.mkdir(path.dirname(sagaFunctionalityPath), { recursive: true });
-            await fs.writeFile(sagaFunctionalityPath, sagaFunctionalityCode['saga-functionality'], 'utf-8');
-            console.log(`\t- Generated saga functionality ${aggregate.name}SagaFunctionality`);
+            const sagaFunctionalityCode = generators.sagaFunctionalityGenerator.generateForAggregate(aggregate, options);
+            for (const [fileName, content] of Object.entries(sagaFunctionalityCode)) {
+                const sagaFunctionalityPath = path.join(paths.javaPath, 'sagas', 'coordination', `${aggregate.name.toLowerCase()}`, fileName);
+                await fs.mkdir(path.dirname(sagaFunctionalityPath), { recursive: true });
+                await fs.writeFile(sagaFunctionalityPath, String(content), 'utf-8');
+                console.log(`\t- Generated saga functionality ${fileName}`);
+            }
         } catch (error) {
             console.error(`\t- Error generating saga for ${aggregate.name}: ${error instanceof Error ? error.message : String(error)}`);
         }

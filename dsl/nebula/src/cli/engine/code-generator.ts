@@ -60,7 +60,6 @@ export class CodeGenerator {
             }
             console.log(`Found ${nebulaFiles.length} Nebula files`);
 
-            // Initialize Langium language services and parse DSL models
             const services = createNebulaServices(NodeFileSystem).nebulaServices;
             await this.loadLanguageDocuments(services, nebulaFiles);
             const models = await this.parseModels(nebulaFiles, services);

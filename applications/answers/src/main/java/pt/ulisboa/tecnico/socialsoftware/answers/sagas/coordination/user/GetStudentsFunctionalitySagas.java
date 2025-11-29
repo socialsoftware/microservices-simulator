@@ -10,8 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 public class GetStudentsFunctionalitySagas extends WorkflowFunctionality {
     
-
-    private final UserService userService;
+        private final UserService userService;
     private final SagaUnitOfWorkService sagaUnitOfWorkService;
     private final SagaUnitOfWork unitOfWork;
 
