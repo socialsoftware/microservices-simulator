@@ -82,9 +82,9 @@ Aggregate Execution  {
             String studentName;
         }
 
-        subscribe DeleteUserEvent from ExecutionUser {
-            event.getUserAggregateId() == executionUser.getStudentAggregateId();
-        }
+        // subscribe DeleteUserEvent from ExecutionUser {
+        //     event.getUserAggregateId() == executionUser.getStudentAggregateId();
+        // }
     }
 
     WebAPIEndpoints {

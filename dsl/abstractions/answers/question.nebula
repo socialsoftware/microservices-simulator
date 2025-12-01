@@ -84,13 +84,13 @@ Aggregate Question {
             String content;
         }
 
-        subscribe DeleteTopicEvent from QuestionTopic {
-            event.getPublisherAggregateId() == questionTopic.getTopicAggregateId();
-        }
+        //subscribe DeleteTopicEvent from QuestionTopic {
+        //    event.getPublisherAggregateId() == questionTopic.getTopicAggregateId();
+        //}
 
-        subscribe UpdateTopicEvent from QuestionTopic {
-            event.getPublisherAggregateId() == questionTopic.getTopicAggregateId();
-        }
+        // subscribe UpdateTopicEvent from QuestionTopic {
+        //    event.getPublisherAggregateId() == questionTopic.getTopicAggregateId();
+        //}
     }
 
     // Service methods

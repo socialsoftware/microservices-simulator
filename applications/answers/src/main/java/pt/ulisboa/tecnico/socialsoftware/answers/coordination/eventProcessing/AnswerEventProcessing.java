@@ -16,7 +16,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publi
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UpdateStudentNameEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.DisenrollStudentFromExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.DeleteExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.InvalidateQuizEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.DeleteQuestionEvent;
 
 @Service
@@ -66,12 +65,6 @@ public class AnswerEventProcessing {
     }
 
     public void processDeleteExecutionEvent(Integer aggregateId, DeleteExecutionEvent deleteExecutionEvent) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-        unitOfWorkService.commit(unitOfWork);
-    }
-
-    public void processInvalidateQuizEvent(Integer aggregateId, InvalidateQuizEvent invalidateQuizEvent) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
         unitOfWorkService.commit(unitOfWork);

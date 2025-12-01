@@ -341,23 +341,42 @@ export class EventGenerator extends OrchestrationBase {
 
     private convertEventConditionToJava(expression: any, entityVariable: string, eventTypeName: string): string {
         if (!expression) {
-            return 'true';
+            return "true";
         }
 
-        if (expression.$cstNode?.text) {
-            let javaCode = expression.$cstNode.text.trim();
-            javaCode = javaCode.replace(/\bevent\.(\w+)/g, (_match: string, prop: string) => {
-                const capitalized = prop.charAt(0).toUpperCase() + prop.slice(1);
-                return `((${eventTypeName})event).get${capitalized}()`;
-            });
-            javaCode = javaCode.replace(new RegExp(`\\b${entityVariable}\\.(\\w+)`, 'g'), (_match: string, prop: string) => {
-                const capitalized = prop.charAt(0).toUpperCase() + prop.slice(1);
-                return `${entityVariable}.get${capitalized}()`;
-            });
-            return javaCode;
+        const text = expression.$cstNode?.text?.trim();
+        if (!text) {
+            return this.convertExpressionASTToJava(expression, entityVariable, eventTypeName);
         }
 
-        return this.convertExpressionASTToJava(expression, entityVariable, eventTypeName);
+        const chainRegex = /\b(event|[a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)/g;
+
+        const rewritten = text.replace(chainRegex, (_match: string, base: string, tail: string) => {
+            const segments = tail.split(".");
+            if (base === "event") {
+                let result = `((${eventTypeName})event)`;
+                for (const seg of segments) {
+                    if (!seg) continue;
+                    const cap = seg.charAt(0).toUpperCase() + seg.slice(1);
+                    result += `.get${cap}()`;
+                }
+                return result;
+            }
+
+            if (base === entityVariable) {
+                let result = entityVariable;
+                for (const seg of segments) {
+                    if (!seg) continue;
+                    const cap = seg.charAt(0).toUpperCase() + seg.slice(1);
+                    result += `.get${cap}()`;
+                }
+                return result;
+            }
+
+            return `${base}.${tail}`;
+        });
+
+        return rewritten;
     }
 
     private convertExpressionASTToJava(expression: any, entityVariable: string, eventTypeName: string): string {

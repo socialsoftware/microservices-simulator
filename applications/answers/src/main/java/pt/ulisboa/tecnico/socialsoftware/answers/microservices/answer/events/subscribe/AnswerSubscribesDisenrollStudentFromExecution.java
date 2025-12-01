@@ -16,6 +16,6 @@ public class AnswerSubscribesDisenrollStudentFromExecution extends EventSubscrip
     }
 
     public boolean subscribesEvent(Event event) {
-        return super.subscribesEvent(event) && ((DisenrollStudentFromExecutionEvent)event).getExecutionAggregateId() == answer.getExecution().executionAggregateId;
+        return super.subscribesEvent(event) && ((DisenrollStudentFromExecutionEvent)event).getExecutionAggregateId() == answer.getExecution().getExecutionAggregateId();
     }
 }

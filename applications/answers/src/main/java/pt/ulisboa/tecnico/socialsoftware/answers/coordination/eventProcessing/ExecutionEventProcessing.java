@@ -12,7 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.DeleteUserEvent;
 
 @Service
 public class ExecutionEventProcessing {
@@ -37,12 +36,6 @@ public class ExecutionEventProcessing {
     }
 
     public void processExecutionEvent(String eventType, Integer aggregateId, Integer aggregateVersion) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-        unitOfWorkService.commit(unitOfWork);
-    }
-
-    public void processDeleteUserEvent(Integer aggregateId, DeleteUserEvent deleteUserEvent) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
         unitOfWorkService.commit(unitOfWork);

@@ -16,6 +16,6 @@ public class AnswerSubscribesDeleteExecution extends EventSubscription {
     }
 
     public boolean subscribesEvent(Event event) {
-        return super.subscribesEvent(event) && ((DeleteExecutionEvent)event).getExecutionAggregateId() == answer.getExecution().executionAggregateId;
+        return super.subscribesEvent(event) && ((DeleteExecutionEvent)event).getExecutionAggregateId() == answer.getExecution().getExecutionAggregateId();
     }
 }

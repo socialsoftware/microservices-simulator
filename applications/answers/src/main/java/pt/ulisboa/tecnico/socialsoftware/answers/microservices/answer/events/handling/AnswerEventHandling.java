@@ -15,8 +15,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.han
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.DisenrollStudentFromExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.DeleteExecutionEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.DeleteExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.InvalidateQuizEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.InvalidateQuizEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.DeleteQuestionEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.DeleteQuestionEvent;
 
@@ -63,15 +61,6 @@ public class AnswerEventHandling {
     public void handleDeleteExecutionEventEvents() {
         eventApplicationService.handleSubscribedEvent(DeleteExecutionEvent.class,
                 new DeleteExecutionEventHandler(answerRepository, answerEventProcessing));
-    }
-
-    /*
-        InvalidateQuizEvent
-     */
-    @Scheduled(fixedDelay = 1000)
-    public void handleInvalidateQuizEventEvents() {
-        eventApplicationService.handleSubscribedEvent(InvalidateQuizEvent.class,
-                new InvalidateQuizEventHandler(answerRepository, answerEventProcessing));
     }
 
     /*

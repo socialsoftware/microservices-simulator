@@ -16,6 +16,6 @@ public class AnswerSubscribesUpdateStudentName extends EventSubscription {
     }
 
     public boolean subscribesEvent(Event event) {
-        return super.subscribesEvent(event) && ((UpdateStudentNameEvent)event).getStudentAggregateId() == answer.getUser().userAggregateId;
+        return super.subscribesEvent(event) && ((UpdateStudentNameEvent)event).getStudentAggregateId() == answer.getUser().getUserAggregateId();
     }
 }

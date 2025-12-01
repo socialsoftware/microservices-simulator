@@ -57,8 +57,8 @@ Aggregate Answer {
 
         subscribe AnonymizeUserEvent 
             from Answer
-            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
-            event.studentAggregateId == answer.user.userAggregateId;
+            routing (answer.executioon.executionAggregateId, answer.execution.executionVersion) {
+            event.userAggregateId == answer.user.userAggregateId;
         }
 
         subscribe UpdateStudentNameEvent from Answer
@@ -76,10 +76,10 @@ Aggregate Answer {
             event.executionAggregateId == answer.execution.executionAggregateId;
         }
 
-        subscribe InvalidateQuizEvent from Answer
-            routing (answer.quiz.quizAggregateId, answer.quiz.quizVersion) {
-            event.publisherAggregateId == answer.quiz.quizAggregateId;
-        }
+        // subscribe InvalidateQuizEvent from Answer
+        //    routing (answer.quiz.quizAggregateId, answer.quiz.quizVersion) {
+        //    event.publisherAggregateId == answer.quiz.quizAggregateId;
+        //}
 
         subscribe DeleteQuestionEvent from Answer {
             true;

@@ -9,13 +9,13 @@ public class AnswerSubscribesAnonymizeUser extends EventSubscription {
     private final Answer answer;
 
     public AnswerSubscribesAnonymizeUser(Answer answer) {
-        super(answer.getExecution().getExecutionAggregateId(),
+        super(answer.getExecutioon().getExecutionAggregateId(),
                 answer.getExecution().getExecutionVersion(),
                 AnonymizeUserEvent.class.getSimpleName());
         this.answer = answer;
     }
 
     public boolean subscribesEvent(Event event) {
-        return super.subscribesEvent(event) && ((AnonymizeUserEvent)event).getStudentAggregateId() == answer.getUser().userAggregateId;
+        return super.subscribesEvent(event) && ((AnonymizeUserEvent)event).getUserAggregateId() == answer.getUser().getUserAggregateId();
     }
 }
