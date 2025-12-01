@@ -7,17 +7,17 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 public class QuestionAnswerEvent extends Event {
     private Integer questionAggregateId;
     private Integer quizAggregateId;
-    private Integer studentAggregateId;
-    private Boolean correct;
+    private Integer userAggregateId;
+    private boolean correct;
 
     public QuestionAnswerEvent() {
     }
 
-    public QuestionAnswerEvent(Integer aggregateId, Integer questionAggregateId, Integer quizAggregateId, Integer studentAggregateId, Boolean correct) {
+    public QuestionAnswerEvent(Integer aggregateId, Integer questionAggregateId, Integer quizAggregateId, Integer userAggregateId, boolean correct) {
         super(aggregateId);
         setQuestionAggregateId(questionAggregateId);
         setQuizAggregateId(quizAggregateId);
-        setStudentAggregateId(studentAggregateId);
+        setUserAggregateId(userAggregateId);
         setCorrect(correct);
     }
 
@@ -37,19 +37,19 @@ public class QuestionAnswerEvent extends Event {
         this.quizAggregateId = quizAggregateId;
     }
 
-    public Integer getStudentAggregateId() {
-        return studentAggregateId;
+    public Integer getUserAggregateId() {
+        return userAggregateId;
     }
 
-    public void setStudentAggregateId(Integer studentAggregateId) {
-        this.studentAggregateId = studentAggregateId;
+    public void setUserAggregateId(Integer userAggregateId) {
+        this.userAggregateId = userAggregateId;
     }
 
-    public Boolean getCorrect() {
+    public boolean getCorrect() {
         return correct;
     }
 
-    public void setCorrect(Boolean correct) {
+    public void setCorrect(boolean correct) {
         this.correct = correct;
     }
 

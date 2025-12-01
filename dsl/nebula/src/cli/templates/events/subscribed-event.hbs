@@ -6,10 +6,13 @@ import {{sourceAggregatePackage}}.{{sourceAggregate}};
 import {{eventTypePackage}}.{{eventTypeName}};
 
 public class {{subscriptionName}} extends EventSubscription {
+    private final {{sourceAggregate}} {{sourceAggregateVariable}};
+
     public {{subscriptionName}}({{sourceAggregate}} {{sourceAggregateVariable}}) {
-        super({{sourceAggregateVariable}}.getStudentAggregateId(),
-                {{sourceAggregateVariable}}.getStudentVersion(),
+        super({{subscriptionKeyAggregateIdExpr}},
+                {{subscriptionKeyVersionExpr}},
                 {{eventTypeName}}.class.getSimpleName());
+        this.{{sourceAggregateVariable}} = {{sourceAggregateVariable}};
     }
 
     public boolean subscribesEvent(Event event) {

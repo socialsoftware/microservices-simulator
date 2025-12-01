@@ -14,6 +14,7 @@ export function registerValidationChecks(services: NebulaServices) {
         Method: validator.checkMethod,
         Invariant: validator.checkInvariant,
         RepositoryMethod: validator.checkRepositoryMethod,
+        SubscribedEvent: validator.checkSubscribedEvent,
     };
     registry.register(checks, validator);
 }

@@ -6,10 +6,13 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggrega
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.DeleteUserEvent;
 
 public class ExecutionSubscribesDeleteUser extends EventSubscription {
+    private final ExecutionUser executionuser;
+
     public ExecutionSubscribesDeleteUser(ExecutionUser executionuser) {
-        super(executionuser.getStudentAggregateId(),
-                executionuser.getStudentVersion(),
+        super(executionuser.getCourse().getCourseAggregateId(),
+                executionuser.getCourse().getCourseVersion(),
                 DeleteUserEvent.class.getSimpleName());
+        this.executionuser = executionuser;
     }
 
     public boolean subscribesEvent(Event event) {

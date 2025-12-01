@@ -43,7 +43,7 @@ public class TournamentService {
     public TournamentService() {}
 
     // CRUD Operations
-    public TournamentDto createTournament(LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, Boolean cancelled, TournamentCreator creator, Set<TournamentParticipant> participants, TournamentExecution execution, Set<TournamentTopic> topics, TournamentQuiz quiz) {
+    public TournamentDto createTournament(LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, boolean cancelled, TournamentCreator creator, Set<TournamentParticipant> participants, TournamentExecution execution, Set<TournamentTopic> topics, TournamentQuiz quiz) {
         try {
             Tournament tournament = new Tournament(startTime, endTime, numberOfQuestions, cancelled, creator, participants, execution, topics, quiz);
             tournament = tournamentRepository.save(tournament);

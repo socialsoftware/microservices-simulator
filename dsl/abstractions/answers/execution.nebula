@@ -53,10 +53,10 @@ Aggregate Execution  {
     }
 
     Events {
-        publish AnonymizeStudentEvent {
+        publish AnonymizeUserEvent {
             String name;
             String username;
-            Integer studentAggregateId;
+            Integer userAggregateId;
         }
 
         publish UpdateStudentNameEvent {

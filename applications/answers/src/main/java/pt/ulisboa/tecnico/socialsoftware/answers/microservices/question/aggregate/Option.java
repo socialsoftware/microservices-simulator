@@ -14,7 +14,7 @@ public class Option {
     private Long id;
     private Integer key;
     private Integer sequence;
-    private Boolean correct;
+    private boolean correct;
     private String content;
     @OneToOne
     private Question question;
@@ -52,11 +52,11 @@ public class Option {
         this.sequence = sequence;
     }
 
-    public Boolean getCorrect() {
+    public boolean getCorrect() {
         return correct;
     }
 
-    public void setCorrect(Boolean correct) {
+    public void setCorrect(boolean correct) {
         this.correct = correct;
     }
 

@@ -20,7 +20,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 public abstract class Answer extends Aggregate {
     private LocalDateTime creationDate;
     private LocalDateTime answerDate;
-    private Boolean completed;
+    private boolean completed;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
     private AnswerExecution execution;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
@@ -72,11 +72,11 @@ public abstract class Answer extends Aggregate {
         this.answerDate = answerDate;
     }
 
-    public Boolean getCompleted() {
+    public boolean getCompleted() {
         return completed;
     }
 
-    public void setCompleted(Boolean completed) {
+    public void setCompleted(boolean completed) {
         this.completed = completed;
     }
 

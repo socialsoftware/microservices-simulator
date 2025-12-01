@@ -3,19 +3,19 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.su
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.DisenrollStudentFromExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.AnonymizeUserEvent;
 
-public class AnswerSubscribesDisenrollStudentFromExecution extends EventSubscription {
+public class AnswerSubscribesAnonymizeUser extends EventSubscription {
     private final Answer answer;
 
-    public AnswerSubscribesDisenrollStudentFromExecution(Answer answer) {
+    public AnswerSubscribesAnonymizeUser(Answer answer) {
         super(answer.getExecution().getExecutionAggregateId(),
                 answer.getExecution().getExecutionVersion(),
-                DisenrollStudentFromExecutionEvent.class.getSimpleName());
+                AnonymizeUserEvent.class.getSimpleName());
         this.answer = answer;
     }
 
     public boolean subscribesEvent(Event event) {
-        return super.subscribesEvent(event) && ((DisenrollStudentFromExecutionEvent)event).getExecutionAggregateId() == answer.getExecution().executionAggregateId;
+        return super.subscribesEvent(event) && ((AnonymizeUserEvent)event).getStudentAggregateId() == answer.getUser().userAggregateId;
     }
 }

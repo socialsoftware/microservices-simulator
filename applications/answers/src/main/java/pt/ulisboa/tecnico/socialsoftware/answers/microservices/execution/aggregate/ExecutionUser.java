@@ -19,7 +19,7 @@ public class ExecutionUser {
     private AggregateState userState;
     private String userName;
     private String userUsername;
-    private Boolean userActive;
+    private boolean userActive;
     @OneToOne
     private Execution execution;
 
@@ -84,11 +84,11 @@ public class ExecutionUser {
         this.userUsername = userUsername;
     }
 
-    public Boolean getUserActive() {
+    public boolean getUserActive() {
         return userActive;
     }
 
-    public void setUserActive(Boolean userActive) {
+    public void setUserActive(boolean userActive) {
         this.userActive = userActive;
     }
 

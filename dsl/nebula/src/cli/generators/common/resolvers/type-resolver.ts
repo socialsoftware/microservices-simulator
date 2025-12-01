@@ -218,7 +218,7 @@ export class TypeResolver {
             case 'long':
                 return 'Long';
             case 'boolean':
-                return 'Boolean';
+                return 'boolean';
             case 'localdatetime':
                 return 'LocalDateTime';
             case 'userdto':

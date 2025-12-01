@@ -3,15 +3,15 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.ha
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.AnswerEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.DeleteExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnonymizeUserEvent;
 
-public class DeleteExecutionEventHandler extends AnswerEventHandler {
-    public DeleteExecutionEventHandler(AnswerRepository answerRepository, AnswerEventProcessing answerEventProcessing) {
+public class AnonymizeUserEventHandler extends AnswerEventHandler {
+    public AnonymizeUserEventHandler(AnswerRepository answerRepository, AnswerEventProcessing answerEventProcessing) {
         super(answerRepository, answerEventProcessing);
     }
 
     @Override
     public void handleEvent(Integer subscriberAggregateId, Event event) {
-        this.answerEventProcessing.processDeleteExecutionEvent(subscriberAggregateId, (DeleteExecutionEvent) event);
+        this.answerEventProcessing.processAnonymizeUserEvent(subscriberAggregateId, (AnonymizeUserEvent) event);
     }
 }

@@ -15,7 +15,7 @@ public abstract class User extends Aggregate {
     private String username;
     @Enumerated(EnumType.STRING)
     private final UserRole role;
-    private Boolean active;
+    private boolean active;
 
     public User() {
         this.role = null;
@@ -58,11 +58,11 @@ public abstract class User extends Aggregate {
         return role;
     }
 
-    public Boolean getActive() {
+    public boolean getActive() {
         return active;
     }
 
-    public void setActive(Boolean active) {
+    public void setActive(boolean active) {
         this.active = active;
     }
 

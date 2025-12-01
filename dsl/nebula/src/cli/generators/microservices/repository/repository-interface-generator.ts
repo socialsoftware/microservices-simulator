@@ -111,7 +111,7 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
 
         if (returnType.$cstNode && returnType.$cstNode.text) {
             const text = returnType.$cstNode.text.trim();
-            if (text) return text;
+            if (text) return this.normalizeJavaType(text);
         }
 
         if (returnType.type) {
@@ -119,21 +119,21 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
             const cstText = returnType.$cstNode?.text || '';
 
             if (cstText.startsWith('Optional<')) {
-                return `Optional<${innerType}>`;
+                return this.normalizeJavaType(`Optional<${innerType}>`);
             } else if (cstText.startsWith('List<')) {
-                return `List<${innerType}>`;
+                return this.normalizeJavaType(`List<${innerType}>`);
             } else if (cstText.startsWith('Set<')) {
-                return `Set<${innerType}>`;
+                return this.normalizeJavaType(`Set<${innerType}>`);
             }
 
-            return innerType;
+            return this.normalizeJavaType(innerType);
         }
 
         if (returnType.name) {
-            return returnType.name;
+            return this.normalizeJavaType(returnType.name);
         }
 
-        return 'Object';
+        return this.normalizeJavaType('Object');
     }
 
     private resolveParameterType(type: any): string {
@@ -158,6 +158,14 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
         }
 
         return 'Object';
+    }
+
+    private normalizeJavaType(typeName: string): string {
+        const trimmed = typeName.trim();
+        if (trimmed === 'Boolean') {
+            return 'boolean';
+        }
+        return trimmed;
     }
 
 

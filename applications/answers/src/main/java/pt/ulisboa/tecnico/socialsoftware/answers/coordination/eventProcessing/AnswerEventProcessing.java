@@ -12,7 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service.AnswerService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.AnonymizeStudentEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.AnonymizeUserEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UpdateStudentNameEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.DisenrollStudentFromExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.DeleteExecutionEvent;
@@ -47,7 +47,7 @@ public class AnswerEventProcessing {
         unitOfWorkService.commit(unitOfWork);
     }
 
-    public void processAnonymizeStudentEvent(Integer aggregateId, AnonymizeStudentEvent anonymizeStudentEvent) {
+    public void processAnonymizeUserEvent(Integer aggregateId, AnonymizeUserEvent anonymizeUserEvent) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
         unitOfWorkService.commit(unitOfWork);

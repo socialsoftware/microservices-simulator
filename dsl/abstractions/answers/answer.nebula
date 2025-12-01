@@ -51,31 +51,37 @@ Aggregate Answer {
         publish QuestionAnswerEvent {
             Integer questionAggregateId;
             Integer quizAggregateId;
-            Integer studentAggregateId;
+            Integer userAggregateId;
             Boolean correct;
         }
 
-        subscribe AnonymizeStudentEvent from AnswerUser {
-            event.getStudentAggregateId() == answerUser.getUserAggregateId();
+        subscribe AnonymizeUserEvent 
+            from Answer
+            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
+            event.studentAggregateId == answer.user.userAggregateId;
         }
 
-        subscribe UpdateStudentNameEvent from AnswerUser {
-            event.getStudentAggregateId() == answerUser.getUserAggregateId();
+        subscribe UpdateStudentNameEvent from Answer
+            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
+            event.studentAggregateId == answer.user.userAggregateId;
         }
 
-        subscribe DisenrollStudentFromExecutionEvent from AnswerExecution {
-            event.getExecutionAggregateId() == answerExecution.getExecutionAggregateId();
+        subscribe DisenrollStudentFromExecutionEvent from Answer
+            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
+            event.executionAggregateId == answer.execution.executionAggregateId;
         }
 
-        subscribe DeleteExecutionEvent from AnswerExecution {
-            event.getExecutionAggregateId() == answerExecution.getExecutionAggregateId();
+        subscribe DeleteExecutionEvent from Answer
+            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
+            event.executionAggregateId == answer.execution.executionAggregateId;
         }
 
-        subscribe InvalidateQuizEvent from AnswerQuiz {
-            event.getPublisherAggregateId() == answerQuiz.getQuizAggregateId();
+        subscribe InvalidateQuizEvent from Answer
+            routing (answer.quiz.quizAggregateId, answer.quiz.quizVersion) {
+            event.publisherAggregateId == answer.quiz.quizAggregateId;
         }
 
-        subscribe DeleteQuestionEvent from AnswerQuiz {
+        subscribe DeleteQuestionEvent from Answer {
             true;
         }
     }

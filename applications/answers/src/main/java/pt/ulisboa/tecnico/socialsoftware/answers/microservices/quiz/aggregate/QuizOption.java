@@ -13,7 +13,7 @@ public class QuizOption {
     @GeneratedValue
     private Long id;
     private Integer optionSequence;
-    private Boolean optionCorrect;
+    private boolean optionCorrect;
     private String optionContent;
     @OneToOne
     private Quiz quiz;
@@ -41,11 +41,11 @@ public class QuizOption {
         this.optionSequence = optionSequence;
     }
 
-    public Boolean getOptionCorrect() {
+    public boolean getOptionCorrect() {
         return optionCorrect;
     }
 
-    public void setOptionCorrect(Boolean optionCorrect) {
+    public void setOptionCorrect(boolean optionCorrect) {
         this.optionCorrect = optionCorrect;
     }
 

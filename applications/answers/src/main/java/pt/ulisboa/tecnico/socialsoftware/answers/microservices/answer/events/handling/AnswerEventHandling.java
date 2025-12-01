@@ -7,18 +7,18 @@ import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.AnswerEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.AnonymizeStudentEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answeruser.events.publish.AnonymizeStudentEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.AnonymizeUserEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnonymizeUserEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.UpdateStudentNameEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answeruser.events.publish.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.UpdateStudentNameEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.DisenrollStudentFromExecutionEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answerexecution.events.publish.DisenrollStudentFromExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.DisenrollStudentFromExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.DeleteExecutionEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answerexecution.events.publish.DeleteExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.DeleteExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.InvalidateQuizEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answerquiz.events.publish.InvalidateQuizEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.InvalidateQuizEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.DeleteQuestionEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answerquiz.events.publish.DeleteQuestionEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.DeleteQuestionEvent;
 
 @Component
 public class AnswerEventHandling {
@@ -30,12 +30,12 @@ public class AnswerEventHandling {
     private AnswerRepository answerRepository;
 
     /*
-        AnonymizeStudentEvent
+        AnonymizeUserEvent
      */
     @Scheduled(fixedDelay = 1000)
-    public void handleAnonymizeStudentEventEvents() {
-        eventApplicationService.handleSubscribedEvent(AnonymizeStudentEvent.class,
-                new AnonymizeStudentEventHandler(answerRepository, answerEventProcessing));
+    public void handleAnonymizeUserEventEvents() {
+        eventApplicationService.handleSubscribedEvent(AnonymizeUserEvent.class,
+                new AnonymizeUserEventHandler(answerRepository, answerEventProcessing));
     }
 
     /*

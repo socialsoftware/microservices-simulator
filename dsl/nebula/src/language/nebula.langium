@@ -73,7 +73,10 @@ PublishedEvent:
     '}';
 
 SubscribedEvent:
-    'subscribe' eventType=[PublishedEvent:QualifiedName] 'from' sourceAggregate=ID '{'
+    'subscribe' eventType=[PublishedEvent:QualifiedName]
+    'from' sourceAggregate=ID
+    ('routing' '(' routingIdExpr=Expression (',' routingVersionExpr=Expression)? ')')?
+    '{'
         conditions+=EventCondition*
     '}';
 

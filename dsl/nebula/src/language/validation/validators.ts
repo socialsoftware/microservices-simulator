@@ -1,5 +1,5 @@
 import type { ValidationAcceptor } from "langium";
-import type { Model, Aggregate, Entity, Property, Method, Invariant, RepositoryMethod } from "../generated/ast.js";
+import type { Model, Aggregate, Entity, Property, Method, Invariant, RepositoryMethod, SubscribedEvent } from "../generated/ast.js";
 import type { NebulaServices } from "../nebula-module.js";
 import { NamingValidator } from "./naming-validator.js";
 import { ModelValidator } from "./model-validator.js";
@@ -8,6 +8,7 @@ import { PropertyValidator } from "./property-validator.js";
 import { MethodValidator } from "./method-validator.js";
 import { InvariantValidator } from "./invariant-validator.js";
 import { RepositoryValidator } from "./repository-validator.js";
+import { EventValidator } from "./validation/event-validator.js";
 
 export class NebulaValidator {
     private readonly namingValidator: NamingValidator;
@@ -17,6 +18,7 @@ export class NebulaValidator {
     private readonly methodValidator: MethodValidator;
     private readonly invariantValidator: InvariantValidator;
     private readonly repositoryValidator: RepositoryValidator;
+    private readonly eventValidator: EventValidator;
 
     constructor(private readonly services?: NebulaServices) {
         this.namingValidator = new NamingValidator();
@@ -26,6 +28,7 @@ export class NebulaValidator {
         this.methodValidator = new MethodValidator(this.namingValidator);
         this.invariantValidator = new InvariantValidator(this.namingValidator);
         this.repositoryValidator = new RepositoryValidator();
+        this.eventValidator = new EventValidator();
     }
 
     checkModel(model: Model, accept: ValidationAcceptor): void {
@@ -54,5 +57,9 @@ export class NebulaValidator {
 
     checkRepositoryMethod(method: RepositoryMethod, accept: ValidationAcceptor): void {
         this.repositoryValidator.checkRepositoryMethod(method, accept);
+    }
+
+    checkSubscribedEvent(event: SubscribedEvent, accept: ValidationAcceptor): void {
+        this.eventValidator.checkSubscribedEvent(event, accept);
     }
 }

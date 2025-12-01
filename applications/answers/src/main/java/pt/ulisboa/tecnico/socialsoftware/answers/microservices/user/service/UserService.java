@@ -32,7 +32,7 @@ public class UserService {
     public UserService() {}
 
     // CRUD Operations
-    public UserDto createUser(String name, String username, UserRole role, Boolean active) {
+    public UserDto createUser(String name, String username, UserRole role, boolean active) {
         try {
             User user = new User(name, username, role, active);
             user = userRepository.save(user);
