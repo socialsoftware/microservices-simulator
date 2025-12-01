@@ -32,7 +32,7 @@ export interface Condition {
 export interface Comparison {
     left: PropertyPath;
     operator: string;
-    right: PropertyPath | Parameter | Literal;
+    right: PropertyPath | Parameter | Literal | Subquery;
 }
 
 export interface PropertyPath {
@@ -48,6 +48,12 @@ export interface Parameter {
 export interface Literal {
     type: 'string' | 'number' | 'null';
     value: string | number;
+}
+
+export interface Subquery {
+    type: 'subquery';
+    ast: JpqlAst;
+    aliases: Map<string, string>;
 }
 
 export interface ParseError {
@@ -291,20 +297,44 @@ export class JpqlParser {
         const left = this.parsePropertyPath();
         const operator = this.parseOperator();
 
-        let right: PropertyPath | Parameter | Literal;
+        let right: PropertyPath | Parameter | Literal | Subquery;
         if (operator === 'IS NULL' || operator === 'IS NOT NULL') {
             right = { type: 'null', value: 'null' };
         } else if (operator === 'IN' || operator === 'NOT IN') {
             this.consume('(');
             const nextToken = this.peek()?.toUpperCase();
             if (nextToken === 'SELECT') {
+                // Capture the subquery tokens until the matching closing parenthesis
+                const subqueryTokens: string[] = [];
                 let parenCount = 1;
                 while (parenCount > 0 && this.current < this.tokens.length) {
-                    const token = this.advance();
-                    if (token === '(') parenCount++;
-                    if (token === ')') parenCount--;
+                    const token = this.advance()!;
+                    if (token === '(') {
+                        parenCount++;
+                    } else if (token === ')') {
+                        parenCount--;
+                        if (parenCount === 0) {
+                            break;
+                        }
+                    }
+                    if (parenCount > 0) {
+                        subqueryTokens.push(token);
+                    }
                 }
-                right = { type: 'null', value: 'subquery' } as any;
+
+                const subqueryText = subqueryTokens.join(' ');
+                const subParser = new JpqlParser();
+                const subResult = subParser.parse(subqueryText);
+
+                if (!subResult.isValid || !subResult.ast) {
+                    throw new Error('Failed to parse subquery');
+                }
+
+                right = {
+                    type: 'subquery',
+                    ast: subResult.ast,
+                    aliases: subResult.aliases
+                };
             } else {
                 const values: (PropertyPath | Parameter | Literal)[] = [];
                 if (!this.check(')')) {

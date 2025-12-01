@@ -3,5 +3,5 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggre
 import java.util.Set;
 
 public interface TournamentCustomRepository {
-    Set<Integer> findAllByExecutionExecutionAggregateId(Integer executionAggregateId);
+    Set<Integer> findAllTournamentIdsOfNotDeletedAndNotInactiveByExecution(Integer executionAggregateId);
 }

@@ -158,6 +158,16 @@ export class RepositoryValidator {
 
         const { ast, aliases } = parseResult;
 
+        this.validateJpqlAst(ast, aliases, entities, method, accept);
+    }
+
+    private validateJpqlAst(
+        ast: any,
+        aliases: Map<string, string>,
+        entities: Entity[],
+        method: RepositoryMethod,
+        accept: ValidationAcceptor
+    ): void {
         const fromEntity = entities.find((e: any) => e.name === ast.from.entity);
         if (!fromEntity) {
             const suggestions = entities
@@ -218,6 +228,11 @@ export class RepositoryValidator {
 
         if (comparison.right && comparison.right.type === 'property') {
             this.validatePropertyPath(comparison.right, aliases, entities, method, accept);
+        }
+
+        if (comparison.right && comparison.right.type === 'subquery') {
+            const subquery = comparison.right;
+            this.validateJpqlAst(subquery.ast, subquery.aliases, entities, method, accept);
         }
     }
 

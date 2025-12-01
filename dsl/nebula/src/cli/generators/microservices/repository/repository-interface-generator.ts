@@ -232,13 +232,8 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
                 const methodSignature = `${method.returnType} ${methodName}(${method.parameters.map((p: any) => `${p.type} ${p.name}`).join(', ')});`;
 
                 if (method.query && method.query.trim() !== '') {
-                    let sagaQuery = method.query;
-                    if (method.forSaga) {
-                        const aliasMatch = method.query.match(/\bfrom\s+\w+\s+(\w+)\b/i);
-                        const alias = aliasMatch ? aliasMatch[1] : context.lowerAggregate.charAt(0) + '1';
-                        sagaQuery = `${method.query} AND ${alias}.sagaState = 'NOT_IN_SAGA'`;
-                    }
-                    return `    @Query(value = "${sagaQuery}")
+                    const finalQuery = method.query;
+                    return `    @Query(value = "${finalQuery}")
     ${methodSignature}`;
                 } else {
                     return `    ${methodSignature}`;

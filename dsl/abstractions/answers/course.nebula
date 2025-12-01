@@ -14,7 +14,7 @@ Aggregate Course {
     }
 
     Repository {
-        @Query("select c1.id from Course c1 where c1.name = :courseName AND c1.state = 'ACTIVE'")
+        @Query("select c1.id from Course c1 where c1.name = :courseName AND c1.state = 'ACTIVE' AND c1.sagaState = 'NOT_IN_SAGA'")
         Optional<Integer> findCourseIdByNameForSaga(String courseName);
     }
 

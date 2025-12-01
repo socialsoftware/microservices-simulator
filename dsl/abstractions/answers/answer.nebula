@@ -45,15 +45,6 @@ Aggregate Answer {
         AnswerUser user;
         AnswerQuiz quiz;
         List<QuestionAnswered> questions;
-
-        invariants {
-
-        }
-
-
-        methods {
-   
-        }
     }
 
     Events {
