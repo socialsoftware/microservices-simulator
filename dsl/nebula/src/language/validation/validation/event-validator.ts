@@ -6,14 +6,15 @@ export class EventValidator {
         const eventsContainer = event.$container as Events;
         const aggregate = eventsContainer.$container as Aggregate;
 
-        const entities = (aggregate as any).entities as Entity[] | undefined;
-        const rootEntity = entities ? entities.find(e => (e as any).isRoot) : undefined;
-        const baseEntity = rootEntity ?? (entities && entities[0]) ?? undefined;
+        const aggregateElements = aggregate.aggregateElements || [];
+        const entities = aggregateElements.filter((e: any) => e.$type === 'Entity') as Entity[];
+        const rootEntity = entities.find(e => (e as any).isRoot);
+        const baseEntity = rootEntity ?? entities[0];
 
         if (event.sourceAggregate) {
             const validSourceNames = [
                 aggregate.name,
-                ...(entities?.map(e => e.name) ?? [])
+                ...entities.map(e => e.name)
             ];
             if (!validSourceNames.includes(event.sourceAggregate)) {
                 const candidates = validSourceNames
@@ -45,22 +46,19 @@ export class EventValidator {
                 const routingIdExpr = (event as any).routingIdExpr;
                 if (routingIdExpr.$cstNode?.text) {
                     const text = routingIdExpr.$cstNode.text.trim();
-                    this.validateAggregatePropertyPathUsages(text, aggregateVarName, baseEntity, aggregate, event, accept);
+                    this.validateAggregatePropertyPathUsages(text, aggregateVarName, baseEntity, aggregate, routingIdExpr, accept);
+                } else {
+                    this.validateConditionExpression(routingIdExpr, eventFields, baseEntity, aggregate, event, accept);
                 }
-                this.validateConditionExpression(routingIdExpr, eventFields, baseEntity, aggregate, event, accept);
             }
             if ((event as any).routingVersionExpr) {
                 const routingVersionExpr = (event as any).routingVersionExpr;
                 if (routingVersionExpr.$cstNode?.text) {
                     const text = routingVersionExpr.$cstNode.text.trim();
-                    this.validateAggregatePropertyPathUsages(text, aggregateVarName, baseEntity, aggregate, event, accept);
+                    this.validateAggregatePropertyPathUsages(text, aggregateVarName, baseEntity, aggregate, routingVersionExpr, accept);
+                } else {
+                    this.validateConditionExpression(routingVersionExpr, eventFields, baseEntity, aggregate, event, accept);
                 }
-                this.validateConditionExpression(routingVersionExpr, eventFields, baseEntity, aggregate, event, accept);
-            }
-
-            if (event.$cstNode?.text) {
-                const fullText = event.$cstNode.text.trim();
-                this.validateAggregatePropertyPathUsages(fullText, aggregateVarName, baseEntity, aggregate, event, accept);
             }
         }
 
@@ -97,13 +95,28 @@ export class EventValidator {
             return;
         }
 
-        if (type === 'PropertyChainExpression') {
+        if (type === 'ParenthesizedExpression') {
+            if ((expr as any).expression) {
+                this.validateConditionExpression((expr as any).expression, eventFields, rootEntity, aggregate, event, accept);
+            }
+            return;
+        }
+
+        if (type === 'PropertyChainExpression' || type === 'PropertyAccess' || type === 'MethodCall') {
             this.validatePropertyChain(expr, eventFields, rootEntity, aggregate, event, accept);
             return;
         }
 
         if (type === 'PropertyReference') {
             return;
+        }
+
+        if (expr.$cstNode?.text && rootEntity) {
+            const text = expr.$cstNode.text.trim();
+            const aggregateVarName = aggregate.name.charAt(0).toLowerCase() + aggregate.name.slice(1);
+            if (new RegExp(`\\b${aggregateVarName}\\.`).test(text)) {
+                this.validateAggregatePropertyPathUsages(text, aggregateVarName, rootEntity, aggregate, expr, accept);
+            }
         }
 
         if ((expr as any).expression) {
@@ -149,7 +162,7 @@ export class EventValidator {
         aggregateVarName: string,
         rootEntity: Entity,
         aggregate: Aggregate,
-        event: SubscribedEvent,
+        errorNode: any,
         accept: ValidationAcceptor
     ): void {
         const cleanedText = text.replace(/^\(+|\)+$/g, '');
@@ -174,12 +187,14 @@ export class EventValidator {
 
                 if (!prop) {
                     const suggestions = props
-                        .map(p => p.name)
-                        .filter(n => n.toLowerCase().includes(seg.toLowerCase()) || seg.toLowerCase().includes(n.toLowerCase()))
-                        .slice(0, 3);
+                        .map(p => ({ name: p.name, similarity: this.stringSimilarity(seg.toLowerCase(), p.name.toLowerCase()) }))
+                        .filter(s => s.similarity > 0.5)
+                        .sort((a, b) => b.similarity - a.similarity)
+                        .slice(0, 3)
+                        .map(s => s.name);
                     const suggestionText = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(', ')}?` : '';
                     accept("error", `Property '${seg}' not found on entity '${currentEntity.name}'.${suggestionText}`, {
-                        node: event,
+                        node: errorNode,
                         property: "eventType"
                     });
                     return;
@@ -191,7 +206,7 @@ export class EventValidator {
                         currentEntity = propType.type.ref as Entity;
                     } else {
                         accept("error", `Property '${seg}' on entity '${currentEntity.name}' is not an entity reference and cannot have nested properties.`, {
-                            node: event,
+                            node: errorNode,
                             property: "eventType"
                         });
                         return;
@@ -209,17 +224,32 @@ export class EventValidator {
         event: SubscribedEvent,
         accept: ValidationAcceptor
     ): void {
-        const headName = expr.head?.name;
-        if (!headName) return;
-
+        let headName: string | undefined;
         const segments: string[] = [];
-        let current = expr;
+
+        if (expr.head) {
+            headName = expr.head.name;
+        }
+
+        let current: any = expr;
         while (current) {
             if (current.member) {
                 segments.unshift(current.member);
             }
+            if (!headName && current.$type === 'PropertyReference' && current.name) {
+                headName = current.name;
+                break;
+            }
             current = current.receiver;
+            if (current && current.$type === 'PropertyReference') {
+                if (!headName && current.name) {
+                    headName = current.name;
+                }
+                break;
+            }
         }
+
+        if (!headName) return;
 
         if (headName === 'event') {
             const fieldName = segments[0];
@@ -281,6 +311,33 @@ export class EventValidator {
                 }
             }
         }
+    }
+
+    private stringSimilarity(s1: string, s2: string): number {
+        if (s1 === s2) return 1;
+        if (s1.length === 0 || s2.length === 0) return 0;
+
+        const longer = s1.length > s2.length ? s1 : s2;
+        const shorter = s1.length > s2.length ? s2 : s1;
+
+        let matches = 0;
+        for (let i = 0; i < shorter.length; i++) {
+            if (longer.includes(shorter[i])) {
+                matches++;
+            }
+        }
+
+        const matchRatio = matches / longer.length;
+        const lengthPenalty = 1 - Math.abs(s1.length - s2.length) / Math.max(s1.length, s2.length);
+
+        let commonPrefix = 0;
+        for (let i = 0; i < Math.min(s1.length, s2.length, 4); i++) {
+            if (s1[i] === s2[i]) commonPrefix++;
+            else break;
+        }
+        const prefixBonus = commonPrefix * 0.1;
+
+        return Math.min(1, matchRatio * 0.5 + lengthPenalty * 0.3 + prefixBonus);
     }
 }
 
