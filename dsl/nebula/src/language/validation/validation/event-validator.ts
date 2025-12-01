@@ -3,11 +3,6 @@ import type { Aggregate, Entity, Events, EventField, PublishedEvent, SubscribedE
 
 export class EventValidator {
     checkSubscribedEvent(event: SubscribedEvent, accept: ValidationAcceptor): void {
-        const published = event.eventType.ref as PublishedEvent | undefined;
-        if (!published) {
-            return;
-        }
-
         const eventsContainer = event.$container as Events;
         const aggregate = eventsContainer.$container as Aggregate;
 
@@ -35,30 +30,48 @@ export class EventValidator {
             }
         }
 
+        const published = event.eventType.ref as PublishedEvent | undefined;
         const eventFields = new Map<string, EventField>();
-        for (const field of published.fields) {
-            eventFields.set(field.name, field);
+        if (published) {
+            for (const field of published.fields) {
+                eventFields.set(field.name, field);
+            }
         }
 
-        if (event.$cstNode?.text) {
-            const fullText = event.$cstNode.text.trim();
-            this.validateEventFieldUsages(fullText, eventFields, event, accept);
-            if (baseEntity) {
-                const aggregateVarName = aggregate.name.charAt(0).toLowerCase() + aggregate.name.slice(1);
+        if (baseEntity) {
+            const aggregateVarName = aggregate.name.charAt(0).toLowerCase() + aggregate.name.slice(1);
+
+            if ((event as any).routingIdExpr) {
+                const routingIdExpr = (event as any).routingIdExpr;
+                if (routingIdExpr.$cstNode?.text) {
+                    const text = routingIdExpr.$cstNode.text.trim();
+                    this.validateAggregatePropertyPathUsages(text, aggregateVarName, baseEntity, aggregate, event, accept);
+                }
+                this.validateConditionExpression(routingIdExpr, eventFields, baseEntity, aggregate, event, accept);
+            }
+            if ((event as any).routingVersionExpr) {
+                const routingVersionExpr = (event as any).routingVersionExpr;
+                if (routingVersionExpr.$cstNode?.text) {
+                    const text = routingVersionExpr.$cstNode.text.trim();
+                    this.validateAggregatePropertyPathUsages(text, aggregateVarName, baseEntity, aggregate, event, accept);
+                }
+                this.validateConditionExpression(routingVersionExpr, eventFields, baseEntity, aggregate, event, accept);
+            }
+
+            if (event.$cstNode?.text) {
+                const fullText = event.$cstNode.text.trim();
                 this.validateAggregatePropertyPathUsages(fullText, aggregateVarName, baseEntity, aggregate, event, accept);
             }
+        }
+
+        if (published && event.$cstNode?.text) {
+            const fullText = event.$cstNode.text.trim();
+            this.validateEventFieldUsages(fullText, eventFields, event, accept);
         }
 
         for (const cond of event.conditions) {
             if (!cond.condition) continue;
             this.validateConditionExpression(cond.condition, eventFields, baseEntity, aggregate, event, accept);
-        }
-
-        if ((event as any).routingIdExpr) {
-            this.validateConditionExpression((event as any).routingIdExpr, eventFields, baseEntity, aggregate, event, accept);
-        }
-        if ((event as any).routingVersionExpr) {
-            this.validateConditionExpression((event as any).routingVersionExpr, eventFields, baseEntity, aggregate, event, accept);
         }
     }
 
@@ -139,11 +152,12 @@ export class EventValidator {
         event: SubscribedEvent,
         accept: ValidationAcceptor
     ): void {
+        const cleanedText = text.replace(/^\(+|\)+$/g, '');
         const regex = new RegExp(`\\b${aggregateVarName}\\.(\\w+(?:\\.\\w+)*)`, 'g');
         let match: RegExpExecArray | null;
         const seen = new Set<string>();
 
-        while ((match = regex.exec(text)) !== null) {
+        while ((match = regex.exec(cleanedText)) !== null) {
             const fullPath = match[1];
             if (seen.has(fullPath)) continue;
             seen.add(fullPath);
