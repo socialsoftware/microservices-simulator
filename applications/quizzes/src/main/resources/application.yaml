@@ -13,7 +13,7 @@ spring:
       jakarta.persistence.sharedCache.mode: UNSPECIFIED
     generate-ddl: true
     hibernate:
-      ddl-auto: create # important temporary
+      ddl-auto: create # IMPORTANT this is only for jmeter testing
     show-sql: false
     open-in-view: false
 
@@ -94,14 +94,7 @@ spring:
         userServiceCommandChannel;
         courseServiceCommandChannel;
 
-        quizEventChannel;
-        topicEventChannel;
-        userEventChannel;
-        answerEventChannel;
-        courseExecutionEventChannel;
-        questionEventChannel;
-        tournamentEventChannel;
-        courseEventChannel
+        eventChannel
 
     stream:
       default:
@@ -157,31 +150,11 @@ spring:
           destination: command-responses
           group: response-group
 
-        # --- Event consumers (inputs) ---
-        quizEventChannel-in-0:
-          destination: quiz-event-channel
-          group: quiz-service-event-group
-        topicEventChannel-in-0:
-          destination: topic-event-channel
-          group: topic-service-event-group
-        userEventChannel-in-0:
-          destination: user-event-channel
-          group: user-service-event-group
-        answerEventChannel-in-0:
-          destination: answer-event-channel
-          group: answer-service-event-group
-        courseExecutionEventChannel-in-0:
-          destination: courseexecution-event-channel
-          group: course-execution-service-event-group
-        questionEventChannel-in-0:
-          destination: question-event-channel
-          group: question-service-event-group
-        tournamentEventChannel-in-0:
-          destination: tournament-event-channel
-          group: tournament-service-event-group
-        courseEventChannel-in-0:
-          destination: course-event-channel
-          group: course-service-event-group
+        # --- Single Event channel (all events go through here) ---
+        event-channel:
+          destination: event-channel
+        eventChannel-in-0:
+          destination: event-channel
 
 
       rabbit:

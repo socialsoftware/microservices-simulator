@@ -4,20 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.MessagingObjectMapperProvider;
 
 import java.util.List;
-import java.util.Set;
 
 @Profile("stream")
 public class EventPublisherService {
     private static final Logger logger = LoggerFactory.getLogger(EventPublisherService.class);
+    private static final String EVENT_CHANNEL = "event-channel";
 
     private final EventRepository eventRepository;
     private final StreamBridge streamBridge;
@@ -39,22 +37,18 @@ public class EventPublisherService {
 
     @Scheduled(fixedDelay = 1000)
     public void publishPendingEvents() {
+        // Get all event types that have subscribers (other than self)
         eventSubscriptionConfig.getEventTypes().forEach(eventType -> {
-            Set<String> aggregateTypes = eventSubscriptionConfig.getAggregateTypes(eventType);
-            if (!aggregateTypes.isEmpty()) {
-                List<String> destinations = aggregateTypes.stream()
-                        .filter(aggregateType -> !aggregateType.equalsIgnoreCase(aggregateName))
-                        .map(this::buildDestination)
-                        .toList();
+            boolean hasOtherSubscribers = eventSubscriptionConfig.getAggregateTypes(eventType).stream()
+                    .anyMatch(aggregateType -> !aggregateType.equalsIgnoreCase(aggregateName));
 
-                if (!destinations.isEmpty()) {
-                    publishPendingEventsBySimpleName(eventType, destinations);
-                }
+            if (hasOtherSubscribers) {
+                publishPendingEventsBySimpleName(eventType);
             }
         });
     }
 
-    private void publishPendingEventsBySimpleName(String eventSimpleName, List<String> destinations) {
+    private void publishPendingEventsBySimpleName(String eventSimpleName) {
         List<Event> pending = eventRepository.findAll().stream()
                 .filter(e -> e.getClass().getSimpleName().equals(eventSimpleName))
                 .filter(e -> e.getClass().getPackage().getName().contains("." + this.aggregateName + "."))
@@ -64,36 +58,23 @@ public class EventPublisherService {
         for (Event event : pending) {
             try {
                 String json = objectMapper.writeValueAsString(event);
-                boolean allSent = true;
 
-                for (String destination : destinations) {
-                    boolean sent = streamBridge.send(destination,
-                            MessageBuilder.withPayload(json)
-                                    .setHeader("contentType", "application/json")
-                                    .setHeader("eventType", eventSimpleName)
-                                    .build());
+                boolean sent = streamBridge.send(EVENT_CHANNEL,
+                        MessageBuilder.withPayload(json)
+                                .setHeader("contentType", "application/json")
+                                .setHeader("eventType", eventSimpleName)
+                                .build());
 
-                    if (sent) {
-                        logger.info("{}: Published event '{}' to '{}'", aggregateName, eventSimpleName, destination);
-                    } else {
-                        logger.error("{}: Failed to publish event '{}' to '{}'", aggregateName, eventSimpleName,
-                                destination);
-                        allSent = false;
-                    }
-                }
-
-                if (allSent) {
+                if (sent) {
                     event.setPublished(true);
                     eventRepository.save(event);
-                    logger.info("Event '{}' marked as published after sending to all destinations", eventSimpleName);
+                    logger.info("{}: Published event '{}' to '{}'", aggregateName, eventSimpleName, EVENT_CHANNEL);
+                } else {
+                    logger.error("{}: Failed to publish event '{}' to '{}'", aggregateName, eventSimpleName, EVENT_CHANNEL);
                 }
             } catch (JsonProcessingException e) {
                 logger.error("Error serializing event: {}", e.getMessage());
             }
         }
-    }
-
-    private String buildDestination(String aggregateType) {
-        return aggregateType.toLowerCase() + "-event-channel";
     }
 }
