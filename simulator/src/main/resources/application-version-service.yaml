@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/msdb
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+
+  jpa:
+    properties:
+      jakarta.persistence.sharedCache.mode: UNSPECIFIED
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  cloud:
+    function:
+      definition: versionCommandChannel
+    stream:
+      bindings:
+        versionCommandChannel-in-0:
+          destination: version-command-channel
+          group: version-service
+        command-responses-out-0:
+          destination: command-responses
+
+server:
+  port: 8081
