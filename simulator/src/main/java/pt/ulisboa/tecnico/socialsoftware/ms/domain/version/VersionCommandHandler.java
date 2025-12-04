@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.DecrementVersionCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.GetVersionCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.IncrementVersionCommand;
 
 import java.util.logging.Logger;
 
