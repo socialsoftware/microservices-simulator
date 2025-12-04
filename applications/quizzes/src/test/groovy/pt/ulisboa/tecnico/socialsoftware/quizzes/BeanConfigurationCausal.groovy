@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGa
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.factories.CausalQuizAnswerFactory
@@ -71,7 +72,7 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    VersionService versionService() {
+    IVersionService versionService() {
         return new VersionService();
     }
 

@@ -6,6 +6,7 @@ import org.springframework.context.annotation.PropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 
@@ -18,7 +19,7 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    VersionService versionService() {
+    IVersionService versionService() {
         return new VersionService();
     }
 

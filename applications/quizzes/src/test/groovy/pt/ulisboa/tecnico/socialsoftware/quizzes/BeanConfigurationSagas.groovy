@@ -12,6 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.StreamC
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
@@ -76,7 +77,7 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    VersionService versionService() {
+    IVersionService versionService() {
         return new VersionService()
     }
 

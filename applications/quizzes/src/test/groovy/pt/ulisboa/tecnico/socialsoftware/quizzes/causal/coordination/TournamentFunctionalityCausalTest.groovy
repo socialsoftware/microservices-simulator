@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
@@ -32,7 +32,7 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
     private TournamentFunctionalities tournamentFunctionalities
 
     @Autowired
-    private VersionService versionService;
+    private IVersionService versionService;
 
     @Autowired
     private TournamentEventHandling tournamentEventHandling
