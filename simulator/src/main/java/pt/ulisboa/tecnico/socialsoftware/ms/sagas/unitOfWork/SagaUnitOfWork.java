@@ -12,10 +12,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaSt
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceManager;
 
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -26,7 +28,7 @@ public class SagaUnitOfWork extends UnitOfWork {
     private static final Logger logger = LoggerFactory.getLogger(SagaUnitOfWork.class);
 
     private final ArrayList<Runnable> compensatingActions;
-    private final ArrayList<Integer> aggregatesInSaga; //TODO CHANGE IN DISTRIBUTED
+    private final Map<Integer, String> aggregatesInSaga; // aggregateId -> aggregateType
     private final HashMap<Integer, SagaState> previousStates = new HashMap<>();
 
     private final TraceManager traceManager;
@@ -34,7 +36,7 @@ public class SagaUnitOfWork extends UnitOfWork {
     public SagaUnitOfWork(Integer version, String functionalityName) {
         super(version, functionalityName);
         this.compensatingActions = new ArrayList<>();
-        this.aggregatesInSaga = new ArrayList<>();
+        this.aggregatesInSaga = new LinkedHashMap<>();
         this.traceManager = TraceManager.getInstance();
     }
 
@@ -44,8 +46,8 @@ public class SagaUnitOfWork extends UnitOfWork {
 
     public void compensate() {
         Collections.reverse(this.compensatingActions);
-        this.traceManager.startSpanForCompensation(this.getFunctionalityName()); 
-        for (Runnable action: compensatingActions) {
+        this.traceManager.startSpanForCompensation(this.getFunctionalityName());
+        for (Runnable action : compensatingActions) {
             logger.info("COMPENSATE: {}", action.getClass().getSimpleName());
             action.run();
         }
@@ -58,19 +60,19 @@ public class SagaUnitOfWork extends UnitOfWork {
 
         // Execute compensations asynchronously using the provided ExecutorService
         List<CompletableFuture<Void>> compensationFutures = compensatingActions.stream()
-            .map(action -> CompletableFuture.runAsync(action, executorService))
-            .collect(Collectors.toList());
+                .map(action -> CompletableFuture.runAsync(action, executorService))
+                .collect(Collectors.toList());
 
         // Combine all compensation futures into a single CompletableFuture
         return CompletableFuture.allOf(compensationFutures.toArray(new CompletableFuture[0]));
     }
 
-    public ArrayList<Integer> getAggregatesInSaga() {
+    public Map<Integer, String> getAggregatesInSaga() {
         return this.aggregatesInSaga;
     }
 
-    public void addToAggregatesInSaga(Integer aggregateId) {
-        this.aggregatesInSaga.add(aggregateId);
+    public void addToAggregatesInSaga(Integer aggregateId, String aggregateType) {
+        this.aggregatesInSaga.put(aggregateId, aggregateType);
     }
 
     public HashMap<Integer, SagaState> getPreviousStates() {

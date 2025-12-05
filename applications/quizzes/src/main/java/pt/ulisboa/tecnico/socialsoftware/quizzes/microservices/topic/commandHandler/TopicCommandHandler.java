@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 
@@ -36,8 +37,11 @@ public class TopicCommandHandler implements CommandHandler {
             returnObject = handleUpdateTopic((UpdateTopicCommand) command);
         } else if (command instanceof DeleteTopicCommand) {
             returnObject = handleDeleteTopic((DeleteTopicCommand) command);
+        } else if (command instanceof CommitSagaCommand) {
+            returnObject = handleCommitSaga((CommitSagaCommand) command);
         } else {
-            Logger.getLogger(TopicCommandHandler.class.getName()).warning("Unknown command type: " + command.getClass().getName());
+            Logger.getLogger(TopicCommandHandler.class.getName())
+                    .warning("Unknown command type: " + command.getClass().getName());
             returnObject = null;
         }
         if (command.getSemanticLock() != null) {
@@ -66,6 +70,11 @@ public class TopicCommandHandler implements CommandHandler {
 
     private Object handleDeleteTopic(DeleteTopicCommand command) {
         topicService.deleteTopic(command.getTopicAggregateId(), command.getUnitOfWork());
+        return null;
+    }
+
+    private Object handleCommitSaga(CommitSagaCommand command) {
+        sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
         return null;
     }
 }

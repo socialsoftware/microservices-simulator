@@ -51,7 +51,7 @@ public class EventPublisherService {
     private void publishPendingEventsBySimpleName(String eventSimpleName) {
         List<Event> pending = eventRepository.findAll().stream()
                 .filter(e -> e.getClass().getSimpleName().equals(eventSimpleName))
-                .filter(e -> e.getClass().getPackage().getName().contains("." + this.aggregateName + "."))
+                .filter(e -> e.getClass().getPackage().getName().contains("." + this.aggregateName + ".")) // TODO
                 .filter(e -> !e.isPublished())
                 .toList();
 

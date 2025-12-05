@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
@@ -29,25 +30,42 @@ public class TournamentCommandHandler implements CommandHandler {
         }
         Object returnObject;
         switch (command) {
-            case GetTournamentByIdCommand getTournamentByIdCommand -> returnObject = handleGetTournamentById(getTournamentByIdCommand);
-            case AddParticipantCommand addParticipantCommand -> returnObject = handleAddParticipant(addParticipantCommand);
-            case CreateTournamentCommand createTournamentCommand -> returnObject = handleCreateTournament(createTournamentCommand);
-            case GetTournamentsByCourseExecutionIdCommand getTournamentsByCourseExecutionIdCommand -> returnObject = handleGetTournamentsByCourseExecutionId(getTournamentsByCourseExecutionIdCommand);
-            case GetOpenedTournamentsForCourseExecutionCommand getOpenedTournamentsForCourseExecutionCommand -> returnObject = handleGetOpenedTournamentsForCourseExecution(getOpenedTournamentsForCourseExecutionCommand);
-            case GetClosedTournamentsForCourseExecutionCommand getClosedTournamentsForCourseExecutionCommand -> returnObject = handleGetClosedTournamentsForCourseExecution(getClosedTournamentsForCourseExecutionCommand);
-            case LeaveTournamentCommand leaveTournamentCommand -> returnObject = handleLeaveTournament(leaveTournamentCommand);
+            case GetTournamentByIdCommand getTournamentByIdCommand ->
+                returnObject = handleGetTournamentById(getTournamentByIdCommand);
+            case AddParticipantCommand addParticipantCommand ->
+                returnObject = handleAddParticipant(addParticipantCommand);
+            case CreateTournamentCommand createTournamentCommand ->
+                returnObject = handleCreateTournament(createTournamentCommand);
+            case GetTournamentsByCourseExecutionIdCommand getTournamentsByCourseExecutionIdCommand ->
+                returnObject = handleGetTournamentsByCourseExecutionId(getTournamentsByCourseExecutionIdCommand);
+            case GetOpenedTournamentsForCourseExecutionCommand getOpenedTournamentsForCourseExecutionCommand ->
+                returnObject = handleGetOpenedTournamentsForCourseExecution(
+                        getOpenedTournamentsForCourseExecutionCommand);
+            case GetClosedTournamentsForCourseExecutionCommand getClosedTournamentsForCourseExecutionCommand ->
+                returnObject = handleGetClosedTournamentsForCourseExecution(
+                        getClosedTournamentsForCourseExecutionCommand);
+            case LeaveTournamentCommand leaveTournamentCommand ->
+                returnObject = handleLeaveTournament(leaveTournamentCommand);
             case SolveQuizCommand solveQuizCommand -> returnObject = handleSolveQuiz(solveQuizCommand);
-            case RemoveTournamentCommand removeTournamentCommand -> returnObject = handleRemoveTournament(removeTournamentCommand);
-            case UpdateTournamentCommand updateTournamentCommand -> returnObject = handleUpdateTournament(updateTournamentCommand);
-            case CancelTournamentCommand cancelTournamentCommand -> returnObject = handleCancelTournament(cancelTournamentCommand);
+            case RemoveTournamentCommand removeTournamentCommand ->
+                returnObject = handleRemoveTournament(removeTournamentCommand);
+            case UpdateTournamentCommand updateTournamentCommand ->
+                returnObject = handleUpdateTournament(updateTournamentCommand);
+            case CancelTournamentCommand cancelTournamentCommand ->
+                returnObject = handleCancelTournament(cancelTournamentCommand);
             case AnonymizeUserCommand anonymizeUserCommand -> returnObject = handleAnonymizeUser(anonymizeUserCommand);
-            case UpdateUserNameCommand updateUserNameCommand -> returnObject = handleUpdateUserName(updateUserNameCommand);
-            case RemoveCourseExecutionCommand removeCourseExecutionCommand -> returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
+            case UpdateUserNameCommand updateUserNameCommand ->
+                returnObject = handleUpdateUserName(updateUserNameCommand);
+            case RemoveCourseExecutionCommand removeCourseExecutionCommand ->
+                returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
             case UpdateTopicCommand updateTopicCommand -> returnObject = handleUpdateTopic(updateTopicCommand);
             case RemoveTopicCommand removeTopicCommand -> returnObject = handleRemoveTopic(removeTopicCommand);
-            case UpdateParticipantAnswerCommand updateParticipantAnswerCommand -> returnObject = handleUpdateParticipantAnswer(updateParticipantAnswerCommand);
+            case UpdateParticipantAnswerCommand updateParticipantAnswerCommand ->
+                returnObject = handleUpdateParticipantAnswer(updateParticipantAnswerCommand);
             case RemoveUserCommand removeUserCommand -> returnObject = handleRemoveUser(removeUserCommand);
-            case InvalidateQuizCommand invalidateQuizCommand -> returnObject = handleInvalidateQuiz(invalidateQuizCommand);
+            case InvalidateQuizCommand invalidateQuizCommand ->
+                returnObject = handleInvalidateQuiz(invalidateQuizCommand);
+            case CommitSagaCommand commitSagaCommand -> returnObject = handleCommitSaga(commitSagaCommand);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 returnObject = null;
@@ -308,7 +326,8 @@ public class TournamentCommandHandler implements CommandHandler {
     }
 
     private Object handleRemoveUser(RemoveUserCommand command) {
-        logger.info("Removing user " + command.getUserAggregateId() + " from tournament " + command.getTournamentAggregateId());
+        logger.info("Removing user " + command.getUserAggregateId() + " from tournament "
+                + command.getTournamentAggregateId());
         try {
             return tournamentService.removeUser(
                     command.getTournamentAggregateId(),
@@ -332,6 +351,17 @@ public class TournamentCommandHandler implements CommandHandler {
                     command.getUnitOfWork());
         } catch (Exception e) {
             logger.severe("Failed to invalidate quiz for tournament: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleCommitSaga(CommitSagaCommand command) {
+        logger.info("Committing saga for aggregate: " + command.getAggregateId());
+        try {
+            sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to commit saga: " + e.getMessage());
             return e;
         }
     }

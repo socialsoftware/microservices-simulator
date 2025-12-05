@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 
@@ -34,7 +35,9 @@ public class UserCommandHandler implements CommandHandler {
             case DeleteUserCommand deleteUserCommand -> returnObject = handleDeleteUser(deleteUserCommand);
             case GetStudentsCommand getStudentsCommand -> returnObject = handleGetStudents(getStudentsCommand);
             case GetTeachersCommand getTeachersCommand -> returnObject = handleGetTeachers(getTeachersCommand);
-            case DeactivateUserCommand deactivateUserCommand -> returnObject = handleDeactivateUser(deactivateUserCommand);
+            case DeactivateUserCommand deactivateUserCommand ->
+                returnObject = handleDeactivateUser(deactivateUserCommand);
+            case CommitSagaCommand commitSagaCommand -> returnObject = handleCommitSaga(commitSagaCommand);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 returnObject = null;
@@ -116,6 +119,17 @@ public class UserCommandHandler implements CommandHandler {
             return null;
         } catch (Exception e) {
             logger.severe("Failed to deactivate user: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleCommitSaga(CommitSagaCommand command) {
+        logger.info("Committing saga for aggregate: " + command.getAggregateId());
+        try {
+            sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to commit saga: " + e.getMessage());
             return e;
         }
     }

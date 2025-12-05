@@ -38,7 +38,7 @@ event:
       - question
       - tournament
     DeleteUserEvent:
-      - courseexecution
+      - courseExecution
     UpdateStudentNameEvent:
       - answer
       - tournament
@@ -111,7 +111,7 @@ spring:
         answer-command-channel:
           destination: answer-command-channel
         course-execution-command-channel:
-          destination: courseexecution-command-channel
+          destination: courseExecution-command-channel
         question-command-channel:
           destination: question-command-channel
         tournament-command-channel:
@@ -133,7 +133,7 @@ spring:
           destination: answer-command-channel
           group: answer-service-group
         courseExecutionServiceCommandChannel-in-0:
-          destination: courseexecution-command-channel
+          destination: courseExecution-command-channel
           group: course-execution-service-group
         questionServiceCommandChannel-in-0:
           destination: question-command-channel

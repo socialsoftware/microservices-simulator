@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 
@@ -29,22 +30,23 @@ public class QuizCommandHandler implements CommandHandler {
         Object returnObject;
         switch (command) {
             case StartTournamentQuizCommand startTournamentQuizCommand ->
-                    returnObject = handleStartTournamentQuiz(startTournamentQuizCommand);
+                returnObject = handleStartTournamentQuiz(startTournamentQuizCommand);
             case GetQuizByIdCommand getQuizByIdCommand -> returnObject = handleGetQuizById(getQuizByIdCommand);
             case GenerateQuizCommand generateQuizCommand -> returnObject = handleGenerateQuiz(generateQuizCommand);
             case CreateQuizCommand createQuizCommand -> returnObject = handleCreateQuiz(createQuizCommand);
             case UpdateGeneratedQuizCommand updateGeneratedQuizCommand ->
-                    returnObject = handleUpdateGeneratedQuiz(updateGeneratedQuizCommand);
+                returnObject = handleUpdateGeneratedQuiz(updateGeneratedQuizCommand);
             case UpdateQuizCommand updateQuizCommand -> returnObject = handleUpdateQuiz(updateQuizCommand);
             case GetAvailableQuizzesCommand getAvailableQuizzesCommand ->
-                    returnObject = handleGetAvailableQuizzes(getAvailableQuizzesCommand);
+                returnObject = handleGetAvailableQuizzes(getAvailableQuizzesCommand);
             case RemoveCourseExecutionCommand removeCourseExecutionCommand ->
-                    returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
+                returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
             case UpdateQuestionCommand updateQuestionCommand ->
-                    returnObject = handleUpdateQuestion(updateQuestionCommand);
+                returnObject = handleUpdateQuestion(updateQuestionCommand);
             case RemoveQuizQuestionCommand removeQuizQuestionCommand ->
-                    returnObject = handleRemoveQuizQuestion(removeQuizQuestionCommand);
+                returnObject = handleRemoveQuizQuestion(removeQuizQuestionCommand);
             case RemoveQuizCommand removeQuizCommand -> returnObject = handleRemoveQuiz(removeQuizCommand);
+            case CommitSagaCommand commitSagaCommand -> returnObject = handleCommitSaga(commitSagaCommand);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 returnObject = null;
@@ -205,6 +207,17 @@ public class QuizCommandHandler implements CommandHandler {
             return null;
         } catch (Exception e) {
             logger.severe("Failed to remove quiz question: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleCommitSaga(CommitSagaCommand command) {
+        logger.info("Committing saga for aggregate: " + command.getAggregateId());
+        try {
+            sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to commit saga: " + e.getMessage());
             return e;
         }
     }

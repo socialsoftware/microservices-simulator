@@ -31,12 +31,12 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
 
     public abstract void abort(U unitOfWork);
 
-
-    // Must be serializable in order to ensure no other commits are made between the checking of concurrent versions and the actual persist
+    // Must be serializable in order to ensure no other commits are made between the
+    // checking of concurrent versions and the actual persist
     public abstract void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap);
 
-    protected String resolveServiceName(Aggregate aggregate) {
-        String className = aggregate.getClass().getSimpleName();
-        return className.replaceAll("Saga", "").replaceAll("Causal", "").toLowerCase();
+    protected String resolveServiceName(String aggregateType) {
+        String stripped = aggregateType.replaceAll("Saga", "").replaceAll("Causal", "");
+        return Character.toLowerCase(stripped.charAt(0)) + stripped.substring(1);
     }
 }

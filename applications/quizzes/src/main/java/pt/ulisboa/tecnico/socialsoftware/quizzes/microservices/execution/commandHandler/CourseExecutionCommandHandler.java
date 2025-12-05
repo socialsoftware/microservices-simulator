@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
@@ -30,25 +31,37 @@ public class CourseExecutionCommandHandler implements CommandHandler {
         }
         Object returnObject;
         switch (command) {
-            case CreateCourseExecutionCommand createCourseExecutionCommand -> returnObject = handleCreateCourseExecution(createCourseExecutionCommand);
-            case RemoveCourseExecutionCommand removeCourseExecutionCommand -> returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
-            case RemoveStudentFromCourseExecutionCommand removeStudentFromCourseExecutionCommand -> returnObject = handleRemoveStudentFromCourseExecution(removeStudentFromCourseExecutionCommand);
-            case UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand -> returnObject = handleUpdateExecutionStudentName(updateExecutionStudentNameCommand);
-            case GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand -> returnObject = handleGetStudentByExecutionIdAndUserId(getStudentByExecutionIdAndUserIdCommand);
-            case GetCourseExecutionsByUserIdCommand getCourseExecutionsByUserIdCommand -> returnObject = handleGetCourseExecutionsByUserId(getCourseExecutionsByUserIdCommand);
-            case GetCourseExecutionByIdCommand getCourseExecutionByIdCommand -> returnObject = handleGetCourseExecutionById(getCourseExecutionByIdCommand);
-            case GetAllCourseExecutionsCommand getAllCourseExecutionsCommand -> returnObject = handleGetAllCourseExecutions(getAllCourseExecutionsCommand);
+            case CreateCourseExecutionCommand createCourseExecutionCommand ->
+                returnObject = handleCreateCourseExecution(createCourseExecutionCommand);
+            case RemoveCourseExecutionCommand removeCourseExecutionCommand ->
+                returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
+            case RemoveStudentFromCourseExecutionCommand removeStudentFromCourseExecutionCommand ->
+                returnObject = handleRemoveStudentFromCourseExecution(removeStudentFromCourseExecutionCommand);
+            case UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand ->
+                returnObject = handleUpdateExecutionStudentName(updateExecutionStudentNameCommand);
+            case GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand ->
+                returnObject = handleGetStudentByExecutionIdAndUserId(getStudentByExecutionIdAndUserIdCommand);
+            case GetCourseExecutionsByUserIdCommand getCourseExecutionsByUserIdCommand ->
+                returnObject = handleGetCourseExecutionsByUserId(getCourseExecutionsByUserIdCommand);
+            case GetCourseExecutionByIdCommand getCourseExecutionByIdCommand ->
+                returnObject = handleGetCourseExecutionById(getCourseExecutionByIdCommand);
+            case GetAllCourseExecutionsCommand getAllCourseExecutionsCommand ->
+                returnObject = handleGetAllCourseExecutions(getAllCourseExecutionsCommand);
             case EnrollStudentCommand enrollStudentCommand -> returnObject = handleEnrollStudent(enrollStudentCommand);
-            case AnonymizeStudentCommand anonymizeStudentCommand -> returnObject = handleAnonymizeStudent(anonymizeStudentCommand);
+            case AnonymizeStudentCommand anonymizeStudentCommand ->
+                returnObject = handleAnonymizeStudent(anonymizeStudentCommand);
             case RemoveUserCommand removeUserCommand -> returnObject = handleRemoveUser(removeUserCommand);
+            case CommitSagaCommand commitSagaCommand -> returnObject = handleCommitSaga(commitSagaCommand);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 returnObject = null;
             }
         }
         if (command.getSemanticLock() != null) {
-            Logger.getLogger(CourseExecutionCommandHandler.class.getName()).info("Registering saga state: " + command.getSemanticLock());
-            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(), (SagaUnitOfWork) command.getUnitOfWork());
+            Logger.getLogger(CourseExecutionCommandHandler.class.getName())
+                    .info("Registering saga state: " + command.getSemanticLock());
+            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
+                    (SagaUnitOfWork) command.getUnitOfWork());
         }
 
         return returnObject;
@@ -203,6 +216,17 @@ public class CourseExecutionCommandHandler implements CommandHandler {
             return null;
         } catch (Exception e) {
             logger.severe("Failed to anonymize student: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleCommitSaga(CommitSagaCommand command) {
+        logger.info("Committing saga for aggregate: " + command.getAggregateId());
+        try {
+            sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to commit saga: " + e.getMessage());
             return e;
         }
     }

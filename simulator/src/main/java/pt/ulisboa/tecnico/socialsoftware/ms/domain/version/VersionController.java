@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class VersionController {
     @Autowired
-    VersionService versionService;
+    IVersionService versionService;
 
     @PostMapping(value = "/versions/decrement")
     public void decrementVersion() {

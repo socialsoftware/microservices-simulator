@@ -36,9 +36,9 @@ public class StreamCommandGateway implements CommandGateway {
 
     @Autowired
     public StreamCommandGateway(StreamBridge streamBridge,
-                                CommandResponseAggregator responseAggregator,
-                                MessagingObjectMapperProvider mapperProvider,
-                                ApplicationContext applicationContext, RetryRegistry retryRegistry) {
+            CommandResponseAggregator responseAggregator,
+            MessagingObjectMapperProvider mapperProvider,
+            ApplicationContext applicationContext, RetryRegistry retryRegistry) {
         this.streamBridge = streamBridge;
         this.responseAggregator = responseAggregator;
         this.msgMapper = mapperProvider.newMapper();
@@ -64,13 +64,13 @@ public class StreamCommandGateway implements CommandGateway {
     @Override
     @Retry(name = "commandGateway", fallbackMethod = "fallbackSend")
     public Object send(Command command) {
-        String service = command.getServiceName() != null ? command.getServiceName().toLowerCase() : "";
+        String service = command.getServiceName() != null ? command.getServiceName() : "";
 
         String destination = service + "-command-channel";
         String correlationId = java.util.UUID.randomUUID().toString();
 
         CompletableFuture<CommandResponse> responseFuture = responseAggregator.createResponseFuture(correlationId);
-        logger.info("Sending command to " + destination);
+        logger.info("Sending command " + command.getClass().getSimpleName() + "to " + destination);
         String json;
         try {
             json = msgMapper.writeValueAsString(command);
@@ -124,11 +124,11 @@ public class StreamCommandGateway implements CommandGateway {
 
         if (target instanceof SagaUnitOfWork t && source instanceof SagaUnitOfWork s) {
             if (s.getAggregatesInSaga() != null) {
-                for (Integer a : s.getAggregatesInSaga()) {
-                    if (!t.getAggregatesInSaga().contains(a)) {
-                        t.getAggregatesInSaga().add(a);
+                s.getAggregatesInSaga().forEach((aggregateId, aggregateType) -> {
+                    if (!t.getAggregatesInSaga().containsKey(aggregateId)) {
+                        t.getAggregatesInSaga().put(aggregateId, aggregateType);
                     }
-                }
+                });
             }
             if (s.getPreviousStates() != null) {
                 t.getPreviousStates().putAll(s.getPreviousStates());

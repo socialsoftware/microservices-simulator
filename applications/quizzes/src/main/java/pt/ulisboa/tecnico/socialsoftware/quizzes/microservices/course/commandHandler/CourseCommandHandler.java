@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetAndOrCreateCourseRemoteCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
@@ -34,6 +35,8 @@ public class CourseCommandHandler implements CommandHandler {
             returnObject = handleGetCourseById((GetCourseByIdCommand) command);
         } else if (command instanceof GetAndOrCreateCourseRemoteCommand) {
             returnObject = handleGetAndOrCreateCourseRemote((GetAndOrCreateCourseRemoteCommand) command);
+        } else if (command instanceof CommitSagaCommand) {
+            returnObject = handleCommitSaga((CommitSagaCommand) command);
         } else {
             logger.warning("Unknown command type: " + command.getClass().getName());
             returnObject = null;
@@ -64,6 +67,17 @@ public class CourseCommandHandler implements CommandHandler {
             return courseService.getAndOrCreateCourseRemote(command.getCourseExecutionDto(), command.getUnitOfWork());
         } catch (Exception e) {
             logger.severe("Failed to get or create course remote by ID: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleCommitSaga(CommitSagaCommand command) {
+        logger.info("Committing saga for aggregate: " + command.getAggregateId());
+        try {
+            sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to commit saga: " + e.getMessage());
             return e;
         }
     }

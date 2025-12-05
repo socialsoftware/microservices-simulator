@@ -20,6 +20,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregateRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 
 import java.util.Arrays;
@@ -54,7 +55,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return unitOfWork;
     }
 
-    public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) { // TODO use local aggregate repository
+    public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) {
         Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
@@ -62,7 +63,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return aggregate;
     }
 
-    public Aggregate aggregateLoad(Integer aggregateId, SagaUnitOfWork unitOfWork) { // TODO use local aggregate repository
+    public Aggregate aggregateLoad(Integer aggregateId, SagaUnitOfWork unitOfWork) {
         Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
@@ -75,7 +76,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     // used for testing with spock
     public Aggregate aggregateDeletedLoad(Integer aggregateId) {
-        Aggregate aggregate = sagaAggregateRepository.findDeletedSagaAggregate(aggregateId) // TODO use local aggregate repository
+        Aggregate aggregate = sagaAggregateRepository.findDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         return aggregate;
@@ -85,23 +86,22 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         return aggregate;
     }
 
-    
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void registerSagaState(Integer aggregateId, SagaState state, SagaUnitOfWork unitOfWork) {
-        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId) // TODO use local aggregate repository
+        Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
-        unitOfWork.savePreviousState(aggregateId, aggregate.getSagaState());
+        SagaAggregate sagaAggregate = (SagaAggregate) aggregate;
+        unitOfWork.savePreviousState(aggregateId, sagaAggregate.getSagaState());
 
-        aggregate.setSagaState(state);
+        sagaAggregate.setSagaState(state);
         entityManager.merge(aggregate);
-        unitOfWork.addToAggregatesInSaga(aggregateId);
+        unitOfWork.addToAggregatesInSaga(aggregateId, aggregate.getAggregateType());
     }
 
-    
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void verifySagaState(Integer aggregateId, List<SagaState> forbiddenStates) {
-        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId) // TODO use local aggregate repository
+        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (forbiddenStates.contains(aggregate.getSagaState())) {
@@ -111,15 +111,21 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commit(SagaUnitOfWork unitOfWork) {
-        unitOfWork.getAggregatesInSaga().forEach(a -> {
-            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findAnySagaAggregate(a)
-                    .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, a));
-            aggregate.setSagaState(GenericSagaState.NOT_IN_SAGA);
-            entityManager.merge(aggregate);
+        unitOfWork.getAggregatesInSaga().forEach((aggregateId, aggregateType) -> {
+            String serviceName = this.resolveServiceName(aggregateType);
+            CommitSagaCommand command = new CommitSagaCommand(aggregateId, serviceName);
+            commandGateway.send(command);
         });
     }
 
-    
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void commitAggregate(Integer aggregateId) {
+        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findAnySagaAggregate(aggregateId)
+                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
+        aggregate.setSagaState(GenericSagaState.NOT_IN_SAGA);
+        entityManager.merge(aggregate);
+    }
+
     public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
         // aggregates are committed at the end of each service
     }
@@ -128,15 +134,14 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         unitOfWork.compensate();
     }
 
-    
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void abort(SagaUnitOfWork unitOfWork) {
         for (Map.Entry<Integer, SagaState> entry : unitOfWork.getPreviousStates().entrySet()) {
             Integer aggregateId = entry.getKey();
             SagaState previousState = entry.getValue();
-            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId) // TODO use local aggregate repository
-                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
+            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
+                    .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
             aggregate.setSagaState(previousState);
             entityManager.merge(aggregate);
         }
@@ -156,7 +161,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         aggregate.setVersion(commitVersion);
         aggregate.setCreationTs(DateHandler.now());
         entityManager.merge(aggregate);
-        
+
         unitOfWork.setVersion(commitVersion);
     }
 
@@ -170,6 +175,6 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             event.setPublished(true);
         }
         eventRepository.save(event);
-        unitOfWork.setVersion(unitOfWork.getVersion()+1);
+        unitOfWork.setVersion(unitOfWork.getVersion() + 1);
     }
 }

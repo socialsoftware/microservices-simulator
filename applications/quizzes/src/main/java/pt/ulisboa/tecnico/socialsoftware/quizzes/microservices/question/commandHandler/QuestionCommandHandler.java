@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService;
@@ -29,15 +30,23 @@ public class QuestionCommandHandler implements CommandHandler {
         }
         Object returnObject;
         switch (command) {
-            case CreateQuestionCommand createQuestionCommand -> returnObject = handleCreateQuestion(createQuestionCommand);
-            case UpdateQuestionCommand updateQuestionCommand -> returnObject = handleUpdateQuestion(updateQuestionCommand);
-            case RemoveQuestionCommand removeQuestionCommand -> returnObject = handleRemoveQuestion(removeQuestionCommand);
-            case FindQuestionsByTopicIdsCommand findQuestionsByTopicIdsCommand -> returnObject = handleFindQuestionsByTopicIds(findQuestionsByTopicIdsCommand);
-            case UpdateQuestionTopicsCommand updateQuestionTopicsCommand -> returnObject = handleUpdateQuestionTopics(updateQuestionTopicsCommand);
-            case GetQuestionByIdCommand getQuestionByIdCommand -> returnObject = handleGetQuestionById(getQuestionByIdCommand);
-            case FindQuestionsByCourseAggregateIdCommand findQuestionsByCourseAggregateIdCommand -> returnObject = handleFindQuestionsByCourseAggregateId(findQuestionsByCourseAggregateIdCommand);
+            case CreateQuestionCommand createQuestionCommand ->
+                returnObject = handleCreateQuestion(createQuestionCommand);
+            case UpdateQuestionCommand updateQuestionCommand ->
+                returnObject = handleUpdateQuestion(updateQuestionCommand);
+            case RemoveQuestionCommand removeQuestionCommand ->
+                returnObject = handleRemoveQuestion(removeQuestionCommand);
+            case FindQuestionsByTopicIdsCommand findQuestionsByTopicIdsCommand ->
+                returnObject = handleFindQuestionsByTopicIds(findQuestionsByTopicIdsCommand);
+            case UpdateQuestionTopicsCommand updateQuestionTopicsCommand ->
+                returnObject = handleUpdateQuestionTopics(updateQuestionTopicsCommand);
+            case GetQuestionByIdCommand getQuestionByIdCommand ->
+                returnObject = handleGetQuestionById(getQuestionByIdCommand);
+            case FindQuestionsByCourseAggregateIdCommand findQuestionsByCourseAggregateIdCommand ->
+                returnObject = handleFindQuestionsByCourseAggregateId(findQuestionsByCourseAggregateIdCommand);
             case UpdateTopicCommand updateTopicCommand -> returnObject = handleUpdateTopic(updateTopicCommand);
             case RemoveTopicCommand removeTopicCommand -> returnObject = handleRemoveTopic(removeTopicCommand);
+            case CommitSagaCommand commitSagaCommand -> returnObject = handleCommitSaga(commitSagaCommand);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 returnObject = null;
@@ -168,6 +177,17 @@ public class QuestionCommandHandler implements CommandHandler {
                     command.getUnitOfWork());
         } catch (Exception e) {
             logger.severe("Failed to remove topic from question: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleCommitSaga(CommitSagaCommand command) {
+        logger.info("Committing saga for aggregate: " + command.getAggregateId());
+        try {
+            sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to commit saga: " + e.getMessage());
             return e;
         }
     }
