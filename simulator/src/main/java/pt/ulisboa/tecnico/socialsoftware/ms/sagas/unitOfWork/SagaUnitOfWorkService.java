@@ -20,6 +20,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregateRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.AbortSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 
@@ -140,12 +141,23 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         for (Map.Entry<Integer, SagaState> entry : unitOfWork.getPreviousStates().entrySet()) {
             Integer aggregateId = entry.getKey();
             SagaState previousState = entry.getValue();
-            SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
-                    .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
-            aggregate.setSagaState(previousState);
-            entityManager.merge(aggregate);
+
+            String aggregateType = unitOfWork.getAggregatesInSaga().get(aggregateId);
+            String serviceName = this.resolveServiceName(aggregateType);
+
+            AbortSagaCommand command = new AbortSagaCommand(aggregateId, serviceName, previousState);
+            commandGateway.send(command);
         }
         compensate(unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void abortAggregate(Integer aggregateId, SagaState previousState) {
+        SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
+                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
+        logger.info("abort: aggregate {}", aggregate.getClass().getSimpleName());
+        aggregate.setSagaState(previousState);
+        entityManager.merge(aggregate);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

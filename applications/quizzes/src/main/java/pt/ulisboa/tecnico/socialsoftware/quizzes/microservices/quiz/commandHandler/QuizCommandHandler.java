@@ -2,10 +2,13 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.commandHand
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.AbortSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
@@ -21,6 +24,9 @@ public class QuizCommandHandler implements CommandHandler {
 
     @Autowired(required = false)
     private SagaUnitOfWorkService sagaUnitOfWorkService;
+
+    @Autowired(required = false)
+    private CausalUnitOfWorkService causalUnitOfWorkService;
 
     @Override
     public Object handle(Command command) {
@@ -46,7 +52,9 @@ public class QuizCommandHandler implements CommandHandler {
             case RemoveQuizQuestionCommand removeQuizQuestionCommand ->
                 returnObject = handleRemoveQuizQuestion(removeQuizQuestionCommand);
             case RemoveQuizCommand removeQuizCommand -> returnObject = handleRemoveQuiz(removeQuizCommand);
+            case CommitCausalCommand commitCausalCommand -> returnObject = handleCommitCausal(commitCausalCommand);
             case CommitSagaCommand commitSagaCommand -> returnObject = handleCommitSaga(commitSagaCommand);
+            case AbortSagaCommand abortSagaCommand -> returnObject = handleAbortSaga(abortSagaCommand);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 returnObject = null;
@@ -211,6 +219,17 @@ public class QuizCommandHandler implements CommandHandler {
         }
     }
 
+    private Object handleCommitCausal(CommitCausalCommand command) {
+        logger.info("Committing causal for aggregate: " + command.getRootAggregateId());
+        try {
+            causalUnitOfWorkService.commitCausal(command.getAggregate());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to commit causal: " + e.getMessage());
+            return e;
+        }
+    }
+
     private Object handleCommitSaga(CommitSagaCommand command) {
         logger.info("Committing saga for aggregate: " + command.getAggregateId());
         try {
@@ -218,6 +237,17 @@ public class QuizCommandHandler implements CommandHandler {
             return null;
         } catch (Exception e) {
             logger.severe("Failed to commit saga: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleAbortSaga(AbortSagaCommand command) {
+        logger.info("Aborting saga for aggregate: " + command.getAggregateId());
+        try {
+            sagaUnitOfWorkService.abortAggregate(command.getAggregateId(), command.getPreviousState());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to abort saga: " + e.getMessage());
             return e;
         }
     }

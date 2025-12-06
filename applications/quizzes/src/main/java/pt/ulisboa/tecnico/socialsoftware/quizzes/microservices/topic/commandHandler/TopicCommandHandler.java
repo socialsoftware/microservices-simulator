@@ -2,10 +2,13 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.commandHan
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.AbortSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
@@ -20,6 +23,9 @@ public class TopicCommandHandler implements CommandHandler {
 
     @Autowired(required = false)
     private SagaUnitOfWorkService sagaUnitOfWorkService;
+
+    @Autowired(required = false)
+    private CausalUnitOfWorkService causalUnitOfWorkService;
 
     @Override
     public Object handle(Command command) {
@@ -37,8 +43,12 @@ public class TopicCommandHandler implements CommandHandler {
             returnObject = handleUpdateTopic((UpdateTopicCommand) command);
         } else if (command instanceof DeleteTopicCommand) {
             returnObject = handleDeleteTopic((DeleteTopicCommand) command);
+        } else if (command instanceof CommitCausalCommand) {
+            returnObject = handleCommitCausal((CommitCausalCommand) command);
         } else if (command instanceof CommitSagaCommand) {
             returnObject = handleCommitSaga((CommitSagaCommand) command);
+        } else if (command instanceof AbortSagaCommand) {
+            returnObject = handleAbortSaga((AbortSagaCommand) command);
         } else {
             Logger.getLogger(TopicCommandHandler.class.getName())
                     .warning("Unknown command type: " + command.getClass().getName());
@@ -73,8 +83,18 @@ public class TopicCommandHandler implements CommandHandler {
         return null;
     }
 
+    private Object handleCommitCausal(CommitCausalCommand command) {
+        causalUnitOfWorkService.commitCausal(command.getAggregate());
+        return null;
+    }
+
     private Object handleCommitSaga(CommitSagaCommand command) {
         sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
+        return null;
+    }
+
+    private Object handleAbortSaga(AbortSagaCommand command) {
+        sagaUnitOfWorkService.abortAggregate(command.getAggregateId(), command.getPreviousState());
         return null;
     }
 }
