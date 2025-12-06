@@ -6,7 +6,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.AbortCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.PrepareCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.AbortSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
@@ -53,6 +55,8 @@ public class AnswerCommandHandler implements CommandHandler {
             case CommitSagaCommand commitSagaCommand -> returnObject = handleCommitSaga(commitSagaCommand);
             case AbortSagaCommand abortSagaCommand -> returnObject = handleAbortSaga(abortSagaCommand);
             case CommitCausalCommand commitCausalCommand -> returnObject = handleCommitCausal(commitCausalCommand);
+            case PrepareCausalCommand prepareCausalCommand -> returnObject = handlePrepareCausal(prepareCausalCommand);
+            case AbortCausalCommand abortCausalCommand -> returnObject = handleAbortCausal(abortCausalCommand);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 returnObject = null;
@@ -203,6 +207,28 @@ public class AnswerCommandHandler implements CommandHandler {
             return null;
         } catch (Exception e) {
             logger.severe("Failed to commit causal: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handlePrepareCausal(PrepareCausalCommand command) {
+        logger.info("Preparing causal for aggregate: " + command.getRootAggregateId());
+        try {
+            causalUnitOfWorkService.prepareCausal(command.getAggregate());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to prepare causal: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleAbortCausal(AbortCausalCommand command) {
+        logger.info("Aborting causal for aggregate: " + command.getRootAggregateId());
+        try {
+            causalUnitOfWorkService.abortCausal(command.getRootAggregateId());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to abort causal: " + e.getMessage());
             return e;
         }
     }

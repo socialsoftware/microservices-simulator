@@ -11,7 +11,9 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregateRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.AbortCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.PrepareCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
@@ -117,8 +119,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
                     throw new SimulatorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregateToWrite.getAggregateId());
                 }
                 aggregateToWrite.verifyInvariants(); // TODO see if this will have problems later
-                Aggregate concurrentAggregate = getConcurrentAggregate(aggregateToWrite); // TODO this has to be
-                // distributed
+                Aggregate concurrentAggregate = getConcurrentAggregate(aggregateToWrite); // TODO this has to be distributed
                 // second condition is necessary for when a concurrent version is detected at
                 // first and then in the following detections it will have to do
                 // this verification in order to not detect the same as a version as concurrent
@@ -166,14 +167,39 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     // checking of concurrent versions and the actual persist
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
-        aggregateMap.values().forEach(aggregateToWrite -> {
+        // Phase 1: Prepare
+        for (Aggregate aggregateToWrite : aggregateMap.values()) {
             aggregateToWrite.setVersion(commitVersion);
             aggregateToWrite.setCreationTs(DateHandler.now());
 
             String serviceName = this.resolveServiceName(aggregateToWrite.getAggregateType());
+            PrepareCausalCommand command = new PrepareCausalCommand(aggregateToWrite.getAggregateId(), serviceName, aggregateToWrite);
+            try {
+                commandGateway.send(command);
+            } catch (Exception e) {
+                abortAll(aggregateMap);
+                throw new SimulatorException(CANNOT_COMMIT_CAUSAL, e.getMessage());
+            }
+        }
+
+        // Phase 2: Commit
+        for (Aggregate aggregateToWrite : aggregateMap.values()) {
+            String serviceName = this.resolveServiceName(aggregateToWrite.getAggregateType());
             CommitCausalCommand command = new CommitCausalCommand(aggregateToWrite.getAggregateId(), serviceName, aggregateToWrite);
             commandGateway.send(command);
-        });
+        }
+    }
+
+    private void abortAll(Map<Integer, Aggregate> aggregateMap) {
+        for (Aggregate aggregateToWrite : aggregateMap.values()) {
+            String serviceName = this.resolveServiceName(aggregateToWrite.getAggregateType());
+            AbortCausalCommand command = new AbortCausalCommand(aggregateToWrite.getAggregateId(), serviceName);
+            try {
+                commandGateway.send(command);
+            } catch (Exception e) {
+                logger.error("Failed to abort causal commit for aggregate " + aggregateToWrite.getAggregateId(), e);
+            }
+        }
     }
 
     private Aggregate getConcurrentAggregate(Aggregate aggregate) {
@@ -222,6 +248,16 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commitCausal(Aggregate aggregate) {
         entityManager.merge(aggregate);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void prepareCausal(Aggregate aggregate) {
+        // TODO what to prepare
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void abortCausal(Integer aggregateId) {
+        logger.info("Aborting causal commit for aggregate {}", aggregateId);
     }
 
 }

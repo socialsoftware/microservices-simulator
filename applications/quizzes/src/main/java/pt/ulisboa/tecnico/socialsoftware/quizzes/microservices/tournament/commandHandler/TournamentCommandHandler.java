@@ -3,7 +3,9 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.comma
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.AbortCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.PrepareCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
@@ -72,6 +74,8 @@ public class TournamentCommandHandler implements CommandHandler {
             case InvalidateQuizCommand invalidateQuizCommand ->
                 returnObject = handleInvalidateQuiz(invalidateQuizCommand);
             case CommitCausalCommand commitCausalCommand -> returnObject = handleCommitCausal(commitCausalCommand);
+            case PrepareCausalCommand prepareCausalCommand -> returnObject = handlePrepareCausal(prepareCausalCommand);
+            case AbortCausalCommand abortCausalCommand -> returnObject = handleAbortCausal(abortCausalCommand);
             case CommitSagaCommand commitSagaCommand -> returnObject = handleCommitSaga(commitSagaCommand);
             case AbortSagaCommand abortSagaCommand -> returnObject = handleAbortSaga(abortSagaCommand);
             default -> {
@@ -370,6 +374,28 @@ public class TournamentCommandHandler implements CommandHandler {
             return null;
         } catch (Exception e) {
             logger.severe("Failed to commit causal: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handlePrepareCausal(PrepareCausalCommand command) {
+        logger.info("Preparing causal for aggregate: " + command.getRootAggregateId());
+        try {
+            causalUnitOfWorkService.prepareCausal(command.getAggregate());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to prepare causal: " + e.getMessage());
+            return e;
+        }
+    }
+
+    private Object handleAbortCausal(AbortCausalCommand command) {
+        logger.info("Aborting causal for aggregate: " + command.getRootAggregateId());
+        try {
+            causalUnitOfWorkService.abortCausal(command.getRootAggregateId());
+            return null;
+        } catch (Exception e) {
+            logger.severe("Failed to abort causal: " + e.getMessage());
             return e;
         }
     }
