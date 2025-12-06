@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 
@@ -22,7 +23,7 @@ public class QuestionTopic {
     public QuestionTopic() {
     }
 
-    public QuestionTopic (TopicDto topicDto) {
+    public QuestionTopic(TopicDto topicDto) {
         setTopicAggregateId(topicDto.getAggregateId());
         setTopicName(topicDto.getName());
         setTopicVersion(topicDto.getVersion());
@@ -74,6 +75,7 @@ public class QuestionTopic {
         this.state = state;
     }
 
+    @JsonIgnore
     public Question getQuestion() {
         return question;
     }
@@ -100,7 +102,7 @@ public class QuestionTopic {
 
     @Override
     public boolean equals(Object obj) {
-        if(!(obj instanceof QuestionTopic)) {
+        if (!(obj instanceof QuestionTopic)) {
             return false;
         }
         QuestionTopic tournamentTopic = (QuestionTopic) obj;

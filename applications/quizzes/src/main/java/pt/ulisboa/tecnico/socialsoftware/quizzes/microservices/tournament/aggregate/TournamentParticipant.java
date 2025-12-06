@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
@@ -119,6 +120,7 @@ public class TournamentParticipant {
         this.state = state;
     }
 
+    @JsonIgnore
     public Tournament getTournament() {
         return tournament;
     }
@@ -127,8 +129,10 @@ public class TournamentParticipant {
         this.tournament = tournament;
     }
 
-    public void updateAnswerWithQuestion(Integer quizAnswerAggregateId, Integer questionAnswerAggregateId, boolean isCorrect, Integer version) {
-        this.participantAnswer.updateAnswerWithQuestion(quizAnswerAggregateId, questionAnswerAggregateId, isCorrect, version);
+    public void updateAnswerWithQuestion(Integer quizAnswerAggregateId, Integer questionAnswerAggregateId,
+            boolean isCorrect, Integer version) {
+        this.participantAnswer.updateAnswerWithQuestion(quizAnswerAggregateId, questionAnswerAggregateId, isCorrect,
+                version);
     }
 
     public UserDto buildDto() {
@@ -157,7 +161,9 @@ public class TournamentParticipant {
             return false;
         }
 
-        return getParticipantAggregateId() != null && getParticipantAggregateId().equals(otherParticipant.getParticipantAggregateId()) &&
-                getParticipantVersion() != null && getParticipantVersion().equals(otherParticipant.getParticipantVersion());
+        return getParticipantAggregateId() != null
+                && getParticipantAggregateId().equals(otherParticipant.getParticipantAggregateId()) &&
+                getParticipantVersion() != null
+                && getParticipantVersion().equals(otherParticipant.getParticipantVersion());
     }
 }

@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -126,6 +127,7 @@ public class QuestionAnswer {
         this.state = state;
     }
 
+    @JsonIgnore
     public QuizAnswer getQuizAnswer() {
         return quizAnswer;
     }

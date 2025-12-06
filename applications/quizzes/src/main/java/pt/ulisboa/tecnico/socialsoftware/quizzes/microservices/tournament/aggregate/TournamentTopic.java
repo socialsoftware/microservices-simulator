@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 
@@ -21,6 +22,7 @@ public class TournamentTopic {
     public TournamentTopic() {
 
     }
+
     public TournamentTopic(TopicDto topicDto) {
         setTopicAggregateId(topicDto.getAggregateId());
         setTopicVersion(topicDto.getVersion());
@@ -85,6 +87,7 @@ public class TournamentTopic {
         this.state = state;
     }
 
+    @JsonIgnore
     public Tournament getTournament() {
         return tournament;
     }
@@ -104,12 +107,12 @@ public class TournamentTopic {
 
     @Override
     public boolean equals(Object obj) {
-        if(!(obj instanceof TournamentTopic tournamentTopic)) {
+        if (!(obj instanceof TournamentTopic tournamentTopic)) {
             return false;
         }
 
         return getTopicAggregateId() != null && getTopicAggregateId().equals(tournamentTopic.getTopicAggregateId()) &&
-               getTopicVersion() != null && getTopicVersion().equals(tournamentTopic.getTopicVersion());
+                getTopicVersion() != null && getTopicVersion().equals(tournamentTopic.getTopicVersion());
     }
 
     @Override

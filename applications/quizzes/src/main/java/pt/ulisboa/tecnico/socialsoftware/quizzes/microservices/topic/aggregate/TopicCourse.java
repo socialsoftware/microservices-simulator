@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -52,6 +53,7 @@ public class TopicCourse {
         this.courseVersion = courseVersion;
     }
 
+    @JsonIgnore
     public Topic getTopic() {
         return topic;
     }

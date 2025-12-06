@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class Option {
@@ -72,6 +73,7 @@ public class Option {
         this.content = content;
     }
 
+    @JsonIgnore
     public Question getQuestion() {
         return question;
     }

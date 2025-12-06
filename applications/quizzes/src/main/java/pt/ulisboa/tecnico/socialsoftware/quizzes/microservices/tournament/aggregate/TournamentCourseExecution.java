@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
 @Entity
@@ -19,7 +20,8 @@ public class TournamentCourseExecution {
     @OneToOne
     private Tournament tournament;
 
-    public TournamentCourseExecution() { }
+    public TournamentCourseExecution() {
+    }
 
     public TournamentCourseExecution(CourseExecutionDto courseExecutionDto) {
         setCourseExecutionAggregateId(courseExecutionDto.getAggregateId());
@@ -85,6 +87,7 @@ public class TournamentCourseExecution {
         this.courseExecutionVersion = courseExecutionVersion;
     }
 
+    @JsonIgnore
     public Tournament getTournament() {
         return tournament;
     }

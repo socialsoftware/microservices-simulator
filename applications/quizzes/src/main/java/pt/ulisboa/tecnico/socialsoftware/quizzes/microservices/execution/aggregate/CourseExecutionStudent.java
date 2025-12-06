@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -106,6 +107,7 @@ public class CourseExecutionStudent {
         this.state = state;
     }
 
+    @JsonIgnore
     public CourseExecution getCourseExecution() {
         return courseExecution;
     }
@@ -124,17 +126,18 @@ public class CourseExecutionStudent {
         return userDto;
     }
 
-    public static void syncStudentVersions(Set<CourseExecutionStudent> prevStudents, Set<CourseExecutionStudent> v1Students, Set<CourseExecutionStudent> v2Students) {
-        for(CourseExecutionStudent s1 : v1Students) {
-            for(CourseExecutionStudent s2 : v2Students) {
-                if(s1.getUserAggregateId().equals(s2.getUserAggregateId())) {
-                    if(s1.getUserVersion() > s2.getUserVersion()) {
+    public static void syncStudentVersions(Set<CourseExecutionStudent> prevStudents,
+            Set<CourseExecutionStudent> v1Students, Set<CourseExecutionStudent> v2Students) {
+        for (CourseExecutionStudent s1 : v1Students) {
+            for (CourseExecutionStudent s2 : v2Students) {
+                if (s1.getUserAggregateId().equals(s2.getUserAggregateId())) {
+                    if (s1.getUserVersion() > s2.getUserVersion()) {
                         s2.setUserVersion(s1.getUserVersion());
                         s2.setName(s1.getName());
                         s2.setUsername(s1.getUsername());
                     }
 
-                    if(s2.getUserVersion() > s1.getUserVersion()) {
+                    if (s2.getUserVersion() > s1.getUserVersion()) {
                         s1.setUserVersion(s2.getUserVersion());
                         s1.setName(s2.getName());
                         s1.setUsername(s2.getUsername());
@@ -142,16 +145,17 @@ public class CourseExecutionStudent {
                 }
             }
 
-            // no need to check again because the prev does not contain any newer version than v1 an v2
-            for(CourseExecutionStudent prevStudent : prevStudents) {
-                if(s1.getUserAggregateId().equals(prevStudent.getUserAggregateId())) {
-                    if(s1.getUserVersion() > prevStudent.getUserVersion()) {
+            // no need to check again because the prev does not contain any newer version
+            // than v1 an v2
+            for (CourseExecutionStudent prevStudent : prevStudents) {
+                if (s1.getUserAggregateId().equals(prevStudent.getUserAggregateId())) {
+                    if (s1.getUserVersion() > prevStudent.getUserVersion()) {
                         prevStudent.setUserVersion(s1.getUserVersion());
                         prevStudent.setName(s1.getName());
                         prevStudent.setUsername(s1.getUsername());
                     }
 
-                    if(prevStudent.getUserVersion() > s1.getUserVersion()) {
+                    if (prevStudent.getUserVersion() > s1.getUserVersion()) {
                         s1.setUserVersion(prevStudent.getUserVersion());
                         s1.setName(prevStudent.getName());
                         s1.setUsername(prevStudent.getUsername());
@@ -175,7 +179,8 @@ public class CourseExecutionStudent {
             return false;
         }
         TournamentParticipant tournamentParticipant = (TournamentParticipant) obj;
-        return getUserAggregateId() != null && getUserAggregateId().equals(tournamentParticipant.getParticipantAggregateId()) &&
+        return getUserAggregateId() != null
+                && getUserAggregateId().equals(tournamentParticipant.getParticipantAggregateId()) &&
                 getUserVersion() != null && getUserVersion().equals(tournamentParticipant.getParticipantVersion());
     }
 }

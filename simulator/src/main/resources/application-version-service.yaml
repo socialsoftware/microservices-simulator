@@ -10,7 +10,7 @@ spring:
       jakarta.persistence.sharedCache.mode: UNSPECIFIED
     generate-ddl: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: false
     open-in-view: false
 
