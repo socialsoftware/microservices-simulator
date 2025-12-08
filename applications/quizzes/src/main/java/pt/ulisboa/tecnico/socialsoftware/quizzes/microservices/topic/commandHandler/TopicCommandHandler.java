@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.AbortCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.PrepareCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.GetConcurrentAggregateCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
@@ -51,6 +52,8 @@ public class TopicCommandHandler implements CommandHandler {
             returnObject = handlePrepareCausal((PrepareCausalCommand) command);
         } else if (command instanceof AbortCausalCommand) {
             returnObject = handleAbortCausal((AbortCausalCommand) command);
+        } else if (command instanceof GetConcurrentAggregateCommand) {
+            returnObject = handleGetConcurrentAggregate((GetConcurrentAggregateCommand) command);
         } else if (command instanceof CommitSagaCommand) {
             returnObject = handleCommitSaga((CommitSagaCommand) command);
         } else if (command instanceof AbortSagaCommand) {
@@ -102,6 +105,10 @@ public class TopicCommandHandler implements CommandHandler {
     private Object handleAbortCausal(AbortCausalCommand command) {
         causalUnitOfWorkService.abortCausal(command.getRootAggregateId());
         return null;
+    }
+
+    private Object handleGetConcurrentAggregate(GetConcurrentAggregateCommand command) {
+        return causalUnitOfWorkService.getConcurrentAggregate(command.getRootAggregateId(), command.getVersion(), "Topic");
     }
 
     private Object handleCommitSaga(CommitSagaCommand command) {

@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.AbortCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.PrepareCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.GetConcurrentAggregateCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
@@ -57,6 +58,7 @@ public class QuestionCommandHandler implements CommandHandler {
             case CommitCausalCommand commitCausalCommand -> returnObject = handleCommitCausal(commitCausalCommand);
             case PrepareCausalCommand prepareCausalCommand -> returnObject = handlePrepareCausal(prepareCausalCommand);
             case AbortCausalCommand abortCausalCommand -> returnObject = handleAbortCausal(abortCausalCommand);
+            case GetConcurrentAggregateCommand getConcurrentAggregateCommand -> returnObject = handleGetConcurrentAggregate(getConcurrentAggregateCommand);
             case CommitSagaCommand commitSagaCommand -> returnObject = handleCommitSaga(commitSagaCommand);
             case AbortSagaCommand abortSagaCommand -> returnObject = handleAbortSaga(abortSagaCommand);
             default -> {
@@ -224,6 +226,10 @@ public class QuestionCommandHandler implements CommandHandler {
             logger.severe("Failed to abort causal: " + e.getMessage());
             return e;
         }
+    }
+
+    private Object handleGetConcurrentAggregate(GetConcurrentAggregateCommand command) {
+        return causalUnitOfWorkService.getConcurrentAggregate(command.getRootAggregateId(), command.getVersion(), "Question");
     }
 
     private Object handleCommitSaga(CommitSagaCommand command) {

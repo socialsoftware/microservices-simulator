@@ -82,19 +82,7 @@ spring:
 
   cloud:
     function:
-      definition: >
-        commandResponseChannel;
-
-        answerServiceCommandChannel;
-        courseExecutionServiceCommandChannel;
-        questionServiceCommandChannel;
-        quizServiceCommandChannel;
-        topicServiceCommandChannel;
-        tournamentServiceCommandChannel;
-        userServiceCommandChannel;
-        courseServiceCommandChannel;
-
-        eventChannel
+      definition: commandResponseChannel;answerServiceCommandChannel;courseExecutionServiceCommandChannel;questionServiceCommandChannel;quizServiceCommandChannel;topicServiceCommandChannel;tournamentServiceCommandChannel;userServiceCommandChannel;courseServiceCommandChannel;eventChannel
 
     stream:
       default:

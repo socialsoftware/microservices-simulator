@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregateRepo
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.AbortCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.PrepareCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.GetConcurrentAggregateCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
@@ -118,8 +119,15 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
                 if (aggregateToWrite.getPrev() != null && aggregateToWrite.getPrev().getState() == Aggregate.AggregateState.INACTIVE) {
                     throw new SimulatorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregateToWrite.getAggregateId());
                 }
-                aggregateToWrite.verifyInvariants(); // TODO see if this will have problems later
-                Aggregate concurrentAggregate = getConcurrentAggregate(aggregateToWrite); // TODO this has to be distributed
+                aggregateToWrite.verifyInvariants();
+                
+                Aggregate concurrentAggregate = null;
+                if (aggregateToWrite.getPrev() != null) {
+                    String serviceName = this.resolveServiceName(aggregateToWrite.getAggregateType());
+                    GetConcurrentAggregateCommand command = new GetConcurrentAggregateCommand(aggregateToWrite.getAggregateId(), serviceName, aggregateToWrite.getPrev().getVersion());
+                    concurrentAggregate = (Aggregate) commandGateway.send(command);
+                }
+
                 // second condition is necessary for when a concurrent version is detected at
                 // first and then in the following detections it will have to do
                 // this verification in order to not detect the same as a version as concurrent
@@ -202,28 +210,6 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         }
     }
 
-    private Aggregate getConcurrentAggregate(Aggregate aggregate) {
-        Aggregate concurrentAggregate;
-
-        /* if the prev aggregate is null it means this is a creation functionality */
-        if (aggregate.getPrev() == null) {
-            return null;
-        }
-
-        concurrentAggregate = causalAggregateRepository.findConcurrentVersions(aggregate.getAggregateId(), aggregate.getPrev().getVersion()) // TODO
-                // causalAggregateRepository
-                // can't be used
-                .orElse(null);
-
-        // if a concurrent version is deleted it means the object has been deleted in
-        // the meanwhile
-        if (concurrentAggregate != null && (concurrentAggregate.getState() == Aggregate.AggregateState.DELETED || concurrentAggregate.getState() == Aggregate.AggregateState.INACTIVE)) {
-            throw new SimulatorException(SimulatorErrorMessage.AGGREGATE_DELETED, concurrentAggregate.getAggregateType(), concurrentAggregate.getAggregateId());
-        }
-
-        return concurrentAggregate;
-    }
-
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void abort(CausalUnitOfWork unitOfWork) {
@@ -258,6 +244,19 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void abortCausal(Integer aggregateId) {
         logger.info("Aborting causal commit for aggregate {}", aggregateId);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public Aggregate getConcurrentAggregate(Integer aggregateId, Integer prevVersion, String aggregateType) {
+        Aggregate concurrentAggregate = causalAggregateRepository.findConcurrentVersions(aggregateId, prevVersion).orElse(null);
+
+        // if a concurrent version is deleted it means the object has been deleted in
+        // the meanwhile
+        if (concurrentAggregate != null && (concurrentAggregate.getState() == Aggregate.AggregateState.DELETED || concurrentAggregate.getState() == Aggregate.AggregateState.INACTIVE)) {
+            throw new SimulatorException(SimulatorErrorMessage.AGGREGATE_DELETED, aggregateType, aggregateId);
+        }
+
+        return concurrentAggregate;
     }
 
 }

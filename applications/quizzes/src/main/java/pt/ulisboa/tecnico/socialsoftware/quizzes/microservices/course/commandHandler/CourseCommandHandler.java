@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.AbortCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.PrepareCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.GetConcurrentAggregateCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.AbortSagaCommand;
@@ -53,6 +54,8 @@ public class CourseCommandHandler implements CommandHandler {
             returnObject = handlePrepareCausal((PrepareCausalCommand) command);
         } else if (command instanceof AbortCausalCommand) {
             returnObject = handleAbortCausal((AbortCausalCommand) command);
+        } else if (command instanceof GetConcurrentAggregateCommand) {
+            returnObject = handleGetConcurrentAggregate((GetConcurrentAggregateCommand) command);
         } else {
             logger.warning("Unknown command type: " + command.getClass().getName());
             returnObject = null;
@@ -140,5 +143,9 @@ public class CourseCommandHandler implements CommandHandler {
             logger.severe("Failed to abort causal: " + e.getMessage());
             return e;
         }
+    }
+
+    private Object handleGetConcurrentAggregate(GetConcurrentAggregateCommand command) {
+        return causalUnitOfWorkService.getConcurrentAggregate(command.getRootAggregateId(), command.getVersion(), "Course");
     }
 }
