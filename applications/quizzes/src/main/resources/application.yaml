@@ -60,12 +60,15 @@ spring:
         tournamentServiceCommandChannel;
         userServiceCommandChannel;
         courseServiceCommandChannel;
-        
+
         questionEventSubscriber;
         tournamentEventSubscriber;
         courseExecutionEventSubscriber;
         answerEventSubscriber;
-        quizEventSubscriber
+        quizEventSubscriber;
+        courseEventSubscriber;
+        topicEventSubscriber;
+        userEventSubscriber
 
     stream:
       default:
@@ -141,6 +144,15 @@ spring:
         quizEventSubscriber-in-0:
           destination: event-channel
           group: quiz-service-group
+        courseEventSubscriber-in-0:
+          destination: event-channel
+          group: course-service-group
+        topicEventSubscriber-in-0:
+          destination: event-channel
+          group: topic-service-group
+        userEventSubscriber-in-0:
+          destination: event-channel
+          group: user-service-group
 
 
       rabbit:
