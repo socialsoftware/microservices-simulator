@@ -12,41 +12,37 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.Messagi
 import java.util.Map;
 import java.util.function.Consumer;
 
-@Configuration
-@Profile("stream")
-public class EventSubscriberService {
+public abstract class EventSubscriberService {
     private static final Logger logger = LoggerFactory.getLogger(EventSubscriberService.class);
 
     private final EventRepository eventRepository;
     private final ObjectMapper objectMapper;
-    private final Map<String, Class<? extends Event>> eventClassMap;
 
     public EventSubscriberService(EventRepository eventRepository,
-            MessagingObjectMapperProvider mapperProvider,
-            Map<String, Class<? extends Event>> eventClassMap) {
+            MessagingObjectMapperProvider mapperProvider) {
         this.eventRepository = eventRepository;
         this.objectMapper = mapperProvider.newMapper();
-        this.eventClassMap = eventClassMap;
     }
 
-    @Bean
-    public Consumer<Message<String>> eventChannel() {
-        return this::processEvent;
-    }
+    public abstract Map<String, Class<? extends Event>> getSubscribedEvents();
 
-    private void processEvent(Message<String> message) {
+    public void processEvent(Message<String> message) {
         String eventType = message.getHeaders().get("eventType", String.class);
+
+        Map<String, Class<? extends Event>> subscribedEvents = getSubscribedEvents();
+        if (!subscribedEvents.containsKey(eventType)) {
+            return;
+        }
 
         try {
             String payload = message.getPayload();
-            Class<? extends Event> eventClass = eventClassMap.get(eventType);
+            Class<? extends Event> eventClass = subscribedEvents.get(eventType);
 
             if (eventClass == null) {
                 logger.warn("Unknown event type: {}", eventType);
                 return;
             }
 
-            // Save the event once - all subscribing aggregates will process it
             Event event = objectMapper.readValue(payload, eventClass);
             event.setPublished(true);
             eventRepository.save(event);

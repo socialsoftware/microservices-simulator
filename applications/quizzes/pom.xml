@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.6</version>
+        <version>3.5.8</version>
         <relativePath/>
     </parent>
     <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
@@ -16,26 +16,20 @@
     <properties>
         <java.version>21</java.version>
         <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator</start-class>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
     </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <profiles>
-<!--        <profile>-->
-<!--            <id>course-service</id>-->
-<!--            <properties>-->
-<!--                <activatedProperties>sagas,stream</activatedProperties>-->
-<!--                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.CourseServiceApplication</start-class>-->
-<!--            </properties>-->
-<!--            <dependencies>-->
-<!--                <dependency>-->
-<!--                    <groupId>org.springframework.boot</groupId>-->
-<!--                    <artifactId>spring-boot-starter-web</artifactId>-->
-<!--                </dependency>-->
-<!--                <dependency>-->
-<!--                    <groupId>org.springframework.cloud</groupId>-->
-<!--                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>-->
-<!--                    <version>4.3.0</version>-->
-<!--                </dependency>-->
-<!--            </dependencies>-->
-<!--        </profile>-->
         <profile>
             <id>sagas</id>
             <properties>
@@ -51,7 +45,6 @@
                 <dependency>
                     <groupId>org.springframework.cloud</groupId>
                     <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
-                    <version>4.3.0</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -70,7 +63,6 @@
                 <dependency>
                     <groupId>org.springframework.cloud</groupId>
                     <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
-                    <version>4.3.0</version>
                 </dependency>
             </dependencies>
         </profile>

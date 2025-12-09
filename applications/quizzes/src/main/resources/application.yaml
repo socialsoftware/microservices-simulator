@@ -29,39 +29,6 @@ spring:
 maven:
   basedir: "@project.basedir@"
 
-event:
-  subscriptions:
-    UpdateTopicEvent:
-      - question
-      - tournament
-    DeleteTopicEvent:
-      - question
-      - tournament
-    DeleteUserEvent:
-      - courseExecution
-    UpdateStudentNameEvent:
-      - answer
-      - tournament
-    DisenrollStudentFromCourseExecutionEvent:
-      - answer
-      - tournament
-    DeleteCourseExecutionEvent:
-      - answer
-      - quiz
-      - tournament
-    InvalidateQuizEvent:
-      - answer
-      - tournament
-    AnonymizeStudentEvent:
-      - answer
-      - tournament
-    QuizAnswerQuestionAnswerEvent:
-      - tournament
-    UpdateQuestionEvent:
-      - quiz
-    DeleteQuestionEvent:
-      - quiz
-
 resilience4j:
   retry:
     instances:
@@ -82,7 +49,23 @@ spring:
 
   cloud:
     function:
-      definition: commandResponseChannel;answerServiceCommandChannel;courseExecutionServiceCommandChannel;questionServiceCommandChannel;quizServiceCommandChannel;topicServiceCommandChannel;tournamentServiceCommandChannel;userServiceCommandChannel;courseServiceCommandChannel;eventChannel
+      definition: >-
+        commandResponseChannel;
+
+        answerServiceCommandChannel;
+        courseExecutionServiceCommandChannel;
+        questionServiceCommandChannel;
+        quizServiceCommandChannel;
+        topicServiceCommandChannel;
+        tournamentServiceCommandChannel;
+        userServiceCommandChannel;
+        courseServiceCommandChannel;
+        
+        questionEventSubscriber;
+        tournamentEventSubscriber;
+        courseExecutionEventSubscriber;
+        answerEventSubscriber;
+        quizEventSubscriber
 
     stream:
       default:
@@ -141,8 +124,23 @@ spring:
         # --- Single Event channel (all events go through here) ---
         event-channel:
           destination: event-channel
-        eventChannel-in-0:
+        
+        # --- Event Subscribers ---
+        questionEventSubscriber-in-0:
           destination: event-channel
+          group: question-service-group
+        tournamentEventSubscriber-in-0:
+          destination: event-channel
+          group: tournament-service-group
+        courseExecutionEventSubscriber-in-0:
+          destination: event-channel
+          group: course-execution-service-group
+        answerEventSubscriber-in-0:
+          destination: event-channel
+          group: answer-service-group
+        quizEventSubscriber-in-0:
+          destination: event-channel
+          group: quiz-service-group
 
 
       rabbit:

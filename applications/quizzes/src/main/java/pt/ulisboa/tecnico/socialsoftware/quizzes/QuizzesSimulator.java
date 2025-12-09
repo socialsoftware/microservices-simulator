@@ -13,10 +13,8 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscriptionConfig;
 
 @PropertySource({ "classpath:application.yaml" })
-@EnableConfigurationProperties(EventSubscriptionConfig.class)
 @EnableJpaRepositories(basePackages = { "pt.ulisboa.tecnico.socialsoftware.ms.*",
 		"pt.ulisboa.tecnico.socialsoftware.quizzes.*" })
 @EntityScan(basePackages = { "pt.ulisboa.tecnico.socialsoftware.ms.*", "pt.ulisboa.tecnico.socialsoftware.quizzes.*" })

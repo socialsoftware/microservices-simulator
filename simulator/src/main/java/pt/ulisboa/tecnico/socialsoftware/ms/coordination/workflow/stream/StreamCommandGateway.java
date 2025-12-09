@@ -70,7 +70,7 @@ public class StreamCommandGateway implements CommandGateway {
         String correlationId = java.util.UUID.randomUUID().toString();
 
         CompletableFuture<CommandResponse> responseFuture = responseAggregator.createResponseFuture(correlationId);
-        logger.info("Sending command " + command.getClass().getSimpleName() + "to " + destination);
+        logger.info("Sending command " + command.getClass().getSimpleName() + " to " + destination);
         String json;
         try {
             json = msgMapper.writeValueAsString(command);

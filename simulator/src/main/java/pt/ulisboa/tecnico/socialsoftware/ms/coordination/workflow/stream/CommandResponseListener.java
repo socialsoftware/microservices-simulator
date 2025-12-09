@@ -28,7 +28,6 @@ public class CommandResponseListener {
 
     @Bean
     public Consumer<Message<?>> commandResponseChannel() {
-        logger.info("CommandResponseListener: Starting command response channel");
         return message -> {
             CommandResponse response;
 
