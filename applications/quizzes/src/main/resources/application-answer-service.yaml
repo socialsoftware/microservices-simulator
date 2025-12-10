@@ -1,0 +1,53 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/answerdb
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+
+  jpa:
+    properties:
+      jakarta.persistence.sharedCache.mode: UNSPECIFIED
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+    show-sql: false
+    open-in-view: false
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  cloud:
+    function:
+      definition: commandResponseChannel;answerServiceCommandChannel;answerEventSubscriber;
+    stream:
+      bindings:
+        answer-command-channel:
+          destination: answer-command-channel
+
+        answerServiceCommandChannel-in-0:
+          destination: answer-command-channel
+          group: answer-service-group
+        commandResponseChannel-in-0:
+          destination: command-responses
+          group: response-group
+
+        event-channel:
+          destination: event-channel
+
+        answerEventSubscriber-in-0:
+          destination: event-channel
+          group: answer-service-group
+
+server:
+  port: 8082
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,beans" 
