@@ -33,7 +33,7 @@ spring:
           group: user-service-group
         commandResponseChannel-in-0:
           destination: command-responses
-          group: response-group
+          group: user-response-group
 
         event-channel:
           destination: event-channel

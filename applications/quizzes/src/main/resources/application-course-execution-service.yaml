@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/courseexecutiondb
+    url: jdbc:postgresql://localhost:5432/executiondb
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: postgres
@@ -33,7 +33,7 @@ spring:
           group: course-execution-service-group
         commandResponseChannel-in-0:
           destination: command-responses
-          group: response-group
+          group: course-execution-response-group
 
         event-channel:
           destination: event-channel

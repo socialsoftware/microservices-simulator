@@ -33,7 +33,7 @@ spring:
           group: tournament-service-group
         commandResponseChannel-in-0:
           destination: command-responses
-          group: response-group
+          group: tournament-response-group
 
         event-channel:
           destination: event-channel

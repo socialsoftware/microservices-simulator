@@ -41,15 +41,6 @@ public class CommandResponseListener {
                     e.printStackTrace();
                     return;
                 }
-            } else if (payload instanceof String) {
-                try {
-                    response = objectMapper.readValue((String) payload, CommandResponse.class);
-                    logger.info("Successfully deserialized CommandResponse from String");
-                } catch (Exception e) {
-                    logger.severe("Failed to deserialize CommandResponse from String: " + e.getMessage());
-                    e.printStackTrace();
-                    return;
-                }
             } else {
                 logger.severe("Unsupported payload type for CommandResponse: " + payload.getClass());
                 return;
@@ -65,7 +56,6 @@ public class CommandResponseListener {
                         correlationId,
                         new SimulatorException(response.errorMessage()));
             } else {
-                // pass back the full response to allow UoW merge at the gateway
                 responseAggregator.completeResponse(correlationId, response);
             }
         };

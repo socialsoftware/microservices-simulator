@@ -33,7 +33,7 @@ spring:
           group: course-service-group
         commandResponseChannel-in-0:
           destination: command-responses
-          group: response-group
+          group: course-response-group
 
         event-channel:
           destination: event-channel
@@ -43,7 +43,7 @@ spring:
           group: course-service-group
 
 server:
-  port: 8081
+  port: 8089
 
 management:
   endpoints:

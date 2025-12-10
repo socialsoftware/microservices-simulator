@@ -92,6 +92,7 @@ public class StreamCommandGateway implements CommandGateway {
 
         try {
             CommandResponse resp = responseFuture.get();
+            logger.info("Received response for command " + command.getClass().getSimpleName());
             mergeUnitOfWork(command.getUnitOfWork(), resp.unitOfWork());
             Object result = resp.result();
             if (result instanceof SimulatorException) {
