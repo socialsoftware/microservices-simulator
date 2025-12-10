@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/answerdb
+    url: jdbc:postgresql://localhost:5432/userdb
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: postgres
@@ -22,15 +22,15 @@ spring:
 
   cloud:
     function:
-      definition: commandResponseChannel;answerServiceCommandChannel;answerEventSubscriber;
+      definition: commandResponseChannel;userServiceCommandChannel;userEventSubscriber;
     stream:
       bindings:
-        answer-command-channel:
-          destination: answer-command-channel
+        user-command-channel:
+          destination: user-command-channel
 
-        answerServiceCommandChannel-in-0:
-          destination: answer-command-channel
-          group: answer-service-group
+        userServiceCommandChannel-in-0:
+          destination: user-command-channel
+          group: user-service-group
         commandResponseChannel-in-0:
           destination: command-responses
           group: response-group
@@ -38,13 +38,12 @@ spring:
         event-channel:
           destination: event-channel
 
-        answerEventSubscriber-in-0:
+        userEventSubscriber-in-0:
           destination: event-channel
-          group: answer-service-group
+          group: user-service-group
 
 server:
-  port: 8082
-
+  port: 8088
 
 management:
   endpoints:

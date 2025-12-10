@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/answerdb
+    url: jdbc:postgresql://localhost:5432/tournamentdb
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: postgres
@@ -22,15 +22,15 @@ spring:
 
   cloud:
     function:
-      definition: commandResponseChannel;answerServiceCommandChannel;answerEventSubscriber;
+      definition: commandResponseChannel;tournamentServiceCommandChannel;tournamentEventSubscriber;
     stream:
       bindings:
-        answer-command-channel:
-          destination: answer-command-channel
+        tournament-command-channel:
+          destination: tournament-command-channel
 
-        answerServiceCommandChannel-in-0:
-          destination: answer-command-channel
-          group: answer-service-group
+        tournamentServiceCommandChannel-in-0:
+          destination: tournament-command-channel
+          group: tournament-service-group
         commandResponseChannel-in-0:
           destination: command-responses
           group: response-group
@@ -38,13 +38,12 @@ spring:
         event-channel:
           destination: event-channel
 
-        answerEventSubscriber-in-0:
+        tournamentEventSubscriber-in-0:
           destination: event-channel
-          group: answer-service-group
+          group: tournament-service-group
 
 server:
-  port: 8082
-
+  port: 8087
 
 management:
   endpoints:
