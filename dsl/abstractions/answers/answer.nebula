@@ -57,32 +57,28 @@ Aggregate Answer {
 
         subscribe AnonymizeUserEvent 
             from Answer
-            routing (answer.executioon.executionAggregateId, answer.execution.executionVersion) {
+            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
             event.userAggregateId == answer.user.userAggregateId;
+        }
+
+        subscribe InvalidateQuizEvent 
+            from Answer
+            routing (answer.quiz.quizAggregateId, answer.quiz.quizVersion) {
+        }
+
+        subscribe DeleteExecutionEvent 
+            from Answer
+            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
+        }
+
+        subscribe DisenrollStudentFromExecutionEvent from Answer
+            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
+            event.studentAggregateId == answer.user.userAggregateId;
         }
 
         subscribe UpdateStudentNameEvent from Answer
             routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
             event.studentAggregateId == answer.user.userAggregateId;
-        }
-
-        subscribe DisenrollStudentFromExecutionEvent from Answer
-            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
-            event.executionAggregateId == answer.execution.executionAggregateId;
-        }
-
-        subscribe DeleteExecutionEvent from Answer
-            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
-            event.executionAggregateId == answer.execution.executionAggregateId;
-        }
-
-        // subscribe InvalidateQuizEvent from Answer
-        //    routing (answer.quiz.quizAggregateId, answer.quiz.quizVersion) {
-        //    event.publisherAggregateId == answer.quiz.quizAggregateId;
-        //}
-
-        subscribe DeleteQuestionEvent from Answer {
-            true;
         }
     }
 

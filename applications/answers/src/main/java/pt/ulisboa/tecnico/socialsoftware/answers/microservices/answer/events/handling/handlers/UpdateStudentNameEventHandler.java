@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.ha
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.AnswerEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.UpdateStudentNameEvent;
 
 public class UpdateStudentNameEventHandler extends AnswerEventHandler {
     public UpdateStudentNameEventHandler(AnswerRepository answerRepository, AnswerEventProcessing answerEventProcessing) {

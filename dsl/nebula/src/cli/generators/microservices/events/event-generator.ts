@@ -76,7 +76,11 @@ export class EventGenerator extends OrchestrationBase {
         const subscriptionName = `${aggregate.name}Subscribes${eventTypeName.replace('Event', '')}`;
 
         const subscribingEntityName = event.sourceAggregate;
-        const subscribingEntityVariable = subscribingEntityName.toLowerCase();
+        // use lower-camel case so multi-word entity names (e.g., AnswerQuiz) keep
+        // their internal capitalization and still match routing expressions
+        const subscribingEntityVariable = subscribingEntityName
+            ? subscribingEntityName.charAt(0).toLowerCase() + subscribingEntityName.slice(1)
+            : '';
 
         let eventSourceAggregate = 'unknown';
         const publishedEvent = event.eventType.ref as any;
@@ -276,22 +280,29 @@ export class EventGenerator extends OrchestrationBase {
         const subscribedEvents = aggregate.events?.subscribedEvents?.map(event => {
             const eventTypeName = event.eventType.ref?.name || event.eventType.$refText || 'UnknownEvent';
             const handlerName = `${eventTypeName}Handler`;
-
-            return {
-                eventName: eventTypeName,
-                handlerName: handlerName
-            };
+            return { eventName: eventTypeName, handlerName };
         }) || [];
 
         const subscribedEventImports = aggregate.events?.subscribedEvents?.map(event => {
             const eventTypeName = event.eventType.ref?.name || event.eventType.$refText || 'UnknownEvent';
-            const sourceAggregate = event.sourceAggregate;
+            const handlerName = `${eventTypeName}Handler`;
+
+            // Determine the actual source aggregate (the aggregate that declares the published event)
+            let sourceAggregateName = 'unknown';
+            const publishedEvent = event.eventType.ref as any;
+            const eventsContainer = publishedEvent?.$container as any;
+            const sourceAggregate = eventsContainer?.$container as Aggregate | undefined;
+            if (sourceAggregate?.name) {
+                sourceAggregateName = sourceAggregate.name.toLowerCase();
+            } else if (event.sourceAggregate) {
+                sourceAggregateName = event.sourceAggregate.toLowerCase();
+            }
 
             return {
-                handlerName: `${eventTypeName}Handler`,
+                handlerName,
                 handlerPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.events.handling.handlers`,
                 eventName: eventTypeName,
-                eventPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${sourceAggregate.toLowerCase()}.events.publish`
+                eventPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${sourceAggregateName}.events.publish`
             };
         }) || [];
 
@@ -310,9 +321,22 @@ export class EventGenerator extends OrchestrationBase {
         const aggregateName = aggregate.name;
         const lowerAggregateName = aggregateName.toLowerCase();
         const eventTypeName = event.eventType.ref?.name || event.eventType.$refText || 'UnknownEvent';
-        const sourceAggregate = event.sourceAggregate;
-
         const handlerName = `${eventTypeName}Handler`;
+
+        // Resolve the aggregate that actually publishes the event
+        let sourceAggregateName: string | undefined;
+        const publishedEvent = event.eventType.ref as any;
+        const eventsContainer = publishedEvent?.$container as any;
+        const sourceAggregate = eventsContainer?.$container as Aggregate | undefined;
+        if (sourceAggregate?.name) {
+            sourceAggregateName = sourceAggregate.name.toLowerCase();
+        } else if (event.sourceAggregate) {
+            sourceAggregateName = event.sourceAggregate.toLowerCase();
+        }
+
+        if (!sourceAggregateName) {
+            throw new Error(`Cannot determine publishing aggregate for event '${eventTypeName}'`);
+        }
 
         return {
             packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.events.handling.handlers`,
@@ -322,7 +346,7 @@ export class EventGenerator extends OrchestrationBase {
             eventTypeName,
             aggregatePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.aggregate`,
             aggregateCoordinationPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.coordination.eventProcessing`,
-            eventTypePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${sourceAggregate.toLowerCase()}.events.publish`
+            eventTypePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${sourceAggregateName}.events.publish`
         };
     }
 

@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.ha
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.AnswerEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnonymizeUserEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.AnonymizeUserEvent;
 
 public class AnonymizeUserEventHandler extends AnswerEventHandler {
     public AnonymizeUserEventHandler(AnswerRepository answerRepository, AnswerEventProcessing answerEventProcessing) {

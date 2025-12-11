@@ -13,10 +13,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service.AnswerService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.AnonymizeUserEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UpdateStudentNameEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.DisenrollStudentFromExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.InvalidateQuizEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.DeleteExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.DeleteQuestionEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.DisenrollStudentFromExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UpdateStudentNameEvent;
 
 @Service
 public class AnswerEventProcessing {
@@ -52,13 +52,7 @@ public class AnswerEventProcessing {
         unitOfWorkService.commit(unitOfWork);
     }
 
-    public void processUpdateStudentNameEvent(Integer aggregateId, UpdateStudentNameEvent updateStudentNameEvent) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-        unitOfWorkService.commit(unitOfWork);
-    }
-
-    public void processDisenrollStudentFromExecutionEvent(Integer aggregateId, DisenrollStudentFromExecutionEvent disenrollStudentFromExecutionEvent) {
+    public void processInvalidateQuizEvent(Integer aggregateId, InvalidateQuizEvent invalidateQuizEvent) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
         unitOfWorkService.commit(unitOfWork);
@@ -70,7 +64,13 @@ public class AnswerEventProcessing {
         unitOfWorkService.commit(unitOfWork);
     }
 
-    public void processDeleteQuestionEvent(Integer aggregateId, DeleteQuestionEvent deleteQuestionEvent) {
+    public void processDisenrollStudentFromExecutionEvent(Integer aggregateId, DisenrollStudentFromExecutionEvent disenrollStudentFromExecutionEvent) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void processUpdateStudentNameEvent(Integer aggregateId, UpdateStudentNameEvent updateStudentNameEvent) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
         unitOfWorkService.commit(unitOfWork);

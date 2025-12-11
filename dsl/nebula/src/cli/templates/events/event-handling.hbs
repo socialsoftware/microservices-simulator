@@ -22,9 +22,6 @@ public class {{aggregateName}}EventHandling {
     private {{aggregateName}}Repository {{lowerAggregateName}}Repository;
 
 {{#each subscribedEvents}}
-    /*
-        {{eventName}}
-     */
     @Scheduled(fixedDelay = 1000)
     public void handle{{eventName}}Events() {
         eventApplicationService.handleSubscribedEvent({{eventName}}.class,

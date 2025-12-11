@@ -9,7 +9,7 @@ public class AnswerSubscribesAnonymizeUser extends EventSubscription {
     private final Answer answer;
 
     public AnswerSubscribesAnonymizeUser(Answer answer) {
-        super(answer.getExecutioon().getExecutionAggregateId(),
+        super(answer.getExecution().getExecutionAggregateId(),
                 answer.getExecution().getExecutionVersion(),
                 AnonymizeUserEvent.class.getSimpleName());
         this.answer = answer;
