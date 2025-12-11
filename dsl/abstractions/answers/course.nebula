@@ -24,6 +24,8 @@ Aggregate Course {
     method searchCoursesByAcronym(String acronym, UnitOfWork unitOfWork): List<Course>;
     method getUniqueCourseTypes(UnitOfWork unitOfWork): Set<String>;
     method getCoursesAsSet(UnitOfWork unitOfWork): Set<Course>;
-    
-    
+
+    Service CourseService {
+        @GenerateCrud;
+    }
 }

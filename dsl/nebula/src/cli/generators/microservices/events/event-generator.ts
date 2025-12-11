@@ -277,13 +277,15 @@ export class EventGenerator extends OrchestrationBase {
         const aggregateName = aggregate.name;
         const lowerAggregateName = aggregateName.toLowerCase();
 
-        const subscribedEvents = aggregate.events?.subscribedEvents?.map(event => {
+        const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
+
+        const subscribedEvents = allSubscribedEvents.map(event => {
             const eventTypeName = event.eventType.ref?.name || event.eventType.$refText || 'UnknownEvent';
             const handlerName = `${eventTypeName}Handler`;
             return { eventName: eventTypeName, handlerName };
         }) || [];
 
-        const subscribedEventImports = aggregate.events?.subscribedEvents?.map(event => {
+        const subscribedEventImports = allSubscribedEvents.map(event => {
             const eventTypeName = event.eventType.ref?.name || event.eventType.$refText || 'UnknownEvent';
             const handlerName = `${eventTypeName}Handler`;
 
@@ -348,6 +350,13 @@ export class EventGenerator extends OrchestrationBase {
             aggregateCoordinationPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.coordination.eventProcessing`,
             eventTypePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${sourceAggregateName}.events.publish`
         };
+    }
+
+    private collectSubscribedEvents(aggregate: Aggregate): any[] {
+        const direct = aggregate.events?.subscribedEvents || [];
+        const interInvariants = (aggregate.events as any)?.interInvariants || [];
+        const interSubs = interInvariants.flatMap((ii: any) => ii?.subscribedEvents || []);
+        return [...direct, ...interSubs];
     }
 
     private buildBaseEventHandlerContext(aggregate: Aggregate, options: { projectName: string }): any {

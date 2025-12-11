@@ -177,4 +177,8 @@ Aggregate Question {
             throwsException: true
         }
     }
+
+    Service QuestionService {
+        @GenerateCrud;
+    }
 }

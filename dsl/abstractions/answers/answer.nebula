@@ -80,12 +80,45 @@ Aggregate Answer {
             routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
             event.studentAggregateId == answer.user.userAggregateId;
         }
+
+        interInvariant CourseExecutionExists {
+            subscribe DeleteExecutionEvent
+                from Answer
+                routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
+                event.executionAggregateId == answer.execution.executionAggregateId;
+            }
+        }
+
+        interInvariant QuizExists {
+            subscribe InvalidateQuizEvent
+                from AnswerQuiz
+                routing (answerQuiz.quiz.quizAggregateId, answerQuiz.quiz.quizVersion) {
+            }
+        }
+
+        interInvariant StudentExists {
+            subscribe DisenrollStudentFromExecutionEvent
+                from Answer
+                routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
+                event.executionAggregateId == answer.execution.executionAggregateId;
+            }
+            subscribe AnonymizeUserEvent
+                from Answer
+                routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
+                event.userAggregateId == answer.user.userAggregateId;
+            }
+            subscribe UpdateStudentNameEvent
+                from Answer
+                routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
+                event.studentAggregateId == answer.user.userAggregateId;
+            }
+        }
     }
 
     // Service methods
-    method getAnswersByExecution(Integer executionId, UnitOfWork unitOfWork): List<Answer>;
-    method getAnswersByStudentAndExecution(Integer studentId, Integer executionId, UnitOfWork unitOfWork): List<Answer>;
-    method getAnswersByQuizAndExecution(Integer quizId, Integer executionId, UnitOfWork unitOfWork): List<Answer>;
+    // method getAnswersByExecution(Integer executionId, UnitOfWork unitOfWork): List<Answer>;
+    // method getAnswersByStudentAndExecution(Integer studentId, Integer executionId, UnitOfWork unitOfWork): List<Answer>;
+    // method getAnswersByQuizAndExecution(Integer quizId, Integer executionId, UnitOfWork unitOfWork): List<Answer>;
     
     // Event processing workflows
     saga workflow anonymizeStudent(Integer studentAggregateId, Integer answerId, UnitOfWork unitOfWork);
@@ -116,13 +149,5 @@ Aggregate Answer {
 
     Service AnswerService {
         @GenerateCrud;
-        @Transactional;
-        methods {
-            createAnswer(Answer answer, Integer userId): Answer;
-            findAnswerById(Integer id): Answer;
-            updateAnswerState(Integer id, AggregateState state): Answer;
-            deleteAnswer(Integer id): void;
-            findAnswersByStudent(Integer studentId): List<Answer>;
-        }
     }
 }

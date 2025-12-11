@@ -28,7 +28,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerUserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionAnsweredDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 
 @Service
 public class AnswerFunctionalities {

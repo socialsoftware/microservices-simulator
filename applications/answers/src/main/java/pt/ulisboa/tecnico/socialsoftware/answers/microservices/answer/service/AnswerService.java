@@ -1,121 +1,118 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service;
 
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.*;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.repository.*;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
-import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.dao.CannotAcquireLockException;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
+
 @Service
-@Transactional
 public class AnswerService {
     @Autowired
-    private AnswerRepository answerRepository;
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    @Transactional
-    public Answer createAnswer(AnswerDto answerDto) {
-        if (!(answerDto != null)) {
-            throw new AnswersException(AnswersErrorMessage.IllegalArgumentException, "AnswerDto cannot be null");
-        }
-        Answer answer = executionFactory.createAnswerFromExisting(answerDto);
-        return answer;
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+
+    private final AnswerRepository answerRepository;
+
+    @Autowired
+    private AnswerFactory answerFactory;
+
+    public AnswerService(UnitOfWorkService unitOfWorkService, AnswerRepository answerRepository) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.answerRepository = answerRepository;
     }
 
     @Retryable(
             value = { SQLException.class, CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    @Transactional(readOnly = true)
-    public Optional<Answer> findAnswerById(Integer id) {
-        if (!(id != null && id > 0)) {
-            throw new AnswersException(AnswersErrorMessage.IllegalArgumentException, "ID must be positive");
-        }
+    public AnswerDto createAnswer(AnswerDto answerDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        Answer answer = answerFactory.createAnswer(aggregateId, answerDto);
+        unitOfWorkService.registerChanged(answer, unitOfWork);
+        return answerFactory.createAnswerDto(answer);
     }
 
     @Retryable(
             value = { SQLException.class, CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    @Transactional
-    public Answer updateAnswer(Integer id, AnswerDto answerDto) {
-        if (!(id != null && id > 0 && answerDto != null)) {
-            throw new AnswersException(AnswersErrorMessage.IllegalArgumentException, "Invalid parameters for update");
-        }
-          = () unitOfWorkService.aggregateLoadAndRegisterRead(id, );
-        return existingAnswer;
+    public AnswerDto getAnswerById(Integer aggregateId, UnitOfWork unitOfWork) {
+        return answerFactory.createAnswerDto((Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
     @Retryable(
             value = { SQLException.class, CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    @Transactional
-    public void deleteAnswer(Integer id) {
-        if (!(id != null && id > 0)) {
-            throw new AnswersException(AnswersErrorMessage.IllegalArgumentException, "ID must be positive");
-        }
-          = () unitOfWorkService.aggregateLoadAndRegisterRead(id, );
+    public AnswerDto updateAnswer(Integer aggregateId, AnswerDto answerDto, UnitOfWork unitOfWork) {
+        Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
+        newAnswer.setCreationDate(answerDto.getCreationDate());
+        newAnswer.setAnswerDate(answerDto.getAnswerDate());
+        newAnswer.setCompleted(answerDto.getCompleted());
+        unitOfWorkService.registerChanged(newAnswer, unitOfWork);
+        return answerFactory.createAnswerDto(newAnswer);
     }
 
     @Retryable(
             value = { SQLException.class, CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    @Transactional(readOnly = true)
-    public List<Answer> findAllAnswers() {
+    public void deleteAnswer(Integer aggregateId, UnitOfWork unitOfWork) {
+        Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
+        newAnswer.remove();
+        unitOfWorkService.registerChanged(newAnswer, unitOfWork);
     }
 
-    public Answer createAnswer(Answer answer, Integer userId) {
-        // TODO: Implement createAnswer method
-        return null; // Placeholder
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public List<AnswerDto> getAllAnswers(UnitOfWork unitOfWork) {
+        Set<Integer> aggregateIds = answerRepository.findAll().stream()
+                .map(Answer::getAggregateId)
+                .collect(Collectors.toSet());
+        return aggregateIds.stream()
+                .map(id -> (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(answerFactory::createAnswerDto)
+                .collect(Collectors.toList());
     }
 
-    public Answer findAnswerById(Integer id) {
-        // TODO: Implement findAnswerById method
-        return null; // Placeholder
-    }
-
-    public Answer updateAnswerState(Integer id, Object state) {
-        // TODO: Implement updateAnswerState method
-        return null; // Placeholder
-    }
-
-    public Object deleteAnswer(Integer id) {
-        // TODO: Implement deleteAnswer method
-        return null; // Placeholder
-    }
-
-    public Object findAnswersByStudent(Integer studentId) {
-        // TODO: Implement findAnswersByStudent method
-        return null; // Placeholder
-    }
-
-    // Additional CRUD utility methods can be added here
 }

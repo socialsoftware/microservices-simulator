@@ -1,7 +1,6 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { OrchestrationBase } from "../../common/orchestration-base.js";
 import { getGlobalConfig } from "../../common/config.js";
-import { MethodImplementationProcessor } from "./method-implementation-processor.js";
 import { CrudMethodGenerator } from "./crud-method-generator.js";
 
 export interface ServiceGenerationOptions {
@@ -11,12 +10,10 @@ export interface ServiceGenerationOptions {
 }
 
 export class ServiceDefinitionGenerator extends OrchestrationBase {
-    private methodProcessor: MethodImplementationProcessor;
     private crudGenerator: CrudMethodGenerator;
 
     constructor() {
         super();
-        this.methodProcessor = new MethodImplementationProcessor();
         this.crudGenerator = new CrudMethodGenerator();
     }
     async generateServiceFromDefinition(aggregate: Aggregate, rootEntity: Entity, options: ServiceGenerationOptions): Promise<string> {
@@ -32,6 +29,8 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
 
     private buildServiceContext(aggregate: Aggregate, rootEntity: Entity, serviceDefinition: any, options: ServiceGenerationOptions): any {
         const aggregateName = aggregate.name;
+        const entityName = rootEntity.name;
+        const lowerEntityName = entityName.charAt(0).toLowerCase() + entityName.slice(1);
         const serviceName = serviceDefinition.name || `${aggregateName}Service`;
         const packageName = `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregateName.toLowerCase()}.service`;
 
@@ -43,6 +42,8 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
             packageName,
             serviceName,
             aggregateName,
+            entityName,
+            lowerEntityName,
             lowerAggregate: aggregateName.toLowerCase(),
             rootEntityName: rootEntity.name,
             imports,
@@ -57,62 +58,33 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
 
     private buildServiceImports(aggregate: Aggregate, serviceDefinition: any, options: ServiceGenerationOptions): string[] {
         const imports = [
-            'import org.springframework.stereotype.Service;',
-            'import org.springframework.beans.factory.annotation.Autowired;',
-            `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'aggregate')}.*;`,
-            `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'repository')}.*;`,
+            'import java.sql.SQLException;',
             'import java.util.List;',
             'import java.util.Set;',
-            'import java.util.Optional;'
+            'import java.util.stream.Collectors;',
+            '',
+            'import org.springframework.beans.factory.annotation.Autowired;',
+            'import org.springframework.retry.annotation.Backoff;',
+            'import org.springframework.retry.annotation.Retryable;',
+            'import org.springframework.stereotype.Service;',
+            'import org.springframework.transaction.annotation.Isolation;',
+            'import org.springframework.transaction.annotation.Transactional;',
+            '',
+            'import org.springframework.dao.CannotAcquireLockException;',
+            '',
+            'import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;',
+            'import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;',
+            'import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;',
+            `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'aggregate')}.*;`,
+            `import ${getGlobalConfig().buildPackageName(options.projectName, 'shared', 'dtos')}.*;`
         ];
-
-        if (serviceDefinition.transactional) {
-            imports.push('import org.springframework.transaction.annotation.Transactional;');
-        }
-
-        // Check if any method uses business logic that requires additional imports
-        const hasBusinessLogic = serviceDefinition.serviceMethods?.some((method: any) =>
-            method.implementation?.actions?.length > 0
-        );
-
-        if (hasBusinessLogic) {
-            imports.push(
-                'import java.sql.SQLException;',
-                'import org.springframework.dao.CannotAcquireLockException;',
-                'import org.springframework.retry.annotation.Backoff;',
-                'import org.springframework.retry.annotation.Retryable;',
-                'import org.springframework.transaction.annotation.Isolation;',
-                'import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;',
-                'import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;',
-                `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', 'exception')}.${this.capitalize(options.projectName)}Exception;`,
-                `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', 'exception')}.${this.capitalize(options.projectName)}ErrorMessage;`
-            );
-        }
-
-        // Add imports based on method parameters and return types
-        const hasUserDto = serviceDefinition.serviceMethods?.some((method: any) =>
-            method.parameters?.some((param: any) => param.type === 'UserDto') ||
-            method.returnType === 'UserDto'
-        );
-
-        const hasAggregateState = serviceDefinition.serviceMethods?.some((method: any) =>
-            method.parameters?.some((param: any) => param.type === 'AggregateState') ||
-            method.returnType === 'AggregateState'
-        );
-
-        if (hasUserDto) {
-            imports.push(`import ${getGlobalConfig().buildPackageName(options.projectName, 'shared', 'dtos')}.UserDto;`);
-        }
-
-        if (hasAggregateState) {
-            imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateState;');
-        }
 
         return imports;
     }
 
     private buildServiceMethods(serviceDefinition: any, aggregate: Aggregate, rootEntity: Entity): any[] {
         const methods: any[] = [];
+        const entityName = rootEntity.name;
 
         // Generate CRUD methods using the dedicated generator
         if (serviceDefinition.generateCrud) {
@@ -123,18 +95,27 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
             methods.push(...this.crudGenerator.generateCrudMethods(aggregate, rootEntity, crudOptions));
         }
 
-        // Generate custom service methods
+        // Generate custom service methods (skip if overlaps with CRUD)
         if (serviceDefinition.serviceMethods) {
-            methods.push(...this.buildCustomServiceMethods(serviceDefinition.serviceMethods, aggregate));
+            const crudMethodNames = serviceDefinition.generateCrud ? new Set([
+                `create${entityName}`,
+                `get${entityName}ById`,
+                `update${entityName}`,
+                `delete${entityName}`,
+                `getAll${aggregate.name}s`
+            ]) : new Set<string>();
+
+            const filteredMethods = serviceDefinition.serviceMethods.filter((method: any) =>
+                !crudMethodNames.has(method.name)
+            );
+            methods.push(...this.buildCustomServiceMethods(filteredMethods));
         }
 
         return methods;
     }
 
-    private buildCustomServiceMethods(serviceMethods: any[], aggregate: Aggregate): any[] {
+    private buildCustomServiceMethods(serviceMethods: any[]): any[] {
         return serviceMethods.map((method: any) => {
-            const methodImplementation = this.methodProcessor.processMethodImplementation(method.implementation, aggregate);
-
             return {
                 name: method.name,
                 parameters: method.parameters?.map((param: any) => ({
@@ -142,8 +123,7 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
                     name: param.name || 'param'
                 })) || [],
                 returnType: this.resolveJavaType(method.returnType || 'void'),
-                annotations: method.annotations || [],
-                implementation: methodImplementation
+                annotations: method.annotations || []
             };
         });
     }

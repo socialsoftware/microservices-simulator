@@ -188,7 +188,11 @@ export class UnifiedEventFeature {
         aggregatePath: string,
         options: GenerationOptions
     ): Promise<void> {
-        for (const subscribedEvent of aggregate.events!.subscribedEvents!) {
+        const directSubscribed = aggregate.events?.subscribedEvents || [];
+        const interSubscribed = (aggregate.events as any)?.interInvariants?.flatMap((ii: any) => ii?.subscribedEvents || []) || [];
+        const allSubscribed = [...directSubscribed, ...interSubscribed];
+
+        for (const subscribedEvent of allSubscribed) {
             await ErrorHandler.wrapAsync(
                 async () => {
                     // Generate subscription class

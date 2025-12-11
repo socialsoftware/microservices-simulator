@@ -17,6 +17,16 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.han
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.DisenrollStudentFromExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.UpdateStudentNameEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.DeleteExecutionEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.DeleteExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.InvalidateQuizEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.InvalidateQuizEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.DisenrollStudentFromExecutionEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.DisenrollStudentFromExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.AnonymizeUserEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.AnonymizeUserEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.UpdateStudentNameEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.UpdateStudentNameEvent;
 
 @Component
 public class AnswerEventHandling {
@@ -49,6 +59,36 @@ public class AnswerEventHandling {
     public void handleDisenrollStudentFromExecutionEventEvents() {
         eventApplicationService.handleSubscribedEvent(DisenrollStudentFromExecutionEvent.class,
                 new DisenrollStudentFromExecutionEventHandler(answerRepository, answerEventProcessing));
+    }
+
+    @Scheduled(fixedDelay = 1000)
+    public void handleUpdateStudentNameEventEvents() {
+        eventApplicationService.handleSubscribedEvent(UpdateStudentNameEvent.class,
+                new UpdateStudentNameEventHandler(answerRepository, answerEventProcessing));
+    }
+
+    @Scheduled(fixedDelay = 1000)
+    public void handleDeleteExecutionEventEvents() {
+        eventApplicationService.handleSubscribedEvent(DeleteExecutionEvent.class,
+                new DeleteExecutionEventHandler(answerRepository, answerEventProcessing));
+    }
+
+    @Scheduled(fixedDelay = 1000)
+    public void handleInvalidateQuizEventEvents() {
+        eventApplicationService.handleSubscribedEvent(InvalidateQuizEvent.class,
+                new InvalidateQuizEventHandler(answerRepository, answerEventProcessing));
+    }
+
+    @Scheduled(fixedDelay = 1000)
+    public void handleDisenrollStudentFromExecutionEventEvents() {
+        eventApplicationService.handleSubscribedEvent(DisenrollStudentFromExecutionEvent.class,
+                new DisenrollStudentFromExecutionEventHandler(answerRepository, answerEventProcessing));
+    }
+
+    @Scheduled(fixedDelay = 1000)
+    public void handleAnonymizeUserEventEvents() {
+        eventApplicationService.handleSubscribedEvent(AnonymizeUserEvent.class,
+                new AnonymizeUserEventHandler(answerRepository, answerEventProcessing));
     }
 
     @Scheduled(fixedDelay = 1000)

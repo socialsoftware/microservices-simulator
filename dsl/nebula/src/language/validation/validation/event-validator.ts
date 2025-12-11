@@ -1,34 +1,38 @@
 import type { ValidationAcceptor } from "langium";
-import type { Aggregate, Entity, Events, EventField, PublishedEvent, SubscribedEvent } from "../../generated/ast.js";
+import type { Aggregate, Entity, EventField, PublishedEvent, SubscribedEvent } from "../../generated/ast.js";
 
 export class EventValidator {
     checkSubscribedEvent(event: SubscribedEvent, accept: ValidationAcceptor): void {
-        const eventsContainer = event.$container as Events;
-        const aggregate = eventsContainer.$container as Aggregate;
+        const aggregate = this.resolveAggregate(event);
+        if (!aggregate) return;
 
         const aggregateElements = aggregate.aggregateElements || [];
         const entities = aggregateElements.filter((e: any) => e.$type === 'Entity') as Entity[];
         const rootEntity = entities.find(e => (e as any).isRoot);
         const baseEntity = rootEntity ?? entities[0];
 
-        if (event.sourceAggregate) {
-            const validSourceNames = [
-                aggregate.name,
-                ...entities.map(e => e.name)
-            ];
-            if (!validSourceNames.includes(event.sourceAggregate)) {
-                const candidates = validSourceNames
-                    .filter(name =>
-                        name.toLowerCase().includes(event.sourceAggregate.toLowerCase()) ||
-                        event.sourceAggregate.toLowerCase().includes(name.toLowerCase())
-                    )
-                    .slice(0, 3);
-                const suggestionText = candidates.length > 0 ? ` Did you mean: ${candidates.join(', ')}?` : '';
-                accept("error", `Source aggregate '${event.sourceAggregate}' is not a valid entity or root of aggregate '${aggregate.name}'.${suggestionText}`, {
-                    node: event,
-                    property: "sourceAggregate"
-                });
-            }
+        if (!event.sourceAggregate) {
+            // Subscriptions without a source aggregate (e.g., inter-invariants) skip source validation
+            return;
+        }
+
+        const validSourceNames = [
+            aggregate.name,
+            ...entities.map(e => e.name)
+        ].filter(Boolean) as string[];
+
+        if (!validSourceNames.includes(event.sourceAggregate)) {
+            const candidates = validSourceNames
+                .filter(name =>
+                    name.toLowerCase().includes(event.sourceAggregate.toLowerCase()) ||
+                    event.sourceAggregate.toLowerCase().includes(name.toLowerCase())
+                )
+                .slice(0, 3);
+            const suggestionText = candidates.length > 0 ? ` Did you mean: ${candidates.join(', ')}?` : '';
+            accept("error", `Source aggregate '${event.sourceAggregate}' is not a valid entity or root of aggregate '${aggregate.name}'.${suggestionText}`, {
+                node: event,
+                property: "sourceAggregate"
+            });
         }
 
         const published = event.eventType.ref as PublishedEvent | undefined;
@@ -71,6 +75,17 @@ export class EventValidator {
             if (!cond.condition) continue;
             this.validateConditionExpression(cond.condition, eventFields, baseEntity, aggregate, event, accept);
         }
+    }
+
+    private resolveAggregate(node: any): Aggregate | undefined {
+        let current: any = node;
+        while (current) {
+            if (current.$container && current.$container.$type === 'Aggregate') {
+                return current.$container as Aggregate;
+            }
+            current = current.$container;
+        }
+        return undefined;
     }
 
     private validateConditionExpression(

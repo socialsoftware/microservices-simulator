@@ -78,4 +78,8 @@ Aggregate User {
             throwsException: false
         }
     }
+
+    Service UserService {
+        @GenerateCrud;
+    }
 }

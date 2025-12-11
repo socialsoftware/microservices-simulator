@@ -115,4 +115,8 @@ Aggregate Quiz {
             throwsException: false
         }
     }
+
+    Service QuizService {
+        @GenerateCrud;
+    }
 }

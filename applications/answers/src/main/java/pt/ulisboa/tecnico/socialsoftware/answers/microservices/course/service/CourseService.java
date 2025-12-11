@@ -1,201 +1,117 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.*;
-
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
-
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import java.time.LocalDateTime;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+
+import org.springframework.dao.CannotAcquireLockException;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
-
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
 
 @Service
-@Transactional
 public class CourseService {
-    private static final Logger logger = LoggerFactory.getLogger(CourseService.class);
-
     @Autowired
-    private CourseRepository courseRepository;
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+
+    private final CourseRepository courseRepository;
 
     @Autowired
     private CourseFactory courseFactory;
 
-    public CourseService() {}
-
-    // CRUD Operations
-    public CourseDto createCourse(String name, CourseType type, LocalDateTime creationDate) {
-        try {
-            Course course = new Course(name, type, creationDate);
-            course = courseRepository.save(course);
-            return new CourseDto(course);
-        } catch (Exception e) {
-            throw new AnswersException("Error creating course: " + e.getMessage());
-        }
+    public CourseService(UnitOfWorkService unitOfWorkService, CourseRepository courseRepository) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.courseRepository = courseRepository;
     }
 
-    public CourseDto getCourseById(Integer id) {
-        try {
-            Course course = (Course) courseRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
-            return new CourseDto(course);
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error retrieving course: " + e.getMessage());
-        }
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public CourseDto createCourse(CourseDto courseDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        Course course = courseFactory.createCourse(aggregateId, courseDto);
+        unitOfWorkService.registerChanged(course, unitOfWork);
+        return courseFactory.createCourseDto(course);
     }
 
-    public List<CourseDto> getAllCourses() {
-        try {
-            return courseRepository.findAll().stream()
-                .map(entity -> new CourseDto((Course) entity))
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public CourseDto getCourseById(Integer aggregateId, UnitOfWork unitOfWork) {
+        return courseFactory.createCourseDto((Course) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
+    }
+
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public CourseDto updateCourse(Integer aggregateId, CourseDto courseDto, UnitOfWork unitOfWork) {
+        Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Course newCourse = courseFactory.createCourseFromExisting(oldCourse);
+        newCourse.setName(courseDto.getName());
+        newCourse.setCreationDate(courseDto.getCreationDate());
+        unitOfWorkService.registerChanged(newCourse, unitOfWork);
+        return courseFactory.createCourseDto(newCourse);
+    }
+
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void deleteCourse(Integer aggregateId, UnitOfWork unitOfWork) {
+        Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Course newCourse = courseFactory.createCourseFromExisting(oldCourse);
+        newCourse.remove();
+        unitOfWorkService.registerChanged(newCourse, unitOfWork);
+    }
+
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public List<CourseDto> getAllCourses(UnitOfWork unitOfWork) {
+        Set<Integer> aggregateIds = courseRepository.findAll().stream()
+                .map(Course::getAggregateId)
+                .collect(Collectors.toSet());
+        return aggregateIds.stream()
+                .map(id -> (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(courseFactory::createCourseDto)
                 .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new AnswersException("Error retrieving all courses: " + e.getMessage());
-        }
     }
 
-    public CourseDto updateCourse(Integer id, CourseDto courseDto) {
-        try {
-            Course course = (Course) courseRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
-            
-                        if (courseDto.getName() != null) {
-                course.setName(courseDto.getName());
-            }
-            if (courseDto.getType() != null) {
-                course.setType(courseDto.getType());
-            }
-            if (courseDto.getCreationDate() != null) {
-                course.setCreationDate(courseDto.getCreationDate());
-            }
-            
-            course = courseRepository.save(course);
-            return new CourseDto(course);
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error updating course: " + e.getMessage());
-        }
-    }
-
-    public void deleteCourse(Integer id) {
-        try {
-            if (!courseRepository.existsById(id)) {
-                throw new AnswersException("Course not found with id: " + id);
-            }
-            courseRepository.deleteById(id);
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error deleting course: " + e.getMessage());
-        }
-    }
-
-    // Business Methods
-    @Transactional
-    public List<Course> searchCoursesByName(Integer id, String name, UnitOfWork unitOfWork) {
-        try {
-            Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
-            
-            // Business logic for searchCoursesByName
-            List<Course> result = course.searchCoursesByName();
-            courseRepository.save(course);
-            return result;
-        } catch (Exception e) {
-            throw new AnswersException("Error in searchCoursesByName: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public List<Course> searchCoursesByAcronym(Integer id, String acronym, UnitOfWork unitOfWork) {
-        try {
-            Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
-            
-            // Business logic for searchCoursesByAcronym
-            List<Course> result = course.searchCoursesByAcronym();
-            courseRepository.save(course);
-            return result;
-        } catch (Exception e) {
-            throw new AnswersException("Error in searchCoursesByAcronym: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public Set<String> getUniqueCourseTypes(Integer id, UnitOfWork unitOfWork) {
-        try {
-            Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
-            
-            // Business logic for getUniqueCourseTypes
-            Set<String> result = course.getUniqueCourseTypes();
-            courseRepository.save(course);
-            return result;
-        } catch (Exception e) {
-            throw new AnswersException("Error in getUniqueCourseTypes: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public Set<Course> getCoursesAsSet(Integer id, UnitOfWork unitOfWork) {
-        try {
-            Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
-            
-            // Business logic for getCoursesAsSet
-            Set<Course> result = course.getCoursesAsSet();
-            courseRepository.save(course);
-            return result;
-        } catch (Exception e) {
-            throw new AnswersException("Error in getCoursesAsSet: " + e.getMessage());
-        }
-    }
-
-    // No custom workflows defined
-
-    // Query methods not implemented
-
-    // Event Processing Methods
-    private void publishCourseCreatedEvent(Course course) {
-        try {
-            // TODO: Implement event publishing for CourseCreated
-            // eventPublisher.publishEvent(new CourseCreatedEvent(course));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish CourseCreatedEvent", e);
-        }
-    }
-
-    private void publishCourseUpdatedEvent(Course course) {
-        try {
-            // TODO: Implement event publishing for CourseUpdated
-            // eventPublisher.publishEvent(new CourseUpdatedEvent(course));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish CourseUpdatedEvent", e);
-        }
-    }
-
-    private void publishCourseDeletedEvent(Long courseId) {
-        try {
-            // TODO: Implement event publishing for CourseDeleted
-            // eventPublisher.publishEvent(new CourseDeletedEvent(courseId));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish CourseDeletedEvent", e);
-        }
-    }
 }

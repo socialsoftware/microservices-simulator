@@ -1,309 +1,119 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.*;
-
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentExecution;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentCreator;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipant;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipantQuiz;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentTopic;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentQuiz;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import java.time.LocalDateTime;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+
+import org.springframework.dao.CannotAcquireLockException;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
-
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
 
 @Service
-@Transactional
 public class TournamentService {
-    private static final Logger logger = LoggerFactory.getLogger(TournamentService.class);
-
     @Autowired
-    private TournamentRepository tournamentRepository;
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+
+    private final TournamentRepository tournamentRepository;
 
     @Autowired
     private TournamentFactory tournamentFactory;
 
-    public TournamentService() {}
-
-    // CRUD Operations
-    public TournamentDto createTournament(LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, boolean cancelled, TournamentCreator creator, Set<TournamentParticipant> participants, TournamentExecution execution, Set<TournamentTopic> topics, TournamentQuiz quiz) {
-        try {
-            Tournament tournament = new Tournament(startTime, endTime, numberOfQuestions, cancelled, creator, participants, execution, topics, quiz);
-            tournament = tournamentRepository.save(tournament);
-            return new TournamentDto(tournament);
-        } catch (Exception e) {
-            throw new AnswersException("Error creating tournament: " + e.getMessage());
-        }
+    public TournamentService(UnitOfWorkService unitOfWorkService, TournamentRepository tournamentRepository) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.tournamentRepository = tournamentRepository;
     }
 
-    public TournamentDto getTournamentById(Integer id) {
-        try {
-            Tournament tournament = (Tournament) tournamentRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
-            return new TournamentDto(tournament);
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error retrieving tournament: " + e.getMessage());
-        }
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public TournamentDto createTournament(TournamentDto tournamentDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        Tournament tournament = tournamentFactory.createTournament(aggregateId, tournamentDto);
+        unitOfWorkService.registerChanged(tournament, unitOfWork);
+        return tournamentFactory.createTournamentDto(tournament);
     }
 
-    public List<TournamentDto> getAllTournaments() {
-        try {
-            return tournamentRepository.findAll().stream()
-                .map(entity -> new TournamentDto((Tournament) entity))
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public TournamentDto getTournamentById(Integer aggregateId, UnitOfWork unitOfWork) {
+        return tournamentFactory.createTournamentDto((Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
+    }
+
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public TournamentDto updateTournament(Integer aggregateId, TournamentDto tournamentDto, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+        newTournament.setStartTime(tournamentDto.getStartTime());
+        newTournament.setEndTime(tournamentDto.getEndTime());
+        newTournament.setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
+        newTournament.setCancelled(tournamentDto.getCancelled());
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+        return tournamentFactory.createTournamentDto(newTournament);
+    }
+
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void deleteTournament(Integer aggregateId, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+        newTournament.remove();
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    }
+
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public List<TournamentDto> getAllTournaments(UnitOfWork unitOfWork) {
+        Set<Integer> aggregateIds = tournamentRepository.findAll().stream()
+                .map(Tournament::getAggregateId)
+                .collect(Collectors.toSet());
+        return aggregateIds.stream()
+                .map(id -> (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(tournamentFactory::createTournamentDto)
                 .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new AnswersException("Error retrieving all tournaments: " + e.getMessage());
-        }
     }
 
-    public TournamentDto updateTournament(Integer id, TournamentDto tournamentDto) {
-        try {
-            Tournament tournament = (Tournament) tournamentRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
-            
-                        if (tournamentDto.getStartTime() != null) {
-                tournament.setStartTime(tournamentDto.getStartTime());
-            }
-            if (tournamentDto.getEndTime() != null) {
-                tournament.setEndTime(tournamentDto.getEndTime());
-            }
-            if (tournamentDto.getNumberOfQuestions() != null) {
-                tournament.setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
-            }
-            tournament.setCancelled(tournamentDto.isCancelled());
-            if (tournamentDto.getCreator() != null) {
-                tournament.setCreator(tournamentDto.getCreator());
-            }
-            if (tournamentDto.getParticipants() != null) {
-                tournament.setParticipants(tournamentDto.getParticipants());
-            }
-            if (tournamentDto.getExecution() != null) {
-                tournament.setExecution(tournamentDto.getExecution());
-            }
-            if (tournamentDto.getTopics() != null) {
-                tournament.setTopics(tournamentDto.getTopics());
-            }
-            if (tournamentDto.getQuiz() != null) {
-                tournament.setQuiz(tournamentDto.getQuiz());
-            }
-            
-            tournament = tournamentRepository.save(tournament);
-            return new TournamentDto(tournament);
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error updating tournament: " + e.getMessage());
-        }
-    }
-
-    public void deleteTournament(Integer id) {
-        try {
-            if (!tournamentRepository.existsById(id)) {
-                throw new AnswersException("Tournament not found with id: " + id);
-            }
-            tournamentRepository.deleteById(id);
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error deleting tournament: " + e.getMessage());
-        }
-    }
-
-    // Business Methods
-    @Transactional
-    public List<TournamentDto> getOpenedTournamentsForExecution(Integer id, Integer executionId, UnitOfWork unitOfWork) {
-        try {
-            Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
-            
-            // Business logic for getOpenedTournamentsForExecution
-            List<TournamentDto> result = tournament.getOpenedTournamentsForExecution();
-            tournamentRepository.save(tournament);
-            return result;
-        } catch (Exception e) {
-            throw new AnswersException("Error in getOpenedTournamentsForExecution: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public List<TournamentDto> getClosedTournamentsForExecution(Integer id, Integer executionId, UnitOfWork unitOfWork) {
-        try {
-            Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
-            
-            // Business logic for getClosedTournamentsForExecution
-            List<TournamentDto> result = tournament.getClosedTournamentsForExecution();
-            tournamentRepository.save(tournament);
-            return result;
-        } catch (Exception e) {
-            throw new AnswersException("Error in getClosedTournamentsForExecution: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public TournamentParticipant getTournamentParticipant(Integer id, Integer userAggregateId) {
-        try {
-            Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
-            
-            // Business logic for getTournamentParticipant
-            TournamentParticipant result = tournament.getTournamentParticipant();
-            tournamentRepository.save(tournament);
-            return result;
-        } catch (Exception e) {
-            throw new AnswersException("Error in getTournamentParticipant: " + e.getMessage());
-        }
-    }
-
-    // Custom Workflow Methods
-    @Transactional
-    public void addParticipant(Integer userId, Integer tournamentId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for addParticipant
-            throw new UnsupportedOperationException("Workflow addParticipant not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow addParticipant: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void leaveTournament(Integer userAggregateId, Integer tournamentId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for leaveTournament
-            throw new UnsupportedOperationException("Workflow leaveTournament not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow leaveTournament: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void solveQuiz(Integer userAggregateId, Integer tournamentId, Integer quizAnswerId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for solveQuiz
-            throw new UnsupportedOperationException("Workflow solveQuiz not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow solveQuiz: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void cancelTournament(Integer tournamentId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for cancelTournament
-            throw new UnsupportedOperationException("Workflow cancelTournament not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow cancelTournament: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void reopenTournament(Integer tournamentId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for reopenTournament
-            throw new UnsupportedOperationException("Workflow reopenTournament not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow reopenTournament: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void anonymizeUser(Integer userAggregateId, Integer tournamentId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for anonymizeUser
-            throw new UnsupportedOperationException("Workflow anonymizeUser not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow anonymizeUser: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void removeUser(Integer userAggregateId, Integer tournamentId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for removeUser
-            throw new UnsupportedOperationException("Workflow removeUser not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow removeUser: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void updateTopic(Integer topicAggregateId, Integer tournamentId, String topicName, AggregateState state, Integer version, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for updateTopic
-            throw new UnsupportedOperationException("Workflow updateTopic not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow updateTopic: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void removeTopic(Integer topicAggregateId, Integer tournamentId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for removeTopic
-            throw new UnsupportedOperationException("Workflow removeTopic not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow removeTopic: " + e.getMessage());
-        }
-    }
-
-    // Query methods not implemented
-
-    // Event Processing Methods
-    private void publishTournamentCreatedEvent(Tournament tournament) {
-        try {
-            // TODO: Implement event publishing for TournamentCreated
-            // eventPublisher.publishEvent(new TournamentCreatedEvent(tournament));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish TournamentCreatedEvent", e);
-        }
-    }
-
-    private void publishTournamentUpdatedEvent(Tournament tournament) {
-        try {
-            // TODO: Implement event publishing for TournamentUpdated
-            // eventPublisher.publishEvent(new TournamentUpdatedEvent(tournament));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish TournamentUpdatedEvent", e);
-        }
-    }
-
-    private void publishTournamentDeletedEvent(Long tournamentId) {
-        try {
-            // TODO: Implement event publishing for TournamentDeleted
-            // eventPublisher.publishEvent(new TournamentDeletedEvent(tournamentId));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish TournamentDeletedEvent", e);
-        }
-    }
 }

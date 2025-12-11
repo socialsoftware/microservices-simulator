@@ -1,173 +1,116 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.*;
-
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicCourse;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
-
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+
+import org.springframework.dao.CannotAcquireLockException;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
 
 @Service
-@Transactional
 public class TopicService {
-    private static final Logger logger = LoggerFactory.getLogger(TopicService.class);
-
     @Autowired
-    private TopicRepository topicRepository;
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+
+    private final TopicRepository topicRepository;
 
     @Autowired
     private TopicFactory topicFactory;
 
-    public TopicService() {}
-
-    // CRUD Operations
-    public TopicDto createTopic(String name, TopicCourse course) {
-        try {
-            Topic topic = new Topic(name, course);
-            topic = topicRepository.save(topic);
-            return new TopicDto(topic);
-        } catch (Exception e) {
-            throw new AnswersException("Error creating topic: " + e.getMessage());
-        }
+    public TopicService(UnitOfWorkService unitOfWorkService, TopicRepository topicRepository) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.topicRepository = topicRepository;
     }
 
-    public TopicDto getTopicById(Integer id) {
-        try {
-            Topic topic = (Topic) topicRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Topic not found with id: " + id));
-            return new TopicDto(topic);
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error retrieving topic: " + e.getMessage());
-        }
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public TopicDto createTopic(TopicDto topicDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        Topic topic = topicFactory.createTopic(aggregateId, topicDto);
+        unitOfWorkService.registerChanged(topic, unitOfWork);
+        return topicFactory.createTopicDto(topic);
     }
 
-    public List<TopicDto> getAllTopics() {
-        try {
-            return topicRepository.findAll().stream()
-                .map(entity -> new TopicDto((Topic) entity))
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public TopicDto getTopicById(Integer aggregateId, UnitOfWork unitOfWork) {
+        return topicFactory.createTopicDto((Topic) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
+    }
+
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public TopicDto updateTopic(Integer aggregateId, TopicDto topicDto, UnitOfWork unitOfWork) {
+        Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
+        newTopic.setName(topicDto.getName());
+        unitOfWorkService.registerChanged(newTopic, unitOfWork);
+        return topicFactory.createTopicDto(newTopic);
+    }
+
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void deleteTopic(Integer aggregateId, UnitOfWork unitOfWork) {
+        Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
+        newTopic.remove();
+        unitOfWorkService.registerChanged(newTopic, unitOfWork);
+    }
+
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public List<TopicDto> getAllTopics(UnitOfWork unitOfWork) {
+        Set<Integer> aggregateIds = topicRepository.findAll().stream()
+                .map(Topic::getAggregateId)
+                .collect(Collectors.toSet());
+        return aggregateIds.stream()
+                .map(id -> (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(topicFactory::createTopicDto)
                 .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new AnswersException("Error retrieving all topics: " + e.getMessage());
-        }
     }
 
-    public TopicDto updateTopic(Integer id, TopicDto topicDto) {
-        try {
-            Topic topic = (Topic) topicRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Topic not found with id: " + id));
-            
-                        if (topicDto.getName() != null) {
-                topic.setName(topicDto.getName());
-            }
-            if (topicDto.getCourse() != null) {
-                topic.setCourse(topicDto.getCourse());
-            }
-            
-            topic = topicRepository.save(topic);
-            return new TopicDto(topic);
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error updating topic: " + e.getMessage());
-        }
-    }
-
-    public void deleteTopic(Integer id) {
-        try {
-            if (!topicRepository.existsById(id)) {
-                throw new AnswersException("Topic not found with id: " + id);
-            }
-            topicRepository.deleteById(id);
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error deleting topic: " + e.getMessage());
-        }
-    }
-
-    // Business Methods
-    @Transactional
-    public void searchTopicsByName(Integer id, String name, UnitOfWork unitOfWork) {
-        try {
-            Topic topic = topicRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Topic not found with id: " + id));
-            
-            // Business logic for searchTopicsByName
-            void result = topic.searchTopicsByName();
-            topicRepository.save(topic);
-            return result;
-        } catch (Exception e) {
-            throw new AnswersException("Error in searchTopicsByName: " + e.getMessage());
-        }
-    }
-
-    // Custom Workflow Methods
-    @Transactional
-    public void removeCourse(Integer courseId, Integer topicId, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for removeCourse
-            throw new UnsupportedOperationException("Workflow removeCourse not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow removeCourse: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void updateTopic(Integer topicId, String name, UnitOfWork unitOfWork) {
-        try {
-            // TODO: Implement workflow logic for updateTopic
-            throw new UnsupportedOperationException("Workflow updateTopic not implemented");
-
-        } catch (Exception e) {
-            throw new AnswersException("Error in workflow updateTopic: " + e.getMessage());
-        }
-    }
-
-    // Query methods not implemented
-
-    // Event Processing Methods
-    private void publishTopicCreatedEvent(Topic topic) {
-        try {
-            // TODO: Implement event publishing for TopicCreated
-            // eventPublisher.publishEvent(new TopicCreatedEvent(topic));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish TopicCreatedEvent", e);
-        }
-    }
-
-    private void publishTopicUpdatedEvent(Topic topic) {
-        try {
-            // TODO: Implement event publishing for TopicUpdated
-            // eventPublisher.publishEvent(new TopicUpdatedEvent(topic));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish TopicUpdatedEvent", e);
-        }
-    }
-
-    private void publishTopicDeletedEvent(Long topicId) {
-        try {
-            // TODO: Implement event publishing for TopicDeleted
-            // eventPublisher.publishEvent(new TopicDeletedEvent(topicId));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish TopicDeletedEvent", e);
-        }
-    }
 }

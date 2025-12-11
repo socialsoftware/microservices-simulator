@@ -85,4 +85,8 @@ Aggregate Topic {
             throwsException: true
         }
     }
+
+    Service TopicService {
+        @GenerateCrud;
+    }
 }

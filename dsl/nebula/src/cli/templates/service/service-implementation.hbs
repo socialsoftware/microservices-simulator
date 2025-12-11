@@ -1,59 +1,69 @@
 package {{packageName}};
 
-{{imports}}
+{{#each imports}}
+{{this}}
+{{/each}}
 
 @Service
-{{#if transactional}}@Transactional{{/if}}
 public class {{serviceName}} {
-{{#each dependencies}}
     @Autowired
-    private {{type}} {{name}};
-{{/each}}
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-{{#each constructorDependencies}}
-    private final {{type}} {{name}};
-{{/each}}
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    public {{serviceName}}({{#each constructorDependencies}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
-{{#each constructorDependencies}}
-        this.{{name}} = {{name}};
-{{/each}}
+    private final {{entityName}}Repository {{lowerEntityName}}Repository;
+
+    @Autowired
+    private {{entityName}}Factory {{lowerEntityName}}Factory;
+
+    public {{serviceName}}(UnitOfWorkService unitOfWorkService, {{entityName}}Repository {{lowerEntityName}}Repository) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.{{lowerEntityName}}Repository = {{lowerEntityName}}Repository;
     }
 
 {{#each methods}}
     @Retryable(
             value = { SQLException.class, CannotAcquireLockException.class },
             maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public {{returnType}} {{name}}({{#each parameters}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
-{{#each implementation}}
-{{#if (eq action "load")}}
-        {{aggregateType}} {{aggregateVar}} = ({{aggregateType}}) unitOfWorkService.aggregateLoadAndRegisterRead({{aggregateId}}, {{unitOfWorkVar}});
-{{/if}}
-{{#if (eq action "validate")}}
-        if (!({{condition}})) {
-            throw new {{../../../projectName}}Exception({{exception}}, {{#each exceptionParams}}{{this}}{{#unless @last}}, {{/unless}}{{/each}});
-        }
-{{/if}}
-{{#if (eq action "create")}}
-        {{entityType}} {{entityVar}} = {{../../../aggregateName}}Factory.create{{../../../aggregateName}}FromExisting({{constructorParam}});
-{{/if}}
-{{#if (eq action "modify")}}
-        {{aggregateVar}}.{{operation}}({{#each operationParams}}{{this}}{{#unless @last}}, {{/unless}}{{/each}});
-{{/if}}
-{{#if (eq action "register")}}
-        unitOfWorkService.registerChanged({{aggregateVar}}, {{unitOfWorkVar}});
-{{/if}}
-{{#if (eq action "publish")}}
-        // Event publishing would be handled by the framework
-{{/if}}
+{{#if (eq crudAction "create")}}
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        {{entityName}} {{lowerEntityName}} = {{lowerEntityName}}Factory.create{{entityName}}(aggregateId, {{lowerEntityName}}Dto);
+        unitOfWorkService.registerChanged({{lowerEntityName}}, unitOfWork);
+        return {{lowerEntityName}}Factory.create{{entityName}}Dto({{lowerEntityName}});
+{{else if (eq crudAction "findById")}}
+        return {{lowerEntityName}}Factory.create{{entityName}}Dto(({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
+{{else if (eq crudAction "update")}}
+        {{entityName}} old{{entityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        {{entityName}} new{{entityName}} = {{lowerEntityName}}Factory.create{{entityName}}FromExisting(old{{entityName}});
+{{#each properties}}
+        new{{../entityName}}.set{{capitalizedName}}({{../lowerEntityName}}Dto.get{{capitalizedName}}());
 {{/each}}
-{{#if returnStatement}}
-        return {{returnStatement}};
+        unitOfWorkService.registerChanged(new{{entityName}}, unitOfWork);
+        return {{lowerEntityName}}Factory.create{{entityName}}Dto(new{{entityName}});
+{{else if (eq crudAction "delete")}}
+        {{entityName}} old{{entityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        {{entityName}} new{{entityName}} = {{lowerEntityName}}Factory.create{{entityName}}FromExisting(old{{entityName}});
+        new{{entityName}}.remove();
+        unitOfWorkService.registerChanged(new{{entityName}}, unitOfWork);
+{{else if (eq crudAction "findAll")}}
+        Set<Integer> aggregateIds = {{lowerEntityName}}Repository.findAll().stream()
+                .map({{entityName}}::getAggregateId)
+                .collect(Collectors.toSet());
+        return aggregateIds.stream()
+                .map(id -> ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map({{lowerEntityName}}Factory::create{{entityName}}Dto)
+                .collect(Collectors.toList());
+{{else}}
+        // TODO: Implement {{name}} method
+{{#if (ne returnType "void")}}
+        return null;
+{{/if}}
 {{/if}}
     }
 

@@ -277,4 +277,8 @@ Aggregate Tournament {
             throwsException: false
         }
     }
+
+    Service TournamentService {
+        @GenerateCrud;
+    }
 }

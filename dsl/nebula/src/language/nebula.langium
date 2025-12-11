@@ -65,6 +65,7 @@ Events:
     'Events' '{'
         (publishedEvents+=PublishedEvent)*
         (subscribedEvents+=SubscribedEvent)*
+        (interInvariants+=InterInvariant)*
     '}';
 
 PublishedEvent:
@@ -85,6 +86,11 @@ EventField:
 
 EventCondition:
     condition=Expression? ';';
+
+InterInvariant:
+    'interInvariant' name=ID '{'
+        (subscribedEvents+=SubscribedEvent)*
+    '}';
 
 RepositoryMethod:
     ('@Query' '(' query=STRING ')')? returnType=RepositoryReturnType name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' ';';
@@ -244,7 +250,7 @@ Type:
     PrimitiveType | CollectionType | EntityType | AggregateStateType | OptionalType;
 
 PrimitiveType:
-    typeName=('Integer' | 'Long' | 'Float' | 'Double' | 'String' | 'Boolean' | 'LocalDateTime');
+    typeName=('Integer' | 'Long' | 'Float' | 'Double' | 'String' | 'Boolean' | 'LocalDateTime' | 'UnitOfWork' | 'Object' | 'void');
 
 CollectionType:
     'Set' '<' elementType=(EntityType | PrimitiveType) '>' |
