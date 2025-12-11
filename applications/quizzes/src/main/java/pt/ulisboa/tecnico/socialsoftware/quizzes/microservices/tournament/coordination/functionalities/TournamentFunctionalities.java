@@ -56,7 +56,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordi
 public class TournamentFunctionalities {
     @Autowired
     private TournamentService tournamentService; // testing
-    @Autowired
+    @Autowired(required = false)
     private UserService userService; // testing
     @Autowired(required = false)
     private SagaUnitOfWorkService sagaUnitOfWorkService;

@@ -1,6 +1,5 @@
 /target/
 HELP.md
-/target/
 !.mvn/wrapper/maven-wrapper.jar
 data/figs/.DS_Store
 
@@ -45,3 +44,4 @@ jmeter.log
 
 applications/quizzes/logs/
 /logs/
+**/target/

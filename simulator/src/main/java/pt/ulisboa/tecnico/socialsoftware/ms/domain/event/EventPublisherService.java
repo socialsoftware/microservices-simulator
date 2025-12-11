@@ -54,7 +54,7 @@ public class EventPublisherService {
                             .build());
 
             if (sent) {
-//                event.setPublished(true);
+                event.setPublished(true);
                 eventRepository.save(event);
                 logger.info("Published event '{}' to '{}'", eventSimpleName, EVENT_CHANNEL);
             } else {
