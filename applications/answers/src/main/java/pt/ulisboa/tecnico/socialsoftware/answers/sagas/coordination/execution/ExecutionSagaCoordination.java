@@ -1,15 +1,15 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.execution;
 
-import ${this.getBasePackage()}.ms.coordination.workflow.WorkflowFunctionality;
-import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWork;
-import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import ${this.getBasePackage()}.ms.sagas.workflow.SagaSyncStep;
-import ${this.getBasePackage()}.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.dtos.SagaExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.states.ExecutionSagaState;
-import ${this.getBasePackage()}.ms.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 
 public class ExecutionSagaCoordination extends WorkflowFunctionality {
 private ExecutionDto executionDto;

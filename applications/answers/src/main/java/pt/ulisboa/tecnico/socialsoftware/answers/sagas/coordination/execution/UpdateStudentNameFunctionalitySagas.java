@@ -23,7 +23,7 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, String newName) {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
         SagaSyncStep updateStudentNameStepStep = new SagaSyncStep("updateStudentNameStep", () -> {
-            this.executionService.updateStudentName([object Object], [object Object], [object Object], [object Object]);
+            this.executionService.updateStudentName(null /* TODO: fix argument */, null /* TODO: fix argument */, null /* TODO: fix argument */, null /* TODO: fix argument */);
         });
         workflow.addStep(updateStudentNameStepStep);
 

@@ -24,7 +24,7 @@ public class GetExecutionsFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow() {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
         SagaSyncStep getExecutionsStepStep = new SagaSyncStep("getExecutionsStep", () -> {
-            executions = this.executionService.getAllExecutions([object Object]);
+            executions = this.executionService.getAllExecutions(null /* TODO: fix argument */);
             this.result = ExecutionDto.getExecutions();
         });
         workflow.addStep(getExecutionsStepStep);

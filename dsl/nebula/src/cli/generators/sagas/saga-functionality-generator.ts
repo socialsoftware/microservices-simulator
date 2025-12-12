@@ -242,6 +242,22 @@ export class SagaFunctionalityGenerator extends OrchestrationBase {
         if (arg.value !== undefined) {
             return String(arg.value);
         }
+        // Handle parameter references (objects with name property)
+        if (arg.name) {
+            return arg.name;
+        }
+        // Handle reference objects
+        if (arg.$refText) {
+            return arg.$refText;
+        }
+        // Handle ref objects (Langium references)
+        if (arg.ref && arg.ref.name) {
+            return arg.ref.name;
+        }
+        // Fallback - try to get a meaningful string
+        if (typeof arg === 'object' && arg !== null) {
+            return 'null /* TODO: fix argument */';
+        }
         return String(arg);
     }
 

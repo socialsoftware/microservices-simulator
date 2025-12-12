@@ -4,7 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.Course;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.SagaCourse;
-import ${this.getBasePackage()}.ms.sagas.aggregate.SagaAggregate.SagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public class SagaCourseDto extends CourseDto {
 private SagaState sagaState;

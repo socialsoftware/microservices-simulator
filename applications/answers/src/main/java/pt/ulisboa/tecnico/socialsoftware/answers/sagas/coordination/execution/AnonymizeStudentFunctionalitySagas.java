@@ -26,16 +26,16 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId) {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
         SagaSyncStep getExecutionStepStep = new SagaSyncStep("getExecutionStep", () -> {
-            courseExecution = this.executionService.getExecutionByAggregateId([object Object], [object Object]);
-            unitOfWorkService.registerSagaState([object Object], READ_COURSE, unitOfWork);
+            courseExecution = this.executionService.getExecutionByAggregateId(null /* TODO: fix argument */, null /* TODO: fix argument */);
+            unitOfWorkService.registerSagaState(null /* TODO: fix argument */, READ_COURSE, unitOfWork);
         });
         getExecutionStepStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState([object Object], NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(null /* TODO: fix argument */, NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
         workflow.addStep(getExecutionStepStep);
 
         SagaSyncStep anonymizeStudentStepStep = new SagaSyncStep("anonymizeStudentStep", () -> {
-            this.executionService.anonymizeStudent([object Object], [object Object], [object Object]);
+            this.executionService.anonymizeStudent(null /* TODO: fix argument */, null /* TODO: fix argument */, null /* TODO: fix argument */);
         }, new ArrayList<>(Arrays.asList(getExecutionStepStep)));
         workflow.addStep(anonymizeStudentStepStep);
 

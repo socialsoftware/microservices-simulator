@@ -349,7 +349,7 @@ export class SagaGenerator extends OrchestrationBase {
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntityName}Dto;`);
 
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.Saga${this.capitalize(aggregate.name)};`);
-        imports.push('import ${this.getBasePackage()}.ms.sagas.aggregate.SagaAggregate.SagaState;');
+        imports.push(`import ${this.getBasePackage()}.ms.sagas.aggregate.SagaAggregate.SagaState;`);
 
         return imports;
     }
@@ -399,11 +399,11 @@ export class SagaGenerator extends OrchestrationBase {
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
         const rootEntityName = rootEntity ? rootEntity.name : aggregate.name;
 
-        imports.push('import ${this.getBasePackage()}.ms.coordination.workflow.WorkflowFunctionality;');
-        imports.push('import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWork;');
-        imports.push('import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWorkService;');
-        imports.push('import ${this.getBasePackage()}.ms.sagas.workflow.SagaSyncStep;');
-        imports.push('import ${this.getBasePackage()}.ms.sagas.workflow.SagaWorkflow;');
+        imports.push(`import ${this.getBasePackage()}.ms.coordination.workflow.WorkflowFunctionality;`);
+        imports.push(`import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
+        imports.push(`import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
+        imports.push(`import ${this.getBasePackage()}.ms.sagas.workflow.SagaSyncStep;`);
+        imports.push(`import ${this.getBasePackage()}.ms.sagas.workflow.SagaWorkflow;`);
 
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.service.${this.capitalize(aggregate.name)}Service;`);
 
@@ -411,7 +411,7 @@ export class SagaGenerator extends OrchestrationBase {
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.dtos.Saga${this.capitalize(aggregate.name)}Dto;`);
 
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.states.${this.capitalize(aggregate.name)}SagaState;`);
-        imports.push('import ${this.getBasePackage()}.ms.sagas.aggregate.GenericSagaState;');
+        imports.push(`import ${this.getBasePackage()}.ms.sagas.aggregate.GenericSagaState;`);
 
         return imports;
     }
@@ -419,11 +419,11 @@ export class SagaGenerator extends OrchestrationBase {
     private buildSagaWorkflowsImports(aggregate: Aggregate, options: SagaGenerationOptions): string[] {
         const imports: string[] = [];
 
-        imports.push('import ${this.getBasePackage()}.ms.coordination.workflow.WorkflowFunctionality;');
-        imports.push('import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWork;');
-        imports.push('import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWorkService;');
-        imports.push('import ${this.getBasePackage()}.ms.sagas.workflow.SagaSyncStep;');
-        imports.push('import ${this.getBasePackage()}.ms.sagas.workflow.SagaWorkflow;');
+        imports.push(`import ${this.getBasePackage()}.ms.coordination.workflow.WorkflowFunctionality;`);
+        imports.push(`import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
+        imports.push(`import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
+        imports.push(`import ${this.getBasePackage()}.ms.sagas.workflow.SagaSyncStep;`);
+        imports.push(`import ${this.getBasePackage()}.ms.sagas.workflow.SagaWorkflow;`);
 
         return imports;
     }

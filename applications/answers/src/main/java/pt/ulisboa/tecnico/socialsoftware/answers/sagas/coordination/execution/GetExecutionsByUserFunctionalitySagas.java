@@ -24,7 +24,7 @@ public class GetExecutionsByUserFunctionalitySagas extends WorkflowFunctionality
     public void buildWorkflow(Integer userAggregateId) {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
         SagaSyncStep getExecutionsByUserStepStep = new SagaSyncStep("getExecutionsByUserStep", () -> {
-            executions = this.executionService.getExecutionsByUser([object Object], [object Object]);
+            executions = this.executionService.getExecutionsByUser(null /* TODO: fix argument */, null /* TODO: fix argument */);
             this.result = ExecutionDto.getExecutions();
         });
         workflow.addStep(getExecutionsByUserStepStep);

@@ -148,6 +148,6 @@ Aggregate Answer {
     }
 
     Service AnswerService {
-        @GenerateCrud;
+        @GenerateCrud;   
     }
 }

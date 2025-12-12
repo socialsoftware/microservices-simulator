@@ -26,16 +26,16 @@ public class RemoveExecutionFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer executionAggregateId) {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
         SagaSyncStep getExecutionStepStep = new SagaSyncStep("getExecutionStep", () -> {
-            courseExecution = this.executionService.getExecutionByAggregateId([object Object], [object Object]);
-            unitOfWorkService.registerSagaState([object Object], READ_COURSE, unitOfWork);
+            courseExecution = this.executionService.getExecutionByAggregateId(null /* TODO: fix argument */, null /* TODO: fix argument */);
+            unitOfWorkService.registerSagaState(null /* TODO: fix argument */, READ_COURSE, unitOfWork);
         });
         getExecutionStepStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState([object Object], NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(null /* TODO: fix argument */, NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
         workflow.addStep(getExecutionStepStep);
 
         SagaSyncStep removeExecutionStepStep = new SagaSyncStep("removeExecutionStep", () -> {
-            this.executionService.removeExecution([object Object], [object Object]);
+            this.executionService.removeExecution(null /* TODO: fix argument */, null /* TODO: fix argument */);
         }, new ArrayList<>(Arrays.asList(getExecutionStepStep)));
         workflow.addStep(removeExecutionStepStep);
 

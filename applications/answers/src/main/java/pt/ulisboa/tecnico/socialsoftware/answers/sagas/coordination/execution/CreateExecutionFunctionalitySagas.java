@@ -24,7 +24,7 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Object executionDto) {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
         SagaSyncStep createExecutionStepStep = new SagaSyncStep("createExecutionStep", () -> {
-            createdExecution = this.executionService.createExecution([object Object], [object Object]);
+            createdExecution = this.executionService.createExecution(null /* TODO: fix argument */, null /* TODO: fix argument */);
             this.result = ExecutionDto.getExecutionDto();
         });
         workflow.addStep(createExecutionStepStep);

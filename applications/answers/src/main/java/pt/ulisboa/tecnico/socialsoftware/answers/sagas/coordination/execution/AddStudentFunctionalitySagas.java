@@ -28,12 +28,12 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId) {
         this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
         SagaSyncStep getUserStepStep = new SagaSyncStep("getUserStep", () -> {
-            userDto = this.userService.getUserById([object Object], [object Object]);
+            userDto = this.userService.getUserById(null /* TODO: fix argument */, null /* TODO: fix argument */);
         });
         workflow.addStep(getUserStepStep);
 
         SagaSyncStep enrollStudentStepStep = new SagaSyncStep("enrollStudentStep", () -> {
-            this.executionService.enrollStudent([object Object], [object Object], [object Object]);
+            this.executionService.enrollStudent(null /* TODO: fix argument */, null /* TODO: fix argument */, null /* TODO: fix argument */);
         }, new ArrayList<>(Arrays.asList(getUserStepStep)));
         workflow.addStep(enrollStudentStepStep);
 
