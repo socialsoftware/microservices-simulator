@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Profile("course-service")
 @SpringBootApplication(scanBasePackages = {
@@ -25,6 +26,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "pt.ulisboa.tecnico.socialsoftware.ms"
 })
 @PropertySource({ "classpath:application-course-service.yaml" })
+@EnableScheduling
 public class CourseServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(CourseServiceApplication.class, args);

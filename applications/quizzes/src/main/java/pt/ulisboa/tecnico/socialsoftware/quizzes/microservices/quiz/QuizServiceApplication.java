@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Profile("quiz-service")
 @SpringBootApplication(scanBasePackages = {
@@ -25,6 +26,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "pt.ulisboa.tecnico.socialsoftware.ms"
 })
 @PropertySource({ "classpath:application-quiz-service.yaml" })
+@EnableScheduling
 public class QuizServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(QuizServiceApplication.class, args);
