@@ -9,6 +9,12 @@ spring:
       server:
         webflux:
           routes:
+            # Course Execution Service (User Executions) - Must be before User Service
+            - id: course-execution-service-users
+              uri: http://localhost:8083
+              predicates:
+                - Path=/users/*/executions
+
             # User Service
             - id: user-service
               uri: http://localhost:8088
@@ -19,7 +25,7 @@ spring:
             - id: topic-service
               uri: http://localhost:8086
               predicates:
-                - Path=/courses/*/topics/**
+                - Path=/courses/*/topics/**, /courses/*/create, /topics/**
 
             # Question Service
             - id: question-service
