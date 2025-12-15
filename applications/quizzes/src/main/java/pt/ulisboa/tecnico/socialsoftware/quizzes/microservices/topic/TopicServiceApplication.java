@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Profile("topic-service")
 @SpringBootApplication(scanBasePackages = {
         "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.webapi",
         "pt.ulisboa.tecnico.socialsoftware.ms",
 })
 @EnableJpaRepositories(basePackages = {

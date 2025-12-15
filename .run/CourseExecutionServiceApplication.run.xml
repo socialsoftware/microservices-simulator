@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="CourseExecutionServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <option name="ACTIVE_PROFILES" value="sagas,stream,course-execution-service" />
+    <module name="QuizzesTutor" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.CourseExecutionServiceApplication" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

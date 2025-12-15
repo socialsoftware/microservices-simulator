@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="QuizServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <option name="ACTIVE_PROFILES" value="stream,sagas,quiz-service" />
+    <module name="QuizzesTutor" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.QuizServiceApplication" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
