@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: quiz
   datasource:
     url: jdbc:postgresql://localhost:5432/quizdb
     driver-class-name: org.postgresql.Driver
@@ -32,7 +34,7 @@ spring:
           destination: quiz-command-channel
           group: quiz-service-group
         commandResponseChannel-in-0:
-          destination: command-responses
+          destination: quiz-command-responses
           group: quiz-response-group
 
         event-channel:

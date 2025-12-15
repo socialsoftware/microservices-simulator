@@ -38,7 +38,6 @@ public class CommandResponseListener {
                     logger.info("Successfully deserialized CommandResponse from byte array");
                 } catch (Exception e) {
                     logger.severe("Failed to deserialize CommandResponse: " + e.getMessage());
-                    e.printStackTrace();
                     return;
                 }
             } else {

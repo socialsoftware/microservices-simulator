@@ -69,6 +69,9 @@ public class StreamCommandGateway implements CommandGateway {
         String destination = service + "-command-channel";
         String correlationId = java.util.UUID.randomUUID().toString();
 
+        String appName = applicationContext.getEnvironment().getProperty("spring.application.name");
+        String replyTo = (appName != null && !appName.isEmpty()) ? appName + "-command-responses" : "command-responses";
+
         CompletableFuture<CommandResponse> responseFuture = responseAggregator.createResponseFuture(correlationId);
         logger.info("Sending command " + command.getClass().getSimpleName() + " to " + destination);
         String json;
@@ -82,6 +85,7 @@ public class StreamCommandGateway implements CommandGateway {
                 MessageBuilder.withPayload(json)
                         .setHeader("correlationId", correlationId)
                         .setHeader("contentType", "application/json")
+                        .setHeader("replyTo", replyTo)
                         .build());
 
         if (!sent) {

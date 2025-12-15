@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: course
   datasource:
     url: jdbc:postgresql://localhost:5432/coursedb
     driver-class-name: org.postgresql.Driver
@@ -32,7 +34,7 @@ spring:
           destination: course-command-channel
           group: course-service-group
         commandResponseChannel-in-0:
-          destination: command-responses
+          destination: course-command-responses
           group: course-response-group
 
         event-channel:

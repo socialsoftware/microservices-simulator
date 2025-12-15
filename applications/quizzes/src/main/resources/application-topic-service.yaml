@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: topic
   datasource:
     url: jdbc:postgresql://localhost:5432/topicdb
     driver-class-name: org.postgresql.Driver
@@ -32,7 +34,7 @@ spring:
           destination: topic-command-channel
           group: topic-service-group
         commandResponseChannel-in-0:
-          destination: command-responses
+          destination: topic-command-responses
           group: topic-response-group
 
         event-channel:

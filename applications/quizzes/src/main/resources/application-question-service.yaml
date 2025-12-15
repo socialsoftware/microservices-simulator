@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: question
   datasource:
     url: jdbc:postgresql://localhost:5432/questiondb
     driver-class-name: org.postgresql.Driver
@@ -32,7 +34,7 @@ spring:
           destination: question-command-channel
           group: question-service-group
         commandResponseChannel-in-0:
-          destination: command-responses
+          destination: question-command-responses
           group: question-response-group
 
         event-channel:

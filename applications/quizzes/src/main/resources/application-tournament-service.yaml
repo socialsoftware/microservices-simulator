@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: tournament
   datasource:
     url: jdbc:postgresql://localhost:5432/tournamentdb
     driver-class-name: org.postgresql.Driver
@@ -32,7 +34,7 @@ spring:
           destination: tournament-command-channel
           group: tournament-service-group
         commandResponseChannel-in-0:
-          destination: command-responses
+          destination: tournament-command-responses
           group: tournament-response-group
 
         event-channel:

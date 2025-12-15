@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: user
   datasource:
     url: jdbc:postgresql://localhost:5432/userdb
     driver-class-name: org.postgresql.Driver
@@ -32,7 +34,7 @@ spring:
           destination: user-command-channel
           group: user-service-group
         commandResponseChannel-in-0:
-          destination: command-responses
+          destination: user-command-responses
           group: user-response-group
 
         event-channel:

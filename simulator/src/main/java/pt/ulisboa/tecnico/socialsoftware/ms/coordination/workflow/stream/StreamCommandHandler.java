@@ -46,6 +46,10 @@ public abstract class StreamCommandHandler implements CommandHandler {
         }
 
         String correlationId = (String) message.getHeaders().get("correlationId");
+        String replyTo = (String) message.getHeaders().get("replyTo");
+        if (replyTo == null) {
+            replyTo = "command-responses";
+        }
 
         logger.info("Handling command for service: " + command.getServiceName() +
                 " with correlation ID: " + correlationId);
@@ -53,20 +57,20 @@ public abstract class StreamCommandHandler implements CommandHandler {
         try {
             Object result = handle(command);
             if (result instanceof Exception) { // TODO check if result is better thrown
-                sendErrorResponse(correlationId, ((Exception) result).getMessage(), command.getUnitOfWork());
+                sendErrorResponse(correlationId, ((Exception) result).getMessage(), command.getUnitOfWork(), replyTo);
                 return;
             }
-            sendResponse(correlationId, result, command.getUnitOfWork());
+            sendResponse(correlationId, result, command.getUnitOfWork(), replyTo);
         } catch (SimulatorException e) {
             logger.warning("Command handling error: " + e.getMessage());
-            sendErrorResponse(correlationId, e.getMessage(), command.getUnitOfWork());
+            sendErrorResponse(correlationId, e.getMessage(), command.getUnitOfWork(), replyTo);
         } catch (Exception e) {
-            logger.severe("Unexpected error handling command: " + e.getMessage());
-            sendErrorResponse(correlationId, "Unexpected error: " + e.getMessage(), command.getUnitOfWork());
+            logger.severe("Unexpected error handling command: " + e.getMessage() + " " + command.getClass().getSimpleName());
+            sendErrorResponse(correlationId, "Unexpected error: " + e.getMessage(), command.getUnitOfWork(), replyTo);
         }
     }
 
-    private void sendResponse(String correlationId, Object result, UnitOfWork unitOfWork) {
+    private void sendResponse(String correlationId, Object result, UnitOfWork unitOfWork, String replyTo) {
         logger.info("Sending response.....");
         CommandResponse response = CommandResponse.success(correlationId, result, unitOfWork);
         String json;
@@ -77,10 +81,10 @@ public abstract class StreamCommandHandler implements CommandHandler {
         }
         logger.info("Sent success response for correlationId=" + correlationId +
                 " resultType=" + (result == null ? "null" : result.getClass().getName()));
-        streamBridge.send("command-responses", MessageBuilder.withPayload(json).build());
+        streamBridge.send(replyTo, MessageBuilder.withPayload(json).build());
     }
 
-    private void sendErrorResponse(String correlationId, String errorMessage, UnitOfWork unitOfWork) {
+    private void sendErrorResponse(String correlationId, String errorMessage, UnitOfWork unitOfWork, String replyTo) {
         CommandResponse response = CommandResponse.error(correlationId, errorMessage, unitOfWork);
         String json;
         try {
@@ -89,6 +93,6 @@ public abstract class StreamCommandHandler implements CommandHandler {
             throw new RuntimeException(e);
         }
         logger.info("Sent error response for correlationId=" + correlationId + " message=" + errorMessage);
-        streamBridge.send("command-responses", MessageBuilder.withPayload(json).build());
+        streamBridge.send(replyTo, MessageBuilder.withPayload(json).build());
     }
 }
