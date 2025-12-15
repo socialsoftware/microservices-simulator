@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.events.publish.DeleteUserEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteUserEvent;
 
 @Service
 public class CourseExecutionEventProcessing {

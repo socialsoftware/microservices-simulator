@@ -3,9 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionStudent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.events.publish.DeleteUserEvent;
-
-import java.util.Objects;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteUserEvent;
 
 public class CourseExecutionSubscribesRemoveUser extends EventSubscription {
     private CourseExecutionStudent courseExecutionStudent;

@@ -23,6 +23,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 })
 @EntityScan(basePackages = {
         "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.events",
         "pt.ulisboa.tecnico.socialsoftware.ms"
 })
 @PropertySource({ "classpath:application-topic-service.yaml" })

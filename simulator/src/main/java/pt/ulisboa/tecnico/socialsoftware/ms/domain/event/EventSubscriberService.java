@@ -45,6 +45,7 @@ public abstract class EventSubscriberService {
 
             Event event = objectMapper.readValue(payload, eventClass);
             event.setPublished(true);
+            event.setId(null); //TODO
             eventRepository.save(event);
 
             logger.info("Saved event '{}'", eventType);

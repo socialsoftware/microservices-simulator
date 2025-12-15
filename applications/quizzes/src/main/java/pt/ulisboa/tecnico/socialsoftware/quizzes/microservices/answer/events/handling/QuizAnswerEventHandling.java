@@ -10,10 +10,10 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.han
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.DeleteUserEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.DisenrollStudentFromCourseExecutionEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.UpdateStudentNameEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.DisenrollStudentFromCourseExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.UpdateStudentNameEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.publish.DeleteQuestionEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.events.publish.DeleteUserEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteQuestionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteUserEvent;
 
 @Component
 public class QuizAnswerEventHandling {
