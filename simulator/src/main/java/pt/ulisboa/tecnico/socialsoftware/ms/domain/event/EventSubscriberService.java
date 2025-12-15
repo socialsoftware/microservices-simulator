@@ -45,7 +45,9 @@ public abstract class EventSubscriberService {
 
             Event event = objectMapper.readValue(payload, eventClass);
             event.setPublished(true);
-            event.setId(null); //TODO
+            if (event.getId() != null && !eventRepository.existsById(event.getId())) {
+                event.setId(null);
+            }
             eventRepository.save(event);
 
             logger.info("Saved event '{}'", eventType);
