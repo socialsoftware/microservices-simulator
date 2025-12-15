@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="TournamentServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+  <configuration default="false" name="TournamentServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="microservices" nameIsGenerated="true">
     <option name="ACTIVE_PROFILES" value="sagas,stream,tournament-service" />
     <module name="QuizzesTutor" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.TournamentServiceApplication" />
