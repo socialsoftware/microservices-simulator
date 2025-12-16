@@ -17,14 +17,14 @@ public class AdminController {
 
     private final WebClient webClient;
 
-    private final List<String> services = Arrays.asList(
+    private final List<String> services = Arrays.asList( // TODO
             "http://localhost:8082", // Answer
             "http://localhost:8083", // CourseExecution
             "http://localhost:8084", // Question
             "http://localhost:8085", // Quiz
             "http://localhost:8086", // Topic
             "http://localhost:8087", // Tournament
-            "http://localhost:8088"  // User
+            "http://localhost:8088" // User
     );
 
     public AdminController(WebClient.Builder webClientBuilder) {
@@ -72,9 +72,24 @@ public class AdminController {
         return broadcastGet("/behaviour/clean");
     }
 
+    @PostMapping("/versions/decrement")
+    public Mono<String> decrementVersion() {
+        return broadcastPost("/versions/decrement");
+    }
+
     private Mono<String> broadcastGet(String path) {
         return Flux.fromIterable(services)
                 .flatMap(serviceUrl -> webClient.get()
+                        .uri(serviceUrl + path)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .onErrorResume(e -> Mono.just("Error on " + serviceUrl + ": " + e.getMessage())))
+                .collect(Collectors.joining("\n"));
+    }
+
+    private Mono<String> broadcastPost(String path) {
+        return Flux.fromIterable(services)
+                .flatMap(serviceUrl -> webClient.post()
                         .uri(serviceUrl + path)
                         .retrieve()
                         .bodyToMono(String.class)

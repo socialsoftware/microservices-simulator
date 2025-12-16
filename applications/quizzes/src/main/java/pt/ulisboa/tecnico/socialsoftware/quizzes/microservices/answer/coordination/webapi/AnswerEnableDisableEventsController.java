@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.webapi;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
@@ -15,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.han
 @RequestMapping("/scheduler")
 @Profile("answer-service")
 public class AnswerEnableDisableEventsController {
+    private static final Logger logger = LoggerFactory.getLogger(AnswerEnableDisableEventsController.class);
     private static final String SCHEDULED_TASKS = "scheduledTasks";
 
     @Autowired
@@ -25,12 +28,14 @@ public class AnswerEnableDisableEventsController {
 
     @GetMapping("/start")
     public String startSchedule() {
+        logger.info("AnswerEnableDisableEventsController: startSchedule() called");
         postProcessor.postProcessAfterInitialization(eventHandling, SCHEDULED_TASKS);
         return "OK";
     }
 
     @GetMapping("/stop")
     public String stopSchedule() {
+        logger.info("AnswerEnableDisableEventsController: stopSchedule() called");
         postProcessor.postProcessBeforeDestruction(eventHandling, SCHEDULED_TASKS);
         return "OK";
     }

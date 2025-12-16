@@ -43,7 +43,7 @@ spring:
             - id: tournament-service
               uri: http://localhost:8087
               predicates:
-                - Path=/tournaments/**, /executions/*/tournaments/**
+                - Path=/tournaments/**, /executions/*/tournaments/**, /tournament/**
 
             # Quiz Service
             - id: quiz-service
