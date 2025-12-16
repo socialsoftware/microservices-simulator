@@ -9,7 +9,7 @@ spring:
       server:
         webflux:
           routes:
-            # Course Execution Service (User Executions) - Must be before User Service
+            # Course Execution Service (User Executions)
             - id: course-execution-service-users
               uri: http://localhost:8083
               predicates:

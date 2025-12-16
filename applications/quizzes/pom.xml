@@ -30,12 +30,20 @@
         </dependencies>
     </dependencyManagement>
     <profiles>
+        <!-- Local -->
         <profile>
             <id>sagas</id>
             <properties>
                 <activatedProperties>sagas,local</activatedProperties>
             </properties>
         </profile>
+        <profile>
+            <id>tcc</id>
+            <properties>
+                <activatedProperties>tcc,local</activatedProperties>
+            </properties>
+        </profile>
+        <!-- Stream -->
         <profile>
             <id>sagas-stream</id>
             <properties>
@@ -49,12 +57,6 @@
             </dependencies>
         </profile>
         <profile>
-            <id>tcc</id>
-            <properties>
-                <activatedProperties>tcc,local</activatedProperties>
-            </properties>
-        </profile>
-        <profile>
             <id>tcc-stream</id>
             <properties>
                 <activatedProperties>tcc,stream</activatedProperties>
@@ -66,6 +68,7 @@
                 </dependency>
             </dependencies>
         </profile>
+        <!-- Tests -->
         <profile>
             <id>test-sagas</id>
             <properties>
@@ -132,6 +135,7 @@
                 </plugins>
             </build>
         </profile>
+        <!-- Aggregate Saga Profiles -->
         <profile>
             <id>answer-saga</id>
             <properties>
@@ -228,6 +232,111 @@
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.UserServiceApplication</start-class>
                 <activatedProperties>stream,user-service,sagas</activatedProperties>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <!-- Aggregate TCC Profiles -->
+        <profile>
+            <id>answer-tcc</id>
+            <properties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.AnswerServiceApplication</start-class>
+                <activatedProperties>stream,answer-service,tcc</activatedProperties>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>course-execution-tcc</id>
+            <properties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.CourseExecutionServiceApplication</start-class>
+                <activatedProperties>stream,course-execution-service,tcc</activatedProperties>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>course-tcc</id>
+            <properties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.CourseServiceApplication</start-class>
+                <activatedProperties>stream,course-service,tcc</activatedProperties>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>question-tcc</id>
+            <properties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.QuestionServiceApplication</start-class>
+                <activatedProperties>stream,question-service,tcc</activatedProperties>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>quiz-tcc</id>
+            <properties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.QuizServiceApplication</start-class>
+                <activatedProperties>stream,quiz-service,tcc</activatedProperties>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>topic-tcc</id>
+            <properties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.TopicServiceApplication</start-class>
+                <activatedProperties>stream,topic-service,tcc</activatedProperties>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>tournament-tcc</id>
+            <properties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.TournamentServiceApplication</start-class>
+                <activatedProperties>stream,tournament-service,tcc</activatedProperties>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>user-tcc</id>
+            <properties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.UserServiceApplication</start-class>
+                <activatedProperties>stream,user-service,tcc</activatedProperties>
             </properties>
             <dependencies>
                 <dependency>

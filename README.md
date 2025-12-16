@@ -16,104 +16,298 @@ The description of the examples for Transactional Causal Consistency are in [Tra
 
 ### Technology Requirements
 
-- [Docker Compose V2] (https://docs.docker.com/compose/install/)
+- [Docker Compose V2](https://docs.docker.com/compose/install/)
 
-### Usage
-
-* Build the application
-```
+### Build the Application
+```bash
 docker compose build
 ```
 
-* Running Quizzes Microservices Simulator: Sagas and TCC
-```
+### Running Quizzes Microservices Simulator
+
+**Sagas:**
+```bash
 docker compose up quizzes-sagas
+```
+
+**TCC:**
+```bash
 docker compose up quizzes-tcc
 ```
 
-* Running Tests: Simulator Sagas, Quizzes Sagas, Quizzes TCC
+### Running Tests
 
-  * Run build-simulator first
-  ```
-  docker compose up build-simulator
-  ```
+> **Note:** Run `build-simulator` first before running tests.
+
+```bash
+docker compose up build-simulator
 ```
+
+**Simulator Sagas:**
+```bash
 docker compose up test-simulator-sagas
+```
+
+**Quizzes Sagas:**
+```bash
 docker compose up test-quizzes-sagas
+```
+
+**Quizzes TCC:**
+```bash
 docker compose up test-quizzes-tcc
 ```
+
+---
+
+## Run Using IntelliJ
+
+### Technology Requirements
+
+- [IntelliJ IDEA](https://www.jetbrains.com/idea/download/) (Ultimate or Community Edition)
+- [Java 21+](https://openjdk.org/projects/jdk/21/)
+- [PSQL 14](https://www.postgresql.org/download/)
+
+### Setting up the Database
+
+Follow the same database setup steps as in the [Maven section](#setting-up-the-database-1).
+
+### Pre-configured Run Configurations
+
+The project includes ready-to-use IntelliJ run configurations in the `.run/` directory. After opening the project in IntelliJ, these configurations will be automatically available in the Run/Debug dropdown.
+
+#### Available Configurations
+
+| Configuration | Description | Profiles |
+|---------------|-------------|----------|
+| **Quizzes** | Quizzes Tutor Simulator | `stream, sagas` |
+| **simulator** | Simulator Tests | - |
+
+#### Microservices (for distributed deployment)
+
+| Service | Configuration File |
+|---------|-------------------|
+| Answer Service | `AnswerServiceApplication.run.xml` |
+| Course Service | `CourseServiceApplication.run.xml` |
+| Course Execution Service | `CourseExecutionServiceApplication.run.xml` |
+| Question Service | `QuestionServiceApplication.run.xml` |
+| Quiz Service | `QuizServiceApplication.run.xml` |
+| Topic Service | `TopicServiceApplication.run.xml` |
+| Tournament Service | `TournamentServiceApplication.run.xml` |
+| User Service | `UserServiceApplication.run.xml` |
+| Version Service | `VersionServiceApplication.run.xml` |
+| Gateway | `GatewayApplication.run.xml` |
+
+### Running the Application
+
+1. Open the project in IntelliJ IDEA
+2. Wait for IntelliJ to index the project and download dependencies
+3. Select a run configuration from the dropdown (e.g., **Quizzes**)
+4. Click the **Run** button
+
+### Running Tests
+
+1. Navigate to the test file in the Project view
+2. Right-click on the test class or method
+3. Select **Run 'TestName'**
+
+---
 
 ## Run Using Maven
 
 ### Technology Requirements
 
 - [Maven 3.9.9](https://archive.apache.org/dist/maven/maven-3/3.9.9/)
-
 - [Java 21+](https://openjdk.org/projects/jdk/21/)
-
 - [PSQL 14](https://www.postgresql.org/download/)
+- [RabbitMQ 3.12+](https://www.rabbitmq.com/download.html) (required for microservices mode)
+- [JMeter 5.6](https://jmeter.apache.org/download_jmeter.cgi) (for performance testing)
 
-- [JMeter 5.6](https://jmeter.apache.org/download_jmeter.cgi)
+### Setting up the Database (Monolithic)
 
-### Setting up the database
-* Start db
-```
+1. **Start PostgreSQL:**
+```bash
 sudo service postgresql start
+```
+or with docker-compose:
+```bash
+docker compose up postgres -d
+```
+
+2. **Create the database:**
+```bash
 sudo su -l postgres
 dropdb msdb
 createdb msdb
 ```
-* Create user to access db
-```
+
+3. **Create user to access db:**
+```bash
 psql msdb
 CREATE USER your-username WITH SUPERUSER LOGIN PASSWORD 'yourpassword';
 \q
 exit
 ```
-* Copy `backend/src/main/resources/application-dev.properties.example` to `application-dev.properties` and fill the placeholder fields.
-* If you have run the unit-test using docker, `backend/target` directory may be with root owner and group, do: `sudo rm -rf backend/target`.
+
+4. **Configure application properties:**
+   - Fill in the placeholder fields with your database credentials in `applications/quizzes/src/main/resources/application.yaml` 
+
+
+---
 
 ### Simulator
-```
+
+```bash
 cd simulator
 ```
-#### Run simulator tests
-```
-mvn clean -Ptest-sagas test
-```
+
 #### Install simulator library
-```
+```bash
 mvn clean install
 ```
-### Quizzes Microservice System Simulation
-```
-cd applications/quizzes
-```
-#### Launch simulator for Sagas
-```
-mvn clean -Psagas spring-boot:run
-```
-#### Launch simulator for TCC
-```
-mvn clean -Ptcc spring-boot:run
-```
-#### Running Sagas Tests
-```
+
+#### Run simulator tests
+```bash
 mvn clean -Ptest-sagas test
 ```
-##### Running TCC Tests
+
+---
+
+### Quizzes Monolithic Simulation
+
+```bash
+cd applications/quizzes
 ```
+
+#### Launch simulator for Sagas
+```bash
+mvn clean -Psagas spring-boot:run
+```
+
+#### Launch simulator for TCC
+```bash
+mvn clean -Ptcc spring-boot:run
+```
+
+#### Running Sagas Tests
+```bash
+mvn clean -Ptest-sagas test
+```
+
+#### Running TCC Tests
+```bash
 mvn clean -Ptest-tcc test
 ```
 
-* Some Sagas test cases:
-  * [Workflow Test Plan (Simulator)](simulator/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/sagas/workflow/PlanOrderTest.groovy)
-  * [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/)
+---
 
+### Quizzes Microservices Deployment
 
-* Some TCC test cases:
-  * [Tournament Merge Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/aggregates/TournamentMergeUnitTest.groovy)
-  * [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy)
+Running the application as distributed microservices requires setting up individual databases for each service and running RabbitMQ for inter-service communication.
+
+#### Prerequisites
+
+1. **Start RabbitMQ:**
+```bash
+# Using Docker (recommended)
+docker-compose up rabbitmq -d
+```
+
+2. **Create databases for each microservice:**
+```bash
+sudo su -l postgres
+createdb versiondb
+createdb answerdb
+createdb coursedb
+createdb executiondb
+createdb questiondb
+createdb quizdb
+createdb topicdb
+createdb tournamentdb
+createdb userdb
+exit
+```
+
+3. **Install the simulator library (if not already done):**
+```bash
+cd simulator
+mvn clean install
+cd ..
+```
+
+#### Microservices Configuration
+
+| Service                  | Port | Profiles                                         | Database       |
+|--------------------------|------|--------------------------------------------------|----------------|
+| Gateway                  | 8080 | -                                                | -              |
+| Version Service          | 8081 | `version-service,stream`                         | `versiondb`    |
+| Answer Service           | 8082 | `(sagas or tcc),stream,answer-service`           | `answerdb`     |
+| Course Execution Service | 8083 | `(sagas or tcc),stream,course-execution-service` | `executiondb`  |
+| Question Service         | 8084 | `(sagas or tcc),stream,question-service`         | `questiondb`   |
+| Quiz Service             | 8085 | `(sagas or tcc),stream,quiz-service`             | `quizdb`       |
+| Topic Service            | 8086 | `(sagas or tcc),stream,topic-service`            | `topicdb`      |
+| Tournament Service       | 8087 | `(sagas or tcc),stream,tournament-service`       | `tournamentdb` |
+| User Service             | 8088 | `(sagas or tcc),stream,user-service`             | `userdb`       |
+| Course Service           | 8089 | `(sagas or tcc),stream,course-service`           | `coursedb`     |
+
+#### Running the Microservices
+
+**1. Start the Version Service (from project root):**
+```bash
+cd simulator
+mvn spring-boot:run -Dspring-boot.run.profiles=version-service,stream
+```
+
+**2. Start each Quizzes microservice (from `applications/quizzes`):**
+```bash
+cd applications/quizzes
+```
+
+**Sagas:**
+
+| Service | Command |
+|---------|---------|
+| Answer Service | `mvn spring-boot:run -Panswer-saga` |
+| Course Service | `mvn spring-boot:run -Pcourse-saga` |
+| Course Execution Service | `mvn spring-boot:run -Pcourse-execution-saga` |
+| Question Service | `mvn spring-boot:run -Pquestion-saga` |
+| Quiz Service | `mvn spring-boot:run -Pquiz-saga` |
+| Topic Service | `mvn spring-boot:run -Ptopic-saga` |
+| Tournament Service | `mvn spring-boot:run -Ptournament-saga` |
+| User Service | `mvn spring-boot:run -Puser-saga` |
+
+**TCC:**
+
+| Service | Command |
+|---------|---------|
+| Answer Service | `mvn spring-boot:run -Panswer-tcc` |
+| Course Service | `mvn spring-boot:run -Pcourse-tcc` |
+| Course Execution Service | `mvn spring-boot:run -Pcourse-execution-tcc` |
+| Question Service | `mvn spring-boot:run -Pquestion-tcc` |
+| Quiz Service | `mvn spring-boot:run -Pquiz-tcc` |
+| Topic Service | `mvn spring-boot:run -Ptopic-tcc` |
+| Tournament Service | `mvn spring-boot:run -Ptournament-tcc` |
+| User Service | `mvn spring-boot:run -Puser-tcc` |
+
+**3. Start the Gateway (from `applications/gateway`):**
+```bash
+cd applications/gateway
+mvn spring-boot:run
+```
+
+> **Tip:** You can use the pre-configured IntelliJ run configurations in the `.run/` directory to start each microservice more easily.
+
+---
+
+### Test Cases
+
+**Sagas test cases:**
+- [Workflow Test Plan (Simulator)](simulator/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/sagas/workflow/PlanOrderTest.groovy)
+- [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/)
+
+**TCC test cases:**
+- [Tournament Merge Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/aggregates/TournamentMergeUnitTest.groovy)
+- [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy)
 
 ## Code structure
 
