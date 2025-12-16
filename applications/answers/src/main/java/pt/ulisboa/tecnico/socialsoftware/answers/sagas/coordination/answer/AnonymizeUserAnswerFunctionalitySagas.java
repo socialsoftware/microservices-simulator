@@ -40,4 +40,5 @@ public class AnonymizeUserAnswerFunctionalitySagas extends WorkflowFunctionality
         // });
         // this.workflow.addStep(step1);
     }
+
 }

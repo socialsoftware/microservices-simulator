@@ -120,12 +120,37 @@ Aggregate Answer {
     // method getAnswersByStudentAndExecution(Integer studentId, Integer executionId, UnitOfWork unitOfWork): List<Answer>;
     // method getAnswersByQuizAndExecution(Integer quizId, Integer executionId, UnitOfWork unitOfWork): List<Answer>;
     
-    // Event processing workflows
     saga workflow anonymizeStudent(Integer studentAggregateId, Integer answerId, UnitOfWork unitOfWork);
     saga workflow invalidateQuiz(Integer quizAggregateId, Integer answerId, UnitOfWork unitOfWork);
     saga workflow removeExecution(Integer executionAggregateId, Integer answerId, UnitOfWork unitOfWork);
     saga workflow unenrollStudentFromExecution(Integer studentAggregateId, Integer executionAggregateId, Integer answerId, UnitOfWork unitOfWork);
-    saga workflow updateStudentName(Integer studentAggregateId, String studentName, String studentUsername, Integer answerId, UnitOfWork unitOfWork);
+    
+    saga workflow updateStudentName(Integer studentAggregateId, String name, Integer answerId, UnitOfWork unitOfWork) {
+        fields {
+            Answer answer;
+            AnswerUser user;
+        }
+        steps {
+            step getAnswerStep {
+                call answerService.getAnswerById(answerId, unitOfWork) -> answer;
+                registerState(answerId, AnswerSagaState.READ_ANSWER);
+            }
+            compensation {
+                registerState(answerId, GenericSagaState.NOT_IN_SAGA);
+            }
+            
+            step getUserStep depends on getAnswerStep {
+                extract answer.user -> user where userAggregateId == studentAggregateId;
+            }
+            compensation {
+                registerState(studentAggregateId, GenericSagaState.NOT_IN_SAGA);
+            }
+            
+            step updateNameStep depends on getAnswerStep, getUserStep {
+                call answerService.updateStudentName(answerId, studentAggregateId, name, unitOfWork);
+            }
+        }
+    }
     
     Repository {
         @Query("select a.aggregateId from Answer a where a.quiz.quizAggregateId = :quizAggregateId AND a.user.userAggregateId = :userAggregateId AND a.sagaState = 'NOT_IN_SAGA'")

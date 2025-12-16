@@ -1,13 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.TournamentFunctionalities;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.*;
-
 import java.util.List;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.*;
 
 @RestController
 public class TournamentController {
@@ -16,8 +14,7 @@ public class TournamentController {
 
     @PostMapping("/executions/{executionId}/tournaments/create")
     public TournamentDto createTournament(@PathVariable Integer executionId, @RequestParam Integer userId, @RequestParam String topicsId, @RequestBody TournamentDto tournamentDto) throws Exception {
-        TournamentDto result = tournamentFunctionalities.createTournament(executionId, userId, topicsId, tournamentDto);
-        return result;
+        return tournamentFunctionalities.createTournament(executionId, userId, topicsId, tournamentDto);
     }
 
     @PostMapping("/tournaments/{tournamentAggregateId}/join")
@@ -32,32 +29,27 @@ public class TournamentController {
 
     @GetMapping("/tournaments/{tournamentAggregateId}")
     public TournamentDto findTournament(@PathVariable Integer tournamentAggregateId) {
-        TournamentDto result = tournamentFunctionalities.findTournament(tournamentAggregateId);
-        return result;
+        return tournamentFunctionalities.findTournament(tournamentAggregateId);
     }
 
     @PostMapping("/tournaments/{tournamentAggregateId}/solveQuiz")
     public String solveQuiz(@PathVariable Integer tournamentAggregateId, @RequestParam Integer userAggregateId) throws Exception {
-        String result = tournamentFunctionalities.solveQuiz(tournamentAggregateId, userAggregateId);
-        return result;
+        return tournamentFunctionalities.solveQuiz(tournamentAggregateId, userAggregateId);
     }
 
     @GetMapping("/executions/{executionAggregateId}/tournaments")
     public List<TournamentDto> getTournamentsForExecution(@PathVariable Integer executionAggregateId) {
-        List<TournamentDto> result = tournamentFunctionalities.getTournamentsForExecution(executionAggregateId);
-        return result;
+        return tournamentFunctionalities.getTournamentsForExecution(executionAggregateId);
     }
 
     @GetMapping("/executions/{executionAggregateId}/tournaments/opened")
     public List<TournamentDto> getOpenedTournamentsForExecution(@PathVariable Integer executionAggregateId) {
-        List<TournamentDto> result = tournamentFunctionalities.getOpenedTournamentsForExecution(executionAggregateId);
-        return result;
+        return tournamentFunctionalities.getOpenedTournamentsForExecution(executionAggregateId);
     }
 
     @GetMapping("/executions/{executionAggregateId}/tournaments/closed")
     public List<TournamentDto> getClosedTournamentsForExecution(@PathVariable Integer executionAggregateId) {
-        List<TournamentDto> result = tournamentFunctionalities.getClosedTournamentsForExecution(executionAggregateId);
-        return result;
+        return tournamentFunctionalities.getClosedTournamentsForExecution(executionAggregateId);
     }
 
     @PostMapping("/tournaments/{tournamentAggregate}/remove")

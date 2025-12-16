@@ -8,12 +8,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
-public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
+public class GetUserByIdFunctionalitySagas extends WorkflowFunctionality {
     private Integer userAggregateId;
+    private UserDto userDto;
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
-    public DeleteUserFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public GetUserByIdFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(userAggregateId, unitOfWork);
@@ -22,11 +23,12 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep deleteUserStep = new SagaSyncStep("deleteUserStep", () -> {
-            userService.deleteUser(userAggregateId, unitOfWork);
+        SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
+            UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
+            setUserDto(userDto);
         });
 
-        workflow.addStep(deleteUserStep);
+        workflow.addStep(getUserStep);
     }
 
     public Integer getUserAggregateId() {
@@ -37,4 +39,11 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
         this.userAggregateId = userAggregateId;
     }
 
+    public UserDto getUserDto() {
+        return userDto;
+    }
+
+    public void setUserDto(UserDto userDto) {
+        this.userDto = userDto;
+    }
 }

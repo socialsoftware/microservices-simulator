@@ -14,69 +14,7 @@ Aggregate User {
     }
 
     WebAPIEndpoints {
-        Endpoint CreateUser {
-            httpMethod: POST
-            path: "/users/create"
-            methodName: createUser
-            parameters: [
-                userDto: User: "@RequestBody"
-            ]
-            returnType: User
-            desc: "Create a new user"
-            throwsException: true
-        }
-
-        Endpoint FindByAggregateId {
-            httpMethod: GET
-            path: "/users/{userAggregateId}"
-            methodName: findByUserId
-            parameters: [
-                userAggregateId: Integer: "@PathVariable"
-            ]
-            returnType: User
-            desc: "Find user by aggregate ID"
-            throwsException: false
-        }
-
-        Endpoint ActivateUser {
-            httpMethod: POST
-            path: "/users/{userAggregateId}/activate"
-            methodName: activateUser
-            parameters: [
-                userAggregateId: Integer: "@PathVariable"
-            ]
-            desc: "Activate a user"
-            throwsException: true
-        }
-
-        Endpoint DeleteUser {
-            httpMethod: POST
-            path: "/users/{userAggregateId}/delete"
-            methodName: deleteUser
-            parameters: [
-                userAggregateId: Integer: "@PathVariable"
-            ]
-            desc: "Delete a user"
-            throwsException: true
-        }
-
-        Endpoint GetStudents {
-            httpMethod: GET
-            path: "/users/students"
-            methodName: getStudents
-            returnType: List<User>
-            desc: "Get all students"
-            throwsException: false
-        }
-
-        Endpoint GetTeachers {
-            httpMethod: GET
-            path: "/users/teachers"
-            methodName: getTeachers
-            returnType: List<User>
-            desc: "Get all teachers"
-            throwsException: false
-        }
+        crud;
     }
 
     Service UserService {

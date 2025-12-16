@@ -2,7 +2,6 @@ import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { WebApiGenerationOptions } from "./webapi-types.js";
 import { WebApiBaseGenerator } from "./webapi-base-generator.js";
 import { getGlobalConfig } from "../../common/config.js";
-import type { DtoSchemaRegistry } from "../../../services/dto-schema-service.js";
 
 export class ControllerGenerator extends WebApiBaseGenerator {
     async generateController(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions): Promise<string> {
@@ -35,6 +34,13 @@ export class ControllerGenerator extends WebApiBaseGenerator {
 
     private buildEndpoints(rootEntity: Entity, aggregateName: string, aggregate: Aggregate): any[] {
         const endpoints: any[] = [];
+        const lowerAggregate = aggregateName.toLowerCase();
+
+        // Check for auto CRUD generation
+        if (aggregate.webApiEndpoints?.autoCrud) {
+            const crudEndpoints = this.generateCrudEndpoints(aggregateName, lowerAggregate);
+            endpoints.push(...crudEndpoints);
+        }
 
         if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints.length > 0) {
             aggregate.webApiEndpoints.endpoints.forEach((endpoint: any) => {
@@ -57,15 +63,86 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         return endpoints;
     }
 
+    private generateCrudEndpoints(aggregateName: string, lowerAggregate: string): any[] {
+        const dtoType = `${aggregateName}Dto`;
+
+        return [
+            {
+                method: 'Post',
+                path: `/${lowerAggregate}s/create`,
+                methodName: `create${aggregateName}`,
+                parameters: [{
+                    name: `${lowerAggregate}Dto`,
+                    type: dtoType,
+                    annotation: '@RequestBody'
+                }],
+                returnType: dtoType,
+                description: `Create a new ${aggregateName}`,
+                isCrud: true
+            },
+            {
+                method: 'Get',
+                path: `/${lowerAggregate}s/{${lowerAggregate}AggregateId}`,
+                methodName: `get${aggregateName}ById`,
+                parameters: [{
+                    name: `${lowerAggregate}AggregateId`,
+                    type: 'Integer',
+                    annotation: '@PathVariable'
+                }],
+                returnType: dtoType,
+                description: `Get ${aggregateName} by aggregate ID`,
+                isCrud: true
+            },
+            {
+                method: 'Put',
+                path: `/${lowerAggregate}s/{${lowerAggregate}AggregateId}`,
+                methodName: `update${aggregateName}`,
+                parameters: [
+                    {
+                        name: `${lowerAggregate}AggregateId`,
+                        type: 'Integer',
+                        annotation: '@PathVariable'
+                    },
+                    {
+                        name: `${lowerAggregate}Dto`,
+                        type: dtoType,
+                        annotation: '@RequestBody'
+                    }
+                ],
+                returnType: dtoType,
+                description: `Update ${aggregateName}`,
+                isCrud: true
+            },
+            {
+                method: 'Delete',
+                path: `/${lowerAggregate}s/{${lowerAggregate}AggregateId}`,
+                methodName: `delete${aggregateName}`,
+                parameters: [{
+                    name: `${lowerAggregate}AggregateId`,
+                    type: 'Integer',
+                    annotation: '@PathVariable'
+                }],
+                returnType: null,
+                description: `Delete ${aggregateName}`,
+                isCrud: true
+            }
+        ];
+    }
+
 
     private buildControllerImports(aggregate: Aggregate, options: WebApiGenerationOptions, endpoints: any[]): string[] {
         const imports = new Set<string>();
 
         imports.add('import org.springframework.web.bind.annotation.*;');
-        imports.add('import org.springframework.http.ResponseEntity;');
         imports.add('import org.springframework.beans.factory.annotation.Autowired;');
 
         imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'functionalities')}.${aggregate.name}Functionalities;`);
+
+        // Only add collection imports when needed
+        const hasListType = endpoints.some(e => e.returnType && e.returnType.includes('List<'));
+        if (hasListType) {
+            imports.add('import java.util.List;');
+        }
 
         const hasSetType = endpoints.some(e => e.returnType && e.returnType.includes('Set<'));
         if (hasSetType) {
@@ -130,23 +207,15 @@ export class ControllerGenerator extends WebApiBaseGenerator {
     }
 
     private resolveDtoImportPath(dtoType: string, options: WebApiGenerationOptions): string | null {
-        const dtoRegistry: DtoSchemaRegistry | undefined = options.dtoSchemaRegistry;
-        const dtoInfo = dtoRegistry?.dtoByName?.[dtoType];
-
-        let aggregateName = dtoInfo?.aggregateName;
-        if (!aggregateName && dtoType.endsWith('Dto')) {
-            aggregateName = dtoType.slice(0, -3);
-        }
-
-        if (!aggregateName) {
+        if (!dtoType || !dtoType.endsWith('Dto')) {
             return null;
         }
 
+        // DTOs are located in shared.dtos package
         const packageName = getGlobalConfig().buildPackageName(
             options.projectName,
-            'microservices',
-            aggregateName.toLowerCase(),
-            'aggregate'
+            'shared',
+            'dtos'
         );
         return `${packageName}.${dtoType}`;
     }

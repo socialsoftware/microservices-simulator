@@ -8,12 +8,36 @@ export class SagaFunctionalityGenerator extends OrchestrationBase {
         const lowerAggregate = aggregate.name.toLowerCase();
         const packageName = `${basePackage}.${options.projectName.toLowerCase()}.sagas.coordination.${lowerAggregate}`;
 
+        // Get all workflows to check for matching definitions with step bodies
+        initializeAggregateProperties(aggregate);
+        const allWorkflows = getWorkflows(aggregate);
+
+        // Check for auto CRUD generation
+        if (aggregate.webApiEndpoints?.autoCrud) {
+            const crudSagas = this.generateCrudSagaFunctionalities(aggregate, options, packageName);
+            Object.assign(outputs, crudSagas);
+        }
+
         const endpoints = aggregate.webApiEndpoints?.endpoints || [];
         for (const endpoint of endpoints) {
             const methodName: string = endpoint.methodName;
             if (!methodName) continue;
 
             const className = `${this.capitalize(methodName)}FunctionalitySagas`;
+
+            // Check if there's a workflow with step definitions for this endpoint
+            const matchingWorkflow = allWorkflows.find((w: any) =>
+                w.name === methodName && w.workflowSteps && w.workflowSteps.length > 0
+            );
+
+            if (matchingWorkflow) {
+                // Generate using the workflow definition with steps
+                const content = this.generateWorkflowFunctionality(aggregate, matchingWorkflow, options, packageName);
+                outputs[className + '.java'] = content;
+                continue;
+            }
+
+            // Otherwise, generate basic functionality from endpoint
             const imports: string[] = [];
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${this.capitalize(aggregate.name)}Service;`);
             const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
@@ -298,6 +322,30 @@ export class SagaFunctionalityGenerator extends OrchestrationBase {
             imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
             imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
 
+            // Add imports for workflow steps with dependencies
+            const workflowSteps = sagaWorkflow.workflowSteps || [];
+            const hasStepDependencies = workflowSteps.some((s: any) => s.dependsOn?.dependencies?.length > 0);
+            if (hasStepDependencies) {
+                imports.push('import java.util.ArrayList;');
+                imports.push('import java.util.Arrays;');
+            }
+
+            // Add saga state imports if workflow uses registerState
+            const usesRegisterState = workflowSteps.some((s: any) =>
+                (s.stepActions || []).some((a: any) => a.$type === 'WorkflowRegisterStateAction') ||
+                (s.compensation?.compensationActions || []).some((a: any) => a.$type === 'WorkflowRegisterStateAction')
+            );
+            if (usesRegisterState) {
+                imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.states.${capitalizedAggregate}SagaState;`);
+                imports.push(`import ${basePackage}.ms.sagas.aggregate.GenericSagaState;`);
+            }
+
+            // Add DTO import if workflow uses fields with DTOs
+            const workflowFields = sagaWorkflow.workflowFields || [];
+            if (workflowFields.length > 0) {
+                imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.dtos.Saga${capitalizedAggregate}Dto;`);
+            }
+
             // Determine the actual source aggregate for the event
             let sourceAggregateName = 'unknown';
             const publishedEvent = subscribedEvent.eventType?.ref as any;
@@ -398,8 +446,8 @@ export class SagaFunctionalityGenerator extends OrchestrationBase {
                 buildParams.push({ type: 'SagaUnitOfWork', name: 'unitOfWork' });
             }
 
-            // Generate basic workflow steps (placeholder - will need manual implementation)
-            const stepsBody = this.generateEventProcessingWorkflowSteps(workflowName, aggregateName, lowerAggregate, workflowParams);
+            // Generate workflow steps - uses DSL definitions if available, otherwise placeholder
+            const stepsBody = this.generateEventProcessingWorkflowSteps(workflowName, aggregateName, lowerAggregate, workflowParams, sagaWorkflow);
 
             // Build constructor body - assign all params except unitOfWork (which is passed to buildWorkflow)
             const fieldsToStore = constructorParams.filter(p => p.name !== 'unitOfWork');
@@ -413,12 +461,35 @@ export class SagaFunctionalityGenerator extends OrchestrationBase {
             // Generate field declarations - only for stored fields (not unitOfWork)
             const fieldsString = fieldsToStore.map((p: { type: string; name: string }) => `    private ${p.type} ${p.name};`).join('\n');
 
+            // Generate workflow field declarations (from DSL fields block)
+            const workflowFieldsString = workflowFields.map((f: any) => {
+                const fieldType = this.getParamTypeName(f.type, capitalizedAggregate);
+                return `    private ${fieldType} ${f.name};`;
+            }).join('\n');
+
+            // Combine all fields
+            const allFieldsString = [fieldsString, workflowFieldsString].filter(Boolean).join('\n');
+
+            // Generate getters and setters for workflow fields
+            const gettersSetters = workflowFields.map((f: any) => {
+                const fieldType = this.getParamTypeName(f.type, capitalizedAggregate);
+                const capitalizedName = this.capitalize(f.name);
+                return `
+    public void set${capitalizedName}(${fieldType} ${f.name}) {
+        this.${f.name} = ${f.name};
+    }
+
+    public ${fieldType} get${capitalizedName}() {
+        return ${f.name};
+    }`;
+            }).join('\n');
+
             const content = `package ${packageName};
 
 ${imports.map(i => i).join('\n')}
 
 public class ${className} extends WorkflowFunctionality {
-${fieldsString}
+${allFieldsString}
 
     public ${className}(${constructorParamsString}) {
 ${constructorBodyWithBuildWorkflow}
@@ -427,10 +498,135 @@ ${constructorBodyWithBuildWorkflow}
     public void buildWorkflow(${buildParamsString}) {
 ${stepsBody}
     }
+${gettersSetters}
 }`;
 
             outputs[className + '.java'] = content;
         }
+    }
+
+    private generateWorkflowFunctionality(aggregate: any, workflow: any, options: { projectName: string }, packageName: string): string {
+        const basePackage = this.getBasePackage();
+        const lowerAggregate = aggregate.name.toLowerCase();
+        const capitalizedAggregate = this.capitalize(aggregate.name);
+        const className = `${this.capitalize(workflow.name)}FunctionalitySagas`;
+        const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
+
+        const imports: string[] = [];
+        imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
+        imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
+        imports.push(`import ${basePackage}.ms.sagas.workflow.SagaSyncStep;`);
+        imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
+        imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${capitalizedAggregate}Service;`);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
+
+        // Check for step dependencies
+        const workflowSteps = workflow.workflowSteps || [];
+        const hasStepDependencies = workflowSteps.some((s: any) => s.dependsOn?.dependencies?.length > 0);
+        if (hasStepDependencies) {
+            imports.push('import java.util.ArrayList;');
+            imports.push('import java.util.Arrays;');
+        }
+
+        // Check for saga state registration
+        const usesRegisterState = workflowSteps.some((s: any) =>
+            (s.stepActions || []).some((a: any) => a.$type === 'WorkflowRegisterStateAction') ||
+            (s.compensation?.compensationActions || []).some((a: any) => a.$type === 'WorkflowRegisterStateAction')
+        );
+        if (usesRegisterState) {
+            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.states.${capitalizedAggregate}SagaState;`);
+            imports.push(`import ${basePackage}.ms.sagas.aggregate.GenericSagaState;`);
+        }
+
+        // Build constructor parameters from workflow parameters
+        const workflowParams = workflow.parameters || [];
+        const constructorParams: Array<{ type: string; name: string }> = [
+            { type: `${capitalizedAggregate}Service`, name: `${lowerAggregate}Service` },
+            { type: 'SagaUnitOfWorkService', name: 'sagaUnitOfWorkService' }
+        ];
+
+        // Add workflow parameters (excluding UnitOfWork which goes last)
+        const buildParams: Array<{ type: string; name: string }> = [];
+        for (const param of workflowParams) {
+            const paramName = param.name;
+            const paramType = this.getParamTypeName(param.type, aggregate.name);
+
+            if (paramType === 'SagaUnitOfWork' || paramType === 'UnitOfWork') {
+                continue; // Skip unitOfWork, will add at end
+            }
+
+            constructorParams.push({ type: paramType, name: paramName });
+            buildParams.push({ type: paramType, name: paramName });
+        }
+
+        // Add unitOfWork at the end
+        constructorParams.push({ type: 'SagaUnitOfWork', name: 'unitOfWork' });
+        buildParams.push({ type: 'SagaUnitOfWork', name: 'unitOfWork' });
+
+        // Get workflow fields
+        const workflowFields = workflow.workflowFields || [];
+
+        // Build fields string - service dependencies
+        const serviceFields = [
+            `    private ${capitalizedAggregate}Service ${lowerAggregate}Service;`,
+            `    private SagaUnitOfWorkService sagaUnitOfWorkService;`
+        ];
+
+        // Add workflow fields
+        const extraFields = workflowFields.map((f: any) => {
+            const fieldType = this.getParamTypeName(f.type, aggregate.name);
+            return `    private ${fieldType} ${f.name};`;
+        });
+
+        const allFields = [...serviceFields, ...extraFields].join('\n');
+
+        // Build constructor body
+        const constructorAssignments = [
+            `        this.${lowerAggregate}Service = ${lowerAggregate}Service;`,
+            `        this.sagaUnitOfWorkService = sagaUnitOfWorkService;`
+        ];
+
+        // Build the buildWorkflow call arguments
+        const buildWorkflowArgs = buildParams.map(p => p.name).join(', ');
+
+        // Generate step body from DSL
+        const stepsBody = this.generateWorkflowStepsFromDSL(workflowSteps, aggregate.name, lowerAggregate);
+
+        // Generate getters and setters for workflow fields
+        const gettersSetters = workflowFields.map((f: any) => {
+            const fieldType = this.getParamTypeName(f.type, aggregate.name);
+            const capitalizedName = this.capitalize(f.name);
+            return `
+    public void set${capitalizedName}(${fieldType} ${f.name}) {
+        this.${f.name} = ${f.name};
+    }
+
+    public ${fieldType} get${capitalizedName}() {
+        return ${f.name};
+    }`;
+        }).join('\n');
+
+        const constructorParamsString = constructorParams.map(p => `${p.type} ${p.name}`).join(', ');
+        const buildParamsString = buildParams.map(p => `${p.type} ${p.name}`).join(', ');
+
+        return `package ${packageName};
+
+${imports.join('\n')}
+
+public class ${className} extends WorkflowFunctionality {
+${allFields}
+
+    public ${className}(${constructorParamsString}) {
+${constructorAssignments.join('\n')}
+        this.buildWorkflow(${buildWorkflowArgs});
+    }
+
+    public void buildWorkflow(${buildParamsString}) {
+${stepsBody}
+    }
+${gettersSetters}
+}`;
     }
 
     private findSagaWorkflowForEvent(aggregate: any, eventTypeName: string): any {
@@ -481,9 +677,15 @@ ${stepsBody}
         });
     }
 
-    private generateEventProcessingWorkflowSteps(workflowName: string, aggregateName: string, lowerAggregate: string, workflowParams: any[]): string {
+    private generateEventProcessingWorkflowSteps(workflowName: string, aggregateName: string, lowerAggregate: string, workflowParams: any[], sagaWorkflow?: any): string {
+        // Check if workflow has step definitions
+        const workflowSteps = sagaWorkflow?.workflowSteps || [];
+
+        if (workflowSteps.length > 0) {
+            return this.generateWorkflowStepsFromDSL(workflowSteps, aggregateName, lowerAggregate);
+        }
+
         // Generate a basic placeholder workflow structure
-        // This will need to be manually implemented based on the actual workflow requirements
         return `        this.workflow = new SagaWorkflow(this, sagaUnitOfWorkService, unitOfWork);
 
         // TODO: Implement workflow steps for ${workflowName}
@@ -492,6 +694,181 @@ ${stepsBody}
         //     // Step implementation
         // });
         // this.workflow.addStep(step1);`;
+    }
+
+    private generateWorkflowStepsFromDSL(workflowSteps: any[], aggregateName: string, lowerAggregate: string): string {
+        const lines: string[] = [];
+        lines.push('        this.workflow = new SagaWorkflow(this, sagaUnitOfWorkService, unitOfWork);');
+        lines.push('');
+
+        const stepVarNames: Map<string, string> = new Map();
+
+        // First pass: create step variable names
+        for (const step of workflowSteps) {
+            const stepName = step.stepName;
+            // Avoid double "Step" suffix
+            const varName = stepName.endsWith('Step') ? stepName : `${stepName}Step`;
+            stepVarNames.set(stepName, varName);
+        }
+
+        // Second pass: generate step code
+        for (const step of workflowSteps) {
+            const stepName = step.stepName;
+            const stepVar = stepVarNames.get(stepName)!;
+            const actions = step.stepActions || [];
+            const dependencies = step.dependsOn?.dependencies || [];
+            const compensation = step.compensation;
+
+            // Generate step body actions
+            let stepBody = '';
+            for (const action of actions) {
+                stepBody += this.generateWorkflowAction(action, aggregateName, lowerAggregate);
+            }
+
+            // Generate step with dependencies
+            let stepDependencies = '';
+            if (dependencies.length > 0) {
+                const depVars = dependencies.map((dep: string) => stepVarNames.get(dep) || `${dep}Step`).join(', ');
+                stepDependencies = `, new ArrayList<>(Arrays.asList(${depVars}))`;
+            }
+
+            lines.push(`        SagaSyncStep ${stepVar} = new SagaSyncStep("${stepName}", () -> {`);
+            lines.push(stepBody);
+            lines.push(`        }${stepDependencies});`);
+            lines.push('');
+
+            // Add compensation if present
+            if (compensation && compensation.compensationActions && compensation.compensationActions.length > 0) {
+                lines.push(`        ${stepVar}.registerCompensation(() -> {`);
+                for (const compAction of compensation.compensationActions) {
+                    lines.push(this.generateWorkflowAction(compAction, aggregateName, lowerAggregate));
+                }
+                lines.push('        }, unitOfWork);');
+                lines.push('');
+            }
+        }
+
+        // Add all steps to workflow
+        for (const step of workflowSteps) {
+            const stepVar = stepVarNames.get(step.stepName)!;
+            lines.push(`        this.workflow.addStep(${stepVar});`);
+        }
+
+        return lines.join('\n');
+    }
+
+    private generateWorkflowAction(action: any, aggregateName: string, lowerAggregate: string): string {
+        switch (action.$type) {
+            case 'WorkflowCallAction': {
+                const serviceRef = action.serviceRef;
+                const method = action.method;
+                const args = (action.args || []).map((arg: any) => this.convertWorkflowArg(arg)).join(', ');
+                const callExpr = `${serviceRef}.${method}(${args})`;
+
+                if (action.assignTo) {
+                    return `            this.${action.assignTo} = ${callExpr};\n`;
+                } else {
+                    return `            ${callExpr};\n`;
+                }
+            }
+            case 'WorkflowExtractAction': {
+                const source = this.convertWorkflowArg(action.source);
+                const target = action.target;
+
+                if (action.filterField && action.filterValue) {
+                    const filterField = action.filterField;
+                    const filterValue = this.convertWorkflowArg(action.filterValue);
+                    return `            this.${target} = ${source}.stream().filter(p -> p.get${this.capitalize(filterField)}().equals(${filterValue})).findFirst().orElse(null);\n`;
+                } else {
+                    return `            this.${target} = ${source};\n`;
+                }
+            }
+            case 'WorkflowRegisterStateAction': {
+                const aggregateId = this.convertWorkflowArg(action.aggregateId);
+                const sagaState = action.sagaState;
+                return `            sagaUnitOfWorkService.registerSagaState(${aggregateId}, ${sagaState}, unitOfWork);\n`;
+            }
+            case 'WorkflowSetFieldAction': {
+                const fieldName = action.fieldName;
+                const value = this.convertWorkflowArg(action.value);
+                return `            this.${fieldName} = ${value};\n`;
+            }
+            default:
+                return `            // Unknown action type: ${action.$type}\n`;
+        }
+    }
+
+    private convertWorkflowArg(arg: any): string {
+        if (!arg) return 'null';
+
+        // WorkflowArg has ref and chain properties
+        const ref = arg.ref || '';
+        const chain = arg.chain || [];
+
+        if (chain.length > 0) {
+            // Build the chain: ref.chain[0].chain[1]...
+            let result = ref;
+            for (const part of chain) {
+                // Use getter for each part
+                result += `.get${this.capitalize(part)}()`;
+            }
+            return result;
+        }
+
+        return ref;
+    }
+
+    private getParamTypeName(paramType: any, aggregateName: string, useSagaDto: boolean = false): string {
+        if (!paramType) return 'Object';
+
+        // PrimitiveType
+        if (paramType.typeName) {
+            return paramType.typeName;
+        }
+
+        // EntityType (reference to entity)
+        if (paramType.type?.ref?.name) {
+            const entityName = paramType.type.ref.name;
+            // Use SagaDto only if explicitly requested and for root entity
+            if (useSagaDto && entityName === aggregateName) {
+                return `Saga${aggregateName}Dto`;
+            }
+            return `${entityName}Dto`;
+        }
+
+        // ListType
+        if (paramType.$type === 'ListType') {
+            const elementType = typeof paramType.elementType === 'string'
+                ? paramType.elementType
+                : (paramType.elementType?.typeName || 'Object');
+            return `List<${elementType}>`;
+        }
+
+        // SetType
+        if (paramType.$type === 'SetType') {
+            const elementType = typeof paramType.elementType === 'string'
+                ? paramType.elementType
+                : (paramType.elementType?.typeName || 'Object');
+            return `Set<${elementType}>`;
+        }
+
+        // OptionalType
+        if (paramType.$type === 'OptionalType') {
+            const elementType = typeof paramType.elementType === 'string'
+                ? paramType.elementType
+                : (paramType.elementType?.typeName || 'Object');
+            return `Optional<${elementType}>`;
+        }
+
+        // BuiltinType
+        if (paramType.name === 'UnitOfWork') {
+            return 'SagaUnitOfWork';
+        }
+        if (paramType.name === 'AggregateState') {
+            return 'AggregateState';
+        }
+
+        return 'Object';
     }
 
     private convertStepArgument(arg: any): string {
@@ -565,6 +942,178 @@ ${stepsBody}
             return 'Object'; // Will need proper type resolution
         }
         return 'Object';
+    }
+
+    private generateCrudSagaFunctionalities(aggregate: any, options: { projectName: string }, packageName: string): Record<string, string> {
+        const outputs: Record<string, string> = {};
+        const basePackage = this.getBasePackage();
+        const lowerAggregate = aggregate.name.toLowerCase();
+        const capitalizedAggregate = this.capitalize(aggregate.name);
+        const dtoType = `${capitalizedAggregate}Dto`;
+        const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
+
+        const crudOperations = [
+            {
+                name: `create${capitalizedAggregate}`,
+                stepName: `create${capitalizedAggregate}Step`,
+                params: [{ type: dtoType, name: `${lowerAggregate}Dto` }],
+                resultType: dtoType,
+                resultField: `created${capitalizedAggregate}Dto`,
+                resultSetter: `setCreated${capitalizedAggregate}Dto`,
+                resultGetter: `getCreated${capitalizedAggregate}Dto`,
+                serviceCall: `${lowerAggregate}Service.create${capitalizedAggregate}`,
+                serviceArgs: [`${lowerAggregate}Dto`, 'unitOfWork']
+            },
+            {
+                name: `get${capitalizedAggregate}ById`,
+                stepName: `get${capitalizedAggregate}Step`,
+                params: [{ type: 'Integer', name: `${lowerAggregate}AggregateId` }],
+                resultType: dtoType,
+                resultField: `${lowerAggregate}Dto`,
+                resultSetter: `set${capitalizedAggregate}Dto`,
+                resultGetter: `get${capitalizedAggregate}Dto`,
+                serviceCall: `${lowerAggregate}Service.get${capitalizedAggregate}ById`,
+                serviceArgs: [`${lowerAggregate}AggregateId`, 'unitOfWork']
+            },
+            {
+                name: `update${capitalizedAggregate}`,
+                stepName: `update${capitalizedAggregate}Step`,
+                params: [
+                    { type: 'Integer', name: `${lowerAggregate}AggregateId` },
+                    { type: dtoType, name: `${lowerAggregate}Dto` }
+                ],
+                resultType: dtoType,
+                resultField: `updated${capitalizedAggregate}Dto`,
+                resultSetter: `setUpdated${capitalizedAggregate}Dto`,
+                resultGetter: `getUpdated${capitalizedAggregate}Dto`,
+                serviceCall: `${lowerAggregate}Service.update${capitalizedAggregate}`,
+                serviceArgs: [`${lowerAggregate}AggregateId`, `${lowerAggregate}Dto`, 'unitOfWork']
+            },
+            {
+                name: `delete${capitalizedAggregate}`,
+                stepName: `delete${capitalizedAggregate}Step`,
+                params: [{ type: 'Integer', name: `${lowerAggregate}AggregateId` }],
+                resultType: undefined,
+                resultField: undefined,
+                resultSetter: undefined,
+                resultGetter: undefined,
+                serviceCall: `${lowerAggregate}Service.delete${capitalizedAggregate}`,
+                serviceArgs: [`${lowerAggregate}AggregateId`, 'unitOfWork']
+            }
+        ];
+
+        for (const op of crudOperations) {
+            const className = `${this.capitalize(op.name)}FunctionalitySagas`;
+
+            const imports: string[] = [];
+            imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
+            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${capitalizedAggregate}Service;`);
+            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
+            imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
+            imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
+            imports.push(`import ${basePackage}.ms.sagas.workflow.SagaSyncStep;`);
+            imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
+
+            let fieldsDeclaration = '';
+
+            const keepParamFields = op.name !== `create${capitalizedAggregate}`;
+            if (keepParamFields) {
+                for (const param of op.params) {
+                    fieldsDeclaration += `    private ${param.type} ${param.name};\n`;
+                }
+            }
+
+            if (op.resultField) {
+                fieldsDeclaration += `    private ${op.resultType} ${op.resultField};\n`;
+            }
+
+            fieldsDeclaration += `    private final ${capitalizedAggregate}Service ${lowerAggregate}Service;\n`;
+            fieldsDeclaration += `    private final SagaUnitOfWorkService unitOfWorkService;`;
+
+            const constructorParams = [
+                `${capitalizedAggregate}Service ${lowerAggregate}Service`,
+                'SagaUnitOfWorkService unitOfWorkService',
+                ...op.params.map(p => `${p.type} ${p.name}`),
+                'SagaUnitOfWork unitOfWork'
+            ];
+
+            const buildWorkflowParams = [
+                ...op.params.map(p => `${p.type} ${p.name}`),
+                'SagaUnitOfWork unitOfWork'
+            ];
+
+            const buildWorkflowCallArgs = [
+                ...op.params.map(p => p.name),
+                'unitOfWork'
+            ];
+
+            // Generate step body
+            let stepBody = '';
+            if (op.resultType) {
+                stepBody = `            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${op.serviceArgs.join(', ')});
+            ${op.resultSetter}(${op.resultField});`;
+            } else {
+                stepBody = `            ${op.serviceCall}(${op.serviceArgs.join(', ')});`;
+            }
+
+            let gettersSettersCode = '';
+            if (keepParamFields) {
+                for (const param of op.params) {
+                    const capitalizedParam = this.capitalize(param.name);
+                    gettersSettersCode += `
+    public ${param.type} get${capitalizedParam}() {
+        return ${param.name};
+    }
+
+    public void set${capitalizedParam}(${param.type} ${param.name}) {
+        this.${param.name} = ${param.name};
+    }
+`;
+                }
+            }
+
+            if (op.resultField && op.resultGetter && op.resultSetter) {
+                gettersSettersCode += `
+    public ${op.resultType} ${op.resultGetter}() {
+        return ${op.resultField};
+    }
+
+    public void ${op.resultSetter}(${op.resultType} ${op.resultField}) {
+        this.${op.resultField} = ${op.resultField};
+    }`;
+            }
+
+            // Generate the class content
+            const content = `package ${packageName};
+
+${imports.join('\n')}
+
+public class ${className} extends WorkflowFunctionality {
+${fieldsDeclaration}
+
+    public ${className}(${constructorParams.join(', ')}) {
+        this.${lowerAggregate}Service = ${lowerAggregate}Service;
+        this.unitOfWorkService = unitOfWorkService;
+        this.buildWorkflow(${buildWorkflowCallArgs.join(', ')});
+    }
+
+    public void buildWorkflow(${buildWorkflowParams.join(', ')}) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+
+        SagaSyncStep ${op.stepName} = new SagaSyncStep("${op.stepName}", () -> {
+${stepBody}
+        });
+
+        workflow.addStep(${op.stepName});
+    }
+${gettersSettersCode}
+}
+`;
+
+            outputs[className + '.java'] = content;
+        }
+
+        return outputs;
     }
 
 }

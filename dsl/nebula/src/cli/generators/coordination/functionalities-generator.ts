@@ -27,7 +27,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
 
         const dependencies = this.buildDependencies(aggregate, options);
         const businessMethods = this.buildBusinessMethods(aggregate, rootEntity, capitalizedAggregate, entityRegistry, consistencyModels);
-        const imports = this.buildImports(aggregate, rootEntity, options, dependencies, entityRegistry);
+        const imports = this.buildImports(aggregate, rootEntity, options, dependencies, entityRegistry, businessMethods);
 
         const basePackage = this.getBasePackage();
         return {
@@ -50,17 +50,19 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
 
     private buildDependencies(aggregate: Aggregate, options: CoordinationGenerationOptions): any[] {
         const dependencies: any[] = [];
-        const aggregateName = aggregate.name.toLowerCase();
+        const aggregateName = aggregate.name;
+        const lowerAggregate = aggregateName.toLowerCase();
 
+        // Main aggregate service (e.g., AnswerService, UserService)
         dependencies.push({
-            name: `${aggregateName}Service`,
-            type: `${this.capitalize(aggregate.name)}Service`,
+            name: `${lowerAggregate}Service`,
+            type: `${this.capitalize(aggregateName)}Service`,
             required: true
         });
 
-        // Add UserService if needed
+        // Additional UserService only for aggregates that are NOT the User aggregate itself
         const needsUserService = this.checkUserServiceUsage(aggregate);
-        if (needsUserService) {
+        if (needsUserService && lowerAggregate !== 'user') {
             dependencies.push({
                 name: 'userService',
                 type: 'UserService',
@@ -68,18 +70,21 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             });
         }
 
+        // Saga unit of work service
         dependencies.push({
             name: 'sagaUnitOfWorkService',
             type: 'SagaUnitOfWorkService',
             required: true
         });
 
-        // Add factory
-        dependencies.push({
-            name: `${aggregateName}Factory`,
-            type: `${this.capitalize(aggregate.name)}Factory`,
-            required: true
-        });
+        // Factory is useful for most aggregates, but we can skip it for the User aggregate where it isn't used
+        if (lowerAggregate !== 'user') {
+            dependencies.push({
+                name: `${lowerAggregate}Factory`,
+                type: `${this.capitalize(aggregateName)}Factory`,
+                required: true
+            });
+        }
 
         return dependencies;
     }
@@ -87,6 +92,18 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     private buildBusinessMethods(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, entityRegistry: EntityRegistry, consistencyModels: string[]): any[] {
         const methods: any[] = [];
         const addedMethods = new Set<string>();
+        const lowerAggregate = aggregateName.toLowerCase();
+
+        if ((aggregate.webApiEndpoints as any)?.autoCrud) {
+            const crudMethods = this.generateCrudMethods(aggregateName, lowerAggregate, consistencyModels);
+            crudMethods.forEach(method => {
+                const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
+                if (!addedMethods.has(methodSignature)) {
+                    methods.push(method);
+                    addedMethods.add(methodSignature);
+                }
+            });
+        }
 
         // Add methods from WebAPIEndpoints
         if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints) {
@@ -129,25 +146,93 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         return methods;
     }
 
-    private buildImports(aggregate: Aggregate, rootEntity: Entity | undefined, options: CoordinationGenerationOptions, dependencies: any[], entityRegistry: EntityRegistry): string[] {
+    private generateCrudMethods(aggregateName: string, lowerAggregate: string, consistencyModels: string[]): any[] {
+        const dtoType = `${aggregateName}Dto`;
+        const methods: any[] = [];
+
+        methods.push({
+            name: `create${aggregateName}`,
+            returnType: dtoType,
+            parameters: [{ type: dtoType, name: `${lowerAggregate}Dto` }],
+            body: this.generateCrudMethodBody('create', aggregateName, lowerAggregate, dtoType, [`${lowerAggregate}Dto`]),
+            throwsException: false
+        });
+
+        methods.push({
+            name: `get${aggregateName}ById`,
+            returnType: dtoType,
+            parameters: [{ type: 'Integer', name: `${lowerAggregate}AggregateId` }],
+            body: this.generateCrudMethodBody('getById', aggregateName, lowerAggregate, dtoType, [`${lowerAggregate}AggregateId`]),
+            throwsException: false
+        });
+
+        methods.push({
+            name: `update${aggregateName}`,
+            returnType: dtoType,
+            parameters: [
+                { type: 'Integer', name: `${lowerAggregate}AggregateId` },
+                { type: dtoType, name: `${lowerAggregate}Dto` }
+            ],
+            body: this.generateCrudMethodBody('update', aggregateName, lowerAggregate, dtoType, [`${lowerAggregate}AggregateId`, `${lowerAggregate}Dto`]),
+            throwsException: false
+        });
+
+        methods.push({
+            name: `delete${aggregateName}`,
+            returnType: 'void',
+            parameters: [{ type: 'Integer', name: `${lowerAggregate}AggregateId` }],
+            body: this.generateCrudMethodBody('delete', aggregateName, lowerAggregate, 'void', [`${lowerAggregate}AggregateId`]),
+            throwsException: false
+        });
+
+        return methods;
+    }
+
+    private generateCrudMethodBody(operation: string, aggregateName: string, lowerAggregate: string, returnType: string, paramNames: string[]): string {
+        const capitalizedMethodName = this.capitalize(operation === 'getById' ? `get${aggregateName}ById` : `${operation}${aggregateName}`);
+        const methodName = operation === 'getById' ? `get${aggregateName}ById` : `${operation}${aggregateName}`;
+        const uncapitalizedMethodName = methodName.charAt(0).toLowerCase() + methodName.slice(1);
+        const sagaParams = [`${lowerAggregate}Service`, 'sagaUnitOfWorkService', ...paramNames, 'sagaUnitOfWork'].join(', ');
+
+        let sagaReturn: string;
+        if (returnType === 'void') {
+            sagaReturn = 'break;';
+        } else if (operation === 'create') {
+            sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.getCreated${aggregateName}Dto();`;
+        } else if (operation === 'getById') {
+            sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.get${aggregateName}Dto();`;
+        } else if (operation === 'update') {
+            sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.getUpdated${aggregateName}Dto();`;
+        } else {
+            sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.getResult();`;
+        }
+
+        return `String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                ${capitalizedMethodName}FunctionalitySagas ${uncapitalizedMethodName}FunctionalitySagas = new ${capitalizedMethodName}FunctionalitySagas(
+                        ${sagaParams});
+                ${uncapitalizedMethodName}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                ${sagaReturn}
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }`;
+    }
+
+    private buildImports(aggregate: Aggregate, rootEntity: Entity | undefined, options: CoordinationGenerationOptions, dependencies: any[], entityRegistry: EntityRegistry, businessMethods: any[]): string[] {
         const imports: string[] = [];
         const projectName = options.projectName.toLowerCase();
 
         const basePackage = this.getBasePackage();
 
         imports.push('import java.util.Arrays;');
-        imports.push('import java.util.List;');
-        imports.push('import java.util.Set;');
-        imports.push('import java.util.ArrayList;');
-        imports.push('import java.util.HashSet;');
         imports.push(`import ${basePackage}.${projectName}.microservices.exception.${this.capitalize(options.projectName)}Exception;`);
         imports.push('import org.springframework.beans.factory.annotation.Autowired;');
         imports.push('import org.springframework.core.env.Environment;');
         imports.push('import org.springframework.stereotype.Service;');
         imports.push('import jakarta.annotation.PostConstruct;');
         imports.push(`import ${basePackage}.ms.TransactionalModel;`);
-        imports.push(`import ${basePackage}.ms.coordination.unitOfWork.UnitOfWork;`);
-
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
         imports.push(`import ${basePackage}.${projectName}.sagas.coordination.${aggregate.name.toLowerCase()}.*;`);
@@ -183,7 +268,8 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
 
         this.addDtoImports(aggregate, imports, projectName, entityRegistry);
 
-        return imports;
+        // Remove duplicate imports
+        return Array.from(new Set(imports));
     }
 
     private checkUserDtoUsage(aggregate: Aggregate, rootEntity: Entity | undefined): boolean {
@@ -479,9 +565,8 @@ ${cases}
     private buildSagaParameters(params: any[], aggregateName: string): string {
         const baseParams = [`${aggregateName}Service`, 'sagaUnitOfWorkService'];
 
-        // Add parameters from the method
         params.forEach(param => {
-            if (!param.annotation) { // Skip annotated parameters like @PathVariable, @RequestBody
+            if (param.name) {
                 baseParams.push(param.name);
             }
         });

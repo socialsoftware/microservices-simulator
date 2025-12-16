@@ -4,21 +4,16 @@ package {{packageName}};
 {{{this}}}
 {{/each}}
 
-import java.util.List;
-
 @RestController
 public class {{aggregateName}}Controller {
     @Autowired
     private {{aggregateName}}Functionalities {{functionalitiesName}};
 {{#each endpoints}}
 
-    @{{method}}Mapping({{#if path}}"{{path}}"{{/if}})
-    public {{#if returnType}}{{#if (eq returnType "void")}}void{{else}}{{returnType}}{{/if}}{{else}}void{{/if}} {{methodName}}({{#each parameters}}{{annotation}} {{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}){{#if throwsException}} throws Exception{{/if}} {
-{{#if returnType}}{{#if (eq returnType "void")}}        {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
-{{else}}{{#if (eq returnType "List")}}        return {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
-{{else}}        {{returnType}} result = {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
-        return result;
-{{/if}}{{/if}}{{else}}        {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
+    @{{method}}Mapping("{{path}}")
+    public {{#if returnType}}{{returnType}}{{else}}void{{/if}} {{methodName}}({{#each parameters}}{{annotation}} {{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}){{#if throwsException}} throws Exception{{/if}} {
+{{#if returnType}}        return {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
+{{else}}        {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
 {{/if}}    }
 {{/each}}
 }

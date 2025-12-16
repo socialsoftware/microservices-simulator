@@ -1,30 +1,40 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.user;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class CreateUserFunctionalitySagas extends WorkflowFunctionality {
-    
-        private final UserService userService;
-    private final SagaUnitOfWorkService sagaUnitOfWorkService;
-    private final SagaUnitOfWork unitOfWork;
+    private UserDto createdUserDto;
+    private final UserService userService;
+    private final SagaUnitOfWorkService unitOfWorkService;
 
-    public CreateUserFunctionalitySagas(UserService userService, SagaUnitOfWorkService sagaUnitOfWorkService, SagaUnitOfWork unitOfWork) {
+    public CreateUserFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService, UserDto userDto, SagaUnitOfWork unitOfWork) {
         this.userService = userService;
-        this.sagaUnitOfWorkService = sagaUnitOfWorkService;
-        this.unitOfWork = unitOfWork;
+        this.unitOfWorkService = unitOfWorkService;
+        this.buildWorkflow(userDto, unitOfWork);
     }
 
-    public void buildWorkflow() {
-        this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
+    public void buildWorkflow(UserDto userDto, SagaUnitOfWork unitOfWork) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
+        SagaSyncStep createUserStep = new SagaSyncStep("createUserStep", () -> {
+            UserDto createdUserDto = userService.createUser(userDto, unitOfWork);
+            setCreatedUserDto(createdUserDto);
+        });
+
+        workflow.addStep(createUserStep);
     }
 
+    public UserDto getCreatedUserDto() {
+        return createdUserDto;
+    }
+
+    public void setCreatedUserDto(UserDto createdUserDto) {
+        this.createdUserDto = createdUserDto;
+    }
 }
-
-

@@ -4,17 +4,12 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.HashSet;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.question.*;
@@ -60,7 +55,7 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindQuestionByAggregateIdFunctionalitySagas findQuestionByAggregateIdFunctionalitySagas = new FindQuestionByAggregateIdFunctionalitySagas(
-                        questionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                        questionService, sagaUnitOfWorkService, aggregateId, sagaUnitOfWork);
                 findQuestionByAggregateIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findQuestionByAggregateIdFunctionalitySagas.getResult();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -74,7 +69,7 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 FindQuestionsByCourseAggregateIdFunctionalitySagas findQuestionsByCourseAggregateIdFunctionalitySagas = new FindQuestionsByCourseAggregateIdFunctionalitySagas(
-                        questionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                        questionService, sagaUnitOfWorkService, courseAggregateId, sagaUnitOfWork);
                 findQuestionsByCourseAggregateIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return findQuestionsByCourseAggregateIdFunctionalitySagas.getFindQuestionsByCourseAggregateId();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -88,7 +83,7 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 CreateQuestionFunctionalitySagas createQuestionFunctionalitySagas = new CreateQuestionFunctionalitySagas(
-                        questionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                        questionService, sagaUnitOfWorkService, courseAggregateId, questionDto, sagaUnitOfWork);
                 createQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createQuestionFunctionalitySagas.getCreatedQuestion();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -102,7 +97,7 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuestionFunctionalitySagas updateQuestionFunctionalitySagas = new UpdateQuestionFunctionalitySagas(
-                        questionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                        questionService, sagaUnitOfWorkService, questionDto, sagaUnitOfWork);
                 updateQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -116,7 +111,7 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 RemoveQuestionFunctionalitySagas removeQuestionFunctionalitySagas = new RemoveQuestionFunctionalitySagas(
-                        questionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                        questionService, sagaUnitOfWorkService, questionAggregateId, sagaUnitOfWork);
                 removeQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -130,7 +125,7 @@ public class QuestionFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 UpdateQuestionTopicsFunctionalitySagas updateQuestionTopicsFunctionalitySagas = new UpdateQuestionTopicsFunctionalitySagas(
-                        questionService, sagaUnitOfWorkService, sagaUnitOfWork);
+                        questionService, sagaUnitOfWorkService, courseAggregateId, topicIds, sagaUnitOfWork);
                 updateQuestionTopicsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

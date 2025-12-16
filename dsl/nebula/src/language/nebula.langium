@@ -51,7 +51,54 @@ Constructor:
 Workflow:
     (annotations+=Annotation)*
     workflowType=WorkflowType 'workflow' name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' 
-    (':' returnType=ReturnType)? ';';
+    (':' returnType=ReturnType)?
+    (
+        ';' |
+        '{'
+            ('fields' '{'
+                workflowFields+=WorkflowField*
+            '}')?
+            ('steps' '{'
+                workflowSteps+=WorkflowStep*
+            '}')?
+        '}'
+    );
+
+WorkflowField:
+    type=ParamType name=ID ';';
+
+WorkflowStep:
+    'step' stepName=ID 
+    (dependsOn=StepDependencies)?
+    '{'
+        stepActions+=WorkflowStepAction*
+    '}'
+    (compensation=WorkflowStepCompensation)?;
+
+WorkflowStepCompensation:
+    'compensation' '{'
+        compensationActions+=WorkflowStepAction*
+    '}';
+
+WorkflowStepAction:
+    WorkflowCallAction | WorkflowExtractAction | WorkflowRegisterStateAction | WorkflowSetFieldAction;
+
+WorkflowCallAction:
+    'call' serviceRef=ID '.' method=ID '(' (args+=WorkflowArg (',' args+=WorkflowArg)*)? ')' 
+    ('->' assignTo=ID)? ';';
+
+WorkflowExtractAction:
+    'extract' source=WorkflowArg '->' target=ID 
+    ('where' filterField=ID '==' filterValue=WorkflowArg)? ';';
+
+WorkflowRegisterStateAction:
+    'registerState' '(' aggregateId=WorkflowArg ',' sagaState=QualifiedName ')' ';';
+
+WorkflowSetFieldAction:
+    'set' fieldName=ID '=' value=WorkflowArg ';';
+
+WorkflowArg:
+    ref=ID ('.' chain+=ID)*;
 
 WorkflowType returns string:
     'causal' | 'saga';
@@ -293,11 +340,21 @@ ExceptionMessage:
 
 WebAPIEndpoints:
     'WebAPIEndpoints' '{'
+        (autoCrud?='crud' ';')?
         (endpoints+=CustomEndpoint)*
     '}';
 
+// Two syntax options for endpoints:
+// 1. Verbose: Endpoint Name { httpMethod: POST, path: "...", ... }
+// 2. Compact: endpoint POST "/path" methodName(@Annotation param: Type): ReturnType
 CustomEndpoint:
-    'Endpoint' name=ID '{'
+    // Compact syntax: endpoint POST "/users/create" createUser(@RequestBody userDto: User): User
+    ('endpoint' method=HttpMethod path=STRING methodName=ID 
+        '(' (parameters+=CompactEndpointParameter (',' parameters+=CompactEndpointParameter)*)? ')'
+        (':' returnType=ParamType)? ';')
+    |
+    // Verbose syntax (existing)
+    ('Endpoint' name=ID '{'
         ('httpMethod' ':' method=HttpMethod)?
         ('path' ':' path=STRING)?
         ('methodName' ':' methodName=ID)?
@@ -305,10 +362,16 @@ CustomEndpoint:
         ('returnType' ':' returnType=ParamType)?
         ('desc' ':' description=STRING)?
         ('throwsException' ':' throwsException=('true' | 'false'))?
-    '}';
+    '}');
 
 EndpointParameter:
     name=ID ':' type=ParamType ':' annotation=STRING;
+
+CompactEndpointParameter:
+    annotation=ParameterAnnotation name=ID ':' type=ParamType;
+
+ParameterAnnotation returns string:
+    '@RequestBody' | '@PathVariable' | '@RequestParam';
 
 HttpMethod:
     method=('GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH');

@@ -9,7 +9,9 @@ export class WebApiFeature {
         options: GenerationOptions,
         generators: any
     ): Promise<void> {
-        const hasEndpoints = aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints.length > 0;
+        const hasManualEndpoints = aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints.length > 0;
+        const hasAutoCrud = aggregate.webApiEndpoints?.autoCrud;
+        const hasEndpoints = hasManualEndpoints || hasAutoCrud;
 
         try {
             let controllerCode: string;
@@ -27,7 +29,9 @@ export class WebApiFeature {
             await fs.writeFile(webApiPath, controllerCode, 'utf-8');
 
             if (hasEndpoints) {
-                console.log(`\t- Generated web API ${aggregate.name}Controller (using Functionalities, ${aggregate.webApiEndpoints.endpoints.length} endpoints)`);
+                const endpointCount = hasAutoCrud ? 4 : aggregate.webApiEndpoints.endpoints.length;
+                const crudNote = hasAutoCrud ? ' (CRUD auto-generated)' : '';
+                console.log(`\t- Generated web API ${aggregate.name}Controller (using Functionalities, ${endpointCount} endpoints${crudNote})`);
             } else {
                 console.log(`\t- Generated empty ${aggregate.name}Controller (no WebAPIEndpoints defined)`);
             }

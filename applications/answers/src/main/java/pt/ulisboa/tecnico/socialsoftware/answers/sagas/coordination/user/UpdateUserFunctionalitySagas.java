@@ -8,25 +8,28 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
-public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
+public class UpdateUserFunctionalitySagas extends WorkflowFunctionality {
     private Integer userAggregateId;
+    private UserDto userDto;
+    private UserDto updatedUserDto;
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
-    public DeleteUserFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public UpdateUserFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService, Integer userAggregateId, UserDto userDto, SagaUnitOfWork unitOfWork) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(userAggregateId, unitOfWork);
+        this.buildWorkflow(userAggregateId, userDto, unitOfWork);
     }
 
-    public void buildWorkflow(Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer userAggregateId, UserDto userDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep deleteUserStep = new SagaSyncStep("deleteUserStep", () -> {
-            userService.deleteUser(userAggregateId, unitOfWork);
+        SagaSyncStep updateUserStep = new SagaSyncStep("updateUserStep", () -> {
+            UserDto updatedUserDto = userService.updateUser(userAggregateId, userDto, unitOfWork);
+            setUpdatedUserDto(updatedUserDto);
         });
 
-        workflow.addStep(deleteUserStep);
+        workflow.addStep(updateUserStep);
     }
 
     public Integer getUserAggregateId() {
@@ -37,4 +40,19 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
         this.userAggregateId = userAggregateId;
     }
 
+    public UserDto getUserDto() {
+        return userDto;
+    }
+
+    public void setUserDto(UserDto userDto) {
+        this.userDto = userDto;
+    }
+
+    public UserDto getUpdatedUserDto() {
+        return updatedUserDto;
+    }
+
+    public void setUpdatedUserDto(UserDto updatedUserDto) {
+        this.updatedUserDto = updatedUserDto;
+    }
 }
