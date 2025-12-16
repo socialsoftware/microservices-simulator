@@ -6,16 +6,16 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.DeleteExecutionEvent;
 
 public class AnswerSubscribesDeleteExecution extends EventSubscription {
-    private final Answer answer;
+    
 
     public AnswerSubscribesDeleteExecution(Answer answer) {
         super(answer.getExecution().getExecutionAggregateId(),
                 answer.getExecution().getExecutionVersion(),
                 DeleteExecutionEvent.class.getSimpleName());
-        this.answer = answer;
+        
     }
 
     public boolean subscribesEvent(Event event) {
-        return super.subscribesEvent(event) && ((DeleteExecutionEvent)event).getExecutionAggregateId() == answer.getExecution().getExecutionAggregateId();
+        return super.subscribesEvent(event);
     }
 }

@@ -356,7 +356,18 @@ export class EventGenerator extends OrchestrationBase {
         const direct = aggregate.events?.subscribedEvents || [];
         const interInvariants = (aggregate.events as any)?.interInvariants || [];
         const interSubs = interInvariants.flatMap((ii: any) => ii?.subscribedEvents || []);
-        return [...direct, ...interSubs];
+        const allSubscribed = [...direct, ...interSubs];
+
+        // Deduplicate by event type name to avoid duplicate handlers
+        const eventMap = new Map<string, any>();
+        allSubscribed.forEach((event: any) => {
+            const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
+            if (!eventMap.has(eventTypeName)) {
+                eventMap.set(eventTypeName, event);
+            }
+        });
+
+        return Array.from(eventMap.values());
     }
 
     private buildBaseEventHandlerContext(aggregate: Aggregate, options: { projectName: string }): any {

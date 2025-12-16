@@ -192,7 +192,17 @@ export class UnifiedEventFeature {
         const interSubscribed = (aggregate.events as any)?.interInvariants?.flatMap((ii: any) => ii?.subscribedEvents || []) || [];
         const allSubscribed = [...directSubscribed, ...interSubscribed];
 
-        for (const subscribedEvent of allSubscribed) {
+        // Deduplicate by event type name to avoid duplicate handlers and subscriptions
+        const eventMap = new Map<string, any>();
+        allSubscribed.forEach((event: any) => {
+            const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
+            if (!eventMap.has(eventTypeName)) {
+                eventMap.set(eventTypeName, event);
+            }
+        });
+        const uniqueSubscribed = Array.from(eventMap.values());
+
+        for (const subscribedEvent of uniqueSubscribed) {
             await ErrorHandler.wrapAsync(
                 async () => {
                     // Generate subscription class

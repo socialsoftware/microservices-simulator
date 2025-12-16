@@ -5,7 +5,7 @@ import { OrchestrationBase } from '../common/orchestration-base.js';
 export class EventProcessingGenerator extends OrchestrationBase {
     async generate(aggregate: Aggregate, rootEntity: Entity, options: CoordinationGenerationOptions): Promise<string> {
         const context = this.buildContext(aggregate, rootEntity, options);
-        const template = this.buildTemplateString();
+        const template = this.buildTemplateString(context);
         return this.renderSimpleTemplate(template, context);
     }
 
@@ -32,7 +32,7 @@ export class EventProcessingGenerator extends OrchestrationBase {
             hasSagas: options.architecture === 'causal-saga' || options.features?.includes('sagas')
         };
 
-        const renderedMethods = eventProcessingMethodsArray.map((method: any) => this.renderMethod(method, tempContext)).join('\n\n');
+        const renderedMethods = eventProcessingMethodsArray.map((method: any) => this.renderMethod(method, tempContext, aggregate)).join('\n\n');
 
         return {
             ...tempContext,
@@ -43,54 +43,69 @@ export class EventProcessingGenerator extends OrchestrationBase {
     private buildEventProcessingMethods(aggregate: Aggregate, rootEntity: Entity, aggregateName: string): any[] {
         const methods: any[] = [];
 
-        methods.push({
-            name: `process${aggregateName}Event`,
-            returnType: 'void',
-            parameters: [
-                { type: 'String', name: 'eventType' },
-                { type: 'Integer', name: 'aggregateId' },
-                { type: 'Integer', name: 'aggregateVersion' }
-            ]
+        // Collect all subscribed events (direct + interInvariants)
+        const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
+
+        allSubscribedEvents.forEach((event: any) => {
+            const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
+            methods.push({
+                name: `process${eventTypeName}`,
+                returnType: 'void',
+                parameters: [
+                    { name: 'aggregateId', type: 'Integer' },
+                    { name: eventTypeName.charAt(0).toLowerCase() + eventTypeName.slice(1), type: eventTypeName }
+                ]
+            });
         });
 
+        // Handle legacy array structure for backward compatibility
         const aggregateEvents = (aggregate as any).events;
-        if (aggregateEvents) {
-            // Handle new DSL structure with publishedEvents and subscribedEvents
-            if (aggregateEvents.subscribedEvents) {
-                aggregateEvents.subscribedEvents.forEach((event: any) => {
-                    const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
-                    methods.push({
-                        name: `process${eventTypeName}`,
-                        returnType: 'void',
-                        parameters: [
-                            { name: 'aggregateId', type: 'Integer' },
-                            { name: eventTypeName.charAt(0).toLowerCase() + eventTypeName.slice(1), type: eventTypeName }
-                        ]
-                    });
+        if (aggregateEvents && Array.isArray(aggregateEvents)) {
+            aggregateEvents.forEach((event: any) => {
+                methods.push({
+                    name: `process${event.name}`,
+                    returnType: 'void',
+                    parameters: event.parameters || []
                 });
-            }
-
-            // Handle legacy array structure for backward compatibility
-            if (Array.isArray(aggregateEvents)) {
-                aggregateEvents.forEach((event: any) => {
-                    methods.push({
-                        name: `process${event.name}`,
-                        returnType: 'void',
-                        parameters: event.parameters || []
-                    });
-                });
-            }
+            });
         }
 
         return methods;
     }
 
+    /**
+     * Collect all subscribed events from direct subscriptions and interInvariants
+     * Deduplicates events by event type name to avoid duplicate methods
+     */
+    private collectSubscribedEvents(aggregate: Aggregate): any[] {
+        const aggregateEvents = (aggregate as any).events;
+        if (!aggregateEvents) {
+            return [];
+        }
+
+        const directSubscribed = aggregateEvents.subscribedEvents || [];
+        const interSubscribed = aggregateEvents.interInvariants?.flatMap((ii: any) => ii?.subscribedEvents || []) || [];
+        const allSubscribed = [...directSubscribed, ...interSubscribed];
+
+        // Deduplicate by event type name
+        const eventMap = new Map<string, any>();
+        allSubscribed.forEach((event: any) => {
+            const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
+            if (!eventMap.has(eventTypeName)) {
+                eventMap.set(eventTypeName, event);
+            }
+        });
+
+        return Array.from(eventMap.values());
+    }
+
     private buildImports(aggregate: Aggregate, options: CoordinationGenerationOptions): string[] {
         const imports: string[] = [];
         const projectName = options.projectName.toLowerCase();
+        const hasSagas = options.architecture === 'causal-saga' || options.features?.includes('sagas');
 
         const basePackage = this.getBasePackage();
-        imports.push(`import static ${basePackage}.ms.TransactionalModel.${this.getTransactionModel()};`);
+        imports.push(`import static ${basePackage}.ms.TransactionalModel.SAGAS;`);
         imports.push(`import static ${basePackage}.${projectName}.microservices.exception.${this.capitalize(options.projectName)}ErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;`);
 
         imports.push('import java.util.Arrays;');
@@ -99,35 +114,48 @@ export class EventProcessingGenerator extends OrchestrationBase {
         imports.push('import org.springframework.stereotype.Service;');
         imports.push('import jakarta.annotation.PostConstruct;');
         imports.push(`import ${basePackage}.ms.TransactionalModel;`);
-        imports.push(`import ${basePackage}.ms.coordination.unitOfWork.UnitOfWork;`);
-        imports.push(`import ${basePackage}.ms.coordination.unitOfWork.UnitOfWorkService;`);
         imports.push(`import ${basePackage}.${projectName}.microservices.exception.${this.capitalize(options.projectName)}Exception;`);
         imports.push(`import ${basePackage}.${projectName}.microservices.${aggregate.name.toLowerCase()}.service.${this.capitalize(aggregate.name)}Service;`);
 
-        // Add imports for subscribed events
-        const aggregateEvents = (aggregate as any).events;
-        if (aggregateEvents?.subscribedEvents) {
-            aggregateEvents.subscribedEvents.forEach((event: any) => {
-                const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
+        // Add saga imports
+        imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
+        imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
 
-                // Determine the source aggregate for the event (e.g., DeleteUserEvent comes from User aggregate)
-                let eventSourceAggregate = 'user'; // Default assumption for DeleteUserEvent
-                if (eventTypeName.toLowerCase().includes('user')) {
-                    eventSourceAggregate = 'user';
-                } else if (eventTypeName.toLowerCase().includes('course')) {
-                    eventSourceAggregate = 'course';
-                } else if (eventTypeName.toLowerCase().includes('execution')) {
-                    eventSourceAggregate = 'execution';
+        // Add imports for subscribed events (direct + interInvariants)
+        const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
+        const aggregateName = aggregate.name;
+        const lowerAggregate = aggregateName.toLowerCase();
+
+        allSubscribedEvents.forEach((event: any) => {
+            const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
+
+            // Determine the actual source aggregate (the aggregate that declares the published event)
+            let sourceAggregateName = 'unknown';
+            const publishedEvent = event.eventType?.ref as any;
+            const eventsContainer = publishedEvent?.$container as any;
+            const sourceAggregate = eventsContainer?.$container as Aggregate | undefined;
+            if (sourceAggregate?.name) {
+                sourceAggregateName = sourceAggregate.name.toLowerCase();
+            } else if (event.sourceAggregate) {
+                sourceAggregateName = event.sourceAggregate.toLowerCase();
+            }
+
+            imports.push(`import ${basePackage}.${projectName}.microservices.${sourceAggregateName}.events.publish.${eventTypeName};`);
+
+            // Add saga class import if saga workflow exists for this event
+            if (hasSagas) {
+                const sagaWorkflow = this.findSagaWorkflowForEvent(aggregate, eventTypeName);
+                if (sagaWorkflow) {
+                    const sagaClassName = this.getSagaClassName(aggregateName, eventTypeName);
+                    imports.push(`import ${basePackage}.${projectName}.sagas.coordination.${lowerAggregate}.${sagaClassName};`);
                 }
-
-                imports.push(`import ${basePackage}.${projectName}.microservices.${eventSourceAggregate}.events.publish.${eventTypeName};`);
-            });
-        }
+            }
+        });
 
         return imports;
     }
 
-    private buildTemplateString(): string {
+    private buildTemplateString(context: any): string {
         return `package {{packageName}};
 
 {{imports}}
@@ -137,9 +165,9 @@ public class {{aggregateName}}EventProcessing {
     @Autowired
     private {{aggregateName}}Service {{lowerAggregate}}Service;
     
-    @Autowired
-    private UnitOfWorkService unitOfWorkService;
-    
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+
     @Autowired
     private Environment env;
 
@@ -148,7 +176,7 @@ public class {{aggregateName}}EventProcessing {
     @PostConstruct
     public void init() {
         String[] activeProfiles = env.getActiveProfiles();
-        workflowType = Arrays.asList(activeProfiles).contains({{transactionModel}}.getValue()) ? {{transactionModel}} : null;
+        workflowType = Arrays.asList(activeProfiles).contains(SAGAS.getValue()) ? SAGAS : null;
         if (workflowType == null) {
             throw new {{ProjectName}}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
         }
@@ -158,14 +186,82 @@ public class {{aggregateName}}EventProcessing {
 }`;
     }
 
-    private renderMethod(method: any, context: any): string {
+    private renderMethod(method: any, context: any, aggregate: Aggregate): string {
         const params = method.parameters.map((p: any) => `${p.type} ${p.name}`).join(', ');
 
-        return `    public ${method.returnType} ${method.name}(${params}) {
+        // For event processing methods, generate saga workflow logic
+        const eventParam = method.parameters.find((p: any) => p.type !== 'Integer' || p.name !== 'aggregateId');
+        const eventTypeName = eventParam ? eventParam.type : 'UnknownEvent';
+        const eventVarName = eventParam ? eventParam.name : 'event';
+        const aggregateIdParam = method.parameters.find((p: any) => p.name === 'aggregateId');
+        const aggregateIdName = aggregateIdParam ? aggregateIdParam.name : 'aggregateId';
+
+        // Check if there's a saga workflow for this event
+        const sagaWorkflow = this.findSagaWorkflowForEvent(aggregate, eventTypeName);
+        const hasSagaWorkflow = sagaWorkflow !== null;
+
+        if (hasSagaWorkflow) {
+            // Generate saga workflow call
+            const sagaClassName = this.getSagaClassName(context.aggregateName, eventTypeName);
+
+            return `    public ${method.returnType} ${method.name}(${params}) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-        unitOfWorkService.commit(unitOfWork);
+        SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+
+        ${sagaClassName} ${this.camelCase(sagaClassName)} =
+                new ${sagaClassName}(${context.lowerAggregate}Service, sagaUnitOfWorkService, ${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${this.buildSagaConstructorParams(eventTypeName, eventVarName, aggregateIdName)});
+                
+        ${this.camelCase(sagaClassName)}.executeWorkflow(sagaUnitOfWork);
     }`;
+        } else {
+            // Generate placeholder for events without saga workflows
+            return `    public ${method.returnType} ${method.name}(${params}) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+        // TODO: Implement saga workflow for ${eventTypeName}
+    }`;
+        }
+    }
+
+    private findSagaWorkflowForEvent(aggregate: Aggregate, eventTypeName: string): any {
+        const workflows = (aggregate as any).workflows || [];
+        // Try to find a workflow that matches the event name pattern
+        // e.g., "AnonymizeStudentEvent" -> "anonymizeStudent" or "anonymizeUser"
+        const eventNameWithoutEvent = eventTypeName.replace(/Event$/, '');
+        const lowerEventName = eventNameWithoutEvent.charAt(0).toLowerCase() + eventNameWithoutEvent.slice(1);
+
+        return workflows.find((w: any) => {
+            const workflowName = (w.name || '').toLowerCase();
+            return workflowName === lowerEventName ||
+                workflowName === lowerEventName.replace('student', 'user') ||
+                workflowName === lowerEventName.replace('user', 'student');
+        });
+    }
+
+    private getSagaClassName(aggregateName: string, eventTypeName: string): string {
+        // Convert event name to saga class name
+        // e.g., "AnonymizeStudentEvent" -> "AnonymizeUserTournamentFunctionalitySagas"
+        // This is a simplified version - actual mapping may be more complex
+        const eventNameWithoutEvent = eventTypeName.replace(/Event$/, '');
+        const capitalized = eventNameWithoutEvent.charAt(0).toUpperCase() + eventNameWithoutEvent.slice(1);
+        return `${capitalized}${aggregateName}FunctionalitySagas`;
+    }
+
+    private buildSagaConstructorParams(eventTypeName: string, eventVarName: string, aggregateIdName: string): string {
+        // Build constructor parameters based on common event patterns
+        // This is a simplified version - actual implementation may need to inspect event fields
+        if (eventTypeName.includes('Anonymize')) {
+            return `${eventVarName}.getStudentAggregateId(), ${eventVarName}.getName(), ${eventVarName}.getUsername(), ${eventVarName}.getPublisherAggregateVersion(), sagaUnitOfWork`;
+        } else if (eventTypeName.includes('UpdateStudentName') || eventTypeName.includes('UpdateUserName')) {
+            return `${eventVarName}.getPublisherAggregateVersion(), ${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getStudentAggregateId(), sagaUnitOfWork, ${eventVarName}.getUpdatedName()`;
+        } else {
+            // Generic fallback
+            return `${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), sagaUnitOfWork`;
+        }
+    }
+
+    private camelCase(str: string): string {
+        return str.charAt(0).toLowerCase() + str.slice(1);
     }
 
 }

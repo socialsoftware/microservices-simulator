@@ -8,19 +8,19 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.service.QuestionService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 
 @Service
 public class QuestionEventProcessing {
     @Autowired
     private QuestionService questionService;
     
-    @Autowired
-    private UnitOfWorkService unitOfWorkService;
-    
+    @Autowired(required = false)
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+
     @Autowired
     private Environment env;
 
@@ -35,9 +35,5 @@ public class QuestionEventProcessing {
         }
     }
 
-    public void processQuestionEvent(String eventType, Integer aggregateId, Integer aggregateVersion) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-        unitOfWorkService.commit(unitOfWork);
-    }
+{{eventProcessingMethods}}
 }
