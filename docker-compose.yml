@@ -15,12 +15,16 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 20s
       timeout: 5s
       retries: 5
     networks:
       - messaging-network
+
+  # ============================================
+  # MONOLITHIC CONFIGURATIONS
+  # ============================================
 
   quizzes-sagas:
     build:
@@ -92,6 +96,281 @@ services:
       - SPRING.DATASOURCE.PASSWORD=postgres
       - SPRING.JPA.DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
+
+  # ============================================
+  # MICROSERVICES CONFIGURATION
+  # ============================================
+
+  gateway:
+    build:
+      context: .
+      dockerfile: applications/gateway/Dockerfile
+    image: gateway
+    container_name: gateway
+    depends_on:
+      - answer-service
+      - course-service
+      - course-execution-service
+      - question-service
+      - quiz-service
+      - topic-service
+      - tournament-service
+      - user-service
+      - version-service
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - messaging-network
+
+  version-service:
+    build:
+      context: .
+      dockerfile: simulator/Dockerfile
+      args:
+        PROFILE: version-service,stream
+    image: simulator
+    container_name: version-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=version-service,stream
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/versiondb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - messaging-network
+
+  answer-service:
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: sagas,stream,answer-service
+    image: quizzes
+    container_name: answer-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=sagas,stream,answer-service
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/answerdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - messaging-network
+
+  course-service:
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: sagas,stream,course-service
+    image: quizzes
+    container_name: course-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8089:8089"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=sagas,stream,course-service
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/coursedb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - messaging-network
+
+  course-execution-service:
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: sagas,stream,course-execution-service
+    image: quizzes
+    container_name: course-execution-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=sagas,stream,course-execution-service
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/executiondb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - messaging-network
+
+  question-service:
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: sagas,stream,question-service
+    image: quizzes
+    container_name: question-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=sagas,stream,question-service
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/questiondb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - messaging-network
+
+  quiz-service:
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: sagas,stream,quiz-service
+    image: quizzes
+    container_name: quiz-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8085:8085"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=sagas,stream,quiz-service
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/quizdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - messaging-network
+
+  topic-service:
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: sagas,stream,topic-service
+    image: quizzes
+    container_name: topic-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8086:8086"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=sagas,stream,topic-service
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/topicdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - messaging-network
+
+  tournament-service:
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: sagas,stream,tournament-service
+    image: quizzes
+    container_name: tournament-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8087:8087"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=sagas,stream,tournament-service
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/tournamentdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - messaging-network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: sagas,stream,user-service
+    image: quizzes
+    container_name: user-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8088:8088"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=sagas,stream,user-service
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/userdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - messaging-network
+
+  # ============================================
+  # TEST CONTAINERS
+  # ============================================
 
   test-simulator-sagas:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -189,17 +468,21 @@ services:
       - mavencache:/root/.m2
     command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add creator as tournament participant and update name in course execution - update name finishes first and event processing starts before add creator finishes'
 
+  # ============================================
+  # INFRASTRUCTURE
+  # ============================================
+
   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "16686:16686"  # Jaeger UI
-      - "14250:14250"  # Jaeger gRPC
-      - "14268:14268"  # Jaeger HTTP
-      - "4317:4317"    # OTLP gRPC receiver
-      - "4318:4318"    # OTLP HTTP receiver
+      - "16686:16686" # Jaeger UI
+      - "14250:14250" # Jaeger gRPC
+      - "14268:14268" # Jaeger HTTP
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
     restart: unless-stopped
 
   rabbitmq:
@@ -207,8 +490,8 @@ services:
     container_name: rabbitmq
     hostname: rabbitmq
     ports:
-      - "5672:5672"     # AMQP port
-      - "15672:15672"   # Management UI port
+      - "5672:5672" # AMQP port
+      - "15672:15672" # Management UI port
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -226,6 +509,7 @@ services:
 volumes:
   mavencache:
   rabbitmq_data:
+
 
 networks:
   messaging-network:
