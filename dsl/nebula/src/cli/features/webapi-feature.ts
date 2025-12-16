@@ -29,7 +29,7 @@ export class WebApiFeature {
             await fs.writeFile(webApiPath, controllerCode, 'utf-8');
 
             if (hasEndpoints) {
-                const endpointCount = hasAutoCrud ? 4 : aggregate.webApiEndpoints.endpoints.length;
+                const endpointCount = hasAutoCrud ? 5 : aggregate.webApiEndpoints.endpoints.length;
                 const crudNote = hasAutoCrud ? ' (CRUD auto-generated)' : '';
                 console.log(`\t- Generated web API ${aggregate.name}Controller (using Functionalities, ${endpointCount} endpoints${crudNote})`);
             } else {

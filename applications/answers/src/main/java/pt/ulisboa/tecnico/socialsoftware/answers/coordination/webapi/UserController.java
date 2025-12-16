@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.UserFunctionalities;
+import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @RestController
@@ -13,6 +14,11 @@ public class UserController {
     @PostMapping("/users/create")
     public UserDto createUser(@RequestBody UserDto userDto) {
         return userFunctionalities.createUser(userDto);
+    }
+
+    @GetMapping("/users")
+    public List<UserDto> getAllUsers() {
+        return userFunctionalities.getAllUsers();
     }
 
     @GetMapping("/users/{userAggregateId}")

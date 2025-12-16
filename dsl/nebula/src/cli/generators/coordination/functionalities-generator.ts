@@ -22,7 +22,6 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         const projectName = options.projectName.toLowerCase();
         const ProjectName = this.capitalize(options.projectName);
 
-        // Get consistency models from configuration, default to sagas only
         const consistencyModels = options.consistencyModels || ['sagas'];
 
         const dependencies = this.buildDependencies(aggregate, options);
@@ -53,14 +52,12 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         const aggregateName = aggregate.name;
         const lowerAggregate = aggregateName.toLowerCase();
 
-        // Main aggregate service (e.g., AnswerService, UserService)
         dependencies.push({
             name: `${lowerAggregate}Service`,
             type: `${this.capitalize(aggregateName)}Service`,
             required: true
         });
 
-        // Additional UserService only for aggregates that are NOT the User aggregate itself
         const needsUserService = this.checkUserServiceUsage(aggregate);
         if (needsUserService && lowerAggregate !== 'user') {
             dependencies.push({
@@ -70,14 +67,12 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             });
         }
 
-        // Saga unit of work service
         dependencies.push({
             name: 'sagaUnitOfWorkService',
             type: 'SagaUnitOfWorkService',
             required: true
         });
 
-        // Factory is useful for most aggregates, but we can skip it for the User aggregate where it isn't used
         if (lowerAggregate !== 'user') {
             dependencies.push({
                 name: `${lowerAggregate}Factory`,
@@ -105,7 +100,6 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             });
         }
 
-        // Add methods from WebAPIEndpoints
         if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints) {
             aggregate.webApiEndpoints.endpoints.forEach((endpoint: any) => {
                 const params = this.extractEndpointParameters(endpoint.parameters);
@@ -159,6 +153,14 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         });
 
         methods.push({
+            name: `getAll${aggregateName}s`,
+            returnType: `List<${dtoType}>`,
+            parameters: [],
+            body: this.generateCrudMethodBody('getAll', aggregateName, lowerAggregate, `List<${dtoType}>`, []),
+            throwsException: false
+        });
+
+        methods.push({
             name: `get${aggregateName}ById`,
             returnType: dtoType,
             parameters: [{ type: 'Integer', name: `${lowerAggregate}AggregateId` }],
@@ -189,8 +191,8 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     }
 
     private generateCrudMethodBody(operation: string, aggregateName: string, lowerAggregate: string, returnType: string, paramNames: string[]): string {
-        const capitalizedMethodName = this.capitalize(operation === 'getById' ? `get${aggregateName}ById` : `${operation}${aggregateName}`);
-        const methodName = operation === 'getById' ? `get${aggregateName}ById` : `${operation}${aggregateName}`;
+        const capitalizedMethodName = this.capitalize(operation === 'getById' ? `get${aggregateName}ById` : operation === 'getAll' ? `getAll${aggregateName}s` : `${operation}${aggregateName}`);
+        const methodName = operation === 'getById' ? `get${aggregateName}ById` : operation === 'getAll' ? `getAll${aggregateName}s` : `${operation}${aggregateName}`;
         const uncapitalizedMethodName = methodName.charAt(0).toLowerCase() + methodName.slice(1);
         const sagaParams = [`${lowerAggregate}Service`, 'sagaUnitOfWorkService', ...paramNames, 'sagaUnitOfWork'].join(', ');
 
@@ -199,6 +201,8 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             sagaReturn = 'break;';
         } else if (operation === 'create') {
             sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.getCreated${aggregateName}Dto();`;
+        } else if (operation === 'getAll') {
+            sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.get${aggregateName}s();`;
         } else if (operation === 'getById') {
             sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.get${aggregateName}Dto();`;
         } else if (operation === 'update') {
@@ -268,7 +272,13 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
 
         this.addDtoImports(aggregate, imports, projectName, entityRegistry);
 
-        // Remove duplicate imports
+        const hasListReturnType = businessMethods.some(method =>
+            method.returnType && method.returnType.includes('List<')
+        );
+        if (hasListReturnType) {
+            imports.push('import java.util.List;');
+        }
+
         return Array.from(new Set(imports));
     }
 

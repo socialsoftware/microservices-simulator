@@ -964,6 +964,17 @@ ${gettersSetters}
                 serviceArgs: [`${lowerAggregate}Dto`, 'unitOfWork']
             },
             {
+                name: `getAll${capitalizedAggregate}s`,
+                stepName: `getAll${capitalizedAggregate}sStep`,
+                params: [],
+                resultType: `List<${dtoType}>`,
+                resultField: `${lowerAggregate}s`,
+                resultSetter: `set${capitalizedAggregate}s`,
+                resultGetter: `get${capitalizedAggregate}s`,
+                serviceCall: `${lowerAggregate}Service.getAll${capitalizedAggregate}s`,
+                serviceArgs: ['unitOfWork']
+            },
+            {
                 name: `get${capitalizedAggregate}ById`,
                 stepName: `get${capitalizedAggregate}Step`,
                 params: [{ type: 'Integer', name: `${lowerAggregate}AggregateId` }],
@@ -1016,11 +1027,15 @@ ${gettersSetters}
 
             const isDeleteOperation = op.name.startsWith('delete');
             const isUpdateOperation = op.name.startsWith('update');
+            const isGetAllOperation = op.name.startsWith('getAll');
             if (isDeleteOperation || isUpdateOperation) {
                 imports.push('import java.util.ArrayList;');
                 imports.push('import java.util.Arrays;');
                 imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.states.${capitalizedAggregate}SagaState;`);
                 imports.push(`import ${basePackage}.ms.sagas.aggregate.GenericSagaState;`);
+            }
+            if (isGetAllOperation || (op.resultType && op.resultType.includes('List<'))) {
+                imports.push('import java.util.List;');
             }
 
             let fieldsDeclaration = '';

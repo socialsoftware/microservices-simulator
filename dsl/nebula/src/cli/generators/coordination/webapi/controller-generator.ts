@@ -81,6 +81,15 @@ export class ControllerGenerator extends WebApiBaseGenerator {
             },
             {
                 method: 'Get',
+                path: `/${lowerAggregate}s`,
+                methodName: `getAll${aggregateName}s`,
+                parameters: [],
+                returnType: `List<${dtoType}>`,
+                description: `Get all ${aggregateName}s`,
+                isCrud: true
+            },
+            {
+                method: 'Get',
                 path: `/${lowerAggregate}s/{${lowerAggregate}AggregateId}`,
                 methodName: `get${aggregateName}ById`,
                 parameters: [{

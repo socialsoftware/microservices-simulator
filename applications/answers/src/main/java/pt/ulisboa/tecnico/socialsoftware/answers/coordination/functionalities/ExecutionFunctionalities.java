@@ -21,6 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.executionfactory.
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionUserDto;
+import java.util.List;
 
 @Service
 public class ExecutionFunctionalities {

@@ -25,6 +25,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipa
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
+import java.util.List;
 
 @Service
 public class TournamentFunctionalities {

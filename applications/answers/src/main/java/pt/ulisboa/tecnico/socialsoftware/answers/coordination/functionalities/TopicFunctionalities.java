@@ -17,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.service.Top
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topicfactory.service.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicCourseDto;
+import java.util.List;
 
 @Service
 public class TopicFunctionalities {
