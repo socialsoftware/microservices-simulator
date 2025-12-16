@@ -21,8 +21,6 @@ export class SagaGenerator extends OrchestrationBase {
         results['states'] = await this.generateSagaStates(aggregate, rootEntity, options);
         results['factories'] = await this.generateSagaFactories(aggregate, rootEntity, options);
         results['repositories'] = await this.generateSagaRepositories(aggregate, rootEntity, options);
-        results['coordination'] = await this.generateSagaCoordination(aggregate, rootEntity, options);
-        results['workflows'] = await this.generateSagaWorkflows(aggregate, rootEntity, options);
 
         return results;
     }
@@ -57,17 +55,7 @@ export class SagaGenerator extends OrchestrationBase {
         return this.renderTemplate(template, context);
     }
 
-    private async generateSagaCoordination(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): Promise<string> {
-        const context = this.buildSagaCoordinationContext(aggregate, rootEntity, options);
-        const template = this.loadTemplate('saga/saga-coordination.hbs');
-        return this.renderTemplate(template, context);
-    }
 
-    private async generateSagaWorkflows(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): Promise<string> {
-        const context = this.buildSagaWorkflowsContext(aggregate, rootEntity, options);
-        const template = this.loadTemplate('saga/saga-workflows.hbs');
-        return this.renderTemplate(template, context);
-    }
 
     private buildSagaAggregatesContext(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): any {
         const aggregateName = aggregate.name;
@@ -180,8 +168,7 @@ export class SagaGenerator extends OrchestrationBase {
 
         const imports = this.buildSagaStatesImports(aggregate, options);
 
-        // Extract saga states from workflows
-        const sagaStates = this.extractSagaStatesFromWorkflows(aggregate);
+        const sagaStates = this.extractSagaStatesFromWorkflows(aggregate, capitalizedAggregate);
 
         return {
             aggregateName: capitalizedAggregate,
@@ -193,7 +180,7 @@ export class SagaGenerator extends OrchestrationBase {
         };
     }
 
-    private extractSagaStatesFromWorkflows(aggregate: Aggregate): string[] {
+    private extractSagaStatesFromWorkflows(aggregate: Aggregate, capitalizedAggregate: string): string[] {
         const states = new Set<string>();
 
         // Scan functionalities for saga state registrations
@@ -239,6 +226,11 @@ export class SagaGenerator extends OrchestrationBase {
             }
         }
 
+        const upperName = capitalizedAggregate.toUpperCase();
+        states.add(`READ_${upperName}`);
+        states.add(`UPDATE_${upperName}`);
+        states.add(`DELETE_${upperName}`);
+
         // Convert to sorted array and ensure no generic states slipped through
         return Array.from(states)
             .filter(state => {
@@ -281,38 +273,9 @@ export class SagaGenerator extends OrchestrationBase {
         };
     }
 
-    private buildSagaCoordinationContext(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): any {
-        const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
-        const lowerAggregate = aggregateName.toLowerCase();
 
-        const rootEntityName = rootEntity ? rootEntity.name : aggregateName;
 
-        const imports = this.buildSagaCoordinationImports(aggregate, options);
 
-        return {
-            aggregateName: capitalizedAggregate,
-            lowerAggregate,
-            rootEntityName: rootEntityName,
-            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.coordination.${lowerAggregate}`,
-            imports
-        };
-    }
-
-    private buildSagaWorkflowsContext(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): any {
-        const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
-        const lowerAggregate = aggregateName.toLowerCase();
-
-        const imports = this.buildSagaWorkflowsImports(aggregate, options);
-
-        return {
-            aggregateName: capitalizedAggregate,
-            lowerAggregate,
-            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.coordination.${lowerAggregate}`,
-            imports
-        };
-    }
 
     private buildSagaAggregatesImports(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): string[] {
         const imports: string[] = [];
@@ -393,40 +356,9 @@ export class SagaGenerator extends OrchestrationBase {
         return imports;
     }
 
-    private buildSagaCoordinationImports(aggregate: Aggregate, options: SagaGenerationOptions): string[] {
-        const imports: string[] = [];
 
-        const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
-        const rootEntityName = rootEntity ? rootEntity.name : aggregate.name;
 
-        imports.push(`import ${this.getBasePackage()}.ms.coordination.workflow.WorkflowFunctionality;`);
-        imports.push(`import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
-        imports.push(`import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
-        imports.push(`import ${this.getBasePackage()}.ms.sagas.workflow.SagaSyncStep;`);
-        imports.push(`import ${this.getBasePackage()}.ms.sagas.workflow.SagaWorkflow;`);
 
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.service.${this.capitalize(aggregate.name)}Service;`);
-
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntityName}Dto;`);
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.dtos.Saga${this.capitalize(aggregate.name)}Dto;`);
-
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.states.${this.capitalize(aggregate.name)}SagaState;`);
-        imports.push(`import ${this.getBasePackage()}.ms.sagas.aggregate.GenericSagaState;`);
-
-        return imports;
-    }
-
-    private buildSagaWorkflowsImports(aggregate: Aggregate, options: SagaGenerationOptions): string[] {
-        const imports: string[] = [];
-
-        imports.push(`import ${this.getBasePackage()}.ms.coordination.workflow.WorkflowFunctionality;`);
-        imports.push(`import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
-        imports.push(`import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
-        imports.push(`import ${this.getBasePackage()}.ms.sagas.workflow.SagaSyncStep;`);
-        imports.push(`import ${this.getBasePackage()}.ms.sagas.workflow.SagaWorkflow;`);
-
-        return imports;
-    }
 
 
 }

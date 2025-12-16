@@ -340,7 +340,7 @@ ExceptionMessage:
 
 WebAPIEndpoints:
     'WebAPIEndpoints' '{'
-        (autoCrud?='crud' ';')?
+        (generateCrud?='@GenerateCrud' ';')?
         (endpoints+=CustomEndpoint)*
     '}';
 

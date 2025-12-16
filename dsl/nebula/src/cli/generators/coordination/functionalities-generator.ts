@@ -94,7 +94,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         const addedMethods = new Set<string>();
         const lowerAggregate = aggregateName.toLowerCase();
 
-        if ((aggregate.webApiEndpoints as any)?.autoCrud) {
+        if ((aggregate.webApiEndpoints as any)?.generateCrud) {
             const crudMethods = this.generateCrudMethods(aggregateName, lowerAggregate, consistencyModels);
             crudMethods.forEach(method => {
                 const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;

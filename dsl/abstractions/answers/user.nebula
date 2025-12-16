@@ -14,7 +14,7 @@ Aggregate User {
     }
 
     WebAPIEndpoints {
-        crud;
+        @GenerateCrud;
     }
 
     Service UserService {

@@ -10,7 +10,7 @@ export class WebApiFeature {
         generators: any
     ): Promise<void> {
         const hasManualEndpoints = aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints.length > 0;
-        const hasAutoCrud = aggregate.webApiEndpoints?.autoCrud;
+        const hasAutoCrud = aggregate.webApiEndpoints?.generateCrud;
         const hasEndpoints = hasManualEndpoints || hasAutoCrud;
 
         try {

@@ -9,7 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class GetUserByIdFunctionalitySagas extends WorkflowFunctionality {
-    private Integer userAggregateId;
     private UserDto userDto;
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -29,14 +28,6 @@ public class GetUserByIdFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getUserStep);
-    }
-
-    public Integer getUserAggregateId() {
-        return userAggregateId;
-    }
-
-    public void setUserAggregateId(Integer userAggregateId) {
-        this.userAggregateId = userAggregateId;
     }
 
     public UserDto getUserDto() {

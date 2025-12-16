@@ -12,8 +12,7 @@ export class SagaFunctionalityGenerator extends OrchestrationBase {
         initializeAggregateProperties(aggregate);
         const allWorkflows = getWorkflows(aggregate);
 
-        // Check for auto CRUD generation
-        if (aggregate.webApiEndpoints?.autoCrud) {
+        if (aggregate.webApiEndpoints?.generateCrud) {
             const crudSagas = this.generateCrudSagaFunctionalities(aggregate, options, packageName);
             Object.assign(outputs, crudSagas);
         }
@@ -993,10 +992,11 @@ ${gettersSetters}
                 name: `delete${capitalizedAggregate}`,
                 stepName: `delete${capitalizedAggregate}Step`,
                 params: [{ type: 'Integer', name: `${lowerAggregate}AggregateId` }],
-                resultType: undefined,
-                resultField: undefined,
-                resultSetter: undefined,
-                resultGetter: undefined,
+                // For delete, we also keep a reference to the asset being deleted
+                resultType: dtoType,
+                resultField: `deleted${capitalizedAggregate}Dto`,
+                resultSetter: `setDeleted${capitalizedAggregate}Dto`,
+                resultGetter: `getDeleted${capitalizedAggregate}Dto`,
                 serviceCall: `${lowerAggregate}Service.delete${capitalizedAggregate}`,
                 serviceArgs: [`${lowerAggregate}AggregateId`, 'unitOfWork']
             }
@@ -1014,9 +1014,19 @@ ${gettersSetters}
             imports.push(`import ${basePackage}.ms.sagas.workflow.SagaSyncStep;`);
             imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
 
+            const isDeleteOperation = op.name.startsWith('delete');
+            const isUpdateOperation = op.name.startsWith('update');
+            if (isDeleteOperation || isUpdateOperation) {
+                imports.push('import java.util.ArrayList;');
+                imports.push('import java.util.Arrays;');
+                imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.states.${capitalizedAggregate}SagaState;`);
+                imports.push(`import ${basePackage}.ms.sagas.aggregate.GenericSagaState;`);
+            }
+
             let fieldsDeclaration = '';
 
-            const keepParamFields = op.name !== `create${capitalizedAggregate}`;
+            const isGetByIdOperation = op.name === `get${capitalizedAggregate}ById`;
+            const keepParamFields = op.name !== `create${capitalizedAggregate}` && !isDeleteOperation && !isGetByIdOperation && !isUpdateOperation;
             if (keepParamFields) {
                 for (const param of op.params) {
                     fieldsDeclaration += `    private ${param.type} ${param.name};\n`;
@@ -1047,13 +1057,65 @@ ${gettersSetters}
                 'unitOfWork'
             ];
 
-            // Generate step body
-            let stepBody = '';
-            if (op.resultType) {
-                stepBody = `            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${op.serviceArgs.join(', ')});
-            ${op.resultSetter}(${op.resultField});`;
+            let workflowBody = '';
+            const idParamName = op.params[0]?.name || `${lowerAggregate}AggregateId`;
+
+            if (isDeleteOperation) {
+                const readMethod = `${lowerAggregate}Service.get${capitalizedAggregate}ById`;
+                const readStateConst = `${capitalizedAggregate}SagaState.READ_${capitalizedAggregate.toUpperCase()}`;
+
+                workflowBody = `
+        SagaSyncStep get${capitalizedAggregate}Step = new SagaSyncStep("get${capitalizedAggregate}Step", () -> {
+            ${op.resultType} ${op.resultField} = ${readMethod}(${idParamName}, unitOfWork);
+            ${op.resultSetter}(${op.resultField});
+            unitOfWorkService.registerSagaState(${idParamName}, ${readStateConst}, unitOfWork);
+        });
+
+        get${capitalizedAggregate}Step.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(${idParamName}, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+        }, unitOfWork);
+
+        SagaSyncStep delete${capitalizedAggregate}Step = new SagaSyncStep("delete${capitalizedAggregate}Step", () -> {
+            ${op.serviceCall}(${op.serviceArgs.join(', ')});
+        }, new ArrayList<>(Arrays.asList(get${capitalizedAggregate}Step)));
+
+        workflow.addStep(get${capitalizedAggregate}Step);
+        workflow.addStep(delete${capitalizedAggregate}Step);`;
+            } else if (isUpdateOperation) {
+                const readStateConst = `${capitalizedAggregate}SagaState.READ_${capitalizedAggregate.toUpperCase()}`;
+                const dtoParamName = op.params[1]?.name || `${lowerAggregate}Dto`;
+
+                workflowBody = `
+        SagaSyncStep get${capitalizedAggregate}Step = new SagaSyncStep("get${capitalizedAggregate}Step", () -> {
+            unitOfWorkService.registerSagaState(${idParamName}, ${readStateConst}, unitOfWork);
+        });
+
+        get${capitalizedAggregate}Step.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(${idParamName}, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+        }, unitOfWork);
+
+        SagaSyncStep update${capitalizedAggregate}Step = new SagaSyncStep("update${capitalizedAggregate}Step", () -> {
+            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${idParamName}, ${dtoParamName}, unitOfWork);
+            ${op.resultSetter}(${op.resultField});
+        }, new ArrayList<>(Arrays.asList(get${capitalizedAggregate}Step)));
+
+        workflow.addStep(get${capitalizedAggregate}Step);
+        workflow.addStep(update${capitalizedAggregate}Step);`;
             } else {
-                stepBody = `            ${op.serviceCall}(${op.serviceArgs.join(', ')});`;
+                let stepBody = '';
+                if (op.resultType) {
+                    stepBody = `            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${op.serviceArgs.join(', ')});
+            ${op.resultSetter}(${op.resultField});`;
+                } else {
+                    stepBody = `            ${op.serviceCall}(${op.serviceArgs.join(', ')});`;
+                }
+
+                workflowBody = `
+        SagaSyncStep ${op.stepName} = new SagaSyncStep("${op.stepName}", () -> {
+${stepBody}
+        });
+
+        workflow.addStep(${op.stepName});`;
             }
 
             let gettersSettersCode = '';
@@ -1099,12 +1161,7 @@ ${fieldsDeclaration}
 
     public void buildWorkflow(${buildWorkflowParams.join(', ')}) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
-
-        SagaSyncStep ${op.stepName} = new SagaSyncStep("${op.stepName}", () -> {
-${stepBody}
-        });
-
-        workflow.addStep(${op.stepName});
+${workflowBody}
     }
 ${gettersSettersCode}
 }
