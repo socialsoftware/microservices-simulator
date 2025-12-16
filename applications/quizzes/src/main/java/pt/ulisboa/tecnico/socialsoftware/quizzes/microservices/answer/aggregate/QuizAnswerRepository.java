@@ -15,4 +15,7 @@ public interface QuizAnswerRepository extends JpaRepository<QuizAnswer, Integer>
 
     @Query(value = "select a1.aggregateId from QuizAnswer a1 where a1.quiz.quizAggregateId = :quizAggregateId AND a1.student.studentAggregateId = :studentAggregateId AND a1.sagaState = 'NOT_IN_SAGA'")
     Optional<Integer> findQuizAnswerIdByQuizIdAndUserIdForSaga(Integer quizAggregateId, Integer studentAggregateId);
+
+    @Query(value = "select a1 from QuizAnswer a1 where a1.version = (select max(a2.version) from QuizAnswer a2)")
+    Optional<QuizAnswer> findLatestQuizAnswer();
 }
