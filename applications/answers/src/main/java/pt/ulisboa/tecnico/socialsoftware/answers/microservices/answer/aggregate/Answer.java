@@ -34,7 +34,7 @@ public abstract class Answer extends Aggregate {
 
     }
 
-    public Answer(Integer aggregateId, AnswerDto answerDto, AnswerExecution execution, AnswerUser user, AnswerQuiz quiz) {
+    public Answer(Integer aggregateId, AnswerExecution execution, AnswerUser user, AnswerQuiz quiz, AnswerDto answerDto, List<QuestionAnswered> questions) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setCreationDate(answerDto.getCreationDate());
@@ -43,6 +43,7 @@ public abstract class Answer extends Aggregate {
         setExecution(execution);
         setUser(user);
         setQuiz(quiz);
+        setQuestions(questions);
     }
 
     public Answer(Answer other) {

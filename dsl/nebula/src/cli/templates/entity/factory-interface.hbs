@@ -5,7 +5,7 @@ package {{packageName}};
 
 {{/if}}
 public interface {{aggregateName}}Factory {
-    {{aggregateName}} create{{aggregateName}}(Integer aggregateId, {{dtoName}} {{lowerAggregateName}}Dto);
+    {{aggregateName}} create{{aggregateName}}({{createMethodParams}});
     {{aggregateName}} create{{aggregateName}}FromExisting({{aggregateName}} existing{{aggregateName}});
     {{dtoName}} create{{aggregateName}}Dto({{aggregateName}} {{lowerAggregateName}});
 }

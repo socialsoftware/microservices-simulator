@@ -37,7 +37,7 @@ public abstract class Tournament extends Aggregate {
 
     }
 
-    public Tournament(Integer aggregateId, TournamentDto tournamentDto, TournamentCreator creator, TournamentExecution execution, TournamentQuiz quiz) {
+    public Tournament(Integer aggregateId, TournamentCreator creator, TournamentExecution execution, TournamentQuiz quiz, TournamentDto tournamentDto, Set<TournamentParticipant> participants, Set<TournamentTopic> topics) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setStartTime(tournamentDto.getStartTime());
@@ -47,6 +47,8 @@ public abstract class Tournament extends Aggregate {
         setCreator(creator);
         setExecution(execution);
         setQuiz(quiz);
+        setParticipants(participants);
+        setTopics(topics);
     }
 
     public Tournament(Tournament other) {

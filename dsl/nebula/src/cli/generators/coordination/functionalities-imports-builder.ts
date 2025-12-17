@@ -35,15 +35,6 @@ export class FunctionalitiesImportsBuilder extends OrchestrationBase {
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
         imports.push(`import ${basePackage}.${projectName}.sagas.coordination.${aggregate.name.toLowerCase()}.*;`);
 
-        // Conditional imports
-        if (this.checkUserDtoUsage(aggregate, rootEntity)) {
-            imports.push(`import ${basePackage}.${projectName}.shared.dtos.UserDto;`);
-        }
-
-        if (this.checkAggregateStateUsage(aggregate, rootEntity)) {
-            imports.push(`import ${basePackage}.ms.domain.aggregate.Aggregate.AggregateState;`);
-        }
-
         // Service imports
         dependencies.forEach(dep => {
             if (dep.required && !dep.name.includes('UnitOfWorkService')) {
@@ -109,113 +100,6 @@ export class FunctionalitiesImportsBuilder extends OrchestrationBase {
         const basePackage = this.getBasePackage();
         const projectName = options.projectName.toLowerCase();
         return `${basePackage}.${projectName}.shared.enums.${enumType}`;
-    }
-
-    /**
-     * Check if UserDto is used
-     */
-    private checkUserDtoUsage(aggregate: Aggregate, rootEntity: Entity | undefined): boolean {
-        if ((aggregate as any).metadata?.requiresUserDto) {
-            return true;
-        }
-
-        const methodUsage = aggregate.methods?.some((method: any) =>
-            method.parameters?.some((param: any) => param.type === 'User' || param.type === 'UserDto') ||
-            method.returnType === 'UserDto' || method.returnType === 'User'
-        );
-
-        const workflowUsage = aggregate.workflows?.some((workflow: any) =>
-            workflow.parameters?.some((param: any) => {
-                const paramStr = typeof param === 'string' ? param : (param.type || '');
-                return typeof paramStr === 'string' && (paramStr.includes('User') || paramStr.includes('UserDto'));
-            })
-        );
-
-        const serviceUsage = (aggregate as any).serviceDefinition?.serviceMethods?.some((method: any) =>
-            method.parameters?.some((param: any) => param.type === 'UserDto') ||
-            method.returnType === 'UserDto'
-        );
-
-        const rootEntityUsage = rootEntity?.properties?.some((prop: any) =>
-            prop.type === 'User' || prop.type === 'UserDto' ||
-            prop.name?.toLowerCase().includes('user')
-        );
-
-        const entityUsage = aggregate.entities?.some((entity: any) => {
-            const propUsage = entity.properties?.some((prop: any) =>
-                prop.type === 'User' || prop.type === 'UserDto' ||
-                prop.name?.toLowerCase().includes('user')
-            );
-
-            const constructorUsage = entity.constructors?.some((constructor: any) =>
-                constructor.parameters?.some((param: any) =>
-                    param.type === 'UserDto' || param.type === 'User'
-                )
-            );
-
-            const methodUsage = entity.methods?.some((method: any) =>
-                method.parameters?.some((param: any) => param.type === 'User' || param.type === 'UserDto') ||
-                method.returnType === 'UserDto' || method.returnType === 'User'
-            );
-
-            return propUsage || constructorUsage || methodUsage;
-        });
-
-        return methodUsage || workflowUsage || serviceUsage || rootEntityUsage || entityUsage || false;
-    }
-
-    /**
-     * Check if AggregateState is used
-     */
-    private checkAggregateStateUsage(aggregate: Aggregate, rootEntity: Entity | undefined): boolean {
-        if ((aggregate as any).metadata?.requiresAggregateState) {
-            return true;
-        }
-
-        const methodUsage = aggregate.methods?.some((method: any) =>
-            method.parameters?.some((param: any) => param.type === 'AggregateState') ||
-            method.returnType === 'AggregateState'
-        );
-
-        const workflowUsage = aggregate.workflows?.some((workflow: any) =>
-            workflow.parameters?.some((param: any) => {
-                const paramStr = typeof param === 'string' ? param : (param.type || '');
-                return typeof paramStr === 'string' && paramStr.includes('AggregateState');
-            }) ||
-            workflow.returnType === 'AggregateState'
-        );
-
-        const serviceUsage = (aggregate as any).serviceDefinition?.serviceMethods?.some((method: any) =>
-            method.parameters?.some((param: any) => param.type === 'AggregateState') ||
-            method.returnType === 'AggregateState'
-        );
-
-        const rootEntityUsage = rootEntity?.properties?.some((prop: any) =>
-            prop.type === 'AggregateState' || prop.name?.includes('State')
-        );
-
-        const entityUsage = aggregate.entities?.some((entity: any) => {
-            const propUsage = entity.properties?.some((prop: any) =>
-                prop.type === 'AggregateState' ||
-                prop.name?.includes('State') ||
-                prop.name?.toLowerCase().includes('state')
-            );
-
-            const constructorUsage = entity.constructors?.some((constructor: any) =>
-                constructor.parameters?.some((param: any) =>
-                    param.type === 'AggregateState'
-                )
-            );
-
-            const methodUsage = entity.methods?.some((method: any) =>
-                method.parameters?.some((param: any) => param.type === 'AggregateState') ||
-                method.returnType === 'AggregateState'
-            );
-
-            return propUsage || constructorUsage || methodUsage;
-        });
-
-        return methodUsage || workflowUsage || serviceUsage || rootEntityUsage || entityUsage || false;
     }
 
     /**

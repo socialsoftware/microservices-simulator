@@ -37,7 +37,7 @@ public abstract class Quiz extends Aggregate {
 
     }
 
-    public Quiz(Integer aggregateId, QuizDto quizDto, QuizExecution execution) {
+    public Quiz(Integer aggregateId, QuizExecution execution, QuizDto quizDto, Set<QuizQuestion> questions) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setTitle(quizDto.getTitle());
@@ -47,6 +47,7 @@ public abstract class Quiz extends Aggregate {
         setConclusionDate(quizDto.getConclusionDate());
         setResultsDate(quizDto.getResultsDate());
         setExecution(execution);
+        setQuestions(questions);
     }
 
     public Quiz(Quiz other) {

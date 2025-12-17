@@ -30,13 +30,14 @@ public abstract class Execution extends Aggregate {
 
     }
 
-    public Execution(Integer aggregateId, ExecutionDto executionDto, ExecutionCourse course) {
+    public Execution(Integer aggregateId, ExecutionCourse course, ExecutionDto executionDto, Set<ExecutionUser> users) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setAcronym(executionDto.getAcronym());
         setAcademicTerm(executionDto.getAcademicTerm());
         setEndDate(executionDto.getEndDate());
         setCourse(course);
+        setUsers(users);
     }
 
     public Execution(Execution other) {

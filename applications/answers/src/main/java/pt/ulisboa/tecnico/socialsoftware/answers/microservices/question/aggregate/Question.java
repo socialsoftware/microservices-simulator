@@ -34,13 +34,15 @@ public abstract class Question extends Aggregate {
 
     }
 
-    public Question(Integer aggregateId, QuestionDto questionDto, QuestionCourse course) {
+    public Question(Integer aggregateId, QuestionCourse course, QuestionDto questionDto, Set<QuestionTopic> topics, List<Option> options) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setTitle(questionDto.getTitle());
         setContent(questionDto.getContent());
         setCreationDate(questionDto.getCreationDate());
         setCourse(course);
+        setTopics(topics);
+        setOptions(options);
     }
 
     public Question(Question other) {

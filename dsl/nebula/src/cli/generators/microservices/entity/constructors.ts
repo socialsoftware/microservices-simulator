@@ -175,25 +175,44 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         ? customDtoType.charAt(0).toLowerCase() + customDtoType.slice(1)
         : `${entityName.charAt(0).toLowerCase() + entityName.slice(1)}Dto`;
 
-    const entityRelationships: string[] = [];
+    // Find entity relationships (both single and collections)
+    const singleEntityRels: Array<{ javaType: string; name: string }> = [];
+    const collectionEntityRels: Array<{ javaType: string; name: string }> = [];
+    
     if (isRootEntity) {
         for (const prop of entity.properties || []) {
             const javaType = resolveJavaType(prop.type);
-            if (!isEnumType(prop.type) &&
-                TypeResolver.isEntityType(javaType) &&
-                !javaType.startsWith('Set<') &&
-                !javaType.startsWith('List<')) {
-                entityRelationships.push(`${javaType} ${prop.name}`);
+            const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
+            
+            if (!isEnumType(prop.type) && TypeResolver.isEntityType(javaType)) {
+                if (isCollection) {
+                    collectionEntityRels.push({ javaType, name: prop.name });
+                } else {
+                    singleEntityRels.push({ javaType, name: prop.name });
+                }
             }
         }
     }
 
-    const relationshipParams = entityRelationships.join(', ');
-    const params = isRootEntity ?
-        (relationshipParams ?
-            `Integer aggregateId, ${dtoTypeName} ${dtoParamName}, ${relationshipParams}` :
-            `Integer aggregateId, ${dtoTypeName} ${dtoParamName}`) :
-        `${dtoTypeName} ${dtoParamName}`;
+    // Build parameter string: aggregateId, single entities, DTO, collections
+    const singleEntityParams = singleEntityRels.map(rel => `${rel.javaType} ${rel.name}`).join(', ');
+    const collectionEntityParams = collectionEntityRels.map(rel => `${rel.javaType} ${rel.name}`).join(', ');
+    
+    const paramsParts: string[] = [];
+    if (isRootEntity) {
+        paramsParts.push('Integer aggregateId');
+        if (singleEntityParams) {
+            paramsParts.push(singleEntityParams);
+        }
+        paramsParts.push(`${dtoTypeName} ${dtoParamName}`);
+        if (collectionEntityParams) {
+            paramsParts.push(collectionEntityParams);
+        }
+    } else {
+        paramsParts.push(`${dtoTypeName} ${dtoParamName}`);
+    }
+    
+    const params = paramsParts.join(', ');
 
     const setterCalls: string[] = [];
 
@@ -325,13 +344,26 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         }
     }
 
-    if (isRootEntity && entityRelationships.length > 0) {
-        for (const prop of entity.properties || []) {
-            const javaType = resolveJavaType(prop.type);
-            if (!isEnumType(prop.type) &&
-                TypeResolver.isEntityType(javaType) &&
-                !javaType.startsWith('Set<') &&
-                !javaType.startsWith('List<')) {
+    // Assign entity relationships (single entities first, then collections)
+    if (isRootEntity) {
+        // Assign single entity relationships
+        for (const rel of singleEntityRels) {
+            const prop = entity.properties.find(p => p.name === rel.name);
+            if (prop) {
+                const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
+                const isFinalProp = (prop as any).isFinal || false;
+                if (isFinalProp) {
+                    setterCalls.push(`        this.${prop.name} = ${prop.name};`);
+                } else {
+                    setterCalls.push(`        set${capitalizedName}(${prop.name});`);
+                }
+            }
+        }
+        
+        // Assign collection entity relationships
+        for (const rel of collectionEntityRels) {
+            const prop = entity.properties.find(p => p.name === rel.name);
+            if (prop) {
                 const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
                 const isFinalProp = (prop as any).isFinal || false;
                 if (isFinalProp) {
