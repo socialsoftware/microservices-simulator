@@ -191,6 +191,28 @@ export class ControllerGenerator extends WebApiBaseGenerator {
             }
         }
 
+        // Also expose aggregateId-like fields from entity-type properties (e.g., TopicCourse.courseAggregateId)
+        for (const prop of entity.properties) {
+            const typeNode: any = (prop as any).type;
+            if (!typeNode || typeNode.$type !== 'EntityType' || !typeNode.type) continue;
+
+            const refEntity = typeNode.type.ref as any;
+            if (!refEntity || !refEntity.properties) continue;
+
+            for (const relProp of refEntity.properties as any[]) {
+                if (!relProp.name || !relProp.name.endsWith('AggregateId')) continue;
+
+                const relType = relProp.type;
+                const relTypeName = relType?.typeName || relType?.type?.$refText || relType?.$refText || '';
+                if (relTypeName !== 'Integer' && relTypeName !== 'Long') continue;
+
+                properties.push({
+                    name: relProp.name,
+                    type: relTypeName
+                });
+            }
+        }
+
         return properties;
     }
 

@@ -55,7 +55,7 @@ export class CrudMethodGenerator {
             methods.push(this.generateDeleteMethod(entityName, options));
         }
 
-        const searchableProperties = this.getSearchableProperties(rootEntity);
+        const searchableProperties = this.getSearchableProperties(aggregate, rootEntity);
         if (searchableProperties.length > 0) {
             methods.push(this.generateSearchMethod(aggregateName, entityName, options, searchableProperties));
         } else if (options.includeFindAll) {
@@ -198,11 +198,11 @@ export class CrudMethodGenerator {
         } as any;
     }
 
-    private getSearchableProperties(entity: Entity): { name: string; type: string }[] {
+    private getSearchableProperties(aggregate: Aggregate, entity: Entity): { name: string; type: string; accessor: string }[] {
         if (!entity.properties) return [];
 
         const searchableTypes = ['String', 'Boolean'];
-        const properties: { name: string; type: string }[] = [];
+        const properties: { name: string; type: string; accessor: string }[] = [];
 
         for (const prop of entity.properties) {
             const propType = (prop as any).type;
@@ -221,9 +221,40 @@ export class CrudMethodGenerator {
             if (searchableTypes.includes(typeName) || isEnum) {
                 const javaType = typeName === 'String' ? 'String' : typeName === 'Boolean' ? 'Boolean' :
                     isEnum ? (propType?.type?.$refText || typeName) : typeName;
+                const capName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
+                const accessor = `entity.get${capName}()`;
                 properties.push({
                     name: prop.name,
-                    type: javaType
+                    type: javaType,
+                    accessor
+                });
+            }
+        }
+
+        for (const prop of entity.properties) {
+            const typeNode: any = (prop as any).type;
+            if (!typeNode || typeNode.$type !== 'EntityType' || !typeNode.type) continue;
+
+            const refEntity = typeNode.type.ref as Entity | undefined;
+            if (!refEntity || !refEntity.properties) continue;
+
+            const relationName = prop.name;
+            const capRelation = relationName.charAt(0).toUpperCase() + relationName.slice(1);
+
+            for (const relProp of refEntity.properties as any[]) {
+                if (!relProp.name || !relProp.name.endsWith('AggregateId')) continue;
+
+                const relType = relProp.type;
+                const relTypeName = relType?.typeName || relType?.type?.$refText || relType?.$refText || '';
+                if (relTypeName !== 'Integer' && relTypeName !== 'Long') continue;
+
+                const capRelField = relProp.name.charAt(0).toUpperCase() + relProp.name.slice(1);
+                const accessor = `entity.get${capRelation}().get${capRelField}()`;
+
+                properties.push({
+                    name: relProp.name,
+                    type: relTypeName,
+                    accessor
                 });
             }
         }

@@ -107,7 +107,7 @@ public class TopicService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<TopicDto> searchTopics(String name, UnitOfWork unitOfWork) {
+    public List<TopicDto> searchTopics(String name, Integer courseAggregateId, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = topicRepository.findAll().stream()
                 .filter(entity -> {
                     if (name != null) {
@@ -115,6 +115,11 @@ public class TopicService {
                             return false;
                         }
                     }
+                    if (courseAggregateId != null) {
+                        if (!entity.getCourse().getCourseAggregateId().equals(courseAggregateId)) {
+                            return false;
+                        }
+                                            }
                     return true;
                 })
                 .map(Topic::getAggregateId)

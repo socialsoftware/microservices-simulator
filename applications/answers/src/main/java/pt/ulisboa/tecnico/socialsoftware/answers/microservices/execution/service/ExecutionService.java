@@ -111,7 +111,7 @@ public class ExecutionService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<ExecutionDto> searchExecutions(String acronym, String academicTerm, UnitOfWork unitOfWork) {
+    public List<ExecutionDto> searchExecutions(String acronym, String academicTerm, Integer courseAggregateId, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = executionRepository.findAll().stream()
                 .filter(entity -> {
                     if (acronym != null) {
@@ -124,6 +124,11 @@ public class ExecutionService {
                             return false;
                         }
                     }
+                    if (courseAggregateId != null) {
+                        if (!entity.getCourse().getCourseAggregateId().equals(courseAggregateId)) {
+                            return false;
+                        }
+                                            }
                     return true;
                 })
                 .map(Execution::getAggregateId)

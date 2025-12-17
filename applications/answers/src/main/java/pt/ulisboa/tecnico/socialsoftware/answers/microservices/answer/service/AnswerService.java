@@ -109,7 +109,7 @@ public class AnswerService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<AnswerDto> searchAnswers(Boolean completed, UnitOfWork unitOfWork) {
+    public List<AnswerDto> searchAnswers(Boolean completed, Integer executionAggregateId, Integer userAggregateId, Integer quizAggregateId, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = answerRepository.findAll().stream()
                 .filter(entity -> {
                     if (completed != null) {
@@ -117,6 +117,21 @@ public class AnswerService {
                             return false;
                         }
                     }
+                    if (executionAggregateId != null) {
+                        if (!entity.getExecution().getExecutionAggregateId().equals(executionAggregateId)) {
+                            return false;
+                        }
+                                            }
+                    if (userAggregateId != null) {
+                        if (!entity.getUser().getUserAggregateId().equals(userAggregateId)) {
+                            return false;
+                        }
+                                            }
+                    if (quizAggregateId != null) {
+                        if (!entity.getQuiz().getQuizAggregateId().equals(quizAggregateId)) {
+                            return false;
+                        }
+                                            }
                     return true;
                 })
                 .map(Answer::getAggregateId)

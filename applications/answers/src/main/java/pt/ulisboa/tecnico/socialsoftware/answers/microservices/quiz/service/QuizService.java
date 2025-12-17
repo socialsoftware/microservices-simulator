@@ -112,7 +112,7 @@ public class QuizService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<QuizDto> searchQuizs(String title, QuizType quizType, UnitOfWork unitOfWork) {
+    public List<QuizDto> searchQuizs(String title, QuizType quizType, Integer executionAggregateId, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = quizRepository.findAll().stream()
                 .filter(entity -> {
                     if (title != null) {
@@ -122,6 +122,11 @@ public class QuizService {
                     }
                     if (quizType != null) {
                         if (!entity.getQuizType().equals(quizType)) {
+                            return false;
+                        }
+                                            }
+                    if (executionAggregateId != null) {
+                        if (!entity.getExecution().getExecutionAggregateId().equals(executionAggregateId)) {
                             return false;
                         }
                                             }

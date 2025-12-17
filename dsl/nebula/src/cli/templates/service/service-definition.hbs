@@ -67,15 +67,15 @@ public class {{serviceName}} {
 {{#each searchableProperties}}
                     if ({{name}} != null) {
                         {{#if (eq type "String")}}
-                        if (!entity.get{{capitalize name}}().equals({{name}})) {
+                        if (!{{accessor}}.equals({{name}})) {
                             return false;
                         }
                         {{else if (eq type "Boolean")}}
-                        if (entity.get{{capitalize name}}() != {{name}}) {
+                        if ({{accessor}} != {{name}}) {
                             return false;
                         }
                         {{else}}
-                        if (!entity.get{{capitalize name}}().equals({{name}})) {
+                        if (!{{accessor}}.equals({{name}})) {
                             return false;
                         }
                         {{/if}}

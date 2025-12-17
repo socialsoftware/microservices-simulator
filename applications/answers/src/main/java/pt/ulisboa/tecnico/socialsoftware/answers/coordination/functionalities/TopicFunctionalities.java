@@ -97,14 +97,14 @@ public class TopicFunctionalities {
         }
     }
 
-    public List<TopicDto> searchTopics(String name) {
+    public List<TopicDto> searchTopics(String name, Integer courseAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 SearchTopicsFunctionalitySagas searchTopicsFunctionalitySagas = new SearchTopicsFunctionalitySagas(
-                        topicService, sagaUnitOfWorkService, name, sagaUnitOfWork);
+                        topicService, sagaUnitOfWorkService, name, courseAggregateId, sagaUnitOfWork);
                 searchTopicsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return searchTopicsFunctionalitySagas.getSearchedTopicDtos();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
