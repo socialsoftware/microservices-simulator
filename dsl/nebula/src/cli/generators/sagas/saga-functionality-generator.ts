@@ -951,7 +951,7 @@ ${gettersSetters}
         const dtoType = `${capitalizedAggregate}Dto`;
         const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
 
-        const crudOperations = [
+        const crudOperations: any[] = [
             {
                 name: `create${capitalizedAggregate}`,
                 stepName: `create${capitalizedAggregate}Step`,
@@ -962,17 +962,6 @@ ${gettersSetters}
                 resultGetter: `getCreated${capitalizedAggregate}Dto`,
                 serviceCall: `${lowerAggregate}Service.create${capitalizedAggregate}`,
                 serviceArgs: [`${lowerAggregate}Dto`, 'unitOfWork']
-            },
-            {
-                name: `getAll${capitalizedAggregate}s`,
-                stepName: `getAll${capitalizedAggregate}sStep`,
-                params: [],
-                resultType: `List<${dtoType}>`,
-                resultField: `${lowerAggregate}s`,
-                resultSetter: `set${capitalizedAggregate}s`,
-                resultGetter: `get${capitalizedAggregate}s`,
-                serviceCall: `${lowerAggregate}Service.getAll${capitalizedAggregate}s`,
-                serviceArgs: ['unitOfWork']
             },
             {
                 name: `get${capitalizedAggregate}ById`,
@@ -1013,6 +1002,38 @@ ${gettersSetters}
             }
         ];
 
+        const searchableProperties = this.getSearchableProperties(rootEntity);
+        if (searchableProperties.length > 0) {
+            const searchParams = searchableProperties.map(prop => ({
+                type: prop.type,
+                name: prop.name
+            }));
+
+            crudOperations.push({
+                name: `search${capitalizedAggregate}s`,
+                stepName: `search${capitalizedAggregate}sStep`,
+                params: searchParams,
+                resultType: `List<${dtoType}>`,
+                resultField: `${lowerAggregate}sSearched`,
+                resultSetter: `set${capitalizedAggregate}sSearched`,
+                resultGetter: `get${capitalizedAggregate}sSearched`,
+                serviceCall: `${lowerAggregate}Service.search${capitalizedAggregate}s`,
+                serviceArgs: [...searchableProperties.map((p: any) => p.name), 'unitOfWork']
+            });
+        } else {
+            crudOperations.push({
+                name: `getAll${capitalizedAggregate}s`,
+                stepName: `getAll${capitalizedAggregate}sStep`,
+                params: [],
+                resultType: `List<${dtoType}>`,
+                resultField: `${lowerAggregate}s`,
+                resultSetter: `set${capitalizedAggregate}s`,
+                resultGetter: `get${capitalizedAggregate}s`,
+                serviceCall: `${lowerAggregate}Service.getAll${capitalizedAggregate}s`,
+                serviceArgs: ['unitOfWork']
+            });
+        }
+
         for (const op of crudOperations) {
             const className = `${this.capitalize(op.name)}FunctionalitySagas`;
 
@@ -1025,9 +1046,38 @@ ${gettersSetters}
             imports.push(`import ${basePackage}.ms.sagas.workflow.SagaSyncStep;`);
             imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
 
+            const enumTypes = new Set<string>();
+            const primitiveTypes = ['String', 'Integer', 'Long', 'Boolean', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal', 'void', 'UnitOfWork'];
+
+            const addEnumTypeIfNeeded = (type: string | undefined) => {
+                if (!type) return;
+                const typeName = type.replace(/List<|Set<|>/g, '').trim();
+                if (!typeName) return;
+
+                if (
+                    !primitiveTypes.includes(typeName) &&
+                    !typeName.endsWith('Dto') &&
+                    !typeName.includes('<') &&
+                    typeName.charAt(0) === typeName.charAt(0).toUpperCase()
+                ) {
+                    enumTypes.add(typeName);
+                }
+            };
+
+            if (op.params) {
+                op.params.forEach((p: any) => addEnumTypeIfNeeded(p.type));
+            }
+            addEnumTypeIfNeeded(typeof op.resultType === 'string' ? op.resultType : undefined);
+
+            enumTypes.forEach(enumType => {
+                const enumImport = `${basePackage}.${options.projectName.toLowerCase()}.shared.enums.${enumType}`;
+                imports.push(`import ${enumImport};`);
+            });
+
             const isDeleteOperation = op.name.startsWith('delete');
             const isUpdateOperation = op.name.startsWith('update');
             const isGetAllOperation = op.name.startsWith('getAll');
+            const isSearchOperation = op.name.startsWith('search');
             if (isDeleteOperation || isUpdateOperation) {
                 imports.push('import java.util.ArrayList;');
                 imports.push('import java.util.Arrays;');
@@ -1041,7 +1091,12 @@ ${gettersSetters}
             let fieldsDeclaration = '';
 
             const isGetByIdOperation = op.name === `get${capitalizedAggregate}ById`;
-            const keepParamFields = op.name !== `create${capitalizedAggregate}` && !isDeleteOperation && !isGetByIdOperation && !isUpdateOperation;
+            const keepParamFields =
+                op.name !== `create${capitalizedAggregate}` &&
+                !isDeleteOperation &&
+                !isGetByIdOperation &&
+                !isUpdateOperation &&
+                !isSearchOperation;
             if (keepParamFields) {
                 for (const param of op.params) {
                     fieldsDeclaration += `    private ${param.type} ${param.name};\n`;
@@ -1058,17 +1113,17 @@ ${gettersSetters}
             const constructorParams = [
                 `${capitalizedAggregate}Service ${lowerAggregate}Service`,
                 'SagaUnitOfWorkService unitOfWorkService',
-                ...op.params.map(p => `${p.type} ${p.name}`),
+                ...op.params.map((p: any) => `${p.type} ${p.name}`),
                 'SagaUnitOfWork unitOfWork'
             ];
 
             const buildWorkflowParams = [
-                ...op.params.map(p => `${p.type} ${p.name}`),
+                ...op.params.map((p: any) => `${p.type} ${p.name}`),
                 'SagaUnitOfWork unitOfWork'
             ];
 
             const buildWorkflowCallArgs = [
-                ...op.params.map(p => p.name),
+                ...op.params.map((p: any) => p.name),
                 'unitOfWork'
             ];
 
@@ -1186,6 +1241,42 @@ ${gettersSettersCode}
         }
 
         return outputs;
+    }
+
+    private getSearchableProperties(entity: any): { name: string; type: string }[] {
+        if (!entity.properties) return [];
+
+        const searchableTypes = ['String', 'Boolean'];
+        const properties: { name: string; type: string }[] = [];
+
+        for (const prop of entity.properties) {
+            const propType = (prop as any).type;
+            const typeName = propType?.typeName || propType?.type?.$refText || propType?.$refText || '';
+
+            let isEnum = false;
+            if (propType && typeof propType === 'object' && propType.$type === 'EntityType' && propType.type) {
+                const ref = propType.type.ref;
+                if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
+                    isEnum = true;
+                } else if (propType.type.$refText) {
+                    const javaType = this.resolveJavaType(prop.type);
+                    if (!this.isPrimitiveType(javaType) && !this.isEntityType(javaType) &&
+                        !javaType.startsWith('List<') && !javaType.startsWith('Set<')) {
+                        isEnum = true;
+                    }
+                }
+            }
+
+            if (searchableTypes.includes(typeName) || isEnum) {
+                const javaType = this.resolveJavaType(prop.type);
+                properties.push({
+                    name: prop.name,
+                    type: javaType
+                });
+            }
+        }
+
+        return properties;
     }
 
 }

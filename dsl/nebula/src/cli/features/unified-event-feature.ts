@@ -1,21 +1,12 @@
-/**
- * Unified Event Feature System
- * 
- * This module consolidates event-feature.ts and events-feature.ts into a single,
- * comprehensive event generation system that handles both DSL-defined custom events
- * and generator-produced standard events with consistent patterns.
- */
-
 import { Aggregate } from "../../language/generated/ast.js";
 import { EventGenerator } from "../generators/microservices/events/event-generator.js";
+import { PublishedEventGenerator } from "../generators/microservices/events/published-event-generator.js";
 import { GenerationOptions, GeneratorRegistry } from "../engine/types.js";
 import { FileWriter } from "../utils/file-writer.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../utils/error-handler.js";
+import { getServiceDefinition } from "../utils/aggregate-helpers.js";
 import * as path from 'path';
 
-/**
- * Event generation configuration
- */
 interface EventGenerationConfig {
     generateCustomEvents: boolean;
     generateStandardEvents: boolean;
@@ -23,19 +14,15 @@ interface EventGenerationConfig {
     generateEventSubscriptions: boolean;
 }
 
-/**
- * Unified event feature that handles all types of event generation
- */
 export class UnifiedEventFeature {
     private eventGenerator: EventGenerator;
+    private publishedEventGenerator: PublishedEventGenerator;
 
     constructor() {
         this.eventGenerator = new EventGenerator();
+        this.publishedEventGenerator = new PublishedEventGenerator();
     }
 
-    /**
-     * Main entry point for event generation - handles both custom and standard events
-     */
     async generateEvents(
         aggregate: Aggregate,
         aggregatePath: string,
@@ -48,20 +35,15 @@ export class UnifiedEventFeature {
             return;
         }
 
-        // Generate standard events (from generators)
         if (config.generateStandardEvents) {
             await this.generateStandardEvents(aggregate, aggregatePath, options, generators);
         }
 
-        // Generate custom DSL-defined events
         if (config.generateCustomEvents && aggregate.events) {
             await this.generateCustomEvents(aggregate, aggregatePath, options);
         }
     }
 
-    /**
-     * Generate standard events produced by generators
-     */
     private async generateStandardEvents(
         aggregate: Aggregate,
         aggregatePath: string,
@@ -72,7 +54,21 @@ export class UnifiedEventFeature {
             async () => {
                 const eventCode = await generators.eventGenerator.generateEvents(aggregate, options);
 
-                // Generate main event handling class
+                // Generate CRUD events if @GenerateCrud is used
+                const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+                const serviceDefinition = getServiceDefinition(aggregate);
+                const hasGenerateCrud = serviceDefinition?.generateCrud;
+
+                if (hasGenerateCrud && rootEntity) {
+                    const crudEvents = await this.publishedEventGenerator.generatePublishedEvents(
+                        aggregate,
+                        rootEntity,
+                        { projectName: options.projectName || 'unknown' }
+                    );
+
+                    Object.assign(eventCode, crudEvents);
+                }
+
                 if (eventCode['event-handling']) {
                     const eventHandlingPath = path.join(aggregatePath, 'events', 'handling', `${aggregate.name}EventHandling.java`);
                     await FileWriter.writeGeneratedFile(
@@ -82,16 +78,12 @@ export class UnifiedEventFeature {
                     );
                 }
 
-                // Generate event handlers
                 await this.generateEventHandlersFromCode(eventCode, aggregatePath);
 
-                // Generate published events
                 await this.generatePublishedEventsFromCode(eventCode, aggregatePath);
 
-                // Generate event subscriptions
                 await this.generateEventSubscriptionsFromCode(eventCode, aggregatePath);
 
-                // Generate individual event handlers
                 if (generators.eventHandlerGenerator) {
                     const individualEventHandlers = await generators.eventHandlerGenerator.generateEventHandlers(aggregate, options);
                     await this.generateIndividualEventHandlers(individualEventHandlers, aggregatePath);
@@ -107,33 +99,24 @@ export class UnifiedEventFeature {
         );
     }
 
-    /**
-     * Generate custom DSL-defined events
-     */
     private async generateCustomEvents(
         aggregate: Aggregate,
         aggregatePath: string,
         options: GenerationOptions
     ): Promise<void> {
-        // Generate published events
         if (aggregate.events!.publishedEvents) {
             await this.generateCustomPublishedEvents(aggregate, aggregatePath, options);
         }
 
-        // Generate base event handler for subscribed events
         if (aggregate.events!.subscribedEvents && aggregate.events!.subscribedEvents.length > 0) {
             await this.generateCustomBaseEventHandler(aggregate, aggregatePath, options);
         }
 
-        // Generate subscribed events and their handlers
         if (aggregate.events!.subscribedEvents) {
             await this.generateCustomSubscribedEvents(aggregate, aggregatePath, options);
         }
     }
 
-    /**
-     * Generate custom published events from DSL
-     */
     private async generateCustomPublishedEvents(
         aggregate: Aggregate,
         aggregatePath: string,
@@ -157,9 +140,6 @@ export class UnifiedEventFeature {
         }
     }
 
-    /**
-     * Generate custom base event handler
-     */
     private async generateCustomBaseEventHandler(
         aggregate: Aggregate,
         aggregatePath: string,
@@ -180,9 +160,6 @@ export class UnifiedEventFeature {
         );
     }
 
-    /**
-     * Generate custom subscribed events and their handlers
-     */
     private async generateCustomSubscribedEvents(
         aggregate: Aggregate,
         aggregatePath: string,
@@ -192,7 +169,6 @@ export class UnifiedEventFeature {
         const interSubscribed = (aggregate.events as any)?.interInvariants?.flatMap((ii: any) => ii?.subscribedEvents || []) || [];
         const allSubscribed = [...directSubscribed, ...interSubscribed];
 
-        // Deduplicate by event type name to avoid duplicate handlers and subscriptions
         const eventMap = new Map<string, any>();
         allSubscribed.forEach((event: any) => {
             const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
@@ -205,14 +181,12 @@ export class UnifiedEventFeature {
         for (const subscribedEvent of uniqueSubscribed) {
             await ErrorHandler.wrapAsync(
                 async () => {
-                    // Generate subscription class
                     const subscriptionCode = this.eventGenerator.generateSubscribedEvent(subscribedEvent, aggregate, options);
                     const eventTypeName = subscribedEvent.eventType.ref?.name || subscribedEvent.eventType.$refText || 'UnknownEvent';
                     const subscriptionName = `${aggregate.name}Subscribes${eventTypeName.replace('Event', '')}`;
                     const subscriptionPath = path.join(aggregatePath, 'events', 'subscribe', `${subscriptionName}.java`);
                     await FileWriter.writeGeneratedFile(subscriptionPath, subscriptionCode, `subscribed event ${subscriptionName}`);
 
-                    // Generate event handler
                     const handlerCode = this.eventGenerator.generateEventHandler(subscribedEvent, aggregate, options);
                     const handlerName = `${eventTypeName}Handler`;
                     const handlerPath = path.join(aggregatePath, 'events', 'handling', 'handlers', `${handlerName}.java`);
@@ -229,9 +203,6 @@ export class UnifiedEventFeature {
         }
     }
 
-    /**
-     * Helper methods for processing generator-produced events
-     */
     private async generateEventHandlersFromCode(eventCode: any, aggregatePath: string): Promise<void> {
         const handlerEntries = Object.entries(eventCode).filter(([key]) => key.startsWith('event-handler-'));
 
@@ -282,9 +253,6 @@ export class UnifiedEventFeature {
         await Promise.all(writePromises);
     }
 
-    /**
-     * Utility methods
-     */
     private extractClassNameFromContent(content: string): string | null {
         const classMatch = content.match(/public\s+class\s+(\w+)/);
         return classMatch ? classMatch[1] : null;
@@ -299,9 +267,6 @@ export class UnifiedEventFeature {
         };
     }
 
-    /**
-     * Static convenience methods for backward compatibility
-     */
     static async generateEvents(
         aggregate: Aggregate,
         aggregatePath: string,

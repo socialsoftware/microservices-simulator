@@ -6,7 +6,7 @@ export abstract class EventBaseGenerator extends OrchestrationBase {
     protected createBaseEventContext(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): EventContext {
         const naming = this.createAggregateNaming(aggregate.name);
         const projectName = options?.projectName || 'unknown';
-        const packageName = this.generatePackageName(projectName, aggregate.name, 'events');
+        const packageName = this.generatePackageName(projectName, aggregate.name, 'events', 'publish');
 
         return {
             aggregateName: naming.original,

@@ -19,6 +19,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.AnswerExecution;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.AnswerUser;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.AnswerQuiz;
 
 @Service
 public class AnswerService {
@@ -79,6 +84,7 @@ public class AnswerService {
         newAnswer.setAnswerDate(answerDto.getAnswerDate());
         newAnswer.setCompleted(answerDto.getCompleted());
         unitOfWorkService.registerChanged(newAnswer, unitOfWork);
+        unitOfWorkService.registerEvent(new AnswerUpdatedEvent(newAnswer.getAggregateId(), newAnswer.getCreationDate(), newAnswer.getAnswerDate(), newAnswer.getCompleted()), unitOfWork);
         return answerFactory.createAnswerDto(newAnswer);
     }
 
@@ -95,6 +101,7 @@ public class AnswerService {
         Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
         newAnswer.remove();
         unitOfWorkService.registerChanged(newAnswer, unitOfWork);
+        unitOfWorkService.registerEvent(new AnswerDeletedEvent(newAnswer.getAggregateId()), unitOfWork);
     }
 
     @Retryable(
@@ -105,8 +112,31 @@ public class AnswerService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<AnswerDto> getAllAnswers(UnitOfWork unitOfWork) {
+    public List<AnswerDto> searchAnswers(Boolean completed, AnswerExecution execution, AnswerUser user, AnswerQuiz quiz, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = answerRepository.findAll().stream()
+                .filter(entity -> {
+                    if (completed != null) {
+                        if (entity.getCompleted() != completed) {
+                            return false;
+                        }
+                    }
+                    if (execution != null) {
+                        if (!entity.getExecution().equals(execution)) {
+                            return false;
+                        }
+                                            }
+                    if (user != null) {
+                        if (!entity.getUser().equals(user)) {
+                            return false;
+                        }
+                                            }
+                    if (quiz != null) {
+                        if (!entity.getQuiz().equals(quiz)) {
+                            return false;
+                        }
+                                            }
+                    return true;
+                })
                 .map(Answer::getAggregateId)
                 .collect(Collectors.toSet());
         return aggregateIds.stream()

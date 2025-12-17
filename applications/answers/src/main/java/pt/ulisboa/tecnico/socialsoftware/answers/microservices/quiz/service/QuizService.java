@@ -19,6 +19,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizExecution;
 
 @Service
 public class QuizService {
@@ -81,6 +85,7 @@ public class QuizService {
         newQuiz.setConclusionDate(quizDto.getConclusionDate());
         newQuiz.setResultsDate(quizDto.getResultsDate());
         unitOfWorkService.registerChanged(newQuiz, unitOfWork);
+        unitOfWorkService.registerEvent(new QuizUpdatedEvent(newQuiz.getAggregateId(), newQuiz.getTitle(), newQuiz.getCreationDate(), newQuiz.getAvailableDate(), newQuiz.getConclusionDate(), newQuiz.getResultsDate()), unitOfWork);
         return quizFactory.createQuizDto(newQuiz);
     }
 
@@ -97,6 +102,7 @@ public class QuizService {
         Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
         newQuiz.remove();
         unitOfWorkService.registerChanged(newQuiz, unitOfWork);
+        unitOfWorkService.registerEvent(new QuizDeletedEvent(newQuiz.getAggregateId()), unitOfWork);
     }
 
     @Retryable(
@@ -107,8 +113,26 @@ public class QuizService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<QuizDto> getAllQuizs(UnitOfWork unitOfWork) {
+    public List<QuizDto> searchQuizs(String title, QuizType quizType, QuizExecution execution, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = quizRepository.findAll().stream()
+                .filter(entity -> {
+                    if (title != null) {
+                        if (!entity.getTitle().equals(title)) {
+                            return false;
+                        }
+                    }
+                    if (quizType != null) {
+                        if (!entity.getQuizType().equals(quizType)) {
+                            return false;
+                        }
+                                            }
+                    if (execution != null) {
+                        if (!entity.getExecution().equals(execution)) {
+                            return false;
+                        }
+                                            }
+                    return true;
+                })
                 .map(Quiz::getAggregateId)
                 .collect(Collectors.toSet());
         return aggregateIds.stream()

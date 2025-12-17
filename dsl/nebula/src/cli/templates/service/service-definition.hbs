@@ -45,14 +45,44 @@ public class {{serviceName}} {
         new{{../entityName}}.set{{capitalizedName}}({{../lowerEntityName}}Dto.get{{capitalizedName}}());
 {{/each}}
         unitOfWorkService.registerChanged(new{{entityName}}, unitOfWork);
+        unitOfWorkService.registerEvent(new {{../aggregateName}}UpdatedEvent(new{{entityName}}.getAggregateId(){{#each nonFinalProperties}}, new{{../../entityName}}.get{{capitalizedName}}(){{/each}}), unitOfWork);
         return {{lowerEntityName}}Factory.create{{entityName}}Dto(new{{entityName}});
 {{else if (eq crudAction "delete")}}
         {{entityName}} old{{entityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
         {{entityName}} new{{entityName}} = {{lowerEntityName}}Factory.create{{entityName}}FromExisting(old{{entityName}});
         new{{entityName}}.remove();
         unitOfWorkService.registerChanged(new{{entityName}}, unitOfWork);
+        unitOfWorkService.registerEvent(new {{../aggregateName}}DeletedEvent(new{{entityName}}.getAggregateId()), unitOfWork);
 {{else if (eq crudAction "findAll")}}
         Set<Integer> aggregateIds = {{lowerEntityName}}Repository.findAll().stream()
+                .map({{entityName}}::getAggregateId)
+                .collect(Collectors.toSet());
+        return aggregateIds.stream()
+                .map(id -> ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map({{lowerEntityName}}Factory::create{{entityName}}Dto)
+                .collect(Collectors.toList());
+{{else if (eq crudAction "search")}}
+        Set<Integer> aggregateIds = {{lowerEntityName}}Repository.findAll().stream()
+                .filter(entity -> {
+{{#each searchableProperties}}
+                    if ({{name}} != null) {
+                        {{#if (eq type "String")}}
+                        if (!entity.get{{capitalize name}}().equals({{name}})) {
+                            return false;
+                        }
+                        {{else if (eq type "Boolean")}}
+                        if (entity.get{{capitalize name}}() != {{name}}) {
+                            return false;
+                        }
+                        {{else}}
+                        if (!entity.get{{capitalize name}}().equals({{name}})) {
+                            return false;
+                        }
+                        {{/if}}
+                    }
+{{/each}}
+                    return true;
+                })
                 .map({{entityName}}::getAggregateId)
                 .collect(Collectors.toSet());
         return aggregateIds.stream()

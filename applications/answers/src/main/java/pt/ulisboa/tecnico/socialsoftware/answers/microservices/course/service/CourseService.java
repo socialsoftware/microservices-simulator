@@ -19,6 +19,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.events.publish.CourseUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.events.publish.CourseDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
 @Service
 public class CourseService {
@@ -78,6 +81,7 @@ public class CourseService {
         newCourse.setName(courseDto.getName());
         newCourse.setCreationDate(courseDto.getCreationDate());
         unitOfWorkService.registerChanged(newCourse, unitOfWork);
+        unitOfWorkService.registerEvent(new CourseUpdatedEvent(newCourse.getAggregateId(), newCourse.getName(), newCourse.getCreationDate()), unitOfWork);
         return courseFactory.createCourseDto(newCourse);
     }
 
@@ -94,6 +98,7 @@ public class CourseService {
         Course newCourse = courseFactory.createCourseFromExisting(oldCourse);
         newCourse.remove();
         unitOfWorkService.registerChanged(newCourse, unitOfWork);
+        unitOfWorkService.registerEvent(new CourseDeletedEvent(newCourse.getAggregateId()), unitOfWork);
     }
 
     @Retryable(
@@ -104,8 +109,21 @@ public class CourseService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<CourseDto> getAllCourses(UnitOfWork unitOfWork) {
+    public List<CourseDto> searchCourses(String name, CourseType type, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = courseRepository.findAll().stream()
+                .filter(entity -> {
+                    if (name != null) {
+                        if (!entity.getName().equals(name)) {
+                            return false;
+                        }
+                    }
+                    if (type != null) {
+                        if (!entity.getType().equals(type)) {
+                            return false;
+                        }
+                                            }
+                    return true;
+                })
                 .map(Course::getAggregateId)
                 .collect(Collectors.toSet());
         return aggregateIds.stream()

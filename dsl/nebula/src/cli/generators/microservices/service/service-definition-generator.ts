@@ -34,8 +34,8 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
         const serviceName = serviceDefinition.name || `${aggregateName}Service`;
         const packageName = `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregateName.toLowerCase()}.service`;
 
-        const imports = this.buildServiceImports(aggregate, serviceDefinition, options);
         const methods = this.buildServiceMethods(serviceDefinition, aggregate, rootEntity);
+        const imports = this.buildServiceImports(aggregate, serviceDefinition, options, rootEntity, methods);
         const dependencies = this.buildServiceDependencies(aggregate, serviceDefinition);
 
         return {
@@ -56,7 +56,7 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
         };
     }
 
-    private buildServiceImports(aggregate: Aggregate, serviceDefinition: any, options: ServiceGenerationOptions): string[] {
+    private buildServiceImports(aggregate: Aggregate, serviceDefinition: any, options: ServiceGenerationOptions, rootEntity: Entity, methods: any[]): string[] {
         const imports = [
             'import java.sql.SQLException;',
             'import java.util.List;',
@@ -79,14 +79,57 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
             `import ${getGlobalConfig().buildPackageName(options.projectName, 'shared', 'dtos')}.*;`
         ];
 
+        if (serviceDefinition.generateCrud) {
+            const aggregateName = aggregate.name;
+            const lowerAggregate = aggregateName.toLowerCase();
+            const eventPackage = getGlobalConfig().buildPackageName(options.projectName, 'microservices', lowerAggregate, 'events', 'publish');
+            imports.push(`import ${eventPackage}.${aggregateName}UpdatedEvent;`);
+            imports.push(`import ${eventPackage}.${aggregateName}DeletedEvent;`);
+        }
+
+        const enumTypes = new Set<string>();
+        methods.forEach(method => {
+            this.extractEnumTypes(method.returnType, enumTypes);
+            method.parameters?.forEach((param: any) => {
+                this.extractEnumTypes(param.type, enumTypes);
+            });
+        });
+
+        enumTypes.forEach(enumType => {
+            const importPath = this.resolveEnumImportPath(enumType, options);
+            if (importPath) {
+                imports.push(`import ${importPath};`);
+            }
+        });
+
         return imports;
+    }
+
+    private extractEnumTypes(type: string, enumSet: Set<string>): void {
+        if (!type) return;
+
+        const primitiveTypes = ['String', 'Integer', 'Long', 'Boolean', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal', 'void', 'UnitOfWork'];
+        const typeName = type.replace(/List<|Set<|>/g, '').trim();
+
+        if (typeName &&
+            !primitiveTypes.includes(typeName) &&
+            !typeName.endsWith('Dto') &&
+            !typeName.includes('<') &&
+            typeName.charAt(0) === typeName.charAt(0).toUpperCase()) {
+            enumSet.add(typeName);
+        }
+    }
+
+    private resolveEnumImportPath(enumType: string, options: ServiceGenerationOptions): string | null {
+        if (!enumType) return null;
+
+        return getGlobalConfig().buildPackageName(options.projectName, 'shared', 'enums') + '.' + enumType;
     }
 
     private buildServiceMethods(serviceDefinition: any, aggregate: Aggregate, rootEntity: Entity): any[] {
         const methods: any[] = [];
         const entityName = rootEntity.name;
 
-        // Generate CRUD methods using the dedicated generator
         if (serviceDefinition.generateCrud) {
             const crudOptions = CrudMethodGenerator.createOptions({
                 transactional: serviceDefinition.transactional || false,
@@ -95,7 +138,6 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
             methods.push(...this.crudGenerator.generateCrudMethods(aggregate, rootEntity, crudOptions));
         }
 
-        // Generate custom service methods (skip if overlaps with CRUD)
         if (serviceDefinition.serviceMethods) {
             const crudMethodNames = serviceDefinition.generateCrud ? new Set([
                 `create${entityName}`,

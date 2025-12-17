@@ -19,6 +19,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.UserRole;
 
 @Service
 public class UserService {
@@ -79,6 +82,7 @@ public class UserService {
         newUser.setUsername(userDto.getUsername());
         newUser.setActive(userDto.getActive());
         unitOfWorkService.registerChanged(newUser, unitOfWork);
+        unitOfWorkService.registerEvent(new UserUpdatedEvent(newUser.getAggregateId(), newUser.getName(), newUser.getUsername(), newUser.getActive()), unitOfWork);
         return userFactory.createUserDto(newUser);
     }
 
@@ -95,6 +99,7 @@ public class UserService {
         User newUser = userFactory.createUserFromExisting(oldUser);
         newUser.remove();
         unitOfWorkService.registerChanged(newUser, unitOfWork);
+        unitOfWorkService.registerEvent(new UserDeletedEvent(newUser.getAggregateId()), unitOfWork);
     }
 
     @Retryable(
@@ -105,8 +110,31 @@ public class UserService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<UserDto> getAllUsers(UnitOfWork unitOfWork) {
+    public List<UserDto> searchUsers(String name, String username, UserRole role, Boolean active, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = userRepository.findAll().stream()
+                .filter(entity -> {
+                    if (name != null) {
+                        if (!entity.getName().equals(name)) {
+                            return false;
+                        }
+                    }
+                    if (username != null) {
+                        if (!entity.getUsername().equals(username)) {
+                            return false;
+                        }
+                    }
+                    if (role != null) {
+                        if (!entity.getRole().equals(role)) {
+                            return false;
+                        }
+                                            }
+                    if (active != null) {
+                        if (entity.getActive() != active) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
                 .map(User::getAggregateId)
                 .collect(Collectors.toSet());
         return aggregateIds.stream()

@@ -31,14 +31,21 @@ export class PublishedEventGenerator extends EventBaseGenerator {
     }
 
     private buildPublishedEvents(rootEntity: Entity, aggregateName: string): any[] {
-        const eventTypes = ['Created', 'Updated', 'Deleted'];
+        const eventTypes = ['Updated', 'Deleted'];
 
         return eventTypes.map(eventType => {
             const variations = this.getEventNameVariations(eventType, aggregateName);
+            let properties: any[] = [];
+            if (eventType === 'Updated') {
+                const allProperties = this.buildEventProperties(rootEntity, eventType);
+                properties = allProperties.filter((prop: any) => !prop.isFinal);
+            } else if (eventType === 'Deleted') {
+                properties = [];
+            }
             return {
                 eventType,
                 ...variations,
-                properties: this.buildEventProperties(rootEntity, eventType),
+                properties,
                 timestamp: new Date().toISOString()
             };
         });
@@ -58,6 +65,31 @@ export class PublishedEventGenerator extends EventBaseGenerator {
 
     private async generateIndividualPublishedEvent(context: any): Promise<string> {
         const template = this.loadTemplate('events/published-event.hbs');
-        return this.renderTemplate(template, context);
+        const propertyImports: string[] = [];
+        if (context.event.properties && context.event.properties.length > 0) {
+            context.event.properties.forEach((prop: any) => {
+                if (prop.isEntity && prop.type) {
+                    const entityPackage = this.generatePackageName(
+                        context.projectName || 'unknown',
+                        prop.referencedAggregateName || context.aggregateName || 'unknown',
+                        'shared',
+                        'dtos'
+                    );
+                    propertyImports.push(`import ${entityPackage}.${prop.type};`);
+                } else if (prop.isEnum && prop.enumType) {
+                    const basePackage = this.getBasePackage();
+                    const enumPackage = `${basePackage}.${(context.projectName || 'unknown').toLowerCase()}.shared.enums`;
+                    propertyImports.push(`import ${enumPackage}.${prop.enumType};`);
+                }
+            });
+        }
+
+        const templateContext = {
+            packageName: context.packageName,
+            eventName: context.event.fullEventName,
+            fields: context.event.properties || [],
+            imports: propertyImports.length > 0 ? propertyImports.join('\n') : undefined
+        };
+        return this.renderTemplate(template, templateContext);
     }
 }

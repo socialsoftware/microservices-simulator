@@ -19,6 +19,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.TournamentCreator;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.TournamentExecution;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.TournamentQuiz;
 
 @Service
 public class TournamentService {
@@ -80,6 +85,7 @@ public class TournamentService {
         newTournament.setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
         newTournament.setCancelled(tournamentDto.getCancelled());
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
+        unitOfWorkService.registerEvent(new TournamentUpdatedEvent(newTournament.getAggregateId(), newTournament.getStartTime(), newTournament.getEndTime(), newTournament.getNumberOfQuestions(), newTournament.getCancelled()), unitOfWork);
         return tournamentFactory.createTournamentDto(newTournament);
     }
 
@@ -96,6 +102,7 @@ public class TournamentService {
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         newTournament.remove();
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
+        unitOfWorkService.registerEvent(new TournamentDeletedEvent(newTournament.getAggregateId()), unitOfWork);
     }
 
     @Retryable(
@@ -106,8 +113,31 @@ public class TournamentService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<TournamentDto> getAllTournaments(UnitOfWork unitOfWork) {
+    public List<TournamentDto> searchTournaments(Boolean cancelled, TournamentCreator creator, TournamentExecution execution, TournamentQuiz quiz, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = tournamentRepository.findAll().stream()
+                .filter(entity -> {
+                    if (cancelled != null) {
+                        if (entity.getCancelled() != cancelled) {
+                            return false;
+                        }
+                    }
+                    if (creator != null) {
+                        if (!entity.getCreator().equals(creator)) {
+                            return false;
+                        }
+                                            }
+                    if (execution != null) {
+                        if (!entity.getExecution().equals(execution)) {
+                            return false;
+                        }
+                                            }
+                    if (quiz != null) {
+                        if (!entity.getQuiz().equals(quiz)) {
+                            return false;
+                        }
+                                            }
+                    return true;
+                })
                 .map(Tournament::getAggregateId)
                 .collect(Collectors.toSet());
         return aggregateIds.stream()

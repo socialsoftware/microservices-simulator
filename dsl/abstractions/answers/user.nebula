@@ -5,13 +5,6 @@ Aggregate User {
         final UserRole role;
         Boolean active;
     }
-    
-    Events {
-        publish DeleteUserEvent {
-            Integer userAggregateId;
-            String username;
-        }
-    }
 
     WebAPIEndpoints {
         @GenerateCrud;

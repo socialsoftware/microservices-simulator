@@ -19,6 +19,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.TopicCourse;
 
 @Service
 public class TopicService {
@@ -77,6 +80,7 @@ public class TopicService {
         Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
         newTopic.setName(topicDto.getName());
         unitOfWorkService.registerChanged(newTopic, unitOfWork);
+        unitOfWorkService.registerEvent(new TopicUpdatedEvent(newTopic.getAggregateId(), newTopic.getName()), unitOfWork);
         return topicFactory.createTopicDto(newTopic);
     }
 
@@ -93,6 +97,7 @@ public class TopicService {
         Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
         newTopic.remove();
         unitOfWorkService.registerChanged(newTopic, unitOfWork);
+        unitOfWorkService.registerEvent(new TopicDeletedEvent(newTopic.getAggregateId()), unitOfWork);
     }
 
     @Retryable(
@@ -103,8 +108,21 @@ public class TopicService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<TopicDto> getAllTopics(UnitOfWork unitOfWork) {
+    public List<TopicDto> searchTopics(String name, TopicCourse course, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = topicRepository.findAll().stream()
+                .filter(entity -> {
+                    if (name != null) {
+                        if (!entity.getName().equals(name)) {
+                            return false;
+                        }
+                    }
+                    if (course != null) {
+                        if (!entity.getCourse().equals(course)) {
+                            return false;
+                        }
+                                            }
+                    return true;
+                })
                 .map(Topic::getAggregateId)
                 .collect(Collectors.toSet());
         return aggregateIds.stream()

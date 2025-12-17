@@ -19,6 +19,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.ExecutionCourse;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.Execution;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.Object;
 
 @Service
 public class ExecutionService {
@@ -79,6 +84,7 @@ public class ExecutionService {
         newExecution.setAcademicTerm(executionDto.getAcademicTerm());
         newExecution.setEndDate(executionDto.getEndDate());
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
+        unitOfWorkService.registerEvent(new ExecutionUpdatedEvent(newExecution.getAggregateId(), newExecution.getAcronym(), newExecution.getAcademicTerm(), newExecution.getEndDate()), unitOfWork);
         return executionFactory.createExecutionDto(newExecution);
     }
 
@@ -95,6 +101,7 @@ public class ExecutionService {
         Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
         newExecution.remove();
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
+        unitOfWorkService.registerEvent(new ExecutionDeletedEvent(newExecution.getAggregateId()), unitOfWork);
     }
 
     @Retryable(
@@ -105,8 +112,26 @@ public class ExecutionService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<ExecutionDto> getAllExecutions(UnitOfWork unitOfWork) {
+    public List<ExecutionDto> searchExecutions(String acronym, String academicTerm, ExecutionCourse course, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = executionRepository.findAll().stream()
+                .filter(entity -> {
+                    if (acronym != null) {
+                        if (!entity.getAcronym().equals(acronym)) {
+                            return false;
+                        }
+                    }
+                    if (academicTerm != null) {
+                        if (!entity.getAcademicTerm().equals(academicTerm)) {
+                            return false;
+                        }
+                    }
+                    if (course != null) {
+                        if (!entity.getCourse().equals(course)) {
+                            return false;
+                        }
+                                            }
+                    return true;
+                })
                 .map(Execution::getAggregateId)
                 .collect(Collectors.toSet());
         return aggregateIds.stream()

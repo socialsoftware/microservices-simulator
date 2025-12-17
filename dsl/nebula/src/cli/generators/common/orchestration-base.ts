@@ -146,10 +146,11 @@ export abstract class OrchestrationBase {
         };
     }
 
-    protected generatePackageName(projectName: string, aggregateName: string, subPackage: string): string {
+    protected generatePackageName(projectName: string, aggregateName: string, subPackage: string, ...additionalSubPackages: string[]): string {
         const basePackage = this.getBasePackage();
         const microservicePackage = `microservices.${aggregateName.toLowerCase()}`;
-        return `${basePackage}.${projectName.toLowerCase()}.${microservicePackage}.${subPackage}`;
+        const subPackages = [subPackage, ...additionalSubPackages].filter(p => p).join('.');
+        return `${basePackage}.${projectName.toLowerCase()}.${microservicePackage}.${subPackages}`;
     }
 
     protected getBasePackage(): string {
@@ -288,6 +289,25 @@ export abstract class OrchestrationBase {
             const propertyName = property.name;
             const propertyType = this.resolveJavaType(property.type);
             const capitalizedName = this.capitalize(propertyName);
+            const isFinal = property.isFinal || false;
+
+            let isEnum = false;
+            let enumType: string | undefined;
+            if (property.type && typeof property.type === 'object' && property.type.$type === 'EntityType' && property.type.type) {
+                const ref = property.type.type.ref;
+                if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
+                    isEnum = true;
+                    enumType = (ref as any).name;
+                } else if (property.type.type.$refText) {
+                    const refText = property.type.type.$refText;
+                    const javaType = this.resolveJavaType(property.type);
+                    if (!this.isPrimitiveType(javaType) && !this.isEntityType(javaType) &&
+                        !javaType.startsWith('List<') && !javaType.startsWith('Set<')) {
+                        isEnum = true;
+                        enumType = refText;
+                    }
+                }
+            }
 
             return {
                 name: propertyName,
@@ -297,9 +317,17 @@ export abstract class OrchestrationBase {
                 setter: `set${capitalizedName}`,
                 isId: propertyName.toLowerCase() === 'id',
                 isCollection: this.isCollectionType(property.type),
-                isEntity: this.isEntityType(property.type)
+                isEntity: this.isEntityType(property.type),
+                isEnum,
+                enumType,
+                isFinal
             };
         });
+    }
+
+    protected isPrimitiveType(type: string): boolean {
+        const primitiveTypes = ['String', 'Integer', 'Long', 'Boolean', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal', 'void'];
+        return primitiveTypes.includes(type);
     }
 
     protected buildStandardImports(projectName: string, aggregateName: string): string[] {

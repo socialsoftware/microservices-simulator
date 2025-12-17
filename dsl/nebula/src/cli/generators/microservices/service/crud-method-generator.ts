@@ -1,15 +1,5 @@
-/**
- * CRUD Method Generation System
- * 
- * This module provides reusable CRUD method templates for service generation,
- * eliminating duplicate CRUD generation logic across service generators.
- */
-
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 
-/**
- * Generated method structure
- */
 export interface GeneratedMethod {
     name: string;
     parameters: MethodParameter[];
@@ -18,17 +8,11 @@ export interface GeneratedMethod {
     implementation?: any[];
 }
 
-/**
- * Method parameter structure
- */
 export interface MethodParameter {
     type: string;
     name: string;
 }
 
-/**
- * CRUD generation options
- */
 export interface CrudGenerationOptions {
     includeCreate: boolean;
     includeRead: boolean;
@@ -40,14 +24,8 @@ export interface CrudGenerationOptions {
     includeValidation: boolean;
 }
 
-/**
- * CRUD method generator with reusable templates
- */
 export class CrudMethodGenerator {
 
-    /**
-     * Generate all CRUD methods for an aggregate
-     */
     generateCrudMethods(
         aggregate: Aggregate,
         rootEntity: Entity,
@@ -58,7 +36,6 @@ export class CrudMethodGenerator {
         const entityName = rootEntity.name;
         const lowerEntity = entityName.charAt(0).toLowerCase() + entityName.slice(1);
 
-        // Extract simple properties for field mapping (exclude complex types)
         const properties = this.extractSimpleProperties(rootEntity);
 
         if (options.includeCreate) {
@@ -77,30 +54,30 @@ export class CrudMethodGenerator {
             methods.push(this.generateDeleteMethod(entityName, options));
         }
 
-        if (options.includeFindAll) {
+        const searchableProperties = this.getSearchableProperties(rootEntity);
+        if (searchableProperties.length > 0) {
+            methods.push(this.generateSearchMethod(aggregateName, entityName, options, searchableProperties));
+        } else if (options.includeFindAll) {
             methods.push(this.generateFindAllMethod(aggregateName, entityName, options));
         }
 
         return methods;
     }
 
-    /**
-     * Extract simple properties from entity for field mapping
-     */
-    private extractSimpleProperties(entity: Entity): { name: string; capitalizedName: string }[] {
+    private extractSimpleProperties(entity: Entity): { name: string; capitalizedName: string; isFinal?: boolean }[] {
         const simpleTypes = ['String', 'Integer', 'Long', 'Boolean', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal'];
-        const properties: { name: string; capitalizedName: string }[] = [];
+        const properties: { name: string; capitalizedName: string; isFinal?: boolean }[] = [];
 
         for (const prop of entity.properties || []) {
             const propType = (prop as any).type;
-            // PrimitiveType has typeName, EntityType has type.$refText
             const typeName = propType?.typeName || propType?.type?.$refText || propType?.$refText || '';
 
             if (simpleTypes.includes(typeName)) {
                 const propName = prop.name;
                 properties.push({
                     name: propName,
-                    capitalizedName: propName.charAt(0).toUpperCase() + propName.slice(1)
+                    capitalizedName: propName.charAt(0).toUpperCase() + propName.slice(1),
+                    isFinal: (prop as any).isFinal || false
                 });
             }
         }
@@ -108,9 +85,6 @@ export class CrudMethodGenerator {
         return properties;
     }
 
-    /**
-     * Generate create method with UnitOfWork pattern
-     */
     private generateCreateMethod(entityName: string, lowerEntity: string, options: CrudGenerationOptions, properties: { name: string; capitalizedName: string }[]): GeneratedMethod {
         return {
             name: `create${entityName}`,
@@ -128,9 +102,6 @@ export class CrudMethodGenerator {
         } as any;
     }
 
-    /**
-     * Generate get by ID method with UnitOfWork pattern
-     */
     private generateFindByIdMethod(entityName: string, options: CrudGenerationOptions): GeneratedMethod {
         const lowerEntity = entityName.charAt(0).toLowerCase() + entityName.slice(1);
 
@@ -149,10 +120,9 @@ export class CrudMethodGenerator {
         } as any;
     }
 
-    /**
-     * Generate update method with UnitOfWork pattern
-     */
-    private generateUpdateMethod(entityName: string, lowerEntity: string, options: CrudGenerationOptions, properties: { name: string; capitalizedName: string }[]): GeneratedMethod {
+    private generateUpdateMethod(entityName: string, lowerEntity: string, options: CrudGenerationOptions, properties: { name: string; capitalizedName: string; isFinal?: boolean }[]): GeneratedMethod {
+        const nonFinalProperties = properties.filter(p => !p.isFinal);
+
         return {
             name: `update${entityName}`,
             parameters: [
@@ -166,13 +136,11 @@ export class CrudMethodGenerator {
             entityName,
             lowerEntityName: lowerEntity,
             lowerRepositoryName: `${lowerEntity}Repository`,
-            properties
+            properties,
+            nonFinalProperties
         } as any;
     }
 
-    /**
-     * Generate delete method with UnitOfWork pattern
-     */
     private generateDeleteMethod(entityName: string, options: CrudGenerationOptions): GeneratedMethod {
         const lowerEntity = entityName.charAt(0).toLowerCase() + entityName.slice(1);
 
@@ -191,9 +159,6 @@ export class CrudMethodGenerator {
         } as any;
     }
 
-    /**
-     * Generate find all method
-     */
     private generateFindAllMethod(aggregateName: string, entityName: string, options: CrudGenerationOptions): GeneratedMethod {
         const lowerEntity = entityName.charAt(0).toLowerCase() + entityName.slice(1);
 
@@ -211,9 +176,64 @@ export class CrudMethodGenerator {
         } as any;
     }
 
-    /**
-     * Get default CRUD generation options
-     */
+    private generateSearchMethod(aggregateName: string, entityName: string, options: CrudGenerationOptions, searchableProperties: { name: string; type: string }[]): GeneratedMethod {
+        const lowerEntity = entityName.charAt(0).toLowerCase() + entityName.slice(1);
+        const parameters = searchableProperties.map(prop => ({
+            type: prop.type,
+            name: prop.name
+        }));
+        parameters.push({ type: 'UnitOfWork', name: 'unitOfWork' });
+
+        return {
+            name: `search${aggregateName}s`,
+            parameters,
+            returnType: `List<${entityName}Dto>`,
+            annotations: [],
+            crudAction: 'search',
+            entityName,
+            lowerEntityName: lowerEntity,
+            lowerRepositoryName: `${lowerEntity}Repository`,
+            searchableProperties
+        } as any;
+    }
+
+    private getSearchableProperties(entity: Entity): { name: string; type: string }[] {
+        if (!entity.properties) return [];
+
+        const searchableTypes = ['String', 'Boolean'];
+        const properties: { name: string; type: string }[] = [];
+
+        for (const prop of entity.properties) {
+            const propType = (prop as any).type;
+            const typeName = propType?.typeName || propType?.type?.$refText || propType?.$refText || '';
+
+            let isEnum = false;
+            if (propType && typeof propType === 'object' && propType.$type === 'EntityType' && propType.type) {
+                const ref = propType.type.ref;
+                if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
+                    isEnum = true;
+                } else if (propType.type.$refText) {
+                    const refText = propType.type.$refText;
+                    if (!searchableTypes.includes(refText) &&
+                        !['Integer', 'Long', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal'].includes(refText)) {
+                        isEnum = true;
+                    }
+                }
+            }
+
+            if (searchableTypes.includes(typeName) || isEnum) {
+                const javaType = typeName === 'String' ? 'String' : typeName === 'Boolean' ? 'Boolean' :
+                    isEnum ? (propType?.type?.$refText || typeName) : typeName;
+                properties.push({
+                    name: prop.name,
+                    type: javaType
+                });
+            }
+        }
+
+        return properties;
+    }
+
     private getDefaultOptions(): CrudGenerationOptions {
         return {
             includeCreate: true,
@@ -227,9 +247,6 @@ export class CrudMethodGenerator {
         };
     }
 
-    /**
-     * Create CRUD options with overrides
-     */
     static createOptions(overrides: Partial<CrudGenerationOptions> = {}): CrudGenerationOptions {
         const defaults: CrudGenerationOptions = {
             includeCreate: true,

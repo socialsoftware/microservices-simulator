@@ -37,7 +37,7 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         const lowerAggregate = aggregateName.toLowerCase();
 
         if (aggregate.webApiEndpoints?.generateCrud) {
-            const crudEndpoints = this.generateCrudEndpoints(aggregateName, lowerAggregate);
+            const crudEndpoints = this.generateCrudEndpoints(aggregateName, lowerAggregate, rootEntity);
             endpoints.push(...crudEndpoints);
         }
 
@@ -62,10 +62,9 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         return endpoints;
     }
 
-    private generateCrudEndpoints(aggregateName: string, lowerAggregate: string): any[] {
+    private generateCrudEndpoints(aggregateName: string, lowerAggregate: string, rootEntity: Entity): any[] {
         const dtoType = `${aggregateName}Dto`;
-
-        return [
+        const endpoints: any[] = [
             {
                 method: 'Post',
                 path: `/${lowerAggregate}s/create`,
@@ -77,15 +76,6 @@ export class ControllerGenerator extends WebApiBaseGenerator {
                 }],
                 returnType: dtoType,
                 description: `Create a new ${aggregateName}`,
-                isCrud: true
-            },
-            {
-                method: 'Get',
-                path: `/${lowerAggregate}s`,
-                methodName: `getAll${aggregateName}s`,
-                parameters: [],
-                returnType: `List<${dtoType}>`,
-                description: `Get all ${aggregateName}s`,
                 isCrud: true
             },
             {
@@ -135,6 +125,73 @@ export class ControllerGenerator extends WebApiBaseGenerator {
                 isCrud: true
             }
         ];
+
+        const searchableProperties = this.getSearchableProperties(rootEntity);
+        if (searchableProperties.length > 0) {
+            const searchParams = searchableProperties.map(prop => ({
+                name: prop.name,
+                type: prop.type,
+                annotation: '@RequestParam(required = false)'
+            }));
+
+            endpoints.push({
+                method: 'Get',
+                path: `/${lowerAggregate}s`,
+                methodName: `search${aggregateName}s`,
+                parameters: searchParams,
+                returnType: `List<${dtoType}>`,
+                description: `Get all ${aggregateName}s (or filter by parameters)`,
+                isCrud: true
+            });
+        } else {
+            endpoints.push({
+                method: 'Get',
+                path: `/${lowerAggregate}s`,
+                methodName: `getAll${aggregateName}s`,
+                parameters: [],
+                returnType: `List<${dtoType}>`,
+                description: `Get all ${aggregateName}s`,
+                isCrud: true
+            });
+        }
+
+        return endpoints;
+    }
+
+    private getSearchableProperties(entity: Entity): { name: string; type: string }[] {
+        if (!entity.properties) return [];
+
+        const searchableTypes = ['String', 'Boolean'];
+        const properties: { name: string; type: string }[] = [];
+
+        for (const prop of entity.properties) {
+            const propType = (prop as any).type;
+            const typeName = propType?.typeName || propType?.type?.$refText || propType?.$refText || '';
+
+            let isEnum = false;
+            if (propType && typeof propType === 'object' && propType.$type === 'EntityType' && propType.type) {
+                const ref = propType.type.ref;
+                if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
+                    isEnum = true;
+                } else if (propType.type.$refText) {
+                    const javaType = this.resolveParameterType(prop.type);
+                    if (!this.isPrimitiveType(javaType) && !this.isEntityType(javaType) &&
+                        !javaType.startsWith('List<') && !javaType.startsWith('Set<')) {
+                        isEnum = true;
+                    }
+                }
+            }
+
+            if (searchableTypes.includes(typeName) || isEnum) {
+                const javaType = this.resolveParameterType(prop.type);
+                properties.push({
+                    name: prop.name,
+                    type: javaType
+                });
+            }
+        }
+
+        return properties;
     }
 
 
@@ -158,17 +215,27 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         }
 
         const dtoTypes = new Set<string>();
+        const enumTypes = new Set<string>();
 
         endpoints.forEach(endpoint => {
             this.extractDtoTypes(endpoint.returnType, dtoTypes);
+            this.extractEnumTypes(endpoint.returnType, enumTypes);
 
             endpoint.parameters?.forEach((param: any) => {
                 this.extractDtoTypes(param.type, dtoTypes);
+                this.extractEnumTypes(param.type, enumTypes);
             });
         });
 
         dtoTypes.forEach(dtoType => {
             const importPath = this.resolveDtoImportPath(dtoType, options);
+            if (importPath) {
+                imports.add(`import ${importPath};`);
+            }
+        });
+
+        enumTypes.forEach(enumType => {
+            const importPath = this.resolveEnumImportPath(enumType, options);
             if (importPath) {
                 imports.add(`import ${importPath};`);
             }
@@ -192,6 +259,27 @@ export class ControllerGenerator extends WebApiBaseGenerator {
                 }
             });
         }
+    }
+
+    private extractEnumTypes(type: string, enumSet: Set<string>): void {
+        if (!type) return;
+
+        const primitiveTypes = ['String', 'Integer', 'Long', 'Boolean', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal', 'void'];
+        const typeName = type.replace(/List<|Set<|>/g, '').trim();
+
+        if (typeName &&
+            !primitiveTypes.includes(typeName) &&
+            !typeName.endsWith('Dto') &&
+            !typeName.includes('<') &&
+            typeName.charAt(0) === typeName.charAt(0).toUpperCase()) {
+            enumSet.add(typeName);
+        }
+    }
+
+    private resolveEnumImportPath(enumType: string, options: WebApiGenerationOptions): string | null {
+        if (!enumType) return null;
+
+        return getGlobalConfig().buildPackageName(options.projectName, 'shared', 'enums') + '.' + enumType;
     }
 
     async generateEmptyController(aggregate: Aggregate, options: WebApiGenerationOptions): Promise<string> {

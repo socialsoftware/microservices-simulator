@@ -19,6 +19,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.publish.QuestionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.publish.QuestionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuestionCourse;
 
 @Service
 public class QuestionService {
@@ -79,6 +82,7 @@ public class QuestionService {
         newQuestion.setContent(questionDto.getContent());
         newQuestion.setCreationDate(questionDto.getCreationDate());
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
+        unitOfWorkService.registerEvent(new QuestionUpdatedEvent(newQuestion.getAggregateId(), newQuestion.getTitle(), newQuestion.getContent(), newQuestion.getCreationDate()), unitOfWork);
         return questionFactory.createQuestionDto(newQuestion);
     }
 
@@ -95,6 +99,7 @@ public class QuestionService {
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
         newQuestion.remove();
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
+        unitOfWorkService.registerEvent(new QuestionDeletedEvent(newQuestion.getAggregateId()), unitOfWork);
     }
 
     @Retryable(
@@ -105,8 +110,26 @@ public class QuestionService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<QuestionDto> getAllQuestions(UnitOfWork unitOfWork) {
+    public List<QuestionDto> searchQuestions(String title, String content, QuestionCourse course, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = questionRepository.findAll().stream()
+                .filter(entity -> {
+                    if (title != null) {
+                        if (!entity.getTitle().equals(title)) {
+                            return false;
+                        }
+                    }
+                    if (content != null) {
+                        if (!entity.getContent().equals(content)) {
+                            return false;
+                        }
+                    }
+                    if (course != null) {
+                        if (!entity.getCourse().equals(course)) {
+                            return false;
+                        }
+                                            }
+                    return true;
+                })
                 .map(Question::getAggregateId)
                 .collect(Collectors.toSet());
         return aggregateIds.stream()

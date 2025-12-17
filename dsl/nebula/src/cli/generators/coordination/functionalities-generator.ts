@@ -90,7 +90,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         const lowerAggregate = aggregateName.toLowerCase();
 
         if ((aggregate.webApiEndpoints as any)?.generateCrud) {
-            const crudMethods = this.generateCrudMethods(aggregateName, lowerAggregate, consistencyModels);
+            const crudMethods = this.generateCrudMethods(aggregateName, lowerAggregate, consistencyModels, rootEntity);
             crudMethods.forEach(method => {
                 const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
                 if (!addedMethods.has(methodSignature)) {
@@ -140,7 +140,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         return methods;
     }
 
-    private generateCrudMethods(aggregateName: string, lowerAggregate: string, consistencyModels: string[]): any[] {
+    private generateCrudMethods(aggregateName: string, lowerAggregate: string, consistencyModels: string[], rootEntity: Entity): any[] {
         const dtoType = `${aggregateName}Dto`;
         const methods: any[] = [];
 
@@ -152,13 +152,6 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             throwsException: false
         });
 
-        methods.push({
-            name: `getAll${aggregateName}s`,
-            returnType: `List<${dtoType}>`,
-            parameters: [],
-            body: this.generateCrudMethodBody('getAll', aggregateName, lowerAggregate, `List<${dtoType}>`, []),
-            throwsException: false
-        });
 
         methods.push({
             name: `get${aggregateName}ById`,
@@ -187,12 +180,67 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             throwsException: false
         });
 
+        const searchableProperties = this.getSearchableProperties(rootEntity);
+        if (searchableProperties.length > 0) {
+            const searchParams = searchableProperties.map(prop => ({
+                type: prop.type,
+                name: prop.name
+            }));
+
+            methods.push({
+                name: `search${aggregateName}s`,
+                returnType: `List<${dtoType}>`,
+                parameters: searchParams,
+                body: this.generateCrudMethodBody('search', aggregateName, lowerAggregate, `List<${dtoType}>`, searchableProperties.map(p => p.name)),
+                throwsException: false
+            });
+        }
+
         return methods;
     }
 
+    private getSearchableProperties(entity: Entity): { name: string; type: string }[] {
+        if (!entity.properties) return [];
+
+        const searchableTypes = ['String', 'Boolean'];
+        const properties: { name: string; type: string }[] = [];
+
+        for (const prop of entity.properties) {
+            const propType = (prop as any).type;
+            const typeName = propType?.typeName || propType?.type?.$refText || propType?.$refText || '';
+
+            let isEnum = false;
+            if (propType && typeof propType === 'object' && propType.$type === 'EntityType' && propType.type) {
+                const ref = propType.type.ref;
+                if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
+                    isEnum = true;
+                } else if (propType.type.$refText) {
+                    const javaType = TypeResolver.resolveJavaType(prop.type);
+                    if (!TypeResolver.isPrimitiveType(javaType) && !TypeResolver.isEntityType(javaType) &&
+                        !javaType.startsWith('List<') && !javaType.startsWith('Set<')) {
+                        isEnum = true;
+                    }
+                }
+            }
+
+            if (searchableTypes.includes(typeName) || isEnum) {
+                let javaType = TypeResolver.resolveJavaType(prop.type);
+                if (javaType === 'boolean') {
+                    javaType = 'Boolean';
+                }
+                properties.push({
+                    name: prop.name,
+                    type: javaType
+                });
+            }
+        }
+
+        return properties;
+    }
+
     private generateCrudMethodBody(operation: string, aggregateName: string, lowerAggregate: string, returnType: string, paramNames: string[]): string {
-        const capitalizedMethodName = this.capitalize(operation === 'getById' ? `get${aggregateName}ById` : operation === 'getAll' ? `getAll${aggregateName}s` : `${operation}${aggregateName}`);
-        const methodName = operation === 'getById' ? `get${aggregateName}ById` : operation === 'getAll' ? `getAll${aggregateName}s` : `${operation}${aggregateName}`;
+        const capitalizedMethodName = this.capitalize(operation === 'getById' ? `get${aggregateName}ById` : operation === 'getAll' ? `getAll${aggregateName}s` : operation === 'search' ? `search${aggregateName}s` : `${operation}${aggregateName}`);
+        const methodName = operation === 'getById' ? `get${aggregateName}ById` : operation === 'getAll' ? `getAll${aggregateName}s` : operation === 'search' ? `search${aggregateName}s` : `${operation}${aggregateName}`;
         const uncapitalizedMethodName = methodName.charAt(0).toLowerCase() + methodName.slice(1);
         const sagaParams = [`${lowerAggregate}Service`, 'sagaUnitOfWorkService', ...paramNames, 'sagaUnitOfWork'].join(', ');
 
@@ -203,6 +251,8 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.getCreated${aggregateName}Dto();`;
         } else if (operation === 'getAll') {
             sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.get${aggregateName}s();`;
+        } else if (operation === 'search') {
+            sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.get${aggregateName}sSearched();`;
         } else if (operation === 'getById') {
             sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.get${aggregateName}Dto();`;
         } else if (operation === 'update') {
@@ -279,7 +329,45 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             imports.push('import java.util.List;');
         }
 
+        const enumTypes = new Set<string>();
+        businessMethods.forEach(method => {
+            this.extractEnumTypes(method.returnType, enumTypes);
+            method.parameters?.forEach((param: any) => {
+                this.extractEnumTypes(param.type, enumTypes);
+            });
+        });
+
+        enumTypes.forEach(enumType => {
+            const importPath = this.resolveEnumImportPath(enumType, options);
+            if (importPath) {
+                imports.push(`import ${importPath};`);
+            }
+        });
+
         return Array.from(new Set(imports));
+    }
+
+    private extractEnumTypes(type: string, enumSet: Set<string>): void {
+        if (!type) return;
+
+        const primitiveTypes = ['String', 'Integer', 'Long', 'Boolean', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal', 'void'];
+        const typeName = type.replace(/List<|Set<|>/g, '').trim();
+
+        if (typeName &&
+            !primitiveTypes.includes(typeName) &&
+            !typeName.endsWith('Dto') &&
+            !typeName.includes('<') &&
+            typeName.charAt(0) === typeName.charAt(0).toUpperCase()) {
+            enumSet.add(typeName);
+        }
+    }
+
+    private resolveEnumImportPath(enumType: string, options: CoordinationGenerationOptions): string | null {
+        if (!enumType) return null;
+
+        const basePackage = this.getBasePackage();
+        const projectName = options.projectName.toLowerCase();
+        return `${basePackage}.${projectName}.shared.enums.${enumType}`;
     }
 
     private checkUserDtoUsage(aggregate: Aggregate, rootEntity: Entity | undefined): boolean {

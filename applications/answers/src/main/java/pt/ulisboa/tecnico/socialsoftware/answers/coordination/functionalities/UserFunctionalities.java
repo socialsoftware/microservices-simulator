@@ -16,6 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.user.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
 import java.util.List;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.UserRole;
 
 @Service
 public class UserFunctionalities {
@@ -51,20 +52,6 @@ public class UserFunctionalities {
                         userService, sagaUnitOfWorkService, userDto, sagaUnitOfWork);
                 createUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createUserFunctionalitySagas.getCreatedUserDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
-    public List<UserDto> getAllUsers() {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                GetAllUsersFunctionalitySagas getAllUsersFunctionalitySagas = new GetAllUsersFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, sagaUnitOfWork);
-                getAllUsersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return getAllUsersFunctionalitySagas.getUsers();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
@@ -107,6 +94,20 @@ public class UserFunctionalities {
                         userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
                 deleteUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public List<UserDto> searchUsers(String name, String username, UserRole role, Boolean active) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                SearchUsersFunctionalitySagas searchUsersFunctionalitySagas = new SearchUsersFunctionalitySagas(
+                        userService, sagaUnitOfWorkService, name, username, role, active, sagaUnitOfWork);
+                searchUsersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return searchUsersFunctionalitySagas.getUsersSearched();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
