@@ -14,6 +14,7 @@ public class SearchAnswersFunctionalitySagas extends WorkflowFunctionality {
     private final AnswerService answerService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
+
     public SearchAnswersFunctionalitySagas(AnswerService answerService, SagaUnitOfWorkService unitOfWorkService, Boolean completed, Integer executionAggregateId, Integer userAggregateId, Integer quizAggregateId, SagaUnitOfWork unitOfWork) {
         this.answerService = answerService;
         this.unitOfWorkService = unitOfWorkService;

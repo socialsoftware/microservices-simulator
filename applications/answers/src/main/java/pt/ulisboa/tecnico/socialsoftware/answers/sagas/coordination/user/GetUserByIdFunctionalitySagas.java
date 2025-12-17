@@ -13,6 +13,7 @@ public class GetUserByIdFunctionalitySagas extends WorkflowFunctionality {
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
+
     public GetUserByIdFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;

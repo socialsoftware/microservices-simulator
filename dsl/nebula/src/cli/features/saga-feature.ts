@@ -28,7 +28,8 @@ export class SagaFeature {
         aggregate: any,
         paths: any,
         options: GenerationOptions,
-        generators: any
+        generators: any,
+        allAggregates?: any[]
     ): Promise<void> {
         try {
             const sagaCode = await generators.sagaGenerator.generateSaga(aggregate, options);
@@ -60,7 +61,7 @@ export class SagaFeature {
 
 
 
-            const sagaFunctionalityCode = generators.sagaFunctionalityGenerator.generateForAggregate(aggregate, options);
+            const sagaFunctionalityCode = generators.sagaFunctionalityGenerator.generateForAggregate(aggregate, options, allAggregates);
             for (const [fileName, content] of Object.entries(sagaFunctionalityCode)) {
                 const sagaFunctionalityPath = path.join(paths.javaPath, 'sagas', 'coordination', `${aggregate.name.toLowerCase()}`, fileName);
                 await fs.mkdir(path.dirname(sagaFunctionalityPath), { recursive: true });

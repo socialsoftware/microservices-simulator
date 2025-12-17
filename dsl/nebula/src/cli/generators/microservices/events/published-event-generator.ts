@@ -92,6 +92,8 @@ export class PublishedEventGenerator extends EventBaseGenerator {
     private async generateIndividualPublishedEvent(context: any): Promise<string> {
         const template = this.loadTemplate('events/published-event.hbs');
         const propertyImports: string[] = [];
+        const addedImports = new Set<string>();
+
         if (context.event.properties && context.event.properties.length > 0) {
             context.event.properties.forEach((prop: any) => {
                 if (prop.isEntity && prop.type) {
@@ -101,11 +103,47 @@ export class PublishedEventGenerator extends EventBaseGenerator {
                         'shared',
                         'dtos'
                     );
-                    propertyImports.push(`import ${entityPackage}.${prop.type};`);
+                    const importStmt = `import ${entityPackage}.${prop.type};`;
+                    if (!addedImports.has(importStmt)) {
+                        propertyImports.push(importStmt);
+                        addedImports.add(importStmt);
+                    }
                 } else if (prop.isEnum && prop.enumType) {
                     const basePackage = this.getBasePackage();
                     const enumPackage = `${basePackage}.${(context.projectName || 'unknown').toLowerCase()}.shared.enums`;
-                    propertyImports.push(`import ${enumPackage}.${prop.enumType};`);
+                    const importStmt = `import ${enumPackage}.${prop.enumType};`;
+                    if (!addedImports.has(importStmt)) {
+                        propertyImports.push(importStmt);
+                        addedImports.add(importStmt);
+                    }
+                } else if (prop.type) {
+                    // Check for built-in types that require imports
+                    const type = prop.type;
+                    if (type === 'LocalDateTime' || type.includes('LocalDateTime')) {
+                        const importStmt = 'import java.time.LocalDateTime;';
+                        if (!addedImports.has(importStmt)) {
+                            propertyImports.push(importStmt);
+                            addedImports.add(importStmt);
+                        }
+                    } else if (type === 'BigDecimal' || type.includes('BigDecimal')) {
+                        const importStmt = 'import java.math.BigDecimal;';
+                        if (!addedImports.has(importStmt)) {
+                            propertyImports.push(importStmt);
+                            addedImports.add(importStmt);
+                        }
+                    } else if (type.startsWith('List<')) {
+                        const importStmt = 'import java.util.List;';
+                        if (!addedImports.has(importStmt)) {
+                            propertyImports.push(importStmt);
+                            addedImports.add(importStmt);
+                        }
+                    } else if (type.startsWith('Set<')) {
+                        const importStmt = 'import java.util.Set;';
+                        if (!addedImports.has(importStmt)) {
+                            propertyImports.push(importStmt);
+                            addedImports.add(importStmt);
+                        }
+                    }
                 }
             });
         }

@@ -8,6 +8,10 @@ export class EntityRegistry {
         this.buildMappings();
     }
 
+    getAllAggregates(): Aggregate[] {
+        return this.aggregates;
+    }
+
     private buildMappings(): void {
         this.aggregates.forEach(aggregate => {
             const aggregateName = aggregate.name.toLowerCase();

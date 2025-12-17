@@ -14,6 +14,7 @@ public class SearchExecutionsFunctionalitySagas extends WorkflowFunctionality {
     private final ExecutionService executionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
+
     public SearchExecutionsFunctionalitySagas(ExecutionService executionService, SagaUnitOfWorkService unitOfWorkService, String acronym, String academicTerm, Integer courseAggregateId, SagaUnitOfWork unitOfWork) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;

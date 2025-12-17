@@ -47,9 +47,9 @@ public class TopicService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TopicDto createTopic(TopicDto topicDto, UnitOfWork unitOfWork) {
+    public TopicDto createTopic(TopicCourse course, TopicDto topicDto, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        Topic topic = topicFactory.createTopic(aggregateId, topicDto);
+        Topic topic = topicFactory.createTopic(aggregateId, course, topicDto);
         unitOfWorkService.registerChanged(topic, unitOfWork);
         return topicFactory.createTopicDto(topic);
     }

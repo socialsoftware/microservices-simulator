@@ -15,6 +15,7 @@ public class SearchUsersFunctionalitySagas extends WorkflowFunctionality {
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
+
     public SearchUsersFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService, String name, String username, UserRole role, Boolean active, SagaUnitOfWork unitOfWork) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;

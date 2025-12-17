@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publ
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import java.time.LocalDateTime;
 
 @Entity
 public class QuizUpdatedEvent extends Event {

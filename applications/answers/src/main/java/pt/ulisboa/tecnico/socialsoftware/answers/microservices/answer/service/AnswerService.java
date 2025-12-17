@@ -47,9 +47,9 @@ public class AnswerService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public AnswerDto createAnswer(AnswerDto answerDto, UnitOfWork unitOfWork) {
+    public AnswerDto createAnswer(AnswerExecution execution, AnswerUser user, AnswerQuiz quiz, AnswerDto answerDto, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        Answer answer = answerFactory.createAnswer(aggregateId, answerDto);
+        Answer answer = answerFactory.createAnswer(aggregateId, execution, user, quiz, answerDto);
         unitOfWorkService.registerChanged(answer, unitOfWork);
         return answerFactory.createAnswerDto(answer);
     }

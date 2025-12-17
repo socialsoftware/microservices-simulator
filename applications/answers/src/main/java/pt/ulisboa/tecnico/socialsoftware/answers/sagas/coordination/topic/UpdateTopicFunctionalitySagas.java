@@ -17,6 +17,7 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
+
     public UpdateTopicFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService, Integer topicAggregateId, TopicDto topicDto, SagaUnitOfWork unitOfWork) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;

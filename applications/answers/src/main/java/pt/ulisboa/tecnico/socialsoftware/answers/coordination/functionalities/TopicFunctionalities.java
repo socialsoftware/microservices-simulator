@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.service.TopicService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import java.util.List;
 
@@ -21,6 +22,9 @@ import java.util.List;
 public class TopicFunctionalities {
     @Autowired
     private TopicService topicService;
+
+    @Autowired
+    private CourseService courseService;
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
@@ -41,14 +45,15 @@ public class TopicFunctionalities {
         }
     }
 
-    public TopicDto createTopic(TopicDto topicDto) {
+    public TopicDto createTopic(Integer courseAggregateId, TopicDto topicDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(topicDto);
                 CreateTopicFunctionalitySagas createTopicFunctionalitySagas = new CreateTopicFunctionalitySagas(
-                        topicService, sagaUnitOfWorkService, topicDto, sagaUnitOfWork);
+                        topicService, courseService, courseAggregateId, topicDto, sagaUnitOfWorkService, sagaUnitOfWork);
                 createTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createTopicFunctionalitySagas.getCreatedTopicDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -75,6 +80,7 @@ public class TopicFunctionalities {
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(topicDto);
                 UpdateTopicFunctionalitySagas updateTopicFunctionalitySagas = new UpdateTopicFunctionalitySagas(
                         topicService, sagaUnitOfWorkService, topicAggregateId, topicDto, sagaUnitOfWork);
                 updateTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
@@ -111,4 +117,9 @@ public class TopicFunctionalities {
         }
     }
 
+        private void checkInput(TopicDto topicDto) {
+        if (topicDto.getName() == null) {
+            throw new AnswersException(TOPIC_MISSING_NAME);
+        }
+    }
 }

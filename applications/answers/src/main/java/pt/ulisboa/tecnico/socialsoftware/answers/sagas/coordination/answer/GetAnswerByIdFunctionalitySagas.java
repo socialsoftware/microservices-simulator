@@ -13,6 +13,7 @@ public class GetAnswerByIdFunctionalitySagas extends WorkflowFunctionality {
     private final AnswerService answerService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
+
     public GetAnswerByIdFunctionalitySagas(AnswerService answerService, SagaUnitOfWorkService unitOfWorkService, Integer answerAggregateId, SagaUnitOfWork unitOfWork) {
         this.answerService = answerService;
         this.unitOfWorkService = unitOfWorkService;

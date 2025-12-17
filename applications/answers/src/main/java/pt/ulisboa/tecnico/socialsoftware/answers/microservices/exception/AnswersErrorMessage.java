@@ -155,4 +155,56 @@ public final class AnswersErrorMessage {
 
     public static final String CANNOT_MODIFY_INACTIVE_AGGREGATE = "Cannot update aggregate %d because it is INACTIVE.";
 
+    public static final String ANSWER_MISSING_CREATIONDATE = "Answer requires a creationDate.";
+
+    public static final String ANSWER_MISSING_ANSWERDATE = "Answer requires a answerDate.";
+
+    public static final String ANSWER_MISSING_COMPLETED = "Answer requires a completed.";
+
+    public static final String ANSWER_MISSING_QUESTIONS = "Answer requires a questions.";
+
+    public static final String COURSE_MISSING_CREATIONDATE = "Course requires a creationDate.";
+
+    public static final String EXECUTION_MISSING_ACRONYM = "Execution requires a acronym.";
+
+    public static final String EXECUTION_MISSING_ACADEMICTERM = "Execution requires a academicTerm.";
+
+    public static final String EXECUTION_MISSING_ENDDATE = "Execution requires a endDate.";
+
+    public static final String EXECUTION_MISSING_USERS = "Execution requires a users.";
+
+    public static final String QUESTION_MISSING_TITLE = "Question requires a title.";
+
+    public static final String QUESTION_MISSING_CONTENT = "Question requires a content.";
+
+    public static final String QUESTION_MISSING_CREATIONDATE = "Question requires a creationDate.";
+
+    public static final String QUESTION_MISSING_TOPICS = "Question requires a topics.";
+
+    public static final String QUESTION_MISSING_OPTIONS = "Question requires a options.";
+
+    public static final String QUIZ_MISSING_TITLE = "Quiz requires a title.";
+
+    public static final String QUIZ_MISSING_CREATIONDATE = "Quiz requires a creationDate.";
+
+    public static final String QUIZ_MISSING_AVAILABLEDATE = "Quiz requires a availableDate.";
+
+    public static final String QUIZ_MISSING_CONCLUSIONDATE = "Quiz requires a conclusionDate.";
+
+    public static final String QUIZ_MISSING_RESULTSDATE = "Quiz requires a resultsDate.";
+
+    public static final String QUIZ_MISSING_QUESTIONS = "Quiz requires a questions.";
+
+    public static final String TOURNAMENT_MISSING_STARTTIME = "Tournament requires a startTime.";
+
+    public static final String TOURNAMENT_MISSING_ENDTIME = "Tournament requires a endTime.";
+
+    public static final String TOURNAMENT_MISSING_NUMBEROFQUESTIONS = "Tournament requires a numberOfQuestions.";
+
+    public static final String TOURNAMENT_MISSING_CANCELLED = "Tournament requires a cancelled.";
+
+    public static final String TOURNAMENT_MISSING_PARTICIPANTS = "Tournament requires a participants.";
+
+    public static final String USER_MISSING_ACTIVE = "User requires a active.";
+
 }

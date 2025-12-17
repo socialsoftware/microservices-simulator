@@ -47,9 +47,9 @@ public class ExecutionService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public ExecutionDto createExecution(ExecutionDto executionDto, UnitOfWork unitOfWork) {
+    public ExecutionDto createExecution(ExecutionCourse course, ExecutionDto executionDto, Set<ExecutionUser> users, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        Execution execution = executionFactory.createExecution(aggregateId, executionDto);
+        Execution execution = executionFactory.createExecution(aggregateId, course, executionDto, users);
         unitOfWorkService.registerChanged(execution, unitOfWork);
         return executionFactory.createExecutionDto(execution);
     }

@@ -13,6 +13,7 @@ public class GetCourseByIdFunctionalitySagas extends WorkflowFunctionality {
     private final CourseService courseService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
+
     public GetCourseByIdFunctionalitySagas(CourseService courseService, SagaUnitOfWorkService unitOfWorkService, Integer courseAggregateId, SagaUnitOfWork unitOfWork) {
         this.courseService = courseService;
         this.unitOfWorkService = unitOfWorkService;

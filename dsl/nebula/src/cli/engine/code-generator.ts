@@ -118,13 +118,13 @@ export class CodeGenerator {
                     await CoordinationFeature.generateCoordination(aggregate, paths, options, generators, aggregates);
 
                     // REST API endpoints and DTOs
-                    await WebApiFeature.generateWebApi(aggregate, paths, options, generators);
+                    await WebApiFeature.generateWebApi(aggregate, paths, options, generators, aggregates);
 
                     // Business rule validation
                     await ValidationFeature.generateValidation(aggregate, paths, options, generators);
 
                     // Distributed transaction patterns
-                    await SagaFeature.generateSaga(aggregate, paths, options, generators);
+                    await SagaFeature.generateSaga(aggregate, paths, options, generators, aggregates);
                 }
             }
 

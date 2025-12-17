@@ -7,7 +7,8 @@ export class WebApiFeature {
         aggregate: any,
         paths: any,
         options: GenerationOptions,
-        generators: any
+        generators: any,
+        allAggregates?: any[]
     ): Promise<void> {
         const hasManualEndpoints = aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints.length > 0;
         const hasAutoCrud = aggregate.webApiEndpoints?.generateCrud;
@@ -17,7 +18,7 @@ export class WebApiFeature {
             let controllerCode: string;
 
             if (hasEndpoints) {
-                const webApiCode = await generators.webApiGenerator.generateWebApi(aggregate, options);
+                const webApiCode = await generators.webApiGenerator.generateWebApi(aggregate, options, allAggregates);
                 controllerCode = webApiCode['controller'];
             } else {
                 // Generate empty controller

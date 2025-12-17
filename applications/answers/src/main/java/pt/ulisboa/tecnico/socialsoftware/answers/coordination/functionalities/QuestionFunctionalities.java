@@ -125,4 +125,12 @@ public class QuestionFunctionalities {
         }
     }
 
+        private void checkInput(QuestionDto questionDto) {
+        if (questionDto.getTitle() == null) {
+            throw new AnswersException(QUESTION_MISSING_TITLE);
+        }
+        if (questionDto.getContent() == null) {
+            throw new AnswersException(QUESTION_MISSING_CONTENT);
+        }
+    }
 }

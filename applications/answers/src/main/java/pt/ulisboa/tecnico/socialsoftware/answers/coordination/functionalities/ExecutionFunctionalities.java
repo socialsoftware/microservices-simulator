@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.execution.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import java.util.List;
 
@@ -21,6 +22,9 @@ import java.util.List;
 public class ExecutionFunctionalities {
     @Autowired
     private ExecutionService executionService;
+
+    @Autowired
+    private CourseService courseService;
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
@@ -41,14 +45,15 @@ public class ExecutionFunctionalities {
         }
     }
 
-    public ExecutionDto createExecution(ExecutionDto executionDto) {
+    public ExecutionDto createExecution(Integer courseAggregateId, ExecutionDto executionDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(executionDto);
                 CreateExecutionFunctionalitySagas createExecutionFunctionalitySagas = new CreateExecutionFunctionalitySagas(
-                        executionService, sagaUnitOfWorkService, executionDto, sagaUnitOfWork);
+                        executionService, courseService, courseAggregateId, executionDto, sagaUnitOfWorkService, sagaUnitOfWork);
                 createExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createExecutionFunctionalitySagas.getCreatedExecutionDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -75,6 +80,7 @@ public class ExecutionFunctionalities {
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(executionDto);
                 UpdateExecutionFunctionalitySagas updateExecutionFunctionalitySagas = new UpdateExecutionFunctionalitySagas(
                         executionService, sagaUnitOfWorkService, executionAggregateId, executionDto, sagaUnitOfWork);
                 updateExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
@@ -111,4 +117,12 @@ public class ExecutionFunctionalities {
         }
     }
 
+        private void checkInput(ExecutionDto executionDto) {
+        if (executionDto.getAcronym() == null) {
+            throw new AnswersException(EXECUTION_MISSING_ACRONYM);
+        }
+        if (executionDto.getAcademicTerm() == null) {
+            throw new AnswersException(EXECUTION_MISSING_ACADEMICTERM);
+        }
+    }
 }

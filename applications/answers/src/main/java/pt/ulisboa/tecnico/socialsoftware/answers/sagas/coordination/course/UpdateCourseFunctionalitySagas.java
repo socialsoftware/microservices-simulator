@@ -7,15 +7,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
-import java.util.ArrayList;
-import java.util.Arrays;
-import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.states.CourseSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 
 public class UpdateCourseFunctionalitySagas extends WorkflowFunctionality {
     private CourseDto updatedCourseDto;
     private final CourseService courseService;
     private final SagaUnitOfWorkService unitOfWorkService;
+
 
     public UpdateCourseFunctionalitySagas(CourseService courseService, SagaUnitOfWorkService unitOfWorkService, Integer courseAggregateId, CourseDto courseDto, SagaUnitOfWork unitOfWork) {
         this.courseService = courseService;
@@ -26,20 +23,11 @@ public class UpdateCourseFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer courseAggregateId, CourseDto courseDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getCourseStep = new SagaSyncStep("getCourseStep", () -> {
-            unitOfWorkService.registerSagaState(courseAggregateId, CourseSagaState.READ_COURSE, unitOfWork);
-        });
-
-        getCourseStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(courseAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);
-
         SagaSyncStep updateCourseStep = new SagaSyncStep("updateCourseStep", () -> {
             CourseDto updatedCourseDto = courseService.updateCourse(courseAggregateId, courseDto, unitOfWork);
             setUpdatedCourseDto(updatedCourseDto);
-        }, new ArrayList<>(Arrays.asList(getCourseStep)));
+        });
 
-        workflow.addStep(getCourseStep);
         workflow.addStep(updateCourseStep);
     }
 

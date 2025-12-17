@@ -2,20 +2,21 @@ import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { WebApiGenerationOptions } from "./webapi-types.js";
 import { WebApiBaseGenerator } from "./webapi-base-generator.js";
 import { getGlobalConfig } from "../../common/config.js";
+import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 
 export class ControllerGenerator extends WebApiBaseGenerator {
-    async generateController(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions): Promise<string> {
-        const context = this.buildControllerContext(aggregate, rootEntity, options);
+    async generateController(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions, allAggregates?: Aggregate[]): Promise<string> {
+        const context = this.buildControllerContext(aggregate, rootEntity, options, allAggregates);
         const template = this.getControllerTemplate();
         return this.renderTemplate(template, context);
     }
 
-    private buildControllerContext(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions): any {
+    private buildControllerContext(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions, allAggregates?: Aggregate[]): any {
         const aggregateName = aggregate.name;
         const capitalizedAggregate = this.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
 
-        const endpoints = this.buildEndpoints(rootEntity, capitalizedAggregate, aggregate);
+        const endpoints = this.buildEndpoints(rootEntity, capitalizedAggregate, aggregate, allAggregates);
         const imports = this.buildControllerImports(aggregate, options, endpoints);
 
         return {
@@ -32,12 +33,12 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         };
     }
 
-    private buildEndpoints(rootEntity: Entity, aggregateName: string, aggregate: Aggregate): any[] {
+    private buildEndpoints(rootEntity: Entity, aggregateName: string, aggregate: Aggregate, allAggregates?: Aggregate[]): any[] {
         const endpoints: any[] = [];
         const lowerAggregate = aggregateName.toLowerCase();
 
         if (aggregate.webApiEndpoints?.generateCrud) {
-            const crudEndpoints = this.generateCrudEndpoints(aggregateName, lowerAggregate, rootEntity);
+            const crudEndpoints = this.generateCrudEndpoints(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates);
             endpoints.push(...crudEndpoints);
         }
 
@@ -62,18 +63,42 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         return endpoints;
     }
 
-    private generateCrudEndpoints(aggregateName: string, lowerAggregate: string, rootEntity: Entity): any[] {
+    private generateCrudEndpoints(aggregateName: string, lowerAggregate: string, rootEntity: Entity, aggregate: Aggregate, allAggregates?: Aggregate[]): any[] {
         const dtoType = `${aggregateName}Dto`;
+
+        // Find cross-aggregate relationships for create endpoint
+        const crossAggregateParams: any[] = [];
+        const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
+        const singleEntityRels = entityRelationships.filter(rel => !rel.isCollection);
+
+        for (const rel of singleEntityRels) {
+            const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, allAggregates);
+            if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
+                const lowerRelatedAggregate = relatedDtoInfo.relatedAggregateName.toLowerCase();
+                crossAggregateParams.push({
+                    name: `${lowerRelatedAggregate}AggregateId`,
+                    type: 'Integer',
+                    annotation: '@RequestParam'
+                });
+            }
+        }
+
+        const createParameters: any[] = [];
+        // Add cross-aggregate parameters first
+        createParameters.push(...crossAggregateParams);
+        // Then add DTO
+        createParameters.push({
+            name: `${lowerAggregate}Dto`,
+            type: dtoType,
+            annotation: '@RequestBody'
+        });
+
         const endpoints: any[] = [
             {
                 method: 'Post',
                 path: `/${lowerAggregate}s/create`,
                 methodName: `create${aggregateName}`,
-                parameters: [{
-                    name: `${lowerAggregate}Dto`,
-                    type: dtoType,
-                    annotation: '@RequestBody'
-                }],
+                parameters: createParameters,
                 returnType: dtoType,
                 description: `Create a new ${aggregateName}`,
                 isCrud: true
@@ -302,6 +327,127 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         if (!enumType) return null;
 
         return getGlobalConfig().buildPackageName(options.projectName, 'shared', 'enums') + '.' + enumType;
+    }
+
+    /**
+     * Find entity relationships (both single and collection entity fields) from root entity properties
+     */
+    private findEntityRelationships(rootEntity: Entity, aggregate: Aggregate): Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> {
+        const relationships: Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> = [];
+
+        if (!rootEntity.properties) {
+            return relationships;
+        }
+
+        for (const prop of rootEntity.properties) {
+            const javaType = TypeResolver.resolveJavaType(prop.type);
+            const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
+
+            // Check if this is an entity type (not enum)
+            const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
+
+            if (isEntityType) {
+                // Resolve entity type
+                const entityRef = (prop.type as any).type?.ref;
+                let entityName: string;
+
+                if (isCollection) {
+                    // For collections, extract element type
+                    const elementType = TypeResolver.getElementType(prop.type);
+                    entityName = elementType || javaType.replace(/^(Set|List)<(.+)>$/, '$2');
+                } else {
+                    entityName = entityRef?.name || javaType;
+                }
+
+                // Only include if it's an entity within this aggregate
+                const relatedEntity = aggregate.entities?.find((e: any) => e.name === entityName);
+                const isEntityInAggregate = !!relatedEntity;
+
+                // Exclude DTO entities (entities marked with 'Dto' keyword or generateDto)
+                const isDtoEntity = relatedEntity && (relatedEntity as any).generateDto;
+
+                if (isEntityInAggregate && !isDtoEntity) {
+                    const paramName = prop.name;
+                    relationships.push({
+                        entityType: entityName,
+                        paramName,
+                        javaType: isCollection ? javaType : entityName,
+                        isCollection
+                    });
+                }
+            }
+        }
+
+        return relationships;
+    }
+
+    /**
+     * Get the related DTO type for an entity relationship
+     */
+    private getRelatedDtoType(rel: { entityType: string; paramName: string; javaType: string; isCollection: boolean }, aggregate: Aggregate, allAggregates?: Aggregate[]): { dtoType: string | null; isFromAnotherAggregate: boolean; relatedAggregateName?: string } {
+        const relatedEntity = aggregate.entities?.find((e: any) => e.name === rel.entityType);
+        if (!relatedEntity) return { dtoType: null, isFromAnotherAggregate: false };
+
+        const entityAny = relatedEntity as any;
+
+        // Check if the entity uses a DTO type (from "uses dto CourseDto")
+        const dtoType = entityAny.dtoType;
+        let dtoTypeName: string | null = null;
+
+        if (dtoType) {
+            if (dtoType.ref?.name) {
+                dtoTypeName = dtoType.ref.name;
+            } else if (dtoType.$refText) {
+                dtoTypeName = dtoType.$refText;
+            } else if (typeof dtoType === 'string') {
+                dtoTypeName = dtoType;
+            }
+        }
+
+        // If entity has generateDto, return the entity name + Dto
+        if (!dtoTypeName && entityAny.generateDto) {
+            dtoTypeName = `${rel.entityType}Dto`;
+        }
+
+        // Check if the DTO is from another aggregate
+        if (dtoTypeName && allAggregates) {
+            for (const agg of allAggregates) {
+                if (agg.name === aggregate.name) continue; // Skip current aggregate
+
+                // Check if this aggregate has a root entity that generates this DTO
+                const rootEntity = agg.entities?.find((e: any) => e.isRoot);
+                if (rootEntity && rootEntity.name + 'Dto' === dtoTypeName) {
+                    return {
+                        dtoType: dtoTypeName,
+                        isFromAnotherAggregate: true,
+                        relatedAggregateName: agg.name
+                    };
+                }
+            }
+        }
+
+        return {
+            dtoType: dtoTypeName,
+            isFromAnotherAggregate: false
+        };
+    }
+
+    /**
+     * Check if a type is an enum
+     */
+    private isEnumType(type: any): boolean {
+        if (type && typeof type === 'object' &&
+            type.$type === 'EntityType' &&
+            type.type) {
+            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
+                return true;
+            }
+            const ref = type.type.ref;
+            if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
+                return true;
+            }
+        }
+        return false;
     }
 
     async generateEmptyController(aggregate: Aggregate, options: WebApiGenerationOptions): Promise<string> {

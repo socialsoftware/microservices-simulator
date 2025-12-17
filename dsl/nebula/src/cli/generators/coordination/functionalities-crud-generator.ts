@@ -1,17 +1,47 @@
-import { Entity } from '../common/parsers/model-parser.js';
+import { Entity, Aggregate } from '../common/parsers/model-parser.js';
 import { OrchestrationBase } from '../common/orchestration-base.js';
 import { TypeResolver } from '../common/resolvers/type-resolver.js';
 
 export class FunctionalitiesCrudGenerator extends OrchestrationBase {
-    generateCrudMethods(aggregateName: string, lowerAggregate: string, rootEntity: Entity): any[] {
+    generateCrudMethods(aggregateName: string, lowerAggregate: string, rootEntity: Entity, aggregate: Aggregate, allAggregates?: Aggregate[]): any[] {
         const dtoType = `${aggregateName}Dto`;
         const methods: any[] = [];
+
+        // Find cross-aggregate relationships for create method
+        const crossAggregateParams: any[] = [];
+        const crossAggregateServices: Array<{ serviceName: string; aggregateName: string }> = [];
+        const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
+        const singleEntityRels = entityRelationships.filter(rel => !rel.isCollection);
+
+        for (const rel of singleEntityRels) {
+            const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, allAggregates);
+            if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
+                const lowerRelatedAggregate = relatedDtoInfo.relatedAggregateName.toLowerCase();
+                const capitalizedRelatedAggregate = this.capitalize(relatedDtoInfo.relatedAggregateName);
+                crossAggregateParams.push({
+                    type: 'Integer',
+                    name: `${lowerRelatedAggregate}AggregateId`
+                });
+                crossAggregateServices.push({
+                    serviceName: `${lowerRelatedAggregate}Service`,
+                    aggregateName: capitalizedRelatedAggregate
+                });
+            }
+        }
+
+        const createParameters: any[] = [];
+        // Add cross-aggregate parameters first
+        createParameters.push(...crossAggregateParams);
+        // Then add DTO
+        createParameters.push({ type: dtoType, name: `${lowerAggregate}Dto` });
+
+        const createParamNames = createParameters.map(p => p.name);
 
         methods.push({
             name: `create${aggregateName}`,
             returnType: dtoType,
-            parameters: [{ type: dtoType, name: `${lowerAggregate}Dto` }],
-            body: this.generateCrudMethodBody('create', aggregateName, lowerAggregate, dtoType, [`${lowerAggregate}Dto`]),
+            parameters: createParameters,
+            body: this.generateCrudMethodBody('create', aggregateName, lowerAggregate, dtoType, createParamNames, crossAggregateServices),
             throwsException: false
         });
 
@@ -121,11 +151,154 @@ export class FunctionalitiesCrudGenerator extends OrchestrationBase {
         return properties;
     }
 
-    private generateCrudMethodBody(operation: string, aggregateName: string, lowerAggregate: string, returnType: string, paramNames: string[]): string {
+    /**
+     * Find entity relationships (both single and collection entity fields) from root entity properties
+     */
+    findEntityRelationships(rootEntity: Entity, aggregate: Aggregate): Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> {
+        const relationships: Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> = [];
+
+        if (!rootEntity.properties) {
+            return relationships;
+        }
+
+        for (const prop of rootEntity.properties) {
+            const javaType = TypeResolver.resolveJavaType(prop.type);
+            const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
+
+            // Check if this is an entity type (not enum)
+            const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
+
+            if (isEntityType) {
+                // Resolve entity type
+                const entityRef = (prop.type as any).type?.ref;
+                let entityName: string;
+
+                if (isCollection) {
+                    // For collections, extract element type
+                    const elementType = TypeResolver.getElementType(prop.type);
+                    entityName = elementType || javaType.replace(/^(Set|List)<(.+)>$/, '$2');
+                } else {
+                    entityName = entityRef?.name || javaType;
+                }
+
+                // Only include if it's an entity within this aggregate
+                const relatedEntity = aggregate.entities?.find((e: any) => e.name === entityName);
+                const isEntityInAggregate = !!relatedEntity;
+
+                // Exclude DTO entities (entities marked with 'Dto' keyword or generateDto)
+                const isDtoEntity = relatedEntity && (relatedEntity as any).generateDto;
+
+                if (isEntityInAggregate && !isDtoEntity) {
+                    const paramName = prop.name;
+                    relationships.push({
+                        entityType: entityName,
+                        paramName,
+                        javaType: isCollection ? javaType : entityName,
+                        isCollection
+                    });
+                }
+            }
+        }
+
+        return relationships;
+    }
+
+    /**
+     * Get the related DTO type for an entity relationship
+     */
+    getRelatedDtoType(rel: { entityType: string; paramName: string; javaType: string; isCollection: boolean }, aggregate: Aggregate, allAggregates?: Aggregate[]): { dtoType: string | null; isFromAnotherAggregate: boolean; relatedAggregateName?: string } {
+        const relatedEntity = aggregate.entities?.find((e: any) => e.name === rel.entityType);
+        if (!relatedEntity) return { dtoType: null, isFromAnotherAggregate: false };
+
+        const entityAny = relatedEntity as any;
+
+        // Check if the entity uses a DTO type (from "uses dto CourseDto")
+        const dtoType = entityAny.dtoType;
+        let dtoTypeName: string | null = null;
+
+        if (dtoType) {
+            if (dtoType.ref?.name) {
+                dtoTypeName = dtoType.ref.name;
+            } else if (dtoType.$refText) {
+                dtoTypeName = dtoType.$refText;
+            } else if (typeof dtoType === 'string') {
+                dtoTypeName = dtoType;
+            }
+        }
+
+        // If entity has generateDto, return the entity name + Dto
+        if (!dtoTypeName && entityAny.generateDto) {
+            dtoTypeName = `${rel.entityType}Dto`;
+        }
+
+        // Check if the DTO is from another aggregate
+        if (dtoTypeName && allAggregates) {
+            for (const agg of allAggregates) {
+                if (agg.name === aggregate.name) continue; // Skip current aggregate
+
+                // Check if this aggregate has a root entity that generates this DTO
+                const rootEntity = agg.entities?.find((e: any) => e.isRoot);
+                if (rootEntity && rootEntity.name + 'Dto' === dtoTypeName) {
+                    return {
+                        dtoType: dtoTypeName,
+                        isFromAnotherAggregate: true,
+                        relatedAggregateName: agg.name
+                    };
+                }
+            }
+        }
+
+        return {
+            dtoType: dtoTypeName,
+            isFromAnotherAggregate: false
+        };
+    }
+
+    /**
+     * Check if a type is an enum
+     */
+    private isEnumType(type: any): boolean {
+        if (type && typeof type === 'object' &&
+            type.$type === 'EntityType' &&
+            type.type) {
+            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
+                return true;
+            }
+            const ref = type.type.ref;
+            if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private generateCrudMethodBody(operation: string, aggregateName: string, lowerAggregate: string, returnType: string, paramNames: string[], crossAggregateServices: Array<{ serviceName: string; aggregateName: string }> = []): string {
         const capitalizedMethodName = this.capitalize(operation === 'getById' ? `get${aggregateName}ById` : operation === 'getAll' ? `getAll${aggregateName}s` : operation === 'search' ? `search${aggregateName}s` : `${operation}${aggregateName}`);
         const methodName = operation === 'getById' ? `get${aggregateName}ById` : operation === 'getAll' ? `getAll${aggregateName}s` : operation === 'search' ? `search${aggregateName}s` : `${operation}${aggregateName}`;
         const uncapitalizedMethodName = methodName.charAt(0).toLowerCase() + methodName.slice(1);
-        const sagaParams = [`${lowerAggregate}Service`, 'sagaUnitOfWorkService', ...paramNames, 'sagaUnitOfWork'].join(', ');
+
+        // Build saga constructor params
+        // For create operations: services, then params (aggregateIds + DTO), then unitOfWorkService, then unitOfWork
+        // For other operations: services, then unitOfWorkService, then params, then unitOfWork
+        const sagaParams: string[] = [`${lowerAggregate}Service`];
+        // Add cross-aggregate services (only for create operations)
+        for (const crossService of crossAggregateServices) {
+            sagaParams.push(crossService.serviceName);
+        }
+
+        if (operation === 'create') {
+            // For create: params come before unitOfWorkService
+            sagaParams.push(...paramNames);
+            sagaParams.push('sagaUnitOfWorkService');
+        } else {
+            // For other operations: unitOfWorkService comes before params
+            sagaParams.push('sagaUnitOfWorkService');
+            sagaParams.push(...paramNames);
+        }
+        // Add unitOfWork at the end
+        sagaParams.push('sagaUnitOfWork');
+
+        const sagaParamsString = sagaParams.join(', ');
 
         let sagaReturn: string;
         if (returnType === 'void') {
@@ -144,13 +317,19 @@ export class FunctionalitiesCrudGenerator extends OrchestrationBase {
             sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.getResult();`;
         }
 
+        // Generate checkInput call for create and update operations
+        const dtoParamName = paramNames.find((p: string) => p.endsWith('Dto')) || `${lowerAggregate}Dto`;
+        const checkInputCall = (operation === 'create' || operation === 'update')
+            ? `checkInput(${dtoParamName});\n                `
+            : '';
+
         return `String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                ${capitalizedMethodName}FunctionalitySagas ${uncapitalizedMethodName}FunctionalitySagas = new ${capitalizedMethodName}FunctionalitySagas(
-                        ${sagaParams});
+                ${checkInputCall}${capitalizedMethodName}FunctionalitySagas ${uncapitalizedMethodName}FunctionalitySagas = new ${capitalizedMethodName}FunctionalitySagas(
+                        ${sagaParamsString});
                 ${uncapitalizedMethodName}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 ${sagaReturn}
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

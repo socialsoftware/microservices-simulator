@@ -13,7 +13,8 @@ public class CreateUserFunctionalitySagas extends WorkflowFunctionality {
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
-    public CreateUserFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService, UserDto userDto, SagaUnitOfWork unitOfWork) {
+
+    public CreateUserFunctionalitySagas(UserService userService, UserDto userDto, SagaUnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(userDto, unitOfWork);

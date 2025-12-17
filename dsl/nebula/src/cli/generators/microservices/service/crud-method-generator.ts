@@ -1,5 +1,6 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { UnifiedTypeResolver } from "../../common/unified-type-resolver.js";
+import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 
 export interface GeneratedMethod {
     name: string;
@@ -40,7 +41,7 @@ export class CrudMethodGenerator {
         const properties = this.extractSimpleProperties(rootEntity);
 
         if (options.includeCreate) {
-            methods.push(this.generateCreateMethod(entityName, lowerEntity, options, properties));
+            methods.push(this.generateCreateMethod(aggregate, rootEntity, entityName, lowerEntity, options, properties));
         }
 
         if (options.includeRead) {
@@ -86,21 +87,115 @@ export class CrudMethodGenerator {
         return properties;
     }
 
-    private generateCreateMethod(entityName: string, lowerEntity: string, options: CrudGenerationOptions, properties: { name: string; capitalizedName: string }[]): GeneratedMethod {
+    private generateCreateMethod(aggregate: Aggregate, rootEntity: Entity, entityName: string, lowerEntity: string, options: CrudGenerationOptions, properties: { name: string; capitalizedName: string }[]): GeneratedMethod {
+        // Find entity relationships (both single and collections)
+        const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
+        const singleEntityRels = entityRelationships.filter(rel => !rel.isCollection);
+        const collectionEntityRels = entityRelationships.filter(rel => rel.isCollection);
+
+        // Build parameters: single entities, DTO, collections, UnitOfWork
+        const parameters: MethodParameter[] = [];
+
+        // Add single entity relationships first
+        for (const rel of singleEntityRels) {
+            parameters.push({ type: rel.entityType, name: rel.paramName });
+        }
+
+        // Add DTO
+        parameters.push({ type: `${entityName}Dto`, name: `${lowerEntity}Dto` });
+
+        // Add collection entity relationships
+        for (const rel of collectionEntityRels) {
+            parameters.push({ type: rel.javaType, name: rel.paramName });
+        }
+
+        // Add UnitOfWork last
+        parameters.push({ type: 'UnitOfWork', name: 'unitOfWork' });
+
         return {
             name: `create${entityName}`,
-            parameters: [
-                { type: `${entityName}Dto`, name: `${lowerEntity}Dto` },
-                { type: 'UnitOfWork', name: 'unitOfWork' }
-            ],
+            parameters,
             returnType: `${entityName}Dto`,
             annotations: [],
             crudAction: 'create',
             entityName,
             lowerEntityName: lowerEntity,
             lowerRepositoryName: `${lowerEntity}Repository`,
-            properties
+            properties,
+            entityRelationships: {
+                single: singleEntityRels,
+                collections: collectionEntityRels
+            }
         } as any;
+    }
+
+    /**
+     * Find entity relationships (both single and collection entity fields) from root entity properties
+     */
+    private findEntityRelationships(rootEntity: Entity, aggregate: Aggregate): Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> {
+        const relationships: Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> = [];
+
+        if (!rootEntity.properties) {
+            return relationships;
+        }
+
+        for (const prop of rootEntity.properties) {
+            const javaType = TypeResolver.resolveJavaType(prop.type);
+            const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
+
+            // Check if this is an entity type (not enum)
+            const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
+
+            if (isEntityType) {
+                // Resolve entity type
+                const entityRef = (prop.type as any).type?.ref;
+                let entityName: string;
+
+                if (isCollection) {
+                    // For collections, extract element type
+                    const elementType = TypeResolver.getElementType(prop.type);
+                    entityName = elementType || javaType.replace(/^(Set|List)<(.+)>$/, '$2');
+                } else {
+                    entityName = entityRef?.name || javaType;
+                }
+
+                // Only include if it's an entity within this aggregate
+                const relatedEntity = aggregate.entities?.find((e: any) => e.name === entityName);
+                const isEntityInAggregate = !!relatedEntity;
+
+                // Exclude DTO entities (entities marked with 'Dto' keyword)
+                const isDtoEntity = relatedEntity && (relatedEntity as any).generateDto;
+
+                if (isEntityInAggregate && !isDtoEntity) {
+                    const paramName = prop.name;
+                    relationships.push({
+                        entityType: entityName,
+                        paramName,
+                        javaType: isCollection ? javaType : entityName,
+                        isCollection
+                    });
+                }
+            }
+        }
+
+        return relationships;
+    }
+
+    /**
+     * Check if a type is an enum
+     */
+    private isEnumType(type: any): boolean {
+        if (type && typeof type === 'object' &&
+            type.$type === 'EntityType' &&
+            type.type) {
+            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
+                return true;
+            }
+            if (type.type.ref && type.type.ref.$type === 'EnumDefinition') {
+                return true;
+            }
+        }
+        return false;
     }
 
     private generateFindByIdMethod(entityName: string, options: CrudGenerationOptions): GeneratedMethod {

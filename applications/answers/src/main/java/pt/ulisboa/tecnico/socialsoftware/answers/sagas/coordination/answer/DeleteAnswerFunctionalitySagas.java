@@ -17,6 +17,7 @@ public class DeleteAnswerFunctionalitySagas extends WorkflowFunctionality {
     private final AnswerService answerService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
+
     public DeleteAnswerFunctionalitySagas(AnswerService answerService, SagaUnitOfWorkService unitOfWorkService, Integer answerAggregateId, SagaUnitOfWork unitOfWork) {
         this.answerService = answerService;
         this.unitOfWorkService = unitOfWorkService;

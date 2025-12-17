@@ -39,19 +39,95 @@ export class ExceptionGenerator {
 
     private extractErrorMessagesFromDSL(allModels: Model[]): Array<{ name: string, message: string }> {
         const errorMessages: Array<{ name: string, message: string }> = [];
+        const addedMessages = new Set<string>();
 
+        // Extract messages from DSL exceptions block
         for (const model of allModels) {
             if (model.exceptions && model.exceptions.messages) {
                 for (const message of model.exceptions.messages) {
-                    errorMessages.push({
-                        name: message.name,
-                        message: message.message
-                    });
+                    if (!addedMessages.has(message.name)) {
+                        errorMessages.push({
+                            name: message.name,
+                            message: message.message
+                        });
+                        addedMessages.add(message.name);
+                    }
+                }
+            }
+        }
+
+        // Auto-generate exception messages for required String fields in root entities
+        for (const model of allModels) {
+            if (model.aggregates) {
+                for (const aggregate of model.aggregates) {
+                    const rootEntity = aggregate.entities?.find((e: any) => e.isRoot);
+                    if (rootEntity && rootEntity.properties) {
+                        const aggregateName = aggregate.name.toUpperCase();
+                        for (const prop of rootEntity.properties) {
+                            const javaType = this.resolveJavaType(prop.type);
+                            const isString = javaType === 'String';
+                            const isCollection = javaType.startsWith('List<') || javaType.startsWith('Set<');
+                            const isEntity = this.isEntityType(javaType);
+                            const isEnum = this.isEnumType(prop.type);
+
+                            // Generate exception message for required String fields
+                            if (isString && !isCollection && !isEntity && !isEnum) {
+                                const exceptionName = `${aggregateName}_MISSING_${prop.name.toUpperCase()}`;
+                                if (!addedMessages.has(exceptionName)) {
+                                    errorMessages.push({
+                                        name: exceptionName,
+                                        message: `${this.capitalize(aggregate.name)} requires a ${prop.name}.`
+                                    });
+                                    addedMessages.add(exceptionName);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
 
         return errorMessages;
+    }
+
+    private resolveJavaType(type: any): string {
+        if (!type) return 'String';
+        if (typeof type === 'string') return type;
+        if (type.$type === 'PrimitiveType') {
+            return type.name || 'String';
+        }
+        if (type.$type === 'EntityType' && type.type) {
+            const ref = type.type.ref;
+            if (ref) {
+                return ref.name || 'String';
+            }
+        }
+        return 'String';
+    }
+
+    private isEntityType(javaType: string): boolean {
+        // Simple check - if it's not a primitive or collection, it might be an entity
+        const primitives = ['String', 'Integer', 'Long', 'Double', 'Float', 'Boolean', 'boolean', 'LocalDateTime', 'BigDecimal'];
+        return !primitives.includes(javaType) && !javaType.startsWith('List<') && !javaType.startsWith('Set<');
+    }
+
+    private isEnumType(type: any): boolean {
+        if (type && typeof type === 'object' &&
+            type.$type === 'EntityType' &&
+            type.type) {
+            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
+                return true;
+            }
+            const ref = type.type.ref;
+            if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private capitalize(str: string): string {
+        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
     private async generateExceptionClass(projectName: string, packageName: string): Promise<string> {

@@ -17,6 +17,7 @@ public class DeleteExecutionFunctionalitySagas extends WorkflowFunctionality {
     private final ExecutionService executionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
+
     public DeleteExecutionFunctionalitySagas(ExecutionService executionService, SagaUnitOfWorkService unitOfWorkService, Integer executionAggregateId, SagaUnitOfWork unitOfWork) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;

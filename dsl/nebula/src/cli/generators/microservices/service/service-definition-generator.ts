@@ -87,11 +87,17 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
             imports.push(`import ${eventPackage}.${aggregateName}DeletedEvent;`);
         }
 
+        // Build set of entity names in this aggregate (to exclude from enum detection)
+        const aggregateEntityNames = new Set<string>();
+        aggregate.entities?.forEach((entity: Entity) => {
+            aggregateEntityNames.add(entity.name);
+        });
+
         const enumTypes = new Set<string>();
         methods.forEach(method => {
-            this.extractEnumTypes(method.returnType, enumTypes);
+            this.extractEnumTypes(method.returnType, enumTypes, aggregateEntityNames);
             method.parameters?.forEach((param: any) => {
-                this.extractEnumTypes(param.type, enumTypes);
+                this.extractEnumTypes(param.type, enumTypes, aggregateEntityNames);
             });
         });
 
@@ -105,11 +111,16 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
         return imports;
     }
 
-    private extractEnumTypes(type: string, enumSet: Set<string>): void {
+    private extractEnumTypes(type: string, enumSet: Set<string>, aggregateEntityNames: Set<string> = new Set()): void {
         if (!type) return;
 
         const primitiveTypes = ['String', 'Integer', 'Long', 'Boolean', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal', 'void', 'UnitOfWork'];
         const typeName = type.replace(/List<|Set<|>/g, '').trim();
+
+        // Exclude entity types from the same aggregate (they're covered by wildcard import)
+        if (aggregateEntityNames.has(typeName)) {
+            return;
+        }
 
         if (typeName &&
             !primitiveTypes.includes(typeName) &&

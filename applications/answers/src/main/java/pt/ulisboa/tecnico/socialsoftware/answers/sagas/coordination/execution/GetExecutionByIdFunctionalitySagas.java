@@ -13,6 +13,7 @@ public class GetExecutionByIdFunctionalitySagas extends WorkflowFunctionality {
     private final ExecutionService executionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
+
     public GetExecutionByIdFunctionalitySagas(ExecutionService executionService, SagaUnitOfWorkService unitOfWorkService, Integer executionAggregateId, SagaUnitOfWork unitOfWork) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;

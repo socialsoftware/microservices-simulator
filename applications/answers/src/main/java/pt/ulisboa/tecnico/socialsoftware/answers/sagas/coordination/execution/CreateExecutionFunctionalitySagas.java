@@ -7,27 +7,61 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourse;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
+import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.dtos.SagaCourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.states.CourseSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
+import java.util.ArrayList;
+import java.util.Arrays;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
+import java.util.stream.Collectors;
 
 public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
     private ExecutionDto createdExecutionDto;
     private final ExecutionService executionService;
     private final SagaUnitOfWorkService unitOfWorkService;
+    private ExecutionCourse course;
+    private SagaCourseDto courseDto;
+    private final CourseService courseService;
 
-    public CreateExecutionFunctionalitySagas(ExecutionService executionService, SagaUnitOfWorkService unitOfWorkService, ExecutionDto executionDto, SagaUnitOfWork unitOfWork) {
+
+    public CreateExecutionFunctionalitySagas(ExecutionService executionService, CourseService courseService, Integer courseAggregateId, ExecutionDto executionDto, SagaUnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(executionDto, unitOfWork);
+        this.courseService = courseService;
+        this.buildWorkflow(courseAggregateId, executionDto, unitOfWork);
     }
 
-    public void buildWorkflow(ExecutionDto executionDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer courseAggregateId, ExecutionDto executionDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep createExecutionStep = new SagaSyncStep("createExecutionStep", () -> {
-            ExecutionDto createdExecutionDto = executionService.createExecution(executionDto, unitOfWork);
-            setCreatedExecutionDto(createdExecutionDto);
+        SagaSyncStep getCourseStep = new SagaSyncStep("getCourseStep", () -> {
+            courseDto = (SagaCourseDto) courseService.getCourseById(courseAggregateId, unitOfWork);
+            unitOfWorkService.registerSagaState(courseDto.getAggregateId(), CourseSagaState.READ_COURSE, unitOfWork);
+            ExecutionCourse course = new ExecutionCourse(courseDto);
+            setCourse(course);
         });
 
+        getCourseStep.registerCompensation(() -> {
+            unitOfWorkService.registerSagaState(courseDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
+        }, unitOfWork);
+        SagaSyncStep createExecutionStep = new SagaSyncStep("createExecutionStep", () -> {
+            Set<ExecutionUser> users = executionDto.getUsers() != null ? executionDto.getUsers().stream().map(ExecutionUser::new).collect(java.util.stream.Collectors.toSet()) : null;
+            ExecutionDto createdExecutionDto = executionService.createExecution(getCourse(), executionDto, users, unitOfWork);
+            setCreatedExecutionDto(createdExecutionDto);
+        }, new ArrayList<>(Arrays.asList(getCourseStep)));
+
+        workflow.addStep(getCourseStep);
         workflow.addStep(createExecutionStep);
+    }
+
+    public ExecutionCourse getCourse() {
+        return course;
+    }
+
+    public void setCourse(ExecutionCourse course) {
+        this.course = course;
     }
 
     public ExecutionDto getCreatedExecutionDto() {

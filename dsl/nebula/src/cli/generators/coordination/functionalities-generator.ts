@@ -5,6 +5,7 @@ import { OrchestrationBase } from '../common/orchestration-base.js';
 import { FunctionalitiesCrudGenerator } from './functionalities-crud-generator.js';
 import { FunctionalitiesImportsBuilder } from './functionalities-imports-builder.js';
 import { FunctionalitiesMethodGenerator } from './functionalities-method-generator.js';
+import { TypeResolver } from '../common/resolvers/type-resolver.js';
 
 /**
  * Main orchestrator for functionalities class generation.
@@ -14,6 +15,11 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     private crudGenerator = new FunctionalitiesCrudGenerator();
     private importsBuilder = new FunctionalitiesImportsBuilder();
     private methodGenerator = new FunctionalitiesMethodGenerator();
+
+    // Expose crudGenerator methods for use in buildBusinessMethods
+    getCrudGenerator() {
+        return this.crudGenerator;
+    }
 
     /**
      * Generate a functionalities class for an aggregate
@@ -39,9 +45,11 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         const ProjectName = this.capitalize(options.projectName);
 
         const consistencyModels = options.consistencyModels || ['sagas'];
+        const allAggregates = entityRegistry.getAllAggregates();
 
-        const dependencies = this.buildDependencies(aggregate, options);
-        const businessMethods = this.buildBusinessMethods(aggregate, rootEntity, capitalizedAggregate, entityRegistry, consistencyModels);
+        const dependencies = this.buildDependencies(aggregate, options, rootEntity, allAggregates);
+        const businessMethods = this.buildBusinessMethods(aggregate, rootEntity, capitalizedAggregate, entityRegistry, consistencyModels, allAggregates);
+        const checkInputMethod = this.buildCheckInputMethod(aggregate, rootEntity, capitalizedAggregate, lowerAggregate, options.projectName);
         const imports = this.importsBuilder.buildImports(aggregate, rootEntity, options, dependencies, entityRegistry, businessMethods);
 
         const basePackage = this.getBasePackage();
@@ -55,6 +63,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             imports,
             dependencies,
             businessMethods,
+            checkInputMethod,
             projectName,
             ProjectName,
             consistencyModels,
@@ -66,7 +75,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     /**
      * Build dependencies for the functionalities class
      */
-    private buildDependencies(aggregate: Aggregate, options: CoordinationGenerationOptions): any[] {
+    private buildDependencies(aggregate: Aggregate, options: CoordinationGenerationOptions, rootEntity: Entity, allAggregates?: Aggregate[]): any[] {
         const dependencies: any[] = [];
         const aggregateName = aggregate.name;
         const lowerAggregate = aggregateName.toLowerCase();
@@ -86,6 +95,28 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             });
         }
 
+        // Add cross-aggregate service dependencies if CRUD is enabled and there are cross-aggregate relationships
+        if ((aggregate.webApiEndpoints as any)?.generateCrud && rootEntity) {
+            const entityRelationships = this.crudGenerator.findEntityRelationships(rootEntity, aggregate);
+            const singleEntityRels = entityRelationships.filter((rel: any) => !rel.isCollection);
+            for (const rel of singleEntityRels) {
+                const relatedDtoInfo = this.crudGenerator.getRelatedDtoType(rel, aggregate, allAggregates);
+                if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
+                    const lowerRelatedAggregate = relatedDtoInfo.relatedAggregateName.toLowerCase();
+                    const capitalizedRelatedAggregate = this.capitalize(relatedDtoInfo.relatedAggregateName);
+                    // Add as dependency if not already present
+                    const depName = `${lowerRelatedAggregate}Service`;
+                    if (!dependencies.find((d: any) => d.name === depName)) {
+                        dependencies.push({
+                            name: depName,
+                            type: `${capitalizedRelatedAggregate}Service`,
+                            required: true
+                        });
+                    }
+                }
+            }
+        }
+
         dependencies.push({
             name: 'sagaUnitOfWorkService',
             type: 'SagaUnitOfWorkService',
@@ -98,14 +129,14 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     /**
      * Build all business methods for the functionalities class
      */
-    private buildBusinessMethods(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, entityRegistry: EntityRegistry, consistencyModels: string[]): any[] {
+    private buildBusinessMethods(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, entityRegistry: EntityRegistry, consistencyModels: string[], allAggregates?: Aggregate[]): any[] {
         const methods: any[] = [];
         const addedMethods = new Set<string>();
         const lowerAggregate = aggregateName.toLowerCase();
 
         // 1. Add CRUD methods if generateCrud is enabled
         if ((aggregate.webApiEndpoints as any)?.generateCrud) {
-            const crudMethods = this.crudGenerator.generateCrudMethods(aggregateName, lowerAggregate, rootEntity);
+            const crudMethods = this.crudGenerator.generateCrudMethods(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates);
             crudMethods.forEach(method => {
                 const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
                 if (!addedMethods.has(methodSignature)) {
@@ -113,6 +144,10 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
                     addedMethods.add(methodSignature);
                 }
             });
+
+            // Add cross-aggregate service dependencies for create method
+            // Note: We need to call findEntityRelationships and getRelatedDtoType which are private
+            // So we'll handle this in buildDependencies instead
         }
 
         // 2. Add methods from endpoint definitions
@@ -167,6 +202,64 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
                     param.name && param.name.toLowerCase().includes('user')
                 )
             );
+        }
+        return false;
+    }
+
+    /**
+     * Build checkInput method for validating DTOs
+     */
+    private buildCheckInputMethod(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, lowerAggregate: string, projectName: string): string | null {
+        if (!rootEntity || !rootEntity.properties) {
+            return null;
+        }
+
+        const dtoType = `${aggregateName}Dto`;
+        const dtoParamName = `${lowerAggregate}Dto`;
+        const validationChecks: string[] = [];
+        const ProjectName = this.capitalize(projectName);
+
+        // Find required String fields
+        for (const prop of rootEntity.properties) {
+            const javaType = TypeResolver.resolveJavaType(prop.type);
+            const isString = javaType === 'String';
+            const isCollection = javaType.startsWith('List<') || javaType.startsWith('Set<');
+            const isEntity = TypeResolver.isEntityType(javaType);
+            const isEnum = this.isEnumType(prop.type);
+
+            // Check if it's a required String field (not nullable, not optional, not a collection, not an entity, not an enum)
+            if (isString && !isCollection && !isEntity && !isEnum) {
+                const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
+                const exceptionConstant = `${aggregateName.toUpperCase()}_MISSING_${prop.name.toUpperCase()}`;
+                validationChecks.push(`        if (${dtoParamName}.get${capitalizedName}() == null) {
+            throw new ${ProjectName}Exception(${exceptionConstant});
+        }`);
+            }
+        }
+
+        if (validationChecks.length === 0) {
+            return null;
+        }
+
+        return `    private void checkInput(${dtoType} ${dtoParamName}) {
+${validationChecks.join('\n')}
+    }`;
+    }
+
+    /**
+     * Check if a type is an enum
+     */
+    private isEnumType(type: any): boolean {
+        if (type && typeof type === 'object' &&
+            type.$type === 'EntityType' &&
+            type.type) {
+            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
+                return true;
+            }
+            const ref = type.type.ref;
+            if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
+                return true;
+            }
         }
         return false;
     }

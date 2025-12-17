@@ -4,6 +4,7 @@ import { SagaCrudGenerator } from './saga-crud-generator.js';
 import { SagaWorkflowGenerator } from './saga-workflow-generator.js';
 import { SagaEventProcessingGenerator } from './saga-event-processing-generator.js';
 import { SagaHelpers } from './saga-helpers.js';
+import type { Aggregate } from '../../../language/generated/ast.js';
 
 /**
  * Main orchestrator for saga functionality generation.
@@ -18,7 +19,7 @@ export class SagaFunctionalityGenerator extends OrchestrationBase {
     /**
      * Generate saga functionalities for an aggregate
      */
-    generateForAggregate(aggregate: any, options: { projectName: string }): Record<string, string> {
+    generateForAggregate(aggregate: any, options: { projectName: string }, allAggregates?: Aggregate[]): Record<string, string> {
         const outputs: Record<string, string> = {};
         const basePackage = this.getBasePackage();
         const lowerAggregate = aggregate.name.toLowerCase();
@@ -30,7 +31,9 @@ export class SagaFunctionalityGenerator extends OrchestrationBase {
 
         // 1. Generate CRUD saga functionalities if enabled
         if (aggregate.webApiEndpoints?.generateCrud) {
-            const crudSagas = this.crudGenerator.generateCrudSagaFunctionalities(aggregate, options, packageName);
+            // Use provided allAggregates or try to get from model
+            const aggregatesToUse = allAggregates || (aggregate.$container as any)?.aggregates || [];
+            const crudSagas = this.crudGenerator.generateCrudSagaFunctionalities(aggregate, options, packageName, aggregatesToUse);
             Object.assign(outputs, crudSagas);
         }
 

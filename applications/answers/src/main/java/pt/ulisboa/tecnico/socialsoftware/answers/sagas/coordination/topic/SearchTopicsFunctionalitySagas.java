@@ -14,6 +14,7 @@ public class SearchTopicsFunctionalitySagas extends WorkflowFunctionality {
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
+
     public SearchTopicsFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService, String name, Integer courseAggregateId, SagaUnitOfWork unitOfWork) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
