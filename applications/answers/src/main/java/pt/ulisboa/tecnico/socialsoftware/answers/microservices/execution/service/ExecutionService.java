@@ -21,8 +21,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggrega
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.Execution;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.Object;
 
 @Service
 public class ExecutionService {
@@ -137,45 +135,6 @@ public class ExecutionService {
                 .map(id -> (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(executionFactory::createExecutionDto)
                 .collect(Collectors.toList());
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Execution removeUser(Integer executionAggregateId, Integer userAggregateId, Integer userVersion, UnitOfWork unitOfWork) {
-        // TODO: Implement removeUser method
-        return null;
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Object anonymizeStudent(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
-        // TODO: Implement anonymizeStudent method
-        return null;
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Object updateStudentName(Integer executionAggregateId, Integer userAggregateId, String newName, UnitOfWork unitOfWork) {
-        // TODO: Implement updateStudentName method
-        return null;
     }
 
 }

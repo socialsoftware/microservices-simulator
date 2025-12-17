@@ -9,12 +9,6 @@ public enum ExecutionSagaState implements SagaState {
             return "DELETE_EXECUTION";
         }
     },
-    READ_COURSE {
-        @Override
-        public String getStateName() {
-            return "READ_COURSE";
-        }
-    },
     READ_EXECUTION {
         @Override
         public String getStateName() {

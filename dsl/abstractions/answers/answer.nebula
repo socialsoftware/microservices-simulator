@@ -47,129 +47,14 @@ Aggregate Answer {
         List<QuestionAnswered> questions;
     }
 
-    Events {
-        publish QuestionAnswerEvent {
-            Integer questionAggregateId;
-            Integer quizAggregateId;
-            Integer userAggregateId;
-            Boolean correct;
-        }
-
-        subscribe AnonymizeUserEvent 
-            from Answer
-            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
-            event.userAggregateId == answer.user.userAggregateId;
-        }
-
-        subscribe InvalidateQuizEvent 
-            from Answer
-            routing (answer.quiz.quizAggregateId, answer.quiz.quizVersion) {
-        }
-
-        subscribe DeleteExecutionEvent 
-            from Answer
-            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
-        }
-
-        subscribe DisenrollStudentFromExecutionEvent from Answer
-            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
-            event.studentAggregateId == answer.user.userAggregateId;
-        }
-
-        subscribe UpdateStudentNameEvent from Answer
-            routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
-            event.studentAggregateId == answer.user.userAggregateId;
-        }
-
-        interInvariant CourseExecutionExists {
-            subscribe DeleteExecutionEvent
-                from Answer
-                routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
-                event.executionAggregateId == answer.execution.executionAggregateId;
-            }
-        }
-
-        interInvariant QuizExists {
-            subscribe InvalidateQuizEvent
-                from AnswerQuiz
-                routing (answerQuiz.quiz.quizAggregateId, answerQuiz.quiz.quizVersion) {
-            }
-        }
-
-        interInvariant StudentExists {
-            subscribe DisenrollStudentFromExecutionEvent
-                from Answer
-                routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
-                event.executionAggregateId == answer.execution.executionAggregateId;
-            }
-            subscribe AnonymizeUserEvent
-                from Answer
-                routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
-                event.userAggregateId == answer.user.userAggregateId;
-            }
-            subscribe UpdateStudentNameEvent
-                from Answer
-                routing (answer.execution.executionAggregateId, answer.execution.executionVersion) {
-                event.studentAggregateId == answer.user.userAggregateId;
-            }
-        }
-    }
-
-    // Service methods
-    // method getAnswersByExecution(Integer executionId, UnitOfWork unitOfWork): List<Answer>;
-    // method getAnswersByStudentAndExecution(Integer studentId, Integer executionId, UnitOfWork unitOfWork): List<Answer>;
-    // method getAnswersByQuizAndExecution(Integer quizId, Integer executionId, UnitOfWork unitOfWork): List<Answer>;
-    
-    saga workflow anonymizeStudent(Integer studentAggregateId, Integer answerId, UnitOfWork unitOfWork);
-    saga workflow invalidateQuiz(Integer quizAggregateId, Integer answerId, UnitOfWork unitOfWork);
-    saga workflow removeExecution(Integer executionAggregateId, Integer answerId, UnitOfWork unitOfWork);
-    saga workflow unenrollStudentFromExecution(Integer studentAggregateId, Integer executionAggregateId, Integer answerId, UnitOfWork unitOfWork);
-    
-    saga workflow updateStudentName(Integer studentAggregateId, String name, Integer answerId, UnitOfWork unitOfWork) {
-        fields {
-            Answer answer;
-            AnswerUser user;
-        }
-        steps {
-            step getAnswerStep {
-                call answerService.getAnswerById(answerId, unitOfWork) -> answer;
-                registerState(answerId, AnswerSagaState.READ_ANSWER);
-            }
-            compensation {
-                registerState(answerId, GenericSagaState.NOT_IN_SAGA);
-            }
-            
-            step getUserStep depends on getAnswerStep {
-                extract answer.user -> user where userAggregateId == studentAggregateId;
-            }
-            compensation {
-                registerState(studentAggregateId, GenericSagaState.NOT_IN_SAGA);
-            }
-            
-            step updateNameStep depends on getAnswerStep, getUserStep {
-                call answerService.updateStudentName(answerId, studentAggregateId, name, unitOfWork);
-            }
-        }
-    }
-    
+   
     Repository {
         @Query("select a.aggregateId from Answer a where a.quiz.quizAggregateId = :quizAggregateId AND a.user.userAggregateId = :userAggregateId AND a.sagaState = 'NOT_IN_SAGA'")
         Optional<Integer> findAnswerIdByQuizAggregateIdAndUserAggregateIdForSaga(Integer quizAggregateId, Integer userAggregateId);
     }
 
     WebAPIEndpoints {
-        Endpoint AnswerQuestion {
-            httpMethod: POST
-            path: "/quizzes/{quizAggregateId}/answer"
-            methodName: answerQuestion
-            parameters: [
-                quizAggregateId: Integer: "@PathVariable",
-                userAggregateId: Integer: "@RequestParam",
-                questionAnswerDto: Answer: "@RequestBody"
-            ]
-            desc: "Submit an answer to a quiz question"
-            throwsException: true
-        }
+        @GenerateCrud;
     }
 
     Service AnswerService {

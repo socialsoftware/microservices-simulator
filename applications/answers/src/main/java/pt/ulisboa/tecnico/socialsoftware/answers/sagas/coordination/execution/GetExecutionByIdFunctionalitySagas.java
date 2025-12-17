@@ -8,33 +8,33 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
-public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
-    private ExecutionDto createdExecutionDto;
+public class GetExecutionByIdFunctionalitySagas extends WorkflowFunctionality {
+    private ExecutionDto executionDto;
     private final ExecutionService executionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
-    public CreateExecutionFunctionalitySagas(ExecutionService executionService, SagaUnitOfWorkService unitOfWorkService, ExecutionDto executionDto, SagaUnitOfWork unitOfWork) {
+    public GetExecutionByIdFunctionalitySagas(ExecutionService executionService, SagaUnitOfWorkService unitOfWorkService, Integer executionAggregateId, SagaUnitOfWork unitOfWork) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(executionDto, unitOfWork);
+        this.buildWorkflow(executionAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(ExecutionDto executionDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer executionAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep createExecutionStep = new SagaSyncStep("createExecutionStep", () -> {
-            ExecutionDto createdExecutionDto = executionService.createExecution(executionDto, unitOfWork);
-            setCreatedExecutionDto(createdExecutionDto);
+        SagaSyncStep getExecutionStep = new SagaSyncStep("getExecutionStep", () -> {
+            ExecutionDto executionDto = executionService.getExecutionById(executionAggregateId, unitOfWork);
+            setExecutionDto(executionDto);
         });
 
-        workflow.addStep(createExecutionStep);
+        workflow.addStep(getExecutionStep);
     }
 
-    public ExecutionDto getCreatedExecutionDto() {
-        return createdExecutionDto;
+    public ExecutionDto getExecutionDto() {
+        return executionDto;
     }
 
-    public void setCreatedExecutionDto(ExecutionDto createdExecutionDto) {
-        this.createdExecutionDto = createdExecutionDto;
+    public void setExecutionDto(ExecutionDto executionDto) {
+        this.executionDto = executionDto;
     }
 }
