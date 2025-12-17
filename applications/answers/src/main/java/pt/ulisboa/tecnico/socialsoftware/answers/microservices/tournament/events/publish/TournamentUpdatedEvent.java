@@ -9,26 +9,16 @@ public class TournamentUpdatedEvent extends Event {
     private LocalDateTime endTime;
     private Integer numberOfQuestions;
     private Boolean cancelled;
-    private TournamentCreator creator;
-    private Set<TournamentParticipant> participants;
-    private TournamentExecution execution;
-    private Set<TournamentTopic> topics;
-    private TournamentQuiz quiz;
 
     public TournamentUpdatedEvent() {
     }
 
-    public TournamentUpdatedEvent(Integer aggregateId, LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, Boolean cancelled, TournamentCreator creator, Set<TournamentParticipant> participants, TournamentExecution execution, Set<TournamentTopic> topics, TournamentQuiz quiz) {
+    public TournamentUpdatedEvent(Integer aggregateId, LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, Boolean cancelled) {
         super(aggregateId);
         setStartTime(startTime);
         setEndTime(endTime);
         setNumberOfQuestions(numberOfQuestions);
         setCancelled(cancelled);
-        setCreator(creator);
-        setParticipants(participants);
-        setExecution(execution);
-        setTopics(topics);
-        setQuiz(quiz);
     }
 
     public LocalDateTime getStartTime() {
@@ -61,46 +51,6 @@ public class TournamentUpdatedEvent extends Event {
 
     public void setCancelled(Boolean cancelled) {
         this.cancelled = cancelled;
-    }
-
-    public TournamentCreator getCreator() {
-        return creator;
-    }
-
-    public void setCreator(TournamentCreator creator) {
-        this.creator = creator;
-    }
-
-    public Set<TournamentParticipant> getParticipants() {
-        return participants;
-    }
-
-    public void setParticipants(Set<TournamentParticipant> participants) {
-        this.participants = participants;
-    }
-
-    public TournamentExecution getExecution() {
-        return execution;
-    }
-
-    public void setExecution(TournamentExecution execution) {
-        this.execution = execution;
-    }
-
-    public Set<TournamentTopic> getTopics() {
-        return topics;
-    }
-
-    public void setTopics(Set<TournamentTopic> topics) {
-        this.topics = topics;
-    }
-
-    public TournamentQuiz getQuiz() {
-        return quiz;
-    }
-
-    public void setQuiz(TournamentQuiz quiz) {
-        this.quiz = quiz;
     }
 
 }

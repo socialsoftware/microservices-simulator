@@ -73,14 +73,6 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             required: true
         });
 
-        if (lowerAggregate !== 'user') {
-            dependencies.push({
-                name: `${lowerAggregate}Factory`,
-                type: `${this.capitalize(aggregateName)}Factory`,
-                required: true
-            });
-        }
-
         return dependencies;
     }
 
@@ -252,7 +244,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         } else if (operation === 'getAll') {
             sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.get${aggregateName}s();`;
         } else if (operation === 'search') {
-            sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.get${aggregateName}sSearched();`;
+            sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.getSearched${aggregateName}Dtos();`;
         } else if (operation === 'getById') {
             sagaReturn = `return ${uncapitalizedMethodName}FunctionalitySagas.get${aggregateName}Dto();`;
         } else if (operation === 'update') {
@@ -308,19 +300,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             }
         });
 
-        if (rootEntity) {
-            imports.push(`import ${basePackage}.${projectName}.shared.dtos.${rootEntity.name}Dto;`);
-        }
-
-        if (aggregate.entities) {
-            aggregate.entities.forEach((entity: any) => {
-                if (entity.name !== rootEntity?.name) {
-                    imports.push(`import ${basePackage}.${projectName}.shared.dtos.${entity.name}Dto;`);
-                }
-            });
-        }
-
-        this.addDtoImports(aggregate, imports, projectName, entityRegistry);
+        this.addDtoImports(aggregate, imports, projectName, entityRegistry, businessMethods);
 
         const hasListReturnType = businessMethods.some(method =>
             method.returnType && method.returnType.includes('List<')
@@ -511,21 +491,30 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     }
 
 
-    private addDtoImports(aggregate: Aggregate, imports: string[], projectName: string, entityRegistry: EntityRegistry): void {
+    private addDtoImports(aggregate: Aggregate, imports: string[], projectName: string, entityRegistry: EntityRegistry, businessMethods?: any[]): void {
         const usedDtoTypes = new Set<string>();
 
-        if (aggregate.methods) {
-            aggregate.methods.forEach((method: any) => {
-                const returnType = this.extractReturnType(method.returnType, entityRegistry);
-                this.collectDtoTypesFromReturnType(returnType, usedDtoTypes);
+        if (businessMethods && businessMethods.length > 0) {
+            businessMethods.forEach(method => {
+                this.collectDtoTypesFromReturnType(method.returnType, usedDtoTypes);
+                method.parameters?.forEach((param: any) => {
+                    this.collectDtoTypesFromReturnType(param.type, usedDtoTypes);
+                });
             });
-        }
+        } else {
+            if (aggregate.methods) {
+                aggregate.methods.forEach((method: any) => {
+                    const returnType = this.extractReturnType(method.returnType, entityRegistry);
+                    this.collectDtoTypesFromReturnType(returnType, usedDtoTypes);
+                });
+            }
 
-        if (aggregate.workflows) {
-            aggregate.workflows.forEach((workflow: any) => {
-                const returnType = this.extractReturnType(workflow.returnType, entityRegistry);
-                this.collectDtoTypesFromReturnType(returnType, usedDtoTypes);
-            });
+            if (aggregate.workflows) {
+                aggregate.workflows.forEach((workflow: any) => {
+                    const returnType = this.extractReturnType(workflow.returnType, entityRegistry);
+                    this.collectDtoTypesFromReturnType(returnType, usedDtoTypes);
+                });
+            }
         }
 
         const dtoPackage = `${this.getBasePackage()}.${projectName}.shared.dtos`;

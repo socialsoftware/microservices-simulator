@@ -3,14 +3,6 @@ Aggregate Course {
         String name;
         final CourseType type default CourseType.TECNICO;
         LocalDateTime creationDate;
-
-        invariants {
-           
-        }
-
-
-        methods {
-        }
     }
 
     Repository {
@@ -18,12 +10,9 @@ Aggregate Course {
         Optional<Integer> findCourseIdByNameForSaga(String courseName);
     }
 
-    // Service methods
-    method getCoursesByType(String courseType, UnitOfWork unitOfWork): List<Course>;
-    method searchCoursesByName(String name, UnitOfWork unitOfWork): List<Course>;
-    method searchCoursesByAcronym(String acronym, UnitOfWork unitOfWork): List<Course>;
-    method getUniqueCourseTypes(UnitOfWork unitOfWork): Set<String>;
-    method getCoursesAsSet(UnitOfWork unitOfWork): Set<Course>;
+    WebAPIEndpoints {
+        @GenerateCrud;
+    }
 
     Service CourseService {
         @GenerateCrud;

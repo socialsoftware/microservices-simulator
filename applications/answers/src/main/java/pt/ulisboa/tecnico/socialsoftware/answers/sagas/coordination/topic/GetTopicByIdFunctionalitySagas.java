@@ -8,33 +8,33 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
-public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
-    private TopicDto createdTopicDto;
+public class GetTopicByIdFunctionalitySagas extends WorkflowFunctionality {
+    private TopicDto topicDto;
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
-    public CreateTopicFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService, TopicDto topicDto, SagaUnitOfWork unitOfWork) {
+    public GetTopicByIdFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService, Integer topicAggregateId, SagaUnitOfWork unitOfWork) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(topicDto, unitOfWork);
+        this.buildWorkflow(topicAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(TopicDto topicDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer topicAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep createTopicStep = new SagaSyncStep("createTopicStep", () -> {
-            TopicDto createdTopicDto = topicService.createTopic(topicDto, unitOfWork);
-            setCreatedTopicDto(createdTopicDto);
+        SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
+            TopicDto topicDto = topicService.getTopicById(topicAggregateId, unitOfWork);
+            setTopicDto(topicDto);
         });
 
-        workflow.addStep(createTopicStep);
+        workflow.addStep(getTopicStep);
     }
 
-    public TopicDto getCreatedTopicDto() {
-        return createdTopicDto;
+    public TopicDto getTopicDto() {
+        return topicDto;
     }
 
-    public void setCreatedTopicDto(TopicDto createdTopicDto) {
-        this.createdTopicDto = createdTopicDto;
+    public void setTopicDto(TopicDto topicDto) {
+        this.topicDto = topicDto;
     }
 }

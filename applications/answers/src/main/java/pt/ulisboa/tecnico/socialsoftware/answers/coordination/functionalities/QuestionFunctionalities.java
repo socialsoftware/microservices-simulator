@@ -15,11 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.question.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.service.QuestionService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.questionfactory.service.QuestionFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionTopicDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
 import java.util.List;
 
 @Service
@@ -29,9 +25,6 @@ public class QuestionFunctionalities {
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
-
-    @Autowired
-    private QuestionFactory questionFactory;
 
 
     @Autowired

@@ -107,7 +107,7 @@ public class UserFunctionalities {
                 SearchUsersFunctionalitySagas searchUsersFunctionalitySagas = new SearchUsersFunctionalitySagas(
                         userService, sagaUnitOfWorkService, name, username, role, active, sagaUnitOfWork);
                 searchUsersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return searchUsersFunctionalitySagas.getUsersSearched();
+                return searchUsersFunctionalitySagas.getSearchedUserDtos();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }

@@ -15,11 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.quiz.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quizfactory.service.QuizFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizQuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizOptionDto;
 
 @Service
 public class QuizFunctionalities {
@@ -28,9 +24,6 @@ public class QuizFunctionalities {
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
-
-    @Autowired
-    private QuizFactory quizFactory;
 
 
     @Autowired

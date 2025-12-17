@@ -950,6 +950,7 @@ ${gettersSetters}
         const capitalizedAggregate = this.capitalize(aggregate.name);
         const dtoType = `${capitalizedAggregate}Dto`;
         const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
+        const entityName = rootEntity.name;
 
         const crudOperations: any[] = [
             {
@@ -1014,9 +1015,9 @@ ${gettersSetters}
                 stepName: `search${capitalizedAggregate}sStep`,
                 params: searchParams,
                 resultType: `List<${dtoType}>`,
-                resultField: `${lowerAggregate}sSearched`,
-                resultSetter: `set${capitalizedAggregate}sSearched`,
-                resultGetter: `get${capitalizedAggregate}sSearched`,
+                resultField: `searched${entityName}Dtos`,
+                resultSetter: `setSearched${entityName}Dtos`,
+                resultGetter: `getSearched${entityName}Dtos`,
                 serviceCall: `${lowerAggregate}Service.search${capitalizedAggregate}s`,
                 serviceArgs: [...searchableProperties.map((p: any) => p.name), 'unitOfWork']
             });

@@ -11,7 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.UserRole;
 import java.util.List;
 
 public class SearchUsersFunctionalitySagas extends WorkflowFunctionality {
-    private List<UserDto> usersSearched;
+    private List<UserDto> searchedUserDtos;
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
@@ -25,18 +25,18 @@ public class SearchUsersFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep searchUsersStep = new SagaSyncStep("searchUsersStep", () -> {
-            List<UserDto> usersSearched = userService.searchUsers(name, username, role, active, unitOfWork);
-            setUsersSearched(usersSearched);
+            List<UserDto> searchedUserDtos = userService.searchUsers(name, username, role, active, unitOfWork);
+            setSearchedUserDtos(searchedUserDtos);
         });
 
         workflow.addStep(searchUsersStep);
     }
 
-    public List<UserDto> getUsersSearched() {
-        return usersSearched;
+    public List<UserDto> getSearchedUserDtos() {
+        return searchedUserDtos;
     }
 
-    public void setUsersSearched(List<UserDto> usersSearched) {
-        this.usersSearched = usersSearched;
+    public void setSearchedUserDtos(List<UserDto> searchedUserDtos) {
+        this.searchedUserDtos = searchedUserDtos;
     }
 }

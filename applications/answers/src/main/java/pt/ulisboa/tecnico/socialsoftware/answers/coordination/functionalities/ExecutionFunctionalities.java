@@ -17,10 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.executionfactory.service.ExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionCourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionUserDto;
 import java.util.List;
 
 @Service
@@ -33,9 +30,6 @@ public class ExecutionFunctionalities {
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
-
-    @Autowired
-    private ExecutionFactory executionFactory;
 
 
     @Autowired

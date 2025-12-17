@@ -21,9 +21,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.AnswerExecution;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.AnswerUser;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.AnswerQuiz;
 
 @Service
 public class AnswerService {
@@ -112,7 +109,7 @@ public class AnswerService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<AnswerDto> searchAnswers(Boolean completed, AnswerExecution execution, AnswerUser user, AnswerQuiz quiz, UnitOfWork unitOfWork) {
+    public List<AnswerDto> searchAnswers(Boolean completed, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = answerRepository.findAll().stream()
                 .filter(entity -> {
                     if (completed != null) {
@@ -120,21 +117,6 @@ public class AnswerService {
                             return false;
                         }
                     }
-                    if (execution != null) {
-                        if (!entity.getExecution().equals(execution)) {
-                            return false;
-                        }
-                                            }
-                    if (user != null) {
-                        if (!entity.getUser().equals(user)) {
-                            return false;
-                        }
-                                            }
-                    if (quiz != null) {
-                        if (!entity.getQuiz().equals(quiz)) {
-                            return false;
-                        }
-                                            }
                     return true;
                 })
                 .map(Answer::getAggregateId)

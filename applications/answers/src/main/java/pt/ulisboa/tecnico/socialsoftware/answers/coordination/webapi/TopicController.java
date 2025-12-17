@@ -5,30 +5,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.TopicFunctionalities;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.*;
 
 @RestController
 public class TopicController {
     @Autowired
     private TopicFunctionalities topicFunctionalities;
 
-    @GetMapping("/courses/{courseAggregateId}/topics")
-    public List<TopicDto> findTopicsByCourseAggregateId(@PathVariable Integer courseAggregateId) {
-        return topicFunctionalities.findTopicsByCourseAggregateId(courseAggregateId);
+    @PostMapping("/topics/create")
+    public TopicDto createTopic(@RequestBody TopicDto topicDto) {
+        return topicFunctionalities.createTopic(topicDto);
     }
 
-    @PostMapping("/courses/{courseAggregateId}/create")
-    public TopicDto createTopic(@PathVariable Integer courseAggregateId, @RequestBody TopicDto topicDto) throws Exception {
-        return topicFunctionalities.createTopic(courseAggregateId, topicDto);
+    @GetMapping("/topics/{topicAggregateId}")
+    public TopicDto getTopicById(@PathVariable Integer topicAggregateId) {
+        return topicFunctionalities.getTopicById(topicAggregateId);
     }
 
-    @PostMapping("/topics/update")
-    public void updateTopic(@RequestBody TopicDto topicDto) throws Exception {
-        topicFunctionalities.updateTopic(topicDto);
+    @PutMapping("/topics/{topicAggregateId}")
+    public TopicDto updateTopic(@PathVariable Integer topicAggregateId, @RequestBody TopicDto topicDto) {
+        return topicFunctionalities.updateTopic(topicAggregateId, topicDto);
     }
 
-    @PostMapping("/topics/{topicAggregateId}/delete")
-    public void deleteTopic(@PathVariable Integer topicAggregateId) throws Exception {
+    @DeleteMapping("/topics/{topicAggregateId}")
+    public void deleteTopic(@PathVariable Integer topicAggregateId) {
         topicFunctionalities.deleteTopic(topicAggregateId);
+    }
+
+    @GetMapping("/topics")
+    public List<TopicDto> searchTopics(@RequestParam(required = false) String name) {
+        return topicFunctionalities.searchTopics(name);
     }
 }

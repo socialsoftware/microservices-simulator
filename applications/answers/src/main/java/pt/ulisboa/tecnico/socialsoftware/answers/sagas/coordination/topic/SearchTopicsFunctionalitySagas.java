@@ -7,34 +7,35 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import java.util.List;
 
-public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
-    private TopicDto createdTopicDto;
+public class SearchTopicsFunctionalitySagas extends WorkflowFunctionality {
+    private List<TopicDto> searchedTopicDtos;
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
-    public CreateTopicFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService, TopicDto topicDto, SagaUnitOfWork unitOfWork) {
+    public SearchTopicsFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService, String name, SagaUnitOfWork unitOfWork) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(topicDto, unitOfWork);
+        this.buildWorkflow(name, unitOfWork);
     }
 
-    public void buildWorkflow(TopicDto topicDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(String name, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep createTopicStep = new SagaSyncStep("createTopicStep", () -> {
-            TopicDto createdTopicDto = topicService.createTopic(topicDto, unitOfWork);
-            setCreatedTopicDto(createdTopicDto);
+        SagaSyncStep searchTopicsStep = new SagaSyncStep("searchTopicsStep", () -> {
+            List<TopicDto> searchedTopicDtos = topicService.searchTopics(name, unitOfWork);
+            setSearchedTopicDtos(searchedTopicDtos);
         });
 
-        workflow.addStep(createTopicStep);
+        workflow.addStep(searchTopicsStep);
     }
 
-    public TopicDto getCreatedTopicDto() {
-        return createdTopicDto;
+    public List<TopicDto> getSearchedTopicDtos() {
+        return searchedTopicDtos;
     }
 
-    public void setCreatedTopicDto(TopicDto createdTopicDto) {
-        this.createdTopicDto = createdTopicDto;
+    public void setSearchedTopicDtos(List<TopicDto> searchedTopicDtos) {
+        this.searchedTopicDtos = searchedTopicDtos;
     }
 }

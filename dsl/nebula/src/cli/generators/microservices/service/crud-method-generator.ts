@@ -1,4 +1,5 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
+import { UnifiedTypeResolver } from "../../common/unified-type-resolver.js";
 
 export interface GeneratedMethod {
     name: string;
@@ -209,15 +210,11 @@ export class CrudMethodGenerator {
 
             let isEnum = false;
             if (propType && typeof propType === 'object' && propType.$type === 'EntityType' && propType.type) {
-                const ref = propType.type.ref;
-                if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
+                const ref = propType.type.ref as any;
+                if (ref && ref.$type === 'EnumDefinition' && ref.name) {
                     isEnum = true;
-                } else if (propType.type.$refText) {
-                    const refText = propType.type.$refText;
-                    if (!searchableTypes.includes(refText) &&
-                        !['Integer', 'Long', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal'].includes(refText)) {
-                        isEnum = true;
-                    }
+                } else if (propType.type.$refText && UnifiedTypeResolver.isEnumType(propType.type.$refText)) {
+                    isEnum = true;
                 }
             }
 

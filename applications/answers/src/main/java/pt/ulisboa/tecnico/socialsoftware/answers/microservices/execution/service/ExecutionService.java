@@ -21,7 +21,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggrega
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.ExecutionCourse;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.Execution;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.Object;
 
@@ -112,7 +111,7 @@ public class ExecutionService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<ExecutionDto> searchExecutions(String acronym, String academicTerm, ExecutionCourse course, UnitOfWork unitOfWork) {
+    public List<ExecutionDto> searchExecutions(String acronym, String academicTerm, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = executionRepository.findAll().stream()
                 .filter(entity -> {
                     if (acronym != null) {
@@ -125,11 +124,6 @@ public class ExecutionService {
                             return false;
                         }
                     }
-                    if (course != null) {
-                        if (!entity.getCourse().equals(course)) {
-                            return false;
-                        }
-                                            }
                     return true;
                 })
                 .map(Execution::getAggregateId)

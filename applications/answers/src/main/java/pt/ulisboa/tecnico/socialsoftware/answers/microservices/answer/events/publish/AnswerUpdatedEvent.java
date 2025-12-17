@@ -8,23 +8,15 @@ public class AnswerUpdatedEvent extends Event {
     private LocalDateTime creationDate;
     private LocalDateTime answerDate;
     private Boolean completed;
-    private AnswerExecution execution;
-    private AnswerUser user;
-    private AnswerQuiz quiz;
-    private List<QuestionAnswered> questions;
 
     public AnswerUpdatedEvent() {
     }
 
-    public AnswerUpdatedEvent(Integer aggregateId, LocalDateTime creationDate, LocalDateTime answerDate, Boolean completed, AnswerExecution execution, AnswerUser user, AnswerQuiz quiz, List<QuestionAnswered> questions) {
+    public AnswerUpdatedEvent(Integer aggregateId, LocalDateTime creationDate, LocalDateTime answerDate, Boolean completed) {
         super(aggregateId);
         setCreationDate(creationDate);
         setAnswerDate(answerDate);
         setCompleted(completed);
-        setExecution(execution);
-        setUser(user);
-        setQuiz(quiz);
-        setQuestions(questions);
     }
 
     public LocalDateTime getCreationDate() {
@@ -49,38 +41,6 @@ public class AnswerUpdatedEvent extends Event {
 
     public void setCompleted(Boolean completed) {
         this.completed = completed;
-    }
-
-    public AnswerExecution getExecution() {
-        return execution;
-    }
-
-    public void setExecution(AnswerExecution execution) {
-        this.execution = execution;
-    }
-
-    public AnswerUser getUser() {
-        return user;
-    }
-
-    public void setUser(AnswerUser user) {
-        this.user = user;
-    }
-
-    public AnswerQuiz getQuiz() {
-        return quiz;
-    }
-
-    public void setQuiz(AnswerQuiz quiz) {
-        this.quiz = quiz;
-    }
-
-    public List<QuestionAnswered> getQuestions() {
-        return questions;
-    }
-
-    public void setQuestions(List<QuestionAnswered> questions) {
-        this.questions = questions;
     }
 
 }

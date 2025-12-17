@@ -8,21 +8,15 @@ public class QuestionUpdatedEvent extends Event {
     private String title;
     private String content;
     private LocalDateTime creationDate;
-    private QuestionCourse course;
-    private Set<QuestionTopic> topics;
-    private List<Option> options;
 
     public QuestionUpdatedEvent() {
     }
 
-    public QuestionUpdatedEvent(Integer aggregateId, String title, String content, LocalDateTime creationDate, QuestionCourse course, Set<QuestionTopic> topics, List<Option> options) {
+    public QuestionUpdatedEvent(Integer aggregateId, String title, String content, LocalDateTime creationDate) {
         super(aggregateId);
         setTitle(title);
         setContent(content);
         setCreationDate(creationDate);
-        setCourse(course);
-        setTopics(topics);
-        setOptions(options);
     }
 
     public String getTitle() {
@@ -47,30 +41,6 @@ public class QuestionUpdatedEvent extends Event {
 
     public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
-    }
-
-    public QuestionCourse getCourse() {
-        return course;
-    }
-
-    public void setCourse(QuestionCourse course) {
-        this.course = course;
-    }
-
-    public Set<QuestionTopic> getTopics() {
-        return topics;
-    }
-
-    public void setTopics(Set<QuestionTopic> topics) {
-        this.topics = topics;
-    }
-
-    public List<Option> getOptions() {
-        return options;
-    }
-
-    public void setOptions(List<Option> options) {
-        this.options = options;
     }
 
 }

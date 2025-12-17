@@ -2,32 +2,25 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publ
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 
 @Entity
 public class QuizUpdatedEvent extends Event {
     private String title;
-    private QuizType quizType;
     private LocalDateTime creationDate;
     private LocalDateTime availableDate;
     private LocalDateTime conclusionDate;
     private LocalDateTime resultsDate;
-    private QuizExecution execution;
-    private Set<QuizQuestion> questions;
 
     public QuizUpdatedEvent() {
     }
 
-    public QuizUpdatedEvent(Integer aggregateId, String title, QuizType quizType, LocalDateTime creationDate, LocalDateTime availableDate, LocalDateTime conclusionDate, LocalDateTime resultsDate, QuizExecution execution, Set<QuizQuestion> questions) {
+    public QuizUpdatedEvent(Integer aggregateId, String title, LocalDateTime creationDate, LocalDateTime availableDate, LocalDateTime conclusionDate, LocalDateTime resultsDate) {
         super(aggregateId);
         setTitle(title);
-        setQuizType(quizType);
         setCreationDate(creationDate);
         setAvailableDate(availableDate);
         setConclusionDate(conclusionDate);
         setResultsDate(resultsDate);
-        setExecution(execution);
-        setQuestions(questions);
     }
 
     public String getTitle() {
@@ -36,14 +29,6 @@ public class QuizUpdatedEvent extends Event {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public QuizType getQuizType() {
-        return quizType;
-    }
-
-    public void setQuizType(QuizType quizType) {
-        this.quizType = quizType;
     }
 
     public LocalDateTime getCreationDate() {
@@ -76,22 +61,6 @@ public class QuizUpdatedEvent extends Event {
 
     public void setResultsDate(LocalDateTime resultsDate) {
         this.resultsDate = resultsDate;
-    }
-
-    public QuizExecution getExecution() {
-        return execution;
-    }
-
-    public void setExecution(QuizExecution execution) {
-        this.execution = execution;
-    }
-
-    public Set<QuizQuestion> getQuestions() {
-        return questions;
-    }
-
-    public void setQuestions(Set<QuizQuestion> questions) {
-        this.questions = questions;
     }
 
 }

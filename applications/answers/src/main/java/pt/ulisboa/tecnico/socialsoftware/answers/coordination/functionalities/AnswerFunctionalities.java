@@ -17,12 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service.AnswerService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answerfactory.service.AnswerFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerUserDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionAnsweredDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
 
 @Service
 public class AnswerFunctionalities {
@@ -34,9 +29,6 @@ public class AnswerFunctionalities {
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
-
-    @Autowired
-    private AnswerFactory answerFactory;
 
 
     @Autowired

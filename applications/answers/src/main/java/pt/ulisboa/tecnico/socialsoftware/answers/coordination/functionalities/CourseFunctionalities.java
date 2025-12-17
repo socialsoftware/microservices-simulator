@@ -14,8 +14,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.course.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.coursefactory.service.CourseFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
+import java.util.List;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
 @Service
 public class CourseFunctionalities {
@@ -24,9 +25,6 @@ public class CourseFunctionalities {
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
-
-    @Autowired
-    private CourseFactory courseFactory;
 
 
     @Autowired
@@ -41,6 +39,76 @@ public class CourseFunctionalities {
             workflowType = SAGAS;
         } else {
             throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public CourseDto createCourse(CourseDto courseDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                CreateCourseFunctionalitySagas createCourseFunctionalitySagas = new CreateCourseFunctionalitySagas(
+                        courseService, sagaUnitOfWorkService, courseDto, sagaUnitOfWork);
+                createCourseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return createCourseFunctionalitySagas.getCreatedCourseDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public CourseDto getCourseById(Integer courseAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetCourseByIdFunctionalitySagas getCourseByIdFunctionalitySagas = new GetCourseByIdFunctionalitySagas(
+                        courseService, sagaUnitOfWorkService, courseAggregateId, sagaUnitOfWork);
+                getCourseByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getCourseByIdFunctionalitySagas.getCourseDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public CourseDto updateCourse(Integer courseAggregateId, CourseDto courseDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateCourseFunctionalitySagas updateCourseFunctionalitySagas = new UpdateCourseFunctionalitySagas(
+                        courseService, sagaUnitOfWorkService, courseAggregateId, courseDto, sagaUnitOfWork);
+                updateCourseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return updateCourseFunctionalitySagas.getUpdatedCourseDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void deleteCourse(Integer courseAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeleteCourseFunctionalitySagas deleteCourseFunctionalitySagas = new DeleteCourseFunctionalitySagas(
+                        courseService, sagaUnitOfWorkService, courseAggregateId, sagaUnitOfWork);
+                deleteCourseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public List<CourseDto> searchCourses(String name, CourseType type) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                SearchCoursesFunctionalitySagas searchCoursesFunctionalitySagas = new SearchCoursesFunctionalitySagas(
+                        courseService, sagaUnitOfWorkService, name, type, sagaUnitOfWork);
+                searchCoursesFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return searchCoursesFunctionalitySagas.getSearchedCourseDtos();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

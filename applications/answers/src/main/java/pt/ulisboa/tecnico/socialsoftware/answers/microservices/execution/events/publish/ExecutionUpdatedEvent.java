@@ -8,19 +8,15 @@ public class ExecutionUpdatedEvent extends Event {
     private String acronym;
     private String academicTerm;
     private LocalDateTime endDate;
-    private ExecutionCourse course;
-    private Set<ExecutionUser> users;
 
     public ExecutionUpdatedEvent() {
     }
 
-    public ExecutionUpdatedEvent(Integer aggregateId, String acronym, String academicTerm, LocalDateTime endDate, ExecutionCourse course, Set<ExecutionUser> users) {
+    public ExecutionUpdatedEvent(Integer aggregateId, String acronym, String academicTerm, LocalDateTime endDate) {
         super(aggregateId);
         setAcronym(acronym);
         setAcademicTerm(academicTerm);
         setEndDate(endDate);
-        setCourse(course);
-        setUsers(users);
     }
 
     public String getAcronym() {
@@ -45,22 +41,6 @@ public class ExecutionUpdatedEvent extends Event {
 
     public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
-    }
-
-    public ExecutionCourse getCourse() {
-        return course;
-    }
-
-    public void setCourse(ExecutionCourse course) {
-        this.course = course;
-    }
-
-    public Set<ExecutionUser> getUsers() {
-        return users;
-    }
-
-    public void setUsers(Set<ExecutionUser> users) {
-        this.users = users;
     }
 
 }

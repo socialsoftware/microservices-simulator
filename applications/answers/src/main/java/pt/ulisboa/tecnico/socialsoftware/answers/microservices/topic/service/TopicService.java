@@ -21,7 +21,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.*
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.TopicCourse;
 
 @Service
 public class TopicService {
@@ -108,7 +107,7 @@ public class TopicService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<TopicDto> searchTopics(String name, TopicCourse course, UnitOfWork unitOfWork) {
+    public List<TopicDto> searchTopics(String name, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = topicRepository.findAll().stream()
                 .filter(entity -> {
                     if (name != null) {
@@ -116,11 +115,6 @@ public class TopicService {
                             return false;
                         }
                     }
-                    if (course != null) {
-                        if (!entity.getCourse().equals(course)) {
-                            return false;
-                        }
-                                            }
                     return true;
                 })
                 .map(Topic::getAggregateId)

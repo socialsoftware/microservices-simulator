@@ -36,12 +36,38 @@ export class PublishedEventGenerator extends EventBaseGenerator {
         return eventTypes.map(eventType => {
             const variations = this.getEventNameVariations(eventType, aggregateName);
             let properties: any[] = [];
+
             if (eventType === 'Updated') {
                 const allProperties = this.buildEventProperties(rootEntity, eventType);
-                properties = allProperties.filter((prop: any) => !prop.isFinal);
+                const rootProps = (rootEntity.properties || []) as any[];
+
+                properties = allProperties.filter((prop: any) => {
+                    const rootProp = rootProps.find(p => p.name === prop.name);
+                    const typeNode = rootProp?.type;
+
+                    let isEntityRef = false;
+                    let isCollectionRef = false;
+                    if (typeNode && typeof typeNode === 'object') {
+                        const t: any = typeNode;
+                        if (t.$type === 'EntityType') {
+                            isEntityRef = true;
+                        } else if (t.$type === 'CollectionType' || t.$type === 'ListType' || t.$type === 'SetType') {
+                            isCollectionRef = true;
+                        }
+                    }
+
+                    return (
+                        !prop.isFinal &&
+                        !prop.isCollection &&
+                        !prop.isEntity &&
+                        !isEntityRef &&
+                        !isCollectionRef
+                    );
+                });
             } else if (eventType === 'Deleted') {
                 properties = [];
             }
+
             return {
                 eventType,
                 ...variations,

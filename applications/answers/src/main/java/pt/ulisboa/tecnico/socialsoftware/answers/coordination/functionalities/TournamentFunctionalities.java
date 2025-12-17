@@ -17,14 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournamentfactory.service.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantQuizDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentTopicDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
 import java.util.List;
 
 @Service
@@ -37,9 +30,6 @@ public class TournamentFunctionalities {
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
-
-    @Autowired
-    private TournamentFactory tournamentFactory;
 
 
     @Autowired

@@ -21,9 +21,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.TournamentCreator;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.TournamentExecution;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.TournamentQuiz;
 
 @Service
 public class TournamentService {
@@ -113,7 +110,7 @@ public class TournamentService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<TournamentDto> searchTournaments(Boolean cancelled, TournamentCreator creator, TournamentExecution execution, TournamentQuiz quiz, UnitOfWork unitOfWork) {
+    public List<TournamentDto> searchTournaments(Boolean cancelled, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = tournamentRepository.findAll().stream()
                 .filter(entity -> {
                     if (cancelled != null) {
@@ -121,21 +118,6 @@ public class TournamentService {
                             return false;
                         }
                     }
-                    if (creator != null) {
-                        if (!entity.getCreator().equals(creator)) {
-                            return false;
-                        }
-                                            }
-                    if (execution != null) {
-                        if (!entity.getExecution().equals(execution)) {
-                            return false;
-                        }
-                                            }
-                    if (quiz != null) {
-                        if (!entity.getQuiz().equals(quiz)) {
-                            return false;
-                        }
-                                            }
                     return true;
                 })
                 .map(Tournament::getAggregateId)
