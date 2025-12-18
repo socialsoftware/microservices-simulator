@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate;
 
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
@@ -13,6 +14,7 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public abstract class Aggregate implements Serializable {
 
     public enum AggregateState {
@@ -43,7 +45,7 @@ public abstract class Aggregate implements Serializable {
 
     }
 
-    /* used when creating a new aggregate*/
+    /* used when creating a new aggregate */
     public Aggregate(Integer aggregateId) {
         setAggregateId(aggregateId);
         setState(AggregateState.ACTIVE);

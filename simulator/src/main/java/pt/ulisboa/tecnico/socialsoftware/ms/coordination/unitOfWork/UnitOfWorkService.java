@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 
-import java.util.Map;
+import java.util.List;
 
 @Service
 public abstract class UnitOfWorkService<U extends UnitOfWork> {
@@ -26,7 +26,7 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
 
     // Must be serializable in order to ensure no other commits are made between the
     // checking of concurrent versions and the actual persist
-    public abstract void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap);
+    public abstract void commitAllObjects(Integer commitVersion, List<Aggregate> aggregates);
 
     protected String resolveServiceName(String aggregateType) {
         String stripped = aggregateType.replaceAll("Saga", "").replaceAll("Causal", "");

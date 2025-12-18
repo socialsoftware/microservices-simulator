@@ -64,13 +64,18 @@ public abstract class StreamCommandHandler implements CommandHandler {
             logger.warning("Command handling error: " + e.getMessage());
             sendErrorResponse(correlationId, e.getMessage(), command.getUnitOfWork(), replyTo);
         } catch (Exception e) {
-            logger.severe("Unexpected error handling command: " + e.getMessage() + " " + command.getClass().getSimpleName());
+            logger.severe(
+                    "Unexpected error handling command: " + e.getMessage() + " " + command.getClass().getSimpleName());
             sendErrorResponse(correlationId, "Unexpected error: " + e.getMessage(), command.getUnitOfWork(), replyTo);
         }
     }
 
     private void sendResponse(String correlationId, Object result, UnitOfWork unitOfWork, String replyTo) {
         logger.info("Sending response.....");
+        logger.info("UnitOfWork aggregatesToCommit before sending: " +
+                (unitOfWork != null && unitOfWork.getAggregatesToCommit() != null
+                        ? unitOfWork.getAggregatesToCommit().size() + " aggregates"
+                        : "null"));
         CommandResponse response = CommandResponse.success(correlationId, result, unitOfWork);
         String json;
         try {

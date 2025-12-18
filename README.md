@@ -76,40 +76,12 @@ Follow the same database setup steps as in the [Maven section](#setting-up-the-d
 
 The project includes ready-to-use IntelliJ run configurations in the `.run/` directory. After opening the project in IntelliJ, these configurations will be automatically available in the Run/Debug dropdown.
 
-#### Available Configurations
-
-| Configuration | Description | Profiles |
-|---------------|-------------|----------|
-| **Quizzes** | Quizzes Tutor Simulator | `stream, sagas` |
-| **simulator** | Simulator Tests | - |
-
-#### Microservices (for distributed deployment)
-
-| Service | Configuration File |
-|---------|-------------------|
-| Answer Service | `AnswerServiceApplication.run.xml` |
-| Course Service | `CourseServiceApplication.run.xml` |
-| Course Execution Service | `CourseExecutionServiceApplication.run.xml` |
-| Question Service | `QuestionServiceApplication.run.xml` |
-| Quiz Service | `QuizServiceApplication.run.xml` |
-| Topic Service | `TopicServiceApplication.run.xml` |
-| Tournament Service | `TournamentServiceApplication.run.xml` |
-| User Service | `UserServiceApplication.run.xml` |
-| Version Service | `VersionServiceApplication.run.xml` |
-| Gateway | `GatewayApplication.run.xml` |
-
 ### Running the Application
 
 1. Open the project in IntelliJ IDEA
 2. Wait for IntelliJ to index the project and download dependencies
 3. Select a run configuration from the dropdown (e.g., **Quizzes**)
 4. Click the **Run** button
-
-### Running Tests
-
-1. Navigate to the test file in the Project view
-2. Right-click on the test class or method
-3. Select **Run 'TestName'**
 
 ---
 
@@ -120,8 +92,8 @@ The project includes ready-to-use IntelliJ run configurations in the `.run/` dir
 - [Maven 3.9.9](https://archive.apache.org/dist/maven/maven-3/3.9.9/)
 - [Java 21+](https://openjdk.org/projects/jdk/21/)
 - [PSQL 14](https://www.postgresql.org/download/)
-- [RabbitMQ 3.12+](https://www.rabbitmq.com/download.html) (required for microservices mode)
-- [JMeter 5.6](https://jmeter.apache.org/download_jmeter.cgi) (for performance testing)
+- [RabbitMQ 3.12+](https://www.rabbitmq.com/download.html) (required for stream profile)
+- [JMeter 5.6](https://jmeter.apache.org/download_jmeter.cgi) 
 
 ### Setting up the Database (Monolithic)
 

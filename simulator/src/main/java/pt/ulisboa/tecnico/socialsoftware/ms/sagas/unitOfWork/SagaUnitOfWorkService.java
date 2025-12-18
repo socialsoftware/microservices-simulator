@@ -127,7 +127,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         entityManager.merge(aggregate);
     }
 
-    public void commitAllObjects(Integer commitVersion, Map<Integer, Aggregate> aggregateMap) {
+    public void commitAllObjects(Integer commitVersion, List<Aggregate> aggregates) {
         // aggregates are committed at the end of each service
     }
 
