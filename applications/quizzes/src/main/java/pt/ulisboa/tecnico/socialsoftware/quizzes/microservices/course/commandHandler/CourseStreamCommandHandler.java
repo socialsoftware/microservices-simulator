@@ -16,20 +16,24 @@ import java.util.function.Consumer;
 @Profile("stream")
 public class CourseStreamCommandHandler extends StreamCommandHandler {
 
-
     private final CourseCommandHandler courseCommandHandler;
 
     @Autowired
     public CourseStreamCommandHandler(StreamBridge streamBridge,
-                                      CourseCommandHandler courseCommandHandler,
-                                      MessagingObjectMapperProvider mapperProvider) {
+            CourseCommandHandler courseCommandHandler,
+            MessagingObjectMapperProvider mapperProvider) {
         super(streamBridge, mapperProvider);
         this.courseCommandHandler = courseCommandHandler;
     }
 
     @Override
-    public Object handle(Command command) {
-        return courseCommandHandler.handle(command);
+    protected String getAggregateTypeName() {
+        return "Course";
+    }
+
+    @Override
+    protected Object handleDomainCommand(Command command) {
+        return courseCommandHandler.handleDomainCommand(command);
     }
 
     @Bean
@@ -37,4 +41,3 @@ public class CourseStreamCommandHandler extends StreamCommandHandler {
         return this::handleCommandMessage;
     }
 }
-

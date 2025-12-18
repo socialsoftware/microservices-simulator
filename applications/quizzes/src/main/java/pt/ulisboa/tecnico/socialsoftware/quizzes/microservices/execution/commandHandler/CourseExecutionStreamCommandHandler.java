@@ -11,26 +11,29 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.Messagi
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.StreamCommandHandler;
 
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 
 @Component
 @Profile("stream")
 public class CourseExecutionStreamCommandHandler extends StreamCommandHandler {
 
-    private static final Logger logger = Logger.getLogger(CourseExecutionStreamCommandHandler.class.getName());
     private final CourseExecutionCommandHandler courseExecutionCommandHandler;
 
     @Autowired
     public CourseExecutionStreamCommandHandler(StreamBridge streamBridge,
-                                              CourseExecutionCommandHandler courseExecutionCommandHandler,
-                                              MessagingObjectMapperProvider mapperProvider) {
+            CourseExecutionCommandHandler courseExecutionCommandHandler,
+            MessagingObjectMapperProvider mapperProvider) {
         super(streamBridge, mapperProvider);
         this.courseExecutionCommandHandler = courseExecutionCommandHandler;
     }
 
     @Override
-    public Object handle(Command command) {
-        return courseExecutionCommandHandler.handle(command);
+    protected String getAggregateTypeName() {
+        return "CourseExecution";
+    }
+
+    @Override
+    protected Object handleDomainCommand(Command command) {
+        return courseExecutionCommandHandler.handleDomainCommand(command);
     }
 
     @Bean

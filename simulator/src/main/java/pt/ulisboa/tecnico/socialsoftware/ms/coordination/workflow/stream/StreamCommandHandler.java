@@ -14,7 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import java.util.logging.Logger;
 
 @Profile("stream")
-public abstract class StreamCommandHandler implements CommandHandler {
+public abstract class StreamCommandHandler extends CommandHandler {
 
     private static final Logger logger = Logger.getLogger(StreamCommandHandler.class.getName());
     private final StreamBridge streamBridge;

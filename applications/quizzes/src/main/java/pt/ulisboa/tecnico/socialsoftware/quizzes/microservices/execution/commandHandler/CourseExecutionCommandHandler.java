@@ -2,17 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.comman
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.AbortCausalCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.GetConcurrentAggregateCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.PrepareCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.AbortSagaCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
@@ -20,65 +11,36 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service
 import java.util.logging.Logger;
 
 @Component
-public class CourseExecutionCommandHandler implements CommandHandler {
+public class CourseExecutionCommandHandler extends CommandHandler {
     private static final Logger logger = Logger.getLogger(CourseExecutionCommandHandler.class.getName());
 
     @Autowired
     private CourseExecutionService courseExecutionService;
 
-    @Autowired(required = false)
-    private SagaUnitOfWorkService sagaUnitOfWorkService;
-
-    @Autowired(required = false)
-    private CausalUnitOfWorkService causalUnitOfWorkService;
+    @Override
+    protected String getAggregateTypeName() {
+        return "CourseExecution";
+    }
 
     @Override
-    public Object handle(Command command) {
-        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
-            logger.info("VERIFYING SAGA STATE");
-            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
-        }
-        Object returnObject;
-        switch (command) {
-            case CreateCourseExecutionCommand createCourseExecutionCommand ->
-                returnObject = handleCreateCourseExecution(createCourseExecutionCommand);
-            case RemoveCourseExecutionCommand removeCourseExecutionCommand ->
-                returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
-            case RemoveStudentFromCourseExecutionCommand removeStudentFromCourseExecutionCommand ->
-                returnObject = handleRemoveStudentFromCourseExecution(removeStudentFromCourseExecutionCommand);
-            case UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand ->
-                returnObject = handleUpdateExecutionStudentName(updateExecutionStudentNameCommand);
-            case GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand ->
-                returnObject = handleGetStudentByExecutionIdAndUserId(getStudentByExecutionIdAndUserIdCommand);
-            case GetCourseExecutionsByUserIdCommand getCourseExecutionsByUserIdCommand ->
-                returnObject = handleGetCourseExecutionsByUserId(getCourseExecutionsByUserIdCommand);
-            case GetCourseExecutionByIdCommand getCourseExecutionByIdCommand ->
-                returnObject = handleGetCourseExecutionById(getCourseExecutionByIdCommand);
-            case GetAllCourseExecutionsCommand getAllCourseExecutionsCommand ->
-                returnObject = handleGetAllCourseExecutions(getAllCourseExecutionsCommand);
-            case EnrollStudentCommand enrollStudentCommand -> returnObject = handleEnrollStudent(enrollStudentCommand);
-            case AnonymizeStudentCommand anonymizeStudentCommand ->
-                returnObject = handleAnonymizeStudent(anonymizeStudentCommand);
-            case RemoveUserCommand removeUserCommand -> returnObject = handleRemoveUser(removeUserCommand);
-            case CommitSagaCommand commitSagaCommand -> returnObject = handleCommitSaga(commitSagaCommand);
-            case AbortSagaCommand abortSagaCommand -> returnObject = handleAbortSaga(abortSagaCommand);
-            case CommitCausalCommand commitCausalCommand -> returnObject = handleCommitCausal(commitCausalCommand);
-            case PrepareCausalCommand prepareCausalCommand -> returnObject = handlePrepareCausal(prepareCausalCommand);
-            case AbortCausalCommand abortCausalCommand -> returnObject = handleAbortCausal(abortCausalCommand);
-            case GetConcurrentAggregateCommand getConcurrentAggregateCommand -> returnObject = handleGetConcurrentAggregate(getConcurrentAggregateCommand);
+    protected Object handleDomainCommand(Command command) {
+        return switch (command) {
+            case CreateCourseExecutionCommand cmd -> handleCreateCourseExecution(cmd);
+            case RemoveCourseExecutionCommand cmd -> handleRemoveCourseExecution(cmd);
+            case RemoveStudentFromCourseExecutionCommand cmd -> handleRemoveStudentFromCourseExecution(cmd);
+            case UpdateExecutionStudentNameCommand cmd -> handleUpdateExecutionStudentName(cmd);
+            case GetStudentByExecutionIdAndUserIdCommand cmd -> handleGetStudentByExecutionIdAndUserId(cmd);
+            case GetCourseExecutionsByUserIdCommand cmd -> handleGetCourseExecutionsByUserId(cmd);
+            case GetCourseExecutionByIdCommand cmd -> handleGetCourseExecutionById(cmd);
+            case GetAllCourseExecutionsCommand cmd -> handleGetAllCourseExecutions(cmd);
+            case EnrollStudentCommand cmd -> handleEnrollStudent(cmd);
+            case AnonymizeStudentCommand cmd -> handleAnonymizeStudent(cmd);
+            case RemoveUserCommand cmd -> handleRemoveUser(cmd);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
-                returnObject = null;
+                yield null;
             }
-        }
-        if (command.getSemanticLock() != null) {
-            Logger.getLogger(CourseExecutionCommandHandler.class.getName())
-                    .info("Registering saga state: " + command.getSemanticLock());
-            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
-                    (SagaUnitOfWork) command.getUnitOfWork());
-        }
-
-        return returnObject;
+        };
     }
 
     private Object handleCreateCourseExecution(CreateCourseExecutionCommand command) {
@@ -232,64 +194,5 @@ public class CourseExecutionCommandHandler implements CommandHandler {
             logger.severe("Failed to anonymize student: " + e.getMessage());
             return e;
         }
-    }
-
-    private Object handleCommitSaga(CommitSagaCommand command) {
-        logger.info("Committing saga for aggregate: " + command.getAggregateId());
-        try {
-            sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to commit saga: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handleAbortSaga(AbortSagaCommand command) {
-        logger.info("Aborting saga for aggregate: " + command.getAggregateId());
-        try {
-            sagaUnitOfWorkService.abortAggregate(command.getAggregateId(), command.getPreviousState());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to abort saga: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handleCommitCausal(CommitCausalCommand command) {
-        logger.info("Committing causal for aggregate: " + command.getRootAggregateId());
-        try {
-            causalUnitOfWorkService.commitCausal(command.getAggregate());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to commit causal: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handlePrepareCausal(PrepareCausalCommand command) {
-        logger.info("Preparing causal for aggregate: " + command.getRootAggregateId());
-        try {
-            causalUnitOfWorkService.prepareCausal(command.getAggregate());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to prepare causal: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handleAbortCausal(AbortCausalCommand command) {
-        logger.info("Aborting causal for aggregate: " + command.getRootAggregateId());
-        try {
-            causalUnitOfWorkService.abortCausal(command.getRootAggregateId());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to abort causal: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handleGetConcurrentAggregate(GetConcurrentAggregateCommand command) {
-        return causalUnitOfWorkService.getConcurrentAggregate(command.getRootAggregateId(), command.getVersion(), "CourseExecution");
     }
 }

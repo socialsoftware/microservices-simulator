@@ -20,15 +20,20 @@ public class UserStreamCommandHandler extends StreamCommandHandler {
 
     @Autowired
     public UserStreamCommandHandler(StreamBridge streamBridge,
-                                    UserCommandHandler userCommandHandler,
-                                    MessagingObjectMapperProvider mapperProvider) {
+            UserCommandHandler userCommandHandler,
+            MessagingObjectMapperProvider mapperProvider) {
         super(streamBridge, mapperProvider);
         this.userCommandHandler = userCommandHandler;
     }
 
     @Override
-    public Object handle(Command command) {
-        return userCommandHandler.handle(command);
+    protected String getAggregateTypeName() {
+        return "User";
+    }
+
+    @Override
+    protected Object handleDomainCommand(Command command) {
+        return userCommandHandler.handleDomainCommand(command);
     }
 
     @Bean
@@ -36,4 +41,3 @@ public class UserStreamCommandHandler extends StreamCommandHandler {
         return this::handleCommandMessage;
     }
 }
-

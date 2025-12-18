@@ -20,15 +20,20 @@ public class TournamentStreamCommandHandler extends StreamCommandHandler {
 
     @Autowired
     public TournamentStreamCommandHandler(StreamBridge streamBridge,
-                                         TournamentCommandHandler tournamentCommandHandler,
-                                         MessagingObjectMapperProvider mapperProvider) {
+            TournamentCommandHandler tournamentCommandHandler,
+            MessagingObjectMapperProvider mapperProvider) {
         super(streamBridge, mapperProvider);
         this.tournamentCommandHandler = tournamentCommandHandler;
     }
 
     @Override
-    public Object handle(Command command) {
-        return tournamentCommandHandler.handle(command);
+    protected String getAggregateTypeName() {
+        return "Tournament";
+    }
+
+    @Override
+    protected Object handleDomainCommand(Command command) {
+        return tournamentCommandHandler.handleDomainCommand(command);
     }
 
     @Bean
@@ -36,4 +41,3 @@ public class TournamentStreamCommandHandler extends StreamCommandHandler {
         return this::handleCommandMessage;
     }
 }
-

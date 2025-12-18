@@ -4,7 +4,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.domain.version;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.DecrementVersionCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.GetVersionCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.IncrementVersionCommand;
@@ -12,13 +11,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.IncrementVers
 import java.util.logging.Logger;
 
 @Component
-public class VersionCommandHandler implements CommandHandler {
+public class VersionCommandHandler {
     private static final Logger logger = Logger.getLogger(VersionCommandHandler.class.getName());
 
     @Autowired
     private IVersionService versionService;
 
-    @Override
     public Object handle(Command command) {
         Object result;
         switch (command) {

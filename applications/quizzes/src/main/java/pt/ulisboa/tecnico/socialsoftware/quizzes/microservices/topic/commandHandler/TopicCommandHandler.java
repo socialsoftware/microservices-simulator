@@ -2,72 +2,38 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.commandHan
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.AbortCausalCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.GetConcurrentAggregateCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.PrepareCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.AbortSagaCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService;
 
 import java.util.logging.Logger;
 
 @Service
-public class TopicCommandHandler implements CommandHandler {
+public class TopicCommandHandler extends CommandHandler {
+    private static final Logger logger = Logger.getLogger(TopicCommandHandler.class.getName());
 
     @Autowired
     private TopicService topicService;
 
-    @Autowired(required = false)
-    private SagaUnitOfWorkService sagaUnitOfWorkService;
-
-    @Autowired(required = false)
-    private CausalUnitOfWorkService causalUnitOfWorkService;
+    @Override
+    protected String getAggregateTypeName() {
+        return "Topic";
+    }
 
     @Override
-    public Object handle(Command command) {
-        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
-            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
-        }
-        Object returnObject;
-        if (command instanceof GetTopicByIdCommand) {
-            returnObject = handleGetTopicById((GetTopicByIdCommand) command);
-        } else if (command instanceof CreateTopicCommand) {
-            returnObject = handleCreateTopic((CreateTopicCommand) command);
-        } else if (command instanceof FindTopicsByCourseIdCommand) {
-            returnObject = handleFindTopicsByCourseId((FindTopicsByCourseIdCommand) command);
-        } else if (command instanceof UpdateTopicCommand) {
-            returnObject = handleUpdateTopic((UpdateTopicCommand) command);
-        } else if (command instanceof DeleteTopicCommand) {
-            returnObject = handleDeleteTopic((DeleteTopicCommand) command);
-        } else if (command instanceof CommitCausalCommand) {
-            returnObject = handleCommitCausal((CommitCausalCommand) command);
-        } else if (command instanceof PrepareCausalCommand) {
-            returnObject = handlePrepareCausal((PrepareCausalCommand) command);
-        } else if (command instanceof AbortCausalCommand) {
-            returnObject = handleAbortCausal((AbortCausalCommand) command);
-        } else if (command instanceof GetConcurrentAggregateCommand) {
-            returnObject = handleGetConcurrentAggregate((GetConcurrentAggregateCommand) command);
-        } else if (command instanceof CommitSagaCommand) {
-            returnObject = handleCommitSaga((CommitSagaCommand) command);
-        } else if (command instanceof AbortSagaCommand) {
-            returnObject = handleAbortSaga((AbortSagaCommand) command);
-        } else {
-            Logger.getLogger(TopicCommandHandler.class.getName())
-                    .warning("Unknown command type: " + command.getClass().getName());
-            returnObject = null;
-        }
-        if (command.getSemanticLock() != null) {
-            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
-                    (SagaUnitOfWork) command.getUnitOfWork());
-        }
-        return returnObject;
+    protected Object handleDomainCommand(Command command) {
+        return switch (command) {
+            case GetTopicByIdCommand cmd -> handleGetTopicById(cmd);
+            case CreateTopicCommand cmd -> handleCreateTopic(cmd);
+            case FindTopicsByCourseIdCommand cmd -> handleFindTopicsByCourseId(cmd);
+            case UpdateTopicCommand cmd -> handleUpdateTopic(cmd);
+            case DeleteTopicCommand cmd -> handleDeleteTopic(cmd);
+            default -> {
+                logger.warning("Unknown command type: " + command.getClass().getName());
+                yield null;
+            }
+        };
     }
 
     private Object handleGetTopicById(GetTopicByIdCommand command) {
@@ -89,35 +55,6 @@ public class TopicCommandHandler implements CommandHandler {
 
     private Object handleDeleteTopic(DeleteTopicCommand command) {
         topicService.deleteTopic(command.getTopicAggregateId(), command.getUnitOfWork());
-        return null;
-    }
-
-    private Object handleCommitCausal(CommitCausalCommand command) {
-        causalUnitOfWorkService.commitCausal(command.getAggregate());
-        return null;
-    }
-
-    private Object handlePrepareCausal(PrepareCausalCommand command) {
-        causalUnitOfWorkService.prepareCausal(command.getAggregate());
-        return null;
-    }
-
-    private Object handleAbortCausal(AbortCausalCommand command) {
-        causalUnitOfWorkService.abortCausal(command.getRootAggregateId());
-        return null;
-    }
-
-    private Object handleGetConcurrentAggregate(GetConcurrentAggregateCommand command) {
-        return causalUnitOfWorkService.getConcurrentAggregate(command.getRootAggregateId(), command.getVersion(), "Topic");
-    }
-
-    private Object handleCommitSaga(CommitSagaCommand command) {
-        sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
-        return null;
-    }
-
-    private Object handleAbortSaga(AbortSagaCommand command) {
-        sagaUnitOfWorkService.abortAggregate(command.getAggregateId(), command.getPreviousState());
         return null;
     }
 }

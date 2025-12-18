@@ -2,17 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.commandHa
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.AbortCausalCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.GetConcurrentAggregateCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.PrepareCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.AbortSagaCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
@@ -20,56 +11,33 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.Qu
 import java.util.logging.Logger;
 
 @Component
-public class AnswerCommandHandler implements CommandHandler {
+public class AnswerCommandHandler extends CommandHandler {
     private static final Logger logger = Logger.getLogger(AnswerCommandHandler.class.getName());
 
     @Autowired
     private QuizAnswerService quizAnswerService;
 
-    @Autowired(required = false)
-    private SagaUnitOfWorkService sagaUnitOfWorkService;
-
-    @Autowired(required = false)
-    private CausalUnitOfWorkService causalUnitOfWorkService;
+    @Override
+    protected String getAggregateTypeName() {
+        return "QuizAnswer";
+    }
 
     @Override
-    public Object handle(Command command) {
-        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
-            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
-        }
-        Object returnObject;
-        switch (command) {
-            case GetQuizAnswerDtoByQuizIdAndUserIdCommand getQuizAnswerDtoByQuizIdAndUserIdCommand ->
-                returnObject = handleGetQuizAnswerDtoByQuizIdAndUserId(getQuizAnswerDtoByQuizIdAndUserIdCommand);
-            case StartQuizCommand startQuizCommand -> returnObject = handleStartQuiz(startQuizCommand);
-            case ConcludeQuizCommand concludeQuizCommand -> returnObject = handleConcludeQuiz(concludeQuizCommand);
-            case AnswerQuestionCommand answerQuestionCommand ->
-                returnObject = handleAnswerQuestion(answerQuestionCommand);
-            case RemoveQuizAnswerCommand removeQuizAnswerCommand ->
-                returnObject = handleRemoveQuizAnswer(removeQuizAnswerCommand);
-            case UpdateUserNameCommand updateUserNameCommand ->
-                returnObject = handleUpdateUserName(updateUserNameCommand);
-            case RemoveUserFromQuizAnswerCommand removeUserFromQuizAnswerCommand ->
-                returnObject = handleRemoveUserFromQuizAnswer(removeUserFromQuizAnswerCommand);
-            case RemoveQuestionFromQuizAnswerCommand removeQuestionFromQuizAnswerCommand ->
-                returnObject = handleRemoveQuestionFromQuizAnswer(removeQuestionFromQuizAnswerCommand);
-            case CommitSagaCommand commitSagaCommand -> returnObject = handleCommitSaga(commitSagaCommand);
-            case AbortSagaCommand abortSagaCommand -> returnObject = handleAbortSaga(abortSagaCommand);
-            case CommitCausalCommand commitCausalCommand -> returnObject = handleCommitCausal(commitCausalCommand);
-            case PrepareCausalCommand prepareCausalCommand -> returnObject = handlePrepareCausal(prepareCausalCommand);
-            case AbortCausalCommand abortCausalCommand -> returnObject = handleAbortCausal(abortCausalCommand);
-            case GetConcurrentAggregateCommand getConcurrentAggregateCommand -> returnObject = handleGetConcurrentAggregate(getConcurrentAggregateCommand);
+    protected Object handleDomainCommand(Command command) {
+        return switch (command) {
+            case GetQuizAnswerDtoByQuizIdAndUserIdCommand cmd -> handleGetQuizAnswerDtoByQuizIdAndUserId(cmd);
+            case StartQuizCommand cmd -> handleStartQuiz(cmd);
+            case ConcludeQuizCommand cmd -> handleConcludeQuiz(cmd);
+            case AnswerQuestionCommand cmd -> handleAnswerQuestion(cmd);
+            case RemoveQuizAnswerCommand cmd -> handleRemoveQuizAnswer(cmd);
+            case UpdateUserNameCommand cmd -> handleUpdateUserName(cmd);
+            case RemoveUserFromQuizAnswerCommand cmd -> handleRemoveUserFromQuizAnswer(cmd);
+            case RemoveQuestionFromQuizAnswerCommand cmd -> handleRemoveQuestionFromQuizAnswer(cmd);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
-                returnObject = null;
+                yield null;
             }
-        }
-        if (command.getSemanticLock() != null) {
-            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
-                    (SagaUnitOfWork) command.getUnitOfWork());
-        }
-
-        return returnObject;
+        };
     }
 
     private Object handleGetQuizAnswerDtoByQuizIdAndUserId(GetQuizAnswerDtoByQuizIdAndUserIdCommand command) {
@@ -179,64 +147,4 @@ public class AnswerCommandHandler implements CommandHandler {
             return e;
         }
     }
-
-    private Object handleCommitSaga(CommitSagaCommand command) {
-        logger.info("Committing saga for aggregate: " + command.getAggregateId());
-        try {
-            sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to commit saga: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handleAbortSaga(AbortSagaCommand command) {
-        logger.info("Aborting saga for aggregate: " + command.getAggregateId());
-        try {
-            sagaUnitOfWorkService.abortAggregate(command.getAggregateId(), command.getPreviousState());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to abort saga: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handleCommitCausal(CommitCausalCommand command) {
-        logger.info("Committing causal for aggregate: " + command.getRootAggregateId());
-        try {
-            causalUnitOfWorkService.commitCausal(command.getAggregate());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to commit causal: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handlePrepareCausal(PrepareCausalCommand command) {
-        logger.info("Preparing causal for aggregate: " + command.getRootAggregateId());
-        try {
-            causalUnitOfWorkService.prepareCausal(command.getAggregate());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to prepare causal: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handleAbortCausal(AbortCausalCommand command) {
-        logger.info("Aborting causal for aggregate: " + command.getRootAggregateId());
-        try {
-            causalUnitOfWorkService.abortCausal(command.getRootAggregateId());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to abort causal: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handleGetConcurrentAggregate(GetConcurrentAggregateCommand command) {
-        return causalUnitOfWorkService.getConcurrentAggregate(command.getRootAggregateId(), command.getVersion(), "QuizAnswer");
-    }
-
 }

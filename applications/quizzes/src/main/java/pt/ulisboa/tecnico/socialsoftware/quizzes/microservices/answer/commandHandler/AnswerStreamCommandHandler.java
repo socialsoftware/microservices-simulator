@@ -20,15 +20,20 @@ public class AnswerStreamCommandHandler extends StreamCommandHandler {
 
     @Autowired
     public AnswerStreamCommandHandler(StreamBridge streamBridge,
-                                      AnswerCommandHandler answerCommandHandler,
-                                      MessagingObjectMapperProvider mapperProvider) {
+            AnswerCommandHandler answerCommandHandler,
+            MessagingObjectMapperProvider mapperProvider) {
         super(streamBridge, mapperProvider);
         this.answerCommandHandler = answerCommandHandler;
     }
 
     @Override
-    public Object handle(Command command) {
-        return answerCommandHandler.handle(command);
+    protected String getAggregateTypeName() {
+        return "QuizAnswer";
+    }
+
+    @Override
+    protected Object handleDomainCommand(Command command) {
+        return answerCommandHandler.handleDomainCommand(command);
     }
 
     @Bean
@@ -36,4 +41,3 @@ public class AnswerStreamCommandHandler extends StreamCommandHandler {
         return this::handleCommandMessage;
     }
 }
-

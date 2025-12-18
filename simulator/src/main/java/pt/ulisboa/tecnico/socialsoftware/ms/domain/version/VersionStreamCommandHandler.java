@@ -27,7 +27,13 @@ public class VersionStreamCommandHandler extends StreamCommandHandler {
     }
 
     @Override
-    public Object handle(Command command) {
+    protected String getAggregateTypeName() {
+        return "Version";
+    }
+
+    @Override
+    protected Object handleDomainCommand(Command command) {
+        // Delegate to the standalone VersionCommandHandler
         return versionCommandHandler.handle(command);
     }
 

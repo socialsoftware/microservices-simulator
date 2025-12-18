@@ -2,17 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.comma
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.AbortCausalCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.GetConcurrentAggregateCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.PrepareCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.AbortSagaCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
@@ -20,78 +11,44 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.servic
 import java.util.logging.Logger;
 
 @Component
-public class TournamentCommandHandler implements CommandHandler {
+public class TournamentCommandHandler extends CommandHandler {
     private static final Logger logger = Logger.getLogger(TournamentCommandHandler.class.getName());
 
     @Autowired
     private TournamentService tournamentService;
 
-    @Autowired(required = false)
-    private SagaUnitOfWorkService sagaUnitOfWorkService;
-
-    @Autowired(required = false)
-    private CausalUnitOfWorkService causalUnitOfWorkService;
+    @Override
+    protected String getAggregateTypeName() {
+        return "Tournament";
+    }
 
     @Override
-    public Object handle(Command command) {
-        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
-            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
-        }
-        Object returnObject;
-        switch (command) {
-            case GetTournamentByIdCommand getTournamentByIdCommand ->
-                returnObject = handleGetTournamentById(getTournamentByIdCommand);
-            case AddParticipantCommand addParticipantCommand ->
-                returnObject = handleAddParticipant(addParticipantCommand);
-            case CreateTournamentCommand createTournamentCommand ->
-                returnObject = handleCreateTournament(createTournamentCommand);
-            case GetTournamentsByCourseExecutionIdCommand getTournamentsByCourseExecutionIdCommand ->
-                returnObject = handleGetTournamentsByCourseExecutionId(getTournamentsByCourseExecutionIdCommand);
-            case GetOpenedTournamentsForCourseExecutionCommand getOpenedTournamentsForCourseExecutionCommand ->
-                returnObject = handleGetOpenedTournamentsForCourseExecution(
-                        getOpenedTournamentsForCourseExecutionCommand);
-            case GetClosedTournamentsForCourseExecutionCommand getClosedTournamentsForCourseExecutionCommand ->
-                returnObject = handleGetClosedTournamentsForCourseExecution(
-                        getClosedTournamentsForCourseExecutionCommand);
-            case LeaveTournamentCommand leaveTournamentCommand ->
-                returnObject = handleLeaveTournament(leaveTournamentCommand);
-            case SolveQuizCommand solveQuizCommand -> returnObject = handleSolveQuiz(solveQuizCommand);
-            case RemoveTournamentCommand removeTournamentCommand ->
-                returnObject = handleRemoveTournament(removeTournamentCommand);
-            case UpdateTournamentCommand updateTournamentCommand ->
-                returnObject = handleUpdateTournament(updateTournamentCommand);
-            case CancelTournamentCommand cancelTournamentCommand ->
-                returnObject = handleCancelTournament(cancelTournamentCommand);
-            case AnonymizeUserCommand anonymizeUserCommand -> returnObject = handleAnonymizeUser(anonymizeUserCommand);
-            case UpdateUserNameCommand updateUserNameCommand ->
-                returnObject = handleUpdateUserName(updateUserNameCommand);
-            case RemoveCourseExecutionCommand removeCourseExecutionCommand ->
-                returnObject = handleRemoveCourseExecution(removeCourseExecutionCommand);
-            case UpdateTopicCommand updateTopicCommand -> returnObject = handleUpdateTopic(updateTopicCommand);
-            case RemoveTopicCommand removeTopicCommand -> returnObject = handleRemoveTopic(removeTopicCommand);
-            case UpdateParticipantAnswerCommand updateParticipantAnswerCommand ->
-                returnObject = handleUpdateParticipantAnswer(updateParticipantAnswerCommand);
-            case RemoveUserCommand removeUserCommand -> returnObject = handleRemoveUser(removeUserCommand);
-            case InvalidateQuizCommand invalidateQuizCommand ->
-                returnObject = handleInvalidateQuiz(invalidateQuizCommand);
-            case CommitCausalCommand commitCausalCommand -> returnObject = handleCommitCausal(commitCausalCommand);
-            case PrepareCausalCommand prepareCausalCommand -> returnObject = handlePrepareCausal(prepareCausalCommand);
-            case AbortCausalCommand abortCausalCommand -> returnObject = handleAbortCausal(abortCausalCommand);
-            case GetConcurrentAggregateCommand getConcurrentAggregateCommand -> returnObject = handleGetConcurrentAggregate(getConcurrentAggregateCommand);
-            case CommitSagaCommand commitSagaCommand -> returnObject = handleCommitSaga(commitSagaCommand);
-            case AbortSagaCommand abortSagaCommand -> returnObject = handleAbortSaga(abortSagaCommand);
+    protected Object handleDomainCommand(Command command) {
+        return switch (command) {
+            case GetTournamentByIdCommand cmd -> handleGetTournamentById(cmd);
+            case AddParticipantCommand cmd -> handleAddParticipant(cmd);
+            case CreateTournamentCommand cmd -> handleCreateTournament(cmd);
+            case GetTournamentsByCourseExecutionIdCommand cmd -> handleGetTournamentsByCourseExecutionId(cmd);
+            case GetOpenedTournamentsForCourseExecutionCommand cmd -> handleGetOpenedTournamentsForCourseExecution(cmd);
+            case GetClosedTournamentsForCourseExecutionCommand cmd -> handleGetClosedTournamentsForCourseExecution(cmd);
+            case LeaveTournamentCommand cmd -> handleLeaveTournament(cmd);
+            case SolveQuizCommand cmd -> handleSolveQuiz(cmd);
+            case RemoveTournamentCommand cmd -> handleRemoveTournament(cmd);
+            case UpdateTournamentCommand cmd -> handleUpdateTournament(cmd);
+            case CancelTournamentCommand cmd -> handleCancelTournament(cmd);
+            case AnonymizeUserCommand cmd -> handleAnonymizeUser(cmd);
+            case UpdateUserNameCommand cmd -> handleUpdateUserName(cmd);
+            case RemoveCourseExecutionCommand cmd -> handleRemoveCourseExecution(cmd);
+            case UpdateTopicCommand cmd -> handleUpdateTopic(cmd);
+            case RemoveTopicCommand cmd -> handleRemoveTopic(cmd);
+            case UpdateParticipantAnswerCommand cmd -> handleUpdateParticipantAnswer(cmd);
+            case RemoveUserCommand cmd -> handleRemoveUser(cmd);
+            case InvalidateQuizCommand cmd -> handleInvalidateQuiz(cmd);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
-                returnObject = null;
+                yield null;
             }
-        }
-
-        if (command.getSemanticLock() != null) {
-            sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
-                    (SagaUnitOfWork) command.getUnitOfWork());
-        }
-
-        return returnObject;
+        };
     }
 
     private Object handleGetTournamentById(GetTournamentByIdCommand command) {
@@ -368,64 +325,4 @@ public class TournamentCommandHandler implements CommandHandler {
             return e;
         }
     }
-
-    private Object handleCommitCausal(CommitCausalCommand command) {
-        logger.info("Committing causal for aggregate: " + command.getRootAggregateId());
-        try {
-            causalUnitOfWorkService.commitCausal(command.getAggregate());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to commit causal: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handlePrepareCausal(PrepareCausalCommand command) {
-        logger.info("Preparing causal for aggregate: " + command.getRootAggregateId());
-        try {
-            causalUnitOfWorkService.prepareCausal(command.getAggregate());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to prepare causal: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handleAbortCausal(AbortCausalCommand command) {
-        logger.info("Aborting causal for aggregate: " + command.getRootAggregateId());
-        try {
-            causalUnitOfWorkService.abortCausal(command.getRootAggregateId());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to abort causal: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handleGetConcurrentAggregate(GetConcurrentAggregateCommand command) {
-        return causalUnitOfWorkService.getConcurrentAggregate(command.getRootAggregateId(), command.getVersion(), "Tournament");
-    }
-
-    private Object handleCommitSaga(CommitSagaCommand command) {
-        logger.info("Committing saga for aggregate: " + command.getAggregateId());
-        try {
-            sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to commit saga: " + e.getMessage());
-            return e;
-        }
-    }
-
-    private Object handleAbortSaga(AbortSagaCommand command) {
-        logger.info("Aborting saga for aggregate: " + command.getAggregateId());
-        try {
-            sagaUnitOfWorkService.abortAggregate(command.getAggregateId(), command.getPreviousState());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to abort saga: " + e.getMessage());
-            return e;
-        }
-    }
-
 }
