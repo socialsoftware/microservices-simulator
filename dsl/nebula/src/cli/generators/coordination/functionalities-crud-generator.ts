@@ -278,25 +278,20 @@ export class FunctionalitiesCrudGenerator extends OrchestrationBase {
         const uncapitalizedMethodName = methodName.charAt(0).toLowerCase() + methodName.slice(1);
 
         // Build saga constructor params
-        // For create operations: services, then params (aggregateIds + DTO), then unitOfWorkService, then unitOfWork
-        // For other operations: services, then unitOfWorkService, then params, then unitOfWork
-        const sagaParams: string[] = [`${lowerAggregate}Service`];
-        // Add cross-aggregate services (only for create operations)
+        // Global order (for all operations):
+        //  1) sagaUnitOfWork
+        //  2) sagaUnitOfWorkService
+        //  3) aggregate service
+        //  4) cross-aggregate services (if any)
+        //  5) method-specific parameters (ids, DTOs, etc.)
+        const sagaParams: string[] = ['sagaUnitOfWork', 'sagaUnitOfWorkService', `${lowerAggregate}Service`];
+        // Add cross-aggregate services (only relevant for create operations)
         for (const crossService of crossAggregateServices) {
             sagaParams.push(crossService.serviceName);
         }
 
-        if (operation === 'create') {
-            // For create: params come before unitOfWorkService
-            sagaParams.push(...paramNames);
-            sagaParams.push('sagaUnitOfWorkService');
-        } else {
-            // For other operations: unitOfWorkService comes before params
-            sagaParams.push('sagaUnitOfWorkService');
-            sagaParams.push(...paramNames);
-        }
-        // Add unitOfWork at the end
-        sagaParams.push('sagaUnitOfWork');
+        // Then all method parameters
+        sagaParams.push(...paramNames);
 
         const sagaParamsString = sagaParams.join(', ');
 

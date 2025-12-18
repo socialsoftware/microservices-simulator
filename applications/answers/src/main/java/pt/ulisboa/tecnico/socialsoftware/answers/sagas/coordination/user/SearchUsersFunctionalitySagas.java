@@ -16,7 +16,7 @@ public class SearchUsersFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public SearchUsersFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService, String name, String username, UserRole role, Boolean active, SagaUnitOfWork unitOfWork) {
+    public SearchUsersFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, UserService userService, String name, String username, UserRole role, Boolean active) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(name, username, role, active, unitOfWork);
@@ -31,6 +31,7 @@ public class SearchUsersFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(searchUsersStep);
+
     }
 
     public List<UserDto> getSearchedUserDtos() {

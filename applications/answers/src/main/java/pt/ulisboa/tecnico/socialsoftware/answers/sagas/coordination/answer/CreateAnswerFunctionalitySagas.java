@@ -33,18 +33,18 @@ public class CreateAnswerFunctionalitySagas extends WorkflowFunctionality {
     private AnswerDto createdAnswerDto;
     private final AnswerService answerService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private AnswerExecution execution;
     private SagaExecutionDto executionDto;
+    private AnswerExecution execution;
     private final ExecutionService executionService;
-    private AnswerUser user;
     private SagaUserDto userDto;
+    private AnswerUser user;
     private final UserService userService;
-    private AnswerQuiz quiz;
     private SagaQuizDto quizDto;
+    private AnswerQuiz quiz;
     private final QuizService quizService;
 
 
-    public CreateAnswerFunctionalitySagas(AnswerService answerService, ExecutionService executionService, UserService userService, QuizService quizService, Integer executionAggregateId, Integer userAggregateId, Integer quizAggregateId, AnswerDto answerDto, SagaUnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
+    public CreateAnswerFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, AnswerService answerService, ExecutionService executionService, UserService userService, QuizService quizService, Integer executionAggregateId, Integer userAggregateId, Integer quizAggregateId, AnswerDto answerDto) {
         this.answerService = answerService;
         this.unitOfWorkService = unitOfWorkService;
         this.executionService = executionService;
@@ -88,6 +88,7 @@ public class CreateAnswerFunctionalitySagas extends WorkflowFunctionality {
         getQuizStep.registerCompensation(() -> {
             unitOfWorkService.registerSagaState(quizDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
+
         SagaSyncStep createAnswerStep = new SagaSyncStep("createAnswerStep", () -> {
             AnswerDto createdAnswerDto = answerService.createAnswer(getExecution(), getUser(), getQuiz(), answerDto, unitOfWork);
             setCreatedAnswerDto(createdAnswerDto);
@@ -97,6 +98,7 @@ public class CreateAnswerFunctionalitySagas extends WorkflowFunctionality {
         workflow.addStep(getUserStep);
         workflow.addStep(getQuizStep);
         workflow.addStep(createAnswerStep);
+
     }
 
     public AnswerExecution getExecution() {

@@ -14,7 +14,7 @@ public class GetTopicByIdFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public GetTopicByIdFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService, Integer topicAggregateId, SagaUnitOfWork unitOfWork) {
+    public GetTopicByIdFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TopicService topicService, Integer topicAggregateId) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(topicAggregateId, unitOfWork);
@@ -29,6 +29,7 @@ public class GetTopicByIdFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getTopicStep);
+
     }
 
     public TopicDto getTopicDto() {

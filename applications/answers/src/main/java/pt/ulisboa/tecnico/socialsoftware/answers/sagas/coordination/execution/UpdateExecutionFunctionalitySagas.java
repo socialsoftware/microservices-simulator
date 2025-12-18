@@ -18,7 +18,7 @@ public class UpdateExecutionFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public UpdateExecutionFunctionalitySagas(ExecutionService executionService, SagaUnitOfWorkService unitOfWorkService, Integer executionAggregateId, ExecutionDto executionDto, SagaUnitOfWork unitOfWork) {
+    public UpdateExecutionFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, Integer executionAggregateId, ExecutionDto executionDto) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(executionAggregateId, executionDto, unitOfWork);
@@ -42,6 +42,7 @@ public class UpdateExecutionFunctionalitySagas extends WorkflowFunctionality {
 
         workflow.addStep(getExecutionStep);
         workflow.addStep(updateExecutionStep);
+
     }
 
     public ExecutionDto getUpdatedExecutionDto() {

@@ -61,7 +61,7 @@ public class AnswerFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(answerDto);
                 CreateAnswerFunctionalitySagas createAnswerFunctionalitySagas = new CreateAnswerFunctionalitySagas(
-                        answerService, executionService, userService, quizService, executionAggregateId, userAggregateId, quizAggregateId, answerDto, sagaUnitOfWorkService, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, executionService, userService, quizService, executionAggregateId, userAggregateId, quizAggregateId, answerDto);
                 createAnswerFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createAnswerFunctionalitySagas.getCreatedAnswerDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -75,7 +75,7 @@ public class AnswerFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetAnswerByIdFunctionalitySagas getAnswerByIdFunctionalitySagas = new GetAnswerByIdFunctionalitySagas(
-                        answerService, sagaUnitOfWorkService, answerAggregateId, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, answerAggregateId);
                 getAnswerByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getAnswerByIdFunctionalitySagas.getAnswerDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -90,7 +90,7 @@ public class AnswerFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(answerDto);
                 UpdateAnswerFunctionalitySagas updateAnswerFunctionalitySagas = new UpdateAnswerFunctionalitySagas(
-                        answerService, sagaUnitOfWorkService, answerAggregateId, answerDto, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, answerAggregateId, answerDto);
                 updateAnswerFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateAnswerFunctionalitySagas.getUpdatedAnswerDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -104,7 +104,7 @@ public class AnswerFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 DeleteAnswerFunctionalitySagas deleteAnswerFunctionalitySagas = new DeleteAnswerFunctionalitySagas(
-                        answerService, sagaUnitOfWorkService, answerAggregateId, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, answerAggregateId);
                 deleteAnswerFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -118,7 +118,7 @@ public class AnswerFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 SearchAnswersFunctionalitySagas searchAnswersFunctionalitySagas = new SearchAnswersFunctionalitySagas(
-                        answerService, sagaUnitOfWorkService, completed, executionAggregateId, userAggregateId, quizAggregateId, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, completed, executionAggregateId, userAggregateId, quizAggregateId);
                 searchAnswersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return searchAnswersFunctionalitySagas.getSearchedAnswerDtos();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

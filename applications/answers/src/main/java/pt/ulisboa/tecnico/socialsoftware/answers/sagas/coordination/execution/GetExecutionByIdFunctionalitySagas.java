@@ -14,7 +14,7 @@ public class GetExecutionByIdFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public GetExecutionByIdFunctionalitySagas(ExecutionService executionService, SagaUnitOfWorkService unitOfWorkService, Integer executionAggregateId, SagaUnitOfWork unitOfWork) {
+    public GetExecutionByIdFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, Integer executionAggregateId) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(executionAggregateId, unitOfWork);
@@ -29,6 +29,7 @@ public class GetExecutionByIdFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getExecutionStep);
+
     }
 
     public ExecutionDto getExecutionDto() {

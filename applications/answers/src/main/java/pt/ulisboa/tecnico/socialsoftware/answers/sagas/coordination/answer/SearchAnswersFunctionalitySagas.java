@@ -15,7 +15,7 @@ public class SearchAnswersFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public SearchAnswersFunctionalitySagas(AnswerService answerService, SagaUnitOfWorkService unitOfWorkService, Boolean completed, Integer executionAggregateId, Integer userAggregateId, Integer quizAggregateId, SagaUnitOfWork unitOfWork) {
+    public SearchAnswersFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, AnswerService answerService, Boolean completed, Integer executionAggregateId, Integer userAggregateId, Integer quizAggregateId) {
         this.answerService = answerService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(completed, executionAggregateId, userAggregateId, quizAggregateId, unitOfWork);
@@ -30,6 +30,7 @@ public class SearchAnswersFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(searchAnswersStep);
+
     }
 
     public List<AnswerDto> getSearchedAnswerDtos() {

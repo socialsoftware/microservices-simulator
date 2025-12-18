@@ -18,7 +18,7 @@ public class UpdateAnswerFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public UpdateAnswerFunctionalitySagas(AnswerService answerService, SagaUnitOfWorkService unitOfWorkService, Integer answerAggregateId, AnswerDto answerDto, SagaUnitOfWork unitOfWork) {
+    public UpdateAnswerFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, AnswerService answerService, Integer answerAggregateId, AnswerDto answerDto) {
         this.answerService = answerService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(answerAggregateId, answerDto, unitOfWork);
@@ -42,6 +42,7 @@ public class UpdateAnswerFunctionalitySagas extends WorkflowFunctionality {
 
         workflow.addStep(getAnswerStep);
         workflow.addStep(updateAnswerStep);
+
     }
 
     public AnswerDto getUpdatedAnswerDto() {

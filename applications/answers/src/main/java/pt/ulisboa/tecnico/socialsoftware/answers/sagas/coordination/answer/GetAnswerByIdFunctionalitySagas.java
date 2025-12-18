@@ -14,7 +14,7 @@ public class GetAnswerByIdFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public GetAnswerByIdFunctionalitySagas(AnswerService answerService, SagaUnitOfWorkService unitOfWorkService, Integer answerAggregateId, SagaUnitOfWork unitOfWork) {
+    public GetAnswerByIdFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, AnswerService answerService, Integer answerAggregateId) {
         this.answerService = answerService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(answerAggregateId, unitOfWork);
@@ -29,6 +29,7 @@ public class GetAnswerByIdFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getAnswerStep);
+
     }
 
     public AnswerDto getAnswerDto() {

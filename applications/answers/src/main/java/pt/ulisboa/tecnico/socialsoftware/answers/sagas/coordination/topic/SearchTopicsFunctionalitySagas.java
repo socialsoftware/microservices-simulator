@@ -15,7 +15,7 @@ public class SearchTopicsFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public SearchTopicsFunctionalitySagas(TopicService topicService, SagaUnitOfWorkService unitOfWorkService, String name, Integer courseAggregateId, SagaUnitOfWork unitOfWork) {
+    public SearchTopicsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TopicService topicService, String name, Integer courseAggregateId) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(name, courseAggregateId, unitOfWork);
@@ -30,6 +30,7 @@ public class SearchTopicsFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(searchTopicsStep);
+
     }
 
     public List<TopicDto> getSearchedTopicDtos() {

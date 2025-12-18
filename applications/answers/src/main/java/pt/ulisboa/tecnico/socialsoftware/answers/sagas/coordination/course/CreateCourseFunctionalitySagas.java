@@ -14,7 +14,7 @@ public class CreateCourseFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public CreateCourseFunctionalitySagas(CourseService courseService, CourseDto courseDto, SagaUnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
+    public CreateCourseFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, CourseService courseService, CourseDto courseDto) {
         this.courseService = courseService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(courseDto, unitOfWork);
@@ -29,6 +29,7 @@ public class CreateCourseFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(createCourseStep);
+
     }
 
     public CourseDto getCreatedCourseDto() {

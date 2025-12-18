@@ -13,7 +13,7 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public DeleteUserFunctionalitySagas(UserService userService, SagaUnitOfWorkService unitOfWorkService, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public DeleteUserFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, UserService userService, Integer userAggregateId) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(userAggregateId, unitOfWork);
@@ -27,6 +27,7 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(deleteUserStep);
+
     }
 
 }

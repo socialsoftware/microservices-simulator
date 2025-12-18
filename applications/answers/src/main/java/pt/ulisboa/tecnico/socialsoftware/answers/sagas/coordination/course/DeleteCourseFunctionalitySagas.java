@@ -13,7 +13,7 @@ public class DeleteCourseFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public DeleteCourseFunctionalitySagas(CourseService courseService, SagaUnitOfWorkService unitOfWorkService, Integer courseAggregateId, SagaUnitOfWork unitOfWork) {
+    public DeleteCourseFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, CourseService courseService, Integer courseAggregateId) {
         this.courseService = courseService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(courseAggregateId, unitOfWork);
@@ -27,6 +27,7 @@ public class DeleteCourseFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(deleteCourseStep);
+
     }
 
 }

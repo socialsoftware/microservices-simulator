@@ -21,12 +21,12 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
     private ExecutionDto createdExecutionDto;
     private final ExecutionService executionService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private ExecutionCourse course;
     private SagaCourseDto courseDto;
+    private ExecutionCourse course;
     private final CourseService courseService;
 
 
-    public CreateExecutionFunctionalitySagas(ExecutionService executionService, CourseService courseService, Integer courseAggregateId, ExecutionDto executionDto, SagaUnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
+    public CreateExecutionFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, CourseService courseService, Integer courseAggregateId, ExecutionDto executionDto) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;
         this.courseService = courseService;
@@ -46,6 +46,7 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
         getCourseStep.registerCompensation(() -> {
             unitOfWorkService.registerSagaState(courseDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
+
         SagaSyncStep createExecutionStep = new SagaSyncStep("createExecutionStep", () -> {
             Set<ExecutionUser> users = executionDto.getUsers() != null ? executionDto.getUsers().stream().map(ExecutionUser::new).collect(java.util.stream.Collectors.toSet()) : null;
             ExecutionDto createdExecutionDto = executionService.createExecution(getCourse(), executionDto, users, unitOfWork);
@@ -54,6 +55,7 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
 
         workflow.addStep(getCourseStep);
         workflow.addStep(createExecutionStep);
+
     }
 
     public ExecutionCourse getCourse() {

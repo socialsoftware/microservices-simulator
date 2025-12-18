@@ -18,7 +18,7 @@ public class DeleteExecutionFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public DeleteExecutionFunctionalitySagas(ExecutionService executionService, SagaUnitOfWorkService unitOfWorkService, Integer executionAggregateId, SagaUnitOfWork unitOfWork) {
+    public DeleteExecutionFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, Integer executionAggregateId) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(executionAggregateId, unitOfWork);
@@ -43,6 +43,7 @@ public class DeleteExecutionFunctionalitySagas extends WorkflowFunctionality {
 
         workflow.addStep(getExecutionStep);
         workflow.addStep(deleteExecutionStep);
+
     }
 
     public ExecutionDto getDeletedExecutionDto() {

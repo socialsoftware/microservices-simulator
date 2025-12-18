@@ -50,7 +50,7 @@ public class UserFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(userDto);
                 CreateUserFunctionalitySagas createUserFunctionalitySagas = new CreateUserFunctionalitySagas(
-                        userService, userDto, sagaUnitOfWorkService, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, userService, userDto);
                 createUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createUserFunctionalitySagas.getCreatedUserDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -64,7 +64,7 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetUserByIdFunctionalitySagas getUserByIdFunctionalitySagas = new GetUserByIdFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, userService, userAggregateId);
                 getUserByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getUserByIdFunctionalitySagas.getUserDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -79,7 +79,7 @@ public class UserFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(userDto);
                 UpdateUserFunctionalitySagas updateUserFunctionalitySagas = new UpdateUserFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userAggregateId, userDto, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, userService, userAggregateId, userDto);
                 updateUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateUserFunctionalitySagas.getUpdatedUserDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -93,7 +93,7 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 DeleteUserFunctionalitySagas deleteUserFunctionalitySagas = new DeleteUserFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, userService, userAggregateId);
                 deleteUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -107,7 +107,7 @@ public class UserFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 SearchUsersFunctionalitySagas searchUsersFunctionalitySagas = new SearchUsersFunctionalitySagas(
-                        userService, sagaUnitOfWorkService, name, username, role, active, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, userService, name, username, role, active);
                 searchUsersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return searchUsersFunctionalitySagas.getSearchedUserDtos();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

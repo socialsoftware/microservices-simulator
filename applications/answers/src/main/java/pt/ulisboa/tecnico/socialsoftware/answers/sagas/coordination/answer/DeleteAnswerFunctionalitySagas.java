@@ -18,7 +18,7 @@ public class DeleteAnswerFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public DeleteAnswerFunctionalitySagas(AnswerService answerService, SagaUnitOfWorkService unitOfWorkService, Integer answerAggregateId, SagaUnitOfWork unitOfWork) {
+    public DeleteAnswerFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, AnswerService answerService, Integer answerAggregateId) {
         this.answerService = answerService;
         this.unitOfWorkService = unitOfWorkService;
         this.buildWorkflow(answerAggregateId, unitOfWork);
@@ -43,6 +43,7 @@ public class DeleteAnswerFunctionalitySagas extends WorkflowFunctionality {
 
         workflow.addStep(getAnswerStep);
         workflow.addStep(deleteAnswerStep);
+
     }
 
     public AnswerDto getDeletedAnswerDto() {

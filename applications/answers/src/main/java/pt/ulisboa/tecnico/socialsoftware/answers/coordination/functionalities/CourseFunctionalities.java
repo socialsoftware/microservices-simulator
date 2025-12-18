@@ -50,7 +50,7 @@ public class CourseFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(courseDto);
                 CreateCourseFunctionalitySagas createCourseFunctionalitySagas = new CreateCourseFunctionalitySagas(
-                        courseService, courseDto, sagaUnitOfWorkService, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, courseService, courseDto);
                 createCourseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createCourseFunctionalitySagas.getCreatedCourseDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -64,7 +64,7 @@ public class CourseFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 GetCourseByIdFunctionalitySagas getCourseByIdFunctionalitySagas = new GetCourseByIdFunctionalitySagas(
-                        courseService, sagaUnitOfWorkService, courseAggregateId, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, courseService, courseAggregateId);
                 getCourseByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getCourseByIdFunctionalitySagas.getCourseDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -79,7 +79,7 @@ public class CourseFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(courseDto);
                 UpdateCourseFunctionalitySagas updateCourseFunctionalitySagas = new UpdateCourseFunctionalitySagas(
-                        courseService, sagaUnitOfWorkService, courseAggregateId, courseDto, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, courseService, courseAggregateId, courseDto);
                 updateCourseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateCourseFunctionalitySagas.getUpdatedCourseDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -93,7 +93,7 @@ public class CourseFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 DeleteCourseFunctionalitySagas deleteCourseFunctionalitySagas = new DeleteCourseFunctionalitySagas(
-                        courseService, sagaUnitOfWorkService, courseAggregateId, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, courseService, courseAggregateId);
                 deleteCourseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -107,7 +107,7 @@ public class CourseFunctionalities {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 SearchCoursesFunctionalitySagas searchCoursesFunctionalitySagas = new SearchCoursesFunctionalitySagas(
-                        courseService, sagaUnitOfWorkService, name, type, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, courseService, name, type);
                 searchCoursesFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return searchCoursesFunctionalitySagas.getSearchedCourseDtos();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

@@ -186,10 +186,12 @@ export class SagaCrudGenerator extends OrchestrationBase {
             fieldsDeclaration += `    private final ${capitalizedAggregate}Service ${lowerAggregate}Service;\n`;
             fieldsDeclaration += `    private final SagaUnitOfWorkService unitOfWorkService;\n`;
 
-            // Initialize params - will be built based on operation type
+            // Initialize params - will be built based on operation type.
+            // Order: SagaUnitOfWork, SagaUnitOfWorkService, aggregateService, then the rest.
             const constructorParams: string[] = [
-                `${capitalizedAggregate}Service ${lowerAggregate}Service`,
-                'SagaUnitOfWorkService unitOfWorkService'
+                'SagaUnitOfWork unitOfWork',
+                'SagaUnitOfWorkService unitOfWorkService',
+                `${capitalizedAggregate}Service ${lowerAggregate}Service`
             ];
             const buildWorkflowParams: string[] = [];
             const buildWorkflowCallArgs: string[] = [];
@@ -198,12 +200,11 @@ export class SagaCrudGenerator extends OrchestrationBase {
             const idParamName = op.params[0]?.name || `${lowerAggregate}AggregateId`;
 
             if (isDeleteOperation) {
-                // Add constructor params for delete operation
+                // Add constructor params for delete operation (after common params)
                 constructorParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
                 buildWorkflowParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
                 buildWorkflowCallArgs.push(...op.params.map((p: any) => p.name));
-                // Add unitOfWork
-                constructorParams.push('SagaUnitOfWork unitOfWork');
+                // Add unitOfWork only to buildWorkflow params/call args (constructor already has it first)
                 buildWorkflowParams.push('SagaUnitOfWork unitOfWork');
                 buildWorkflowCallArgs.push('unitOfWork');
 
@@ -214,7 +215,8 @@ export class SagaCrudGenerator extends OrchestrationBase {
             ${op.serviceCall}(${op.serviceArgs.join(', ')});
         });
 
-        workflow.addStep(delete${capitalizedAggregate}Step);`;
+        workflow.addStep(delete${capitalizedAggregate}Step);
+`;
                     // For simple delete operations, we don't need the deletedUserDto field
                     // The field won't be added because of the condition in the field declaration section
                 } else {
@@ -238,17 +240,17 @@ export class SagaCrudGenerator extends OrchestrationBase {
         }, new ArrayList<>(Arrays.asList(get${capitalizedAggregate}Step)));
 
         workflow.addStep(get${capitalizedAggregate}Step);
-        workflow.addStep(delete${capitalizedAggregate}Step);`;
+        workflow.addStep(delete${capitalizedAggregate}Step);
+`;
                 }
             } else if (isUpdateOperation) {
                 const dtoParamName = op.params[1]?.name || `${lowerAggregate}Dto`;
 
-                // Add constructor params for update operation
+                // Add constructor params for update operation (after common params)
                 constructorParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
                 buildWorkflowParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
                 buildWorkflowCallArgs.push(...op.params.map((p: any) => p.name));
-                // Add unitOfWork
-                constructorParams.push('SagaUnitOfWork unitOfWork');
+                // Add unitOfWork only to buildWorkflow params/call args (constructor already has it first)
                 buildWorkflowParams.push('SagaUnitOfWork unitOfWork');
                 buildWorkflowCallArgs.push('unitOfWork');
 
@@ -260,7 +262,8 @@ export class SagaCrudGenerator extends OrchestrationBase {
             ${op.resultSetter}(${op.resultField});
         });
 
-        workflow.addStep(update${capitalizedAggregate}Step);`;
+        workflow.addStep(update${capitalizedAggregate}Step);
+`;
                 } else {
                     // For complex aggregates, use two-step process
                     const readStateConst = `${capitalizedAggregate}SagaState.READ_${capitalizedAggregate.toUpperCase()}`;
@@ -280,7 +283,8 @@ export class SagaCrudGenerator extends OrchestrationBase {
         }, new ArrayList<>(Arrays.asList(get${capitalizedAggregate}Step)));
 
         workflow.addStep(get${capitalizedAggregate}Step);
-        workflow.addStep(update${capitalizedAggregate}Step);`;
+        workflow.addStep(update${capitalizedAggregate}Step);
+`;
                 }
             } else {
                 let stepBody = '';
@@ -328,23 +332,24 @@ export class SagaCrudGenerator extends OrchestrationBase {
                             imports.push('import java.util.ArrayList;');
                             imports.push('import java.util.Arrays;');
 
-                            // Add fields
-                            fieldsDeclaration += `    private ${rel.entityType} ${rel.paramName};\n`;
+                            // Add fields - DTO for compensation, and entity relationship created in first step
                             fieldsDeclaration += `    private ${sagaDtoType} ${relatedDtoVarName};\n`;
+                            fieldsDeclaration += `    private ${rel.entityType} ${rel.paramName};\n`;
 
                             // Add service dependency
                             fieldsDeclaration += `    private final ${capitalizedRelatedAggregate}Service ${lowerRelatedAggregate}Service;\n`;
 
-                            // Collect aggregateId to add before DTO
+                            // Collect aggregateId to add after services
                             crossAggregateIds.push({
                                 paramName: aggregateIdParamName,
                                 relatedAggregateName: relatedAggregateName
                             });
 
-                            // Update constructor params - add service (aggregateId will be added later)
-                            constructorParams.splice(constructorParams.length - 1, 0, `${capitalizedRelatedAggregate}Service ${lowerRelatedAggregate}Service`);
+                            // Update constructor params - add cross-aggregate service after main aggregate service
+                            constructorParams.push(`${capitalizedRelatedAggregate}Service ${lowerRelatedAggregate}Service`);
 
-                            // Generate get step - use aggregateId parameter directly
+                            // Generate get step - create entity relationship from DTO in the first step
+                            const capitalizedRelName = rel.paramName.charAt(0).toUpperCase() + rel.paramName.slice(1);
                             const getStepCode = `
         SagaSyncStep ${stepName} = new SagaSyncStep("${stepName}", () -> {
             ${relatedDtoVarName} = (${sagaDtoType}) ${lowerRelatedAggregate}Service.get${capitalizedRelatedAggregate}ById(${aggregateIdParamName}, unitOfWork);
@@ -360,7 +365,7 @@ export class SagaCrudGenerator extends OrchestrationBase {
                             crossAggregateSteps.push(getStepCode);
                             crossAggregateDependencies.push(stepName);
 
-                            // Add getters/setters
+                            // Add getter/setter for the entity relationship
                             gettersSettersCode += `
     public ${rel.entityType} get${capitalizedRelName}() {
         return ${rel.paramName};
@@ -390,25 +395,26 @@ export class SagaCrudGenerator extends OrchestrationBase {
                         imports.push('import java.util.stream.Collectors;');
                     }
 
-                    // Add cross-aggregate aggregateIds to constructor and buildWorkflow params (before DTO)
+                    // Add cross-aggregate aggregateIds to constructor and buildWorkflow params (after services)
                     for (const aggId of crossAggregateIds) {
-                        constructorParams.splice(constructorParams.length - 1, 0, `Integer ${aggId.paramName}`);
+                        constructorParams.push(`Integer ${aggId.paramName}`);
                         buildWorkflowParams.push(`Integer ${aggId.paramName}`);
                         buildWorkflowCallArgs.push(aggId.paramName);
                     }
 
-                    // Add DTO to constructor and buildWorkflow params
-                    constructorParams.splice(constructorParams.length - 1, 0, `${dtoType} ${dtoParamName}`);
+                    // Add DTO to constructor and buildWorkflow params (after ids)
+                    constructorParams.push(`${dtoType} ${dtoParamName}`);
                     buildWorkflowParams.push(`${dtoType} ${dtoParamName}`);
                     buildWorkflowCallArgs.push(dtoParamName);
 
                     // Update service args to include entity relationships
                     if (singleEntityRels.length > 0 || collectionEntityRels.length > 0) {
                         const newServiceArgs: string[] = [];
-                        // Single entities first (use getter for cross-aggregate ones)
+                        // Single entities first (use getter for cross-aggregate ones created in first step, use param for same-aggregate)
                         for (const rel of singleEntityRels) {
                             const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, options, allAggregates);
                             if (relatedDtoInfo.isFromAnotherAggregate) {
+                                // Use getter for entity relationship created in the first step
                                 const capitalizedRelName = rel.paramName.charAt(0).toUpperCase() + rel.paramName.slice(1);
                                 newServiceArgs.push(`get${capitalizedRelName}()`);
                             } else {
@@ -426,14 +432,13 @@ export class SagaCrudGenerator extends OrchestrationBase {
                         updatedServiceArgs = newServiceArgs;
                     }
                 } else {
-                    // For non-create operations, use op.params as-is
+                    // For non-create operations, use op.params as-is (after common params)
                     constructorParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
                     buildWorkflowParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
                     buildWorkflowCallArgs.push(...op.params.map((p: any) => p.name));
                 }
 
-                // Add unitOfWork to all
-                constructorParams.push('SagaUnitOfWork unitOfWork');
+                // Add unitOfWork to all buildWorkflow signatures (constructor already has it first)
                 buildWorkflowParams.push('SagaUnitOfWork unitOfWork');
                 buildWorkflowCallArgs.push('unitOfWork');
 
@@ -451,19 +456,22 @@ export class SagaCrudGenerator extends OrchestrationBase {
                         : '';
 
                     workflowBody = crossAggregateSteps.join('\n') + `
+
         SagaSyncStep ${op.stepName} = new SagaSyncStep("${op.stepName}", () -> {
 ${stepBody}
         }${dependencies});
 
         ${crossAggregateDependencies.map(step => `workflow.addStep(${step});`).join('\n        ')}
-        workflow.addStep(${op.stepName});`;
+        workflow.addStep(${op.stepName});
+`;
                 } else {
                     workflowBody = `
         SagaSyncStep ${op.stepName} = new SagaSyncStep("${op.stepName}", () -> {
 ${stepBody}
         });
 
-        workflow.addStep(${op.stepName});`;
+        workflow.addStep(${op.stepName});
+`;
                 }
             }
 
