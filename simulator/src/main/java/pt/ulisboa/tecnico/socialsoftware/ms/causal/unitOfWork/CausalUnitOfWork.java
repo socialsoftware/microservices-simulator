@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ;
 import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED;

@@ -2,7 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.Message;

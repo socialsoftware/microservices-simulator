@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.junit.internal.builders.JUnit3Builder;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 
 public record CommandResponse(

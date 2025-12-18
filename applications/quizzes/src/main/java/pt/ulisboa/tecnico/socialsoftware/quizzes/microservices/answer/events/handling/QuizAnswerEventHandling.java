@@ -4,16 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteQuestionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteUserEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.eventProcessing.QuizAnswerEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.DeleteQuestionEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.DeleteUserEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.DisenrollStudentFromCourseExecutionEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.UpdateStudentNameEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteQuestionEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteUserEvent;
 
 @Component
 public class QuizAnswerEventHandling {

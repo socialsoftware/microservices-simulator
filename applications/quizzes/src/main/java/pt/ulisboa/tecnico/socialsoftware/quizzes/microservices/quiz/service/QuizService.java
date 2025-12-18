@@ -9,12 +9,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.InvalidateQuizEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.*;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.InvalidateQuizEvent;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;

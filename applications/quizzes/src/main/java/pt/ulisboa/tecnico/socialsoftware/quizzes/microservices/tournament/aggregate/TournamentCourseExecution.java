@@ -1,10 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
 @Entity

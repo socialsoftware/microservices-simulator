@@ -1,14 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork;
 
-import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 
-import java.sql.SQLException;
 import java.util.Map;
 
 @Service

@@ -1,10 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class Option {

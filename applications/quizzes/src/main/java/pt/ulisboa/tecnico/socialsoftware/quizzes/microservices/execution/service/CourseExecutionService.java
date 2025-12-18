@@ -9,13 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.AnonymizeStudentEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 import java.util.List;

@@ -1,21 +1,15 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.StartQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GetQuizByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.states.QuizSagaState;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
     

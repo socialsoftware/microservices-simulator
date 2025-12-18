@@ -3,14 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coord
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.QuizAnswerQuestionAnswerEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.AnonymizeStudentEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.InvalidateQuizEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteTopicEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities;
 
 @Service

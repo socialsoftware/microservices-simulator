@@ -1,10 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Set;

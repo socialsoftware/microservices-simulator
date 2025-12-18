@@ -2,7 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +12,11 @@ import org.springframework.dao.TransientDataAccessException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 
-import java.beans.Transient;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

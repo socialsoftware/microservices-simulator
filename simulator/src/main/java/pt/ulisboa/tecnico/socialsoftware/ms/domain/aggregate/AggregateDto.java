@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.Serializable;
-import java.util.Map;
 
 public class AggregateDto implements Serializable {
     private Integer aggregateId;

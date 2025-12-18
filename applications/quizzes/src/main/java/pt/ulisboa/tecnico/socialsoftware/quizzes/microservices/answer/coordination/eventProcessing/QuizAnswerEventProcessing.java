@@ -3,11 +3,11 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordinat
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.functionalities.QuizAnswerFunctionalities;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteUserEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.functionalities.QuizAnswerFunctionalities;
 
 @Service
 public class QuizAnswerEventProcessing {

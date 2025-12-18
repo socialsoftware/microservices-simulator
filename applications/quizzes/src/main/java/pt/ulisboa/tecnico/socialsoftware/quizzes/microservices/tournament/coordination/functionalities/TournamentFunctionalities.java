@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
@@ -26,31 +27,6 @@ import java.util.Set;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
 import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.*;
-
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.AnonymizeStudentEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateTopicEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteTopicEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.QuizAnswerQuestionAnswerEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.InvalidateQuizEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveCourseExecutionFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.RemoveCourseExecutionFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTopicFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.UpdateTopicFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.DeleteTopicFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.DeleteTopicFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateParticipantAnswerFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.UpdateParticipantAnswerFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveUserFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.RemoveUserFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.InvalidateQuizFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.InvalidateQuizFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.AnonymizeUserTournamentFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AnonymizeUserTournamentFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.causal.UpdateUserNameFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateUserNameFunctionalitySagas;
 
 @Service
 public class TournamentFunctionalities {

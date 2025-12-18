@@ -1,11 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 

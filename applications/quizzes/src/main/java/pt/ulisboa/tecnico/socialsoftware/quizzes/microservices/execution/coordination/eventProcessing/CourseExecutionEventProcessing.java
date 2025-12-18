@@ -3,8 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordi
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteUserEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities;
 
 @Service
 public class CourseExecutionEventProcessing {

@@ -8,9 +8,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateQuestionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 
 import java.util.List;

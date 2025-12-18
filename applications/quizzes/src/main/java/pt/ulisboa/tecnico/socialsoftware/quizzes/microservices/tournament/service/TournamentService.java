@@ -15,13 +15,11 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.Quizzes
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

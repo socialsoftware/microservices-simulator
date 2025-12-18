@@ -1,16 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;

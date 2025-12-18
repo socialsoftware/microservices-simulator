@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.su
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.AnswerCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.AnswerCourseExecution;
 
 public class QuizAnswerSubscribesRemoveCourseExecution extends EventSubscription {
     public QuizAnswerSubscribesRemoveCourseExecution(AnswerCourseExecution answerCourseExecution) {

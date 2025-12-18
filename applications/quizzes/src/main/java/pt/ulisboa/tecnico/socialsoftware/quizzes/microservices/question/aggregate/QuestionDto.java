@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;

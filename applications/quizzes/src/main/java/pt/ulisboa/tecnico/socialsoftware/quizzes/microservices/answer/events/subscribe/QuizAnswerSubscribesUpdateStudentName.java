@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.su
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
 
 public class QuizAnswerSubscribesUpdateStudentName extends EventSubscription {
     private Integer studentAggregateId;

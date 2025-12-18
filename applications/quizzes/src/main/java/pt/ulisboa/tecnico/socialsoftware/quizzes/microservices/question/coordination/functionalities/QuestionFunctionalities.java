@@ -14,10 +14,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.Quizzes
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.causal.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.*;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.causal.UpdateTopicInQuestionFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.causal.DeleteTopicInQuestionFunctionalityTCC;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateTopicInQuestionFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.DeleteTopicInQuestionFunctionalitySagas;
 
 import java.util.Arrays;
 import java.util.List;

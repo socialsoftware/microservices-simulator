@@ -3,9 +3,9 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordin
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.functionalities.QuestionFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteTopicEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.functionalities.QuestionFunctionalities;
 
 @Service
 public class QuestionEventProcessing {

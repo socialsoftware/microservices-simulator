@@ -4,10 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.StartQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 
 public class StartQuizFunctionalityTCC extends WorkflowFunctionality {

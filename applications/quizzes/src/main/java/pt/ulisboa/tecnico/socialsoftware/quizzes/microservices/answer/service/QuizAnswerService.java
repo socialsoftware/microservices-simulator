@@ -9,8 +9,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.QuizAnswerQuestionAnswerEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
