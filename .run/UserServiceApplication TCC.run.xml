@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="UserServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="microservices" nameIsGenerated="true">
-    <option name="ACTIVE_PROFILES" value="stream,sagas,user-service" />
+  <configuration default="false" name="UserServiceApplication TCC" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="microservices-tcc">
+    <option name="ACTIVE_PROFILES" value="stream,tcc,user-service" />
     <module name="QuizzesTutor" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.UserServiceApplication" />
     <extension name="coverage">
