@@ -14,9 +14,9 @@ public class AnswerDto implements Serializable {
     private LocalDateTime creationDate;
     private LocalDateTime answerDate;
     private Boolean completed;
-    private ExecutionDto execution;
-    private UserDto user;
-    private QuizDto quiz;
+    private Integer executionAggregateId;
+    private Integer userAggregateId;
+    private Integer quizAggregateId;
     private List<QuestionAnsweredDto> questions;
 
     public AnswerDto() {
@@ -29,9 +29,9 @@ public class AnswerDto implements Serializable {
         this.creationDate = answer.getCreationDate();
         this.answerDate = answer.getAnswerDate();
         this.completed = answer.getCompleted();
-        this.execution = answer.getExecution() != null ? answer.getExecution().buildDto() : null;
-        this.user = answer.getUser() != null ? answer.getUser().buildDto() : null;
-        this.quiz = answer.getQuiz() != null ? answer.getQuiz().buildDto() : null;
+        this.executionAggregateId = answer.getExecution() != null ? answer.getExecution().getExecutionAggregateId() : null;
+        this.userAggregateId = answer.getUser() != null ? answer.getUser().getUserAggregateId() : null;
+        this.quizAggregateId = answer.getQuiz() != null ? answer.getQuiz().getQuizAggregateId() : null;
         this.questions = answer.getQuestions() != null ? answer.getQuestions().stream().map(QuestionAnsweredDto::new).collect(Collectors.toList()) : null;
     }
 
@@ -83,28 +83,28 @@ public class AnswerDto implements Serializable {
         this.completed = completed;
     }
 
-    public ExecutionDto getExecution() {
-        return execution;
+    public Integer getExecutionAggregateId() {
+        return executionAggregateId;
     }
 
-    public void setExecution(ExecutionDto execution) {
-        this.execution = execution;
+    public void setExecutionAggregateId(Integer executionAggregateId) {
+        this.executionAggregateId = executionAggregateId;
     }
 
-    public UserDto getUser() {
-        return user;
+    public Integer getUserAggregateId() {
+        return userAggregateId;
     }
 
-    public void setUser(UserDto user) {
-        this.user = user;
+    public void setUserAggregateId(Integer userAggregateId) {
+        this.userAggregateId = userAggregateId;
     }
 
-    public QuizDto getQuiz() {
-        return quiz;
+    public Integer getQuizAggregateId() {
+        return quizAggregateId;
     }
 
-    public void setQuiz(QuizDto quiz) {
-        this.quiz = quiz;
+    public void setQuizAggregateId(Integer quizAggregateId) {
+        this.quizAggregateId = quizAggregateId;
     }
 
     public List<QuestionAnsweredDto> getQuestions() {

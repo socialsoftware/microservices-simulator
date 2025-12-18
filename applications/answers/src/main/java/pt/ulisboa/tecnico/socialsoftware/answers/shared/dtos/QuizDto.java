@@ -18,7 +18,7 @@ public class QuizDto implements Serializable {
     private LocalDateTime availableDate;
     private LocalDateTime conclusionDate;
     private LocalDateTime resultsDate;
-    private ExecutionDto execution;
+    private Integer executionAggregateId;
     private Set<QuestionDto> questions;
 
     public QuizDto() {
@@ -34,7 +34,7 @@ public class QuizDto implements Serializable {
         this.availableDate = quiz.getAvailableDate();
         this.conclusionDate = quiz.getConclusionDate();
         this.resultsDate = quiz.getResultsDate();
-        this.execution = quiz.getExecution() != null ? quiz.getExecution().buildDto() : null;
+        this.executionAggregateId = quiz.getExecution() != null ? quiz.getExecution().getExecutionAggregateId() : null;
         this.questions = quiz.getQuestions() != null ? quiz.getQuestions().stream().map(QuizQuestion::buildDto).collect(Collectors.toSet()) : null;
     }
 
@@ -110,12 +110,12 @@ public class QuizDto implements Serializable {
         this.resultsDate = resultsDate;
     }
 
-    public ExecutionDto getExecution() {
-        return execution;
+    public Integer getExecutionAggregateId() {
+        return executionAggregateId;
     }
 
-    public void setExecution(ExecutionDto execution) {
-        this.execution = execution;
+    public void setExecutionAggregateId(Integer executionAggregateId) {
+        this.executionAggregateId = executionAggregateId;
     }
 
     public Set<QuestionDto> getQuestions() {

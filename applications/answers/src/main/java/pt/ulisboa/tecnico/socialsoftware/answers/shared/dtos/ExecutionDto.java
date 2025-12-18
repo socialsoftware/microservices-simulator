@@ -15,7 +15,7 @@ public class ExecutionDto implements Serializable {
     private String acronym;
     private String academicTerm;
     private LocalDateTime endDate;
-    private CourseDto course;
+    private Integer courseAggregateId;
     private Set<UserDto> users;
 
     public ExecutionDto() {
@@ -28,7 +28,7 @@ public class ExecutionDto implements Serializable {
         this.acronym = execution.getAcronym();
         this.academicTerm = execution.getAcademicTerm();
         this.endDate = execution.getEndDate();
-        this.course = execution.getCourse() != null ? execution.getCourse().buildDto() : null;
+        this.courseAggregateId = execution.getCourse() != null ? execution.getCourse().getCourseAggregateId() : null;
         this.users = execution.getUsers() != null ? execution.getUsers().stream().map(ExecutionUser::buildDto).collect(Collectors.toSet()) : null;
     }
 
@@ -80,12 +80,12 @@ public class ExecutionDto implements Serializable {
         this.endDate = endDate;
     }
 
-    public CourseDto getCourse() {
-        return course;
+    public Integer getCourseAggregateId() {
+        return courseAggregateId;
     }
 
-    public void setCourse(CourseDto course) {
-        this.course = course;
+    public void setCourseAggregateId(Integer courseAggregateId) {
+        this.courseAggregateId = courseAggregateId;
     }
 
     public Set<UserDto> getUsers() {

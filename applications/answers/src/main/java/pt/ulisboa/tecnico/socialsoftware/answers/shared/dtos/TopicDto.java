@@ -9,7 +9,7 @@ public class TopicDto implements Serializable {
     private Integer version;
     private AggregateState state;
     private String name;
-    private CourseDto course;
+    private Integer courseAggregateId;
 
     public TopicDto() {
     }
@@ -19,7 +19,7 @@ public class TopicDto implements Serializable {
         this.version = topic.getVersion();
         this.state = topic.getState();
         this.name = topic.getName();
-        this.course = topic.getCourse() != null ? topic.getCourse().buildDto() : null;
+        this.courseAggregateId = topic.getCourse() != null ? topic.getCourse().getCourseAggregateId() : null;
     }
 
     public Integer getAggregateId() {
@@ -54,11 +54,11 @@ public class TopicDto implements Serializable {
         this.name = name;
     }
 
-    public CourseDto getCourse() {
-        return course;
+    public Integer getCourseAggregateId() {
+        return courseAggregateId;
     }
 
-    public void setCourse(CourseDto course) {
-        this.course = course;
+    public void setCourseAggregateId(Integer courseAggregateId) {
+        this.courseAggregateId = courseAggregateId;
     }
 }

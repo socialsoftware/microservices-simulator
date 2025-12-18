@@ -16,7 +16,7 @@ public class QuestionDto implements Serializable {
     private String title;
     private String content;
     private LocalDateTime creationDate;
-    private CourseDto course;
+    private Integer courseAggregateId;
     private Set<TopicDto> topics;
     private List<OptionDto> options;
 
@@ -30,7 +30,7 @@ public class QuestionDto implements Serializable {
         this.title = question.getTitle();
         this.content = question.getContent();
         this.creationDate = question.getCreationDate();
-        this.course = question.getCourse() != null ? question.getCourse().buildDto() : null;
+        this.courseAggregateId = question.getCourse() != null ? question.getCourse().getCourseAggregateId() : null;
         this.topics = question.getTopics() != null ? question.getTopics().stream().map(QuestionTopic::buildDto).collect(Collectors.toSet()) : null;
         this.options = question.getOptions() != null ? question.getOptions().stream().map(OptionDto::new).collect(Collectors.toList()) : null;
     }
@@ -83,12 +83,12 @@ public class QuestionDto implements Serializable {
         this.creationDate = creationDate;
     }
 
-    public CourseDto getCourse() {
-        return course;
+    public Integer getCourseAggregateId() {
+        return courseAggregateId;
     }
 
-    public void setCourse(CourseDto course) {
-        this.course = course;
+    public void setCourseAggregateId(Integer courseAggregateId) {
+        this.courseAggregateId = courseAggregateId;
     }
 
     public Set<TopicDto> getTopics() {
