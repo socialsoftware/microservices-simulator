@@ -134,7 +134,10 @@ export class ControllerGenerator extends WebApiBaseGenerator {
                 ],
                 returnType: dtoType,
                 description: `Update ${aggregateName}`,
-                isCrud: true
+                isCrud: true,
+                isUpdate: true,
+                dtoParamName: `${lowerAggregate}Dto`,
+                aggregateIdParamName: `${lowerAggregate}AggregateId`
             },
             {
                 method: 'Delete',

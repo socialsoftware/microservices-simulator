@@ -14,17 +14,17 @@ public class UpdateUserFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public UpdateUserFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, UserService userService, Integer userAggregateId, UserDto userDto) {
+    public UpdateUserFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, UserService userService, UserDto userDto) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(userAggregateId, userDto, unitOfWork);
+        this.buildWorkflow(userDto, unitOfWork);
     }
 
-    public void buildWorkflow(Integer userAggregateId, UserDto userDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(UserDto userDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep updateUserStep = new SagaSyncStep("updateUserStep", () -> {
-            UserDto updatedUserDto = userService.updateUser(userAggregateId, userDto, unitOfWork);
+            UserDto updatedUserDto = userService.updateUser(userDto.getAggregateId(), userDto, unitOfWork);
             setUpdatedUserDto(updatedUserDto);
         });
 

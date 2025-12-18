@@ -18,25 +18,25 @@ public class UpdateExecutionFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public UpdateExecutionFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, Integer executionAggregateId, ExecutionDto executionDto) {
+    public UpdateExecutionFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, ExecutionDto executionDto) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(executionAggregateId, executionDto, unitOfWork);
+        this.buildWorkflow(executionDto, unitOfWork);
     }
 
-    public void buildWorkflow(Integer executionAggregateId, ExecutionDto executionDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(ExecutionDto executionDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getExecutionStep = new SagaSyncStep("getExecutionStep", () -> {
-            unitOfWorkService.registerSagaState(executionAggregateId, ExecutionSagaState.READ_EXECUTION, unitOfWork);
+            unitOfWorkService.registerSagaState(executionDto.getAggregateId(), ExecutionSagaState.READ_EXECUTION, unitOfWork);
         });
 
         getExecutionStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(executionAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(executionDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
 
         SagaSyncStep updateExecutionStep = new SagaSyncStep("updateExecutionStep", () -> {
-            ExecutionDto updatedExecutionDto = executionService.updateExecution(executionAggregateId, executionDto, unitOfWork);
+            ExecutionDto updatedExecutionDto = executionService.updateExecution(executionDto.getAggregateId(), executionDto, unitOfWork);
             setUpdatedExecutionDto(updatedExecutionDto);
         }, new ArrayList<>(Arrays.asList(getExecutionStep)));
 

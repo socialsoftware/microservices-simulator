@@ -12,8 +12,8 @@ public class {{aggregateName}}Controller {
 
     @{{method}}Mapping("{{path}}")
     public {{#if returnType}}{{returnType}}{{else}}void{{/if}} {{methodName}}({{#each parameters}}{{annotation}} {{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}){{#if throwsException}} throws Exception{{/if}} {
-{{#if returnType}}        return {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
-{{else}}        {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
-{{/if}}    }
+{{#if isUpdate}}        {{dtoParamName}}.setAggregateId({{aggregateIdParamName}});
+        {{#if returnType}}return {{../functionalitiesName}}.{{methodName}}({{dtoParamName}});{{else}}{{../functionalitiesName}}.{{methodName}}({{dtoParamName}});{{/if}}{{else}}{{#if returnType}}        return {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});{{else}}        {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});{{/if}}{{/if}}
+    }
 {{/each}}
 }

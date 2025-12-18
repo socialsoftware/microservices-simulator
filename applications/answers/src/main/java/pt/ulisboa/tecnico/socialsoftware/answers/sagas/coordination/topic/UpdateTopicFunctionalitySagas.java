@@ -18,25 +18,25 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public UpdateTopicFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TopicService topicService, Integer topicAggregateId, TopicDto topicDto) {
+    public UpdateTopicFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TopicService topicService, TopicDto topicDto) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(topicAggregateId, topicDto, unitOfWork);
+        this.buildWorkflow(topicDto, unitOfWork);
     }
 
-    public void buildWorkflow(Integer topicAggregateId, TopicDto topicDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(TopicDto topicDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
-            unitOfWorkService.registerSagaState(topicAggregateId, TopicSagaState.READ_TOPIC, unitOfWork);
+            unitOfWorkService.registerSagaState(topicDto.getAggregateId(), TopicSagaState.READ_TOPIC, unitOfWork);
         });
 
         getTopicStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(topicAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(topicDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
 
         SagaSyncStep updateTopicStep = new SagaSyncStep("updateTopicStep", () -> {
-            TopicDto updatedTopicDto = topicService.updateTopic(topicAggregateId, topicDto, unitOfWork);
+            TopicDto updatedTopicDto = topicService.updateTopic(topicDto.getAggregateId(), topicDto, unitOfWork);
             setUpdatedTopicDto(updatedTopicDto);
         }, new ArrayList<>(Arrays.asList(getTopicStep)));
 

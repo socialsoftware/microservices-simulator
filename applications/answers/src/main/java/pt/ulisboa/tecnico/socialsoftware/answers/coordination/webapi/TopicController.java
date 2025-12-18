@@ -23,7 +23,8 @@ public class TopicController {
 
     @PutMapping("/topics/{topicAggregateId}")
     public TopicDto updateTopic(@PathVariable Integer topicAggregateId, @RequestBody TopicDto topicDto) {
-        return topicFunctionalities.updateTopic(topicAggregateId, topicDto);
+        topicDto.setAggregateId(topicAggregateId);
+        return topicFunctionalities.updateTopic(topicDto);
     }
 
     @DeleteMapping("/topics/{topicAggregateId}")

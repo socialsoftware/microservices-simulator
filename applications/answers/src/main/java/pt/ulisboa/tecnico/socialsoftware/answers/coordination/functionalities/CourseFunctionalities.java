@@ -71,7 +71,7 @@ public class CourseFunctionalities {
         }
     }
 
-    public CourseDto updateCourse(Integer courseAggregateId, CourseDto courseDto) {
+    public CourseDto updateCourse(CourseDto courseDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -79,7 +79,7 @@ public class CourseFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(courseDto);
                 UpdateCourseFunctionalitySagas updateCourseFunctionalitySagas = new UpdateCourseFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, courseService, courseAggregateId, courseDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, courseService, courseDto);
                 updateCourseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateCourseFunctionalitySagas.getUpdatedCourseDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

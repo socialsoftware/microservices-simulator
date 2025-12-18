@@ -23,7 +23,8 @@ public class AnswerController {
 
     @PutMapping("/answers/{answerAggregateId}")
     public AnswerDto updateAnswer(@PathVariable Integer answerAggregateId, @RequestBody AnswerDto answerDto) {
-        return answerFunctionalities.updateAnswer(answerAggregateId, answerDto);
+        answerDto.setAggregateId(answerAggregateId);
+        return answerFunctionalities.updateAnswer(answerDto);
     }
 
     @DeleteMapping("/answers/{answerAggregateId}")

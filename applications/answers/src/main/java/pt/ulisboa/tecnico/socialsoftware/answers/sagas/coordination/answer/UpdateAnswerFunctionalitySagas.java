@@ -18,25 +18,25 @@ public class UpdateAnswerFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public UpdateAnswerFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, AnswerService answerService, Integer answerAggregateId, AnswerDto answerDto) {
+    public UpdateAnswerFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, AnswerService answerService, AnswerDto answerDto) {
         this.answerService = answerService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(answerAggregateId, answerDto, unitOfWork);
+        this.buildWorkflow(answerDto, unitOfWork);
     }
 
-    public void buildWorkflow(Integer answerAggregateId, AnswerDto answerDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(AnswerDto answerDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getAnswerStep = new SagaSyncStep("getAnswerStep", () -> {
-            unitOfWorkService.registerSagaState(answerAggregateId, AnswerSagaState.READ_ANSWER, unitOfWork);
+            unitOfWorkService.registerSagaState(answerDto.getAggregateId(), AnswerSagaState.READ_ANSWER, unitOfWork);
         });
 
         getAnswerStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(answerAggregateId, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(answerDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
 
         SagaSyncStep updateAnswerStep = new SagaSyncStep("updateAnswerStep", () -> {
-            AnswerDto updatedAnswerDto = answerService.updateAnswer(answerAggregateId, answerDto, unitOfWork);
+            AnswerDto updatedAnswerDto = answerService.updateAnswer(answerDto.getAggregateId(), answerDto, unitOfWork);
             setUpdatedAnswerDto(updatedAnswerDto);
         }, new ArrayList<>(Arrays.asList(getAnswerStep)));
 

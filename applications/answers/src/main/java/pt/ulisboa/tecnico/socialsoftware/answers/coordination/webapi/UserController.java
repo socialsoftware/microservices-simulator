@@ -24,7 +24,8 @@ public class UserController {
 
     @PutMapping("/users/{userAggregateId}")
     public UserDto updateUser(@PathVariable Integer userAggregateId, @RequestBody UserDto userDto) {
-        return userFunctionalities.updateUser(userAggregateId, userDto);
+        userDto.setAggregateId(userAggregateId);
+        return userFunctionalities.updateUser(userDto);
     }
 
     @DeleteMapping("/users/{userAggregateId}")

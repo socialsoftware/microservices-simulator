@@ -23,7 +23,8 @@ public class ExecutionController {
 
     @PutMapping("/executions/{executionAggregateId}")
     public ExecutionDto updateExecution(@PathVariable Integer executionAggregateId, @RequestBody ExecutionDto executionDto) {
-        return executionFunctionalities.updateExecution(executionAggregateId, executionDto);
+        executionDto.setAggregateId(executionAggregateId);
+        return executionFunctionalities.updateExecution(executionDto);
     }
 
     @DeleteMapping("/executions/{executionAggregateId}")

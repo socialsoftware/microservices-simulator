@@ -82,7 +82,7 @@ public class AnswerFunctionalities {
         }
     }
 
-    public AnswerDto updateAnswer(Integer answerAggregateId, AnswerDto answerDto) {
+    public AnswerDto updateAnswer(AnswerDto answerDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -90,7 +90,7 @@ public class AnswerFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(answerDto);
                 UpdateAnswerFunctionalitySagas updateAnswerFunctionalitySagas = new UpdateAnswerFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, answerAggregateId, answerDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, answerDto);
                 updateAnswerFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateAnswerFunctionalitySagas.getUpdatedAnswerDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

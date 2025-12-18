@@ -14,17 +14,17 @@ public class UpdateCourseFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public UpdateCourseFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, CourseService courseService, Integer courseAggregateId, CourseDto courseDto) {
+    public UpdateCourseFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, CourseService courseService, CourseDto courseDto) {
         this.courseService = courseService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(courseAggregateId, courseDto, unitOfWork);
+        this.buildWorkflow(courseDto, unitOfWork);
     }
 
-    public void buildWorkflow(Integer courseAggregateId, CourseDto courseDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(CourseDto courseDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep updateCourseStep = new SagaSyncStep("updateCourseStep", () -> {
-            CourseDto updatedCourseDto = courseService.updateCourse(courseAggregateId, courseDto, unitOfWork);
+            CourseDto updatedCourseDto = courseService.updateCourse(courseDto.getAggregateId(), courseDto, unitOfWork);
             setUpdatedCourseDto(updatedCourseDto);
         });
 

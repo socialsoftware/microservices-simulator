@@ -57,10 +57,9 @@ export class FunctionalitiesCrudGenerator extends OrchestrationBase {
             name: `update${aggregateName}`,
             returnType: dtoType,
             parameters: [
-                { type: 'Integer', name: `${lowerAggregate}AggregateId` },
                 { type: dtoType, name: `${lowerAggregate}Dto` }
             ],
-            body: this.generateCrudMethodBody('update', aggregateName, lowerAggregate, dtoType, [`${lowerAggregate}AggregateId`, `${lowerAggregate}Dto`]),
+            body: this.generateCrudMethodBody('update', aggregateName, lowerAggregate, dtoType, [`${lowerAggregate}Dto`]),
             throwsException: false
         });
 

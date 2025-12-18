@@ -39,7 +39,6 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 name: `update${capitalizedAggregate}`,
                 stepName: `update${capitalizedAggregate}Step`,
                 params: [
-                    { type: 'Integer', name: `${lowerAggregate}AggregateId` },
                     { type: dtoType, name: `${lowerAggregate}Dto` }
                 ],
                 resultType: dtoType,
@@ -47,7 +46,7 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 resultSetter: `setUpdated${capitalizedAggregate}Dto`,
                 resultGetter: `getUpdated${capitalizedAggregate}Dto`,
                 serviceCall: `${lowerAggregate}Service.update${capitalizedAggregate}`,
-                serviceArgs: [`${lowerAggregate}AggregateId`, `${lowerAggregate}Dto`, 'unitOfWork']
+                serviceArgs: [`${lowerAggregate}Dto.getAggregateId()`, `${lowerAggregate}Dto`, 'unitOfWork']
             },
             {
                 name: `delete${capitalizedAggregate}`,
@@ -197,7 +196,10 @@ export class SagaCrudGenerator extends OrchestrationBase {
             const buildWorkflowCallArgs: string[] = [];
 
             let workflowBody = '';
-            const idParamName = op.params[0]?.name || `${lowerAggregate}AggregateId`;
+            // For update operations, aggregateId comes from DTO, not a separate param
+            const idParamName = isUpdateOperation
+                ? (op.params[0]?.name || `${lowerAggregate}Dto`) + '.getAggregateId()'
+                : op.params[0]?.name || `${lowerAggregate}AggregateId`;
 
             if (isDeleteOperation) {
                 // Add constructor params for delete operation (after common params)
@@ -244,7 +246,8 @@ export class SagaCrudGenerator extends OrchestrationBase {
 `;
                 }
             } else if (isUpdateOperation) {
-                const dtoParamName = op.params[1]?.name || `${lowerAggregate}Dto`;
+                const dtoParamName = op.params[0]?.name || `${lowerAggregate}Dto`;
+                const aggregateIdFromDto = `${dtoParamName}.getAggregateId()`;
 
                 // Add constructor params for update operation (after common params)
                 constructorParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
@@ -258,7 +261,7 @@ export class SagaCrudGenerator extends OrchestrationBase {
                     // For simple aggregates, call update directly without get step
                     workflowBody = `
         SagaSyncStep update${capitalizedAggregate}Step = new SagaSyncStep(\"update${capitalizedAggregate}Step\", () -> {
-            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${idParamName}, ${dtoParamName}, unitOfWork);
+            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${aggregateIdFromDto}, ${dtoParamName}, unitOfWork);
             ${op.resultSetter}(${op.resultField});
         });
 
@@ -270,15 +273,15 @@ export class SagaCrudGenerator extends OrchestrationBase {
 
                     workflowBody = `
         SagaSyncStep get${capitalizedAggregate}Step = new SagaSyncStep(\"get${capitalizedAggregate}Step\", () -> {
-            unitOfWorkService.registerSagaState(${idParamName}, ${readStateConst}, unitOfWork);
+            unitOfWorkService.registerSagaState(${aggregateIdFromDto}, ${readStateConst}, unitOfWork);
         });
 
         get${capitalizedAggregate}Step.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(${idParamName}, GenericSagaState.NOT_IN_SAGA, unitOfWork);
+            unitOfWorkService.registerSagaState(${aggregateIdFromDto}, GenericSagaState.NOT_IN_SAGA, unitOfWork);
         }, unitOfWork);
 
         SagaSyncStep update${capitalizedAggregate}Step = new SagaSyncStep(\"update${capitalizedAggregate}Step\", () -> {
-            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${idParamName}, ${dtoParamName}, unitOfWork);
+            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${aggregateIdFromDto}, ${dtoParamName}, unitOfWork);
             ${op.resultSetter}(${op.resultField});
         }, new ArrayList<>(Arrays.asList(get${capitalizedAggregate}Step)));
 

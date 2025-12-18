@@ -24,7 +24,8 @@ public class CourseController {
 
     @PutMapping("/courses/{courseAggregateId}")
     public CourseDto updateCourse(@PathVariable Integer courseAggregateId, @RequestBody CourseDto courseDto) {
-        return courseFunctionalities.updateCourse(courseAggregateId, courseDto);
+        courseDto.setAggregateId(courseAggregateId);
+        return courseFunctionalities.updateCourse(courseDto);
     }
 
     @DeleteMapping("/courses/{courseAggregateId}")

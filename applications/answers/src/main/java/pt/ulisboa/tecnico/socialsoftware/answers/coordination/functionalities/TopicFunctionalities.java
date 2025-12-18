@@ -74,7 +74,7 @@ public class TopicFunctionalities {
         }
     }
 
-    public TopicDto updateTopic(Integer topicAggregateId, TopicDto topicDto) {
+    public TopicDto updateTopic(TopicDto topicDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -82,7 +82,7 @@ public class TopicFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(topicDto);
                 UpdateTopicFunctionalitySagas updateTopicFunctionalitySagas = new UpdateTopicFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, topicService, topicAggregateId, topicDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, topicService, topicDto);
                 updateTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateTopicFunctionalitySagas.getUpdatedTopicDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
