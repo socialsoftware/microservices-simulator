@@ -33,7 +33,7 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: sagas,local
-    image: quizzes
+    image: quizzes-sagas
     container_name: quizzes-sagas
     depends_on:
       postgres:
@@ -57,7 +57,7 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: sagas,stream
-    image: quizzes
+    image: quizzes-sagas-stream
     container_name: quizzes-sagas-stream
     depends_on:
       postgres:
@@ -87,7 +87,7 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: tcc,dev
-    image: quizzes
+    image: quizzes-tcc
     container_name: quizzes-tcc
     depends_on:
       postgres:
@@ -180,8 +180,9 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: sagas,stream,answer-service
-    image: quizzes
+        PROFILE: answer-saga
+        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.AnswerServiceApplication
+    image: quizzes-answer
     container_name: answer-service
     depends_on:
       postgres:
@@ -207,8 +208,9 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: sagas,stream,course-service
-    image: quizzes
+        PROFILE: course-saga
+        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.CourseServiceApplication
+    image: quizzes-course
     container_name: course-service
     depends_on:
       postgres:
@@ -234,8 +236,9 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: sagas,stream,course-execution-service
-    image: quizzes
+        PROFILE: course-execution-saga
+        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.CourseExecutionServiceApplication
+    image: quizzes-course-execution
     container_name: course-execution-service
     depends_on:
       postgres:
@@ -261,8 +264,9 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: sagas,stream,question-service
-    image: quizzes
+        PROFILE: question-saga
+        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.QuestionServiceApplication
+    image: quizzes-question
     container_name: question-service
     depends_on:
       postgres:
@@ -288,8 +292,9 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: sagas,stream,quiz-service
-    image: quizzes
+        PROFILE: quiz-saga
+        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.QuizServiceApplication
+    image: quizzes-quiz
     container_name: quiz-service
     depends_on:
       postgres:
@@ -315,8 +320,9 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: sagas,stream,topic-service
-    image: quizzes
+        PROFILE: topic-saga
+        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.TopicServiceApplication
+    image: quizzes-topic
     container_name: topic-service
     depends_on:
       postgres:
@@ -342,8 +348,9 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: sagas,stream,tournament-service
-    image: quizzes
+        PROFILE: tournament-saga
+        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.TournamentServiceApplication
+    image: quizzes-tournament
     container_name: tournament-service
     depends_on:
       postgres:
@@ -369,8 +376,9 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: sagas,stream,user-service
-    image: quizzes
+        PROFILE: user-saga
+        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.UserServiceApplication
+    image: quizzes-user
     container_name: user-service
     depends_on:
       postgres:
