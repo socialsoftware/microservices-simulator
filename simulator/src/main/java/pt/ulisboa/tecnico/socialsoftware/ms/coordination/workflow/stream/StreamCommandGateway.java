@@ -117,22 +117,11 @@ public class StreamCommandGateway implements CommandGateway {
     private void mergeUnitOfWork(UnitOfWork target, UnitOfWork source) {
         if (target == null || source == null)
             return;
-        logger.info("Merging UnitOfWork - source aggregatesToCommit: " +
-                (source.getAggregatesToCommit() != null
-                        ? source.getAggregatesToCommit().size() + " aggregates"
-                        : "null"));
-        logger.info("Merging UnitOfWork - target aggregatesToCommit before: " +
-                (target.getAggregatesToCommit() != null
-                        ? target.getAggregatesToCommit().size() + " aggregates"
-                        : "null"));
         if (source.getId() != null)
             target.setId(source.getId());
         if (source.getVersion() != null)
             target.setVersion(source.getVersion());
         if (source.getAggregatesToCommit() != null) {
-            // Filter out duplicates - only add aggregates that don't already exist in
-            // target
-            // (matched by aggregateType + aggregateId)
             for (Aggregate sourceAgg : source.getAggregatesToCommit()) {
                 boolean alreadyExists = target.getAggregatesToCommit().stream()
                         .anyMatch(targetAgg -> targetAgg.getAggregateType().equals(sourceAgg.getAggregateType())

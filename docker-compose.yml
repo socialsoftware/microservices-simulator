@@ -10,6 +10,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./data/dumps:/dumps
+      - ./data/init:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_DB=msdb
       - POSTGRES_USER=postgres
@@ -47,6 +48,8 @@ services:
       - SPRING.JPA.DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
       - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+    networks:
+      - messaging-network
 
   quizzes-sagas-stream:
     build:
@@ -61,6 +64,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      version-service:
+        condition: service_started
     ports:
       - "8080:8080"
     restart: unless-stopped
@@ -108,20 +113,38 @@ services:
     image: gateway
     container_name: gateway
     depends_on:
-      - answer-service
-      - course-service
-      - course-execution-service
-      - question-service
-      - quiz-service
-      - topic-service
-      - tournament-service
-      - user-service
-      - version-service
+      answer-service:
+        condition: service_started
+      course-service:
+        condition: service_started
+      course-execution-service:
+        condition: service_started
+      question-service:
+        condition: service_started
+      quiz-service:
+        condition: service_started
+      topic-service:
+        condition: service_started
+      tournament-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      version-service:
+        condition: service_started
     ports:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - ANSWER_SERVICE_HOST=answer-service
+      - COURSE_EXECUTION_SERVICE_HOST=course-execution-service
+      - QUESTION_SERVICE_HOST=question-service
+      - QUIZ_SERVICE_HOST=quiz-service
+      - TOPIC_SERVICE_HOST=topic-service
+      - TOURNAMENT_SERVICE_HOST=tournament-service
+      - USER_SERVICE_HOST=user-service
+      - GATEWAY_LOG_LEVEL=INFO
+      - REACTIVE_LOG_LEVEL=INFO
+      - BUFFER_LOG_LEVEL=INFO
     networks:
       - messaging-network
 
@@ -486,7 +509,7 @@ services:
     restart: unless-stopped
 
   rabbitmq:
-    image: rabbitmq:3.12-management
+    image: rabbitmq:4-management
     container_name: rabbitmq
     hostname: rabbitmq
     ports:
