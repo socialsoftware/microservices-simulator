@@ -8,24 +8,39 @@
 - [ ] GrpcCommandGateway
 - [ ] Verify 2 phase commit in TCC commit
 - [ ] Pass all jmeter tests
-  - [ ] 5a-updateStudentName-addParticipant-processUpdateNameEvent
-  - [ ] 5b-addParticipant-updateStudentName-processUpdateNameEvent
-  - [ ] 5c-updateStudentName1-addParticipant-updateStudentName2-processUpdateNameEvent
-  - [ ] 5d-addParticipant1-updateStudentName-processUpdateNameEvent1-addParticipant2-processUpdateNameEvent2
-  - [ ] 8-10-concurrent-delete-tournament-add-participant
-  - [ ] 8-5-update-tournament-concurrent-intention-pass
+  - [x] 5a-updateStudentName-addParticipant-processUpdateNameEvent
+  - [x] 5b-addParticipant-updateStudentName-processUpdateNameEvent
+  - [x] 5c-updateStudentName1-addParticipant-updateStudentName2-processUpdateNameEvent
+  - [x] 5d-addParticipant1-updateStudentName-processUpdateNameEvent1-addParticipant2-processUpdateNameEvent2
+  - [x] 8-10-concurrent-delete-tournament-add-participant
+  - [x] 8-5-update-tournament-concurrent-intention-pass
   - [ ] 8-6-add-participant-concurrent-update-execution-student-name-processing-ends-first
+    - `Assertion failure message:Value in json path '$..creator.name' expected to be 'Updated_Student_Name_1', but found '["Student_Name_1"]'`
   - [ ] 8-7-add-participant-concurrent-anonymize-event-processing-processing-ends-last
-  - [ ] 8-8-update-execution-student-add-participant-process-event-add-participant
+    - `addParticipant: 400`
+    - `updateStudentName: Assertion failure message:Test failed: code expected not to contain /200/`
+  - [x] 8-8-update-execution-student-add-participant-process-event-add-participant
   - [ ] 8-9-add-participant-concurrent-anonymize-event-processing-processing-ends-first
+    - `addParticipant: Assertion failure message:Test failed: code expected not to contain /200/`
   - [ ] DeleteTournament
+    - `Request tournament: 400`
   - [ ] DeleteUserTest
+    - `request tournament: Assertion failure message:Value in json path '$..students.length()' expected to be '0', but found '1'`
+    - `request course: Assertion failure message:Value in json path '$..students.length()' expected to be '0', but found '1'`
+    - `request user: 400`
   - [ ] DeleteUserTest1
-  - [ ] Getquiz
+    - `Verify if User 2 was removed: Assertion failure message:javax.script.ScriptException: groovy.lang.MissingPropertyException: No such property: aggregateId for class: java.util.LinkedHashMap$Entry`
+  - [x] Getquiz
   - [ ] concurrent-addCreatorAsParticipant-updateCreatorName-invBreak
+    - `add participant: 400`
+    - `request tournament: Assertion failure message:Value in json path '$..participants[0].name' expected to be 'Updated_Student_Name_1', but found '[]'`
   - [ ] concurrentAddUpdateparticipant
-  - [ ] concurrentAddparticipant
+    - `add participant: 400`
+    - `request tournament: Assertion failure message:Value in json path '$..participants[0].name' expected to be 'Updated_Student_Name_1', but found '[]'`
+  - [x] concurrentAddparticipant
   - [ ] test_Multiple_Tests
+    - `add participant: 400`
+    - `request tournament: Assertion failure message:Value in json path '$..participants[0].name' expected to be 'Updated_Student_Name_1', but found '[]'`
 - [ ] Verify Upgrade to Java 25 
 - [ ] Verify upgrade to spring boot 4
 - [ ] Use kubernetes
