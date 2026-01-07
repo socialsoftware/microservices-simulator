@@ -8,7 +8,27 @@
 - [ ] GrpcCommandGateway
 - [ ] Verify 2 phase commit in TCC commit
 - [ ] Pass all jmeter tests
+  - [ ] 5a-updateStudentName-addParticipant-processUpdateNameEvent
+  - [ ] 5b-addParticipant-updateStudentName-processUpdateNameEvent
+  - [ ] 5c-updateStudentName1-addParticipant-updateStudentName2-processUpdateNameEvent
+  - [ ] 5d-addParticipant1-updateStudentName-processUpdateNameEvent1-addParticipant2-processUpdateNameEvent2
+  - [ ] 8-10-concurrent-delete-tournament-add-participant
+  - [ ] 8-5-update-tournament-concurrent-intention-pass
+  - [ ] 8-6-add-participant-concurrent-update-execution-student-name-processing-ends-first
+  - [ ] 8-7-add-participant-concurrent-anonymize-event-processing-processing-ends-last
+  - [ ] 8-8-update-execution-student-add-participant-process-event-add-participant
+  - [ ] 8-9-add-participant-concurrent-anonymize-event-processing-processing-ends-first
+  - [ ] DeleteTournament
+  - [ ] DeleteUserTest
+  - [ ] DeleteUserTest1
+  - [ ] Getquiz
+  - [ ] concurrent-addCreatorAsParticipant-updateCreatorName-invBreak
+  - [ ] concurrentAddUpdateparticipant
+  - [ ] concurrentAddparticipant
+  - [ ] test_Multiple_Tests
 - [ ] Verify Upgrade to Java 25 
 - [ ] Verify upgrade to spring boot 4
 - [ ] Use kubernetes
 - [ ] Version Service Distributed
+- [ ] Make each microservice in docker compose to have its own postgres service
+- [ ] Create TCC profile for microservices in docker compose
