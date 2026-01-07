@@ -39,6 +39,7 @@ public class {{serviceName}} {
 {{else if (eq crudAction "findById")}}
         return {{lowerEntityName}}Factory.create{{entityName}}Dto(({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
 {{else if (eq crudAction "update")}}
+        Integer aggregateId = {{lowerEntityName}}Dto.getAggregateId();
         {{entityName}} old{{entityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
         {{entityName}} new{{entityName}} = {{lowerEntityName}}Factory.create{{entityName}}FromExisting(old{{entityName}});
 {{#each properties}}

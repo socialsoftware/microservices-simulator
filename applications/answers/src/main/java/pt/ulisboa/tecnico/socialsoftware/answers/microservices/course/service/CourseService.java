@@ -75,7 +75,8 @@ public class CourseService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public CourseDto updateCourse(Integer aggregateId, CourseDto courseDto, UnitOfWork unitOfWork) {
+    public CourseDto updateCourse(CourseDto courseDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = courseDto.getAggregateId();
         Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
         Course newCourse = courseFactory.createCourseFromExisting(oldCourse);
         newCourse.setName(courseDto.getName());

@@ -74,7 +74,8 @@ public class AnswerService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public AnswerDto updateAnswer(Integer aggregateId, AnswerDto answerDto, UnitOfWork unitOfWork) {
+    public AnswerDto updateAnswer(AnswerDto answerDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = answerDto.getAggregateId();
         Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
         Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
         newAnswer.setCreationDate(answerDto.getCreationDate());

@@ -118,14 +118,9 @@ export class ControllerGenerator extends WebApiBaseGenerator {
             },
             {
                 method: 'Put',
-                path: `/${lowerAggregate}s/{${lowerAggregate}AggregateId}`,
+                path: `/${lowerAggregate}s`,
                 methodName: `update${aggregateName}`,
                 parameters: [
-                    {
-                        name: `${lowerAggregate}AggregateId`,
-                        type: 'Integer',
-                        annotation: '@PathVariable'
-                    },
                     {
                         name: `${lowerAggregate}Dto`,
                         type: dtoType,
@@ -134,10 +129,7 @@ export class ControllerGenerator extends WebApiBaseGenerator {
                 ],
                 returnType: dtoType,
                 description: `Update ${aggregateName}`,
-                isCrud: true,
-                isUpdate: true,
-                dtoParamName: `${lowerAggregate}Dto`,
-                aggregateIdParamName: `${lowerAggregate}AggregateId`
+                isCrud: true
             },
             {
                 method: 'Delete',

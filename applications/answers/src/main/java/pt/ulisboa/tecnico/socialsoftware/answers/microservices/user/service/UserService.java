@@ -75,7 +75,8 @@ public class UserService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public UserDto updateUser(Integer aggregateId, UserDto userDto, UnitOfWork unitOfWork) {
+    public UserDto updateUser(UserDto userDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = userDto.getAggregateId();
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
         User newUser = userFactory.createUserFromExisting(oldUser);
         newUser.setName(userDto.getName());

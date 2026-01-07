@@ -22,9 +22,8 @@ public class CourseController {
         return courseFunctionalities.getCourseById(courseAggregateId);
     }
 
-    @PutMapping("/courses/{courseAggregateId}")
-    public CourseDto updateCourse(@PathVariable Integer courseAggregateId, @RequestBody CourseDto courseDto) {
-        courseDto.setAggregateId(courseAggregateId);
+    @PutMapping("/courses")
+    public CourseDto updateCourse(@RequestBody CourseDto courseDto) {
         return courseFunctionalities.updateCourse(courseDto);
     }
 

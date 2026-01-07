@@ -22,9 +22,8 @@ public class UserController {
         return userFunctionalities.getUserById(userAggregateId);
     }
 
-    @PutMapping("/users/{userAggregateId}")
-    public UserDto updateUser(@PathVariable Integer userAggregateId, @RequestBody UserDto userDto) {
-        userDto.setAggregateId(userAggregateId);
+    @PutMapping("/users")
+    public UserDto updateUser(@RequestBody UserDto userDto) {
         return userFunctionalities.updateUser(userDto);
     }
 

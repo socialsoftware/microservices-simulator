@@ -41,8 +41,9 @@ export class ServiceCrudGenerator {
         }
     }
 
-    public ${rootEntityName}Dto update${capitalizedAggregate}(Integer id, ${rootEntityName}Dto ${lowerAggregate}Dto) {
+    public ${rootEntityName}Dto update${capitalizedAggregate}(${rootEntityName}Dto ${lowerAggregate}Dto) {
         try {
+            Integer id = ${lowerAggregate}Dto.getAggregateId();
             ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) ${lowerAggregate}Repository.findById(id)
                 .orElseThrow(() -> new ${capitalize(projectName)}Exception("${capitalizedAggregate} not found with id: " + id));
             

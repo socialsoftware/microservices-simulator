@@ -21,9 +21,8 @@ public class ExecutionController {
         return executionFunctionalities.getExecutionById(executionAggregateId);
     }
 
-    @PutMapping("/executions/{executionAggregateId}")
-    public ExecutionDto updateExecution(@PathVariable Integer executionAggregateId, @RequestBody ExecutionDto executionDto) {
-        executionDto.setAggregateId(executionAggregateId);
+    @PutMapping("/executions")
+    public ExecutionDto updateExecution(@RequestBody ExecutionDto executionDto) {
         return executionFunctionalities.updateExecution(executionDto);
     }
 

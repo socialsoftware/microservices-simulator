@@ -21,9 +21,8 @@ public class AnswerController {
         return answerFunctionalities.getAnswerById(answerAggregateId);
     }
 
-    @PutMapping("/answers/{answerAggregateId}")
-    public AnswerDto updateAnswer(@PathVariable Integer answerAggregateId, @RequestBody AnswerDto answerDto) {
-        answerDto.setAggregateId(answerAggregateId);
+    @PutMapping("/answers")
+    public AnswerDto updateAnswer(@RequestBody AnswerDto answerDto) {
         return answerFunctionalities.updateAnswer(answerDto);
     }
 

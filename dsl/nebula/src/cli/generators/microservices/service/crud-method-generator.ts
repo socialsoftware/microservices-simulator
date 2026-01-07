@@ -222,7 +222,6 @@ export class CrudMethodGenerator {
         return {
             name: `update${entityName}`,
             parameters: [
-                { type: 'Integer', name: 'aggregateId' },
                 { type: `${entityName}Dto`, name: `${lowerEntity}Dto` },
                 { type: 'UnitOfWork', name: 'unitOfWork' }
             ],

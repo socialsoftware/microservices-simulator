@@ -46,7 +46,7 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 resultSetter: `setUpdated${capitalizedAggregate}Dto`,
                 resultGetter: `getUpdated${capitalizedAggregate}Dto`,
                 serviceCall: `${lowerAggregate}Service.update${capitalizedAggregate}`,
-                serviceArgs: [`${lowerAggregate}Dto.getAggregateId()`, `${lowerAggregate}Dto`, 'unitOfWork']
+                serviceArgs: [`${lowerAggregate}Dto`, 'unitOfWork']
             },
             {
                 name: `delete${capitalizedAggregate}`,
@@ -146,8 +146,9 @@ export class SagaCrudGenerator extends OrchestrationBase {
             });
             const isSimpleAggregate = !hasCrossAggregateRelationships;
 
-            // Only add these imports if we're using the two-step process (complex aggregates)
-            if ((isDeleteOperation || isUpdateOperation) && !isSimpleAggregate) {
+            // Only add these imports if we're using the two-step process (complex aggregates for delete operations)
+            // Update operations no longer use the two-step process, so we don't need these imports for updates
+            if (isDeleteOperation && !isSimpleAggregate) {
                 imports.push('import java.util.ArrayList;');
                 imports.push('import java.util.Arrays;');
                 imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.states.${capitalizedAggregate}SagaState;`);
@@ -247,7 +248,6 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 }
             } else if (isUpdateOperation) {
                 const dtoParamName = op.params[0]?.name || `${lowerAggregate}Dto`;
-                const aggregateIdFromDto = `${dtoParamName}.getAggregateId()`;
 
                 // Add constructor params for update operation (after common params)
                 constructorParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
@@ -257,38 +257,16 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 buildWorkflowParams.push('SagaUnitOfWork unitOfWork');
                 buildWorkflowCallArgs.push('unitOfWork');
 
-                if (isSimpleAggregate) {
-                    // For simple aggregates, call update directly without get step
-                    workflowBody = `
+                // For update operations, we can call the service directly without a separate get step
+                // The service will handle loading the entity internally
+                workflowBody = `
         SagaSyncStep update${capitalizedAggregate}Step = new SagaSyncStep(\"update${capitalizedAggregate}Step\", () -> {
-            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${aggregateIdFromDto}, ${dtoParamName}, unitOfWork);
+            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${dtoParamName}, unitOfWork);
             ${op.resultSetter}(${op.resultField});
         });
 
         workflow.addStep(update${capitalizedAggregate}Step);
 `;
-                } else {
-                    // For complex aggregates, use two-step process
-                    const readStateConst = `${capitalizedAggregate}SagaState.READ_${capitalizedAggregate.toUpperCase()}`;
-
-                    workflowBody = `
-        SagaSyncStep get${capitalizedAggregate}Step = new SagaSyncStep(\"get${capitalizedAggregate}Step\", () -> {
-            unitOfWorkService.registerSagaState(${aggregateIdFromDto}, ${readStateConst}, unitOfWork);
-        });
-
-        get${capitalizedAggregate}Step.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(${aggregateIdFromDto}, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);
-
-        SagaSyncStep update${capitalizedAggregate}Step = new SagaSyncStep(\"update${capitalizedAggregate}Step\", () -> {
-            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${aggregateIdFromDto}, ${dtoParamName}, unitOfWork);
-            ${op.resultSetter}(${op.resultField});
-        }, new ArrayList<>(Arrays.asList(get${capitalizedAggregate}Step)));
-
-        workflow.addStep(get${capitalizedAggregate}Step);
-        workflow.addStep(update${capitalizedAggregate}Step);
-`;
-                }
             } else {
                 let stepBody = '';
                 let entityCreationCode = '';

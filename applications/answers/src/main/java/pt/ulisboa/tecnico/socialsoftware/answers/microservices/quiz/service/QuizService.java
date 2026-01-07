@@ -75,7 +75,8 @@ public class QuizService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizDto updateQuiz(Integer aggregateId, QuizDto quizDto, UnitOfWork unitOfWork) {
+    public QuizDto updateQuiz(QuizDto quizDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = quizDto.getAggregateId();
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
         Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
         newQuiz.setTitle(quizDto.getTitle());

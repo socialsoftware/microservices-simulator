@@ -74,7 +74,8 @@ public class TournamentService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TournamentDto updateTournament(Integer aggregateId, TournamentDto tournamentDto, UnitOfWork unitOfWork) {
+    public TournamentDto updateTournament(TournamentDto tournamentDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = tournamentDto.getAggregateId();
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         newTournament.setStartTime(tournamentDto.getStartTime());

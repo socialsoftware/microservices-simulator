@@ -74,7 +74,8 @@ public class ExecutionService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public ExecutionDto updateExecution(Integer aggregateId, ExecutionDto executionDto, UnitOfWork unitOfWork) {
+    public ExecutionDto updateExecution(ExecutionDto executionDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = executionDto.getAggregateId();
         Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
         Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
         newExecution.setAcronym(executionDto.getAcronym());

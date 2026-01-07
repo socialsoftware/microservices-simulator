@@ -74,7 +74,8 @@ public class QuestionService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuestionDto updateQuestion(Integer aggregateId, QuestionDto questionDto, UnitOfWork unitOfWork) {
+    public QuestionDto updateQuestion(QuestionDto questionDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = questionDto.getAggregateId();
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
         newQuestion.setTitle(questionDto.getTitle());

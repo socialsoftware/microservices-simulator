@@ -7,10 +7,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
-import java.util.ArrayList;
-import java.util.Arrays;
-import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.states.AnswerSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 
 public class UpdateAnswerFunctionalitySagas extends WorkflowFunctionality {
     private AnswerDto updatedAnswerDto;
@@ -27,20 +23,11 @@ public class UpdateAnswerFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(AnswerDto answerDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getAnswerStep = new SagaSyncStep("getAnswerStep", () -> {
-            unitOfWorkService.registerSagaState(answerDto.getAggregateId(), AnswerSagaState.READ_ANSWER, unitOfWork);
+        SagaSyncStep updateAnswerStep = new SagaSyncStep("updateAnswerStep", () -> {
+            AnswerDto updatedAnswerDto = answerService.updateAnswer(answerDto, unitOfWork);
+            setUpdatedAnswerDto(updatedAnswerDto);
         });
 
-        getAnswerStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(answerDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);
-
-        SagaSyncStep updateAnswerStep = new SagaSyncStep("updateAnswerStep", () -> {
-            AnswerDto updatedAnswerDto = answerService.updateAnswer(answerDto.getAggregateId(), answerDto, unitOfWork);
-            setUpdatedAnswerDto(updatedAnswerDto);
-        }, new ArrayList<>(Arrays.asList(getAnswerStep)));
-
-        workflow.addStep(getAnswerStep);
         workflow.addStep(updateAnswerStep);
 
     }
