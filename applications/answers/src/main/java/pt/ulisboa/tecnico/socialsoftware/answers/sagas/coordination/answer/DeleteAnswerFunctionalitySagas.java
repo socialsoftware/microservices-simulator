@@ -2,7 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.answer;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service.AnswerService;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;

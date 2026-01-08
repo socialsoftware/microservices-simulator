@@ -99,7 +99,10 @@ export class SagaCrudGenerator extends OrchestrationBase {
             const imports: string[] = [];
             imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${capitalizedAggregate}Service;`);
-            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
+            const isDeleteOperation = op.name.startsWith('delete');
+            if (!isDeleteOperation) {
+                imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
+            }
             imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
             imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
             imports.push(`import ${basePackage}.ms.sagas.workflow.SagaSyncStep;`);
@@ -133,7 +136,6 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 imports.push(`import ${enumImport};`);
             });
 
-            const isDeleteOperation = op.name.startsWith('delete');
             const isUpdateOperation = op.name.startsWith('update');
             const isGetAllOperation = op.name.startsWith('getAll');
             const isSearchOperation = op.name.startsWith('search');
