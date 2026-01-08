@@ -128,5 +128,5 @@ public class QuestionFunctionalities {
         if (questionDto.getContent() == null) {
             throw new AnswersException(QUESTION_MISSING_CONTENT);
         }
-    }
+}
 }

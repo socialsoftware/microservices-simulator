@@ -121,5 +121,5 @@ public class UserFunctionalities {
         if (userDto.getUsername() == null) {
             throw new AnswersException(USER_MISSING_USERNAME);
         }
-    }
+}
 }

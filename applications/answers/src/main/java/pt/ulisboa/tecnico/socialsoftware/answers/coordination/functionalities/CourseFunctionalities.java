@@ -118,5 +118,5 @@ public class CourseFunctionalities {
         if (courseDto.getName() == null) {
             throw new AnswersException(COURSE_MISSING_NAME);
         }
-    }
+}
 }

@@ -128,5 +128,5 @@ public class ExecutionFunctionalities {
         if (executionDto.getAcademicTerm() == null) {
             throw new AnswersException(EXECUTION_MISSING_ACADEMICTERM);
         }
-    }
+}
 }

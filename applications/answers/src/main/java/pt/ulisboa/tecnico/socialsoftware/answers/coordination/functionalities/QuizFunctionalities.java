@@ -126,5 +126,5 @@ public class QuizFunctionalities {
         if (quizDto.getTitle() == null) {
             throw new AnswersException(QUIZ_MISSING_TITLE);
         }
-    }
+}
 }

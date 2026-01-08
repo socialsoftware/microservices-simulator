@@ -229,8 +229,18 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
      * Build checkInput method for validating DTOs
      */
     private buildCheckInputMethod(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, lowerAggregate: string, projectName: string): string | null {
-        if (!rootEntity || !rootEntity.properties) {
+        // Check if CRUD is enabled (which means create/update operations will call checkInput)
+        const hasCrud = (aggregate.webApiEndpoints as any)?.generateCrud;
+        if (!hasCrud) {
             return null;
+        }
+
+        if (!rootEntity || !rootEntity.properties) {
+            // Still generate empty method if CRUD is enabled
+            const dtoType = `${aggregateName}Dto`;
+            const dtoParamName = `${lowerAggregate}Dto`;
+            return `private void checkInput(${dtoType} ${dtoParamName}) {
+}`;
         }
 
         const dtoType = `${aggregateName}Dto`;
@@ -256,13 +266,16 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             }
         }
 
+        // Always generate the method if CRUD is enabled, even if there are no validation checks
+        // Template will add 4-space indentation, so don't include it here
         if (validationChecks.length === 0) {
-            return null;
+            return `private void checkInput(${dtoType} ${dtoParamName}) {
+}`;
         }
 
         return `private void checkInput(${dtoType} ${dtoParamName}) {
 ${validationChecks.join('\n')}
-    }`;
+}`;
     }
 
     /**

@@ -129,4 +129,6 @@ public class TournamentFunctionalities {
         }
     }
 
+    private void checkInput(TournamentDto tournamentDto) {
+}
 }

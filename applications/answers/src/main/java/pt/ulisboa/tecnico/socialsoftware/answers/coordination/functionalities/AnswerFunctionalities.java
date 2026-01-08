@@ -125,4 +125,6 @@ public class AnswerFunctionalities {
         }
     }
 
+    private void checkInput(AnswerDto answerDto) {
+}
 }

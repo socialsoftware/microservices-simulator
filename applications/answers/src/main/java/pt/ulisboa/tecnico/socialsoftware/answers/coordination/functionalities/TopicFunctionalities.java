@@ -121,5 +121,5 @@ public class TopicFunctionalities {
         if (topicDto.getName() == null) {
             throw new AnswersException(TOPIC_MISSING_NAME);
         }
-    }
+}
 }
