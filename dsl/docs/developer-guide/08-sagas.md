@@ -4,7 +4,7 @@
 
 > **Goal:** understand how the causal-saga architecture coordinates distributed transactions across microservices.
 
-[← Back to Step 7](07-events.md) · [Next → Step 9](09-architecture-options.md)
+[← Back to Step 7](07-events.md)
 
 ---
 
@@ -309,4 +309,4 @@ The causal-saga architecture provides distributed transaction support through:
 
 Nebula generates this infrastructure automatically for CRUD operations and lets you define custom workflows for complex business processes.
 
-[← Back to Step 7](07-events.md) · [Next → Step 9](09-architecture-options.md)
+[← Back to Step 7](07-events.md)

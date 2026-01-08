@@ -16,7 +16,6 @@
 | [06](06-web-api.md) | Web API Endpoints | Controllers, functionalities, REST endpoints |
 | [07](07-events.md) | Events & Subscriptions | Publishing, subscribing, event handlers |
 | [08](08-sagas.md) | Saga Workflows | Distributed transactions, compensation |
-| [09](09-architecture-options.md) | Architecture Options | Default vs causal-saga, CLI reference |
 
 ---
 
@@ -24,13 +23,34 @@
 
 **New to Nebula?** Start with steps 01–06 for core microservice generation.
 
-**Building distributed systems?** Continue with steps 07–09 for saga coordination.
+**Building distributed systems?** Continue with steps 07–08 for event-driven architecture and saga coordination.
+
+---
+
+## CLI Reference
+
+```bash
+./bin/cli.js generate <abstractions-path> [options]
+
+Options:
+  -o, --output <dir>    Output directory (default: ../../applications)
+```
+
+**Examples:**
+
+```bash
+# Generate from a folder of .nebula files
+./bin/cli.js generate ../abstractions/answers/
+
+# Generate to a custom output directory
+./bin/cli.js generate ../abstractions/answers/ -o ./output
+```
 
 ---
 
 ## Additional Resources
 
-- [Full Language Reference](../../README.md) — Complete DSL syntax documentation
+- [Full Language Reference](../../README.md) — DSL overview and examples
 - [Grammar Definition](../../nebula/src/language/nebula.langium) — Langium grammar file
 - [Working Examples](../../abstractions/answers/) — Real-world abstraction files
 
@@ -42,7 +62,7 @@
 
 **Initial Release**
 
-- **01-setup-and-cli**: Environment setup and first CLI run
+- **01-setup-and-cli**: Environment setup and CLI usage
 - **02-entities-and-dtos**: Entity definitions and JPA relationship mapping
 - **03-dto-mappings**: Cross-aggregate DTO schemas with `uses dto` syntax
 - **04-repositories**: Custom repository queries and `@Query` annotations
@@ -50,7 +70,6 @@
 - **06-web-api**: REST controller and functionalities layer generation
 - **07-events**: Event publishing, subscriptions, and handlers
 - **08-sagas**: Saga workflow orchestration and compensation
-- **09-architecture-options**: Architecture modes and feature flags
 
 ---
 
