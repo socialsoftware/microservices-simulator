@@ -114,7 +114,7 @@ public class UserFunctionalities {
         }
     }
 
-        private void checkInput(UserDto userDto) {
+    private void checkInput(UserDto userDto) {
         if (userDto.getName() == null) {
             throw new AnswersException(USER_MISSING_NAME);
         }

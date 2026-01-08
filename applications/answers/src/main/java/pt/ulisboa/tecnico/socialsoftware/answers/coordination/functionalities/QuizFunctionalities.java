@@ -82,7 +82,7 @@ public class QuizFunctionalities {
         }
     }
 
-        private void checkInput(QuizDto quizDto) {
+    private void checkInput(QuizDto quizDto) {
         if (quizDto.getTitle() == null) {
             throw new AnswersException(QUIZ_MISSING_TITLE);
         }

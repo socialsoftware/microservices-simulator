@@ -125,7 +125,7 @@ public class QuestionFunctionalities {
         }
     }
 
-        private void checkInput(QuestionDto questionDto) {
+    private void checkInput(QuestionDto questionDto) {
         if (questionDto.getTitle() == null) {
             throw new AnswersException(QUESTION_MISSING_TITLE);
         }

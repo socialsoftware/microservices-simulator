@@ -114,7 +114,7 @@ public class CourseFunctionalities {
         }
     }
 
-        private void checkInput(CourseDto courseDto) {
+    private void checkInput(CourseDto courseDto) {
         if (courseDto.getName() == null) {
             throw new AnswersException(COURSE_MISSING_NAME);
         }

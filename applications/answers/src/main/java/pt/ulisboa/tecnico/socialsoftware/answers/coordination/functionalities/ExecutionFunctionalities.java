@@ -117,7 +117,7 @@ public class ExecutionFunctionalities {
         }
     }
 
-        private void checkInput(ExecutionDto executionDto) {
+    private void checkInput(ExecutionDto executionDto) {
         if (executionDto.getAcronym() == null) {
             throw new AnswersException(EXECUTION_MISSING_ACRONYM);
         }

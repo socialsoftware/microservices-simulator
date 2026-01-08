@@ -241,7 +241,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             return null;
         }
 
-        return `    private void checkInput(${dtoType} ${dtoParamName}) {
+        return `private void checkInput(${dtoType} ${dtoParamName}) {
 ${validationChecks.join('\n')}
     }`;
     }

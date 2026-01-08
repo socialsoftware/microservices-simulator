@@ -117,7 +117,7 @@ public class TopicFunctionalities {
         }
     }
 
-        private void checkInput(TopicDto topicDto) {
+    private void checkInput(TopicDto topicDto) {
         if (topicDto.getName() == null) {
             throw new AnswersException(TOPIC_MISSING_NAME);
         }
