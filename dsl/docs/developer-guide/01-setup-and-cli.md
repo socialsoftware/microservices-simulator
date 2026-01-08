@@ -1,6 +1,8 @@
 # Step 1 · Environment & First Generation
 
-This guide walks through Nebula DSL from a developer’s perspective. Each step adds another capability to the abstraction and points you to the next page when you are ready.
+[📚 Guide Index](00-index.md)
+
+This guide walks through Nebula DSL from a developer's perspective. Each step adds another capability to the abstraction and points you to the next page when you are ready.
 
 > **Goal of this step:** get the toolchain working and generate code from the simplest possible abstraction.
 
@@ -53,4 +55,3 @@ After generation check `applications/demo/` for `microservices/user/aggregate/*`
 Next we will enrich the abstraction with multiple entities, DTO mappings, and cross-aggregate DTO reuse.
 
 ➡️ [Next → Step 2 · Entities & DTOs](02-entities-and-dtos.md)
-

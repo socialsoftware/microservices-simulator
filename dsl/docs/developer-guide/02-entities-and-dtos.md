@@ -1,8 +1,10 @@
 # Step 2 · Entities & Generated Java Basics
 
+[📚 Guide Index](00-index.md)
+
 > **Goal:** add capabilities incrementally—first just root fields, then one-to-one, one-to-many, and finally many-to-many relations—so you can see exactly what each change produces.
 
-[← Back to Step 1](01-setup-and-cli.md) · [Next → Step 3](03-next-steps.md)
+[← Back to Step 1](01-setup-and-cli.md) · [Next → Step 3](03-dto-mappings.md)
 
 ---
 
@@ -183,5 +185,5 @@ By mirroring references (`List<Role> roles`, `List<User> members`), Nebula autom
 
 Each iteration mirrors the story you’d tell about the domain: first define the root’s basic data, then give it a profile, then give it cars, and finally connect it to roles in a many-to-many fashion. Nebula keeps generating constructors, getters/setters, relationships, DTOs, factories, repositories, and services along the way. So far we’ve relied on the default DTO shapes (no constructor customization needed); the next steps will dig into DTO mappings, repositories, and services to show how you can take control when you need it.
 
-[← Back to Step 1](01-setup-and-cli.md) · [Next → Step 3](03-next-steps.md)
+[← Back to Step 1](01-setup-and-cli.md) · [Next → Step 3](03-dto-mappings.md)
 
