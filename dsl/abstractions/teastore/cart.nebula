@@ -1,0 +1,146 @@
+Aggregate Cart {
+    /*
+    Entity CartItem {
+        Long productId;
+        String productName;
+        Double unitPriceInCents;
+        Integer quantity;
+    }
+    */
+    
+    Root Entity Cart {
+        Long userId;
+
+        // Set<CartItem> items;
+
+        Boolean checkedOut;
+
+        Double totalPrice;
+
+        invariants {
+            check totalNonNegative { totalPrice >= 0.0; }
+        }
+    }
+
+    Events {
+        publish CartCreatedEvent {
+            Long userId;
+        }
+
+        publish CartItemAddedEvent {
+            Long productId;
+            Integer quantity;
+        }
+
+        publish CartItemUpdatedEvent {
+            Long productId;
+            Integer quantity;
+        }
+
+        publish CartItemRemovedEvent {
+            Long productId;
+        }
+
+        publish CartCheckedOutEvent {
+            Long userId;
+            Double totalPrice;
+        }
+    }
+
+    WebAPIEndpoints {
+
+        Endpoint CreateCart {
+            httpMethod: POST
+            path: "/carts/create"
+            methodName: createCart
+            parameters: [
+                cartDto: Cart: "@RequestBody"
+            ]
+            returnType: Cart
+            desc: "Create a cart for a user"
+            throwsException: true
+        }
+
+        Endpoint AddItem {
+            httpMethod: POST
+            path: "/carts/{cartAggregateId}/add"
+            methodName: addItem
+            parameters: [
+                cartAggregateId: Long: "@PathVariable",
+                productId: Long: "@RequestParam",
+                productName: String: "@RequestParam",
+                unitPriceInCents: Double: "@RequestParam",
+                quantity: Integer: "@RequestParam"
+            ]
+            returnType: Cart
+            desc: "Add an item to the cart"
+            throwsException: true
+        }
+
+        Endpoint UpdateItem {
+            httpMethod: PUT
+            path: "/carts/{cartAggregateId}/update"
+            methodName: updateItem
+            parameters: [
+                cartAggregateId: Long: "@PathVariable",
+                productId: Long: "@RequestParam",
+                quantity: Integer: "@RequestParam"
+            ]
+            returnType: Cart
+            desc: "Update quantity of a cart item"
+            throwsException: true
+        }
+
+        Endpoint RemoveItem {
+            httpMethod: DELETE
+            path: "/carts/{cartAggregateId}/remove"
+            methodName: removeItem
+            parameters: [
+                cartAggregateId: Long: "@PathVariable",
+                productId: Long: "@RequestParam"
+            ]
+            returnType: Cart
+            desc: "Remove an item from the cart"
+            throwsException: true
+        }
+
+        Endpoint Checkout {
+            httpMethod: POST
+            path: "/carts/{cartAggregateId}/checkout"
+            methodName: checkoutCart
+            parameters: [
+                cartAggregateId: Long: "@PathVariable"
+            ]
+            returnType: Cart
+            desc: "Checkout the cart"
+            throwsException: true
+        }
+
+        Endpoint FindByUser {
+            httpMethod: GET
+            path: "/carts/user/{userId}"
+            methodName: findByUserId
+            parameters: [
+                userId: Long: "@PathVariable"
+            ]
+            returnType: Cart
+            desc: "Find cart by user ID"
+            throwsException: false
+        }
+    }
+
+    Service CartService {
+        @GenerateCrud;
+        @Transactional;
+        methods {
+            createCart(Cart cart, UnitOfWork unitOfWork): Cart;
+            addItem(Long cartAggregateId, Long productId, String productName, Double unitPriceInCents, Integer quantity, UnitOfWork unitOfWork): Cart;
+            updateItem(Long cartAggregateId, Long productId, Integer quantity, UnitOfWork unitOfWork): Cart;
+            removeItem(Long cartAggregateId, Long productId, UnitOfWork unitOfWork): Cart;
+            checkoutCart(Long cartAggregateId, UnitOfWork unitOfWork): Cart;
+            findCartById(Long cartAggregateId, UnitOfWork unitOfWork): Cart;
+            findByUserId(Long userId, UnitOfWork unitOfWork): Cart;
+        }
+    }
+
+}

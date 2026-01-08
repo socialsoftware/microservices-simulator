@@ -1,0 +1,130 @@
+Aggregate Order {
+
+    Entity OrderUser uses dto UserDto mapping {
+        aggregateId -> userAggregateId;
+        userName -> userName;
+        realName -> userRealName;
+        email -> userEmail;
+    } {
+        Long id;
+        Integer userAggregateId;
+        String userName;
+        String userRealName;
+        String userEmail;
+    }
+
+
+    /*
+    Entity OrderItemProduct uses dto ProductDto mapping {
+        aggregateId -> productAggregateId;
+        name -> productName;
+        description -> productDescription;
+        listPriceInCents -> productPriceInCents;
+    } {
+        Long id;
+        Integer productAggregateId;
+        String productName;
+        String productDescription;
+        Double productPriceInCents;
+    }
+
+    Entity OrderItem {
+        Long id;
+        OrderItemProduct product;
+        Integer quantity;
+        Double unitPriceInCents;
+    }
+    */
+
+    Root Entity Order {
+        OrderUser user;
+        String time;
+        Double totalPriceInCents;
+
+        String addressName;
+        String address1;
+        String address2;
+        String creditCardCompany;
+        String creditCardNumber;
+        String creditCardExpiryDate;
+
+        // Set<OrderItem> items;
+    }
+
+    Events {
+        publish OrderCreatedEvent {
+            Integer userAggregateId;
+            Double totalPriceInCents;
+            String time;
+        }
+
+        publish OrderCancelledEvent {
+            Integer userAggregateId;
+        }
+
+        publish OrderStatusUpdatedEvent {
+            String status;
+        }
+    }
+
+    WebAPIEndpoints {
+        Endpoint CreateOrder {
+            httpMethod: POST
+            path: "/orders/create"
+            methodName: createOrder
+            parameters: [
+                orderDto: Order: "@RequestBody"
+            ]
+            returnType: Order
+            desc: "Create a new order"
+            throwsException: true
+        }
+
+        Endpoint GetOrderById {
+            httpMethod: GET
+            path: "/orders/{orderAggregateId}"
+            methodName: findByOrderId
+            parameters: [
+                orderAggregateId: Integer: "@PathVariable"
+            ]
+            returnType: Order
+            desc: "Get order by ID"
+            throwsException: false
+        }
+
+        Endpoint GetUserOrders {
+            httpMethod: GET
+            path: "/orders/user/{userAggregateId}"
+            methodName: findByUserAggregateId
+            parameters: [
+                userAggregateId: Integer: "@PathVariable"
+            ]
+            returnType: List<Order>
+            desc: "Get all orders for a user"
+            throwsException: false
+        }
+
+        Endpoint CancelOrder {
+            httpMethod: POST
+            path: "/orders/{orderAggregateId}/cancel"
+            methodName: cancelOrder
+            parameters: [
+                orderAggregateId: Integer: "@PathVariable"
+            ]
+            desc: "Cancel an existing order"
+            throwsException: true
+        }
+    }
+
+    Service OrderService {
+        @GenerateCrud;
+        @Transactional;
+        methods {
+            createOrder(Order order, UnitOfWork unitOfWork): Order;
+            cancelOrder(Integer orderAggregateId, UnitOfWork unitOfWork): void;
+            findByOrderId(Integer orderAggregateId, UnitOfWork unitOfWork): Order;
+            findByUserAggregateId(Integer userAggregateId, UnitOfWork unitOfWork): List<Order>;
+            updateOrderStatus(Integer orderAggregateId, String status, UnitOfWork unitOfWork): Order;
+        }
+    }
+}

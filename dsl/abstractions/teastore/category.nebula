@@ -1,0 +1,56 @@
+Aggregate Category {
+    Root Entity Category {
+        String name;
+        String description;
+    }
+
+    Events {
+        publish CategoryCreatedEvent {
+            String name;
+            String description;
+        }
+
+        publish CategoryUpdatedEvent {
+            String name;
+            String description;
+        }
+
+        publish CategoryDeletedEvent {
+            String name;
+        }
+    }
+
+    WebAPIEndpoints {
+        Endpoint CreateCategory {
+            httpMethod: POST
+            path: "/categories/create"
+            methodName: createCategory
+            parameters: [
+                categoryDto: Category: "@RequestBody"
+            ]
+            returnType: Category
+            desc: "Create a new category"
+            throwsException: true
+        }
+
+        Endpoint GetAllCategories {
+            httpMethod: GET
+            path: "/categories"
+            methodName: findAllCategories
+            returnType: List<Category>
+            desc: "Get all product categories"
+            throwsException: false
+        }
+    }
+
+    Service AnswerService {
+        @GenerateCrud;
+        @Transactional;
+        methods {
+            createCategory(Category category, UnitOfWork unitOfWork): Category;
+            updateCategory(Integer categoryAggregateId, String name, String description, UnitOfWork unitOfWork): Category;
+            deleteCategory(Integer categoryAggregateId, UnitOfWork unitOfWork): void;
+            findCategoryById(Integer categoryAggregateId, UnitOfWork unitOfWork): Category;
+        }
+    }
+}

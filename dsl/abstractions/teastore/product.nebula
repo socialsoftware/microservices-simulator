@@ -1,0 +1,111 @@
+Aggregate Product {
+
+    Entity ProductCategory uses dto CategoryDto mapping {
+        aggregateId -> categoryAggregateId;
+        name -> categoryName;
+        description -> categoryDescription;
+    } {
+        Long id;
+        Integer categoryAggregateId;
+        String categoryName;
+        String categoryDescription;
+    }
+
+
+    Root Entity Product {
+        ProductCategory productCategory;
+        String name;
+        String description;
+        Double listPriceInCents;
+
+        invariants {
+            check nameNotEmpty { name.length() > 0; }
+            check priceNonNegative { listPriceInCents >= 0.0; }
+        }
+    }
+
+    Events {
+        publish CreateProductEvent {
+            String name;
+            String categoryName;
+            Double listPriceInCents;
+        }
+
+        publish UpdateProductEvent {
+            String name;
+            String description;
+            Double listPriceInCents;
+            String categoryName;
+        }
+
+        /* TODO: events not working yet?
+        subscribe CategoryUpdatedEvent from ProductCategory {
+            "event.getCategoryAggregateId().equals(productCategory.getCategoryAggregateId())";
+        }
+
+        subscribe CategoryDeletedEvent from ProductCategory {
+            "event.getCategoryAggregateId().equals(productCategory.getCategoryAggregateId())";
+        }
+        */
+    }
+
+    WebAPIEndpoints {
+        Endpoint CreateProduct {
+            httpMethod: POST
+            path: "/products/create"
+            methodName: createProduct
+            parameters: [
+                productDto: Product: "@RequestBody"
+            ]
+            returnType: Product
+            desc: "Create a new product"
+            throwsException: true
+        }
+
+        Endpoint GetProduct {
+            httpMethod: GET
+            path: "/products/{productAggregateId}"
+            methodName: findByProductId
+            parameters: [
+                productAggregateId: Integer: "@PathVariable"
+            ]
+            returnType: Product
+            desc: "Find product by ID"
+            throwsException: false
+        }
+
+        Endpoint GetByCategory {
+            httpMethod: GET
+            path: "/products/category/{categoryName}"
+            methodName: findByCategory
+            parameters: [
+                categoryName: String: "@PathVariable"
+            ]
+            returnType: List<Product>
+            desc: "Find all products by category"
+            throwsException: false
+        }
+
+        Endpoint DeleteProduct {
+            httpMethod: DELETE
+            path: "/products/{productAggregateId}/delete"
+            methodName: deleteProduct
+            parameters: [
+                productAggregateId: Integer: "@PathVariable"
+            ]
+            desc: "Delete a product"
+            throwsException: true
+        }
+    }
+
+    Service ProductService {
+        @GenerateCrud;
+        @Transactional;
+        methods {
+            createProduct(Product product, UnitOfWork unitOfWork): Product;
+            updateProduct(Integer productAggregateId, String name, String description, Double listPriceInCents, UnitOfWork unitOfWork): Product;
+            deleteProduct(Integer productAggregateId, UnitOfWork unitOfWork): void;
+            findByProductId(Integer productAggregateId, UnitOfWork unitOfWork): Product;
+        }
+    }
+}
