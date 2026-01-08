@@ -138,22 +138,8 @@ export class SagaCrudGenerator extends OrchestrationBase {
             const isGetAllOperation = op.name.startsWith('getAll');
             const isSearchOperation = op.name.startsWith('search');
 
-            // Check if aggregate has cross-aggregate relationships (complex aggregate)
-            const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
-            const hasCrossAggregateRelationships = entityRelationships.some(rel => {
-                const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, options, allAggregates);
-                return relatedDtoInfo.isFromAnotherAggregate;
-            });
-            const isSimpleAggregate = !hasCrossAggregateRelationships;
-
-            // Only add these imports if we're using the two-step process (complex aggregates for delete operations)
-            // Update operations no longer use the two-step process, so we don't need these imports for updates
-            if (isDeleteOperation && !isSimpleAggregate) {
-                imports.push('import java.util.ArrayList;');
-                imports.push('import java.util.Arrays;');
-                imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.states.${capitalizedAggregate}SagaState;`);
-                imports.push(`import ${basePackage}.ms.sagas.aggregate.GenericSagaState;`);
-            }
+            // Delete operations no longer use the two-step process, so we don't need these imports
+            // These imports were only needed for the two-step delete process with state registration
             if (isGetAllOperation || (op.resultType && op.resultType.includes('List<'))) {
                 imports.push('import java.util.List;');
             }
@@ -175,11 +161,9 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 }
             }
 
-            // For simple delete operations, don't add deletedUserDto field
-            // Check if it's a delete operation with the deletedDto field pattern
-            const isSimpleDeleteWithoutField = isDeleteOperation && isSimpleAggregate &&
-                op.resultField && (op.resultField === `${lowerAggregate}Dto` || op.resultField === `deleted${capitalizedAggregate}Dto`);
-            if (op.resultField && !isSimpleDeleteWithoutField) {
+            // For delete operations, we don't need the deletedDto field since we're not fetching the entity first
+            // All delete operations now use a single step without fetching the entity
+            if (op.resultField && !isDeleteOperation) {
                 fieldsDeclaration += `    private ${op.resultType} ${op.resultField};\n`;
             }
 
@@ -197,10 +181,6 @@ export class SagaCrudGenerator extends OrchestrationBase {
             const buildWorkflowCallArgs: string[] = [];
 
             let workflowBody = '';
-            // For update operations, aggregateId comes from DTO, not a separate param
-            const idParamName = isUpdateOperation
-                ? (op.params[0]?.name || `${lowerAggregate}Dto`) + '.getAggregateId()'
-                : op.params[0]?.name || `${lowerAggregate}AggregateId`;
 
             if (isDeleteOperation) {
                 // Add constructor params for delete operation (after common params)
@@ -211,41 +191,17 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 buildWorkflowParams.push('SagaUnitOfWork unitOfWork');
                 buildWorkflowCallArgs.push('unitOfWork');
 
-                if (isSimpleAggregate) {
-                    // For simple aggregates, call delete directly without get step
-                    workflowBody = `
+                // For all delete operations, call delete directly without get step
+                // Similar to update operations, we don't need to fetch the entity first
+                workflowBody = `
         SagaSyncStep delete${capitalizedAggregate}Step = new SagaSyncStep(\"delete${capitalizedAggregate}Step\", () -> {
             ${op.serviceCall}(${op.serviceArgs.join(', ')});
         });
 
         workflow.addStep(delete${capitalizedAggregate}Step);
 `;
-                    // For simple delete operations, we don't need the deletedUserDto field
-                    // The field won't be added because of the condition in the field declaration section
-                } else {
-                    // For complex aggregates, use two-step process
-                    const readMethod = `${lowerAggregate}Service.get${capitalizedAggregate}ById`;
-                    const readStateConst = `${capitalizedAggregate}SagaState.READ_${capitalizedAggregate.toUpperCase()}`;
-
-                    workflowBody = `
-        SagaSyncStep get${capitalizedAggregate}Step = new SagaSyncStep(\"get${capitalizedAggregate}Step\", () -> {
-            ${op.resultType} ${op.resultField} = ${readMethod}(${idParamName}, unitOfWork);
-            ${op.resultSetter}(${op.resultField});
-            unitOfWorkService.registerSagaState(${idParamName}, ${readStateConst}, unitOfWork);
-        });
-
-        get${capitalizedAggregate}Step.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(${idParamName}, GenericSagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);
-
-        SagaSyncStep delete${capitalizedAggregate}Step = new SagaSyncStep(\"delete${capitalizedAggregate}Step\", () -> {
-            ${op.serviceCall}(${op.serviceArgs.join(', ')});
-        }, new ArrayList<>(Arrays.asList(get${capitalizedAggregate}Step)));
-
-        workflow.addStep(get${capitalizedAggregate}Step);
-        workflow.addStep(delete${capitalizedAggregate}Step);
-`;
-                }
+                // For simple delete operations, we don't need the deletedUserDto field
+                // The field won't be added because of the condition in the field declaration section
             } else if (isUpdateOperation) {
                 const dtoParamName = op.params[0]?.name || `${lowerAggregate}Dto`;
 
@@ -472,9 +428,9 @@ ${stepBody}
             }
 
             // For simple delete operations, don't generate getters/setters for deletedUserDto
-            const isSimpleDeleteWithoutGetters = isDeleteOperation && isSimpleAggregate &&
-                op.resultField && (op.resultField === `${lowerAggregate}Dto` || op.resultField === `deleted${capitalizedAggregate}Dto`);
-            if (op.resultField && op.resultGetter && op.resultSetter && !isSimpleDeleteWithoutGetters) {
+            // For delete operations, we don't need getters/setters since we're not storing the deleted entity
+            // All delete operations now use a single step without fetching the entity
+            if (op.resultField && op.resultGetter && op.resultSetter && !isDeleteOperation) {
                 gettersSettersCode += `
     public ${op.resultType} ${op.resultGetter}() {
         return ${op.resultField};
