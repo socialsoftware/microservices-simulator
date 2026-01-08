@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  teastore:
+    build: .
+    container_name: teastore
+    ports:
+      - "${APP_PORT:-9279}:9279"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-sagas}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/teastore
+      - SPRING_DATASOURCE_USERNAME=${POSTGRESQL_USER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRESQL_PASSWORD:-password}
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    networks:
+      - teastore-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9279/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgresql:
+    image: postgres:15-alpine
+    container_name: teastore-postgresql
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-teastore}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - teastore-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-teastore}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgresql_data:
+    driver: local
+
+networks:
+  teastore-network:
+    driver: bridge
+    name: teastore-network

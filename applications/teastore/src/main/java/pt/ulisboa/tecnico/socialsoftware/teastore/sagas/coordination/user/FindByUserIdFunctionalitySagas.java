@@ -1,0 +1,30 @@
+package pt.ulisboa.tecnico.socialsoftware.teastore.sagas.coordination.user;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.UserDto;
+
+public class FindByUserIdFunctionalitySagas extends WorkflowFunctionality {
+    
+        private final UserService userService;
+    private final SagaUnitOfWorkService sagaUnitOfWorkService;
+    private final SagaUnitOfWork unitOfWork;
+
+    public FindByUserIdFunctionalitySagas(UserService userService, SagaUnitOfWorkService sagaUnitOfWorkService, SagaUnitOfWork unitOfWork) {
+        this.userService = userService;
+        this.sagaUnitOfWorkService = sagaUnitOfWorkService;
+        this.unitOfWork = unitOfWork;
+    }
+
+    public void buildWorkflow() {
+        this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
+
+    }
+
+}
+
+
