@@ -15,7 +15,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import java.util.ArrayList;
 import java.util.Arrays;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
-import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.dtos.SagaUserDto;
+import java.util.Set;
+import java.util.HashSet;
 
 public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
     private ExecutionDto createdExecutionDto;
@@ -24,12 +27,14 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
     private SagaCourseDto courseDto;
     private ExecutionCourse course;
     private final CourseService courseService;
+    private final UserService userService;
 
 
-    public CreateExecutionFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, CourseService courseService, ExecutionDto executionDto) {
+    public CreateExecutionFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, CourseService courseService, UserService userService, ExecutionDto executionDto) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;
         this.courseService = courseService;
+        this.userService = userService;
         this.buildWorkflow(executionDto, unitOfWork);
     }
 
@@ -49,7 +54,14 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
         }, unitOfWork);
 
         SagaSyncStep createExecutionStep = new SagaSyncStep("createExecutionStep", () -> {
-            Set<ExecutionUser> users = executionDto.getUsers() != null ? executionDto.getUsers().stream().map(ExecutionUser::new).collect(java.util.stream.Collectors.toSet()) : null;
+            Set<ExecutionUser> users = null;
+            if (executionDto.getUsersAggregateIds() != null) {
+                users = new HashSet<>();
+                for (Integer userAggregateId : executionDto.getUsersAggregateIds()) {
+                    SagaUserDto userDto = (SagaUserDto) userService.getUserById(userAggregateId, unitOfWork);
+                    users.add(new ExecutionUser(userDto));
+                }
+            }
             ExecutionDto createdExecutionDto = executionService.createExecution(getCourse(), executionDto, users, unitOfWork);
             setCreatedExecutionDto(createdExecutionDto);
         }, new ArrayList<>(Arrays.asList(getCourseStep)));

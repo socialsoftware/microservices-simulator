@@ -53,7 +53,7 @@ public class TopicFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(topicDto);
                 CreateTopicFunctionalitySagas createTopicFunctionalitySagas = new CreateTopicFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, topicService, topicDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, topicService, courseService, topicDto);
                 createTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createTopicFunctionalitySagas.getCreatedTopicDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

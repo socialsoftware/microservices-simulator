@@ -8,35 +8,35 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
-public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
-    private QuestionDto updatedQuestionDto;
+public class GetQuestionByIdFunctionalitySagas extends WorkflowFunctionality {
+    private QuestionDto questionDto;
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public UpdateQuestionFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, QuestionService questionService, QuestionDto questionDto) {
+    public GetQuestionByIdFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, QuestionService questionService, Integer questionAggregateId) {
         this.questionService = questionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(questionDto, unitOfWork);
+        this.buildWorkflow(questionAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(QuestionDto questionDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer questionAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep updateQuestionStep = new SagaSyncStep("updateQuestionStep", () -> {
-            QuestionDto updatedQuestionDto = questionService.updateQuestion(questionDto, unitOfWork);
-            setUpdatedQuestionDto(updatedQuestionDto);
+        SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
+            QuestionDto questionDto = questionService.getQuestionById(questionAggregateId, unitOfWork);
+            setQuestionDto(questionDto);
         });
 
-        workflow.addStep(updateQuestionStep);
+        workflow.addStep(getQuestionStep);
 
     }
 
-    public QuestionDto getUpdatedQuestionDto() {
-        return updatedQuestionDto;
+    public QuestionDto getQuestionDto() {
+        return questionDto;
     }
 
-    public void setUpdatedQuestionDto(QuestionDto updatedQuestionDto) {
-        this.updatedQuestionDto = updatedQuestionDto;
+    public void setQuestionDto(QuestionDto questionDto) {
+        this.questionDto = questionDto;
     }
 }

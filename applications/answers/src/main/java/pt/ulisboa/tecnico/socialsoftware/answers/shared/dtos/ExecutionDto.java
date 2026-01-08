@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
 
 public class ExecutionDto implements Serializable {
     private Integer aggregateId;
@@ -16,7 +15,7 @@ public class ExecutionDto implements Serializable {
     private String academicTerm;
     private LocalDateTime endDate;
     private Integer courseAggregateId;
-    private Set<UserDto> users;
+    private Set<Integer> usersAggregateIds;
 
     public ExecutionDto() {
     }
@@ -29,7 +28,7 @@ public class ExecutionDto implements Serializable {
         this.academicTerm = execution.getAcademicTerm();
         this.endDate = execution.getEndDate();
         this.courseAggregateId = execution.getCourse() != null ? execution.getCourse().getCourseAggregateId() : null;
-        this.users = execution.getUsers() != null ? execution.getUsers().stream().map(ExecutionUser::buildDto).collect(Collectors.toSet()) : null;
+        this.usersAggregateIds = execution.getUsers() != null ? execution.getUsers().stream().map(item -> item.getUserAggregateId()).collect(Collectors.toSet()) : null;
     }
 
     public Integer getAggregateId() {
@@ -88,11 +87,11 @@ public class ExecutionDto implements Serializable {
         this.courseAggregateId = courseAggregateId;
     }
 
-    public Set<UserDto> getUsers() {
-        return users;
+    public Set<Integer> getUsersAggregateIds() {
+        return usersAggregateIds;
     }
 
-    public void setUsers(Set<UserDto> users) {
-        this.users = users;
+    public void setUsersAggregateIds(Set<Integer> usersAggregateIds) {
+        this.usersAggregateIds = usersAggregateIds;
     }
 }

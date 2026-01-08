@@ -366,6 +366,11 @@ ${components.buildDtoMethod}
 
         if (field.derivedAggregateId && field.sourceProperty) {
             const accessor = field.derivedAccessor || 'getAggregateId';
+            if (field.isCollection) {
+                // For collections, stream and map to extract aggregateIds
+                const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
+                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map(item -> item.${accessor}()).collect(${collector}) : null);`;
+            }
             return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${accessor}() : null);`;
         }
 

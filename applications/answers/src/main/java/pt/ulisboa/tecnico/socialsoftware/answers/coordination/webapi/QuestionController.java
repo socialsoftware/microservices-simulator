@@ -5,40 +5,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.QuestionFunctionalities;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.*;
 
 @RestController
 public class QuestionController {
     @Autowired
     private QuestionFunctionalities questionFunctionalities;
 
-    @GetMapping("/questions/{aggregateId}")
-    public QuestionDto findQuestionByAggregateId(@PathVariable Integer aggregateId) {
-        return questionFunctionalities.findQuestionByAggregateId(aggregateId);
+    @PostMapping("/questions/create")
+    public QuestionDto createQuestion(@RequestBody QuestionDto questionDto) {
+        return questionFunctionalities.createQuestion(questionDto);
     }
 
-    @GetMapping("/courses/{courseAggregateId}/questions")
-    public List<QuestionDto> findQuestionsByCourseAggregateId(@PathVariable Integer courseAggregateId) {
-        return questionFunctionalities.findQuestionsByCourseAggregateId(courseAggregateId);
+    @GetMapping("/questions/{questionAggregateId}")
+    public QuestionDto getQuestionById(@PathVariable Integer questionAggregateId) {
+        return questionFunctionalities.getQuestionById(questionAggregateId);
     }
 
-    @PostMapping("/courses/{courseAggregateId}/questions/create")
-    public QuestionDto createQuestion(@PathVariable Integer courseAggregateId, @RequestBody QuestionDto questionDto) throws Exception {
-        return questionFunctionalities.createQuestion(courseAggregateId, questionDto);
+    @PutMapping("/questions")
+    public QuestionDto updateQuestion(@RequestBody QuestionDto questionDto) {
+        return questionFunctionalities.updateQuestion(questionDto);
     }
 
-    @PostMapping("/questions/update")
-    public void updateQuestion(@RequestBody QuestionDto questionDto) throws Exception {
-        questionFunctionalities.updateQuestion(questionDto);
+    @DeleteMapping("/questions/{questionAggregateId}")
+    public void deleteQuestion(@PathVariable Integer questionAggregateId) {
+        questionFunctionalities.deleteQuestion(questionAggregateId);
     }
 
-    @PostMapping("/questions/{questionAggregateId}")
-    public void removeQuestion(@PathVariable Integer questionAggregateId) throws Exception {
-        questionFunctionalities.removeQuestion(questionAggregateId);
-    }
-
-    @PostMapping("/questions/{questionAggregateId}/updateTopics")
-    public void updateQuestionTopics(@PathVariable Integer courseAggregateId, @RequestParam String topicIds) throws Exception {
-        questionFunctionalities.updateQuestionTopics(courseAggregateId, topicIds);
+    @GetMapping("/questions")
+    public List<QuestionDto> searchQuestions(@RequestParam(required = false) String title, @RequestParam(required = false) String content, @RequestParam(required = false) Integer courseAggregateId) {
+        return questionFunctionalities.searchQuestions(title, content, courseAggregateId);
     }
 }

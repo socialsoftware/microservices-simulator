@@ -6,8 +6,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.Tournament;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipant;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentTopic;
 
 public class TournamentDto implements Serializable {
     private Integer aggregateId;
@@ -18,9 +16,9 @@ public class TournamentDto implements Serializable {
     private Integer numberOfQuestions;
     private Boolean cancelled;
     private Integer creatorAggregateId;
-    private Set<UserDto> participants;
+    private Set<Integer> participantsAggregateIds;
     private Integer executionAggregateId;
-    private Set<TopicDto> topics;
+    private Set<Integer> topicsAggregateIds;
     private Integer quizAggregateId;
 
     public TournamentDto() {
@@ -35,9 +33,9 @@ public class TournamentDto implements Serializable {
         this.numberOfQuestions = tournament.getNumberOfQuestions();
         this.cancelled = tournament.getCancelled();
         this.creatorAggregateId = tournament.getCreator() != null ? tournament.getCreator().getCreatorAggregateId() : null;
-        this.participants = tournament.getParticipants() != null ? tournament.getParticipants().stream().map(TournamentParticipant::buildDto).collect(Collectors.toSet()) : null;
+        this.participantsAggregateIds = tournament.getParticipants() != null ? tournament.getParticipants().stream().map(item -> item.getParticipantAggregateId()).collect(Collectors.toSet()) : null;
         this.executionAggregateId = tournament.getExecution() != null ? tournament.getExecution().getExecutionAggregateId() : null;
-        this.topics = tournament.getTopics() != null ? tournament.getTopics().stream().map(TournamentTopic::buildDto).collect(Collectors.toSet()) : null;
+        this.topicsAggregateIds = tournament.getTopics() != null ? tournament.getTopics().stream().map(item -> item.getTopicAggregateId()).collect(Collectors.toSet()) : null;
         this.quizAggregateId = tournament.getQuiz() != null ? tournament.getQuiz().getQuizAggregateId() : null;
     }
 
@@ -105,12 +103,12 @@ public class TournamentDto implements Serializable {
         this.creatorAggregateId = creatorAggregateId;
     }
 
-    public Set<UserDto> getParticipants() {
-        return participants;
+    public Set<Integer> getParticipantsAggregateIds() {
+        return participantsAggregateIds;
     }
 
-    public void setParticipants(Set<UserDto> participants) {
-        this.participants = participants;
+    public void setParticipantsAggregateIds(Set<Integer> participantsAggregateIds) {
+        this.participantsAggregateIds = participantsAggregateIds;
     }
 
     public Integer getExecutionAggregateId() {
@@ -121,12 +119,12 @@ public class TournamentDto implements Serializable {
         this.executionAggregateId = executionAggregateId;
     }
 
-    public Set<TopicDto> getTopics() {
-        return topics;
+    public Set<Integer> getTopicsAggregateIds() {
+        return topicsAggregateIds;
     }
 
-    public void setTopics(Set<TopicDto> topics) {
-        this.topics = topics;
+    public void setTopicsAggregateIds(Set<Integer> topicsAggregateIds) {
+        this.topicsAggregateIds = topicsAggregateIds;
     }
 
     public Integer getQuizAggregateId() {

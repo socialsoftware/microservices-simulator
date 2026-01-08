@@ -8,35 +8,35 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
-public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
-    private TournamentDto updatedTournamentDto;
+public class GetTournamentByIdFunctionalitySagas extends WorkflowFunctionality {
+    private TournamentDto tournamentDto;
     private final TournamentService tournamentService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public UpdateTournamentFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TournamentService tournamentService, TournamentDto tournamentDto) {
+    public GetTournamentByIdFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TournamentService tournamentService, Integer tournamentAggregateId) {
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(tournamentDto, unitOfWork);
+        this.buildWorkflow(tournamentAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(TournamentDto tournamentDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep updateTournamentStep = new SagaSyncStep("updateTournamentStep", () -> {
-            TournamentDto updatedTournamentDto = tournamentService.updateTournament(tournamentDto, unitOfWork);
-            setUpdatedTournamentDto(updatedTournamentDto);
+        SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
+            TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            setTournamentDto(tournamentDto);
         });
 
-        workflow.addStep(updateTournamentStep);
+        workflow.addStep(getTournamentStep);
 
     }
 
-    public TournamentDto getUpdatedTournamentDto() {
-        return updatedTournamentDto;
+    public TournamentDto getTournamentDto() {
+        return tournamentDto;
     }
 
-    public void setUpdatedTournamentDto(TournamentDto updatedTournamentDto) {
-        this.updatedTournamentDto = updatedTournamentDto;
+    public void setTournamentDto(TournamentDto tournamentDto) {
+        this.tournamentDto = tournamentDto;
     }
 }

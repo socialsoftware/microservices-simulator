@@ -61,7 +61,7 @@ public class AnswerFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(answerDto);
                 CreateAnswerFunctionalitySagas createAnswerFunctionalitySagas = new CreateAnswerFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, answerDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, executionService, userService, quizService, answerDto);
                 createAnswerFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createAnswerFunctionalitySagas.getCreatedAnswerDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

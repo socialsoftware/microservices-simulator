@@ -8,35 +8,35 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
-public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
-    private QuizDto updatedQuizDto;
+public class GetQuizByIdFunctionalitySagas extends WorkflowFunctionality {
+    private QuizDto quizDto;
     private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public UpdateQuizFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, QuizService quizService, QuizDto quizDto) {
+    public GetQuizByIdFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, QuizService quizService, Integer quizAggregateId) {
         this.quizService = quizService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(quizDto, unitOfWork);
+        this.buildWorkflow(quizAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(QuizDto quizDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Integer quizAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep updateQuizStep = new SagaSyncStep("updateQuizStep", () -> {
-            QuizDto updatedQuizDto = quizService.updateQuiz(quizDto, unitOfWork);
-            setUpdatedQuizDto(updatedQuizDto);
+        SagaSyncStep getQuizStep = new SagaSyncStep("getQuizStep", () -> {
+            QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
+            setQuizDto(quizDto);
         });
 
-        workflow.addStep(updateQuizStep);
+        workflow.addStep(getQuizStep);
 
     }
 
-    public QuizDto getUpdatedQuizDto() {
-        return updatedQuizDto;
+    public QuizDto getQuizDto() {
+        return quizDto;
     }
 
-    public void setUpdatedQuizDto(QuizDto updatedQuizDto) {
-        this.updatedQuizDto = updatedQuizDto;
+    public void setQuizDto(QuizDto quizDto) {
+        this.quizDto = quizDto;
     }
 }

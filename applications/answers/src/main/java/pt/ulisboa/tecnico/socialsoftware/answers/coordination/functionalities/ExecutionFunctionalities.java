@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.execution.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import java.util.List;
 
@@ -25,6 +26,9 @@ public class ExecutionFunctionalities {
 
     @Autowired
     private CourseService courseService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
@@ -53,7 +57,7 @@ public class ExecutionFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(executionDto);
                 CreateExecutionFunctionalitySagas createExecutionFunctionalitySagas = new CreateExecutionFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, executionService, executionDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, executionService, courseService, userService, executionDto);
                 createExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createExecutionFunctionalitySagas.getCreatedExecutionDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

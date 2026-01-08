@@ -15,6 +15,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.tournament.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.service.QuizService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 import java.util.List;
 
@@ -25,6 +28,15 @@ public class TournamentFunctionalities {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ExecutionService executionService;
+
+    @Autowired
+    private QuizService quizService;
+
+    @Autowired
+    private TopicService topicService;
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
@@ -45,142 +57,74 @@ public class TournamentFunctionalities {
         }
     }
 
-    public TournamentDto createTournament(Integer executionId, Integer userId, String topicsId, TournamentDto tournamentDto) throws AnswersException {
+    public TournamentDto createTournament(TournamentDto tournamentDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(tournamentDto);
                 CreateTournamentFunctionalitySagas createTournamentFunctionalitySagas = new CreateTournamentFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, executionId, userId, topicsId, tournamentDto, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, tournamentService, userService, executionService, quizService, topicService, tournamentDto);
                 createTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return createTournamentFunctionalitySagas.getCreatedTournament();
+                return createTournamentFunctionalitySagas.getCreatedTournamentDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void addParticipant(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId) throws AnswersException {
+    public TournamentDto getTournamentById(Integer tournamentAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                AddParticipantFunctionalitySagas addParticipantFunctionalitySagas = new AddParticipantFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, tournamentAggregateId, executionAggregateId, userAggregateId, sagaUnitOfWork);
-                addParticipantFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                break;
+                GetTournamentByIdFunctionalitySagas getTournamentByIdFunctionalitySagas = new GetTournamentByIdFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, tournamentService, tournamentAggregateId);
+                getTournamentByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getTournamentByIdFunctionalitySagas.getTournamentDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void updateTournament(String topicsId, TournamentDto tournamentDto) throws AnswersException {
+    public TournamentDto updateTournament(TournamentDto tournamentDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(tournamentDto);
                 UpdateTournamentFunctionalitySagas updateTournamentFunctionalitySagas = new UpdateTournamentFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, topicsId, tournamentDto, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, tournamentService, tournamentDto);
                 updateTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return updateTournamentFunctionalitySagas.getUpdatedTournamentDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void deleteTournament(Integer tournamentAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeleteTournamentFunctionalitySagas deleteTournamentFunctionalitySagas = new DeleteTournamentFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, tournamentService, tournamentAggregateId);
+                deleteTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public TournamentDto findTournament(Integer tournamentAggregateId) {
+    public List<TournamentDto> searchTournaments(Boolean cancelled, Integer creatorAggregateId, Integer executionAggregateId, Integer executionCourseAggregateId, Integer quizAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                FindTournamentFunctionalitySagas findTournamentFunctionalitySagas = new FindTournamentFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, tournamentAggregateId, sagaUnitOfWork);
-                findTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return findTournamentFunctionalitySagas.getResult();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
-    public String solveQuiz(Integer tournamentAggregateId, Integer userAggregateId) throws AnswersException {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                SolveQuizFunctionalitySagas solveQuizFunctionalitySagas = new SolveQuizFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, tournamentAggregateId, userAggregateId, sagaUnitOfWork);
-                solveQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return solveQuizFunctionalitySagas.getResult();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
-    public List<TournamentDto> getTournamentsForExecution(Integer executionAggregateId) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                GetTournamentsForExecutionFunctionalitySagas getTournamentsForExecutionFunctionalitySagas = new GetTournamentsForExecutionFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork);
-                getTournamentsForExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return getTournamentsForExecutionFunctionalitySagas.getTournamentsForExecution();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
-    public List<TournamentDto> getOpenedTournamentsForExecution(Integer executionAggregateId) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                GetOpenedTournamentsForExecutionFunctionalitySagas getOpenedTournamentsForExecutionFunctionalitySagas = new GetOpenedTournamentsForExecutionFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork);
-                getOpenedTournamentsForExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return getOpenedTournamentsForExecutionFunctionalitySagas.getOpenedTournamentsForExecution();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
-    public List<TournamentDto> getClosedTournamentsForExecution(Integer executionAggregateId) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                GetClosedTournamentsForExecutionFunctionalitySagas getClosedTournamentsForExecutionFunctionalitySagas = new GetClosedTournamentsForExecutionFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, executionAggregateId, sagaUnitOfWork);
-                getClosedTournamentsForExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return getClosedTournamentsForExecutionFunctionalitySagas.getClosedTournamentsForExecution();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
-    public void removeTournament(Integer tournamentAggregate) throws AnswersException {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                RemoveTournamentFunctionalitySagas removeTournamentFunctionalitySagas = new RemoveTournamentFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, tournamentAggregate, sagaUnitOfWork);
-                removeTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                break;
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
-    public void getTournamentAndUser(Integer tournamentAggregateId, Integer userAggregateId) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                GetTournamentAndUserFunctionalitySagas getTournamentAndUserFunctionalitySagas = new GetTournamentAndUserFunctionalitySagas(
-                        tournamentService, sagaUnitOfWorkService, tournamentAggregateId, userAggregateId, sagaUnitOfWork);
-                getTournamentAndUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                break;
+                SearchTournamentsFunctionalitySagas searchTournamentsFunctionalitySagas = new SearchTournamentsFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, tournamentService, cancelled, creatorAggregateId, executionAggregateId, executionCourseAggregateId, quizAggregateId);
+                searchTournamentsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return searchTournamentsFunctionalitySagas.getSearchedTournamentDtos();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }

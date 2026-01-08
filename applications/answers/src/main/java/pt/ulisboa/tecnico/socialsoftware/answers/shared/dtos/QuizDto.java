@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizQuestion;
 
 public class QuizDto implements Serializable {
     private Integer aggregateId;
@@ -19,7 +18,7 @@ public class QuizDto implements Serializable {
     private LocalDateTime conclusionDate;
     private LocalDateTime resultsDate;
     private Integer executionAggregateId;
-    private Set<QuestionDto> questions;
+    private Set<Integer> questionsAggregateIds;
 
     public QuizDto() {
     }
@@ -35,7 +34,7 @@ public class QuizDto implements Serializable {
         this.conclusionDate = quiz.getConclusionDate();
         this.resultsDate = quiz.getResultsDate();
         this.executionAggregateId = quiz.getExecution() != null ? quiz.getExecution().getExecutionAggregateId() : null;
-        this.questions = quiz.getQuestions() != null ? quiz.getQuestions().stream().map(QuizQuestion::buildDto).collect(Collectors.toSet()) : null;
+        this.questionsAggregateIds = quiz.getQuestions() != null ? quiz.getQuestions().stream().map(item -> item.getQuestionAggregateId()).collect(Collectors.toSet()) : null;
     }
 
     public Integer getAggregateId() {
@@ -118,11 +117,11 @@ public class QuizDto implements Serializable {
         this.executionAggregateId = executionAggregateId;
     }
 
-    public Set<QuestionDto> getQuestions() {
-        return questions;
+    public Set<Integer> getQuestionsAggregateIds() {
+        return questionsAggregateIds;
     }
 
-    public void setQuestions(Set<QuestionDto> questions) {
-        this.questions = questions;
+    public void setQuestionsAggregateIds(Set<Integer> questionsAggregateIds) {
+        this.questionsAggregateIds = questionsAggregateIds;
     }
 }

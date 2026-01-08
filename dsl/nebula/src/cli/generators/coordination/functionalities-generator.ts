@@ -99,12 +99,31 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         if ((aggregate.webApiEndpoints as any)?.generateCrud && rootEntity) {
             const entityRelationships = this.crudGenerator.findEntityRelationships(rootEntity, aggregate);
             const singleEntityRels = entityRelationships.filter((rel: any) => !rel.isCollection);
+            const collectionEntityRels = entityRelationships.filter((rel: any) => rel.isCollection);
+
+            // Add single entity cross-aggregate services
             for (const rel of singleEntityRels) {
                 const relatedDtoInfo = this.crudGenerator.getRelatedDtoType(rel, aggregate, allAggregates);
                 if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
                     const lowerRelatedAggregate = relatedDtoInfo.relatedAggregateName.toLowerCase();
                     const capitalizedRelatedAggregate = this.capitalize(relatedDtoInfo.relatedAggregateName);
-                    // Add as dependency if not already present
+                    const depName = `${lowerRelatedAggregate}Service`;
+                    if (!dependencies.find((d: any) => d.name === depName)) {
+                        dependencies.push({
+                            name: depName,
+                            type: `${capitalizedRelatedAggregate}Service`,
+                            required: true
+                        });
+                    }
+                }
+            }
+
+            // Add collection entity cross-aggregate services
+            for (const rel of collectionEntityRels) {
+                const relatedDtoInfo = this.crudGenerator.getRelatedDtoType(rel, aggregate, allAggregates);
+                if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
+                    const lowerRelatedAggregate = relatedDtoInfo.relatedAggregateName.toLowerCase();
+                    const capitalizedRelatedAggregate = this.capitalize(relatedDtoInfo.relatedAggregateName);
                     const depName = `${lowerRelatedAggregate}Service`;
                     if (!dependencies.find((d: any) => d.name === depName)) {
                         dependencies.push({

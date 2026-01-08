@@ -107,7 +107,8 @@ function generateDtoImports(entity: Entity, projectName: string, aggregateName: 
 
     const needsCollectors = fields.some(field =>
         (field.requiresConversion && field.isCollection) ||
-        (field.isEnum && field.isCollection)
+        (field.isEnum && field.isCollection) ||
+        (field.derivedAggregateId && field.isCollection)
     );
     if (needsCollectors) {
         imports.add('import java.util.stream.Collectors;');
@@ -208,6 +209,11 @@ function buildFieldAssignment(field: DtoFieldSchema, entity: Entity, entityVar: 
 
     if (field.derivedAggregateId) {
         const accessor = field.derivedAccessor || 'getAggregateId';
+        if (field.isCollection) {
+            // For collections, stream and map to extract aggregateIds
+            const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
+            return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.stream().map(item -> item.${accessor}()).collect(${collector}) : null;`;
+        }
         return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.${accessor}() : null;`;
     }
 

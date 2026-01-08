@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionTopic;
 
 public class QuestionDto implements Serializable {
     private Integer aggregateId;
@@ -17,7 +16,7 @@ public class QuestionDto implements Serializable {
     private String content;
     private LocalDateTime creationDate;
     private Integer courseAggregateId;
-    private Set<TopicDto> topics;
+    private Set<Integer> topicsAggregateIds;
     private List<OptionDto> options;
 
     public QuestionDto() {
@@ -31,7 +30,7 @@ public class QuestionDto implements Serializable {
         this.content = question.getContent();
         this.creationDate = question.getCreationDate();
         this.courseAggregateId = question.getCourse() != null ? question.getCourse().getCourseAggregateId() : null;
-        this.topics = question.getTopics() != null ? question.getTopics().stream().map(QuestionTopic::buildDto).collect(Collectors.toSet()) : null;
+        this.topicsAggregateIds = question.getTopics() != null ? question.getTopics().stream().map(item -> item.getTopicAggregateId()).collect(Collectors.toSet()) : null;
         this.options = question.getOptions() != null ? question.getOptions().stream().map(OptionDto::new).collect(Collectors.toList()) : null;
     }
 
@@ -91,12 +90,12 @@ public class QuestionDto implements Serializable {
         this.courseAggregateId = courseAggregateId;
     }
 
-    public Set<TopicDto> getTopics() {
-        return topics;
+    public Set<Integer> getTopicsAggregateIds() {
+        return topicsAggregateIds;
     }
 
-    public void setTopics(Set<TopicDto> topics) {
-        this.topics = topics;
+    public void setTopicsAggregateIds(Set<Integer> topicsAggregateIds) {
+        this.topicsAggregateIds = topicsAggregateIds;
     }
 
     public List<OptionDto> getOptions() {
