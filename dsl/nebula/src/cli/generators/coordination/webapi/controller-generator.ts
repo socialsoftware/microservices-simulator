@@ -66,32 +66,14 @@ export class ControllerGenerator extends WebApiBaseGenerator {
     private generateCrudEndpoints(aggregateName: string, lowerAggregate: string, rootEntity: Entity, aggregate: Aggregate, allAggregates?: Aggregate[]): any[] {
         const dtoType = `${aggregateName}Dto`;
 
-        // Find cross-aggregate relationships for create endpoint
-        const crossAggregateParams: any[] = [];
-        const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
-        const singleEntityRels = entityRelationships.filter(rel => !rel.isCollection);
-
-        for (const rel of singleEntityRels) {
-            const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, allAggregates);
-            if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
-                const lowerRelatedAggregate = relatedDtoInfo.relatedAggregateName.toLowerCase();
-                crossAggregateParams.push({
-                    name: `${lowerRelatedAggregate}AggregateId`,
-                    type: 'Integer',
-                    annotation: '@RequestParam'
-                });
+        // For create endpoint, only pass the DTO - aggregateIds are extracted from it in the saga
+        const createParameters: any[] = [
+            {
+                name: `${lowerAggregate}Dto`,
+                type: dtoType,
+                annotation: '@RequestBody'
             }
-        }
-
-        const createParameters: any[] = [];
-        // Add cross-aggregate parameters first
-        createParameters.push(...crossAggregateParams);
-        // Then add DTO
-        createParameters.push({
-            name: `${lowerAggregate}Dto`,
-            type: dtoType,
-            annotation: '@RequestBody'
-        });
+        ];
 
         const endpoints: any[] = [
             {
@@ -326,8 +308,10 @@ export class ControllerGenerator extends WebApiBaseGenerator {
 
     /**
      * Find entity relationships (both single and collection entity fields) from root entity properties
+     * @deprecated No longer used after simplifying create operations
      */
-    private findEntityRelationships(rootEntity: Entity, aggregate: Aggregate): Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> {
+    // @ts-ignore - deprecated method, kept for potential future use
+    private _findEntityRelationships(rootEntity: Entity, aggregate: Aggregate): Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> {
         const relationships: Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> = [];
 
         if (!rootEntity.properties) {
@@ -378,8 +362,10 @@ export class ControllerGenerator extends WebApiBaseGenerator {
 
     /**
      * Get the related DTO type for an entity relationship
+     * @deprecated No longer used after simplifying create operations
      */
-    private getRelatedDtoType(rel: { entityType: string; paramName: string; javaType: string; isCollection: boolean }, aggregate: Aggregate, allAggregates?: Aggregate[]): { dtoType: string | null; isFromAnotherAggregate: boolean; relatedAggregateName?: string } {
+    // @ts-ignore - deprecated method, kept for potential future use
+    private _getRelatedDtoType(rel: { entityType: string; paramName: string; javaType: string; isCollection: boolean }, aggregate: Aggregate, allAggregates?: Aggregate[]): { dtoType: string | null; isFromAnotherAggregate: boolean; relatedAggregateName?: string } {
         const relatedEntity = aggregate.entities?.find((e: any) => e.name === rel.entityType);
         if (!relatedEntity) return { dtoType: null, isFromAnotherAggregate: false };
 

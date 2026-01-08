@@ -7,33 +7,10 @@ export class FunctionalitiesCrudGenerator extends OrchestrationBase {
         const dtoType = `${aggregateName}Dto`;
         const methods: any[] = [];
 
-        // Find cross-aggregate relationships for create method
-        const crossAggregateParams: any[] = [];
-        const crossAggregateServices: Array<{ serviceName: string; aggregateName: string }> = [];
-        const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
-        const singleEntityRels = entityRelationships.filter(rel => !rel.isCollection);
-
-        for (const rel of singleEntityRels) {
-            const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, allAggregates);
-            if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
-                const lowerRelatedAggregate = relatedDtoInfo.relatedAggregateName.toLowerCase();
-                const capitalizedRelatedAggregate = this.capitalize(relatedDtoInfo.relatedAggregateName);
-                crossAggregateParams.push({
-                    type: 'Integer',
-                    name: `${lowerRelatedAggregate}AggregateId`
-                });
-                crossAggregateServices.push({
-                    serviceName: `${lowerRelatedAggregate}Service`,
-                    aggregateName: capitalizedRelatedAggregate
-                });
-            }
-        }
-
-        const createParameters: any[] = [];
-        // Add cross-aggregate parameters first
-        createParameters.push(...crossAggregateParams);
-        // Then add DTO
-        createParameters.push({ type: dtoType, name: `${lowerAggregate}Dto` });
+        // For create method, only pass the DTO - aggregateIds are extracted from it in the saga
+        const createParameters: any[] = [
+            { type: dtoType, name: `${lowerAggregate}Dto` }
+        ];
 
         const createParamNames = createParameters.map(p => p.name);
 
@@ -41,7 +18,7 @@ export class FunctionalitiesCrudGenerator extends OrchestrationBase {
             name: `create${aggregateName}`,
             returnType: dtoType,
             parameters: createParameters,
-            body: this.generateCrudMethodBody('create', aggregateName, lowerAggregate, dtoType, createParamNames, crossAggregateServices),
+            body: this.generateCrudMethodBody('create', aggregateName, lowerAggregate, dtoType, createParamNames, []),
             throwsException: false
         });
 

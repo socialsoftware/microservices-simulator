@@ -44,19 +44,20 @@ public class CreateAnswerFunctionalitySagas extends WorkflowFunctionality {
     private final QuizService quizService;
 
 
-    public CreateAnswerFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, AnswerService answerService, ExecutionService executionService, UserService userService, QuizService quizService, Integer executionAggregateId, Integer userAggregateId, Integer quizAggregateId, AnswerDto answerDto) {
+    public CreateAnswerFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, AnswerService answerService, ExecutionService executionService, UserService userService, QuizService quizService, AnswerDto answerDto) {
         this.answerService = answerService;
         this.unitOfWorkService = unitOfWorkService;
         this.executionService = executionService;
         this.userService = userService;
         this.quizService = quizService;
-        this.buildWorkflow(executionAggregateId, userAggregateId, quizAggregateId, answerDto, unitOfWork);
+        this.buildWorkflow(answerDto, unitOfWork);
     }
 
-    public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, Integer quizAggregateId, AnswerDto answerDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(AnswerDto answerDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getExecutionStep = new SagaSyncStep("getExecutionStep", () -> {
+            Integer executionAggregateId = answerDto.getExecutionAggregateId();
             executionDto = (SagaExecutionDto) executionService.getExecutionById(executionAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(executionDto.getAggregateId(), ExecutionSagaState.READ_EXECUTION, unitOfWork);
             AnswerExecution execution = new AnswerExecution(executionDto);
@@ -68,6 +69,7 @@ public class CreateAnswerFunctionalitySagas extends WorkflowFunctionality {
         }, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
+            Integer userAggregateId = answerDto.getUserAggregateId();
             userDto = (SagaUserDto) userService.getUserById(userAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(userDto.getAggregateId(), UserSagaState.READ_USER, unitOfWork);
             AnswerUser user = new AnswerUser(userDto);
@@ -79,6 +81,7 @@ public class CreateAnswerFunctionalitySagas extends WorkflowFunctionality {
         }, unitOfWork);
 
         SagaSyncStep getQuizStep = new SagaSyncStep("getQuizStep", () -> {
+            Integer quizAggregateId = answerDto.getQuizAggregateId();
             quizDto = (SagaQuizDto) quizService.getQuizById(quizAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(quizDto.getAggregateId(), QuizSagaState.READ_QUIZ, unitOfWork);
             AnswerQuiz quiz = new AnswerQuiz(quizDto);

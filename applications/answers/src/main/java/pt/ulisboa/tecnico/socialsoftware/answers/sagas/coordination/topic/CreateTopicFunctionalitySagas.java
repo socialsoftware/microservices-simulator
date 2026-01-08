@@ -24,17 +24,18 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
     private final CourseService courseService;
 
 
-    public CreateTopicFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TopicService topicService, CourseService courseService, Integer courseAggregateId, TopicDto topicDto) {
+    public CreateTopicFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TopicService topicService, CourseService courseService, TopicDto topicDto) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
         this.courseService = courseService;
-        this.buildWorkflow(courseAggregateId, topicDto, unitOfWork);
+        this.buildWorkflow(topicDto, unitOfWork);
     }
 
-    public void buildWorkflow(Integer courseAggregateId, TopicDto topicDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(TopicDto topicDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseStep = new SagaSyncStep("getCourseStep", () -> {
+            Integer courseAggregateId = topicDto.getCourseAggregateId();
             courseDto = (SagaCourseDto) courseService.getCourseById(courseAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(courseDto.getAggregateId(), CourseSagaState.READ_COURSE, unitOfWork);
             TopicCourse course = new TopicCourse(courseDto);

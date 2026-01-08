@@ -12,8 +12,8 @@ public class TopicController {
     private TopicFunctionalities topicFunctionalities;
 
     @PostMapping("/topics/create")
-    public TopicDto createTopic(@RequestParam Integer courseAggregateId, @RequestBody TopicDto topicDto) {
-        return topicFunctionalities.createTopic(courseAggregateId, topicDto);
+    public TopicDto createTopic(@RequestBody TopicDto topicDto) {
+        return topicFunctionalities.createTopic(topicDto);
     }
 
     @GetMapping("/topics/{topicAggregateId}")

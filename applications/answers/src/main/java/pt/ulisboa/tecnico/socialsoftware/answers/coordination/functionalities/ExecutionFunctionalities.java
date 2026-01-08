@@ -45,7 +45,7 @@ public class ExecutionFunctionalities {
         }
     }
 
-    public ExecutionDto createExecution(Integer courseAggregateId, ExecutionDto executionDto) {
+    public ExecutionDto createExecution(ExecutionDto executionDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
@@ -53,7 +53,7 @@ public class ExecutionFunctionalities {
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 checkInput(executionDto);
                 CreateExecutionFunctionalitySagas createExecutionFunctionalitySagas = new CreateExecutionFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, executionService, courseService, courseAggregateId, executionDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, executionService, executionDto);
                 createExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createExecutionFunctionalitySagas.getCreatedExecutionDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

@@ -12,8 +12,8 @@ public class ExecutionController {
     private ExecutionFunctionalities executionFunctionalities;
 
     @PostMapping("/executions/create")
-    public ExecutionDto createExecution(@RequestParam Integer courseAggregateId, @RequestBody ExecutionDto executionDto) {
-        return executionFunctionalities.createExecution(courseAggregateId, executionDto);
+    public ExecutionDto createExecution(@RequestBody ExecutionDto executionDto) {
+        return executionFunctionalities.createExecution(executionDto);
     }
 
     @GetMapping("/executions/{executionAggregateId}")

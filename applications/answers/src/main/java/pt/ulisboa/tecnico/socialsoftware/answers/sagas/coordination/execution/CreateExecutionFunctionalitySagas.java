@@ -26,17 +26,18 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
     private final CourseService courseService;
 
 
-    public CreateExecutionFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, CourseService courseService, Integer courseAggregateId, ExecutionDto executionDto) {
+    public CreateExecutionFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, CourseService courseService, ExecutionDto executionDto) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;
         this.courseService = courseService;
-        this.buildWorkflow(courseAggregateId, executionDto, unitOfWork);
+        this.buildWorkflow(executionDto, unitOfWork);
     }
 
-    public void buildWorkflow(Integer courseAggregateId, ExecutionDto executionDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(ExecutionDto executionDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseStep = new SagaSyncStep("getCourseStep", () -> {
+            Integer courseAggregateId = executionDto.getCourseAggregateId();
             courseDto = (SagaCourseDto) courseService.getCourseById(courseAggregateId, unitOfWork);
             unitOfWorkService.registerSagaState(courseDto.getAggregateId(), CourseSagaState.READ_COURSE, unitOfWork);
             ExecutionCourse course = new ExecutionCourse(courseDto);

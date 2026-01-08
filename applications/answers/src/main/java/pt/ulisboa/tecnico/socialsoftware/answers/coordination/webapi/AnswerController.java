@@ -12,8 +12,8 @@ public class AnswerController {
     private AnswerFunctionalities answerFunctionalities;
 
     @PostMapping("/answers/create")
-    public AnswerDto createAnswer(@RequestParam Integer executionAggregateId, @RequestParam Integer userAggregateId, @RequestParam Integer quizAggregateId, @RequestBody AnswerDto answerDto) {
-        return answerFunctionalities.createAnswer(executionAggregateId, userAggregateId, quizAggregateId, answerDto);
+    public AnswerDto createAnswer(@RequestBody AnswerDto answerDto) {
+        return answerFunctionalities.createAnswer(answerDto);
     }
 
     @GetMapping("/answers/{answerAggregateId}")
