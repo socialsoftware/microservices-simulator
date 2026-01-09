@@ -40,6 +40,7 @@ public abstract class EventSubscriberService {
         }
 
         Aggregate aggregate = getLatestAggregate();
+        logger.info("Subscribing to aggregate {}", aggregate);
         if (aggregate == null) {
             logger.warn("No aggregate found to initialize subscribed events");
             return;

@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggreg
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -17,6 +18,9 @@ public interface CourseExecutionRepository extends JpaRepository<CourseExecution
     @Query(value = "select ce1.aggregateId from CourseExecution ce1 where ce1.aggregateId NOT IN (select ce2.aggregateId from CourseExecution ce2 where ce2.state = 'DELETED' AND ce2.sagaState != 'NOT_IN_SAGA')")
     Set<Integer> findCourseExecutionIdsOfAllNonDeletedForSaga();
 
-    @Query(value = "select ce1 from CourseExecution ce1 where ce1.version = (select max(ce2.version) from CourseExecution ce2)")
-    Optional<CourseExecution> findLatestCourseExecution();
+    Optional<CourseExecution> findTopByOrderByVersionDesc();
+
+    default Optional<CourseExecution> findLatestCourseExecution() {
+        return findTopByOrderByVersionDesc();
+    }
 }

@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggre
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,9 @@ public interface TournamentRepository extends JpaRepository<Tournament, Integer>
     @Query(value = "select t1.aggregateId from Tournament t1 where t1.aggregateId NOT IN (select t2.aggregateId from Tournament t2 where t2.state = 'DELETED' OR t2.state = 'INACTIVE' OR t2.sagaState != 'NOT_IN_SAGA') and t1.tournamentCourseExecution.courseExecutionAggregateId = :executionAggregateId")
     Set<Integer> findAllTournamentIdsOfNotDeletedAndNotInactiveByCourseExecutionForSaga(Integer executionAggregateId);
 
-    @Query(value = "select t1 from Tournament t1 where t1.version = (select max(t2.version) from Tournament t2)")
-    Optional<Tournament> findLatestTournament();
+    Optional<Tournament> findTopByOrderByVersionDesc();
+
+    default Optional<Tournament> findLatestTournament() {
+        return findTopByOrderByVersionDesc();
+    }
 }

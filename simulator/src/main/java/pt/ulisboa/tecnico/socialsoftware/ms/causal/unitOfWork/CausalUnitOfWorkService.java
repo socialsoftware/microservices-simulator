@@ -25,11 +25,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 
-import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.*;
 

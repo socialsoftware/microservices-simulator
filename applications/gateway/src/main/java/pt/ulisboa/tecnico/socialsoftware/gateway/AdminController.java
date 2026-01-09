@@ -8,27 +8,21 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
-import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.stream.Collectors;
 
 @RestController
 public class AdminController {
 
     private final WebClient webClient;
+    private final GatewayProperties gatewayProperties;
 
-    private final List<String> services = Arrays.asList( // TODO
-            "http://localhost:8082", // Answer
-            "http://localhost:8083", // CourseExecution
-            "http://localhost:8084", // Question
-            "http://localhost:8085", // Quiz
-            "http://localhost:8086", // Topic
-            "http://localhost:8087", // Tournament
-            "http://localhost:8088" // User
-    );
+    @Value("${services.version}")
+    private String versionServiceUrl;
 
-    public AdminController(WebClient.Builder webClientBuilder) {
+    public AdminController(WebClient.Builder webClientBuilder, GatewayProperties gatewayProperties) {
         this.webClient = webClientBuilder.build();
+        this.gatewayProperties = gatewayProperties;
     }
 
     @GetMapping("/scheduler/start")
@@ -58,7 +52,7 @@ public class AdminController {
 
     @PostMapping("/behaviour/load")
     public Mono<String> loadBehaviour(@RequestParam String dir) {
-        return Flux.fromIterable(services)
+        return Flux.fromIterable(gatewayProperties.getServices())
                 .flatMap(serviceUrl -> webClient.post()
                         .uri(serviceUrl + "/behaviour/load?dir=" + dir)
                         .retrieve()
@@ -74,11 +68,15 @@ public class AdminController {
 
     @PostMapping("/versions/decrement")
     public Mono<String> decrementVersion() {
-        return broadcastPost("/versions/decrement");
+        return webClient.post()
+                .uri(versionServiceUrl + "/versions/decrement")
+                .retrieve()
+                .bodyToMono(String.class)
+                .onErrorResume(e -> Mono.just("Error on " + versionServiceUrl + ": " + e.getMessage()));
     }
 
     private Mono<String> broadcastGet(String path) {
-        return Flux.fromIterable(services)
+        return Flux.fromIterable(gatewayProperties.getServices())
                 .flatMap(serviceUrl -> webClient.get()
                         .uri(serviceUrl + path)
                         .retrieve()
@@ -88,7 +86,7 @@ public class AdminController {
     }
 
     private Mono<String> broadcastPost(String path) {
-        return Flux.fromIterable(services)
+        return Flux.fromIterable(gatewayProperties.getServices())
                 .flatMap(serviceUrl -> webClient.post()
                         .uri(serviceUrl + path)
                         .retrieve()

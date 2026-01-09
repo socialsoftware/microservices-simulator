@@ -113,6 +113,10 @@ services:
     image: gateway
     container_name: gateway
     depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
       answer-service:
         condition: service_started
       course-service:
@@ -142,6 +146,7 @@ services:
       - TOPIC_SERVICE_HOST=topic-service
       - TOURNAMENT_SERVICE_HOST=tournament-service
       - USER_SERVICE_HOST=user-service
+      - VERSION_SERVICE_HOST=version-service
       - GATEWAY_LOG_LEVEL=INFO
       - REACTIVE_LOG_LEVEL=INFO
       - BUFFER_LOG_LEVEL=INFO

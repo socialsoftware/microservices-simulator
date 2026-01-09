@@ -1,6 +1,26 @@
 server:
   port: 8080
 
+services:
+  answer: http://${ANSWER_SERVICE_HOST:localhost}:8082
+  course-execution: http://${COURSE_EXECUTION_SERVICE_HOST:localhost}:8083
+  question: http://${QUESTION_SERVICE_HOST:localhost}:8084
+  quiz: http://${QUIZ_SERVICE_HOST:localhost}:8085
+  topic: http://${TOPIC_SERVICE_HOST:localhost}:8086
+  tournament: http://${TOURNAMENT_SERVICE_HOST:localhost}:8087
+  user: http://${USER_SERVICE_HOST:localhost}:8088
+  version: http://${VERSION_SERVICE_HOST:localhost}:8081
+
+gateway:
+  services:
+    - ${services.answer}
+    - ${services.course-execution}
+    - ${services.question}
+    - ${services.quiz}
+    - ${services.topic}
+    - ${services.tournament}
+    - ${services.user}
+
 spring:
   application:
     name: gateway
@@ -11,60 +31,60 @@ spring:
           routes:
             # Course Execution Service (User Executions)
             - id: course-execution-service-users
-              uri: http://${COURSE_EXECUTION_SERVICE_HOST:localhost}:8083
+              uri: ${services.course-execution}
               predicates:
                 - Path=/users/*/executions
 
             # User Service
             - id: user-service
-              uri: http://${USER_SERVICE_HOST:localhost}:8088
+              uri: ${services.user}
               predicates:
                 - Path=/users/**
 
             # Topic Service
             - id: topic-service
-              uri: http://${TOPIC_SERVICE_HOST:localhost}:8086
+              uri: ${services.topic}
               predicates:
                 - Path=/courses/*/topics/**, /courses/*/create, /topics/**
 
             # Question Service
             - id: question-service
-              uri: http://${QUESTION_SERVICE_HOST:localhost}:8084
+              uri: ${services.question}
               predicates:
                 - Path=/questions/**, /courses/*/questions/**
 
             # Answer Service
             - id: answer-service
-              uri: http://${ANSWER_SERVICE_HOST:localhost}:8082
+              uri: ${services.answer}
               predicates:
                 - Path=/quizzes/*/answer
 
             # Tournament Service
             - id: tournament-service
-              uri: http://${TOURNAMENT_SERVICE_HOST:localhost}:8087
+              uri: ${services.tournament}
               predicates:
                 - Path=/tournaments/**, /executions/*/tournaments/**, /tournament/**
 
             # Quiz Service
             - id: quiz-service
-              uri: http://${QUIZ_SERVICE_HOST:localhost}:8085
+              uri: ${services.quiz}
               predicates:
                 - Path=/quizzes/**
 
             # Execution Routes (Ordered)
             - id: course-execution-service-create
-              uri: http://${COURSE_EXECUTION_SERVICE_HOST:localhost}:8083
+              uri: ${services.course-execution}
               predicates:
                 - Path=/executions/create
 
             - id: quiz-service-execution-post
-              uri: http://${QUIZ_SERVICE_HOST:localhost}:8085
+              uri: ${services.quiz}
               predicates:
                 - Method=POST
                 - Path=/executions/{executionId}
 
             - id: course-execution-service
-              uri: http://${COURSE_EXECUTION_SERVICE_HOST:localhost}:8083
+              uri: ${services.course-execution}
               predicates:
                 - Path=/executions/**
 

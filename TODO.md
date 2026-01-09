@@ -2,26 +2,23 @@
 
 - [ ] Update README diagrams
 - [ ] Verify command for TCC
-- [ ] Verify idempotency 
+- [ ] Verify idempotency
 - [ ] Local calls in StreamComandGateway
 - [ ] Use kafka streams
 - [ ] GrpcCommandGateway
 - [ ] Verify 2 phase commit in TCC commit
 - [ ] Pass all jmeter tests
-  - [x] 5a-updateStudentName-addParticipant-processUpdateNameEvent
-  - [x] 5b-addParticipant-updateStudentName-processUpdateNameEvent
-  - [x] 5c-updateStudentName1-addParticipant-updateStudentName2-processUpdateNameEvent
-  - [x] 5d-addParticipant1-updateStudentName-processUpdateNameEvent1-addParticipant2-processUpdateNameEvent2
-  - [x] 8-10-concurrent-delete-tournament-add-participant
-  - [x] 8-5-update-tournament-concurrent-intention-pass
-  - [ ] 8-6-add-participant-concurrent-update-execution-student-name-processing-ends-first
-    - `Assertion failure message:Value in json path '$..creator.name' expected to be 'Updated_Student_Name_1', but found '["Student_Name_1"]'`
-  - [ ] 8-7-add-participant-concurrent-anonymize-event-processing-processing-ends-last
-    - `addParticipant: 400`
-    - `updateStudentName: Assertion failure message:Test failed: code expected not to contain /200/`
-  - [x] 8-8-update-execution-student-add-participant-process-event-add-participant
-  - [ ] 8-9-add-participant-concurrent-anonymize-event-processing-processing-ends-first
-    - `addParticipant: Assertion failure message:Test failed: code expected not to contain /200/`
+  - TCC local tests
+    - [x] 5a-updateStudentName-addParticipant-processUpdateNameEvent
+    - [x] 5b-addParticipant-updateStudentName-processUpdateNameEvent
+    - [x] 5c-updateStudentName1-addParticipant-updateStudentName2-processUpdateNameEvent
+    - [x] 5d-addParticipant1-updateStudentName-processUpdateNameEvent1-addParticipant2-processUpdateNameEvent2
+    - [x] 8-10-concurrent-delete-tournament-add-participant
+    - [x] 8-5-update-tournament-concurrent-intention-pass
+    - [x] 8-6-add-participant-concurrent-update-execution-student-name-processing-ends-first
+    - [x] 8-7-add-participant-concurrent-anonymize-event-processing-processing-ends-last
+    - [x] 8-8-update-execution-student-add-participant-process-event-add-participant
+    - [x] 8-9-add-participant-concurrent-anonymize-event-processing-processing-ends-first
   - [ ] DeleteTournament
     - `Request tournament: 400`
   - [ ] DeleteUserTest
