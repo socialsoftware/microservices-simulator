@@ -44,3 +44,4 @@
 - [ ] Version Service Distributed
 - [ ] Make each microservice in docker compose to have its own postgres service
 - [ ] Create TCC profile for microservices in docker compose
+- [ ] Clean application.yaml files with placeholders?

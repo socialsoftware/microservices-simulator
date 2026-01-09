@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="simulator" type="MavenRunConfiguration" factoryName="Maven">
+  <configuration default="false" name="tcc local" type="MavenRunConfiguration" factoryName="Maven">
     <MavenSettings>
       <option name="myGeneralSettings" />
       <option name="myRunnerSettings" />
@@ -12,19 +12,21 @@
           <option name="goals">
             <list>
               <option value="clean" />
-              <option value="install" />
+              <option value="spring-boot:run" />
             </list>
           </option>
           <option name="multimoduleDir" />
           <option name="pomFileName" />
           <option name="profilesMap">
-            <map />
+            <map>
+              <entry key="tcc" value="true" />
+            </map>
           </option>
           <option name="projectsCmdOptionValues">
             <list />
           </option>
           <option name="resolveToWorkspace" value="false" />
-          <option name="workingDirPath" value="$PROJECT_DIR$/simulator" />
+          <option name="workingDirPath" value="$PROJECT_DIR$/applications/quizzes" />
         </MavenRunnerParameters>
       </option>
     </MavenSettings>

@@ -2,7 +2,6 @@ services:
   postgres:
     image: postgres:14-alpine
     container_name: postgres
-    # Increase shared memory to support 2000 connections
     shm_size: 1g
     command: postgres -c 'max_connections=2000'
     ports:
@@ -42,12 +41,7 @@ services:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=sagas,local
-      - SPRING.DATASOURCE.USERNAME=postgres
-      - SPRING.DATASOURCE.PASSWORD=postgres
-      - SPRING.JPA.DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
     networks:
       - messaging-network
 
@@ -70,14 +64,8 @@ services:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=sagas,stream
-      - SPRING.DATASOURCE.USERNAME=postgres
-      - SPRING.DATASOURCE.PASSWORD=postgres
-      - SPRING.JPA.DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
     networks:
       - messaging-network
 
@@ -96,11 +84,31 @@ services:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=tcc,dev
-      - SPRING.DATASOURCE.USERNAME=postgres
-      - SPRING.DATASOURCE.PASSWORD=postgres
-      - SPRING.JPA.DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
+
+  quizzes-tcc-stream:
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: tcc,stream
+    image: quizzes-tcc-stream
+    container_name: quizzes-tcc-stream
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      version-service:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
+      - SPRING_RABBITMQ_HOST=rabbitmq
+    networks:
+      - messaging-network
 
   # ============================================
   # MICROSERVICES CONFIGURATION
@@ -172,11 +180,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=version-service,stream
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/versiondb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
     networks:
       - messaging-network
 
@@ -186,7 +190,6 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: answer-saga
-        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.AnswerServiceApplication
     image: quizzes-answer
     container_name: answer-service
     depends_on:
@@ -198,13 +201,8 @@ services:
       - "8082:8082"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=sagas,stream,answer-service
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/answerdb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
     networks:
       - messaging-network
 
@@ -214,7 +212,6 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: course-saga
-        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.CourseServiceApplication
     image: quizzes-course
     container_name: course-service
     depends_on:
@@ -226,13 +223,8 @@ services:
       - "8089:8089"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=sagas,stream,course-service
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/coursedb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
     networks:
       - messaging-network
 
@@ -242,7 +234,6 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: course-execution-saga
-        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.CourseExecutionServiceApplication
     image: quizzes-course-execution
     container_name: course-execution-service
     depends_on:
@@ -254,13 +245,8 @@ services:
       - "8083:8083"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=sagas,stream,course-execution-service
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/executiondb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
     networks:
       - messaging-network
 
@@ -270,7 +256,6 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: question-saga
-        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.QuestionServiceApplication
     image: quizzes-question
     container_name: question-service
     depends_on:
@@ -282,13 +267,8 @@ services:
       - "8084:8084"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=sagas,stream,question-service
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/questiondb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
     networks:
       - messaging-network
 
@@ -298,7 +278,6 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: quiz-saga
-        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.QuizServiceApplication
     image: quizzes-quiz
     container_name: quiz-service
     depends_on:
@@ -310,13 +289,8 @@ services:
       - "8085:8085"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=sagas,stream,quiz-service
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/quizdb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
     networks:
       - messaging-network
 
@@ -326,7 +300,6 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: topic-saga
-        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.TopicServiceApplication
     image: quizzes-topic
     container_name: topic-service
     depends_on:
@@ -338,13 +311,8 @@ services:
       - "8086:8086"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=sagas,stream,topic-service
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/topicdb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
     networks:
       - messaging-network
 
@@ -354,7 +322,6 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: tournament-saga
-        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.TournamentServiceApplication
     image: quizzes-tournament
     container_name: tournament-service
     depends_on:
@@ -366,13 +333,8 @@ services:
       - "8087:8087"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=sagas,stream,tournament-service
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/tournamentdb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
     networks:
       - messaging-network
 
@@ -382,7 +344,6 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: user-saga
-        START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.UserServiceApplication
     image: quizzes-user
     container_name: user-service
     depends_on:
@@ -394,13 +355,8 @@ services:
       - "8088:8088"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=sagas,stream,user-service
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/userdb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
     networks:
       - messaging-network
 

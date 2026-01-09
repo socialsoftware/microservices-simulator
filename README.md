@@ -12,6 +12,7 @@ The system allows testing the interleaving of functionalities execution in a det
 
 The description of the examples for Transactional Causal Consistency are in [Transactional Causal Consistent Microservices Simulator](https://doi.org/10.1007/978-3-031-35260-7_4).
 
+
 ## Run Using Docker
 
 ### Technology Requirements
@@ -22,8 +23,9 @@ The description of the examples for Transactional Causal Consistency are in [Tra
 ```bash
 docker compose build
 ```
+Or run the service with the flag `--build`
 
-### Running Quizzes Microservices Simulator
+### Running Quizzes Microservices Simulator as a Monolith with Local Service Calls
 
 **Sagas:**
 ```bash
@@ -33,6 +35,18 @@ docker compose up quizzes-sagas
 **TCC:**
 ```bash
 docker compose up quizzes-tcc
+```
+
+### Running Quizzes Microservices Simulator as a Monolith with Remote Service Calls With RabbitMQ
+
+**Sagas:**
+```bash
+docker compose up quizzes-sagas-stream
+```
+
+**TCC:**
+```bash
+docker compose up quizzes-tcc-stream
 ```
 
 ### Running Tests
@@ -65,12 +79,10 @@ docker compose up test-quizzes-tcc
 ### Technology Requirements
 
 - [IntelliJ IDEA](https://www.jetbrains.com/idea/download/) (Ultimate or Community Edition)
-- [Java 21+](https://openjdk.org/projects/jdk/21/)
-- [PSQL 14](https://www.postgresql.org/download/)
 
 ### Setting up the Database
 
-Follow the same database setup steps as in the [Maven section](#setting-up-the-database-1).
+Follow the same database setup steps as in the [Maven section](#setting-up-the-database-1) or run postgres container with docker-compose.
 
 ### Pre-configured Run Configurations
 
@@ -79,7 +91,7 @@ The project includes ready-to-use IntelliJ run configurations in the `.run/` dir
 ### Running the Application
 
 1. Open the project in IntelliJ IDEA
-2. Wait for IntelliJ to index the project and download dependencies
+2. Run the `build-simulator` configuration to install the simulator library
 3. Select a run configuration from the dropdown (e.g., **Quizzes**)
 4. Click the **Run** button
 
@@ -123,7 +135,6 @@ exit
 
 4. **Configure application properties:**
    - Fill in the placeholder fields with your database credentials in `applications/quizzes/src/main/resources/application.yaml` 
-
 
 ---
 
@@ -199,6 +210,7 @@ createdb tournamentdb
 createdb userdb
 exit
 ```
+> **Note:** Running postgres with docker container automatically creates the databases
 
 3. **Install the simulator library (if not already done):**
 ```bash
