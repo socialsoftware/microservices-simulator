@@ -4,7 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateQuestionTopicsCommand;
@@ -35,7 +35,7 @@ public class UpdateQuestionTopicsFunctionalityTCC extends WorkflowFunctionality 
     public void buildWorkflow(Integer courseAggregateId, List<Integer> topicIds, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SyncStep step = new SyncStep(() -> {
+        Step step = new Step(() -> {
             Set<QuestionTopic> topics = topicIds.stream()
                     .map(id -> (TopicDto) commandGateway
                             .send(new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), id)))

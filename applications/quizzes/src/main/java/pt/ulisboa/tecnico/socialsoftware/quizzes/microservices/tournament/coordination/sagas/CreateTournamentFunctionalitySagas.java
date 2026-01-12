@@ -4,7 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
@@ -48,7 +48,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             TournamentDto tournamentDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {
+        SagaStep getCourseExecutionStep = new SagaStep("getCourseExecutionStep", () -> {
             // by making this call locks regarding the course execution are guaranteed
             GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId);
             getCourseExecutionByIdCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
@@ -56,7 +56,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             this.setCourseExecutionDto(courseExecutionDto);
         });
 
-        SagaSyncStep getCreatorStep = new SagaSyncStep("getCreatorStep", () -> {
+        SagaStep getCreatorStep = new SagaStep("getCreatorStep", () -> {
             // by making this call locks regarding the role of the creator are guaranteed
             // by making this call the invariants regarding the course execution and the
             // role of the creator are guaranteed
@@ -65,7 +65,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             this.setUserDto(creatorDto);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
 
-        SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> { // TODO EACH TOPIC IN A SEPARATE STEP??
+        SagaStep getTopicsStep = new SagaStep("getTopicsStep", () -> { // TODO EACH TOPIC IN A SEPARATE STEP??
             topicsId.forEach(topicId -> {
                 GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId);
                 getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
@@ -74,17 +74,17 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             });
         });
 
-        SagaSyncStep findQuestionsByTopicIdsStep = new SagaSyncStep("findQuestionsByTopicIdsStep", () -> {
+        SagaStep findQuestionsByTopicIdsStep = new SagaStep("findQuestionsByTopicIdsStep", () -> {
             FindQuestionsByTopicIdsCommand findQuestionsByTopicIdsCommand = new FindQuestionsByTopicIdsCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), topicsId);
             this.questionDtos = (List<QuestionDto>) commandGateway.send(findQuestionsByTopicIdsCommand);
         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
 
-        SagaSyncStep getCourseExecutionById = new SagaSyncStep("getCourseExecutionById", () -> {
+        SagaStep getCourseExecutionById = new SagaStep("getCourseExecutionById", () -> {
             GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork,  ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId);
             this.courseExecutionDto = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
         }, new ArrayList<>(Arrays.asList(findQuestionsByTopicIdsStep)));
 
-        SagaSyncStep generateQuizStep = new SagaSyncStep("generateQuizStep", () -> {
+        SagaStep generateQuizStep = new SagaStep("generateQuizStep", () -> {
             QuizDto quizDto = new QuizDto();
             quizDto.setAvailableDate(tournamentDto.getStartTime());
             quizDto.setConclusionDate(tournamentDto.getEndTime());
@@ -101,7 +101,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             }
         }, unitOfWork);
 
-        SagaSyncStep createTournamentStep = new SagaSyncStep("createTournamentStep", () -> {
+        SagaStep createTournamentStep = new SagaStep("createTournamentStep", () -> {
             CreateTournamentCommand createTournamentCommand = new CreateTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, this.getUserDto(), this.getCourseExecutionDto(), this.getTopicsDtos(), this.getQuizDto());
             TournamentDto tournamentResultDto = (TournamentDto) commandGateway.send(createTournamentCommand);
             this.setTournamentDto(tournamentResultDto);

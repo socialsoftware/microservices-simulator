@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByIdCommand;
@@ -36,7 +36,7 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer courseAggregateId, TopicDto topicDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getCourseStep = new SagaSyncStep("getCourseStep", () -> {
+        SagaStep getCourseStep = new SagaStep("getCourseStep", () -> {
             GetCourseByIdCommand getCourseByIdCommand = new GetCourseByIdCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
             getCourseByIdCommand.setSemanticLock(CourseSagaState.READ_COURSE);
             this.courseDto = (CourseDto) commandGateway.send(getCourseByIdCommand);
@@ -50,7 +50,7 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep createTopicStep = new SagaSyncStep("createTopicStep", () -> {
+        SagaStep createTopicStep = new SagaStep("createTopicStep", () -> {
             CreateTopicCommand createTopicCommand = new CreateTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto, this.getCourse());
             TopicDto createdTopicDto = (TopicDto) commandGateway.send(createTopicCommand);
             this.setCreatedTopicDto(createdTopicDto);

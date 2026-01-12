@@ -12,7 +12,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 // TODO this will become outdated
-public class SagaAsyncStep extends AsyncStep implements SagaStep {
+public class SagaAsyncStep extends AsyncStep {
     private Runnable compensationLogic;
 
     public SagaAsyncStep(String stepName, Supplier<CompletableFuture<Void>> asyncOperation, ArrayList<FlowStep> dependencies, ExecutorService executorService) {

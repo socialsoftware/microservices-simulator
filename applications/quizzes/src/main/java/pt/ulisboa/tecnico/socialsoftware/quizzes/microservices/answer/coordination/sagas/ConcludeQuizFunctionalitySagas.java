@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.ConcludeQuizCommand;
@@ -34,7 +34,7 @@ public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer quizAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getQuizAnswerStep = new SagaSyncStep("getQuizAnswerStep", () -> {
+        SagaStep getQuizAnswerStep = new SagaStep("getQuizAnswerStep", () -> {
             GetQuizAnswerDtoByQuizIdAndUserIdCommand getQuizAnswerDtoByQuizIdAndUserIdCommand = new GetQuizAnswerDtoByQuizIdAndUserIdCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), quizAnswer.getAggregateId(), quizAggregateId, userAggregateId);
             getQuizAnswerDtoByQuizIdAndUserIdCommand.setSemanticLock(QuizAnswerSagaState.READ_QUIZ_ANSWER);
             commandGateway.send(getQuizAnswerDtoByQuizIdAndUserIdCommand);
@@ -47,7 +47,7 @@ public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep concludeQuizStep = new SagaSyncStep("concludeQuizStep", () -> {
+        SagaStep concludeQuizStep = new SagaStep("concludeQuizStep", () -> {
 //            quizAnswerService.concludeQuiz(quizAggregateId, userAggregateId, unitOfWork); // TODO
             ConcludeQuizCommand concludeQuizCommand = new ConcludeQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), quizAggregateId, userAggregateId);
             commandGateway.send(concludeQuizCommand);

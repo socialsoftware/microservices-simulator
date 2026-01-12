@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
@@ -42,7 +42,7 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
     public void buildWorkflow(Integer courseAggregateId, List<Integer> topicIds, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> { // TODO
+        SagaStep getTopicsStep = new SagaStep("getTopicsStep", () -> { // TODO
             Set<QuestionTopic> topics = topicIds.stream()
                     .map(topicId -> {
                         GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId);
@@ -62,7 +62,7 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
             });
         }, unitOfWork);
 
-        SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
+        SagaStep getQuestionStep = new SagaStep("getQuestionStep", () -> {
             GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), courseAggregateId);
             getQuestionByIdCommand.setSemanticLock(QuestionSagaState.READ_QUESTION);
             QuestionDto question = (QuestionDto) commandGateway.send(getQuestionByIdCommand);
@@ -77,7 +77,7 @@ public class UpdateQuestionTopicsFunctionalitySagas extends WorkflowFunctionalit
             commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep updateQuestionTopicsStep = new SagaSyncStep("updateQuestionTopicsStep", () -> {
+        SagaStep updateQuestionTopicsStep = new SagaStep("updateQuestionTopicsStep", () -> {
             UpdateQuestionTopicsCommand updateQuestionTopicsCommand = new UpdateQuestionTopicsCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), courseAggregateId, this.getTopics());
             commandGateway.send(updateQuestionTopicsCommand);
         }, new ArrayList<>(Arrays.asList(getTopicsStep, getQuestionStep)));

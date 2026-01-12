@@ -4,7 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.EnrollStudentCommand;
@@ -33,13 +33,13 @@ public class AddStudentFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
+        SagaStep getUserStep = new SagaStep("getUserStep", () -> {
             GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             UserDto user = (UserDto) commandGateway.send(getUserByIdCommand);
             setUserDto(user);
         });
 
-        SagaSyncStep enrollStudentStep = new SagaSyncStep("enrollStudentStep", () -> {
+        SagaStep enrollStudentStep = new SagaStep("enrollStudentStep", () -> {
             EnrollStudentCommand enrollStudentCommand = new EnrollStudentCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, this.getUserDto());
             CourseExecutionDto courseExecution = (CourseExecutionDto) commandGateway.send(enrollStudentCommand);
             this.setCourseExecution(courseExecution);

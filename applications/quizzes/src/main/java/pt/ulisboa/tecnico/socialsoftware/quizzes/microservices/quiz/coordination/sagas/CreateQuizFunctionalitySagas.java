@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
@@ -42,7 +42,7 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer courseExecutionId, QuizDto quizDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getCourseExecutionStep = new SagaSyncStep("getCourseExecutionStep", () -> {
+        SagaStep getCourseExecutionStep = new SagaStep("getCourseExecutionStep", () -> {
             GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionId);
             getCourseExecutionByIdCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
             this.courseExecutionDto = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
@@ -57,7 +57,7 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep getQuestionsStep = new SagaSyncStep("getQuestionsStep", () -> { // TODO
+        SagaStep getQuestionsStep = new SagaStep("getQuestionsStep", () -> { // TODO
             Set<QuestionDto> questions = quizDto.getQuestionDtos().stream()
                     .map(questionDto -> {
                         GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionDto.getAggregateId());
@@ -76,7 +76,7 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
             });
         }, unitOfWork);
 
-        SagaSyncStep createQuizStep = new SagaSyncStep("createQuizStep", () -> {
+        SagaStep createQuizStep = new SagaStep("createQuizStep", () -> {
             CreateQuizCommand createQuizCommand = new CreateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), this.getQuizCourseExecution(), this.getQuestions(), quizDto);
             QuizDto createdQuizDto = (QuizDto) commandGateway.send(createQuizCommand);
             this.setCreatedQuizDto(createdQuizDto);

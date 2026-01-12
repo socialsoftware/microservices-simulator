@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GetQuizByIdCommand;
@@ -36,7 +36,7 @@ public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(QuizDto quizDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getQuizStep = new SagaSyncStep("getQuizStep", () -> {
+        SagaStep getQuizStep = new SagaStep("getQuizStep", () -> {
             GetQuizByIdCommand getQuizByIdCommand = new GetQuizByIdCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto.getAggregateId());
             getQuizByIdCommand.setSemanticLock(QuizSagaState.READ_QUIZ);
             QuizDto quiz = (QuizDto) commandGateway.send(getQuizByIdCommand);
@@ -49,7 +49,7 @@ public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep updateQuizStep = new SagaSyncStep("updateQuizStep", () -> {
+        SagaStep updateQuizStep = new SagaStep("updateQuizStep", () -> {
             Set<QuizQuestion> quizQuestions = quizDto.getQuestionDtos().stream().map(QuizQuestion::new).collect(Collectors.toSet());
             UpdateQuizCommand updateQuizCommand = new UpdateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto, quizQuestions);
             updatedQuizDto = (QuizDto) commandGateway.send(updateQuizCommand);

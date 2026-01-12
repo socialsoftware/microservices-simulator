@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.AnswerQuestionCommand;
@@ -41,7 +41,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             QuizAnswerFactory quizAnswerFactory, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
+        SagaStep getQuestionStep = new SagaStep("getQuestionStep", () -> {
             GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork,
                     ServiceMapping.QUESTION.getServiceName(), userQuestionAnswerDto.getQuestionAggregateId());
             getQuestionByIdCommand.setSemanticLock(QuestionSagaState.READ_QUESTION);
@@ -56,7 +56,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep getQuizAnswerStep = new SagaSyncStep("getQuizAnswerStep", () -> {
+        SagaStep getQuizAnswerStep = new SagaStep("getQuizAnswerStep", () -> {
             GetQuizAnswerDtoByQuizIdAndUserIdCommand getQuizAnswerDtoByQuizIdAndUserIdCommand = new GetQuizAnswerDtoByQuizIdAndUserIdCommand(
                     unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizAnswer.getQuizAggregateId(), quizAggregateId, userAggregateId);
             getQuizAnswerDtoByQuizIdAndUserIdCommand.setSemanticLock(QuizAnswerSagaState.READ_QUIZ_ANSWER);
@@ -71,7 +71,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep answerQuestionStep = new SagaSyncStep("answerQuestionStep", () -> {
+        SagaStep answerQuestionStep = new SagaStep("answerQuestionStep", () -> {
             AnswerQuestionCommand answerQuestion = new AnswerQuestionCommand(unitOfWork,
                     ServiceMapping.QUIZ.getServiceName(), quizAggregateId, userAggregateId, userQuestionAnswerDto,
                     this.getQuestionDto());

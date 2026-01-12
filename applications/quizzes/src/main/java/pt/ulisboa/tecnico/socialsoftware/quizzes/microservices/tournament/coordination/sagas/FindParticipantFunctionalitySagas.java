@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.GetTournamentByIdCommand;
@@ -33,7 +33,7 @@ public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
+        SagaStep getTournamentStep = new SagaStep("getTournamentStep", () -> {
             GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             getTournamentByIdCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
             TournamentDto tournament = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
@@ -46,7 +46,7 @@ public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep getParticipantStep = new SagaSyncStep("getParticipantStep", () -> {
+        SagaStep getParticipantStep = new SagaStep("getParticipantStep", () -> {
             UserDto participant = getTournament().getParticipants().stream()
                     .filter(p -> p.getAggregateId().equals(userAggregateId)).findFirst().orElse(null);
             this.setParticipant(participant);

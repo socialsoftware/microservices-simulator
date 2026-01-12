@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
@@ -33,7 +33,7 @@ public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(QuestionDto questionDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
+        SagaStep getQuestionStep = new SagaStep("getQuestionStep", () -> {
             GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionDto.getAggregateId());
             getQuestionByIdCommand.setSemanticLock(QuestionSagaState.READ_QUESTION);
             QuestionDto question = (QuestionDto) commandGateway.send(getQuestionByIdCommand);
@@ -46,7 +46,7 @@ public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep updateQuestionStep = new SagaSyncStep("updateQuestionStep", () -> {
+        SagaStep updateQuestionStep = new SagaStep("updateQuestionStep", () -> {
             UpdateQuestionCommand updateQuestionCommand = new UpdateQuestionCommand(unitOfWork,
                     ServiceMapping.QUESTION.getServiceName(), questionDto);
             commandGateway.send(updateQuestionCommand);

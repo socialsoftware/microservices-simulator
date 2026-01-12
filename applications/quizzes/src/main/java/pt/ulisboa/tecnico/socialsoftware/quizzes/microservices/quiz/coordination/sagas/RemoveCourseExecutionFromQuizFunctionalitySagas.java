@@ -4,7 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.RemoveCourseExecutionCommand;
@@ -24,7 +24,7 @@ public class RemoveCourseExecutionFromQuizFunctionalitySagas extends WorkflowFun
     private void buildWorkflow(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer eventVersion,
             SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
-        SagaSyncStep step = new SagaSyncStep("removeCourseExecutionFromQuiz", () -> {
+        SagaStep step = new SagaStep("removeCourseExecutionFromQuiz", () -> {
             RemoveCourseExecutionCommand command = new RemoveCourseExecutionCommand(unitOfWork,
                     ServiceMapping.QUIZ.getServiceName(),
                     quizAggregateId, courseExecutionAggregateId, eventVersion);

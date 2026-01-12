@@ -4,7 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.RemoveQuizCommand;
@@ -33,7 +33,7 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer tournamentAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
+        SagaStep getTournamentStep = new SagaStep("getTournamentStep", () -> {
             GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             getTournamentByIdCommand.setForbiddenStates(new ArrayList<>(List.of(TournamentSagaState.IN_UPDATE_TOURNAMENT)));
             getTournamentByIdCommand.setSemanticLock(TournamentSagaState.IN_DELETE_TOURNAMENT);
@@ -41,12 +41,12 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
             setTournamentDto(tournamentDto);
         });
 
-        SagaSyncStep removeQuizStep = new SagaSyncStep("removeQuizStep", () -> {
+        SagaStep removeQuizStep = new SagaStep("removeQuizStep", () -> {
             RemoveQuizCommand removeQuizCommand = new RemoveQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), getTournamentDto().getQuiz().getAggregateId());
             commandGateway.send(removeQuizCommand);
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
 
-        SagaSyncStep removeTournamentStep = new SagaSyncStep("removeTournamentStep", () -> {
+        SagaStep removeTournamentStep = new SagaStep("removeTournamentStep", () -> {
             RemoveTournamentCommand removeTournamentCommand = new RemoveTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             commandGateway.send(removeTournamentCommand);
         }, new ArrayList<>(Arrays.asList(removeQuizStep)));

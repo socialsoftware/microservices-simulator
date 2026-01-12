@@ -4,7 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.RemoveQuizAnswerCommand;
@@ -49,21 +49,21 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer tournamentAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
+        SagaStep getTournamentStep = new SagaStep("getTournamentStep", () -> {
             GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             getTournamentByIdCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
             TournamentDto tournament = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
             this.setTournament(tournament);
         });
 
-        SagaSyncStep startQuizStep = new SagaSyncStep("startQuizStep", () -> {
+        SagaStep startQuizStep = new SagaStep("startQuizStep", () -> {
             StartTournamentQuizCommand startTournamentQuizCommand = new StartTournamentQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), userAggregateId, this.getTournamentDto().getQuiz().getAggregateId());
             startTournamentQuizCommand.setSemanticLock(QuizSagaState.STARTED_TOURNAMENT_QUIZ);
             QuizDto quiz = (QuizDto) commandGateway.send(startTournamentQuizCommand);
             this.setQuizDto(quiz);
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
 
-        SagaSyncStep getQuestionById = new SagaSyncStep("getQuestionById", () -> { // TODO no loop for multiple sends inside a step
+        SagaStep getQuestionById = new SagaStep("getQuestionById", () -> { // TODO no loop for multiple sends inside a step
             List<QuestionDto> questionDtoList = new ArrayList<>();
             quizDto.getQuestionDtos().forEach(quizQuestion -> {
                 GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), quizQuestion.getAggregateId());
@@ -76,17 +76,17 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
             quizDto.setQuestionDtos(questionDtoList);
         }, new ArrayList<>(Arrays.asList(startQuizStep)));
 
-        SagaSyncStep getQuizById = new SagaSyncStep("getQuizById", () -> {
+        SagaStep getQuizById = new SagaStep("getQuizById", () -> {
             GetQuizByIdCommand getQuizByIdCommand = new GetQuizByIdCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), this.getQuizDto().getAggregateId());
             this.quizDto = (QuizDto) commandGateway.send(getQuizByIdCommand);
         }, new ArrayList<>(Arrays.asList(getQuestionById)));
 
-        SagaSyncStep getStudentByExecutionIdAndUserId = new SagaSyncStep("getStudentByExecutionIdAndUserId", () -> {
+        SagaStep getStudentByExecutionIdAndUserId = new SagaStep("getStudentByExecutionIdAndUserId", () -> {
             GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), this.quizDto.getCourseExecutionAggregateId(), userAggregateId);
             this.userDto = (UserDto) commandGateway.send(getStudentByExecutionIdAndUserIdCommand);
         }, new ArrayList<>(Arrays.asList(getQuizById)));
 
-        SagaSyncStep startQuizAnswerStep = new SagaSyncStep("startQuizAnswerStep", () -> {
+        SagaStep startQuizAnswerStep = new SagaStep("startQuizAnswerStep", () -> {
             StartQuizCommand startTournamentQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), this.quizDto, this.userDto);
             startTournamentQuizCommand.setSemanticLock(QuizAnswerSagaState.STARTED_QUIZ);
             QuizAnswerDto quizAnswerDto = (QuizAnswerDto) commandGateway.send(startTournamentQuizCommand);
@@ -100,7 +100,7 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
             }
         }, unitOfWork);
 
-        SagaSyncStep solveQuizStep = new SagaSyncStep("solveQuizStep", () -> {
+        SagaStep solveQuizStep = new SagaStep("solveQuizStep", () -> {
             SolveQuizCommand solveQuizCommand = new SolveQuizCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, userAggregateId, this.getQuizAnswerDto().getAggregateId());
             commandGateway.send(solveQuizCommand);
         }, new ArrayList<>(Arrays.asList(startQuizAnswerStep)));

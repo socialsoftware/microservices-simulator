@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.DeleteUserCommand;
@@ -33,7 +33,7 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
+        SagaStep getUserStep = new SagaStep("getUserStep", () -> {
             GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             getUserByIdCommand.setSemanticLock(UserSagaState.READ_USER);
             UserDto user = (UserDto) commandGateway.send(getUserByIdCommand);
@@ -46,7 +46,7 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep deleteUserStep = new SagaSyncStep("deleteUserStep", () -> {
+        SagaStep deleteUserStep = new SagaStep("deleteUserStep", () -> {
             DeleteUserCommand deleteUserCommand = new DeleteUserCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             commandGateway.send(deleteUserCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));

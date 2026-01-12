@@ -4,7 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetTeachersCommand;
@@ -27,7 +27,7 @@ public class GetTeachersFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getTeachersStep = new SagaSyncStep("getTeachersStep", () -> {
+        SagaStep getTeachersStep = new SagaStep("getTeachersStep", () -> {
             GetTeachersCommand getTeachersCommand = new GetTeachersCommand(unitOfWork, ServiceMapping.USER.getServiceName());
             List<UserDto> teachers = (List<UserDto>) CommandGateway.send(getTeachersCommand);
             this.setTeachers(teachers);

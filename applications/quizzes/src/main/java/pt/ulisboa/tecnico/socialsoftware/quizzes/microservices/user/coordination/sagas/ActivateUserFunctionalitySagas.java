@@ -1,11 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.SyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.ActivateUserCommand;
@@ -30,13 +30,13 @@ public class ActivateUserFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer userAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
+        SagaStep getUserStep = new SagaStep("getUserStep", () -> {
             GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             UserDto user = (UserDto) commandGateway.send(getUserByIdCommand);
             this.setUser(user);
         });
 
-        SyncStep activateUserStep = new SyncStep("activateUserStep", () -> {
+        Step activateUserStep = new Step("activateUserStep", () -> {
             ActivateUserCommand activateUserCommand = new ActivateUserCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             commandGateway.send(activateUserCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));

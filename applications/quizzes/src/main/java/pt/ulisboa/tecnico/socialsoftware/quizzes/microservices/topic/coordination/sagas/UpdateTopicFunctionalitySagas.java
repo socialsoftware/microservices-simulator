@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
@@ -32,7 +32,7 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(TopicDto topicDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getTopicStep = new SagaSyncStep("getTopicStep", () -> {
+        SagaStep getTopicStep = new SagaStep("getTopicStep", () -> {
             GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId());
             getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
             TopicDto topic = (TopicDto) commandGateway.send(getTopicByIdCommand);
@@ -45,7 +45,7 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(command);
         }, unitOfWork);
 
-        SagaSyncStep updateTopicStep = new SagaSyncStep("updateTopicStep", () -> {
+        SagaStep updateTopicStep = new SagaStep("updateTopicStep", () -> {
             UpdateTopicCommand updateTopicCommand = new UpdateTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto);
             commandGateway.send(updateTopicCommand);
         }, new ArrayList<>(Arrays.asList(getTopicStep)));

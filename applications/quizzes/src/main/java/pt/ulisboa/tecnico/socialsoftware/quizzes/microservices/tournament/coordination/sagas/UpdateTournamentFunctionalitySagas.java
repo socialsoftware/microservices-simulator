@@ -5,7 +5,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.FindQuestionsByTopicIdsCommand;
@@ -44,7 +44,7 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(TournamentDto tournamentDto, Set<Integer> topicsAggregateIds, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getOriginalTournamentStep = new SagaSyncStep("getOriginalTournamentStep", () -> {
+        SagaStep getOriginalTournamentStep = new SagaStep("getOriginalTournamentStep", () -> {
             List<SagaAggregate.SagaState> states = new ArrayList<>();
             states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
             states.add(TournamentSagaState.IN_DELETE_TOURNAMENT);
@@ -55,7 +55,7 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
             setOriginalTournamentDto(originalTournamentDto);
         });
 
-        SagaSyncStep getTopicsStep = new SagaSyncStep("getTopicsStep", () -> {
+        SagaStep getTopicsStep = new SagaStep("getTopicsStep", () -> {
             topicsAggregateIds.forEach(topicId -> {
                 GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId);
                 TopicDto topic = (TopicDto) commandGateway.send(getTopicByIdCommand);
@@ -63,7 +63,7 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
             });
         }, new ArrayList<>(Arrays.asList(getOriginalTournamentStep)));
 
-        SagaSyncStep updateTournamentStep = new SagaSyncStep("updateTournamentStep", () -> {
+        SagaStep updateTournamentStep = new SagaStep("updateTournamentStep", () -> {
             UpdateTournamentCommand updateTournamentCommand = new UpdateTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, this.getTopicsDtos());
             this.newTournamentDto = (TournamentDto) commandGateway.send(updateTournamentCommand);
         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
@@ -73,12 +73,12 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(updateTournamentCommand);
         }, unitOfWork);
 
-        SagaSyncStep findQuestionsByTopicIds = new SagaSyncStep("findQuestionsByTopicIds", () -> {
+        SagaStep findQuestionsByTopicIds = new SagaStep("findQuestionsByTopicIds", () -> {
             FindQuestionsByTopicIdsCommand findQuestionsByTopicIdsCommand = new FindQuestionsByTopicIdsCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), new ArrayList<>(topicsAggregateIds));
             this.questionDtos = (List<QuestionDto>) commandGateway.send(findQuestionsByTopicIdsCommand);
         }, new ArrayList<>(Arrays.asList(updateTournamentStep)));
 
-        SagaSyncStep updateQuizStep = new SagaSyncStep("updateQuizStep", () -> {
+        SagaStep updateQuizStep = new SagaStep("updateQuizStep", () -> {
             QuizDto quizDto = new QuizDto();
             quizDto.setAggregateId(getNewTournamentDto().getQuiz().getAggregateId());
             quizDto.setAvailableDate(getNewTournamentDto().getStartTime());
