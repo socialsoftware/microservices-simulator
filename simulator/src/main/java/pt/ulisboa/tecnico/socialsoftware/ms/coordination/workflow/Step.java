@@ -5,7 +5,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
-// TODO this will become Step
 public class Step extends FlowStep {
     private final Runnable syncOperation;
     

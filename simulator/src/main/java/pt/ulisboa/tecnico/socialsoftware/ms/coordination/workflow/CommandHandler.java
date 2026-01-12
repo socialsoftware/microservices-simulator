@@ -13,15 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaC
 
 import java.util.logging.Logger;
 
-/**
- * Abstract base class for command handlers that provides common causal and saga
- * handling.
- * Subclasses implement domain-specific command handling via
- * handleDomainCommand().
- * 
- * The handle() method follows the order: verifyState -> commandHandling ->
- * registerState
- */
+
 public abstract class CommandHandler {
     private static final Logger logger = Logger.getLogger(CommandHandler.class.getName());
 
@@ -36,7 +28,7 @@ public abstract class CommandHandler {
     protected abstract Object handleDomainCommand(Command command);
 
     public Object handle(Command command) {
-        // 1. Verify saga state (if forbidden states are specified)
+        // Verify saga state
         if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
             sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
         }
@@ -53,7 +45,7 @@ public abstract class CommandHandler {
             default -> returnObject = handleDomainCommand(command);
         }
 
-        // 3. Register saga state (if semantic lock is specified)
+        // Register saga state
         if (command.getSemanticLock() != null) {
             sagaUnitOfWorkService.registerSagaState(command.getRootAggregateId(), command.getSemanticLock(),
                     (SagaUnitOfWork) command.getUnitOfWork());

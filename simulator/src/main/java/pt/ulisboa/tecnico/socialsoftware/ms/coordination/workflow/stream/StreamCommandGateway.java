@@ -19,45 +19,24 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.logging.Logger;
 
 @Component
 @Profile("stream")
-public class StreamCommandGateway implements CommandGateway {
-    private static final Logger logger = Logger.getLogger(StreamCommandGateway.class.getName());
+public class StreamCommandGateway extends CommandGateway {
+
     private final StreamBridge streamBridge;
     private final CommandResponseAggregator responseAggregator;
     private final ObjectMapper msgMapper;
-    private final ExecutorService executor = Executors.newCachedThreadPool();
-    private final ApplicationContext applicationContext;
 
     @Autowired
     public StreamCommandGateway(StreamBridge streamBridge,
             CommandResponseAggregator responseAggregator,
             MessagingObjectMapperProvider mapperProvider,
             ApplicationContext applicationContext, RetryRegistry retryRegistry) {
+        super(applicationContext, retryRegistry);
         this.streamBridge = streamBridge;
         this.responseAggregator = responseAggregator;
         this.msgMapper = mapperProvider.newMapper();
-        this.applicationContext = applicationContext;
-
-        retryRegistry.retry("commandGateway")
-                .getEventPublisher()
-                .onRetry(event -> {
-                    assert event.getLastThrowable() != null;
-                    logger.warning(String.format("Retry attempt #%d for operation. Reason: %s - %s",
-                            event.getNumberOfRetryAttempts(),
-                            event.getLastThrowable().getClass().getSimpleName(),
-                            event.getLastThrowable().getMessage()));
-                })
-                .onSuccess(event -> {
-                    if (event.getNumberOfRetryAttempts() > 0) {
-                        logger.info(String.format("Operation succeeded after %d retry attempts",
-                                event.getNumberOfRetryAttempts()));
-                    }
-                });
     }
 
     @Override
@@ -110,10 +89,6 @@ public class StreamCommandGateway implements CommandGateway {
         }
     }
 
-    public CompletableFuture<Object> sendAsync(Command command) {
-        return CompletableFuture.supplyAsync(() -> send(command), executor);
-    }
-
     private void mergeUnitOfWork(UnitOfWork target, UnitOfWork source) {
         if (target == null || source == null)
             return;
@@ -149,18 +124,6 @@ public class StreamCommandGateway implements CommandGateway {
             if (s.getPreviousStates() != null) {
                 t.getPreviousStates().putAll(s.getPreviousStates());
             }
-        }
-    }
-
-    public Object fallbackSend(Command command, Throwable t) {
-        if (t instanceof SimulatorException) {
-            logger.severe("fallback: Command failed with business error: "
-                    + command.getClass().getSimpleName() + " - " + t.getMessage());
-            throw (SimulatorException) t;
-        } else {
-            logger.severe("Retries exhausted for command: "
-                    + command.getClass().getSimpleName() + " - " + t.getMessage());
-            throw new RuntimeException("Service unavailable: " + command.getServiceName(), t);
         }
     }
 }
