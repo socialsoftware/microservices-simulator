@@ -14,7 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregat
 import java.util.function.Consumer;
 
 @Component
-@Profile("stream")
+@Profile("!local")
 public class QuestionEventSubscriberService extends EventSubscriberService {
 
     @Autowired

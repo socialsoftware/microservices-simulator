@@ -14,7 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import java.util.function.Consumer;
 
 @Component
-@Profile("stream")
+@Profile("!local")
 public class TournamentEventSubscriberService extends EventSubscriberService {
 
     @Autowired

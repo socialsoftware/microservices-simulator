@@ -33,7 +33,6 @@ public abstract class EventSubscriberService {
         return subscribedEvents;
     }
 
-    @SuppressWarnings("unchecked")
     private void initializeSubscribedEvents() {
         if (initialized) {
             return;

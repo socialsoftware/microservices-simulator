@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
+// TODO this will become SagaStep
 public class SagaSyncStep extends SyncStep implements SagaStep {
     private Runnable compensationLogic;
 

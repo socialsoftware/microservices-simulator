@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+// TODO this will become outdated
 public class SagaAsyncStep extends AsyncStep implements SagaStep {
     private Runnable compensationLogic;
 

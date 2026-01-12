@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+// TODO this will become outdated
 public class AsyncStep extends FlowStep {
     private Supplier<CompletableFuture<Void>> asyncOperation;
     private ExecutorService executorService;
