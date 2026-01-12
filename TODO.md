@@ -46,3 +46,4 @@
 - [ ] Create TCC profile for microservices in docker compose
 - [ ] Clean application.yaml files with placeholders?
 - [ ] See `CommandResponseListener`
+- [ ] See `TraceService` and `utils/`

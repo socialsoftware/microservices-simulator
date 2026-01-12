@@ -3,24 +3,6 @@ spring:
     name: tournament
   datasource:
     url: jdbc:postgresql://localhost:5432/tournamentdb
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: postgres
-
-  jpa:
-    properties:
-      jakarta.persistence.sharedCache.mode: UNSPECIFIED
-    generate-ddl: true
-    hibernate:
-      ddl-auto: create
-    show-sql: false
-    open-in-view: false
-
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
 
   cloud:
     function:
@@ -29,26 +11,15 @@ spring:
       bindings:
         tournament-command-channel:
           destination: tournament-command-channel
-
         tournamentServiceCommandChannel-in-0:
           destination: tournament-command-channel
           group: tournament-service-group
         commandResponseChannel-in-0:
           destination: tournament-command-responses
           group: tournament-response-group
-
-        event-channel:
-          destination: event-channel
-
         tournamentEventSubscriber-in-0:
           destination: event-channel
           group: tournament-service-group
 
 server:
   port: 8087
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health,beans"

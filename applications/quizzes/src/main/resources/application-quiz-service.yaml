@@ -3,24 +3,6 @@ spring:
     name: quiz
   datasource:
     url: jdbc:postgresql://localhost:5432/quizdb
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: postgres
-
-  jpa:
-    properties:
-      jakarta.persistence.sharedCache.mode: UNSPECIFIED
-    generate-ddl: true
-    hibernate:
-      ddl-auto: create
-    show-sql: false
-    open-in-view: false
-
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
 
   cloud:
     function:
@@ -29,26 +11,15 @@ spring:
       bindings:
         quiz-command-channel:
           destination: quiz-command-channel
-
         quizServiceCommandChannel-in-0:
           destination: quiz-command-channel
           group: quiz-service-group
         commandResponseChannel-in-0:
           destination: quiz-command-responses
           group: quiz-response-group
-
-        event-channel:
-          destination: event-channel
-
         quizEventSubscriber-in-0:
           destination: event-channel
           group: quiz-service-group
 
 server:
   port: 8085
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health,beans"

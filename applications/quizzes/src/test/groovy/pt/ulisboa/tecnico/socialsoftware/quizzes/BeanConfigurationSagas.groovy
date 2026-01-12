@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes
 
+import io.github.resilience4j.retry.RetryRegistry
 import org.mockito.Mockito
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.cloud.stream.function.StreamBridge
@@ -287,8 +288,13 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    LocalCommandGateway commandGateway(ApplicationContext applicationContext) {
-        return new LocalCommandGateway(applicationContext)
+    RetryRegistry retryRegistry() {
+        return RetryRegistry.ofDefaults()
+    }
+
+    @Bean
+    LocalCommandGateway commandGateway(ApplicationContext applicationContext, RetryRegistry registry) {
+        return new LocalCommandGateway(applicationContext, registry)
     }
 
     @Bean

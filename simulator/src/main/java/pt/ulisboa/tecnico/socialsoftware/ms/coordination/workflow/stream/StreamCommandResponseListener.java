@@ -13,15 +13,15 @@ import java.util.logging.Logger;
 
 @Component
 @Profile("stream")
-public class CommandResponseListener {
+public class StreamCommandResponseListener {
 
-    private static final Logger logger = Logger.getLogger(CommandResponseListener.class.getName());
+    private static final Logger logger = Logger.getLogger(StreamCommandResponseListener.class.getName());
     private final CommandResponseAggregator responseAggregator;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public CommandResponseListener(CommandResponseAggregator responseAggregator,
-            MessagingObjectMapperProvider mapperProvider) {
+    public StreamCommandResponseListener(CommandResponseAggregator responseAggregator,
+                                         MessagingObjectMapperProvider mapperProvider) {
         this.responseAggregator = responseAggregator;
         this.objectMapper = mapperProvider.newMapper();
     }

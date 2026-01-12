@@ -43,6 +43,12 @@ resilience4j:
         ignore-exceptions:
           - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,beans"
+
 ---
 
 spring:

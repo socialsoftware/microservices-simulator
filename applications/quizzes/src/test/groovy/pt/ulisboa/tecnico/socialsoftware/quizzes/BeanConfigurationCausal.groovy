@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes
 
+import io.github.resilience4j.retry.RetryRegistry
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -282,8 +283,13 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    LocalCommandGateway commandGateway(ApplicationContext applicationContext) {
-        return new LocalCommandGateway(applicationContext);
+    RetryRegistry retryRegistry() {
+        return RetryRegistry.ofDefaults()
+    }
+
+    @Bean
+    LocalCommandGateway commandGateway(ApplicationContext applicationContext, RetryRegistry registry) {
+        return new LocalCommandGateway(applicationContext, registry)
     }
 
     // Command Handlers

@@ -3,24 +3,6 @@ spring:
     name: course
   datasource:
     url: jdbc:postgresql://localhost:5432/coursedb
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: postgres
-
-  jpa:
-    properties:
-      jakarta.persistence.sharedCache.mode: UNSPECIFIED
-    generate-ddl: true
-    hibernate:
-      ddl-auto: create
-    show-sql: false
-    open-in-view: false
-
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
 
   cloud:
     function:
@@ -29,26 +11,15 @@ spring:
       bindings:
         course-command-channel:
           destination: course-command-channel
-
         courseServiceCommandChannel-in-0:
           destination: course-command-channel
           group: course-service-group
         commandResponseChannel-in-0:
           destination: course-command-responses
           group: course-response-group
-
-        event-channel:
-          destination: event-channel
-
         courseEventSubscriber-in-0:
           destination: event-channel
           group: course-service-group
 
 server:
   port: 8089
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health,beans"

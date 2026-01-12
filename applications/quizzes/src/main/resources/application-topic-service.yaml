@@ -3,24 +3,6 @@ spring:
     name: topic
   datasource:
     url: jdbc:postgresql://localhost:5432/topicdb
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: postgres
-
-  jpa:
-    properties:
-      jakarta.persistence.sharedCache.mode: UNSPECIFIED
-    generate-ddl: true
-    hibernate:
-      ddl-auto: create
-    show-sql: false
-    open-in-view: false
-
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
 
   cloud:
     function:
@@ -29,26 +11,15 @@ spring:
       bindings:
         topic-command-channel:
           destination: topic-command-channel
-
         topicServiceCommandChannel-in-0:
           destination: topic-command-channel
           group: topic-service-group
         commandResponseChannel-in-0:
           destination: topic-command-responses
           group: topic-response-group
-
-        event-channel:
-          destination: event-channel
-
         topicEventSubscriber-in-0:
           destination: event-channel
           group: topic-service-group
 
 server:
   port: 8086
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health,beans"
