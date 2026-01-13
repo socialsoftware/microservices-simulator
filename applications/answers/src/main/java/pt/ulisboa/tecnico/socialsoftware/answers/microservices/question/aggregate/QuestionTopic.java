@@ -16,10 +16,10 @@ public class QuestionTopic {
     @GeneratedValue
     private Long id;
     private Integer topicId;
+    private AggregateState topicState;
     private Integer topicAggregateId;
     private String topicName;
     private Integer topicVersion;
-    private AggregateState topicState;
     @OneToOne
     private Question question;
 
@@ -34,10 +34,18 @@ public class QuestionTopic {
     }
 
     public QuestionTopic(QuestionTopic other) {
+        setTopicState(other.getTopicState());
         setTopicAggregateId(other.getTopicAggregateId());
         setTopicName(other.getTopicName());
         setTopicVersion(other.getTopicVersion());
-        setTopicState(other.getTopicState());
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Integer getTopicId() {
@@ -46,6 +54,14 @@ public class QuestionTopic {
 
     public void setTopicId(Integer topicId) {
         this.topicId = topicId;
+    }
+
+    public AggregateState getTopicState() {
+        return topicState;
+    }
+
+    public void setTopicState(AggregateState topicState) {
+        this.topicState = topicState;
     }
 
     public Integer getTopicAggregateId() {
@@ -72,14 +88,6 @@ public class QuestionTopic {
         this.topicVersion = topicVersion;
     }
 
-    public AggregateState getTopicState() {
-        return topicState;
-    }
-
-    public void setTopicState(AggregateState topicState) {
-        this.topicState = topicState;
-    }
-
     public Question getQuestion() {
         return question;
     }
@@ -92,10 +100,10 @@ public class QuestionTopic {
     public QuestionTopicDto buildDto() {
         QuestionTopicDto dto = new QuestionTopicDto();
         dto.setTopicId(getTopicId());
+        dto.setTopicState(getTopicState());
         dto.setAggregateId(getTopicAggregateId());
         dto.setName(getTopicName());
         dto.setVersion(getTopicVersion());
-        dto.setTopicState(getTopicState());
         return dto;
     }
 }

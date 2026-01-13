@@ -43,58 +43,35 @@ Aggregate Tournament {
     }
 
     Entity TournamentExecution uses dto ExecutionDto mapping {
-        aggregateId -> executionAggregateId;
-        courseAggregateId -> executionCourseAggregateId;
-        acronym -> executionAcronym;
-        state -> executionState;
-        version -> executionVersion;
-    } {
-        Integer executionAggregateId;
-        Integer executionCourseAggregateId;
-        String executionAcronym;
-        AggregateState executionState;
-        Integer executionVersion;
-
+        Integer executionAggregateId -> aggregateId;
+        Integer executionCourseAggregateId -> courseAggregateId;
+        String executionAcronym -> acronym;
+        AggregateState executionState -> state;
+        Integer executionVersion -> version;
     }
 
     Entity TournamentCreator uses dto UserDto mapping {
-        aggregateId -> creatorAggregateId;
-        name -> creatorName;
-        username -> creatorUsername;
-        version -> creatorVersion;
-        state -> creatorState;
-    } {
-        Integer creatorAggregateId;
-        String creatorName;
-        String creatorUsername;
-        Integer creatorVersion;
-        AggregateState creatorState;
-        
-        methods {
-            
-        }
+        Integer creatorAggregateId -> aggregateId;
+        String creatorName -> name;
+        String creatorUsername -> username;
+        Integer creatorVersion -> version;
+        AggregateState creatorState -> state;
     }
 
     Entity TournamentParticipant uses dto UserDto mapping {
-        aggregateId -> participantAggregateId;
-        name -> participantName;
-        username -> participantUsername;
-        version -> participantVersion;
-        state -> participantState;
+        Integer participantAggregateId -> aggregateId;
+        String participantName -> name;
+        String participantUsername -> username;
+        Integer participantVersion -> version;
+        AggregateState participantState -> state;
     } {
-        Integer participantAggregateId;
-        Integer participantVersion;
-        AggregateState participantState;
-        String participantName;
-        String participantUsername;
         LocalDateTime participantEnrollTime;
         TournamentParticipantQuiz participantQuiz;
     }
 
     Entity TournamentParticipantQuiz uses dto QuizDto mapping {
-        aggregateId -> participantQuizAggregateId;
+        Integer participantQuizAggregateId -> aggregateId;
     } {
-        Integer participantQuizAggregateId;
         Integer participantQuizVersion;
         Boolean participantQuizAnswered;
         Integer participantQuizNumberOfAnswered;
@@ -103,25 +80,16 @@ Aggregate Tournament {
     }
 
     Entity TournamentTopic uses dto TopicDto mapping {
-        aggregateId -> topicAggregateId;
-        version -> topicVersion;
-        state -> topicState;
-        name -> topicName;
-        courseAggregateId -> topicCourseAggregateId;
-    } {
-        Integer topicAggregateId;
-        Integer topicVersion;
-        AggregateState topicState;
-        String topicName;
-        Integer topicCourseAggregateId;
+        Integer topicAggregateId -> aggregateId;
+        Integer topicVersion -> version;
+        AggregateState topicState -> state;
+        String topicName -> name;
+        Integer topicCourseAggregateId -> courseAggregateId;
     }
 
     Entity TournamentQuiz uses dto QuizDto mapping {
-        aggregateId -> quizAggregateId;
-        version -> quizVersion;
-    } {
-        Integer quizAggregateId;
-        Integer quizVersion;
+        Integer quizAggregateId -> aggregateId;
+        Integer quizVersion -> version;
     }
 
     WebAPIEndpoints {

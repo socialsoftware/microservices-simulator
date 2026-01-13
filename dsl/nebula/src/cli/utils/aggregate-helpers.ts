@@ -130,3 +130,35 @@ export function getAggregateEntities(aggregate: Aggregate): Entity[] {
     return aggregate.entities;
 }
 
+/**
+ * Get effective properties for an entity, including those defined in DTO mappings.
+ * With the simplified mapping syntax, properties can be defined inline:
+ *   Integer courseAggregateId -> aggregateId;
+ * This function combines explicit properties with mapping-defined properties.
+ */
+export function getEffectiveProperties(entity: Entity): any[] {
+    const explicitProps = entity.properties || [];
+    const entityAny = entity as any;
+    const mappings = entityAny.dtoMapping?.fieldMappings || [];
+
+    // Get properties defined in mappings (new syntax with type)
+    const mappingProps = mappings
+        .filter((m: any) => m.type && m.entityField)
+        .map((m: any) => ({
+            name: m.entityField,
+            type: m.type,
+            // Synthetic property from mapping
+            $fromMapping: true,
+            $dtoField: m.dtoField,
+            $extractField: m.extractField
+        }));
+
+    // Combine, avoiding duplicates (explicit props take precedence)
+    const explicitNames = new Set(explicitProps.map(p => p.name));
+    const combinedProps = [
+        ...explicitProps,
+        ...mappingProps.filter((p: any) => !explicitNames.has(p.name))
+    ];
+
+    return combinedProps;
+}

@@ -4,31 +4,23 @@ import java.io.Serializable;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipantQuiz;
 
 public class TournamentParticipantQuizDto implements Serializable {
-    private Integer aggregateId;
     private Integer participantQuizVersion;
     private Boolean participantQuizAnswered;
     private Integer participantQuizNumberOfAnswered;
     private Integer participantQuizNumberOfCorrect;
     private TournamentParticipantDto tournamentParticipant;
+    private Integer aggregateId;
 
     public TournamentParticipantQuizDto() {
     }
 
     public TournamentParticipantQuizDto(TournamentParticipantQuiz tournamentParticipantQuiz) {
-        this.aggregateId = tournamentParticipantQuiz.getParticipantQuizAggregateId();
         this.participantQuizVersion = tournamentParticipantQuiz.getParticipantQuizVersion();
         this.participantQuizAnswered = tournamentParticipantQuiz.getParticipantQuizAnswered();
         this.participantQuizNumberOfAnswered = tournamentParticipantQuiz.getParticipantQuizNumberOfAnswered();
         this.participantQuizNumberOfCorrect = tournamentParticipantQuiz.getParticipantQuizNumberOfCorrect();
         this.tournamentParticipant = tournamentParticipantQuiz.getTournamentParticipant() != null ? new TournamentParticipantDto(tournamentParticipantQuiz.getTournamentParticipant()) : null;
-    }
-
-    public Integer getAggregateId() {
-        return aggregateId;
-    }
-
-    public void setAggregateId(Integer aggregateId) {
-        this.aggregateId = aggregateId;
+        this.aggregateId = tournamentParticipantQuiz.getParticipantQuizAggregateId();
     }
 
     public Integer getParticipantQuizVersion() {
@@ -69,5 +61,13 @@ public class TournamentParticipantQuizDto implements Serializable {
 
     public void setTournamentParticipant(TournamentParticipantDto tournamentParticipant) {
         this.tournamentParticipant = tournamentParticipant;
+    }
+
+    public Integer getAggregateId() {
+        return aggregateId;
+    }
+
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
     }
 }

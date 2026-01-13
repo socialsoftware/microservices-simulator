@@ -1,10 +1,7 @@
 Aggregate Topic {
     Entity TopicCourse uses dto CourseDto mapping {
-        aggregateId -> courseAggregateId;
-        version -> courseVersion;
-    } {
-        Integer courseAggregateId;
-        Integer courseVersion;
+        Integer courseAggregateId -> aggregateId;
+        Integer courseVersion -> version;
     }
 
     Root Entity Topic {

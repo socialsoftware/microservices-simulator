@@ -15,12 +15,12 @@ public class QuizQuestion {
     @Id
     @GeneratedValue
     private Long id;
+    private Integer questionSequence;
     private Integer questionAggregateId;
     private Integer questionVersion;
     private AggregateState questionState;
     private String questionTitle;
     private String questionContent;
-    private Integer questionSequence;
     @OneToOne
     private Quiz quiz;
 
@@ -37,11 +37,27 @@ public class QuizQuestion {
     }
 
     public QuizQuestion(QuizQuestion other) {
+        setQuestionAggregateId(other.getQuestionAggregateId());
         setQuestionVersion(other.getQuestionVersion());
         setQuestionState(other.getQuestionState());
         setQuestionTitle(other.getQuestionTitle());
         setQuestionContent(other.getQuestionContent());
-        setQuestionSequence(other.getQuestionSequence());
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Integer getQuestionSequence() {
+        return questionSequence;
+    }
+
+    public void setQuestionSequence(Integer questionSequence) {
+        this.questionSequence = questionSequence;
     }
 
     public Integer getQuestionAggregateId() {
@@ -84,14 +100,6 @@ public class QuizQuestion {
         this.questionContent = questionContent;
     }
 
-    public Integer getQuestionSequence() {
-        return questionSequence;
-    }
-
-    public void setQuestionSequence(Integer questionSequence) {
-        this.questionSequence = questionSequence;
-    }
-
     public Quiz getQuiz() {
         return quiz;
     }
@@ -103,12 +111,12 @@ public class QuizQuestion {
 
     public QuizQuestionDto buildDto() {
         QuizQuestionDto dto = new QuizQuestionDto();
+        dto.setQuestionSequence(getQuestionSequence());
         dto.setAggregateId(getQuestionAggregateId());
         dto.setVersion(getQuestionVersion());
         dto.setState(getQuestionState());
         dto.setTitle(getQuestionTitle());
         dto.setContent(getQuestionContent());
-        dto.setQuestionSequence(getQuestionSequence());
         return dto;
     }
 }

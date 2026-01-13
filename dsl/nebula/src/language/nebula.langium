@@ -19,24 +19,29 @@ AggregateElement:
     Entity | Method | Workflow | Repository | Events | WebAPIEndpoints | ServiceDefinition | Functionalities;
 
 Entity:
-    (isRoot?='Root')? (generateDto?='Dto')? 'Entity' name=ID ('uses' 'dto' dtoType=ID (dtoMapping=DtoEntityMapping)?)? '{'
-        properties+=Property*
-        constructors+=Constructor*
-        ('invariants' '{'
-            invariants+=Invariant*
-        '}')?
-        ('methods' '{'
-            methods+=Method*
-        '}')?
-    '}';
+    (isRoot?='Root')? (generateDto?='Dto')? 'Entity' name=ID ('uses' 'dto' dtoType=ID (dtoMapping=DtoEntityMapping)?)?
+    (
+        '{'
+            properties+=Property*
+            constructors+=Constructor*
+            ('invariants' '{'
+                invariants+=Invariant*
+            '}')?
+            ('methods' '{'
+                methods+=Method*
+            '}')?
+        '}'
+    )?;
 
 DtoEntityMapping:
     'mapping' '{'
         fieldMappings+=DtoFieldMapping*
     '}';
 
+// Simplified syntax: Type entityField -> dtoField;
+// Example: Integer courseAggregateId -> aggregateId;
 DtoFieldMapping:
-    dtoField=ID '->' entityField=ID ('extract' extractField=ID)? ';';
+    type=ParamType entityField=ID '->' dtoField=ID ('extract' extractField=ID)? ';';
 
 Method:
     (annotations+=Annotation)*

@@ -81,8 +81,21 @@ function propertyTypeMatchesEntity(prop: any, entityName: string, allEntities?: 
 
 export function generateGettersSetters(properties: any[], entity?: Entity, projectName?: string, allEntities?: Entity[]): { code: string } {
     const entityName = entity?.name || 'Unknown';
+    const isRootEntity = entity?.isRoot || false;
 
-    const methods = properties.map((prop: any) => {
+    // For non-root entities, ensure id field is included for getter/setter generation
+    const processedProperties = [...properties];
+    if (!isRootEntity) {
+        const hasIdField = processedProperties.some(prop => prop?.name === 'id');
+        if (!hasIdField) {
+            processedProperties.unshift({
+                name: 'id',
+                type: { $type: 'PrimitiveType', name: 'Long' }
+            });
+        }
+    }
+
+    const methods = processedProperties.map((prop: any) => {
         const javaType = resolveJavaType(prop.type, prop.name);
         const capName = capitalize(prop.name);
         const getter = `get${capName}`;

@@ -31,6 +31,14 @@ public class AnswerExecution {
         setExecutionVersion(other.getExecutionVersion());
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public Integer getExecutionAggregateId() {
         return executionAggregateId;
     }

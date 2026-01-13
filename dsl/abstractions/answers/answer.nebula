@@ -1,20 +1,13 @@
 Aggregate Answer {
     Entity AnswerUser uses dto UserDto mapping {
-        aggregateId -> userAggregateId;
-        name -> userName;
-        state -> userState;
-    } {
-        Integer userAggregateId;
-        String userName;
-        AggregateState userState;
+        Integer userAggregateId -> aggregateId;
+        String userName -> name;
+        AggregateState userState -> state;
     }
 
     Entity AnswerExecution uses dto ExecutionDto mapping {
-        aggregateId -> executionAggregateId;
-        version -> executionVersion;
-    } {
-        Integer executionAggregateId;
-        Integer executionVersion;
+        Integer executionAggregateId -> aggregateId;
+        Integer executionVersion -> version;
     }
 
     Dto Entity QuestionAnswered {
@@ -28,13 +21,9 @@ Aggregate Answer {
     }
 
     Entity AnswerQuiz uses dto QuizDto mapping {
-        aggregateId -> quizAggregateId;
-        version -> quizVersion;
-        questions -> quizQuestionsAggregateIds extract aggregateId;
-    } {
-        Integer quizAggregateId;
-        Integer quizVersion;
-        List<Integer> quizQuestionsAggregateIds;
+        Integer quizAggregateId -> aggregateId;
+        Integer quizVersion -> version;
+        List<Integer> quizQuestionsAggregateIds -> questions extract aggregateId;
     }
 
     Root Entity Answer {

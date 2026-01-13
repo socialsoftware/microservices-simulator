@@ -3,6 +3,7 @@ import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 import { getGlobalConfig } from "../../common/config.js";
 import { ImportRequirements } from "./types.js";
 import type { DtoSchemaRegistry } from "../../../services/dto-schema-service.js";
+import { getEffectiveProperties } from "../../../utils/aggregate-helpers.js";
 
 const resolveJavaType = (type: any, fieldName?: string) => {
     return TypeResolver.resolveJavaType(type);
@@ -74,8 +75,9 @@ function convertDefaultValueToJava(defaultValue: any, javaType: string, prop: an
 export function generateDefaultConstructor(entity: Entity): { code: string } {
     const entityName = entity.name;
     const isRootEntity = entity.isRoot || false;
+    const effectiveProps = getEffectiveProperties(entity);
 
-    const defaultInitializations = entity.properties.map((prop: any, index: number) => {
+    const defaultInitializations = effectiveProps.map((prop: any, index: number) => {
         if (!isRootEntity && index === 0) {
             return '';
         }
@@ -141,9 +143,10 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
                 entityField: mapping.entityField,
                 extractField: mapping.extractField
             }));
+    const effectiveProps = getEffectiveProperties(entity);
     const dtoFieldToEntityProp = new Map<string, { property: any; extractField?: string }>();
     dtoFieldMappingEntries.forEach(entry => {
-        const targetProp = entity.properties.find(prop => prop.name === entry.entityField);
+        const targetProp = effectiveProps.find((prop: any) => prop.name === entry.entityField);
         if (targetProp) {
             dtoFieldToEntityProp.set(entry.dtoField, { property: targetProp, extractField: entry.extractField });
         }
@@ -180,7 +183,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
     const collectionEntityRels: Array<{ javaType: string; name: string }> = [];
     
     if (isRootEntity) {
-        for (const prop of entity.properties || []) {
+        for (const prop of effectiveProps || []) {
             const javaType = resolveJavaType(prop.type);
             const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
             
@@ -348,7 +351,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
     if (isRootEntity) {
         // Assign single entity relationships
         for (const rel of singleEntityRels) {
-            const prop = entity.properties.find(p => p.name === rel.name);
+            const prop = effectiveProps.find((p: any) => p.name === rel.name);
             if (prop) {
                 const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
                 const isFinalProp = (prop as any).isFinal || false;
@@ -362,7 +365,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         
         // Assign collection entity relationships
         for (const rel of collectionEntityRels) {
-            const prop = entity.properties.find(p => p.name === rel.name);
+            const prop = effectiveProps.find((p: any) => p.name === rel.name);
             if (prop) {
                 const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
                 const isFinalProp = (prop as any).isFinal || false;
@@ -427,8 +430,9 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
     const entityName = entity.name;
     const isRootEntity = entity.isRoot || false;
     const imports: ImportRequirements = {};
+    const effectiveProps = getEffectiveProperties(entity);
 
-    const setterCalls = entity.properties.map((prop: any, index: number) => {
+    const setterCalls = effectiveProps.map((prop: any, index: number) => {
         if (!isRootEntity && index === 0) {
             return '';
         }

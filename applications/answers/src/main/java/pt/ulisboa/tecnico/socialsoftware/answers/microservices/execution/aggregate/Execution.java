@@ -106,27 +106,27 @@ public abstract class Execution extends Aggregate {
         }
     }
 
-    public void removeExecutionUser(Integer id) {
+    public void removeExecutionUser(Long id) {
         if (this.users != null) {
             this.users.removeIf(item -> 
-                item.getUserAggregateId() != null && item.getUserAggregateId().equals(id));
+                item.getId() != null && item.getId().equals(id));
         }
     }
 
-    public boolean containsExecutionUser(Integer id) {
+    public boolean containsExecutionUser(Long id) {
         if (this.users == null) {
             return false;
         }
         return this.users.stream().anyMatch(item -> 
-            item.getUserAggregateId() != null && item.getUserAggregateId().equals(id));
+            item.getId() != null && item.getId().equals(id));
     }
 
-    public ExecutionUser findExecutionUserById(Integer id) {
+    public ExecutionUser findExecutionUserById(Long id) {
         if (this.users == null) {
             return null;
         }
         return this.users.stream()
-            .filter(item -> item.getUserAggregateId() != null && item.getUserAggregateId().equals(id))
+            .filter(item -> item.getId() != null && item.getId().equals(id))
             .findFirst()
             .orElse(null);
     }

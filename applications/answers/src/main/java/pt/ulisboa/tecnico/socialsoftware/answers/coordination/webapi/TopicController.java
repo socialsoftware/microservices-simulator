@@ -32,7 +32,7 @@ public class TopicController {
     }
 
     @GetMapping("/topics")
-    public List<TopicDto> searchTopics(@RequestParam(required = false) String name, @RequestParam(required = false) Integer courseAggregateId) {
-        return topicFunctionalities.searchTopics(name, courseAggregateId);
+    public List<TopicDto> searchTopics(@RequestParam(required = false) String name) {
+        return topicFunctionalities.searchTopics(name);
     }
 }

@@ -32,7 +32,7 @@ public class TournamentController {
     }
 
     @GetMapping("/tournaments")
-    public List<TournamentDto> searchTournaments(@RequestParam(required = false) Boolean cancelled, @RequestParam(required = false) Integer creatorAggregateId, @RequestParam(required = false) Integer executionAggregateId, @RequestParam(required = false) Integer executionCourseAggregateId, @RequestParam(required = false) Integer quizAggregateId) {
-        return tournamentFunctionalities.searchTournaments(cancelled, creatorAggregateId, executionAggregateId, executionCourseAggregateId, quizAggregateId);
+    public List<TournamentDto> searchTournaments(@RequestParam(required = false) Boolean cancelled) {
+        return tournamentFunctionalities.searchTournaments(cancelled);
     }
 }

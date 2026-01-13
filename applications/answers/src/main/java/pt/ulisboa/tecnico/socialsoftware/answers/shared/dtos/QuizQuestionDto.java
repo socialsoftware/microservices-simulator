@@ -5,23 +5,31 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizQuestion;
 
 public class QuizQuestionDto implements Serializable {
+    private Integer questionSequence;
     private Integer aggregateId;
     private Integer version;
     private AggregateState state;
     private String title;
     private String content;
-    private Integer questionSequence;
 
     public QuizQuestionDto() {
     }
 
     public QuizQuestionDto(QuizQuestion quizQuestion) {
+        this.questionSequence = quizQuestion.getQuestionSequence();
         this.aggregateId = quizQuestion.getQuestionAggregateId();
         this.version = quizQuestion.getQuestionVersion();
         this.state = quizQuestion.getQuestionState();
         this.title = quizQuestion.getQuestionTitle();
         this.content = quizQuestion.getQuestionContent();
-        this.questionSequence = quizQuestion.getQuestionSequence();
+    }
+
+    public Integer getQuestionSequence() {
+        return questionSequence;
+    }
+
+    public void setQuestionSequence(Integer questionSequence) {
+        this.questionSequence = questionSequence;
     }
 
     public Integer getAggregateId() {
@@ -62,13 +70,5 @@ public class QuizQuestionDto implements Serializable {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public Integer getQuestionSequence() {
-        return questionSequence;
-    }
-
-    public void setQuestionSequence(Integer questionSequence) {
-        this.questionSequence = questionSequence;
     }
 }

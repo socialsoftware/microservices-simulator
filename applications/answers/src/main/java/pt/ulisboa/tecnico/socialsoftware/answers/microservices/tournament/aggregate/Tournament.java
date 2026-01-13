@@ -131,27 +131,27 @@ public abstract class Tournament extends Aggregate {
         }
     }
 
-    public void removeTournamentParticipant(Integer id) {
+    public void removeTournamentParticipant(LocalDateTime id) {
         if (this.participants != null) {
             this.participants.removeIf(item -> 
-                item.getParticipantAggregateId() != null && item.getParticipantAggregateId().equals(id));
+                item.getParticipantEnrollTime() != null && item.getParticipantEnrollTime().equals(id));
         }
     }
 
-    public boolean containsTournamentParticipant(Integer id) {
+    public boolean containsTournamentParticipant(LocalDateTime id) {
         if (this.participants == null) {
             return false;
         }
         return this.participants.stream().anyMatch(item -> 
-            item.getParticipantAggregateId() != null && item.getParticipantAggregateId().equals(id));
+            item.getParticipantEnrollTime() != null && item.getParticipantEnrollTime().equals(id));
     }
 
-    public TournamentParticipant findTournamentParticipantById(Integer id) {
+    public TournamentParticipant findTournamentParticipantById(LocalDateTime id) {
         if (this.participants == null) {
             return null;
         }
         return this.participants.stream()
-            .filter(item -> item.getParticipantAggregateId() != null && item.getParticipantAggregateId().equals(id))
+            .filter(item -> item.getParticipantEnrollTime() != null && item.getParticipantEnrollTime().equals(id))
             .findFirst()
             .orElse(null);
     }
@@ -188,27 +188,27 @@ public abstract class Tournament extends Aggregate {
         }
     }
 
-    public void removeTournamentTopic(Integer id) {
+    public void removeTournamentTopic(Long id) {
         if (this.topics != null) {
             this.topics.removeIf(item -> 
-                item.getTopicAggregateId() != null && item.getTopicAggregateId().equals(id));
+                item.getId() != null && item.getId().equals(id));
         }
     }
 
-    public boolean containsTournamentTopic(Integer id) {
+    public boolean containsTournamentTopic(Long id) {
         if (this.topics == null) {
             return false;
         }
         return this.topics.stream().anyMatch(item -> 
-            item.getTopicAggregateId() != null && item.getTopicAggregateId().equals(id));
+            item.getId() != null && item.getId().equals(id));
     }
 
-    public TournamentTopic findTournamentTopicById(Integer id) {
+    public TournamentTopic findTournamentTopicById(Long id) {
         if (this.topics == null) {
             return null;
         }
         return this.topics.stream()
-            .filter(item -> item.getTopicAggregateId() != null && item.getTopicAggregateId().equals(id))
+            .filter(item -> item.getId() != null && item.getId().equals(id))
             .findFirst()
             .orElse(null);
     }

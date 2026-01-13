@@ -1,23 +1,16 @@
 Aggregate Question {
     Entity QuestionCourse uses dto CourseDto mapping {
-        aggregateId -> courseAggregateId;
-        name -> courseName;
-        version -> courseVersion;
-    } {
-        Integer courseAggregateId;
-        String courseName;
-        Integer courseVersion;
+        Integer courseAggregateId -> aggregateId;
+        String courseName -> name;
+        Integer courseVersion -> version;
     }
 
     Entity QuestionTopic uses dto TopicDto mapping {
-        aggregateId -> topicAggregateId;
-        name -> topicName;
-        version -> topicVersion;
+        Integer topicAggregateId -> aggregateId;
+        String topicName -> name;
+        Integer topicVersion -> version;
     } {
         Integer topicId;
-        Integer topicAggregateId;
-        String topicName;
-        Integer topicVersion;
         AggregateState topicState;
     }
 

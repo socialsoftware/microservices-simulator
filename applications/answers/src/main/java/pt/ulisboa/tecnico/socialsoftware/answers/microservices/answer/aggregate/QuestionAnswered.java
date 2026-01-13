@@ -47,6 +47,14 @@ public class QuestionAnswered {
         setState(other.getState());
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public Integer getSequence() {
         return sequence;
     }

@@ -9,6 +9,7 @@ import { ImportManager, ImportManagerFactory } from "../../../utils/import-manag
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../../../utils/error-handler.js";
 import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 import type { DtoSchemaRegistry, DtoFieldSchema } from "../../../services/dto-schema-service.js";
+import { getEffectiveProperties } from "../../../utils/aggregate-helpers.js";
 
 // ============================================================================
 // ENTITY GENERATION ORCHESTRATION
@@ -52,12 +53,14 @@ export class EntityOrchestrator {
     }
 
     private generateEntityComponents(entity: Entity, projectName: string, opts: EntityGenerationOptions, isRootEntity: boolean) {
+        // Get effective properties including those from mapping definitions
+        const effectiveProps = getEffectiveProperties(entity);
         return {
-            fields: generateFields(entity.properties, entity, isRootEntity, projectName).code,
+            fields: generateFields(effectiveProps, entity, isRootEntity, projectName).code,
             defaultConstructor: generateDefaultConstructor(entity).code,
             dtoConstructor: generateEntityDtoConstructor(entity, projectName, this.dtoRegistry).code,
             copyConstructor: generateCopyConstructor(entity).code,
-            gettersSetters: generateGettersSetters(entity.properties, entity, projectName, opts.allEntities).code,
+            gettersSetters: generateGettersSetters(effectiveProps, entity, projectName, opts.allEntities).code,
             backRefGetterSetter: (!isRootEntity && entity.$container)
                 ? generateBackReferenceGetterSetter(entity.$container.name)
                 : '',
@@ -299,11 +302,12 @@ ${components.buildDtoMethod}
             }
         }
 
-        const prop = override?.property || entity.properties.find(p => p.name === (field.sourceName || field.name));
+        const effectiveProps = getEffectiveProperties(entity);
+        const prop = override?.property || effectiveProps.find((p: any) => p.name === (field.sourceName || field.name));
         if (!prop) {
             return null;
         }
-        const belongsToEntity = prop.$container?.name === entity.name;
+        const belongsToEntity = prop.$container?.name === entity.name || (prop as any).$fromMapping;
         if (!belongsToEntity && !override) {
             return null;
         }
@@ -452,9 +456,10 @@ ${components.buildDtoMethod}
             return overrides;
         }
 
+        const effectiveProps = getEffectiveProperties(entity);
         for (const mapping of fieldMappings) {
             if (!mapping?.dtoField || !mapping?.entityField) continue;
-            const targetProp = entity.properties.find(prop => prop.name === mapping.entityField);
+            const targetProp = effectiveProps.find((prop: any) => prop.name === mapping.entityField);
             if (targetProp) {
                 overrides.set(mapping.dtoField, {
                     property: targetProp,

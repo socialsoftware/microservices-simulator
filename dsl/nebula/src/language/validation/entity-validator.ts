@@ -147,7 +147,12 @@ export class EntityValidator {
     }
 
     private validateEntityDtoMapping(entity: Entity, fieldMappings: any[], accept: ValidationAcceptor): void {
-        const entityFields = entity.properties.map(p => p.name);
+        // With the simplified syntax, entity fields can be defined either:
+        // 1. In the mapping block (new syntax: Type entityField -> dtoField)
+        // 2. In the properties block (old syntax)
+        const explicitEntityFields = entity.properties.map(p => p.name);
+        const mappingDefinedFields = fieldMappings.filter(m => m.type).map((m: any) => m.entityField);
+        const allEntityFields = [...explicitEntityFields, ...mappingDefinedFields];
 
         const entityAny = entity as any;
         const dtoType = entityAny.dtoType;
@@ -177,8 +182,10 @@ export class EntityValidator {
         }
 
         for (const mapping of fieldMappings) {
-            if (!entityFields.includes(mapping.entityField)) {
-                accept("error", `Entity field '${mapping.entityField}' does not exist in entity '${entity.name}'. Available fields: ${entityFields.join(', ')}`, {
+            // Only validate entity field existence for old-style mappings (without type)
+            // New-style mappings define their own fields
+            if (!mapping.type && !allEntityFields.includes(mapping.entityField)) {
+                accept("error", `Entity field '${mapping.entityField}' does not exist in entity '${entity.name}'. Available fields: ${allEntityFields.join(', ')}`, {
                     node: mapping,
                     property: "entityField",
                 });

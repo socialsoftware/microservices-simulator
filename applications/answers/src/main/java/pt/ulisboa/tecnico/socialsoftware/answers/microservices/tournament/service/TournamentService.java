@@ -111,7 +111,7 @@ public class TournamentService {
                 multiplierExpression = "${retry.db.multiplier}"
             ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<TournamentDto> searchTournaments(Boolean cancelled, Integer creatorAggregateId, Integer executionAggregateId, Integer executionCourseAggregateId, Integer quizAggregateId, UnitOfWork unitOfWork) {
+    public List<TournamentDto> searchTournaments(Boolean cancelled, UnitOfWork unitOfWork) {
         Set<Integer> aggregateIds = tournamentRepository.findAll().stream()
                 .filter(entity -> {
                     if (cancelled != null) {
@@ -119,26 +119,6 @@ public class TournamentService {
                             return false;
                         }
                     }
-                    if (creatorAggregateId != null) {
-                        if (!entity.getCreator().getCreatorAggregateId().equals(creatorAggregateId)) {
-                            return false;
-                        }
-                                            }
-                    if (executionAggregateId != null) {
-                        if (!entity.getExecution().getExecutionAggregateId().equals(executionAggregateId)) {
-                            return false;
-                        }
-                                            }
-                    if (executionCourseAggregateId != null) {
-                        if (!entity.getExecution().getExecutionCourseAggregateId().equals(executionCourseAggregateId)) {
-                            return false;
-                        }
-                                            }
-                    if (quizAggregateId != null) {
-                        if (!entity.getQuiz().getQuizAggregateId().equals(quizAggregateId)) {
-                            return false;
-                        }
-                                            }
                     return true;
                 })
                 .map(Tournament::getAggregateId)

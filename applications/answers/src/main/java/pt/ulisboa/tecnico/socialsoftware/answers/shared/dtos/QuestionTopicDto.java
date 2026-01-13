@@ -5,20 +5,20 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregat
 
 public class QuestionTopicDto implements Serializable {
     private Integer topicId;
+    private AggregateState topicState;
     private Integer aggregateId;
     private String name;
     private Integer version;
-    private AggregateState topicState;
 
     public QuestionTopicDto() {
     }
 
     public QuestionTopicDto(QuestionTopic questionTopic) {
         this.topicId = questionTopic.getTopicId();
+        this.topicState = questionTopic.getTopicState();
         this.aggregateId = questionTopic.getTopicAggregateId();
         this.name = questionTopic.getTopicName();
         this.version = questionTopic.getTopicVersion();
-        this.topicState = questionTopic.getTopicState();
     }
 
     public Integer getTopicId() {
@@ -27,6 +27,14 @@ public class QuestionTopicDto implements Serializable {
 
     public void setTopicId(Integer topicId) {
         this.topicId = topicId;
+    }
+
+    public AggregateState getTopicState() {
+        return topicState;
+    }
+
+    public void setTopicState(AggregateState topicState) {
+        this.topicState = topicState;
     }
 
     public Integer getAggregateId() {
@@ -51,13 +59,5 @@ public class QuestionTopicDto implements Serializable {
 
     public void setVersion(Integer version) {
         this.version = version;
-    }
-
-    public AggregateState getTopicState() {
-        return topicState;
-    }
-
-    public void setTopicState(AggregateState topicState) {
-        this.topicState = topicState;
     }
 }

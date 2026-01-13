@@ -31,6 +31,14 @@ public class TournamentQuiz {
         setQuizVersion(other.getQuizVersion());
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public Integer getQuizAggregateId() {
         return quizAggregateId;
     }

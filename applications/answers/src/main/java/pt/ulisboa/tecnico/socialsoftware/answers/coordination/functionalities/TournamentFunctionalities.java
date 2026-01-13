@@ -115,14 +115,14 @@ public class TournamentFunctionalities {
         }
     }
 
-    public List<TournamentDto> searchTournaments(Boolean cancelled, Integer creatorAggregateId, Integer executionAggregateId, Integer executionCourseAggregateId, Integer quizAggregateId) {
+    public List<TournamentDto> searchTournaments(Boolean cancelled) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 SearchTournamentsFunctionalitySagas searchTournamentsFunctionalitySagas = new SearchTournamentsFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, tournamentService, cancelled, creatorAggregateId, executionAggregateId, executionCourseAggregateId, quizAggregateId);
+                        sagaUnitOfWork, sagaUnitOfWorkService, tournamentService, cancelled);
                 searchTournamentsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return searchTournamentsFunctionalitySagas.getSearchedTournamentDtos();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

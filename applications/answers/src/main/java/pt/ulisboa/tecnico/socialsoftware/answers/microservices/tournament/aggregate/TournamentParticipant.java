@@ -19,14 +19,14 @@ public class TournamentParticipant {
     @Id
     @GeneratedValue
     private Long id;
-    private Integer participantAggregateId;
-    private Integer participantVersion;
-    private AggregateState participantState;
-    private String participantName;
-    private String participantUsername;
     private LocalDateTime participantEnrollTime;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentparticipant")
     private TournamentParticipantQuiz participantQuiz;
+    private Integer participantAggregateId;
+    private String participantName;
+    private String participantUsername;
+    private Integer participantVersion;
+    private AggregateState participantState;
     @OneToOne
     private Tournament tournament;
 
@@ -43,52 +43,20 @@ public class TournamentParticipant {
     }
 
     public TournamentParticipant(TournamentParticipant other) {
-        setParticipantVersion(other.getParticipantVersion());
-        setParticipantState(other.getParticipantState());
+        setParticipantQuiz(new TournamentParticipantQuiz(other.getParticipantQuiz()));
+        setParticipantAggregateId(other.getParticipantAggregateId());
         setParticipantName(other.getParticipantName());
         setParticipantUsername(other.getParticipantUsername());
-        setParticipantEnrollTime(other.getParticipantEnrollTime());
-        setParticipantQuiz(new TournamentParticipantQuiz(other.getParticipantQuiz()));
+        setParticipantVersion(other.getParticipantVersion());
+        setParticipantState(other.getParticipantState());
     }
 
-    public Integer getParticipantAggregateId() {
-        return participantAggregateId;
+    public Long getId() {
+        return id;
     }
 
-    public void setParticipantAggregateId(Integer participantAggregateId) {
-        this.participantAggregateId = participantAggregateId;
-    }
-
-    public Integer getParticipantVersion() {
-        return participantVersion;
-    }
-
-    public void setParticipantVersion(Integer participantVersion) {
-        this.participantVersion = participantVersion;
-    }
-
-    public AggregateState getParticipantState() {
-        return participantState;
-    }
-
-    public void setParticipantState(AggregateState participantState) {
-        this.participantState = participantState;
-    }
-
-    public String getParticipantName() {
-        return participantName;
-    }
-
-    public void setParticipantName(String participantName) {
-        this.participantName = participantName;
-    }
-
-    public String getParticipantUsername() {
-        return participantUsername;
-    }
-
-    public void setParticipantUsername(String participantUsername) {
-        this.participantUsername = participantUsername;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public LocalDateTime getParticipantEnrollTime() {
@@ -110,6 +78,46 @@ public class TournamentParticipant {
         }
     }
 
+    public Integer getParticipantAggregateId() {
+        return participantAggregateId;
+    }
+
+    public void setParticipantAggregateId(Integer participantAggregateId) {
+        this.participantAggregateId = participantAggregateId;
+    }
+
+    public String getParticipantName() {
+        return participantName;
+    }
+
+    public void setParticipantName(String participantName) {
+        this.participantName = participantName;
+    }
+
+    public String getParticipantUsername() {
+        return participantUsername;
+    }
+
+    public void setParticipantUsername(String participantUsername) {
+        this.participantUsername = participantUsername;
+    }
+
+    public Integer getParticipantVersion() {
+        return participantVersion;
+    }
+
+    public void setParticipantVersion(Integer participantVersion) {
+        this.participantVersion = participantVersion;
+    }
+
+    public AggregateState getParticipantState() {
+        return participantState;
+    }
+
+    public void setParticipantState(AggregateState participantState) {
+        this.participantState = participantState;
+    }
+
     public Tournament getTournament() {
         return tournament;
     }
@@ -121,13 +129,13 @@ public class TournamentParticipant {
 
     public TournamentParticipantDto buildDto() {
         TournamentParticipantDto dto = new TournamentParticipantDto();
-        dto.setAggregateId(getParticipantAggregateId());
-        dto.setVersion(getParticipantVersion());
-        dto.setState(getParticipantState());
-        dto.setName(getParticipantName());
-        dto.setUsername(getParticipantUsername());
         dto.setParticipantEnrollTime(getParticipantEnrollTime());
         dto.setParticipantQuiz(getParticipantQuiz() != null ? new TournamentParticipantQuizDto(getParticipantQuiz()) : null);
+        dto.setAggregateId(getParticipantAggregateId());
+        dto.setName(getParticipantName());
+        dto.setUsername(getParticipantUsername());
+        dto.setVersion(getParticipantVersion());
+        dto.setState(getParticipantState());
         return dto;
     }
 }

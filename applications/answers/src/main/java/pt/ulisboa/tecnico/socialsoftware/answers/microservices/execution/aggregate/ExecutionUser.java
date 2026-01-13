@@ -45,6 +45,14 @@ public class ExecutionUser {
         setUserActive(other.getUserActive());
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public Integer getUserAggregateId() {
         return userAggregateId;
     }

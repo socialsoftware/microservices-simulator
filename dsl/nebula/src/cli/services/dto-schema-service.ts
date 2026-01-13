@@ -1,5 +1,5 @@
 import type { Aggregate, DtoFieldMapping, Entity, Model, Property } from "../../language/generated/ast.js";
-import { getEntities } from "../utils/aggregate-helpers.js";
+import { getEntities, getEffectiveProperties } from "../utils/aggregate-helpers.js";
 import { UnifiedTypeResolver, type ResolvedType } from "../generators/common/unified-type-resolver.js";
 
 export interface DtoFieldSchema {
@@ -100,14 +100,17 @@ export class DtoSchemaService {
             );
         }
 
-        for (const property of entity.properties || []) {
+        // Use effective properties which includes those from mapping definitions
+        const effectiveProps = getEffectiveProperties(entity);
+        for (const property of effectiveProps || []) {
             if (!property?.name) continue;
             if ((property as any).dtoExclude) {
                 continue;
             }
 
+            // For properties from mapping, use the $dtoField, otherwise use field mapping or property name
             const mappingInfo = fieldMappings.get(property.name);
-            const dtoFieldName = mappingInfo?.dtoField || property.name;
+            const dtoFieldName = (property as any).$dtoField || mappingInfo?.dtoField || property.name;
             const resolved = UnifiedTypeResolver.resolveDetailed(property.type, { targetContext: 'dto' });
 
             const fieldSchema = this.buildFieldSchemaFromProperty(

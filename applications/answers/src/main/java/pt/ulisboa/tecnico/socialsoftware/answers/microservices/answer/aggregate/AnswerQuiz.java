@@ -39,6 +39,14 @@ public class AnswerQuiz {
         setQuizQuestionsAggregateIds(new ArrayList<>(other.getQuizQuestionsAggregateIds()));
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public Integer getQuizAggregateId() {
         return quizAggregateId;
     }

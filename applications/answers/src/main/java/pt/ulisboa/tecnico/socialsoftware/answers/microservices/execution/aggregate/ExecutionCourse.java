@@ -41,6 +41,14 @@ public class ExecutionCourse {
         setCourseVersion(other.getCourseVersion());
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public Integer getCourseAggregateId() {
         return courseAggregateId;
     }
