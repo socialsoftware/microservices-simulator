@@ -14,7 +14,10 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
 
 @Entity
 public abstract class Tournament extends Aggregate {
@@ -267,4 +270,20 @@ public abstract class Tournament extends Aggregate {
         }
     }
 
+    public TournamentDto buildDto() {
+        TournamentDto dto = new TournamentDto();
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
+        dto.setStartTime(getStartTime());
+        dto.setEndTime(getEndTime());
+        dto.setNumberOfQuestions(getNumberOfQuestions());
+        dto.setCancelled(getCancelled());
+        dto.setCreator(getCreator() != null ? new TournamentCreatorDto(getCreator()) : null);
+        dto.setParticipants(getParticipants() != null ? getParticipants().stream().map(TournamentParticipant::buildDto).collect(Collectors.toSet()) : null);
+        dto.setExecution(getExecution() != null ? new TournamentExecutionDto(getExecution()) : null);
+        dto.setTopics(getTopics() != null ? getTopics().stream().map(TournamentTopic::buildDto).collect(Collectors.toSet()) : null);
+        dto.setQuiz(getQuiz() != null ? new TournamentQuizDto(getQuiz()) : null);
+        return dto;
+    }
 }

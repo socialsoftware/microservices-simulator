@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
 @Entity
@@ -81,12 +82,12 @@ public class ExecutionCourse {
     }
 
 
-    public CourseDto buildDto() {
-        CourseDto dto = new CourseDto();
+    public ExecutionCourseDto buildDto() {
+        ExecutionCourseDto dto = new ExecutionCourseDto();
         dto.setAggregateId(getCourseAggregateId());
-        dto.setVersion(getCourseVersion());
         dto.setName(getCourseName());
         dto.setType(getCourseType() != null ? getCourseType().name() : null);
+        dto.setVersion(getCourseVersion());
         return dto;
     }
 }

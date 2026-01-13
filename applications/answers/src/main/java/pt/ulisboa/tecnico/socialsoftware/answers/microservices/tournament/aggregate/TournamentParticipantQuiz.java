@@ -7,6 +7,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantQuizDto;
 
 @Entity
 public class TournamentParticipantQuiz {
@@ -99,9 +101,14 @@ public class TournamentParticipantQuiz {
     }
 
 
-    public QuizDto buildDto() {
-        QuizDto dto = new QuizDto();
+    public TournamentParticipantQuizDto buildDto() {
+        TournamentParticipantQuizDto dto = new TournamentParticipantQuizDto();
         dto.setAggregateId(getParticipantQuizAggregateId());
+        dto.setParticipantQuizVersion(getParticipantQuizVersion());
+        dto.setParticipantQuizAnswered(getParticipantQuizAnswered());
+        dto.setParticipantQuizNumberOfAnswered(getParticipantQuizNumberOfAnswered());
+        dto.setParticipantQuizNumberOfCorrect(getParticipantQuizNumberOfCorrect());
+        dto.setTournamentParticipant(getTournamentParticipant() != null ? new TournamentParticipantDto(getTournamentParticipant()) : null);
         return dto;
     }
 }

@@ -2,24 +2,24 @@ package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.Topic;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentTopic;
 
-public class TopicDto implements Serializable {
+public class TournamentTopicDto implements Serializable {
     private Integer aggregateId;
     private Integer version;
     private AggregateState state;
     private String name;
-    private TopicCourseDto course;
+    private Integer courseAggregateId;
 
-    public TopicDto() {
+    public TournamentTopicDto() {
     }
 
-    public TopicDto(Topic topic) {
-        this.aggregateId = topic.getAggregateId();
-        this.version = topic.getVersion();
-        this.state = topic.getState();
-        this.name = topic.getName();
-        this.course = topic.getCourse() != null ? new TopicCourseDto(topic.getCourse()) : null;
+    public TournamentTopicDto(TournamentTopic tournamentTopic) {
+        this.aggregateId = tournamentTopic.getTopicAggregateId();
+        this.version = tournamentTopic.getTopicVersion();
+        this.state = tournamentTopic.getTopicState();
+        this.name = tournamentTopic.getTopicName();
+        this.courseAggregateId = tournamentTopic.getTopicCourseAggregateId();
     }
 
     public Integer getAggregateId() {
@@ -54,11 +54,11 @@ public class TopicDto implements Serializable {
         this.name = name;
     }
 
-    public TopicCourseDto getCourse() {
-        return course;
+    public Integer getCourseAggregateId() {
+        return courseAggregateId;
     }
 
-    public void setCourse(TopicCourseDto course) {
-        this.course = course;
+    public void setCourseAggregateId(Integer courseAggregateId) {
+        this.courseAggregateId = courseAggregateId;
     }
 }

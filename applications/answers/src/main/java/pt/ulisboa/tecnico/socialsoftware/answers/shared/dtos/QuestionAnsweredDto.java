@@ -2,10 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import jakarta.persistence.Embeddable;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuestionAnswered;
 
-@Embeddable
 public class QuestionAnsweredDto implements Serializable {
     private Integer sequence;
     private Integer key;

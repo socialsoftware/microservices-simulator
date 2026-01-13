@@ -2,24 +2,26 @@ package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.Topic;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
 
-public class TopicDto implements Serializable {
+public class ExecutionUserDto implements Serializable {
     private Integer aggregateId;
     private Integer version;
     private AggregateState state;
     private String name;
-    private TopicCourseDto course;
+    private String username;
+    private Boolean active;
 
-    public TopicDto() {
+    public ExecutionUserDto() {
     }
 
-    public TopicDto(Topic topic) {
-        this.aggregateId = topic.getAggregateId();
-        this.version = topic.getVersion();
-        this.state = topic.getState();
-        this.name = topic.getName();
-        this.course = topic.getCourse() != null ? new TopicCourseDto(topic.getCourse()) : null;
+    public ExecutionUserDto(ExecutionUser executionUser) {
+        this.aggregateId = executionUser.getUserAggregateId();
+        this.version = executionUser.getUserVersion();
+        this.state = executionUser.getUserState();
+        this.name = executionUser.getUserName();
+        this.username = executionUser.getUserUsername();
+        this.active = executionUser.getUserActive();
     }
 
     public Integer getAggregateId() {
@@ -54,11 +56,19 @@ public class TopicDto implements Serializable {
         this.name = name;
     }
 
-    public TopicCourseDto getCourse() {
-        return course;
+    public String getUsername() {
+        return username;
     }
 
-    public void setCourse(TopicCourseDto course) {
-        this.course = course;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }

@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 @Entity
@@ -55,8 +56,8 @@ public class AnswerExecution {
     }
 
 
-    public ExecutionDto buildDto() {
-        ExecutionDto dto = new ExecutionDto();
+    public AnswerExecutionDto buildDto() {
+        AnswerExecutionDto dto = new AnswerExecutionDto();
         dto.setAggregateId(getExecutionAggregateId());
         dto.setVersion(getExecutionVersion());
         return dto;

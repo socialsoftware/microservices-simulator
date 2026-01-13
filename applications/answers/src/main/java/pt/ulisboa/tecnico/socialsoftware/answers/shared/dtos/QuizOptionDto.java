@@ -1,30 +1,20 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Option;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizOption;
 
-public class OptionDto implements Serializable {
-    private Integer key;
+public class QuizOptionDto implements Serializable {
     private Integer sequence;
     private Boolean correct;
     private String content;
 
-    public OptionDto() {
+    public QuizOptionDto() {
     }
 
-    public OptionDto(Option option) {
-        this.key = option.getKey();
-        this.sequence = option.getSequence();
-        this.correct = option.getCorrect();
-        this.content = option.getContent();
-    }
-
-    public Integer getKey() {
-        return key;
-    }
-
-    public void setKey(Integer key) {
-        this.key = key;
+    public QuizOptionDto(QuizOption quizOption) {
+        this.sequence = quizOption.getOptionSequence();
+        this.correct = quizOption.getOptionCorrect();
+        this.content = quizOption.getOptionContent();
     }
 
     public Integer getSequence() {

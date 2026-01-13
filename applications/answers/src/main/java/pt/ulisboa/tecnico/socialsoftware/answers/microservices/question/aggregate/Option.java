@@ -77,4 +77,12 @@ public class Option {
     }
 
 
+    public OptionDto buildDto() {
+        OptionDto dto = new OptionDto();
+        dto.setKey(getKey());
+        dto.setSequence(getSequence());
+        dto.setCorrect(getCorrect());
+        dto.setContent(getContent());
+        return dto;
+    }
 }

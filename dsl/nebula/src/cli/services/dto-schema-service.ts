@@ -57,8 +57,10 @@ export class DtoSchemaService {
         for (const model of models) {
             for (const aggregate of model.aggregates || []) {
                 for (const entity of getEntities(aggregate)) {
-                    const shouldGenerateDto = entity.isRoot || (entity as any).generateDto;
-                    if (!shouldGenerateDto) continue;
+                    // Generate DTOs for ALL entities in an aggregate:
+                    // - Root entities always get a DTO
+                    // - Non-root entities get their own DTO (with their own fields)
+                    // This ensures we don't lose fields when non-root entities reference other aggregates
 
                     const dtoSchema = this.buildDtoSchemaForEntity(
                         entity,
@@ -184,60 +186,25 @@ export class DtoSchemaService {
             if (elementEntity) {
                 referencedEntityName = elementEntity.name;
                 referencedAggregateName = elementEntity.$container?.name;
-                referencedDtoName = this.resolveEntityDtoName(elementEntity, dtoEnabledEntities);
 
-                // Check if this is a cross-aggregate relationship
-                // 1. Direct cross-aggregate: element entity is in a different aggregate
-                const isDirectCrossAggregate = currentAggregate && referencedAggregateName &&
-                    referencedAggregateName !== currentAggregate.name;
+                // All entities within the same aggregate get their own DTOs now
+                // So we always use the entity's own DTO (e.g., ExecutionUser -> ExecutionUserDto)
+                const isSameAggregate = currentAggregate && referencedAggregateName === currentAggregate.name;
 
-                // 2. Indirect cross-aggregate: element entity uses a DTO from another aggregate
-                // (e.g., QuestionTopic uses TopicDto from Topic aggregate)
-                let isIndirectCrossAggregate = false;
-                let sourceAggregateName = referencedAggregateName;
-                if (elementEntity && referencedDtoName && allAggregates) {
-                    for (const agg of allAggregates) {
-                        if (agg.name === currentAggregate?.name) continue;
-
-                        // Check root entities
-                        const rootEntity = agg.entities?.find((e: any) => e.isRoot);
-                        if (rootEntity) {
-                            const rootEntityDtoName = `${rootEntity.name}Dto`;
-                            if (rootEntityDtoName === referencedDtoName) {
-                                isIndirectCrossAggregate = true;
-                                sourceAggregateName = agg.name;
-                                break;
-                            }
-                        }
-
-                        // Also check entities with generateDto flag
-                        for (const entity of agg.entities || []) {
-                            if ((entity as any).generateDto) {
-                                const entityDtoName = `${entity.name}Dto`;
-                                if (entityDtoName === referencedDtoName) {
-                                    isIndirectCrossAggregate = true;
-                                    sourceAggregateName = agg.name;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (isIndirectCrossAggregate) break;
-                    }
-                }
-
-                const isCrossAggregate = isDirectCrossAggregate || isIndirectCrossAggregate;
-
-                // For cross-aggregate relationships in collections, use List<Integer>/Set<Integer> of aggregateIds
-                // to avoid cyclic dependencies between aggregates
-                if (isCrossAggregate) {
+                if (isSameAggregate) {
+                    // Same-aggregate: use the entity's own DTO
+                    referencedDtoName = `${elementEntity.name}Dto`;
+                    const elementTypeName = elementEntity.name;
+                    javaType = javaType.replace(new RegExp(`\\b${elementTypeName}\\b`, 'g'), referencedDtoName);
+                    elementType = referencedDtoName;
+                    requiresConversion = true;
+                } else {
+                    // Cross-aggregate: use aggregateIds to avoid cyclic dependencies
                     const isSet = javaType.startsWith('Set<');
                     const collectionType = isSet ? 'Set' : 'List';
                     const aggregateIdFieldName = `${dtoFieldName}AggregateIds`;
 
                     // Determine the correct accessor from the element entity's dtoMapping
-                    // The mapping is: dtoField -> entityField (e.g., aggregateId -> userAggregateId)
-                    // We need to find where dtoField is 'aggregateId' and use entityField as the accessor
                     let derivedAccessor = 'getAggregateId';
                     const elementEntityAny = elementEntity as any;
                     if (elementEntityAny.dtoMapping?.fieldMappings) {
@@ -258,17 +225,11 @@ export class DtoSchemaService {
                         sourceName: property.name,
                         sourceProperty: property,
                         referencedEntityName,
-                        referencedAggregateName: sourceAggregateName,
+                        referencedAggregateName,
                         derivedAggregateId: true,
                         isMappingOverride,
                         derivedAccessor
                     };
-                } else if (referencedDtoName) {
-                    // Same-aggregate collections can use DTOs (e.g., Option, QuestionAnswered)
-                    const elementTypeName = elementEntity.name;
-                    javaType = javaType.replace(new RegExp(`\\b${elementTypeName}\\b`, 'g'), referencedDtoName);
-                    elementType = referencedDtoName;
-                    requiresConversion = true;
                 }
             }
         } else if (resolved.isEntity) {
@@ -276,104 +237,14 @@ export class DtoSchemaService {
             if (targetEntity) {
                 referencedEntityName = targetEntity.name;
                 referencedAggregateName = targetEntity.$container?.name;
-                referencedDtoName = this.resolveEntityDtoName(targetEntity, dtoEnabledEntities);
             }
 
-            // Check if this is a cross-aggregate relationship
-            // 1. Direct cross-aggregate: target entity is in a different aggregate
-            const isDirectCrossAggregate = currentAggregate && referencedAggregateName &&
-                referencedAggregateName !== currentAggregate.name;
+            // Check if this is same aggregate or cross-aggregate
+            const isSameAggregate = currentAggregate && referencedAggregateName === currentAggregate.name;
 
-            // 2. Indirect cross-aggregate: target entity uses a DTO from another aggregate
-            let isIndirectCrossAggregate = false;
-            if (targetEntity && referencedDtoName && allAggregates) {
-                // Check if the DTO comes from another aggregate
-                // The DTO name could be like "CourseDto" and we need to find if there's a root entity
-                // in another aggregate that generates this DTO
-                for (const agg of allAggregates) {
-                    if (agg.name === currentAggregate?.name) continue; // Skip current aggregate
-
-                    // Check root entities
-                    const rootEntity = agg.entities?.find((e: any) => e.isRoot);
-                    if (rootEntity) {
-                        // Check if this root entity generates the DTO we're looking for
-                        const rootEntityDtoName = `${rootEntity.name}Dto`;
-                        if (rootEntityDtoName === referencedDtoName) {
-                            isIndirectCrossAggregate = true;
-                            // Update referencedAggregateName to the actual source aggregate
-                            referencedAggregateName = agg.name;
-                            break;
-                        }
-                    }
-
-                    // Also check entities with generateDto flag
-                    for (const entity of agg.entities || []) {
-                        if ((entity as any).generateDto) {
-                            const entityDtoName = `${entity.name}Dto`;
-                            if (entityDtoName === referencedDtoName) {
-                                isIndirectCrossAggregate = true;
-                                referencedAggregateName = agg.name;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (isIndirectCrossAggregate) break;
-                }
-            }
-
-            const isCrossAggregate = isDirectCrossAggregate || isIndirectCrossAggregate;
-
-            // For cross-aggregate relationships, always use aggregateId instead of full DTO
-            // This maintains proper microservice boundaries
-            if (isCrossAggregate) {
-                // Determine the aggregateId field name based on the entity mapping
-                // The mapping is: dtoField -> entityField (e.g., aggregateId -> courseAggregateId)
-                // We need to find where dtoField is 'aggregateId' and use entityField for the field name and accessor
-                let aggregateFieldName = `${dtoFieldName}AggregateId`;
-                let derivedAccessor = 'getAggregateId';
-
-                if (targetEntity && !targetEntity.isRoot) {
-                    // For non-root entities (like TopicCourse), check if they have a mapping that defines the aggregateId field
-                    const entityAny = targetEntity as any;
-                    const dtoMapping = entityAny.dtoMapping;
-                    if (dtoMapping?.fieldMappings) {
-                        // Find the aggregateId mapping (e.g., aggregateId -> courseAggregateId)
-                        const aggIdMapping = dtoMapping.fieldMappings.find((fm: any) =>
-                            fm.dtoField === 'aggregateId'
-                        );
-                        if (aggIdMapping && aggIdMapping.entityField) {
-                            // Use the entity's field name (e.g., courseAggregateId)
-                            aggregateFieldName = aggIdMapping.entityField;
-                            const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
-                            derivedAccessor = `get${capField}`;
-                        } else {
-                            // Fallback to default naming
-                            const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
-                            derivedAccessor = `get${capField}`;
-                        }
-                    } else {
-                        const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
-                        derivedAccessor = `get${capField}`;
-                    }
-                }
-
-                return {
-                    name: aggregateFieldName,
-                    javaType: 'Integer',
-                    isCollection: false,
-                    sourceName: property.name,
-                    sourceProperty: property,
-                    referencedEntityName,
-                    referencedAggregateName,
-                    derivedAggregateId: true,
-                    isMappingOverride,
-                    derivedAccessor
-                };
-            }
-
-            // For same-aggregate relationships, use DTO if available
-            if (referencedDtoName) {
+            if (isSameAggregate && targetEntity) {
+                // Same-aggregate: all entities get their own DTOs now
+                referencedDtoName = `${targetEntity.name}Dto`;
                 return {
                     name: dtoFieldName,
                     javaType: referencedDtoName,
@@ -383,19 +254,38 @@ export class DtoSchemaService {
                     referencedEntityName,
                     referencedAggregateName,
                     referencedDtoName,
-                    referencedEntityIsRoot: targetEntity?.isRoot || false,
-                    referencedEntityHasGenerateDto: !!(targetEntity as any)?.generateDto,
+                    referencedEntityIsRoot: targetEntity.isRoot || false,
+                    referencedEntityHasGenerateDto: true, // All entities now get DTOs
                     requiresConversion: true,
                     isMappingOverride
                 };
             }
 
-            // Fallback: use aggregateId if no DTO available
-            const aggregateFieldName = `${dtoFieldName}AggregateId`;
+            // Cross-aggregate: use aggregateId to maintain microservice boundaries
+            // Determine the aggregateId field name based on the entity mapping
+            let aggregateFieldName = `${dtoFieldName}AggregateId`;
             let derivedAccessor = 'getAggregateId';
+
             if (targetEntity && !targetEntity.isRoot) {
-                const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
-                derivedAccessor = `get${capField}`;
+                // For non-root entities (like TopicCourse), check if they have a mapping that defines the aggregateId field
+                const entityAny = targetEntity as any;
+                const dtoMapping = entityAny.dtoMapping;
+                if (dtoMapping?.fieldMappings) {
+                    const aggIdMapping = dtoMapping.fieldMappings.find((fm: any) =>
+                        fm.dtoField === 'aggregateId'
+                    );
+                    if (aggIdMapping && aggIdMapping.entityField) {
+                        aggregateFieldName = aggIdMapping.entityField;
+                        const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
+                        derivedAccessor = `get${capField}`;
+                    } else {
+                        const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
+                        derivedAccessor = `get${capField}`;
+                    }
+                } else {
+                    const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
+                    derivedAccessor = `get${capField}`;
+                }
             }
 
             return {
@@ -475,36 +365,6 @@ export class DtoSchemaService {
         return map;
     }
 
-    private resolveEntityDtoName(entity: Entity, dtoEnabledEntities: Map<string, Entity>): string | undefined {
-        if (entity.isRoot || (entity as any).generateDto) {
-            return `${entity.name}Dto`;
-        }
-
-        const entityAny = entity as any;
-        const dtoType = entityAny.dtoType;
-        if (dtoType) {
-            if (dtoType.ref?.name) {
-                return dtoType.ref.name;
-            }
-            if (dtoType.$refText) {
-                return dtoType.$refText;
-            }
-            if (typeof dtoType === 'string') {
-                return dtoType;
-            }
-        }
-
-        if (entityAny.dtoMapping) {
-            // This case is handled by checking dtoEnabledEntities below
-        }
-
-        if (dtoEnabledEntities.has(entity.name)) {
-            return `${entity.name}Dto`;
-        }
-
-        return undefined;
-    }
-
     private collectAllEntities(models: Model[]): Map<string, Entity> {
         const map = new Map<string, Entity>();
 
@@ -524,11 +384,11 @@ export class DtoSchemaService {
     private collectAllDtoEnabledEntities(models: Model[]): Map<string, Entity> {
         const map = new Map<string, Entity>();
 
+        // All entities now get DTOs
         for (const model of models) {
             for (const aggregate of model.aggregates || []) {
                 for (const entity of getEntities(aggregate)) {
-                    const shouldGenerateDto = entity?.isRoot || (entity as any)?.generateDto;
-                    if (shouldGenerateDto && entity?.name && !map.has(entity.name)) {
+                    if (entity?.name && !map.has(entity.name)) {
                         map.set(entity.name, entity);
                     }
                 }

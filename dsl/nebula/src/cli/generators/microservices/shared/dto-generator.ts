@@ -13,13 +13,13 @@ export function generateDtoCode(entity: Entity, projectName: string, dtoSchemaRe
     const fields = generateDtoFieldDeclarations(dtoFields);
     const constructors = generateDtoConstructors(entity, dtoFields);
     const gettersSetters = generateDtoGettersSetters(dtoFields);
-    const embeddableAnnotation = entity.isRoot ? '' : '@Embeddable\n';
+    // All DTOs are now regular classes (no @Embeddable) since each entity gets its own DTO file
 
     return `package ${packageName};
 
 ${imports}
 
-${embeddableAnnotation}public class ${entity.name}Dto implements Serializable {
+public class ${entity.name}Dto implements Serializable {
 ${fields}
 
 ${constructors}
@@ -119,9 +119,7 @@ function generateDtoImports(entity: Entity, projectName: string, aggregateName: 
         imports.add('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
     }
 
-    if (!entity.isRoot) {
-        imports.add('import jakarta.persistence.Embeddable;');
-    }
+    // DTOs are now regular Serializable classes (no @Embeddable needed)
 
     const config = getGlobalConfig();
     const entityPackage = config.buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate');

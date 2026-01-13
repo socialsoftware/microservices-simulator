@@ -6,6 +6,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 
 @Entity
@@ -56,4 +57,13 @@ public abstract class Topic extends Aggregate {
         // No invariants defined
     }
 
+    public TopicDto buildDto() {
+        TopicDto dto = new TopicDto();
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
+        dto.setName(getName());
+        dto.setCourse(getCourse() != null ? new TopicCourseDto(getCourse()) : null);
+        return dto;
+    }
 }

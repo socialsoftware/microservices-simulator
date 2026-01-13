@@ -8,6 +8,7 @@ import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizQuestionDto;
 
 @Entity
 public class QuizQuestion {
@@ -100,13 +101,14 @@ public class QuizQuestion {
     }
 
 
-    public QuestionDto buildDto() {
-        QuestionDto dto = new QuestionDto();
+    public QuizQuestionDto buildDto() {
+        QuizQuestionDto dto = new QuizQuestionDto();
         dto.setAggregateId(getQuestionAggregateId());
         dto.setVersion(getQuestionVersion());
         dto.setState(getQuestionState());
         dto.setTitle(getQuestionTitle());
         dto.setContent(getQuestionContent());
+        dto.setQuestionSequence(getQuestionSequence());
         return dto;
     }
 }

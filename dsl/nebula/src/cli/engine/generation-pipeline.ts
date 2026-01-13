@@ -375,17 +375,15 @@ export class EntityPipeline extends BaseGenerationPipeline {
                     metadata: { entityName: entity.name, isRoot: (entity as any).isRoot }
                 });
 
-                // Generate DTO if needed
-                const shouldGenerateDto = (entity as any).isRoot || (entity as any).generateDto;
-                if (shouldGenerateDto) {
-                    const dtoCode = await this.generators.dtoGenerator.generateDto(entity, options);
-                    files.push({
-                        content: dtoCode,
-                        filePath: this.buildDtoPath(aggregate, entity, options),
-                        description: `DTO ${entity.name}Dto`,
-                        metadata: { entityName: entity.name, type: 'dto' }
-                    });
-                }
+                // Generate DTOs for ALL entities in the aggregate
+                // Non-root entities get their own DTOs to preserve all their fields
+                const dtoCode = await this.generators.dtoGenerator.generateDto(entity, options);
+                files.push({
+                    content: dtoCode,
+                    filePath: this.buildDtoPath(aggregate, entity, options),
+                    description: `DTO ${entity.name}Dto`,
+                    metadata: { entityName: entity.name, type: 'dto' }
+                });
             }
 
             // Generate factory

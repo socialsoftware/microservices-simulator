@@ -10,6 +10,8 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
@@ -117,13 +119,15 @@ public class TournamentParticipant {
     }
 
 
-    public UserDto buildDto() {
-        UserDto dto = new UserDto();
+    public TournamentParticipantDto buildDto() {
+        TournamentParticipantDto dto = new TournamentParticipantDto();
         dto.setAggregateId(getParticipantAggregateId());
         dto.setVersion(getParticipantVersion());
         dto.setState(getParticipantState());
         dto.setName(getParticipantName());
         dto.setUsername(getParticipantUsername());
+        dto.setParticipantEnrollTime(getParticipantEnrollTime());
+        dto.setParticipantQuiz(getParticipantQuiz() != null ? new TournamentParticipantQuizDto(getParticipantQuiz()) : null);
         return dto;
     }
 }

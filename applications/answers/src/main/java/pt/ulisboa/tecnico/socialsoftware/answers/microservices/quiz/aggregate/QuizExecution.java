@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizExecutionDto;
 
 @Entity
 public class QuizExecution {
@@ -76,9 +77,10 @@ public class QuizExecution {
     }
 
 
-    public ExecutionDto buildDto() {
-        ExecutionDto dto = new ExecutionDto();
+    public QuizExecutionDto buildDto() {
+        QuizExecutionDto dto = new QuizExecutionDto();
         dto.setAggregateId(getExecutionAggregateId());
+        dto.setExecutionName(getExecutionName());
         dto.setAcronym(getExecutionAcronym());
         dto.setAcademicTerm(getExecutionAcademicTerm());
         return dto;

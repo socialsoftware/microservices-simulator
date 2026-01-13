@@ -112,4 +112,15 @@ public class QuestionAnswered {
     }
 
 
+    public QuestionAnsweredDto buildDto() {
+        QuestionAnsweredDto dto = new QuestionAnsweredDto();
+        dto.setSequence(getSequence());
+        dto.setKey(getKey());
+        dto.setTimeTaken(getTimeTaken());
+        dto.setCorrect(getCorrect());
+        dto.setQuestionAggregateId(getQuestionAggregateId());
+        dto.setQuestionVersion(getQuestionVersion());
+        dto.setState(getState());
+        return dto;
+    }
 }

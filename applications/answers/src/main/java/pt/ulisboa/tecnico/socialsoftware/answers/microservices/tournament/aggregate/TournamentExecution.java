@@ -8,6 +8,7 @@ import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentExecutionDto;
 
 @Entity
 public class TournamentExecution {
@@ -31,7 +32,6 @@ public class TournamentExecution {
         setExecutionVersion(executionDto.getVersion());
         setExecutionState(executionDto.getState());
         setExecutionAcronym(executionDto.getAcronym());
-        setExecutionCourseAggregateId(executionDto.getCourseAggregateId());
     }
 
     public TournamentExecution(TournamentExecution other) {
@@ -90,13 +90,13 @@ public class TournamentExecution {
     }
 
 
-    public ExecutionDto buildDto() {
-        ExecutionDto dto = new ExecutionDto();
+    public TournamentExecutionDto buildDto() {
+        TournamentExecutionDto dto = new TournamentExecutionDto();
         dto.setAggregateId(getExecutionAggregateId());
-        dto.setVersion(getExecutionVersion());
-        dto.setState(getExecutionState());
-        dto.setAcronym(getExecutionAcronym());
         dto.setCourseAggregateId(getExecutionCourseAggregateId());
+        dto.setAcronym(getExecutionAcronym());
+        dto.setState(getExecutionState());
+        dto.setVersion(getExecutionVersion());
         return dto;
     }
 }

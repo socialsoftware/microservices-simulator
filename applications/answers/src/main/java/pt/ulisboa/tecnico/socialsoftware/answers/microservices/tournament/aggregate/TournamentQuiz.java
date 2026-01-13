@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
 
 @Entity
 public class TournamentQuiz {
@@ -55,8 +56,8 @@ public class TournamentQuiz {
     }
 
 
-    public QuizDto buildDto() {
-        QuizDto dto = new QuizDto();
+    public TournamentQuizDto buildDto() {
+        TournamentQuizDto dto = new TournamentQuizDto();
         dto.setAggregateId(getQuizAggregateId());
         dto.setVersion(getQuizVersion());
         return dto;

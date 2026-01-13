@@ -15,6 +15,10 @@ import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerUserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionAnsweredDto;
 
 @Entity
 public abstract class Answer extends Aggregate {
@@ -166,4 +170,18 @@ public abstract class Answer extends Aggregate {
         // No invariants defined
     }
 
+    public AnswerDto buildDto() {
+        AnswerDto dto = new AnswerDto();
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
+        dto.setCreationDate(getCreationDate());
+        dto.setAnswerDate(getAnswerDate());
+        dto.setCompleted(getCompleted());
+        dto.setExecution(getExecution() != null ? new AnswerExecutionDto(getExecution()) : null);
+        dto.setUser(getUser() != null ? new AnswerUserDto(getUser()) : null);
+        dto.setQuiz(getQuiz() != null ? new AnswerQuizDto(getQuiz()) : null);
+        dto.setQuestions(getQuestions() != null ? getQuestions().stream().map(QuestionAnsweredDto::new).collect(Collectors.toList()) : null);
+        return dto;
+    }
 }

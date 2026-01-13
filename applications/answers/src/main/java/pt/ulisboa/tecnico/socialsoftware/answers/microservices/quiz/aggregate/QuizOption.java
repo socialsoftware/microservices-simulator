@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizOptionDto;
 
 @Entity
 public class QuizOption {
@@ -66,8 +67,8 @@ public class QuizOption {
     }
 
 
-    public OptionDto buildDto() {
-        OptionDto dto = new OptionDto();
+    public QuizOptionDto buildDto() {
+        QuizOptionDto dto = new QuizOptionDto();
         dto.setSequence(getOptionSequence());
         dto.setCorrect(getOptionCorrect());
         dto.setContent(getOptionContent());

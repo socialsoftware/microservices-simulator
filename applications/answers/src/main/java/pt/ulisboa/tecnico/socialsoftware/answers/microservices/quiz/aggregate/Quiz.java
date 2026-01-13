@@ -17,6 +17,7 @@ import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 
 @Entity
@@ -173,4 +174,19 @@ public abstract class Quiz extends Aggregate {
         // No invariants defined
     }
 
+    public QuizDto buildDto() {
+        QuizDto dto = new QuizDto();
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
+        dto.setTitle(getTitle());
+        dto.setQuizType(getQuizType() != null ? getQuizType().name() : null);
+        dto.setCreationDate(getCreationDate());
+        dto.setAvailableDate(getAvailableDate());
+        dto.setConclusionDate(getConclusionDate());
+        dto.setResultsDate(getResultsDate());
+        dto.setExecution(getExecution() != null ? new QuizExecutionDto(getExecution()) : null);
+        dto.setQuestions(getQuestions() != null ? getQuestions().stream().map(QuizQuestion::buildDto).collect(Collectors.toSet()) : null);
+        return dto;
+    }
 }

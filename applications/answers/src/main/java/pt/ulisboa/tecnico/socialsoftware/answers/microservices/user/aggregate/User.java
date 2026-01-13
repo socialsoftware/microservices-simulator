@@ -72,4 +72,15 @@ public abstract class User extends Aggregate {
         // No invariants defined
     }
 
+    public UserDto buildDto() {
+        UserDto dto = new UserDto();
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
+        dto.setName(getName());
+        dto.setUsername(getUsername());
+        dto.setRole(getRole() != null ? getRole().name() : null);
+        dto.setActive(getActive());
+        return dto;
+    }
 }

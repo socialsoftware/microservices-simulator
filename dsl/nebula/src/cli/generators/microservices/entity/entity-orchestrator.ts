@@ -62,7 +62,8 @@ export class EntityOrchestrator {
                 ? generateBackReferenceGetterSetter(entity.$container.name)
                 : '',
             invariants: isRootEntity ? generateInvariants(entity).code : '',
-            buildDtoMethod: !isRootEntity ? this.generateBuildDtoMethod(entity) : ''
+            // All entities now get their own DTOs, so all need buildDto() method
+            buildDtoMethod: this.generateBuildDtoMethod(entity)
         };
     }
 
@@ -104,24 +105,15 @@ ${components.buildDtoMethod}
     }
 
     private generateBuildDtoMethod(entity: Entity): string {
-        const entityAny = entity as any;
-        const isRootEntity = entity.isRoot || false;
         const entityName = entity.name;
 
-        const hasCustomDto = !!(entityAny?.dtoType);
-        const hasDtoMapping = !!(entityAny?.dtoMapping);
-        const hasDtoRelation = isRootEntity || hasCustomDto || hasDtoMapping;
-        if (!hasDtoRelation) {
-            return '';
-        }
-
-        const dtoType = entityAny.dtoType as string | undefined;
-        const rootEntityName = isRootEntity ? entityName : (entity.$container?.name || entityName);
-        const dtoTypeName = dtoType || `${rootEntityName}Dto`;
+        // All entities now get their own DTOs, so all entities should have a buildDto() method
+        const dtoTypeName = `${entityName}Dto`;
         const dtoSchema = this.dtoRegistry?.dtoByName?.[dtoTypeName];
 
         if (!dtoSchema) {
-            throw new Error(`DTO schema for ${dtoTypeName} was not found. Ensure a root entity defines this DTO.`);
+            // Fallback: generate simple constructor-based buildDto if no schema found
+            return `\n    public ${dtoTypeName} buildDto() {\n        return new ${dtoTypeName}(this);\n    }`;
         }
 
         const dtoFieldOverrides = this.resolveDtoFieldMappings(entity);
@@ -372,6 +364,16 @@ ${components.buildDtoMethod}
                 return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map(item -> item.${accessor}()).collect(${collector}) : null);`;
             }
             return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${accessor}() : null);`;
+        }
+
+        // Check if this is an enum field - convert to string using .name()
+        // Check field.isEnum first (from schema), then fall back to property check
+        if (field.isEnum || (prop && this.isEnumProperty(prop))) {
+            if (field.isCollection) {
+                const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
+                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map(value -> value != null ? value.name() : null).collect(${collector}) : null);`;
+            }
+            return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.name() : null);`;
         }
 
         if (field.requiresConversion) {

@@ -16,6 +16,8 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 @Entity
@@ -232,4 +234,17 @@ public abstract class Question extends Aggregate {
         }
     }
 
+    public QuestionDto buildDto() {
+        QuestionDto dto = new QuestionDto();
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
+        dto.setTitle(getTitle());
+        dto.setContent(getContent());
+        dto.setCreationDate(getCreationDate());
+        dto.setCourse(getCourse() != null ? new QuestionCourseDto(getCourse()) : null);
+        dto.setTopics(getTopics() != null ? getTopics().stream().map(QuestionTopic::buildDto).collect(Collectors.toSet()) : null);
+        dto.setOptions(getOptions() != null ? getOptions().stream().map(OptionDto::new).collect(Collectors.toList()) : null);
+        return dto;
+    }
 }

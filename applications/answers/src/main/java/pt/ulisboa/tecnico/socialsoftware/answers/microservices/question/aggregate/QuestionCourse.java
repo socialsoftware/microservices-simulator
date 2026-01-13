@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
 
 @Entity
 public class QuestionCourse {
@@ -66,11 +67,11 @@ public class QuestionCourse {
     }
 
 
-    public CourseDto buildDto() {
-        CourseDto dto = new CourseDto();
+    public QuestionCourseDto buildDto() {
+        QuestionCourseDto dto = new QuestionCourseDto();
         dto.setAggregateId(getCourseAggregateId());
-        dto.setVersion(getCourseVersion());
         dto.setName(getCourseName());
+        dto.setVersion(getCourseVersion());
         return dto;
     }
 }

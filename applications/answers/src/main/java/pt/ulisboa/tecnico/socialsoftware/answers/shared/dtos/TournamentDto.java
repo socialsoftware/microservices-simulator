@@ -6,6 +6,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.Tournament;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipant;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentTopic;
 
 public class TournamentDto implements Serializable {
     private Integer aggregateId;
@@ -15,11 +17,11 @@ public class TournamentDto implements Serializable {
     private LocalDateTime endTime;
     private Integer numberOfQuestions;
     private Boolean cancelled;
-    private Integer creatorAggregateId;
-    private Set<Integer> participantsAggregateIds;
-    private Integer executionAggregateId;
-    private Set<Integer> topicsAggregateIds;
-    private Integer quizAggregateId;
+    private TournamentCreatorDto creator;
+    private Set<TournamentParticipantDto> participants;
+    private TournamentExecutionDto execution;
+    private Set<TournamentTopicDto> topics;
+    private TournamentQuizDto quiz;
 
     public TournamentDto() {
     }
@@ -32,11 +34,11 @@ public class TournamentDto implements Serializable {
         this.endTime = tournament.getEndTime();
         this.numberOfQuestions = tournament.getNumberOfQuestions();
         this.cancelled = tournament.getCancelled();
-        this.creatorAggregateId = tournament.getCreator() != null ? tournament.getCreator().getCreatorAggregateId() : null;
-        this.participantsAggregateIds = tournament.getParticipants() != null ? tournament.getParticipants().stream().map(item -> item.getParticipantAggregateId()).collect(Collectors.toSet()) : null;
-        this.executionAggregateId = tournament.getExecution() != null ? tournament.getExecution().getExecutionAggregateId() : null;
-        this.topicsAggregateIds = tournament.getTopics() != null ? tournament.getTopics().stream().map(item -> item.getTopicAggregateId()).collect(Collectors.toSet()) : null;
-        this.quizAggregateId = tournament.getQuiz() != null ? tournament.getQuiz().getQuizAggregateId() : null;
+        this.creator = tournament.getCreator() != null ? new TournamentCreatorDto(tournament.getCreator()) : null;
+        this.participants = tournament.getParticipants() != null ? tournament.getParticipants().stream().map(TournamentParticipant::buildDto).collect(Collectors.toSet()) : null;
+        this.execution = tournament.getExecution() != null ? new TournamentExecutionDto(tournament.getExecution()) : null;
+        this.topics = tournament.getTopics() != null ? tournament.getTopics().stream().map(TournamentTopic::buildDto).collect(Collectors.toSet()) : null;
+        this.quiz = tournament.getQuiz() != null ? new TournamentQuizDto(tournament.getQuiz()) : null;
     }
 
     public Integer getAggregateId() {
@@ -95,43 +97,43 @@ public class TournamentDto implements Serializable {
         this.cancelled = cancelled;
     }
 
-    public Integer getCreatorAggregateId() {
-        return creatorAggregateId;
+    public TournamentCreatorDto getCreator() {
+        return creator;
     }
 
-    public void setCreatorAggregateId(Integer creatorAggregateId) {
-        this.creatorAggregateId = creatorAggregateId;
+    public void setCreator(TournamentCreatorDto creator) {
+        this.creator = creator;
     }
 
-    public Set<Integer> getParticipantsAggregateIds() {
-        return participantsAggregateIds;
+    public Set<TournamentParticipantDto> getParticipants() {
+        return participants;
     }
 
-    public void setParticipantsAggregateIds(Set<Integer> participantsAggregateIds) {
-        this.participantsAggregateIds = participantsAggregateIds;
+    public void setParticipants(Set<TournamentParticipantDto> participants) {
+        this.participants = participants;
     }
 
-    public Integer getExecutionAggregateId() {
-        return executionAggregateId;
+    public TournamentExecutionDto getExecution() {
+        return execution;
     }
 
-    public void setExecutionAggregateId(Integer executionAggregateId) {
-        this.executionAggregateId = executionAggregateId;
+    public void setExecution(TournamentExecutionDto execution) {
+        this.execution = execution;
     }
 
-    public Set<Integer> getTopicsAggregateIds() {
-        return topicsAggregateIds;
+    public Set<TournamentTopicDto> getTopics() {
+        return topics;
     }
 
-    public void setTopicsAggregateIds(Set<Integer> topicsAggregateIds) {
-        this.topicsAggregateIds = topicsAggregateIds;
+    public void setTopics(Set<TournamentTopicDto> topics) {
+        this.topics = topics;
     }
 
-    public Integer getQuizAggregateId() {
-        return quizAggregateId;
+    public TournamentQuizDto getQuiz() {
+        return quiz;
     }
 
-    public void setQuizAggregateId(Integer quizAggregateId) {
-        this.quizAggregateId = quizAggregateId;
+    public void setQuiz(TournamentQuizDto quiz) {
+        this.quiz = quiz;
     }
 }

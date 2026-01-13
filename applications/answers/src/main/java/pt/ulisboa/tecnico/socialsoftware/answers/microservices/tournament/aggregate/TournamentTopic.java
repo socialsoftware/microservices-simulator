@@ -8,6 +8,7 @@ import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentTopicDto;
 
 @Entity
 public class TournamentTopic {
@@ -31,7 +32,6 @@ public class TournamentTopic {
         setTopicVersion(topicDto.getVersion());
         setTopicState(topicDto.getState());
         setTopicName(topicDto.getName());
-        setTopicCourseAggregateId(topicDto.getCourseAggregateId());
     }
 
     public TournamentTopic(TournamentTopic other) {
@@ -90,8 +90,8 @@ public class TournamentTopic {
     }
 
 
-    public TopicDto buildDto() {
-        TopicDto dto = new TopicDto();
+    public TournamentTopicDto buildDto() {
+        TournamentTopicDto dto = new TournamentTopicDto();
         dto.setAggregateId(getTopicAggregateId());
         dto.setVersion(getTopicVersion());
         dto.setState(getTopicState());

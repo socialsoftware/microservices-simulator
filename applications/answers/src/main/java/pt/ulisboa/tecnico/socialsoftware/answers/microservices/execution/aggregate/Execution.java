@@ -14,6 +14,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
 @Entity
@@ -136,4 +137,16 @@ public abstract class Execution extends Aggregate {
         // No invariants defined
     }
 
+    public ExecutionDto buildDto() {
+        ExecutionDto dto = new ExecutionDto();
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
+        dto.setAcronym(getAcronym());
+        dto.setAcademicTerm(getAcademicTerm());
+        dto.setEndDate(getEndDate());
+        dto.setCourse(getCourse() != null ? new ExecutionCourseDto(getCourse()) : null);
+        dto.setUsers(getUsers() != null ? getUsers().stream().map(ExecutionUser::buildDto).collect(Collectors.toSet()) : null);
+        return dto;
+    }
 }

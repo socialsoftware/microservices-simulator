@@ -63,4 +63,14 @@ public abstract class Course extends Aggregate {
         // No invariants defined
     }
 
+    public CourseDto buildDto() {
+        CourseDto dto = new CourseDto();
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
+        dto.setName(getName());
+        dto.setType(getType() != null ? getType().name() : null);
+        dto.setCreationDate(getCreationDate());
+        return dto;
+    }
 }

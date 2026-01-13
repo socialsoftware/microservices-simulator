@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizQuestion;
 
 public class QuizDto implements Serializable {
     private Integer aggregateId;
@@ -17,8 +18,8 @@ public class QuizDto implements Serializable {
     private LocalDateTime availableDate;
     private LocalDateTime conclusionDate;
     private LocalDateTime resultsDate;
-    private Integer executionAggregateId;
-    private Set<Integer> questionsAggregateIds;
+    private QuizExecutionDto execution;
+    private Set<QuizQuestionDto> questions;
 
     public QuizDto() {
     }
@@ -33,8 +34,8 @@ public class QuizDto implements Serializable {
         this.availableDate = quiz.getAvailableDate();
         this.conclusionDate = quiz.getConclusionDate();
         this.resultsDate = quiz.getResultsDate();
-        this.executionAggregateId = quiz.getExecution() != null ? quiz.getExecution().getExecutionAggregateId() : null;
-        this.questionsAggregateIds = quiz.getQuestions() != null ? quiz.getQuestions().stream().map(item -> item.getQuestionAggregateId()).collect(Collectors.toSet()) : null;
+        this.execution = quiz.getExecution() != null ? new QuizExecutionDto(quiz.getExecution()) : null;
+        this.questions = quiz.getQuestions() != null ? quiz.getQuestions().stream().map(QuizQuestion::buildDto).collect(Collectors.toSet()) : null;
     }
 
     public Integer getAggregateId() {
@@ -109,19 +110,19 @@ public class QuizDto implements Serializable {
         this.resultsDate = resultsDate;
     }
 
-    public Integer getExecutionAggregateId() {
-        return executionAggregateId;
+    public QuizExecutionDto getExecution() {
+        return execution;
     }
 
-    public void setExecutionAggregateId(Integer executionAggregateId) {
-        this.executionAggregateId = executionAggregateId;
+    public void setExecution(QuizExecutionDto execution) {
+        this.execution = execution;
     }
 
-    public Set<Integer> getQuestionsAggregateIds() {
-        return questionsAggregateIds;
+    public Set<QuizQuestionDto> getQuestions() {
+        return questions;
     }
 
-    public void setQuestionsAggregateIds(Set<Integer> questionsAggregateIds) {
-        this.questionsAggregateIds = questionsAggregateIds;
+    public void setQuestions(Set<QuizQuestionDto> questions) {
+        this.questions = questions;
     }
 }

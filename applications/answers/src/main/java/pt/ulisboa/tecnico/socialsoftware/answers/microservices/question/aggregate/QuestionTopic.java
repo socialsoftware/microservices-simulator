@@ -7,6 +7,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 
 @Entity
@@ -88,11 +89,13 @@ public class QuestionTopic {
     }
 
 
-    public TopicDto buildDto() {
-        TopicDto dto = new TopicDto();
+    public QuestionTopicDto buildDto() {
+        QuestionTopicDto dto = new QuestionTopicDto();
+        dto.setTopicId(getTopicId());
         dto.setAggregateId(getTopicAggregateId());
-        dto.setVersion(getTopicVersion());
         dto.setName(getTopicName());
+        dto.setVersion(getTopicVersion());
+        dto.setTopicState(getTopicState());
         return dto;
     }
 }
