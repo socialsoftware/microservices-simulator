@@ -29,10 +29,6 @@ public abstract class EventSubscriberService {
 
     public abstract String getEventPackage();
 
-    public Map<String, Class<? extends Event>> getSubscribedEvents() {
-        return subscribedEvents;
-    }
-
     private void initializeSubscribedEvents() {
         if (initialized) {
             return;

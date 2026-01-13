@@ -34,7 +34,7 @@ public class VersionServiceStreamClient implements IVersionService {
 
     @Override
     public void decrementVersionNumber() {
-        logger.debug("Requesting decrement version via CommandGateway");
+        logger.debug("Requesting decrement version");
         commandGateway.send(new DecrementVersionCommand());
     }
 }

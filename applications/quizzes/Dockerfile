@@ -19,5 +19,7 @@ ARG START_CLASS=pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator
 RUN mvn clean -P$PROFILE -Dstart-class=$START_CLASS -Dmaven.test.skip=true package
 
 FROM eclipse-temurin:21-jre-alpine
-COPY --from=run target/QuizzesTutor-2.1.0-SNAPSHOT.jar ./
-CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar", "./QuizzesTutor-2.1.0-SNAPSHOT.jar"]
+ARG APP_VERSION=3.0.0-SNAPSHOT
+ENV JAR_FILE=QuizzesTutor-${APP_VERSION}.jar
+COPY --from=run target/QuizzesTutor-*.jar ./app.jar
+CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar", "./app.jar"]

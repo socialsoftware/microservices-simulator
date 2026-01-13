@@ -47,3 +47,4 @@
 - [ ] Clean application.yaml files with placeholders?
 - [ ] See `CommandResponseListener`
 - [ ] See `TraceService` and `utils/`
+- [ ] Check the need of a transactional Outbox Table

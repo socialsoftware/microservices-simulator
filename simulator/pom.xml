@@ -10,7 +10,7 @@
     </parent>
     <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
     <artifactId>MicroservicesSimulator</artifactId>
-    <version>2.1.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <name>MicroservicesSimulator</name>
     <description>Microservices Simulator</description>
     <packaging>jar</packaging>

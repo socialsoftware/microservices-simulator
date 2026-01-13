@@ -13,5 +13,7 @@ FROM base AS run
 RUN mvn clean -Dmaven.test.skip=true package
 
 FROM eclipse-temurin:21-jre-alpine
-COPY --from=run target/gateway-0.0.1-SNAPSHOT.jar ./
-CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar", "./gateway-0.0.1-SNAPSHOT.jar"]
+ARG APP_VERSION=0.0.1-SNAPSHOT
+ENV JAR_FILE=gateway-${APP_VERSION}.jar
+COPY --from=run target/gateway-*.jar ./app.jar
+CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar", "./app.jar"]
