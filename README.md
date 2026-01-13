@@ -293,6 +293,63 @@ mvn spring-boot:run
 - [Tournament Merge Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/aggregates/TournamentMergeUnitTest.groovy)
 - [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy)
 
+---
+
+## Configuration
+
+The application uses Spring Boot profiles and YAML configuration files to manage different deployment modes.
+
+### Database Configuration
+
+Database settings are defined in [application.yaml](applications/quizzes/src/main/resources/application.yaml#L8):
+
+| Profile | Database | Description |
+|---------|----------|-------------|
+| Monolith | `msdb` | Single database for all aggregates |
+| Microservices | Per-service DBs | Each service has its own database (e.g., `tournamentdb`, `userdb`) |
+
+Service-specific database URLs are configured in profile files like [application-tournament-service.yaml](applications/quizzes/src/main/resources/application-tournament-service.yaml#L4).
+
+### Spring Cloud Stream Bindings
+
+When running with the `stream` profile, inter-service communication uses RabbitMQ. Bindings are configured in [application.yaml](applications/quizzes/src/main/resources/application.yaml#L86):
+
+| Binding Type | Example | Purpose |
+|--------------|---------|---------|
+| Command Channels | `tournament-command-channel` | Send commands to services |
+| Command Consumers | `tournamentServiceCommandChannel-in-0` | Receive and process commands |
+| Event Channel | `event-channel` | Broadcast events to subscribers |
+| Event Subscribers | `tournamentEventSubscriber-in-0` | Receive events for processing |
+| Response Channel | `commandResponseChannel-in-0` | Receive command responses |
+
+Service-specific bindings override only the channels relevant to that service, as shown in [application-tournament-service.yaml](applications/quizzes/src/main/resources/application-tournament-service.yaml#L7).
+
+### Service URLs and Ports
+
+Each microservice runs on a dedicated port:
+
+| Service | Port | Profile File |
+|---------|------|--------------|
+| Gateway | 8080 | [application.yaml](applications/gateway/src/main/resources/application.yaml#L1) |
+| Version Service | 8081 | - |
+| Answer Service | 8082 | [application-answer-service.yaml](applications/quizzes/src/main/resources/application-answer-service.yaml) |
+| Course Execution | 8083 | [application-course-execution-service.yaml](applications/quizzes/src/main/resources/application-course-execution-service.yaml) |
+| Question Service | 8084 | [application-question-service.yaml](applications/quizzes/src/main/resources/application-question-service.yaml) |
+| Quiz Service | 8085 | [application-quiz-service.yaml](applications/quizzes/src/main/resources/application-quiz-service.yaml) |
+| Topic Service | 8086 | [application-topic-service.yaml](applications/quizzes/src/main/resources/application-topic-service.yaml) |
+| Tournament Service | 8087 | [application-tournament-service.yaml](applications/quizzes/src/main/resources/application-tournament-service.yaml#L24) |
+| User Service | 8088 | [application-user-service.yaml](applications/quizzes/src/main/resources/application-user-service.yaml) |
+
+### API Gateway Configuration
+
+The [Gateway application.yaml](applications/gateway/src/main/resources/application.yaml) configures:
+
+1. **Service URLs** ([lines 4-12](applications/gateway/src/main/resources/application.yaml#L4)): Define base URLs for each microservice with environment variable overrides for Docker deployment.
+
+2. **Route Definitions** ([lines 31-89](applications/gateway/src/main/resources/application.yaml#L31)): Map API paths to backend services using Spring Cloud Gateway predicates.
+
+3. **Service List** ([lines 14-22](applications/gateway/src/main/resources/application.yaml#L14)): List of services for admin operations like version management.
+
 ## Code structure
 
 ### Simulator
@@ -317,14 +374,19 @@ mvn spring-boot:run
   * [TCC Aggregates](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/aggregates)
   * [TCC Coordination](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination)
 
-## How to implement and test your own business logic for Sagas (Illustrated with Quizzes Microservice System)
+The code follows the structure in the simulator library and application decomposition figures, where the packages in blue and orange contain, respectively, the microservices domain specific code and the transactional causal consistency domain specific code.
 
-The figure shows the main classes to be extended for aggregates, their events and services. The classes in red belong to 
-the domain-driven design concepts, and the classes green corresponds to the transaction model specific classes. 
-Classes in blue are the domain-specific extensions, in this case for the quizzes case study, and the classes in orange 
-it is their transactional model specific extension.
+![Simulator Library Decomposition](data/figs/simulator_library_decomposition.png)
 
-![Aggregate Model](data/figs/sagas-aggregate-extension.png)
+![Application Decomposition](data/figs/application_decomposition.png)
+
+The API Gateway is used when running the quizzes application as microservices to route API requests to the appropriate microservice.
+
+## How to implement and test your own business logic for Sagas and TCC (Illustrated with Quizzes Microservice System)
+
+The figure shows the main classes to be extended for aggregates, their events and services. 
+
+![Aggregate Model](data/figs/aggregate_domain_model_extension.png)
 
 Apply the following steps to define a domain-specific aggregate, its events and services, here illustrated with
 the Quizzes Tutor system and its Tournament aggregate.
@@ -332,28 +394,41 @@ the Quizzes Tutor system and its Tournament aggregate.
 For the transactional model independent part:
 1. **Define Aggregate**: Each microservice is modeled as an aggregate. The first step is to define the aggregates.
    The simulator uses Spring-Boot and JPA, so the domain entities definition uses the JPA notation.
-   In [Tournament](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java#L75)
+   In [Tournament](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java#L62)
    aggregate we can see the aggregate root entity and the reference to its internal entities.
-2. **Specify Invariants**: The aggregate invariants are defined by overriding method [verifyInvariants()](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java#L283).
-3. **Define Events**: Define the events published by upstream aggregates and subscribed by downstream aggregates, like [UpdateStudentNameEvent](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/events/publish/UpdateStudentNameEvent.java#L6).
-4. **Subscribe Events**: The events published by upstream aggregates can be subscribed by overriding method [getEventSubscriptions()](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java#L156).
-5. **Define Event Subscriptions**: Events can be subscribed depending on its data. Therefore, define subscription classes like [TournamentSubscribesUpdateStudentName](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/events/subscribe/TournamentSubscribesUpdateStudentName.java#L10).
+2. **Specify Invariants**: The aggregate invariants are defined by overriding method [verifyInvariants()](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java#L270).
+3. **Define Events**: Define the events published by upstream aggregates and subscribed by downstream aggregates, like [UpdateStudentNameEvent](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/events/UpdateStudentNameEvent.java#L6).
+4. **Subscribe Events**: The events published by upstream aggregates can be subscribed by overriding method [getEventSubscriptions()](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java#L143).
+5. **Define Event Subscriptions**: Events can be subscribed depending on its data. Therefore, define subscription classes like [TournamentSubscribesUpdateStudentName](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/events/subscribe/TournamentSubscribesUpdateStudentName.java#L9).
 6. **Define Event Handlers**: For each subscribed event define an event handler that delegates the handling in a handling functionality, like [UpdateStudentNameEventHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/events/handling/handlers/UpdateStudentNameEventHandler.java#L8)
-   and its handling functionality [processUpdateStudentNameEvent(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/coordination/eventProcessing/TournamentEventProcessing.java#L106).
-7. **Define Aggregate Services**: Define the microservice API, whose implementation interact with the unit of work to register changes and publish events, like service [updateExecutionStudentName(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/service/CourseExecutionService.java#L196).
+   and its handling functionality [processUpdateStudentNameEvent(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/eventProcessing/TournamentEventProcessing.java#L51).
+7. **Define Aggregate Services**: Define the microservice API, whose implementation interact with the unit of work to register changes and publish events, like service [updateExecutionStudentName(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/service/CourseExecutionService.java#L153).
+8. **Define Event Handling**: Define the aggregates event handling, that periodically polls the event table to process events, like [TournamentEventHandling](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/events/handling/TournamentEventHandling.java#L12).
+9. **Define Event Subscriber Service**: Define the event subscriber service, that subscribes to events published by other microservices via Spring Cloud Stream, like [TournamentEventSubscriberService](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/events/TournamentEventSubscriberService.java#L16).
 
 For the transactional model dependent part:
-1. **Define Saga Aggregates**: Extend aggregates with the information required for semantic locks, like [SagaTournament](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/aggregates/SagaTournament.java#L18) and its [Semantic Lock](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/aggregates/states/TournamentSagaState.java#L5).
+1. **Define Saga Aggregates**: Extend aggregates with the information required for semantic locks, like [SagaTournament](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/sagas/SagaTournament.java#L14) and its [Semantic Lock](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/sagas/states/TournamentSagaState.java#L5).
+2. **Define Causal Aggregates**: Extend aggregates with the information required for causal consistency, like [CausalTournament](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/causal/CausalTournament.java#L14)
 
 To define the system functionalities, it is necessary to extend the simulator part for coordination. 
 
-![Functionality Model](data/figs/sagas-functionality-extension.png)
+![Functionality Model](data/figs/functionality_domain_model_extension.png)
 
 For the functionalities:
-1. **Define Functionalities**: Functionalities coordinate the execution of aggregate services using sagas, like functionality [AddParticipantFunctionalitySagas(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/tournament/AddParticipantFunctionalitySagas.java#L19)
+1. **Define Functionalities**: Functionalities coordinate the execution of aggregate services using sagas, like functionality [AddParticipantFunctionalitySagas(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java#L20) and [AddParticipantFunctionalityTCC(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/causal/AddParticipantFunctionalityTCC.java#L17)
+2. **Define Commands**: Define the commands to be executed by the functionalities, like [AddParticipantCommand](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/command/tournament/AddParticipantCommand.java). Every method of the aggregate service should have a corresponding command.
+
+For the inter-service communication:
+
+1. **Create the CommandHandlers of the aggregate**: It receives commands from local or remote services' functionalities and calls the corresponding aggregate service method of that command, like [TournamentCommandHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/commandHandler/TournamentCommandHandler.java#L13) for local calls and [TournamentStreamCommandHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/commandHandler/TournamentStreamCommandHandler.java#L15) for remote calls via messaging.
+2. **Configure Spring Cloud Stream Bindings**: Define the command and event channels in `application.yaml`, like [tournament-service bindings](applications/quizzes/src/main/resources/application-tournament-service.yaml).
 
 To write tests:
-1. **Design Test Cases**: Define tests cases for the concurrent execution of functionalities deterministically enforcing execution orders, like in the [Concurrent Execution of Update Name and Add Participant](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/AddParticipantAndUpdateStudentNameTest.groovy#L27). Directory [coordination](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/) contains the test of more complex interleavings using the sagas transactional model. 
+1. **Design Test Cases**: Define tests cases for the concurrent execution of functionalities deterministically enforcing execution orders, like in the [Concurrent Execution of Update Name and Add Participant](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/AddParticipantAndUpdateStudentNameTest.groovy#L28). Directory [coordination](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/) contains the test of more complex interleavings using the sagas transactional model. 
+
+
+
+
 
 
 
@@ -385,31 +460,6 @@ jmeter
 ```
 * The command launches JMeter GUI. By clicking `File > Open` and selecting a test file it is possible to observe the test structure.
 * Tests can also be run using the GUI, by clicking on the `Start` button.
-
-## How to implement and test your own business logic for TCC
-
-The code follows the structure in the figure, where the packages in blue and orange contain, respectively, the microservices domain specific code and the transactional causal consistency domain specific code.
-
-![Code Structure](data/figs/decomposition.png)
-
-The figure shows the main classes to be extended in the steps described next. 
-
-![Code Structure](data/figs/extension.png)
-
-Apply the following steps: 1-7 as for sagas (transactional model independent)
-
-1. **Define Aggregate**: 
-2. **Specify Invariants**: 
-3. **Define Events**: 
-4. **Subscribe Events**: 
-5. **Define Event Subscriptions**: 
-6. **Define Event Handlers**:
-7. **Define Aggregate Services**:
-8. **Define Causal Aggregates**: Extend aggregates with the information required to process merges, like [CausalTournament](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/aggregates/CausalTournament.java#L26).
-9. **Define Functionalities**: Functionalities coordinate the execution of aggregate services using TCC, like functionality [updateStudentName(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/execution/UpdateStudentNameFunctionalityTCC.java#L14), 
-where each service interacts with the unit of work to register changes and publish events, like service [updateExecutionStudentName(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/service/CourseExecutionService.java#L196).
-10. **Define Test Cases**: Define deterministic tests cases for the concurrent execution of functionalities using services to decrement the system version number, 
-which defines functionalities execution order, and to force the deterministic processing of events, like in the [Concurrent Execution of Update Name and Add Participant](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy#L114).
 
 ##  Spock Tests in [DAIS2023](https://link.springer.com/chapter/10.1007/978-3-031-35260-7_4) paper - 23nd International Conference on Distributed Applications and Interoperable Systems
 
