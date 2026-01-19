@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: course-execution-service
+  namespace: microservices-simulator
+spec:
+  selector:
+    app: course-execution-service
+  ports:
+    - port: 8083
+      targetPort: 8083
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: course-execution-service
+  namespace: microservices-simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: course-execution-service
+  template:
+    metadata:
+      labels:
+        app: course-execution-service
+    spec:
+      serviceAccountName: microservices-sa
+      containers:
+        - name: course-execution-service
+          image: quizzes-course-execution:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8083
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes,course-execution-service,sagas,stream"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/executiondb"
+            - name: SPRING_RABBITMQ_HOST
+              value: "rabbitmq"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 60
+            periodSeconds: 10

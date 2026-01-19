@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: topic-service
+  namespace: microservices-simulator
+spec:
+  selector:
+    app: topic-service
+  ports:
+    - port: 8086
+      targetPort: 8086
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: topic-service
+  namespace: microservices-simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: topic-service
+  template:
+    metadata:
+      labels:
+        app: topic-service
+    spec:
+      serviceAccountName: microservices-sa
+      containers:
+        - name: topic-service
+          image: quizzes-topic:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8086
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes,topic-service,sagas,stream"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/topicdb"
+            - name: SPRING_RABBITMQ_HOST
+              value: "rabbitmq"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8086
+            initialDelaySeconds: 60
+            periodSeconds: 10

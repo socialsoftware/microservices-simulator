@@ -1,0 +1,29 @@
+spring:
+  cloud:
+    kubernetes:
+      enabled: true
+      discovery:
+        enabled: true
+        all-namespaces: false
+      loadbalancer:
+        enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+services:
+  answer: http://answer-service:8082
+  course-execution: http://course-execution-service:8083
+  question: http://question-service:8084
+  quiz: http://quiz-service:8085
+  topic: http://topic-service:8086
+  tournament: http://tournament-service:8087
+  user: http://user-service:8088
+  version: http://version-service:8081

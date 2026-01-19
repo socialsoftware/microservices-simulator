@@ -283,6 +283,86 @@ mvn spring-boot:run
 
 ---
 
+### Kubernetes Deployment
+
+The application supports deployment on Kubernetes using Spring Cloud Kubernetes for service discovery.
+
+#### Prerequisites
+
+Install the following packages:
+
+- [Docker](https://docs.docker.com/get-docker/) - Container runtime
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) - Kubernetes CLI
+- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) (recommended) - Local Kubernetes cluster
+
+**Create a Kind cluster:**
+```bash
+kind create cluster --name microservices
+```
+
+#### Build and Load Images
+
+```bash
+# Build all Docker images
+docker compose build
+
+# Load images into Kind cluster
+for img in gateway simulator quizzes-answer quizzes-course quizzes-course-execution quizzes-question quizzes-quiz quizzes-topic quizzes-tournament quizzes-user; do
+  kind load docker-image ${img}:latest --name microservices
+done
+```
+
+#### Deploy to Kubernetes
+
+```bash
+# Create namespace and RBAC
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/rbac.yaml
+kubectl apply -f k8s/configmap.yaml
+
+# Deploy infrastructure
+kubectl apply -f k8s/infrastructure/
+
+# Wait for infrastructure to be ready
+kubectl wait --for=condition=ready pod -l app=postgres -n microservices-simulator --timeout=120s
+kubectl wait --for=condition=ready pod -l app=rabbitmq -n microservices-simulator --timeout=120s
+
+# Deploy microservices
+kubectl apply -f k8s/services/
+
+# Check status
+kubectl get pods -n microservices-simulator
+```
+
+#### Access the Application
+
+```bash
+# Port-forward to gateway
+kubectl port-forward svc/gateway 8080:8080 -n microservices-simulator
+
+# Or get the LoadBalancer IP (if supported)
+kubectl get svc gateway -n microservices-simulator
+```
+
+#### Environment Switching
+
+The application uses Spring profiles to switch between local and Kubernetes environments:
+
+| Environment | Spring Profile | How to Run |
+|-------------|---------------|------------|
+| Local (Docker Compose) | `local`, `sagas`/`tcc` | `docker compose up quizzes-sagas` |
+| Kubernetes | `kubernetes`, `sagas`/`tcc`, `stream` | Deploy with K8s manifests |
+
+The `kubernetes` profile enables Spring Cloud Kubernetes service discovery and uses internal K8s DNS for service communication.
+
+#### Cleanup
+
+```bash
+kubectl delete namespace microservices-simulator
+```
+
+---
+
 ### Test Cases
 
 **Sagas test cases:**

@@ -29,6 +29,12 @@ spring:
       pool:
         size: 5
 
+  cloud:
+    kubernetes:
+      enabled: false
+      discovery:
+        enabled: false
+
 maven:
   basedir: "@project.basedir@"
 
