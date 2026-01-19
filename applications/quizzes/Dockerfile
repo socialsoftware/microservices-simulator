@@ -15,8 +15,7 @@ CMD ["mvn", "-Ptest", "test"]
 
 FROM base AS run
 ARG PROFILE=tcc,dev
-ARG START_CLASS=pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator
-RUN mvn clean -P$PROFILE -Dstart-class=$START_CLASS -Dmaven.test.skip=true package
+RUN mvn clean -P$PROFILE -Dmaven.test.skip=true package
 
 FROM eclipse-temurin:21-jre-alpine
 ARG APP_VERSION=3.0.0-SNAPSHOT
