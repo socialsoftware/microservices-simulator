@@ -28,48 +28,7 @@ Aggregate Question {
         QuestionCourse course;
         Set<QuestionTopic> topics;
         List<Option> options;
-
-        invariants {
-            check titleNotEmpty {
-                title.length() > 0;
-            }
-
-            check contentNotEmpty {
-                content.length() > 0;
-            }
-
-            check numberOfOptionsPositive {
-                numberOfOptions > 0;
-            }
-
-            check correctOptionValid {
-                correctOption >= 1 && correctOption <= numberOfOptions;
-            }
-
-            check orderPositive {
-                order > 0;
-            }
-
-            check uniqueTopics {
-                topics.unique(topicId);
-            }
-
-            check uniqueOptions {
-                options.unique(optionNumber);
-            }
-
-            check optionsMatchNumberOfOptions {
-                numberOfOptions > 0;
-            }
-        }
     }
-
-    
-
-    
-   
-    
-
 
     WebAPIEndpoints {
         @GenerateCrud;

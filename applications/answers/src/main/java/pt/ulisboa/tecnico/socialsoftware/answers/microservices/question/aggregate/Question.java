@@ -185,53 +185,9 @@ public abstract class Question extends Aggregate {
     }
 
 
-    // ============================================================================
-    // INVARIANTS
-    // ============================================================================
-
-    public boolean invariantTitleNotEmpty() {
-        return this.title.length() > 0;
-    }
-
-    public boolean invariantContentNotEmpty() {
-        return this.content.length() > 0;
-    }
-
-    public boolean invariantNumberOfOptionsPositive() {
-        return numberOfOptions > 0;
-    }
-
-    public boolean invariantCorrectOptionValid() {
-        return correctOption >= 1 && correctOption <= numberOfOptions;
-    }
-
-    public boolean invariantOrderPositive() {
-        return order > 0;
-    }
-
-    public boolean invariantUniqueTopics() {
-        return this.topics.stream().map(item -> item.get${capitalize(topicId)}()).distinct().count() == this.topics.size();
-    }
-
-    public boolean invariantUniqueOptions() {
-        return this.options.stream().map(item -> item.get${capitalize(optionNumber)}()).distinct().count() == this.options.size();
-    }
-
-    public boolean invariantOptionsMatchNumberOfOptions() {
-        return numberOfOptions > 0;
-    }
     @Override
     public void verifyInvariants() {
-        if (!(invariantTitleNotEmpty()
-               && invariantContentNotEmpty()
-               && invariantNumberOfOptionsPositive()
-               && invariantCorrectOptionValid()
-               && invariantOrderPositive()
-               && invariantUniqueTopics()
-               && invariantUniqueOptions()
-               && invariantOptionsMatchNumberOfOptions())) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
-        }
+        // No invariants defined
     }
 
     public QuestionDto buildDto() {
