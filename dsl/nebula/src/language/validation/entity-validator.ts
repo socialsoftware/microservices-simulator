@@ -33,16 +33,10 @@ export class EntityValidator {
         }
 
         if (entity.isRoot) {
-            const hasId = entity.properties.some(p => p.name && p.name.toLowerCase() === 'id');
-            if (!hasId) {
-                accept("warning", "Root entity should have an 'id' property", {
-                    node: entity,
-                });
-            }
-
+            // Root entities inherit 'id' from Aggregate base class, so they shouldn't define it explicitly
             for (const property of entity.properties) {
-                if (property.dtoExclude && property.name && property.name.toLowerCase() === 'id') {
-                    accept("error", "Root entity id property cannot be marked with 'dto-exclude'.", {
+                if (property.name && property.name.toLowerCase() === 'id') {
+                    accept("error", "Root entities inherit 'id' from Aggregate base class and should not define it explicitly.", {
                         node: property as any,
                         property: "name",
                     });
