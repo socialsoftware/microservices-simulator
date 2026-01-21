@@ -339,20 +339,7 @@ kubectl get pods -n microservices-simulator
 # Port-forward to gateway
 kubectl port-forward svc/gateway 8080:8080 -n microservices-simulator
 
-# Or get the LoadBalancer IP (if supported)
-kubectl get svc gateway -n microservices-simulator
 ```
-
-#### Environment Switching
-
-The application uses Spring profiles to switch between local and Kubernetes environments:
-
-| Environment | Spring Profile | How to Run |
-|-------------|---------------|------------|
-| Local (Docker Compose) | `local`, `sagas`/`tcc` | `docker compose up quizzes-sagas` |
-| Kubernetes | `kubernetes`, `sagas`/`tcc`, `stream` | Deploy with K8s manifests |
-
-The `kubernetes` profile enables Spring Cloud Kubernetes service discovery and uses internal K8s DNS for service communication.
 
 #### Cleanup
 
