@@ -320,11 +320,10 @@ kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/configmap.yaml
 
-# Deploy infrastructure
-kubectl apply -f k8s/infrastructure/
+# Deploy rabbitmq infrastructure
+kubectl apply -f k8s/infrastructure/rabbitmq.yaml
 
 # Wait for infrastructure to be ready
-kubectl wait --for=condition=ready pod -l app=postgres -n microservices-simulator --timeout=120s
 kubectl wait --for=condition=ready pod -l app=rabbitmq -n microservices-simulator --timeout=120s
 
 # Deploy microservices

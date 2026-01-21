@@ -111,6 +111,145 @@ services:
       - messaging-network
 
   # ============================================
+  # MICROSERVICE DATABASES (Database-per-service pattern)
+  # ============================================
+
+  answer-db:
+    image: postgres:14-alpine
+    container_name: answer-db
+    environment:
+      - POSTGRES_DB=answerdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - messaging-network
+
+  course-db:
+    image: postgres:14-alpine
+    container_name: course-db
+    environment:
+      - POSTGRES_DB=coursedb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - messaging-network
+
+  execution-db:
+    image: postgres:14-alpine
+    container_name: execution-db
+    environment:
+      - POSTGRES_DB=executiondb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - messaging-network
+
+  question-db:
+    image: postgres:14-alpine
+    container_name: question-db
+    environment:
+      - POSTGRES_DB=questiondb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - messaging-network
+
+  quiz-db:
+    image: postgres:14-alpine
+    container_name: quiz-db
+    environment:
+      - POSTGRES_DB=quizdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - messaging-network
+
+  topic-db:
+    image: postgres:14-alpine
+    container_name: topic-db
+    environment:
+      - POSTGRES_DB=topicdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - messaging-network
+
+  tournament-db:
+    image: postgres:14-alpine
+    container_name: tournament-db
+    environment:
+      - POSTGRES_DB=tournamentdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - messaging-network
+
+  user-db:
+    image: postgres:14-alpine
+    container_name: user-db
+    environment:
+      - POSTGRES_DB=userdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - messaging-network
+
+  version-db:
+    image: postgres:14-alpine
+    container_name: version-db
+    environment:
+      - POSTGRES_DB=versiondb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - messaging-network
+
+  # ============================================
   # MICROSERVICES CONFIGURATION
   # ============================================
 
@@ -121,8 +260,6 @@ services:
     image: gateway
     container_name: gateway
     depends_on:
-      postgres:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       answer-service:
@@ -160,6 +297,12 @@ services:
       - BUFFER_LOG_LEVEL=INFO
     networks:
       - messaging-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
 
   version-service:
     build:
@@ -170,7 +313,7 @@ services:
     image: simulator
     container_name: version-service
     depends_on:
-      postgres:
+      version-db:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -179,10 +322,16 @@ services:
     restart: unless-stopped
     environment:
       - SPRING_PROFILES_ACTIVE=version-service,stream
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/versiondb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://version-db:5432/versiondb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
       - messaging-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
 
   answer-service:
     build:
@@ -193,7 +342,7 @@ services:
     image: quizzes-answer
     container_name: answer-service
     depends_on:
-      postgres:
+      answer-db:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -201,10 +350,16 @@ services:
       - "8082:8082"
     restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/answerdb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://answer-db:5432/answerdb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
       - messaging-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8082/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
 
   course-service:
     build:
@@ -215,7 +370,7 @@ services:
     image: quizzes-course
     container_name: course-service
     depends_on:
-      postgres:
+      course-db:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -223,10 +378,16 @@ services:
       - "8089:8089"
     restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/coursedb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://course-db:5432/coursedb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
       - messaging-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8089/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
 
   course-execution-service:
     build:
@@ -237,7 +398,7 @@ services:
     image: quizzes-course-execution
     container_name: course-execution-service
     depends_on:
-      postgres:
+      execution-db:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -245,10 +406,16 @@ services:
       - "8083:8083"
     restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/executiondb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://execution-db:5432/executiondb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
       - messaging-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
 
   question-service:
     build:
@@ -259,7 +426,7 @@ services:
     image: quizzes-question
     container_name: question-service
     depends_on:
-      postgres:
+      question-db:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -267,10 +434,16 @@ services:
       - "8084:8084"
     restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/questiondb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://question-db:5432/questiondb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
       - messaging-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8084/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
 
   quiz-service:
     build:
@@ -281,7 +454,7 @@ services:
     image: quizzes-quiz
     container_name: quiz-service
     depends_on:
-      postgres:
+      quiz-db:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -289,10 +462,16 @@ services:
       - "8085:8085"
     restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/quizdb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://quiz-db:5432/quizdb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
       - messaging-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8085/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
 
   topic-service:
     build:
@@ -303,7 +482,7 @@ services:
     image: quizzes-topic
     container_name: topic-service
     depends_on:
-      postgres:
+      topic-db:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -311,10 +490,16 @@ services:
       - "8086:8086"
     restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/topicdb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://topic-db:5432/topicdb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
       - messaging-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8086/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
 
   tournament-service:
     build:
@@ -325,7 +510,7 @@ services:
     image: quizzes-tournament
     container_name: tournament-service
     depends_on:
-      postgres:
+      tournament-db:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -333,10 +518,16 @@ services:
       - "8087:8087"
     restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/tournamentdb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://tournament-db:5432/tournamentdb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
       - messaging-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8087/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
 
   user-service:
     build:
@@ -347,7 +538,7 @@ services:
     image: quizzes-user
     container_name: user-service
     depends_on:
-      postgres:
+      user-db:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -355,10 +546,16 @@ services:
       - "8088:8088"
     restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/userdb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://user-db:5432/userdb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
       - messaging-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8088/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
 
   # ============================================
   # TEST CONTAINERS

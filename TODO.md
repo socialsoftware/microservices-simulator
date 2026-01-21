@@ -1,7 +1,7 @@
 # TODO
 
-- [ ] Update README diagrams
-- [ ] Verify command for TCC
+- [x] Update README diagrams
+- [x] Verify command for TCC
 - [ ] Verify idempotency
 - [ ] Local calls in StreamComandGateway
 - [ ] Use kafka streams
@@ -40,10 +40,10 @@
     - `request tournament: Assertion failure message:Value in json path '$..participants[0].name' expected to be 'Updated_Student_Name_1', but found '[]'`
 - [ ] Verify Upgrade to Java 25 
 - [ ] Verify upgrade to spring boot 4
-- [ ] Use kubernetes
+- [x] Use kubernetes
 - [ ] Version Service Distributed
-- [ ] Make each microservice in docker compose to have its own postgres service - IMPORTANT
+- [x] Make each microservice in docker compose to have its own postgres service - IMPORTANT
 - [ ] Create TCC profile for microservices in docker compose
-- [ ] Clean application.yaml files with placeholders?
 - [ ] See `TraceService` and `utils/`
 - [ ] Check the need of a transactional Outbox Table
+- [ ] Create database persistence in docker compose and kubernetes for each microservice

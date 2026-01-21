@@ -47,13 +47,31 @@ spec:
           volumeMounts:
             - name: rabbitmq-data
               mountPath: /var/lib/rabbitmq
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
           readinessProbe:
             exec:
               command:
-                - rabbitmqctl
-                - status
-            initialDelaySeconds: 10
+                - rabbitmq-diagnostics
+                - -q
+                - ping
+            initialDelaySeconds: 20
             periodSeconds: 10
+            timeoutSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - rabbitmq-diagnostics
+                - -q
+                - ping
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
   volumeClaimTemplates:
     - metadata:
         name: rabbitmq-data
