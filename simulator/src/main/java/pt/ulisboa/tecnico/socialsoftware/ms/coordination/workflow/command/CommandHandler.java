@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
+package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;

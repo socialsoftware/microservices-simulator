@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
+package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
+package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command;
 
 import io.github.resilience4j.retry.RetryRegistry;
 import org.springframework.context.ApplicationContext;

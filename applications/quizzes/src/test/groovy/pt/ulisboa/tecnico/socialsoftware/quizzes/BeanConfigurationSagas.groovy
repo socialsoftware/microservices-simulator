@@ -7,9 +7,9 @@ import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.CommandResponseAggregator
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.StreamCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.stream.CommandResponseAggregator
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.stream.StreamCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService

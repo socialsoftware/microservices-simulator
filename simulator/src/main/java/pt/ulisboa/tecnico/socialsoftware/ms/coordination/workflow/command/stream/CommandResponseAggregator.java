@@ -1,7 +1,8 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
+package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.stream;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandResponse;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

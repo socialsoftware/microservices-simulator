@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream;
+package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandResponse;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import java.util.function.Consumer;

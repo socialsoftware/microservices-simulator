@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.commandHand
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;
 
