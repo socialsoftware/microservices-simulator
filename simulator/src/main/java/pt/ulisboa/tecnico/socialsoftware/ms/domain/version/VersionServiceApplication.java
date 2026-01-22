@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Profile;
 @Profile("version-service")
 @SpringBootApplication(scanBasePackages = {
         "pt.ulisboa.tecnico.socialsoftware.ms.domain.version",
-        "pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream",
+        "pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command",
         "pt.ulisboa.tecnico.socialsoftware.ms.exception"
 })
 public class VersionServiceApplication {
