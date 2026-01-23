@@ -8,21 +8,17 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.factory.annotation.Value;
 import java.util.stream.Collectors;
 
 @RestController
 public class AdminController {
 
     private final WebClient webClient;
-    private final GatewayProperties gatewayProperties;
+    private final DynamicGatewayService dynamicGatewayService;
 
-    @Value("${services.version}")
-    private String versionServiceUrl;
-
-    public AdminController(WebClient.Builder webClientBuilder, GatewayProperties gatewayProperties) {
+    public AdminController(WebClient.Builder webClientBuilder, DynamicGatewayService dynamicGatewayService) {
         this.webClient = webClientBuilder.build();
-        this.gatewayProperties = gatewayProperties;
+        this.dynamicGatewayService = dynamicGatewayService;
     }
 
     @GetMapping("/scheduler/start")
@@ -52,7 +48,7 @@ public class AdminController {
 
     @PostMapping("/behaviour/load")
     public Mono<String> loadBehaviour(@RequestParam String dir) {
-        return Flux.fromIterable(gatewayProperties.getServices())
+        return Flux.fromIterable(dynamicGatewayService.getAvailableServices())
                 .flatMap(serviceUrl -> webClient.post()
                         .uri(serviceUrl + "/behaviour/load?dir=" + dir)
                         .retrieve()
@@ -68,6 +64,7 @@ public class AdminController {
 
     @PostMapping("/versions/decrement")
     public Mono<String> decrementVersion() {
+        String versionServiceUrl = dynamicGatewayService.getVersionServiceUrl();
         return webClient.post()
                 .uri(versionServiceUrl + "/versions/decrement")
                 .retrieve()
@@ -76,7 +73,7 @@ public class AdminController {
     }
 
     private Mono<String> broadcastGet(String path) {
-        return Flux.fromIterable(gatewayProperties.getServices())
+        return Flux.fromIterable(dynamicGatewayService.getAvailableServices())
                 .flatMap(serviceUrl -> webClient.get()
                         .uri(serviceUrl + path)
                         .retrieve()
@@ -86,7 +83,7 @@ public class AdminController {
     }
 
     private Mono<String> broadcastPost(String path) {
-        return Flux.fromIterable(gatewayProperties.getServices())
+        return Flux.fromIterable(dynamicGatewayService.getAvailableServices())
                 .flatMap(serviceUrl -> webClient.post()
                         .uri(serviceUrl + path)
                         .retrieve()

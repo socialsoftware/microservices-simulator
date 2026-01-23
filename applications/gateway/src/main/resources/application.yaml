@@ -1,94 +1,88 @@
 server:
   port: 8080
 
-services:
-  answer: http://${ANSWER_SERVICE_HOST:localhost}:8082
-  course-execution: http://${COURSE_EXECUTION_SERVICE_HOST:localhost}:8083
-  question: http://${QUESTION_SERVICE_HOST:localhost}:8084
-  quiz: http://${QUIZ_SERVICE_HOST:localhost}:8085
-  topic: http://${TOPIC_SERVICE_HOST:localhost}:8086
-  tournament: http://${TOURNAMENT_SERVICE_HOST:localhost}:8087
-  user: http://${USER_SERVICE_HOST:localhost}:8088
-  version: http://${VERSION_SERVICE_HOST:localhost}:8081
-
 gateway:
-  services:
-    - ${services.answer}
-    - ${services.course-execution}
-    - ${services.question}
-    - ${services.quiz}
-    - ${services.topic}
-    - ${services.tournament}
-    - ${services.user}
+  service-suffix: ""
+  exclude-services: gateway
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: false
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+
+version-service: http://${VERSION_SERVICE_HOST:localhost}:8081
 
 spring:
   application:
     name: gateway
   cloud:
-    kubernetes:
-      enabled: false
-      discovery:
-        enabled: false
+    discovery:
+      enabled: true
     gateway:
       server:
         webflux:
           routes:
             # Course Execution Service (User Executions)
             - id: course-execution-service-users
-              uri: ${services.course-execution}
+              uri: lb://course-execution
               predicates:
                 - Path=/users/*/executions
 
             # User Service
             - id: user-service
-              uri: ${services.user}
+              uri: lb://user
               predicates:
                 - Path=/users/**
 
             # Topic Service
             - id: topic-service
-              uri: ${services.topic}
+              uri: lb://topic
               predicates:
                 - Path=/courses/*/topics/**, /courses/*/create, /topics/**
 
             # Question Service
             - id: question-service
-              uri: ${services.question}
+              uri: lb://question
               predicates:
                 - Path=/questions/**, /courses/*/questions/**
 
             # Answer Service
             - id: answer-service
-              uri: ${services.answer}
+              uri: lb://answer
               predicates:
                 - Path=/quizzes/*/answer
 
             # Tournament Service
             - id: tournament-service
-              uri: ${services.tournament}
+              uri: lb://tournament
               predicates:
                 - Path=/tournaments/**, /executions/*/tournaments/**, /tournament/**
 
             # Quiz Service
             - id: quiz-service
-              uri: ${services.quiz}
+              uri: lb://quiz
               predicates:
                 - Path=/quizzes/**
 
             # Execution Routes (Ordered)
             - id: course-execution-service-create
-              uri: ${services.course-execution}
+              uri: lb://course-execution
               predicates:
                 - Path=/executions/create
 
             - id: quiz-service-execution-post
-              uri: ${services.quiz}
+              uri: lb://quiz
               predicates:
                 - Method=POST
                 - Path=/executions/{executionId}
 
             - id: course-execution-service
-              uri: ${services.course-execution}
+              uri: lb://course-execution
               predicates:
                 - Path=/executions/**
 

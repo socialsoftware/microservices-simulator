@@ -260,38 +260,34 @@ services:
     image: gateway
     container_name: gateway
     depends_on:
+      eureka-server:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       answer-service:
-        condition: service_started
+        condition: service_healthy
       course-service:
-        condition: service_started
+        condition: service_healthy
       course-execution-service:
-        condition: service_started
+        condition: service_healthy
       question-service:
-        condition: service_started
+        condition: service_healthy
       quiz-service:
-        condition: service_started
+        condition: service_healthy
       topic-service:
-        condition: service_started
+        condition: service_healthy
       tournament-service:
-        condition: service_started
+        condition: service_healthy
       user-service:
-        condition: service_started
+        condition: service_healthy
       version-service:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      - ANSWER_SERVICE_HOST=answer-service
-      - COURSE_EXECUTION_SERVICE_HOST=course-execution-service
-      - QUESTION_SERVICE_HOST=question-service
-      - QUIZ_SERVICE_HOST=quiz-service
-      - TOPIC_SERVICE_HOST=topic-service
-      - TOURNAMENT_SERVICE_HOST=tournament-service
-      - USER_SERVICE_HOST=user-service
       - VERSION_SERVICE_HOST=version-service
+      - EUREKA_HOST=eureka-server
       - GATEWAY_LOG_LEVEL=INFO
       - REACTIVE_LOG_LEVEL=INFO
       - BUFFER_LOG_LEVEL=INFO
@@ -313,6 +309,8 @@ services:
     image: simulator
     container_name: version-service
     depends_on:
+      eureka-server:
+        condition: service_healthy
       version-db:
         condition: service_healthy
       rabbitmq:
@@ -342,6 +340,8 @@ services:
     image: quizzes-answer
     container_name: answer-service
     depends_on:
+      eureka-server:
+        condition: service_healthy
       answer-db:
         condition: service_healthy
       rabbitmq:
@@ -350,6 +350,7 @@ services:
       - "8082:8082"
     restart: unless-stopped
     environment:
+      - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://answer-db:5432/answerdb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
@@ -370,6 +371,8 @@ services:
     image: quizzes-course
     container_name: course-service
     depends_on:
+      eureka-server:
+        condition: service_healthy
       course-db:
         condition: service_healthy
       rabbitmq:
@@ -378,6 +381,7 @@ services:
       - "8089:8089"
     restart: unless-stopped
     environment:
+      - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://course-db:5432/coursedb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
@@ -398,6 +402,8 @@ services:
     image: quizzes-course-execution
     container_name: course-execution-service
     depends_on:
+      eureka-server:
+        condition: service_healthy
       execution-db:
         condition: service_healthy
       rabbitmq:
@@ -406,6 +412,7 @@ services:
       - "8083:8083"
     restart: unless-stopped
     environment:
+      - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://execution-db:5432/executiondb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
@@ -426,6 +433,8 @@ services:
     image: quizzes-question
     container_name: question-service
     depends_on:
+      eureka-server:
+        condition: service_healthy
       question-db:
         condition: service_healthy
       rabbitmq:
@@ -434,6 +443,7 @@ services:
       - "8084:8084"
     restart: unless-stopped
     environment:
+      - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://question-db:5432/questiondb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
@@ -454,6 +464,8 @@ services:
     image: quizzes-quiz
     container_name: quiz-service
     depends_on:
+      eureka-server:
+        condition: service_healthy
       quiz-db:
         condition: service_healthy
       rabbitmq:
@@ -462,6 +474,7 @@ services:
       - "8085:8085"
     restart: unless-stopped
     environment:
+      - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://quiz-db:5432/quizdb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
@@ -482,6 +495,8 @@ services:
     image: quizzes-topic
     container_name: topic-service
     depends_on:
+      eureka-server:
+        condition: service_healthy
       topic-db:
         condition: service_healthy
       rabbitmq:
@@ -490,6 +505,7 @@ services:
       - "8086:8086"
     restart: unless-stopped
     environment:
+      - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://topic-db:5432/topicdb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
@@ -510,6 +526,8 @@ services:
     image: quizzes-tournament
     container_name: tournament-service
     depends_on:
+      eureka-server:
+        condition: service_healthy
       tournament-db:
         condition: service_healthy
       rabbitmq:
@@ -518,6 +536,7 @@ services:
       - "8087:8087"
     restart: unless-stopped
     environment:
+      - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://tournament-db:5432/tournamentdb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
@@ -538,6 +557,8 @@ services:
     image: quizzes-user
     container_name: user-service
     depends_on:
+      eureka-server:
+        condition: service_healthy
       user-db:
         condition: service_healthy
       rabbitmq:
@@ -546,6 +567,7 @@ services:
       - "8088:8088"
     restart: unless-stopped
     environment:
+      - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://user-db:5432/userdb
       - SPRING_RABBITMQ_HOST=rabbitmq
     networks:
@@ -660,6 +682,20 @@ services:
   # ============================================
   # INFRASTRUCTURE
   # ============================================
+
+  eureka-server:
+    image: steeltoeoss/eureka-server:latest
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - messaging-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   jaeger:
     image: jaegertracing/all-in-one:1.75.0

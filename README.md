@@ -338,7 +338,6 @@ kubectl get pods -n microservices-simulator
 ```bash
 # Port-forward to gateway
 kubectl port-forward svc/gateway 8080:8080 -n microservices-simulator
-
 ```
 
 #### Cleanup

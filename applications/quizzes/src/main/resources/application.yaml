@@ -35,6 +35,12 @@ spring:
       discovery:
         enabled: false
 
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
 maven:
   basedir: "@project.basedir@"
 
@@ -56,7 +62,6 @@ management:
         include: "health,beans"
 
 ---
-
 spring:
   config:
     activate:
@@ -142,7 +147,7 @@ spring:
         # --- Single Event channel (all events go through here) ---
         event-channel:
           destination: event-channel
-        
+
         # --- Event Subscribers ---
         questionEventSubscriber-in-0:
           destination: event-channel
@@ -168,7 +173,6 @@ spring:
         userEventSubscriber-in-0:
           destination: event-channel
           group: user-service-group
-
 
   rabbitmq:
     host: localhost
