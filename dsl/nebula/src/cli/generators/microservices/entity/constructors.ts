@@ -134,7 +134,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
     const isRootEntity = entity.isRoot || false;
 
     const entityAny = entity as any;
-    const dtoTypeRef = entityAny.dtoType as string | undefined;
+    const aggregateRef = entityAny.aggregateRef as string | undefined;
     const dtoFieldMappingEntries: { dtoField: string; entityField: string; extractField?: string }[] =
         (entityAny.fieldMappings || [])
             .filter((mapping: any) => mapping?.dtoField && mapping?.entityField)
@@ -152,14 +152,13 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         }
     });
 
-    const customDtoType = dtoTypeRef;
-
     let dtoName: string;
     let dtoTypeName: string;
 
-    if (customDtoType) {
-        dtoName = customDtoType;
-        dtoTypeName = customDtoType;
+    if (aggregateRef) {
+        // aggregateRef is the aggregate name (e.g., "Topic"), derive DTO name (e.g., "TopicDto")
+        dtoName = `${aggregateRef}Dto`;
+        dtoTypeName = dtoName;
     } else {
         if (isRootEntity) {
             dtoName = `${entityName}Dto`;
@@ -174,8 +173,8 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
     if (!dtoSchema) {
         throw new Error(`DTO schema for ${dtoTypeName} was not found. Ensure a root entity defines this DTO.`);
     }
-    const dtoParamName = customDtoType
-        ? customDtoType.charAt(0).toLowerCase() + customDtoType.slice(1)
+    const dtoParamName = aggregateRef
+        ? `${aggregateRef.charAt(0).toLowerCase() + aggregateRef.slice(1)}Dto`
         : `${entityName.charAt(0).toLowerCase() + entityName.slice(1)}Dto`;
 
     // Find entity relationships (both single and collections)

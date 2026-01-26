@@ -1,14 +1,14 @@
 import shared-enums;
 
 Aggregate Execution  {
-    Entity ExecutionCourse uses dto CourseDto {
+    Entity ExecutionCourse uses Course {
         Integer courseAggregateId -> aggregateId;
         String courseName -> name;
         CourseType courseType -> type;
         Integer courseVersion -> version;
     }
 
-    Entity ExecutionUser uses dto UserDto {
+    Entity ExecutionUser uses User {
         Integer userAggregateId -> aggregateId;
         Integer userVersion -> version;
         AggregateState userState -> state;

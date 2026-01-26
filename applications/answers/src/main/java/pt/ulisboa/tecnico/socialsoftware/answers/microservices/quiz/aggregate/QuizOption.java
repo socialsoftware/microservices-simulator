@@ -5,7 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizOptionDto;
 
 @Entity
@@ -23,10 +23,8 @@ public class QuizOption {
 
     }
 
-    public QuizOption(OptionDto optionDto) {
-        setOptionSequence(optionDto.getSequence());
-        setOptionCorrect(optionDto.getCorrect());
-        setOptionContent(optionDto.getContent());
+    public QuizOption(QuestionDto questionDto) {
+        setOptionContent(questionDto.getContent());
     }
 
     public QuizOption(QuizOption other) {

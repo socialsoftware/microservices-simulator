@@ -622,17 +622,22 @@ ${gettersSettersCode}
 
         const entityAny = relatedEntity as any;
 
-        // Check if the entity uses a DTO type (from "uses dto CourseDto")
-        const dtoType = entityAny.dtoType;
+        // Check if the entity uses an aggregate reference (from "uses Topic")
+        const aggregateRef = entityAny.aggregateRef;
         let dtoTypeName: string | null = null;
+        let relatedAggregateName: string | undefined = undefined;
 
-        if (dtoType) {
-            if (dtoType.ref?.name) {
-                dtoTypeName = dtoType.ref.name;
-            } else if (dtoType.$refText) {
-                dtoTypeName = dtoType.$refText;
-            } else if (typeof dtoType === 'string') {
-                dtoTypeName = dtoType;
+        if (aggregateRef) {
+            // aggregateRef is the aggregate name (e.g., "Topic"), derive DTO name (e.g., "TopicDto")
+            if (typeof aggregateRef === 'string') {
+                relatedAggregateName = aggregateRef;
+                dtoTypeName = `${aggregateRef}Dto`;
+            } else if (aggregateRef.ref?.name) {
+                relatedAggregateName = aggregateRef.ref.name;
+                dtoTypeName = `${aggregateRef.ref.name}Dto`;
+            } else if (aggregateRef.$refText) {
+                relatedAggregateName = aggregateRef.$refText;
+                dtoTypeName = `${aggregateRef.$refText}Dto`;
             }
         }
 
@@ -642,19 +647,14 @@ ${gettersSettersCode}
         }
 
         // Check if the DTO is from another aggregate
-        if (dtoTypeName && allAggregates) {
-            for (const agg of allAggregates) {
-                if (agg.name === aggregate.name) continue; // Skip current aggregate
-
-                // Check if this aggregate has a root entity that generates this DTO
-                const rootEntity = agg.entities?.find((e: any) => e.isRoot);
-                if (rootEntity && rootEntity.name + 'Dto' === dtoTypeName) {
-                    return {
-                        dtoType: dtoTypeName,
-                        isFromAnotherAggregate: true,
-                        relatedAggregateName: agg.name
-                    };
-                }
+        if (relatedAggregateName && allAggregates) {
+            const targetAggregate = allAggregates.find(agg => agg.name === relatedAggregateName);
+            if (targetAggregate && targetAggregate.name !== aggregate.name) {
+                return {
+                    dtoType: dtoTypeName,
+                    isFromAnotherAggregate: true,
+                    relatedAggregateName: targetAggregate.name
+                };
             }
         }
 

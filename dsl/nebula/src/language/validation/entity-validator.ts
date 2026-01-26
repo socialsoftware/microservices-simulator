@@ -1,13 +1,10 @@
 import type { ValidationAcceptor } from "langium";
 import type { Entity, Model, Property } from "../generated/ast.js";
-import { getEntities } from "../../cli/utils/aggregate-helpers.js";
 import { NamingValidator } from "./naming-validator.js";
-import type { NebulaServices } from "../nebula-module.js";
 
 export class EntityValidator {
     constructor(
-        private readonly namingValidator: NamingValidator,
-        private readonly services?: NebulaServices
+        private readonly namingValidator: NamingValidator
     ) { }
 
     checkEntity(entity: Entity, accept: ValidationAcceptor): void {
@@ -57,51 +54,6 @@ export class EntityValidator {
         }
     }
 
-    private collectAllDtoEnabledEntities(model: Model): Map<string, Entity> {
-        const collected = new Map<string, Entity>();
-
-        const collectFromModel = (target?: Model) => {
-            if (!target) return;
-            for (const aggregate of target.aggregates || []) {
-                for (const entity of getEntities(aggregate)) {
-                    const generateDto = (entity as any)?.generateDto;
-                    if ((entity.isRoot || generateDto) && entity.name && !collected.has(entity.name)) {
-                        collected.set(entity.name, entity);
-                    }
-                }
-            }
-        };
-
-        collectFromModel(model);
-
-        const documentsService: any = (this.services as any)?.shared?.workspace?.LangiumDocuments;
-        const documentStream = documentsService?.all;
-
-        const iterateDocuments = (documents: any) => {
-            if (!documents) return;
-            if (typeof documents.forEach === 'function') {
-                documents.forEach((doc: any) => {
-                    const root = doc?.parseResult?.value;
-                    if (root && root.$type === 'Model') {
-                        collectFromModel(root as Model);
-                    }
-                });
-                return;
-            }
-            if (typeof documents[Symbol.iterator] === 'function') {
-                for (const doc of documents as any) {
-                    const root = doc?.parseResult?.value;
-                    if (root && root.$type === 'Model') {
-                        collectFromModel(root as Model);
-                    }
-                }
-            }
-        };
-
-        iterateDocuments(documentStream);
-
-        return collected;
-    }
 
     private getDtoFieldsForEntity(entity: Entity): Set<string> {
         const fields = new Set<string>();
@@ -144,30 +96,33 @@ export class EntityValidator {
         const allEntityFields = [...explicitEntityFields, ...mappingDefinedFields];
 
         const entityAny = entity as any;
-        const dtoType = entityAny.dtoType;
+        const aggregateRef = entityAny.aggregateRef;
         const model = entity.$container?.$container as Model | undefined;
 
         let targetDtoFields: Set<string> | undefined;
-        if (model && dtoType) {
-            const dtoName = dtoType;
-            const dtoEnabledEntities = this.collectAllDtoEnabledEntities(model);
-            if (dtoName.endsWith('Dto')) {
-                const targetEntityName = dtoName.slice(0, -3);
-                const targetEntity = dtoEnabledEntities.get(targetEntityName);
-                if (!targetEntity) {
-                    accept("error", `DTO '${dtoName}' must correspond to entity '${targetEntityName}' that is marked as 'Root' or 'Dto', but none was found.`, {
-                        node: entity,
-                        property: "dtoType",
-                    });
-                } else {
-                    targetDtoFields = this.getDtoFieldsForEntity(targetEntity);
-                }
-            } else {
-                accept("error", `DTO reference '${dtoName}' must end with 'Dto' to correspond to a generated DTO.`, {
-                    node: entity,
-                    property: "dtoType",
-                });
+        if (model && aggregateRef) {
+            // aggregateRef is the aggregate name (e.g., "Topic"), derive DTO name (e.g., "TopicDto")
+            const aggregateName = typeof aggregateRef === 'string' ? aggregateRef : (aggregateRef.ref?.name || aggregateRef.$refText || '');
+            if (!aggregateName) {
+                return; // Skip validation if aggregate name can't be determined
             }
+            // Find the root entity of the referenced aggregate
+            // Note: Only check in current model - cross-file aggregates will be validated during code generation
+            const targetAggregate = model.aggregates?.find(agg => agg.name === aggregateName);
+            if (!targetAggregate) {
+                // Aggregate not found in current model - skip validation (may be in another file)
+                // Code generation will validate cross-file references
+                return;
+            }
+            const rootEntity = targetAggregate.entities?.find((e: any) => e.isRoot);
+            if (!rootEntity) {
+                accept("error", `Aggregate '${aggregateName}' does not have a root entity.`, {
+                    node: entity,
+                    property: "aggregateRef",
+                });
+                return;
+            }
+            targetDtoFields = this.getDtoFieldsForEntity(rootEntity);
         }
 
         for (const mapping of fieldMappings) {

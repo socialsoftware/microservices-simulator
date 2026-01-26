@@ -1,11 +1,11 @@
 Aggregate Answer {
-    Entity AnswerUser uses dto UserDto {
+    Entity AnswerUser uses User {
         Integer userAggregateId -> aggregateId;
         String userName -> name;
         AggregateState userState -> state;
     }
 
-    Entity AnswerExecution uses dto ExecutionDto {
+    Entity AnswerExecution uses Execution {
         Integer executionAggregateId -> aggregateId;
         Integer executionVersion -> version;
     }
@@ -20,7 +20,7 @@ Aggregate Answer {
         AggregateState state default AggregateState.ACTIVE;
     }
 
-    Entity AnswerQuiz uses dto QuizDto {
+    Entity AnswerQuiz uses Quiz {
         Integer quizAggregateId -> aggregateId;
         Integer quizVersion -> version;
         List<Integer> quizQuestionsAggregateIds -> questions extract aggregateId;

@@ -1,11 +1,11 @@
 Aggregate Question {
-    Entity QuestionCourse uses dto CourseDto {
+    Entity QuestionCourse uses Course {
         Integer courseAggregateId -> aggregateId;
         String courseName -> name;
         Integer courseVersion -> version;
     }
 
-    Entity QuestionTopic uses dto TopicDto {
+    Entity QuestionTopic uses Topic {
         Integer topicAggregateId -> aggregateId;
         String topicName -> name;
         Integer topicVersion -> version;

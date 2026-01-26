@@ -42,7 +42,7 @@ Aggregate Tournament {
        }
     }
 
-    Entity TournamentExecution uses dto ExecutionDto {
+    Entity TournamentExecution uses Execution {
         Integer executionAggregateId -> aggregateId;
         Integer executionCourseAggregateId -> courseAggregateId;
         String executionAcronym -> acronym;
@@ -50,7 +50,7 @@ Aggregate Tournament {
         Integer executionVersion -> version;
     }
 
-    Entity TournamentCreator uses dto UserDto {
+    Entity TournamentCreator uses User {
         Integer creatorAggregateId -> aggregateId;
         String creatorName -> name;
         String creatorUsername -> username;
@@ -58,7 +58,7 @@ Aggregate Tournament {
         AggregateState creatorState -> state;
     }
 
-    Entity TournamentParticipant uses dto UserDto {
+    Entity TournamentParticipant uses User {
         Integer participantAggregateId -> aggregateId;
         String participantName -> name;
         String participantUsername -> username;
@@ -68,7 +68,7 @@ Aggregate Tournament {
         TournamentParticipantQuiz participantQuiz;
     }
 
-    Entity TournamentParticipantQuiz uses dto QuizDto {
+    Entity TournamentParticipantQuiz uses Quiz {
         Integer participantQuizAggregateId -> aggregateId;
         Integer participantQuizVersion;
         Boolean participantQuizAnswered;
@@ -77,7 +77,7 @@ Aggregate Tournament {
         TournamentParticipant tournamentParticipant;
     }
 
-    Entity TournamentTopic uses dto TopicDto {
+    Entity TournamentTopic uses Topic {
         Integer topicAggregateId -> aggregateId;
         Integer topicVersion -> version;
         AggregateState topicState -> state;
@@ -85,7 +85,7 @@ Aggregate Tournament {
         Integer topicCourseAggregateId -> courseAggregateId;
     }
 
-    Entity TournamentQuiz uses dto QuizDto {
+    Entity TournamentQuiz uses Quiz {
         Integer quizAggregateId -> aggregateId;
         Integer quizVersion -> version;
     }

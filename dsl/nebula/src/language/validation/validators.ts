@@ -20,10 +20,10 @@ export class NebulaValidator {
     private readonly repositoryValidator: RepositoryValidator;
     private readonly eventValidator: EventValidator;
 
-    constructor(private readonly services?: NebulaServices) {
+    constructor(services?: NebulaServices) {
         this.namingValidator = new NamingValidator();
         this.modelValidator = new ModelValidator(this.namingValidator);
-        this.entityValidator = new EntityValidator(this.namingValidator, this.services);
+        this.entityValidator = new EntityValidator(this.namingValidator);
         this.propertyValidator = new PropertyValidator(this.namingValidator);
         this.methodValidator = new MethodValidator(this.namingValidator);
         this.invariantValidator = new InvariantValidator(this.namingValidator);
