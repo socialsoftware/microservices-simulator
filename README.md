@@ -82,7 +82,7 @@ docker compose up test-quizzes-tcc
 
 ### Setting up the Database
 
-Follow the same database setup steps as in the [Maven section](#setting-up-the-database-1) or run postgres container with docker-compose.
+Follow the same database setup steps as in the [Maven section](#setting-up-the-database-1) or run postgres container with docker compose.
 
 ### Pre-configured Run Configurations
 
@@ -113,7 +113,7 @@ The project includes ready-to-use IntelliJ run configurations in the `.run/` dir
 ```bash
 sudo service postgresql start
 ```
-or with docker-compose:
+or with docker compose:
 ```bash
 docker compose up postgres -d
 ```
@@ -193,10 +193,15 @@ Running the application as distributed microservices requires setting up individ
 1. **Start RabbitMQ:**
 ```bash
 # Using Docker (recommended)
-docker-compose up rabbitmq -d
+docker compose up rabbitmq -d
 ```
 
-2. **Create databases for each microservice:**
+2. **Start Eureka service discovery (required for local microservices):**
+```bash
+docker compose up eureka-server -d
+```
+
+3. **Create databases for each microservice:**
 ```bash
 sudo su -l postgres
 createdb versiondb
@@ -364,6 +369,12 @@ kubectl delete namespace microservices-simulator
 
 The application uses Spring Boot profiles and YAML configuration files to manage different deployment modes.
 
+### Service Discovery
+
+Local microservices use Eureka for service discovery. The gateway and each microservice register with the Eureka
+server at `http://${EUREKA_HOST:localhost}:8761/eureka/`. In Kubernetes, the `kubernetes` profile enables
+Spring Cloud Kubernetes discovery instead of Eureka.
+
 ### Database Configuration
 
 Database settings are defined in [application.yaml](applications/quizzes/src/main/resources/application.yaml#L8):
@@ -409,11 +420,11 @@ Each microservice runs on a dedicated port:
 
 The [Gateway application.yaml](applications/gateway/src/main/resources/application.yaml) configures:
 
-1. **Service URLs** ([lines 4-12](applications/gateway/src/main/resources/application.yaml#L4)): Define base URLs for each microservice with environment variable overrides for Docker deployment.
+1. **Service discovery** ([lines 8-25](applications/gateway/src/main/resources/application.yaml#L8)): Eureka discovery for local deployments; Kubernetes discovery is enabled in the `kubernetes` profile.
 
-2. **Route Definitions** ([lines 31-89](applications/gateway/src/main/resources/application.yaml#L31)): Map API paths to backend services using Spring Cloud Gateway predicates.
+2. **Route definitions** ([lines 30-87](applications/gateway/src/main/resources/application.yaml#L30)): Map API paths to backend services using `lb://<service>${gateway.service-suffix}` URIs.
 
-3. **Service List** ([lines 14-22](applications/gateway/src/main/resources/application.yaml#L14)): List of services for admin operations like version management.
+3. **Version service URL** ([line 18](applications/gateway/src/main/resources/application.yaml#L18)): Base URL for the version service used by admin endpoints.
 
 ## Code structure
 
@@ -541,33 +552,33 @@ To reproduce the paper results follow the steps:
 * [Test code](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy#L78-L93) 
 * Run:
 ```
-docker-compose up test-fig3a
+docker compose up test-fig3a
 ```
 
 ### Figure 3(b)
 * [Test code](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy#L95-L112)
 * Run: 
 ```
-docker-compose up test-fig3b
+docker compose up test-fig3b
 ```
 
 ### Figure 3(c)
 * [Test code](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy#L114-L133)
 * Run: 
 ```
-docker-compose up test-fig3c
+docker compose up test-fig3c
 ```
 
 ### Figure 3(d)
 * [Test code](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy#L135-L156)
 * Run: 
 ```
-docker-compose up test-fig3d
+docker compose up test-fig3d
 ```
 
 ### Figure 4
 * [Test code](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy#L236-L266)
 * Run: 
 ```
-docker-compose up test-fig4
+docker compose up test-fig4
 ```
