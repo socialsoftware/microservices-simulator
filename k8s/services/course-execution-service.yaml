@@ -34,11 +34,11 @@ spec:
             - containerPort: 8083
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
               memory: "512Mi"
-              cpu: "500m"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes,course-execution-service,sagas,stream"
@@ -59,11 +59,11 @@ spec:
             - containerPort: 5432
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "50m"
-            limits:
               memory: "256Mi"
-              cpu: "200m"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
           env:
             - name: POSTGRES_DB
               value: "executiondb"

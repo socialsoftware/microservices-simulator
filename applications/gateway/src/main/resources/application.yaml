@@ -11,7 +11,7 @@ eureka:
       defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
     register-with-eureka: false
     fetch-registry: true
-    registry-fetch-interval-seconds: 5
+    registry-fetch-interval-seconds: 15
   instance:
     prefer-ip-address: true
 
@@ -29,60 +29,60 @@ spring:
           routes:
             # Course Execution Service (User Executions)
             - id: course-execution-service-users
-              uri: lb://course-execution
+              uri: lb://course-execution${gateway.service-suffix}
               predicates:
                 - Path=/users/*/executions
 
             # User Service
             - id: user-service
-              uri: lb://user
+              uri: lb://user${gateway.service-suffix}
               predicates:
                 - Path=/users/**
 
             # Topic Service
             - id: topic-service
-              uri: lb://topic
+              uri: lb://topic${gateway.service-suffix}
               predicates:
                 - Path=/courses/*/topics/**, /courses/*/create, /topics/**
 
             # Question Service
             - id: question-service
-              uri: lb://question
+              uri: lb://question${gateway.service-suffix}
               predicates:
                 - Path=/questions/**, /courses/*/questions/**
 
             # Answer Service
             - id: answer-service
-              uri: lb://answer
+              uri: lb://answer${gateway.service-suffix}
               predicates:
                 - Path=/quizzes/*/answer
 
             # Tournament Service
             - id: tournament-service
-              uri: lb://tournament
+              uri: lb://tournament${gateway.service-suffix}
               predicates:
                 - Path=/tournaments/**, /executions/*/tournaments/**, /tournament/**
 
             # Quiz Service
             - id: quiz-service
-              uri: lb://quiz
+              uri: lb://quiz${gateway.service-suffix}
               predicates:
                 - Path=/quizzes/**
 
             # Execution Routes (Ordered)
             - id: course-execution-service-create
-              uri: lb://course-execution
+              uri: lb://course-execution${gateway.service-suffix}
               predicates:
                 - Path=/executions/create
 
             - id: quiz-service-execution-post
-              uri: lb://quiz
+              uri: lb://quiz${gateway.service-suffix}
               predicates:
                 - Method=POST
                 - Path=/executions/{executionId}
 
             - id: course-execution-service
-              uri: lb://course-execution
+              uri: lb://course-execution${gateway.service-suffix}
               predicates:
                 - Path=/executions/**
 

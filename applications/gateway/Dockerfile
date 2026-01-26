@@ -10,7 +10,7 @@ RUN mvn dependency:go-offline -B
 COPY ./applications/gateway/src ./src
 
 FROM base AS run
-RUN mvn clean -Dmaven.test.skip=true package
+RUN mvn -Pkubernetes clean -Dmaven.test.skip=true package
 
 FROM eclipse-temurin:21-jre-alpine
 ARG APP_VERSION=0.0.1-SNAPSHOT

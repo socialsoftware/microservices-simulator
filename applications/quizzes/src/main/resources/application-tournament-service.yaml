@@ -5,8 +5,6 @@ spring:
     url: jdbc:postgresql://localhost:5432/tournamentdb
 
   cloud:
-    discovery:
-      enabled: true
     function:
       definition: commandResponseChannel;tournamentServiceCommandChannel;tournamentEventSubscriber;
     stream:
@@ -25,6 +23,15 @@ spring:
 
 server:
   port: 8087
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "!kubernetes"
+  cloud:
+    discovery:
+      enabled: true
 
 eureka:
   client:

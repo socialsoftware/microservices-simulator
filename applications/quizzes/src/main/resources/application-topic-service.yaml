@@ -5,8 +5,6 @@ spring:
     url: jdbc:postgresql://localhost:5432/topicdb
 
   cloud:
-    discovery:
-      enabled: true
     function:
       definition: commandResponseChannel;topicServiceCommandChannel;topicEventSubscriber;
     stream:
@@ -25,6 +23,15 @@ spring:
 
 server:
   port: 8086
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "!kubernetes"
+  cloud:
+    discovery:
+      enabled: true
 
 eureka:
   client:
