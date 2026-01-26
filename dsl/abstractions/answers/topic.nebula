@@ -1,5 +1,5 @@
 Aggregate Topic {
-    Entity TopicCourse uses dto CourseDto mapping {
+    Entity TopicCourse uses dto CourseDto {
         Integer courseAggregateId -> aggregateId;
         Integer courseVersion -> version;
     }

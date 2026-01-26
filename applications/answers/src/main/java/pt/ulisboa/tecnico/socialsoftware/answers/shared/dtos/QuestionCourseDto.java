@@ -4,6 +4,7 @@ import java.io.Serializable;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionCourse;
 
 public class QuestionCourseDto implements Serializable {
+    private Integer banana;
     private Integer aggregateId;
     private String name;
     private Integer version;
@@ -12,9 +13,18 @@ public class QuestionCourseDto implements Serializable {
     }
 
     public QuestionCourseDto(QuestionCourse questionCourse) {
+        this.banana = questionCourse.getBanana();
         this.aggregateId = questionCourse.getCourseAggregateId();
         this.name = questionCourse.getCourseName();
         this.version = questionCourse.getCourseVersion();
+    }
+
+    public Integer getBanana() {
+        return banana;
+    }
+
+    public void setBanana(Integer banana) {
+        this.banana = banana;
     }
 
     public Integer getAggregateId() {

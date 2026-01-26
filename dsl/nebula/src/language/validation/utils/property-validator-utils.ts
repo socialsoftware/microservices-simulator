@@ -7,7 +7,7 @@ import type { Entity, Property } from "../../generated/ast.js";
 function getEffectivePropertiesForValidation(entity: Entity): any[] {
     const explicitProps = entity.properties || [];
     const entityAny = entity as any;
-    const mappings = entityAny.dtoMapping?.fieldMappings || [];
+    const mappings = entityAny.fieldMappings || [];
 
     // Get properties defined in mappings (new syntax with type)
     const mappingProps = mappings

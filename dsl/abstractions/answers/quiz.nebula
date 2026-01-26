@@ -1,25 +1,23 @@
 import shared-enums;
 
 Aggregate Quiz {
-    Entity QuizExecution uses dto ExecutionDto mapping {
+    Entity QuizExecution uses dto ExecutionDto {
         Integer executionAggregateId -> aggregateId;
         String executionAcronym -> acronym;
         String executionAcademicTerm -> academicTerm;
-    } {
         String executionName;
     }
 
-    Entity QuizQuestion uses dto QuestionDto mapping {
+    Entity QuizQuestion uses dto QuestionDto {
         Integer questionAggregateId -> aggregateId;
         Integer questionVersion -> version;
         AggregateState questionState -> state;
         String questionTitle -> title;
         String questionContent -> content;
-    } {
         Integer questionSequence;
     }
 
-    Entity QuizOption uses dto OptionDto mapping {
+    Entity QuizOption uses dto OptionDto {
         Integer optionSequence -> sequence;
         Boolean optionCorrect -> correct;
         String optionContent -> content;

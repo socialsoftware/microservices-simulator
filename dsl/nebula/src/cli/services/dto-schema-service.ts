@@ -207,11 +207,11 @@ export class DtoSchemaService {
                     const collectionType = isSet ? 'Set' : 'List';
                     const aggregateIdFieldName = `${dtoFieldName}AggregateIds`;
 
-                    // Determine the correct accessor from the element entity's dtoMapping
+                    // Determine the correct accessor from the element entity's fieldMappings
                     let derivedAccessor = 'getAggregateId';
                     const elementEntityAny = elementEntity as any;
-                    if (elementEntityAny.dtoMapping?.fieldMappings) {
-                        const aggIdMapping = elementEntityAny.dtoMapping.fieldMappings.find((fm: any) =>
+                    if (elementEntityAny.fieldMappings) {
+                        const aggIdMapping = elementEntityAny.fieldMappings.find((fm: any) =>
                             fm.dtoField === 'aggregateId'
                         );
                         if (aggIdMapping && aggIdMapping.entityField) {
@@ -272,9 +272,8 @@ export class DtoSchemaService {
             if (targetEntity && !targetEntity.isRoot) {
                 // For non-root entities (like TopicCourse), check if they have a mapping that defines the aggregateId field
                 const entityAny = targetEntity as any;
-                const dtoMapping = entityAny.dtoMapping;
-                if (dtoMapping?.fieldMappings) {
-                    const aggIdMapping = dtoMapping.fieldMappings.find((fm: any) =>
+                if (entityAny.fieldMappings) {
+                    const aggIdMapping = entityAny.fieldMappings.find((fm: any) =>
                         fm.dtoField === 'aggregateId'
                     );
                     if (aggIdMapping && aggIdMapping.entityField) {
@@ -352,7 +351,7 @@ export class DtoSchemaService {
 
     private createFieldMappingMap(entity: any): Map<string, { dtoField: string; extractField?: string }> {
         const map = new Map<string, { dtoField: string; extractField?: string }>();
-        const mapping = entity?.dtoMapping?.fieldMappings as DtoFieldMapping[] | undefined;
+        const mapping = entity?.fieldMappings as DtoFieldMapping[] | undefined;
         if (!mapping) {
             return map;
         }

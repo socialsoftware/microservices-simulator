@@ -1,11 +1,11 @@
 Aggregate Answer {
-    Entity AnswerUser uses dto UserDto mapping {
+    Entity AnswerUser uses dto UserDto {
         Integer userAggregateId -> aggregateId;
         String userName -> name;
         AggregateState userState -> state;
     }
 
-    Entity AnswerExecution uses dto ExecutionDto mapping {
+    Entity AnswerExecution uses dto ExecutionDto {
         Integer executionAggregateId -> aggregateId;
         Integer executionVersion -> version;
     }
@@ -20,7 +20,7 @@ Aggregate Answer {
         AggregateState state default AggregateState.ACTIVE;
     }
 
-    Entity AnswerQuiz uses dto QuizDto mapping {
+    Entity AnswerQuiz uses dto QuizDto {
         Integer quizAggregateId -> aggregateId;
         Integer quizVersion -> version;
         List<Integer> quizQuestionsAggregateIds -> questions extract aggregateId;

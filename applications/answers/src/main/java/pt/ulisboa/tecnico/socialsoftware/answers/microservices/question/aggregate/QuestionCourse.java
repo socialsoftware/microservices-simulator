@@ -13,6 +13,7 @@ public class QuestionCourse {
     @Id
     @GeneratedValue
     private Long id;
+    private Integer banana;
     private Integer courseAggregateId;
     private String courseName;
     private Integer courseVersion;
@@ -30,6 +31,7 @@ public class QuestionCourse {
     }
 
     public QuestionCourse(QuestionCourse other) {
+        setCourseAggregateId(other.getCourseAggregateId());
         setCourseName(other.getCourseName());
         setCourseVersion(other.getCourseVersion());
     }
@@ -40,6 +42,14 @@ public class QuestionCourse {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Integer getBanana() {
+        return banana;
+    }
+
+    public void setBanana(Integer banana) {
+        this.banana = banana;
     }
 
     public Integer getCourseAggregateId() {
@@ -77,6 +87,7 @@ public class QuestionCourse {
 
     public QuestionCourseDto buildDto() {
         QuestionCourseDto dto = new QuestionCourseDto();
+        dto.setBanana(getBanana());
         dto.setAggregateId(getCourseAggregateId());
         dto.setName(getCourseName());
         dto.setVersion(getCourseVersion());

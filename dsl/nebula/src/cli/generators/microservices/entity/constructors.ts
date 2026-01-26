@@ -136,7 +136,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
     const entityAny = entity as any;
     const dtoTypeRef = entityAny.dtoType as string | undefined;
     const dtoFieldMappingEntries: { dtoField: string; entityField: string; extractField?: string }[] =
-        (entityAny.dtoMapping?.fieldMappings || [])
+        (entityAny.fieldMappings || [])
             .filter((mapping: any) => mapping?.dtoField && mapping?.entityField)
             .map((mapping: any) => ({
                 dtoField: mapping.dtoField,

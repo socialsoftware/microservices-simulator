@@ -451,7 +451,7 @@ ${components.buildDtoMethod}
     private resolveDtoFieldMappings(entity: Entity): Map<string, { property: any; extractField?: string }> {
         const overrides = new Map<string, { property: any; extractField?: string }>();
         const entityAny = entity as any;
-        const fieldMappings = entityAny?.dtoMapping?.fieldMappings as any[] | undefined;
+        const fieldMappings = entityAny?.fieldMappings as any[] | undefined;
         if (!fieldMappings) {
             return overrides;
         }

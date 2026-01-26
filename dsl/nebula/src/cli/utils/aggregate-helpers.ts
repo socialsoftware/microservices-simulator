@@ -139,7 +139,7 @@ export function getAggregateEntities(aggregate: Aggregate): Entity[] {
 export function getEffectiveProperties(entity: Entity): any[] {
     const explicitProps = entity.properties || [];
     const entityAny = entity as any;
-    const mappings = entityAny.dtoMapping?.fieldMappings || [];
+    const mappings = entityAny.fieldMappings || [];
 
     // Get properties defined in mappings (new syntax with type)
     const mappingProps = mappings

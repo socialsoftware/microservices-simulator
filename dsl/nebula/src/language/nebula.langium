@@ -19,10 +19,10 @@ AggregateElement:
     Entity | Method | Workflow | Repository | Events | WebAPIEndpoints | ServiceDefinition | Functionalities;
 
 Entity:
-    (isRoot?='Root')? (generateDto?='Dto')? 'Entity' name=ID ('uses' 'dto' dtoType=ID (dtoMapping=DtoEntityMapping)?)?
+    (isRoot?='Root')? (generateDto?='Dto')? 'Entity' name=ID ('uses' 'dto' dtoType=ID)?
     (
         '{'
-            properties+=Property*
+            (properties+=Property | fieldMappings+=DtoFieldMapping)*
             constructors+=Constructor*
             ('invariants' '{'
                 invariants+=Invariant*
@@ -32,11 +32,6 @@ Entity:
             '}')?
         '}'
     )?;
-
-DtoEntityMapping:
-    'mapping' '{'
-        fieldMappings+=DtoFieldMapping*
-    '}';
 
 // Simplified syntax: Type entityField -> dtoField;
 // Example: Integer courseAggregateId -> aggregateId;

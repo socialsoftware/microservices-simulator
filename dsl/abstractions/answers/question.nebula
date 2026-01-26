@@ -1,15 +1,15 @@
 Aggregate Question {
-    Entity QuestionCourse uses dto CourseDto mapping {
+    Entity QuestionCourse uses dto CourseDto {
         Integer courseAggregateId -> aggregateId;
         String courseName -> name;
         Integer courseVersion -> version;
+        Integer banana;
     }
 
-    Entity QuestionTopic uses dto TopicDto mapping {
+    Entity QuestionTopic uses dto TopicDto {
         Integer topicAggregateId -> aggregateId;
         String topicName -> name;
         Integer topicVersion -> version;
-    } {
         Integer topicId;
         AggregateState topicState;
     }

@@ -45,13 +45,8 @@ export class EntityValidator {
         }
 
         const entityAny = entity as any;
-        if (entity.generateDto && entityAny.dtoMapping) {
-            accept("error", "Entities marked with 'Dto' cannot declare a DTO mapping block.", {
-                node: entityAny.dtoMapping,
-            });
-        }
-        if (entityAny.dtoMapping?.fieldMappings) {
-            this.validateEntityDtoMapping(entity, entityAny.dtoMapping.fieldMappings, accept);
+        if (entityAny.fieldMappings && entityAny.fieldMappings.length > 0) {
+            this.validateEntityDtoMapping(entity, entityAny.fieldMappings, accept);
         }
 
         if (!entity.isRoot && entity.invariants && entity.invariants.length > 0) {
