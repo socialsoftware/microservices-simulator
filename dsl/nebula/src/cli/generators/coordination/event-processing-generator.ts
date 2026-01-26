@@ -5,7 +5,9 @@ import { OrchestrationBase } from '../common/orchestration-base.js';
 export class EventProcessingGenerator extends OrchestrationBase {
     async generate(aggregate: Aggregate, rootEntity: Entity, options: CoordinationGenerationOptions): Promise<string> {
         const context = this.buildContext(aggregate, rootEntity, options);
-        const template = this.buildTemplateString(context);
+        // Check if there are methods before building template
+        const hasMethods = context.eventProcessingMethods !== undefined && context.eventProcessingMethods.trim().length > 0;
+        const template = this.buildTemplateString(context, hasMethods);
         return this.renderSimpleTemplate(template, context);
     }
 
@@ -36,7 +38,7 @@ export class EventProcessingGenerator extends OrchestrationBase {
 
         return {
             ...tempContext,
-            eventProcessingMethods: renderedMethods
+            eventProcessingMethods: renderedMethods.trim().length > 0 ? renderedMethods : undefined
         };
     }
 
@@ -102,29 +104,16 @@ export class EventProcessingGenerator extends OrchestrationBase {
     private buildImports(aggregate: Aggregate, options: CoordinationGenerationOptions): string[] {
         const imports: string[] = [];
         const projectName = options.projectName.toLowerCase();
-        const hasSagas = options.architecture === 'causal-saga' || options.features?.includes('sagas');
-
         const basePackage = this.getBasePackage();
-        imports.push(`import static ${basePackage}.ms.TransactionalModel.SAGAS;`);
-        imports.push(`import static ${basePackage}.${projectName}.microservices.exception.${this.capitalize(options.projectName)}ErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;`);
 
-        imports.push('import java.util.Arrays;');
         imports.push('import org.springframework.beans.factory.annotation.Autowired;');
-        imports.push('import org.springframework.core.env.Environment;');
         imports.push('import org.springframework.stereotype.Service;');
-        imports.push('import jakarta.annotation.PostConstruct;');
-        imports.push(`import ${basePackage}.ms.TransactionalModel;`);
-        imports.push(`import ${basePackage}.${projectName}.microservices.exception.${this.capitalize(options.projectName)}Exception;`);
+        imports.push(`import ${basePackage}.ms.coordination.unitOfWork.UnitOfWork;`);
+        imports.push(`import ${basePackage}.ms.coordination.unitOfWork.UnitOfWorkService;`);
         imports.push(`import ${basePackage}.${projectName}.microservices.${aggregate.name.toLowerCase()}.service.${this.capitalize(aggregate.name)}Service;`);
-
-        // Add saga imports
-        imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
-        imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
 
         // Add imports for subscribed events (direct + interInvariants)
         const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
-        const aggregateName = aggregate.name;
-        const lowerAggregate = aggregateName.toLowerCase();
 
         allSubscribedEvents.forEach((event: any) => {
             const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
@@ -141,21 +130,15 @@ export class EventProcessingGenerator extends OrchestrationBase {
             }
 
             imports.push(`import ${basePackage}.${projectName}.microservices.${sourceAggregateName}.events.publish.${eventTypeName};`);
-
-            // Add saga class import if saga workflow exists for this event
-            if (hasSagas) {
-                const sagaWorkflow = this.findSagaWorkflowForEvent(aggregate, eventTypeName);
-                if (sagaWorkflow) {
-                    const sagaClassName = this.getSagaClassName(aggregateName, eventTypeName);
-                    imports.push(`import ${basePackage}.${projectName}.sagas.coordination.${lowerAggregate}.${sagaClassName};`);
-                }
-            }
         });
 
         return imports;
     }
 
-    private buildTemplateString(context: any): string {
+    private buildTemplateString(context: any, hasMethods: boolean): string {
+        // Only include methods section if there are methods
+        const methodsSection = hasMethods ? '\n\n{{eventProcessingMethods}}\n' : '';
+        
         return `package {{packageName}};
 
 {{imports}}
@@ -165,103 +148,91 @@ public class {{aggregateName}}EventProcessing {
     @Autowired
     private {{aggregateName}}Service {{lowerAggregate}}Service;
     
-    @Autowired(required = false)
-    private SagaUnitOfWorkService sagaUnitOfWorkService;
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    @Autowired
-    private Environment env;
-
-    private TransactionalModel workflowType;
-
-    @PostConstruct
-    public void init() {
-        String[] activeProfiles = env.getActiveProfiles();
-        workflowType = Arrays.asList(activeProfiles).contains(SAGAS.getValue()) ? SAGAS : null;
-        if (workflowType == null) {
-            throw new {{ProjectName}}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
-{{eventProcessingMethods}}
-}`;
+    public {{aggregateName}}EventProcessing(UnitOfWorkService unitOfWorkService) {
+        this.unitOfWorkService = unitOfWorkService;
+    }${methodsSection}}`;
     }
 
     private renderMethod(method: any, context: any, aggregate: Aggregate): string {
         const params = method.parameters.map((p: any) => `${p.type} ${p.name}`).join(', ');
 
-        // For event processing methods, generate saga workflow logic
+        // For event processing methods, generate simple UnitOfWork-based logic
         const eventParam = method.parameters.find((p: any) => p.type !== 'Integer' || p.name !== 'aggregateId');
         const eventTypeName = eventParam ? eventParam.type : 'UnknownEvent';
         const eventVarName = eventParam ? eventParam.name : 'event';
         const aggregateIdParam = method.parameters.find((p: any) => p.name === 'aggregateId');
         const aggregateIdName = aggregateIdParam ? aggregateIdParam.name : 'aggregateId';
 
-        // Check if there's a saga workflow for this event
-        const sagaWorkflow = this.findSagaWorkflowForEvent(aggregate, eventTypeName);
-        const hasSagaWorkflow = sagaWorkflow !== null;
+        // Derive service method name from event name
+        const serviceMethodName = this.deriveServiceMethodName(eventTypeName);
+        
+        // Build service method call parameters
+        const serviceCallParams = this.buildServiceMethodParams(eventTypeName, eventVarName, aggregateIdName);
 
-        if (hasSagaWorkflow) {
-            // Generate saga workflow call
-            const sagaClassName = this.getSagaClassName(context.aggregateName, eventTypeName);
-
-            return `    public ${method.returnType} ${method.name}(${params}) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-
-        ${sagaClassName} ${this.camelCase(sagaClassName)} =
-                new ${sagaClassName}(${context.lowerAggregate}Service, sagaUnitOfWorkService, ${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${this.buildSagaConstructorParams(eventTypeName, eventVarName, aggregateIdName)});
-                
-        ${this.camelCase(sagaClassName)}.executeWorkflow(sagaUnitOfWork);
+        return `    public ${method.returnType} ${method.name}(${params}) {
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        ${context.lowerAggregate}Service.${serviceMethodName}(${serviceCallParams});
+        unitOfWorkService.commit(unitOfWork);
     }`;
-        } else {
-            // Generate placeholder for events without saga workflows
-            return `    public ${method.returnType} ${method.name}(${params}) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-        // TODO: Implement saga workflow for ${eventTypeName}
-    }`;
+    }
+
+    private deriveServiceMethodName(eventTypeName: string): string {
+        // Remove "Event" suffix
+        const nameWithoutEvent = eventTypeName.replace(/Event$/, '');
+        
+        // Handle common patterns
+        if (nameWithoutEvent.startsWith('Update')) {
+            const entityName = nameWithoutEvent.replace(/^Update/, '');
+            return `update${entityName}`;
+        } else if (nameWithoutEvent.startsWith('Delete')) {
+            const entityName = nameWithoutEvent.replace(/^Delete/, '');
+            return `remove${entityName}`;
+        } else if (nameWithoutEvent.startsWith('Remove')) {
+            const entityName = nameWithoutEvent.replace(/^Remove/, '');
+            return `remove${entityName}`;
         }
+        
+        // Default: convert to camelCase
+        return nameWithoutEvent.charAt(0).toLowerCase() + nameWithoutEvent.slice(1);
     }
 
-    private findSagaWorkflowForEvent(aggregate: Aggregate, eventTypeName: string): any {
-        const workflows = (aggregate as any).workflows || [];
-        // Try to find a workflow that matches the event name pattern
-        // e.g., "AnonymizeStudentEvent" -> "anonymizeStudent" or "anonymizeUser"
-        const eventNameWithoutEvent = eventTypeName.replace(/Event$/, '');
-        const lowerEventName = eventNameWithoutEvent.charAt(0).toLowerCase() + eventNameWithoutEvent.slice(1);
-
-        return workflows.find((w: any) => {
-            const workflowName = (w.name || '').toLowerCase();
-            return workflowName === lowerEventName ||
-                workflowName === lowerEventName.replace('student', 'user') ||
-                workflowName === lowerEventName.replace('user', 'student');
-        });
-    }
-
-    private getSagaClassName(aggregateName: string, eventTypeName: string): string {
-        // Convert event name to saga class name
-        // e.g., "AnonymizeStudentEvent" -> "AnonymizeUserTournamentFunctionalitySagas"
-        // This is a simplified version - actual mapping may be more complex
-        const eventNameWithoutEvent = eventTypeName.replace(/Event$/, '');
-        const capitalized = eventNameWithoutEvent.charAt(0).toUpperCase() + eventNameWithoutEvent.slice(1);
-        return `${capitalized}${aggregateName}FunctionalitySagas`;
-    }
-
-    private buildSagaConstructorParams(eventTypeName: string, eventVarName: string, aggregateIdName: string): string {
-        // Build constructor parameters based on common event patterns
+    private buildServiceMethodParams(eventTypeName: string, eventVarName: string, aggregateIdName: string): string {
+        // Build common parameters: aggregateId, publisherAggregateId, publisherAggregateVersion, unitOfWork
         // This is a simplified version - actual implementation may need to inspect event fields
-        if (eventTypeName.includes('Anonymize')) {
-            return `${eventVarName}.getStudentAggregateId(), ${eventVarName}.getName(), ${eventVarName}.getUsername(), ${eventVarName}.getPublisherAggregateVersion(), sagaUnitOfWork`;
-        } else if (eventTypeName.includes('UpdateStudentName') || eventTypeName.includes('UpdateUserName')) {
-            return `${eventVarName}.getPublisherAggregateVersion(), ${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getStudentAggregateId(), sagaUnitOfWork, ${eventVarName}.getUpdatedName()`;
-        } else {
-            // Generic fallback
-            return `${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), sagaUnitOfWork`;
+        const nameWithoutEvent = eventTypeName.replace(/Event$/, '');
+        
+        // For Update events, typically include fields from the event
+        if (nameWithoutEvent.startsWith('Update')) {
+            // Try to extract entity name and common fields
+            if (nameWithoutEvent.includes('Topic')) {
+                return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getTopicName(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
+            } else if (nameWithoutEvent.includes('Question')) {
+                return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getTitle(), ${eventVarName}.getContent(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
+            } else if (nameWithoutEvent.includes('CourseExecution')) {
+                return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
+            }
+            // Generic update pattern
+            return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
+        } else if (nameWithoutEvent.startsWith('Delete') || nameWithoutEvent.startsWith('Remove')) {
+            // For Delete/Remove events, typically just aggregateId, publisherAggregateId, version, unitOfWork
+            if (nameWithoutEvent.includes('CourseExecution')) {
+                return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
+            } else if (nameWithoutEvent.includes('Question')) {
+                // Some remove methods don't take version
+                if (nameWithoutEvent.includes('QuizQuestion')) {
+                    return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), unitOfWork`;
+                }
+                return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
+            }
+            // Generic delete pattern
+            return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
         }
+        
+        // Default fallback
+        return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
     }
 
-    private camelCase(str: string): string {
-        return str.charAt(0).toLowerCase() + str.slice(1);
-    }
 
 }

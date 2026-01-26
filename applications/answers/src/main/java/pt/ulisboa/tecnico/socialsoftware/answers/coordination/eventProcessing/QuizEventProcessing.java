@@ -1,39 +1,18 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
-import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.UNDEFINED_TRANSACTIONAL_MODEL;
-import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import jakarta.annotation.PostConstruct;
-import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 
 @Service
 public class QuizEventProcessing {
     @Autowired
     private QuizService quizService;
     
-    @Autowired(required = false)
-    private SagaUnitOfWorkService sagaUnitOfWorkService;
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    @Autowired
-    private Environment env;
-
-    private TransactionalModel workflowType;
-
-    @PostConstruct
-    public void init() {
-        String[] activeProfiles = env.getActiveProfiles();
-        workflowType = Arrays.asList(activeProfiles).contains(SAGAS.getValue()) ? SAGAS : null;
-        if (workflowType == null) {
-            throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
-{{eventProcessingMethods}}
-}
+    public QuizEventProcessing(UnitOfWorkService unitOfWorkService) {
+        this.unitOfWorkService = unitOfWorkService;
+    }}
