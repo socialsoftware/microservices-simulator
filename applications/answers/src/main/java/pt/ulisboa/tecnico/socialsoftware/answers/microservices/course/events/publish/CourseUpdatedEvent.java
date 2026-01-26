@@ -10,6 +10,7 @@ public class CourseUpdatedEvent extends Event {
     private LocalDateTime creationDate;
 
     public CourseUpdatedEvent() {
+        super();
     }
 
     public CourseUpdatedEvent(Integer aggregateId, String name, LocalDateTime creationDate) {

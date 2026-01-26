@@ -12,6 +12,7 @@ public class TournamentUpdatedEvent extends Event {
     private Boolean cancelled;
 
     public TournamentUpdatedEvent() {
+        super();
     }
 
     public TournamentUpdatedEvent(Integer aggregateId, LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, Boolean cancelled) {

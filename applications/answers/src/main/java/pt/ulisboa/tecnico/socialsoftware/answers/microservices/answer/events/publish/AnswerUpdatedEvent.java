@@ -11,6 +11,7 @@ public class AnswerUpdatedEvent extends Event {
     private Boolean completed;
 
     public AnswerUpdatedEvent() {
+        super();
     }
 
     public AnswerUpdatedEvent(Integer aggregateId, LocalDateTime creationDate, LocalDateTime answerDate, Boolean completed) {

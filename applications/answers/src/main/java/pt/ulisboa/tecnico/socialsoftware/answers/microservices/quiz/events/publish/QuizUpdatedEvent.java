@@ -13,6 +13,7 @@ public class QuizUpdatedEvent extends Event {
     private LocalDateTime resultsDate;
 
     public QuizUpdatedEvent() {
+        super();
     }
 
     public QuizUpdatedEvent(Integer aggregateId, String title, LocalDateTime creationDate, LocalDateTime availableDate, LocalDateTime conclusionDate, LocalDateTime resultsDate) {

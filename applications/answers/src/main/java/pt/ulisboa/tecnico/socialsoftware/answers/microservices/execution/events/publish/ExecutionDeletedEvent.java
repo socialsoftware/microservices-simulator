@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 public class ExecutionDeletedEvent extends Event {
 
     public ExecutionDeletedEvent() {
+        super();
     }
 
     public ExecutionDeletedEvent(Integer aggregateId) {

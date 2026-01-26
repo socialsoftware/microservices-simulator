@@ -13,6 +13,7 @@ public class {{eventName}} extends Event {
 {{/each}}
 
     public {{eventName}}() {
+        super();
     }
 
     public {{eventName}}(Integer aggregateId{{#if fields}}, {{#each fields}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}) {

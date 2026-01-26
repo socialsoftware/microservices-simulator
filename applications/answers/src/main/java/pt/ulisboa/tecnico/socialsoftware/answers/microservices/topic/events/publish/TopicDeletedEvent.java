@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 public class TopicDeletedEvent extends Event {
 
     public TopicDeletedEvent() {
+        super();
     }
 
     public TopicDeletedEvent(Integer aggregateId) {

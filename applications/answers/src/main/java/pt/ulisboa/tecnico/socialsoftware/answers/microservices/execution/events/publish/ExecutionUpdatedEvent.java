@@ -11,6 +11,7 @@ public class ExecutionUpdatedEvent extends Event {
     private LocalDateTime endDate;
 
     public ExecutionUpdatedEvent() {
+        super();
     }
 
     public ExecutionUpdatedEvent(Integer aggregateId, String acronym, String academicTerm, LocalDateTime endDate) {

@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 public class QuizDeletedEvent extends Event {
 
     public QuizDeletedEvent() {
+        super();
     }
 
     public QuizDeletedEvent(Integer aggregateId) {

@@ -10,6 +10,7 @@ public class UserUpdatedEvent extends Event {
     private Boolean active;
 
     public UserUpdatedEvent() {
+        super();
     }
 
     public UserUpdatedEvent(Integer aggregateId, String name, String username, Boolean active) {

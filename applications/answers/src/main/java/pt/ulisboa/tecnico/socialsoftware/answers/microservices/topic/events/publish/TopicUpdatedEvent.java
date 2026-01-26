@@ -8,6 +8,7 @@ public class TopicUpdatedEvent extends Event {
     private String name;
 
     public TopicUpdatedEvent() {
+        super();
     }
 
     public TopicUpdatedEvent(Integer aggregateId, String name) {

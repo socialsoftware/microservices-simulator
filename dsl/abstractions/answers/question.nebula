@@ -3,7 +3,6 @@ Aggregate Question {
         Integer courseAggregateId -> aggregateId;
         String courseName -> name;
         Integer courseVersion -> version;
-        Integer banana;
     }
 
     Entity QuestionTopic uses dto TopicDto {
