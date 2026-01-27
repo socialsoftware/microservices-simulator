@@ -8,6 +8,7 @@ export class ServiceCrudGenerator {
         const lowerAggregate = aggregateName.toLowerCase();
         const rootEntityName = rootEntity.name;
 
+        // All CRUD operations use UnitOfWork so sagas can track changes/events
         const createParams = `Create${capitalizedAggregate}RequestDto createRequest, UnitOfWork unitOfWork`;
         const createBody = this.generateCreateMethodBody(rootEntity, aggregateName, projectName, aggregate);
 
@@ -19,10 +20,9 @@ ${createBody}
         }
     }
 
-    public ${rootEntityName}Dto get${capitalizedAggregate}ById(Integer id) {
+    public ${rootEntityName}Dto get${capitalizedAggregate}ById(Integer id, UnitOfWork unitOfWork) {
         try {
-            ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) ${lowerAggregate}Repository.findById(id)
-                .orElseThrow(() -> new ${capitalize(projectName)}Exception("${capitalizedAggregate} not found with id: " + id));
+            ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             return new ${rootEntityName}Dto(${lowerAggregate});
         } catch (${capitalize(projectName)}Exception e) {
             throw e;
@@ -31,24 +31,29 @@ ${createBody}
         }
     }
 
-    public List<${rootEntityName}Dto> getAll${capitalizedAggregate}s() {
+    public List<${rootEntityName}Dto> getAll${capitalizedAggregate}s(UnitOfWork unitOfWork) {
         try {
-            return ${lowerAggregate}Repository.findAll().stream()
-                .map(entity -> new ${rootEntityName}Dto((${rootEntityName}) entity))
+            // First collect aggregateIds, then load each aggregate through UnitOfWork
+            Set<Integer> aggregateIds = ${lowerAggregate}Repository.findAll().stream()
+                .map(${rootEntityName}::getAggregateId)
+                .collect(Collectors.toSet());
+
+            return aggregateIds.stream()
+                .map(id -> (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(${rootEntityName}Dto::new)
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new ${capitalize(projectName)}Exception("Error retrieving all ${lowerAggregate}s: " + e.getMessage());
         }
     }
 
-    public ${rootEntityName}Dto update${capitalizedAggregate}(${rootEntityName}Dto ${lowerAggregate}Dto) {
+    public ${rootEntityName}Dto update${capitalizedAggregate}(${rootEntityName}Dto ${lowerAggregate}Dto, UnitOfWork unitOfWork) {
         try {
             Integer id = ${lowerAggregate}Dto.getAggregateId();
-            ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) ${lowerAggregate}Repository.findById(id)
-                .orElseThrow(() -> new ${capitalize(projectName)}Exception("${capitalizedAggregate} not found with id: " + id));
+            ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
 ${this.generateUpdateLogic(rootEntity, aggregateName)}
 
-            ${lowerAggregate} = ${lowerAggregate}Repository.save(${lowerAggregate});
+            unitOfWorkService.registerChanged(${lowerAggregate}, unitOfWork);
             return new ${rootEntityName}Dto(${lowerAggregate});
         } catch (${capitalize(projectName)}Exception e) {
             throw e;
@@ -57,12 +62,11 @@ ${this.generateUpdateLogic(rootEntity, aggregateName)}
         }
     }
 
-    public void delete${capitalizedAggregate}(Integer id) {
+    public void delete${capitalizedAggregate}(Integer id, UnitOfWork unitOfWork) {
         try {
-            if (!${lowerAggregate}Repository.existsById(id)) {
-                throw new ${capitalize(projectName)}Exception("${capitalizedAggregate} not found with id: " + id);
-            }
-            ${lowerAggregate}Repository.deleteById(id);
+            ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            ${lowerAggregate}.remove();
+            unitOfWorkService.registerChanged(${lowerAggregate}, unitOfWork);
         } catch (${capitalize(projectName)}Exception e) {
             throw e;
         } catch (Exception e) {
