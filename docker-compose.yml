@@ -336,7 +336,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: answer-saga
+        PROFILE: answer-${TX_MODE:-saga}
     image: quizzes-answer
     container_name: answer-service
     depends_on:
@@ -367,7 +367,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: course-saga
+        PROFILE: course-${TX_MODE:-saga}
     image: quizzes-course
     container_name: course-service
     depends_on:
@@ -398,7 +398,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: course-execution-saga
+        PROFILE: course-execution-${TX_MODE:-saga}
     image: quizzes-course-execution
     container_name: course-execution-service
     depends_on:
@@ -429,7 +429,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: question-saga
+        PROFILE: question-${TX_MODE:-saga}
     image: quizzes-question
     container_name: question-service
     depends_on:
@@ -460,7 +460,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: quiz-saga
+        PROFILE: quiz-${TX_MODE:-saga}
     image: quizzes-quiz
     container_name: quiz-service
     depends_on:
@@ -491,7 +491,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: topic-saga
+        PROFILE: topic-${TX_MODE:-saga}
     image: quizzes-topic
     container_name: topic-service
     depends_on:
@@ -522,7 +522,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: tournament-saga
+        PROFILE: tournament-${TX_MODE:-saga}
     image: quizzes-tournament
     container_name: tournament-service
     depends_on:
@@ -553,7 +553,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: user-saga
+        PROFILE: user-${TX_MODE:-saga}
     image: quizzes-user
     container_name: user-service
     depends_on:
