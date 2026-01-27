@@ -374,7 +374,7 @@ Install the following packages:
 
 - [Docker](https://docs.docker.com/get-docker/) - Container runtime
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) - Kubernetes CLI
-- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) (recommended) - Local Kubernetes cluster
+- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) (recommended) – Local Kubernetes cluster
 
 **Create a Kind cluster:**
 
@@ -386,7 +386,7 @@ kind create cluster --name microservices
 
 ```bash
 # Build all Docker images
-docker compose build
+docker compose build --with-dependencies gateway
 
 # Load images into Kind cluster
 for img in gateway simulator quizzes-answer quizzes-course quizzes-course-execution quizzes-question quizzes-quiz quizzes-topic quizzes-tournament quizzes-user; do
@@ -414,6 +414,9 @@ kubectl apply -f k8s/services/
 # Check status
 kubectl get pods -n microservices-simulator
 ```
+
+> **Note:** To change transactional model profile, edit `k8s/services/` and change the
+> `SPRING_PROFILES_ACTIVE` environment variable of each service.
 
 #### Access the Application
 
@@ -449,6 +452,12 @@ kubectl delete namespace microservices-simulator
 The application uses Spring Boot profiles and YAML configuration files to manage different deployment modes.
 
 ### Jaeger Tracing
+
+The projects uses [Jaeger](https://www.jaegertracing.io/) for distributed tracing to monitor and visualize the flow of requests across microservices.
+
+*   **Dashboard**: Access the Jaeger UI at [http://localhost:16686](http://localhost:16686).
+*   **Collector**: The application sends traces to the Jaeger collector on `http://localhost:4317` using the OTLP gRPC protocol.
+*   **Instrumentation**: Custom instrumentation is implemented in `TraceManager` using the OpenTelemetry SDK to trace functionalities and their steps.
 
 ### Service Discovery
 
