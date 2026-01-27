@@ -15,12 +15,12 @@ public class QuizQuestion {
     @Id
     @GeneratedValue
     private Long id;
-    private Integer questionAggregateId;
-    private Integer questionVersion;
     private AggregateState questionState;
     private Integer questionSequence;
     private String questionTitle;
     private String questionContent;
+    private Integer questionAggregateId;
+    private Integer questionVersion;
     @OneToOne
     private Quiz quiz;
 
@@ -37,11 +37,11 @@ public class QuizQuestion {
     }
 
     public QuizQuestion(QuizQuestion other) {
-        setQuestionVersion(other.getQuestionVersion());
-        setQuestionState(other.getQuestionState());
         setQuestionSequence(other.getQuestionSequence());
         setQuestionTitle(other.getQuestionTitle());
         setQuestionContent(other.getQuestionContent());
+        setQuestionAggregateId(other.getQuestionAggregateId());
+        setQuestionVersion(other.getQuestionVersion());
     }
 
     public Long getId() {
@@ -50,22 +50,6 @@ public class QuizQuestion {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Integer getQuestionAggregateId() {
-        return questionAggregateId;
-    }
-
-    public void setQuestionAggregateId(Integer questionAggregateId) {
-        this.questionAggregateId = questionAggregateId;
-    }
-
-    public Integer getQuestionVersion() {
-        return questionVersion;
-    }
-
-    public void setQuestionVersion(Integer questionVersion) {
-        this.questionVersion = questionVersion;
     }
 
     public AggregateState getQuestionState() {
@@ -100,6 +84,22 @@ public class QuizQuestion {
         this.questionContent = questionContent;
     }
 
+    public Integer getQuestionAggregateId() {
+        return questionAggregateId;
+    }
+
+    public void setQuestionAggregateId(Integer questionAggregateId) {
+        this.questionAggregateId = questionAggregateId;
+    }
+
+    public Integer getQuestionVersion() {
+        return questionVersion;
+    }
+
+    public void setQuestionVersion(Integer questionVersion) {
+        this.questionVersion = questionVersion;
+    }
+
     public Quiz getQuiz() {
         return quiz;
     }
@@ -111,12 +111,12 @@ public class QuizQuestion {
 
     public QuizQuestionDto buildDto() {
         QuizQuestionDto dto = new QuizQuestionDto();
-        dto.setAggregateId(getQuestionAggregateId());
-        dto.setVersion(getQuestionVersion());
         dto.setState(getQuestionState());
         dto.setQuestionSequence(getQuestionSequence());
         dto.setTitle(getQuestionTitle());
         dto.setContent(getQuestionContent());
+        dto.setAggregateId(getQuestionAggregateId());
+        dto.setVersion(getQuestionVersion());
         return dto;
     }
 }

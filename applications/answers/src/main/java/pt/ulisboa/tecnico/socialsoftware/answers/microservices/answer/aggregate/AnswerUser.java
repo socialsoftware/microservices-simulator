@@ -16,8 +16,9 @@ public class AnswerUser {
     @GeneratedValue
     private Long id;
     private Integer userAggregateId;
-    private AggregateState userState;
     private String userName;
+    private Integer userVersion;
+    private AggregateState userState;
     @OneToOne
     private Answer answer;
 
@@ -27,13 +28,15 @@ public class AnswerUser {
 
     public AnswerUser(UserDto userDto) {
         setUserAggregateId(userDto.getAggregateId());
+        setUserVersion(userDto.getVersion());
         setUserState(userDto.getState());
         setUserName(userDto.getName());
     }
 
     public AnswerUser(AnswerUser other) {
-        setUserState(other.getUserState());
         setUserName(other.getUserName());
+        setUserVersion(other.getUserVersion());
+        setUserState(other.getUserState());
     }
 
     public Long getId() {
@@ -52,20 +55,28 @@ public class AnswerUser {
         this.userAggregateId = userAggregateId;
     }
 
-    public AggregateState getUserState() {
-        return userState;
-    }
-
-    public void setUserState(AggregateState userState) {
-        this.userState = userState;
-    }
-
     public String getUserName() {
         return userName;
     }
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public Integer getUserVersion() {
+        return userVersion;
+    }
+
+    public void setUserVersion(Integer userVersion) {
+        this.userVersion = userVersion;
+    }
+
+    public AggregateState getUserState() {
+        return userState;
+    }
+
+    public void setUserState(AggregateState userState) {
+        this.userState = userState;
     }
 
     public Answer getAnswer() {
@@ -80,8 +91,9 @@ public class AnswerUser {
     public AnswerUserDto buildDto() {
         AnswerUserDto dto = new AnswerUserDto();
         dto.setAggregateId(getUserAggregateId());
-        dto.setState(getUserState());
         dto.setName(getUserName());
+        dto.setVersion(getUserVersion());
+        dto.setState(getUserState());
         return dto;
     }
 }

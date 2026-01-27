@@ -5,6 +5,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicCourseDto;
 
@@ -15,6 +17,7 @@ public class TopicCourse {
     private Long id;
     private Integer courseAggregateId;
     private Integer courseVersion;
+    private AggregateState courseState;
     @OneToOne
     private Topic topic;
 
@@ -25,10 +28,12 @@ public class TopicCourse {
     public TopicCourse(CourseDto courseDto) {
         setCourseAggregateId(courseDto.getAggregateId());
         setCourseVersion(courseDto.getVersion());
+        setCourseState(courseDto.getState());
     }
 
     public TopicCourse(TopicCourse other) {
         setCourseVersion(other.getCourseVersion());
+        setCourseState(other.getCourseState());
     }
 
     public Long getId() {
@@ -55,6 +60,14 @@ public class TopicCourse {
         this.courseVersion = courseVersion;
     }
 
+    public AggregateState getCourseState() {
+        return courseState;
+    }
+
+    public void setCourseState(AggregateState courseState) {
+        this.courseState = courseState;
+    }
+
     public Topic getTopic() {
         return topic;
     }
@@ -68,6 +81,7 @@ public class TopicCourse {
         TopicCourseDto dto = new TopicCourseDto();
         dto.setAggregateId(getCourseAggregateId());
         dto.setVersion(getCourseVersion());
+        dto.setState(getCourseState());
         return dto;
     }
 }

@@ -5,6 +5,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizOptionDto;
 
@@ -16,6 +18,9 @@ public class QuizOption {
     private Integer optionSequence;
     private boolean optionCorrect;
     private String optionContent;
+    private Integer questionAggregateId;
+    private Integer questionVersion;
+    private AggregateState questionState;
     @OneToOne
     private Quiz quiz;
 
@@ -24,12 +29,18 @@ public class QuizOption {
     }
 
     public QuizOption(QuestionDto questionDto) {
+        setQuestionAggregateId(questionDto.getAggregateId());
+        setQuestionVersion(questionDto.getVersion());
+        setQuestionState(questionDto.getState());
         setOptionContent(questionDto.getContent());
     }
 
     public QuizOption(QuizOption other) {
         setOptionCorrect(other.getOptionCorrect());
         setOptionContent(other.getOptionContent());
+        setQuestionAggregateId(other.getQuestionAggregateId());
+        setQuestionVersion(other.getQuestionVersion());
+        setQuestionState(other.getQuestionState());
     }
 
     public Long getId() {
@@ -64,6 +75,30 @@ public class QuizOption {
         this.optionContent = optionContent;
     }
 
+    public Integer getQuestionAggregateId() {
+        return questionAggregateId;
+    }
+
+    public void setQuestionAggregateId(Integer questionAggregateId) {
+        this.questionAggregateId = questionAggregateId;
+    }
+
+    public Integer getQuestionVersion() {
+        return questionVersion;
+    }
+
+    public void setQuestionVersion(Integer questionVersion) {
+        this.questionVersion = questionVersion;
+    }
+
+    public AggregateState getQuestionState() {
+        return questionState;
+    }
+
+    public void setQuestionState(AggregateState questionState) {
+        this.questionState = questionState;
+    }
+
     public Quiz getQuiz() {
         return quiz;
     }
@@ -78,6 +113,9 @@ public class QuizOption {
         dto.setSequence(getOptionSequence());
         dto.setCorrect(getOptionCorrect());
         dto.setContent(getOptionContent());
+        dto.setAggregateId(getQuestionAggregateId());
+        dto.setVersion(getQuestionVersion());
+        dto.setState(getQuestionState());
         return dto;
     }
 }

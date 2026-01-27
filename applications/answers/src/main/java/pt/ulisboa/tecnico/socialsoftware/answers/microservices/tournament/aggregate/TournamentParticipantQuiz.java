@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantQuizDto;
@@ -22,6 +24,7 @@ public class TournamentParticipantQuiz {
     private Integer participantQuizNumberOfCorrect;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentparticipantquiz")
     private TournamentParticipant tournamentParticipant;
+    private AggregateState quizState;
     @OneToOne
     private Tournament tournament;
 
@@ -32,6 +35,7 @@ public class TournamentParticipantQuiz {
     public TournamentParticipantQuiz(QuizDto quizDto) {
         setParticipantQuizAggregateId(quizDto.getAggregateId());
         setParticipantQuizVersion(quizDto.getVersion());
+        setQuizState(quizDto.getState());
     }
 
     public TournamentParticipantQuiz(TournamentParticipantQuiz other) {
@@ -40,6 +44,7 @@ public class TournamentParticipantQuiz {
         setParticipantQuizNumberOfAnswered(other.getParticipantQuizNumberOfAnswered());
         setParticipantQuizNumberOfCorrect(other.getParticipantQuizNumberOfCorrect());
         setTournamentParticipant(new TournamentParticipant(other.getTournamentParticipant()));
+        setQuizState(other.getQuizState());
     }
 
     public Long getId() {
@@ -101,6 +106,14 @@ public class TournamentParticipantQuiz {
         }
     }
 
+    public AggregateState getQuizState() {
+        return quizState;
+    }
+
+    public void setQuizState(AggregateState quizState) {
+        this.quizState = quizState;
+    }
+
     public Tournament getTournament() {
         return tournament;
     }
@@ -118,6 +131,7 @@ public class TournamentParticipantQuiz {
         dto.setParticipantQuizNumberOfAnswered(getParticipantQuizNumberOfAnswered());
         dto.setParticipantQuizNumberOfCorrect(getParticipantQuizNumberOfCorrect());
         dto.setTournamentParticipant(getTournamentParticipant() != null ? new TournamentParticipantDto(getTournamentParticipant()) : null);
+        dto.setState(getQuizState());
         return dto;
     }
 }

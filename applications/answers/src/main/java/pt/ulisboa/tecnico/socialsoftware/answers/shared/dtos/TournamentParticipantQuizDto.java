@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipantQuiz;
 
 public class TournamentParticipantQuizDto implements Serializable {
@@ -10,6 +11,7 @@ public class TournamentParticipantQuizDto implements Serializable {
     private Integer participantQuizNumberOfAnswered;
     private Integer participantQuizNumberOfCorrect;
     private TournamentParticipantDto tournamentParticipant;
+    private AggregateState state;
 
     public TournamentParticipantQuizDto() {
     }
@@ -21,6 +23,7 @@ public class TournamentParticipantQuizDto implements Serializable {
         this.participantQuizNumberOfAnswered = tournamentParticipantQuiz.getParticipantQuizNumberOfAnswered();
         this.participantQuizNumberOfCorrect = tournamentParticipantQuiz.getParticipantQuizNumberOfCorrect();
         this.tournamentParticipant = tournamentParticipantQuiz.getTournamentParticipant() != null ? new TournamentParticipantDto(tournamentParticipantQuiz.getTournamentParticipant()) : null;
+        this.state = tournamentParticipantQuiz.getQuizState();
     }
 
     public Integer getAggregateId() {
@@ -69,5 +72,13 @@ public class TournamentParticipantQuizDto implements Serializable {
 
     public void setTournamentParticipant(TournamentParticipantDto tournamentParticipant) {
         this.tournamentParticipant = tournamentParticipant;
+    }
+
+    public AggregateState getState() {
+        return state;
+    }
+
+    public void setState(AggregateState state) {
+        this.state = state;
     }
 }

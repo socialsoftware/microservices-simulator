@@ -35,11 +35,11 @@ public class TournamentParticipant {
     }
 
     public TournamentParticipant(ExecutionUserDto executionUserDto) {
+        setParticipantName(executionUserDto.getName());
+        setParticipantUsername(executionUserDto.getUsername());
         setParticipantAggregateId(executionUserDto.getAggregateId());
         setParticipantVersion(executionUserDto.getVersion());
         setParticipantState(executionUserDto.getState());
-        setParticipantName(executionUserDto.getName());
-        setParticipantUsername(executionUserDto.getUsername());
     }
 
     public TournamentParticipant(TournamentParticipant other) {

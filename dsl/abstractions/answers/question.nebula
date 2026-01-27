@@ -2,17 +2,13 @@ Aggregate Question {
     @GenerateCrud;
     
     Entity QuestionCourse uses Course {
-        Integer courseAggregateId;
         String courseName -> name;
-        Integer courseVersion;
     }
 
     Entity QuestionTopic uses Topic {
-        Integer topicAggregateId;
-        String topicName -> name;
-        Integer topicVersion;
         Integer topicId;
         AggregateState topicState;
+        String topicName -> name;
     }
 
     Dto Entity Option {

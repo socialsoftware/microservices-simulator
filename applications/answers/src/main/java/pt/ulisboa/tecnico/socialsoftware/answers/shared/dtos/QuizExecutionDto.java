@@ -1,30 +1,27 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizExecution;
 
 public class QuizExecutionDto implements Serializable {
-    private Integer aggregateId;
     private String executionName;
     private String acronym;
     private String academicTerm;
+    private Integer aggregateId;
+    private Integer version;
+    private AggregateState state;
 
     public QuizExecutionDto() {
     }
 
     public QuizExecutionDto(QuizExecution quizExecution) {
-        this.aggregateId = quizExecution.getExecutionAggregateId();
         this.executionName = quizExecution.getExecutionName();
         this.acronym = quizExecution.getExecutionAcronym();
         this.academicTerm = quizExecution.getExecutionAcademicTerm();
-    }
-
-    public Integer getAggregateId() {
-        return aggregateId;
-    }
-
-    public void setAggregateId(Integer aggregateId) {
-        this.aggregateId = aggregateId;
+        this.aggregateId = quizExecution.getExecutionAggregateId();
+        this.version = quizExecution.getExecutionVersion();
+        this.state = quizExecution.getExecutionState();
     }
 
     public String getExecutionName() {
@@ -49,5 +46,29 @@ public class QuizExecutionDto implements Serializable {
 
     public void setAcademicTerm(String academicTerm) {
         this.academicTerm = academicTerm;
+    }
+
+    public Integer getAggregateId() {
+        return aggregateId;
+    }
+
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    public AggregateState getState() {
+        return state;
+    }
+
+    public void setState(AggregateState state) {
+        this.state = state;
     }
 }

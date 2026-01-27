@@ -5,39 +5,23 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizQuestion;
 
 public class QuizQuestionDto implements Serializable {
-    private Integer aggregateId;
-    private Integer version;
     private AggregateState state;
     private Integer questionSequence;
     private String title;
     private String content;
+    private Integer aggregateId;
+    private Integer version;
 
     public QuizQuestionDto() {
     }
 
     public QuizQuestionDto(QuizQuestion quizQuestion) {
-        this.aggregateId = quizQuestion.getQuestionAggregateId();
-        this.version = quizQuestion.getQuestionVersion();
         this.state = quizQuestion.getQuestionState();
         this.questionSequence = quizQuestion.getQuestionSequence();
         this.title = quizQuestion.getQuestionTitle();
         this.content = quizQuestion.getQuestionContent();
-    }
-
-    public Integer getAggregateId() {
-        return aggregateId;
-    }
-
-    public void setAggregateId(Integer aggregateId) {
-        this.aggregateId = aggregateId;
-    }
-
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
+        this.aggregateId = quizQuestion.getQuestionAggregateId();
+        this.version = quizQuestion.getQuestionVersion();
     }
 
     public AggregateState getState() {
@@ -70,5 +54,21 @@ public class QuizQuestionDto implements Serializable {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public Integer getAggregateId() {
+        return aggregateId;
+    }
+
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }

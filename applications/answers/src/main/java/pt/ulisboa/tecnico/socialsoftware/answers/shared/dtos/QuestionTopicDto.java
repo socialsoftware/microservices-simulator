@@ -5,37 +5,21 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionTopic;
 
 public class QuestionTopicDto implements Serializable {
-    private Integer aggregateId;
-    private Integer version;
     private Integer topicId;
     private AggregateState state;
     private String name;
+    private Integer aggregateId;
+    private Integer version;
 
     public QuestionTopicDto() {
     }
 
     public QuestionTopicDto(QuestionTopic questionTopic) {
-        this.aggregateId = questionTopic.getTopicAggregateId();
-        this.version = questionTopic.getTopicVersion();
         this.topicId = questionTopic.getTopicId();
         this.state = questionTopic.getTopicState();
         this.name = questionTopic.getTopicName();
-    }
-
-    public Integer getAggregateId() {
-        return aggregateId;
-    }
-
-    public void setAggregateId(Integer aggregateId) {
-        this.aggregateId = aggregateId;
-    }
-
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
+        this.aggregateId = questionTopic.getTopicAggregateId();
+        this.version = questionTopic.getTopicVersion();
     }
 
     public Integer getTopicId() {
@@ -60,5 +44,21 @@ public class QuestionTopicDto implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Integer getAggregateId() {
+        return aggregateId;
+    }
+
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }

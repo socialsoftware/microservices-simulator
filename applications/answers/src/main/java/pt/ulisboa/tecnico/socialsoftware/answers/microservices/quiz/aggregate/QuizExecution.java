@@ -5,6 +5,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizExecutionDto;
 
@@ -13,10 +15,12 @@ public class QuizExecution {
     @Id
     @GeneratedValue
     private Long id;
-    private Integer executionAggregateId;
     private String executionName;
     private String executionAcronym;
     private String executionAcademicTerm;
+    private Integer executionAggregateId;
+    private Integer executionVersion;
+    private AggregateState executionState;
     @OneToOne
     private Quiz quiz;
 
@@ -26,14 +30,18 @@ public class QuizExecution {
 
     public QuizExecution(ExecutionDto executionDto) {
         setExecutionAggregateId(executionDto.getAggregateId());
+        setExecutionVersion(executionDto.getVersion());
+        setExecutionState(executionDto.getState());
         setExecutionAcronym(executionDto.getAcronym());
         setExecutionAcademicTerm(executionDto.getAcademicTerm());
     }
 
     public QuizExecution(QuizExecution other) {
-        setExecutionName(other.getExecutionName());
         setExecutionAcronym(other.getExecutionAcronym());
         setExecutionAcademicTerm(other.getExecutionAcademicTerm());
+        setExecutionAggregateId(other.getExecutionAggregateId());
+        setExecutionVersion(other.getExecutionVersion());
+        setExecutionState(other.getExecutionState());
     }
 
     public Long getId() {
@@ -42,14 +50,6 @@ public class QuizExecution {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Integer getExecutionAggregateId() {
-        return executionAggregateId;
-    }
-
-    public void setExecutionAggregateId(Integer executionAggregateId) {
-        this.executionAggregateId = executionAggregateId;
     }
 
     public String getExecutionName() {
@@ -76,6 +76,30 @@ public class QuizExecution {
         this.executionAcademicTerm = executionAcademicTerm;
     }
 
+    public Integer getExecutionAggregateId() {
+        return executionAggregateId;
+    }
+
+    public void setExecutionAggregateId(Integer executionAggregateId) {
+        this.executionAggregateId = executionAggregateId;
+    }
+
+    public Integer getExecutionVersion() {
+        return executionVersion;
+    }
+
+    public void setExecutionVersion(Integer executionVersion) {
+        this.executionVersion = executionVersion;
+    }
+
+    public AggregateState getExecutionState() {
+        return executionState;
+    }
+
+    public void setExecutionState(AggregateState executionState) {
+        this.executionState = executionState;
+    }
+
     public Quiz getQuiz() {
         return quiz;
     }
@@ -87,10 +111,12 @@ public class QuizExecution {
 
     public QuizExecutionDto buildDto() {
         QuizExecutionDto dto = new QuizExecutionDto();
-        dto.setAggregateId(getExecutionAggregateId());
         dto.setExecutionName(getExecutionName());
         dto.setAcronym(getExecutionAcronym());
         dto.setAcademicTerm(getExecutionAcademicTerm());
+        dto.setAggregateId(getExecutionAggregateId());
+        dto.setVersion(getExecutionVersion());
+        dto.setState(getExecutionState());
         return dto;
     }
 }

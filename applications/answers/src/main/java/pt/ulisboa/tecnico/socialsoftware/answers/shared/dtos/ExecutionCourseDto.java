@@ -1,22 +1,41 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourse;
 
 public class ExecutionCourseDto implements Serializable {
-    private Integer aggregateId;
-    private Integer version;
     private String name;
     private String type;
+    private Integer aggregateId;
+    private Integer version;
+    private AggregateState state;
 
     public ExecutionCourseDto() {
     }
 
     public ExecutionCourseDto(ExecutionCourse executionCourse) {
-        this.aggregateId = executionCourse.getCourseAggregateId();
-        this.version = executionCourse.getCourseVersion();
         this.name = executionCourse.getCourseName();
         this.type = executionCourse.getCourseType() != null ? executionCourse.getCourseType().name() : null;
+        this.aggregateId = executionCourse.getCourseAggregateId();
+        this.version = executionCourse.getCourseVersion();
+        this.state = executionCourse.getCourseState();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Integer getAggregateId() {
@@ -35,19 +54,11 @@ public class ExecutionCourseDto implements Serializable {
         this.version = version;
     }
 
-    public String getName() {
-        return name;
+    public AggregateState getState() {
+        return state;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
+    public void setState(AggregateState state) {
+        this.state = state;
     }
 }

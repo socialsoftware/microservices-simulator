@@ -3,12 +3,9 @@ Aggregate Answer {
     Entity AnswerUser uses User {
         Integer userAggregateId;
         String userName -> name;
-        AggregateState userState;
     }
 
     Entity AnswerExecution uses Execution {
-        Integer executionAggregateId;
-        Integer executionVersion;
     }
 
     Dto Entity QuestionAnswered {

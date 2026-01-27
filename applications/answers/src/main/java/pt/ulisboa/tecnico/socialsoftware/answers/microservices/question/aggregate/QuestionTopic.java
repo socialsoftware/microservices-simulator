@@ -15,11 +15,11 @@ public class QuestionTopic {
     @Id
     @GeneratedValue
     private Long id;
-    private Integer topicAggregateId;
-    private Integer topicVersion;
     private Integer topicId;
     private AggregateState topicState;
     private String topicName;
+    private Integer topicAggregateId;
+    private Integer topicVersion;
     @OneToOne
     private Question question;
 
@@ -35,10 +35,10 @@ public class QuestionTopic {
     }
 
     public QuestionTopic(QuestionTopic other) {
-        setTopicVersion(other.getTopicVersion());
-        setTopicId(other.getTopicId());
         setTopicState(other.getTopicState());
         setTopicName(other.getTopicName());
+        setTopicAggregateId(other.getTopicAggregateId());
+        setTopicVersion(other.getTopicVersion());
     }
 
     public Long getId() {
@@ -47,22 +47,6 @@ public class QuestionTopic {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Integer getTopicAggregateId() {
-        return topicAggregateId;
-    }
-
-    public void setTopicAggregateId(Integer topicAggregateId) {
-        this.topicAggregateId = topicAggregateId;
-    }
-
-    public Integer getTopicVersion() {
-        return topicVersion;
-    }
-
-    public void setTopicVersion(Integer topicVersion) {
-        this.topicVersion = topicVersion;
     }
 
     public Integer getTopicId() {
@@ -89,6 +73,22 @@ public class QuestionTopic {
         this.topicName = topicName;
     }
 
+    public Integer getTopicAggregateId() {
+        return topicAggregateId;
+    }
+
+    public void setTopicAggregateId(Integer topicAggregateId) {
+        this.topicAggregateId = topicAggregateId;
+    }
+
+    public Integer getTopicVersion() {
+        return topicVersion;
+    }
+
+    public void setTopicVersion(Integer topicVersion) {
+        this.topicVersion = topicVersion;
+    }
+
     public Question getQuestion() {
         return question;
     }
@@ -100,11 +100,11 @@ public class QuestionTopic {
 
     public QuestionTopicDto buildDto() {
         QuestionTopicDto dto = new QuestionTopicDto();
-        dto.setAggregateId(getTopicAggregateId());
-        dto.setVersion(getTopicVersion());
         dto.setTopicId(getTopicId());
         dto.setState(getTopicState());
         dto.setName(getTopicName());
+        dto.setAggregateId(getTopicAggregateId());
+        dto.setVersion(getTopicVersion());
         return dto;
     }
 }

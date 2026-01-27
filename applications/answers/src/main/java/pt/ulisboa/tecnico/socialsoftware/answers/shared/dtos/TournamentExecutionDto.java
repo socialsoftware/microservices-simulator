@@ -5,29 +5,21 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentExecution;
 
 public class TournamentExecutionDto implements Serializable {
-    private Integer aggregateId;
     private AggregateState state;
     private Integer version;
     private Integer courseAggregateId;
     private String acronym;
+    private Integer aggregateId;
 
     public TournamentExecutionDto() {
     }
 
     public TournamentExecutionDto(TournamentExecution tournamentExecution) {
-        this.aggregateId = tournamentExecution.getExecutionAggregateId();
         this.state = tournamentExecution.getExecutionState();
         this.version = tournamentExecution.getExecutionVersion();
         this.courseAggregateId = tournamentExecution.getExecutionCourseAggregateId();
         this.acronym = tournamentExecution.getExecutionAcronym();
-    }
-
-    public Integer getAggregateId() {
-        return aggregateId;
-    }
-
-    public void setAggregateId(Integer aggregateId) {
-        this.aggregateId = aggregateId;
+        this.aggregateId = tournamentExecution.getExecutionAggregateId();
     }
 
     public AggregateState getState() {
@@ -60,5 +52,13 @@ public class TournamentExecutionDto implements Serializable {
 
     public void setAcronym(String acronym) {
         this.acronym = acronym;
+    }
+
+    public Integer getAggregateId() {
+        return aggregateId;
+    }
+
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
     }
 }

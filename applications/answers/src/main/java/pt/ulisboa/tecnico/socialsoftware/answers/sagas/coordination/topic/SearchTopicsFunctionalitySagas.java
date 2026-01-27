@@ -15,17 +15,17 @@ public class SearchTopicsFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public SearchTopicsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TopicService topicService, String name, Integer courseAggregateId) {
+    public SearchTopicsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TopicService topicService, String name) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(name, courseAggregateId, unitOfWork);
+        this.buildWorkflow(name, unitOfWork);
     }
 
-    public void buildWorkflow(String name, Integer courseAggregateId, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(String name, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep searchTopicsStep = new SagaSyncStep("searchTopicsStep", () -> {
-            List<TopicDto> searchedTopicDtos = topicService.searchTopics(name, courseAggregateId, unitOfWork);
+            List<TopicDto> searchedTopicDtos = topicService.searchTopics(name, unitOfWork);
             setSearchedTopicDtos(searchedTopicDtos);
         });
 

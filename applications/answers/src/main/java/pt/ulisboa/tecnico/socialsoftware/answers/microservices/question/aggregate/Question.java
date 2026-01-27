@@ -116,7 +116,7 @@ public abstract class Question extends Aggregate {
     public void removeQuestionTopic(Integer id) {
         if (this.topics != null) {
             this.topics.removeIf(item -> 
-                item.getTopicAggregateId() != null && item.getTopicAggregateId().equals(id));
+                item.getTopicId() != null && item.getTopicId().equals(id));
         }
     }
 
@@ -125,7 +125,7 @@ public abstract class Question extends Aggregate {
             return false;
         }
         return this.topics.stream().anyMatch(item -> 
-            item.getTopicAggregateId() != null && item.getTopicAggregateId().equals(id));
+            item.getTopicId() != null && item.getTopicId().equals(id));
     }
 
     public QuestionTopic findQuestionTopicById(Integer id) {
@@ -133,7 +133,7 @@ public abstract class Question extends Aggregate {
             return null;
         }
         return this.topics.stream()
-            .filter(item -> item.getTopicAggregateId() != null && item.getTopicAggregateId().equals(id))
+            .filter(item -> item.getTopicId() != null && item.getTopicId().equals(id))
             .findFirst()
             .orElse(null);
     }

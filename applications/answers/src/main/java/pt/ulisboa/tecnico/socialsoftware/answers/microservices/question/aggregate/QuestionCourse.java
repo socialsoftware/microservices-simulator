@@ -5,6 +5,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
 
@@ -13,9 +15,10 @@ public class QuestionCourse {
     @Id
     @GeneratedValue
     private Long id;
+    private String courseName;
     private Integer courseAggregateId;
     private Integer courseVersion;
-    private String courseName;
+    private AggregateState courseState;
     @OneToOne
     private Question question;
 
@@ -26,12 +29,14 @@ public class QuestionCourse {
     public QuestionCourse(CourseDto courseDto) {
         setCourseAggregateId(courseDto.getAggregateId());
         setCourseVersion(courseDto.getVersion());
+        setCourseState(courseDto.getState());
         setCourseName(courseDto.getName());
     }
 
     public QuestionCourse(QuestionCourse other) {
+        setCourseAggregateId(other.getCourseAggregateId());
         setCourseVersion(other.getCourseVersion());
-        setCourseName(other.getCourseName());
+        setCourseState(other.getCourseState());
     }
 
     public Long getId() {
@@ -40,6 +45,14 @@ public class QuestionCourse {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getCourseName() {
+        return courseName;
+    }
+
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
     }
 
     public Integer getCourseAggregateId() {
@@ -58,12 +71,12 @@ public class QuestionCourse {
         this.courseVersion = courseVersion;
     }
 
-    public String getCourseName() {
-        return courseName;
+    public AggregateState getCourseState() {
+        return courseState;
     }
 
-    public void setCourseName(String courseName) {
-        this.courseName = courseName;
+    public void setCourseState(AggregateState courseState) {
+        this.courseState = courseState;
     }
 
     public Question getQuestion() {
@@ -77,9 +90,10 @@ public class QuestionCourse {
 
     public QuestionCourseDto buildDto() {
         QuestionCourseDto dto = new QuestionCourseDto();
+        dto.setName(getCourseName());
         dto.setAggregateId(getCourseAggregateId());
         dto.setVersion(getCourseVersion());
-        dto.setName(getCourseName());
+        dto.setState(getCourseState());
         return dto;
     }
 }

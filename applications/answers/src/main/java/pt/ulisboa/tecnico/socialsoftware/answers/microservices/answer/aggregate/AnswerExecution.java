@@ -5,6 +5,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
@@ -15,6 +17,7 @@ public class AnswerExecution {
     private Long id;
     private Integer executionAggregateId;
     private Integer executionVersion;
+    private AggregateState executionState;
     @OneToOne
     private Answer answer;
 
@@ -25,10 +28,12 @@ public class AnswerExecution {
     public AnswerExecution(ExecutionDto executionDto) {
         setExecutionAggregateId(executionDto.getAggregateId());
         setExecutionVersion(executionDto.getVersion());
+        setExecutionState(executionDto.getState());
     }
 
     public AnswerExecution(AnswerExecution other) {
         setExecutionVersion(other.getExecutionVersion());
+        setExecutionState(other.getExecutionState());
     }
 
     public Long getId() {
@@ -55,6 +60,14 @@ public class AnswerExecution {
         this.executionVersion = executionVersion;
     }
 
+    public AggregateState getExecutionState() {
+        return executionState;
+    }
+
+    public void setExecutionState(AggregateState executionState) {
+        this.executionState = executionState;
+    }
+
     public Answer getAnswer() {
         return answer;
     }
@@ -68,6 +81,7 @@ public class AnswerExecution {
         AnswerExecutionDto dto = new AnswerExecutionDto();
         dto.setAggregateId(getExecutionAggregateId());
         dto.setVersion(getExecutionVersion());
+        dto.setState(getExecutionState());
         return dto;
     }
 }

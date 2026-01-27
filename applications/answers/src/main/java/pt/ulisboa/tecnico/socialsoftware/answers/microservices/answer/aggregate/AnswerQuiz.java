@@ -9,6 +9,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizQuestionDto;
@@ -21,6 +23,7 @@ public class AnswerQuiz {
     private Integer quizAggregateId;
     private Integer quizVersion;
     private List<Integer> quizQuestionsAggregateIds = new ArrayList<>();
+    private AggregateState quizState;
     @OneToOne
     private Answer answer;
 
@@ -31,12 +34,14 @@ public class AnswerQuiz {
     public AnswerQuiz(QuizDto quizDto) {
         setQuizAggregateId(quizDto.getAggregateId());
         setQuizVersion(quizDto.getVersion());
+        setQuizState(quizDto.getState());
         setQuizQuestionsAggregateIds(quizDto.getQuestions() != null ? quizDto.getQuestions().stream().map((QuizQuestionDto dto) -> dto.getAggregateId()).collect(Collectors.toList()) : null);
     }
 
     public AnswerQuiz(AnswerQuiz other) {
         setQuizVersion(other.getQuizVersion());
         setQuizQuestionsAggregateIds(new ArrayList<>(other.getQuizQuestionsAggregateIds()));
+        setQuizState(other.getQuizState());
     }
 
     public Long getId() {
@@ -71,6 +76,14 @@ public class AnswerQuiz {
         this.quizQuestionsAggregateIds = quizQuestionsAggregateIds;
     }
 
+    public AggregateState getQuizState() {
+        return quizState;
+    }
+
+    public void setQuizState(AggregateState quizState) {
+        this.quizState = quizState;
+    }
+
     public Answer getAnswer() {
         return answer;
     }
@@ -84,6 +97,7 @@ public class AnswerQuiz {
         AnswerQuizDto dto = new AnswerQuizDto();
         dto.setAggregateId(getQuizAggregateId());
         dto.setVersion(getQuizVersion());
+        dto.setState(getQuizState());
         return dto;
     }
 }

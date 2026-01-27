@@ -44,7 +44,7 @@ Aggregate Tournament {
     }
 
     Entity TournamentExecution uses Execution {
-        Integer executionAggregateId;
+        
         Integer executionCourseAggregateId -> courseAggregateId;
         String executionAcronym -> acronym;
         AggregateState executionState;

@@ -5,6 +5,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
 
@@ -15,6 +17,7 @@ public class TournamentQuiz {
     private Long id;
     private Integer quizAggregateId;
     private Integer quizVersion;
+    private AggregateState quizState;
     @OneToOne
     private Tournament tournament;
 
@@ -25,10 +28,12 @@ public class TournamentQuiz {
     public TournamentQuiz(QuizDto quizDto) {
         setQuizAggregateId(quizDto.getAggregateId());
         setQuizVersion(quizDto.getVersion());
+        setQuizState(quizDto.getState());
     }
 
     public TournamentQuiz(TournamentQuiz other) {
         setQuizVersion(other.getQuizVersion());
+        setQuizState(other.getQuizState());
     }
 
     public Long getId() {
@@ -55,6 +60,14 @@ public class TournamentQuiz {
         this.quizVersion = quizVersion;
     }
 
+    public AggregateState getQuizState() {
+        return quizState;
+    }
+
+    public void setQuizState(AggregateState quizState) {
+        this.quizState = quizState;
+    }
+
     public Tournament getTournament() {
         return tournament;
     }
@@ -68,6 +81,7 @@ public class TournamentQuiz {
         TournamentQuizDto dto = new TournamentQuizDto();
         dto.setAggregateId(getQuizAggregateId());
         dto.setVersion(getQuizVersion());
+        dto.setState(getQuizState());
         return dto;
     }
 }

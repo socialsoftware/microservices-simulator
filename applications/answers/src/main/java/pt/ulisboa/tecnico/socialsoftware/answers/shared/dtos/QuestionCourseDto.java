@@ -1,20 +1,31 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionCourse;
 
 public class QuestionCourseDto implements Serializable {
+    private String name;
     private Integer aggregateId;
     private Integer version;
-    private String name;
+    private AggregateState state;
 
     public QuestionCourseDto() {
     }
 
     public QuestionCourseDto(QuestionCourse questionCourse) {
+        this.name = questionCourse.getCourseName();
         this.aggregateId = questionCourse.getCourseAggregateId();
         this.version = questionCourse.getCourseVersion();
-        this.name = questionCourse.getCourseName();
+        this.state = questionCourse.getCourseState();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Integer getAggregateId() {
@@ -33,11 +44,11 @@ public class QuestionCourseDto implements Serializable {
         this.version = version;
     }
 
-    public String getName() {
-        return name;
+    public AggregateState getState() {
+        return state;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setState(AggregateState state) {
+        this.state = state;
     }
 }

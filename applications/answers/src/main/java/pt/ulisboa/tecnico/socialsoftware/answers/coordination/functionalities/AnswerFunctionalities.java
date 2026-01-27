@@ -111,14 +111,14 @@ public class AnswerFunctionalities {
         }
     }
 
-    public List<AnswerDto> searchAnswers(Boolean completed, Integer executionAggregateId, Integer userAggregateId, Integer quizAggregateId) {
+    public List<AnswerDto> searchAnswers(Boolean completed, Integer userAggregateId, Integer quizAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 SearchAnswersFunctionalitySagas searchAnswersFunctionalitySagas = new SearchAnswersFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, completed, executionAggregateId, userAggregateId, quizAggregateId);
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, completed, userAggregateId, quizAggregateId);
                 searchAnswersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return searchAnswersFunctionalitySagas.getSearchedAnswerDtos();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);

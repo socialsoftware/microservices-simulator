@@ -1,4 +1,5 @@
 import { Entity, Property } from "../../language/generated/ast.js";
+import { getEffectiveProperties } from "./aggregate-helpers.js";
 
 export interface ParsedQueryMethod {
     prefix: 'find' | 'exists' | 'count' | 'delete' | 'remove' | null;
@@ -225,10 +226,12 @@ export class QueryMethodParser {
         };
     }
 
-    private static findProperty(propertyName: string, entity: Entity, allEntities?: Entity[]): Property | null {
+    private static findProperty(propertyName: string, entity: Entity, allEntities?: Entity[]): Property | any | null {
         const camelCaseName = propertyName.charAt(0).toLowerCase() + propertyName.slice(1);
 
-        const directMatch = entity.properties?.find(p =>
+        const effectiveProps: any[] = getEffectiveProperties(entity) || [];
+
+        const directMatch = effectiveProps.find(p =>
             p.name.toLowerCase() === propertyName.toLowerCase() ||
             p.name.toLowerCase() === camelCaseName.toLowerCase()
         );
@@ -236,7 +239,7 @@ export class QueryMethodParser {
             return directMatch;
         }
 
-        const camelCaseMatch = entity.properties?.find(p => p.name === camelCaseName);
+        const camelCaseMatch = effectiveProps.find(p => p.name === camelCaseName);
         if (camelCaseMatch) {
             return camelCaseMatch;
         }

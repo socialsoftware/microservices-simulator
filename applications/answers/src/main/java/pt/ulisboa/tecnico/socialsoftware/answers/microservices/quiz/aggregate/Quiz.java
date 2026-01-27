@@ -15,6 +15,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizExecutionDto;
@@ -143,27 +144,27 @@ public abstract class Quiz extends Aggregate {
         }
     }
 
-    public void removeQuizQuestion(Integer id) {
+    public void removeQuizQuestion(AggregateState id) {
         if (this.questions != null) {
             this.questions.removeIf(item -> 
-                item.getQuestionAggregateId() != null && item.getQuestionAggregateId().equals(id));
+                item.getQuestionState() != null && item.getQuestionState().equals(id));
         }
     }
 
-    public boolean containsQuizQuestion(Integer id) {
+    public boolean containsQuizQuestion(AggregateState id) {
         if (this.questions == null) {
             return false;
         }
         return this.questions.stream().anyMatch(item -> 
-            item.getQuestionAggregateId() != null && item.getQuestionAggregateId().equals(id));
+            item.getQuestionState() != null && item.getQuestionState().equals(id));
     }
 
-    public QuizQuestion findQuizQuestionById(Integer id) {
+    public QuizQuestion findQuizQuestionById(AggregateState id) {
         if (this.questions == null) {
             return null;
         }
         return this.questions.stream()
-            .filter(item -> item.getQuestionAggregateId() != null && item.getQuestionAggregateId().equals(id))
+            .filter(item -> item.getQuestionState() != null && item.getQuestionState().equals(id))
             .findFirst()
             .orElse(null);
     }

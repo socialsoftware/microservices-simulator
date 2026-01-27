@@ -28,11 +28,11 @@ public class TournamentCreator {
     }
 
     public TournamentCreator(ExecutionUserDto executionUserDto) {
+        setCreatorName(executionUserDto.getName());
+        setCreatorUsername(executionUserDto.getUsername());
         setCreatorAggregateId(executionUserDto.getAggregateId());
         setCreatorVersion(executionUserDto.getVersion());
         setCreatorState(executionUserDto.getState());
-        setCreatorName(executionUserDto.getName());
-        setCreatorUsername(executionUserDto.getUsername());
     }
 
     public TournamentCreator(TournamentCreator other) {

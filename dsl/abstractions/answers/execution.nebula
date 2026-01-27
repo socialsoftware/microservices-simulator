@@ -3,16 +3,11 @@ import shared-enums;
 Aggregate Execution  {
     @GenerateCrud;
     Entity ExecutionCourse uses Course {
-        Integer courseAggregateId;
         String courseName -> name;
         CourseType courseType -> type;
-        Integer courseVersion;
     }
 
     Entity ExecutionUser uses User {
-        Integer userAggregateId;
-        Integer userVersion;
-        AggregateState userState;
         String userName -> name;
         String userUsername -> username;
         Boolean userActive -> active;

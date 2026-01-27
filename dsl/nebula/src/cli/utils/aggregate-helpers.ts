@@ -198,7 +198,10 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
             return candidates[0];
         }
 
-        return undefined;
+        // 3) If there is no unambiguous existing candidate, fall back to the conventional name.
+        //    This allows us to synthesize both the mapping and the corresponding property
+        //    (e.g., quizAggregateId) when the user doesn't declare it explicitly.
+        return conventional;
     };
 
     const implicitBase = [
@@ -241,10 +244,42 @@ export function getEffectiveProperties(entity: Entity): any[] {
 
     // Combine, avoiding duplicates (explicit props take precedence)
     const explicitNames = new Set(explicitProps.map(p => p.name));
-    const combinedProps = [
+    const combinedProps: any[] = [
         ...explicitProps,
         ...mappingProps.filter((p: any) => !explicitNames.has(p.name))
     ];
+
+    const combinedNames = new Set(combinedProps.map(p => p.name));
+
+    // Ensure base aggregate fields exist as synthetic properties when we created implicit mappings for them.
+    // This drives validation and DTO generation even when the user doesn't declare these properties explicitly.
+    for (const m of mappings) {
+        if (!m?.entityField || !m?.dtoField) continue;
+        if (combinedNames.has(m.entityField)) continue;
+
+        let syntheticType: any | undefined;
+        switch (m.dtoField) {
+            case 'aggregateId':
+            case 'version':
+                syntheticType = { $type: 'PrimitiveType', name: 'Integer' };
+                break;
+            case 'state':
+                syntheticType = { $type: 'AggregateStateType' };
+                break;
+            default:
+                break;
+        }
+
+        if (!syntheticType) continue;
+
+        combinedProps.push({
+            name: m.entityField,
+            type: syntheticType,
+            $syntheticBase: true,
+            $dtoField: m.dtoField
+        });
+        combinedNames.add(m.entityField);
+    }
 
     return combinedProps;
 }
