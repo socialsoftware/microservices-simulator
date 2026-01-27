@@ -77,6 +77,7 @@ public class AnswerExecution {
     }
 
 
+
     public AnswerExecutionDto buildDto() {
         AnswerExecutionDto dto = new AnswerExecutionDto();
         dto.setAggregateId(getExecutionAggregateId());

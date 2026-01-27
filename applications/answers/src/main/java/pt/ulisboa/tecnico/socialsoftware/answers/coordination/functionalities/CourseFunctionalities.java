@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.course.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateCourseRequestDto;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
@@ -42,15 +43,15 @@ public class CourseFunctionalities {
         }
     }
 
-    public CourseDto createCourse(CourseDto courseDto) {
+    public CourseDto createCourse(CreateCourseRequestDto createRequest) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(courseDto);
+                checkInput(createRequest);
                 CreateCourseFunctionalitySagas createCourseFunctionalitySagas = new CreateCourseFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, courseService, courseDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, courseService, createRequest);
                 createCourseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createCourseFunctionalitySagas.getCreatedCourseDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -116,6 +117,12 @@ public class CourseFunctionalities {
 
     private void checkInput(CourseDto courseDto) {
         if (courseDto.getName() == null) {
+            throw new AnswersException(COURSE_MISSING_NAME);
+        }
+}
+
+    private void checkInput(CreateCourseRequestDto createRequest) {
+        if (createRequest.getName() == null) {
             throw new AnswersException(COURSE_MISSING_NAME);
         }
 }

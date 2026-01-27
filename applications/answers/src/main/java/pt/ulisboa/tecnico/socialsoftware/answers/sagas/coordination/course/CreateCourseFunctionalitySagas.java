@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateCourseRequestDto;
 
 public class CreateCourseFunctionalitySagas extends WorkflowFunctionality {
     private CourseDto createdCourseDto;
@@ -14,17 +15,17 @@ public class CreateCourseFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public CreateCourseFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, CourseService courseService, CourseDto courseDto) {
+    public CreateCourseFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, CourseService courseService, CreateCourseRequestDto createRequest) {
         this.courseService = courseService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(courseDto, unitOfWork);
+        this.buildWorkflow(createRequest, unitOfWork);
     }
 
-    public void buildWorkflow(CourseDto courseDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(CreateCourseRequestDto createRequest, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createCourseStep = new SagaSyncStep("createCourseStep", () -> {
-            CourseDto createdCourseDto = courseService.createCourse(courseDto, unitOfWork);
+            CourseDto createdCourseDto = courseService.createCourse(createRequest, unitOfWork);
             setCreatedCourseDto(createdCourseDto);
         });
 

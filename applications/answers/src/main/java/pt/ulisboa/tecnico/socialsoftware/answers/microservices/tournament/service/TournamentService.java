@@ -22,17 +22,27 @@ import java.util.stream.Collectors;
 import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTournamentRequestDto;
 
 
 @Service
 @Transactional
 public class TournamentService {
     private static final Logger logger = LoggerFactory.getLogger(TournamentService.class);
+
+    @Autowired
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
+    @Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     @Autowired
     private TournamentRepository tournamentRepository;
@@ -43,11 +53,19 @@ public class TournamentService {
     public TournamentService() {}
 
     // CRUD Operations
-    public TournamentDto createTournament(LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, boolean cancelled, TournamentCreator creator, Set<TournamentParticipant> participants, TournamentExecution execution, Set<TournamentTopic> topics, TournamentQuiz quiz) {
+    public TournamentDto createTournament(TournamentCreator creator, TournamentExecution execution, TournamentQuiz quiz, CreateTournamentRequestDto createRequest, Set<TournamentParticipant> participants, Set<TournamentTopic> topics, UnitOfWork unitOfWork) {
         try {
-            Tournament tournament = new Tournament(startTime, endTime, numberOfQuestions, cancelled, creator, participants, execution, topics, quiz);
-            tournament = tournamentRepository.save(tournament);
-            return new TournamentDto(tournament);
+            // Convert CreateRequestDto to regular DTO
+            TournamentDto tournamentDto = new TournamentDto();
+            tournamentDto.setStartTime(createRequest.getStartTime());
+            tournamentDto.setEndTime(createRequest.getEndTime());
+            tournamentDto.setNumberOfQuestions(createRequest.getNumberOfQuestions());
+            tournamentDto.setCancelled(createRequest.getCancelled());
+            
+            Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+            Tournament tournament = tournamentFactory.createTournament(aggregateId, creator, execution, quiz, tournamentDto, participants, topics);
+            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            return tournamentFactory.createTournamentDto(tournament);
         } catch (Exception e) {
             throw new AnswersException("Error creating tournament: " + e.getMessage());
         }

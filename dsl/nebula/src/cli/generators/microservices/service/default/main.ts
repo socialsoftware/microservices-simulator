@@ -13,7 +13,7 @@ export function generateServiceCode(aggregate: Aggregate, projectName: string): 
     const dependencies = ServiceStructureGenerator.generateDependencies(context.aggregateName, aggregate);
     const constructor = ServiceStructureGenerator.generateConstructor(context.aggregateName);
 
-    const crudMethods = ServiceCrudGenerator.generateCrudMethods(context.capitalizedAggregate, context.rootEntity, projectName);
+    const crudMethods = ServiceCrudGenerator.generateCrudMethods(context.capitalizedAggregate, context.rootEntity, projectName, aggregate);
     const businessMethods = ServiceBusinessGenerator.generateBusinessMethods(
         context.capitalizedAggregate,
         aggregate,

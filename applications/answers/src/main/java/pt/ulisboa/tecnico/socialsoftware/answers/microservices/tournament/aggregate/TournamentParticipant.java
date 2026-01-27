@@ -127,6 +127,7 @@ public class TournamentParticipant {
     }
 
 
+
     public TournamentParticipantDto buildDto() {
         TournamentParticipantDto dto = new TournamentParticipantDto();
         dto.setAggregateId(getParticipantAggregateId());

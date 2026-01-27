@@ -45,6 +45,13 @@ export class ServiceStructureGenerator {
         imports.push('import java.util.stream.Collectors;');
 
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.UserDto;`);
+        
+        // Import the root entity's DTO (e.g., AnswerDto, CourseDto)
+        const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+        if (rootEntity) {
+            imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.${rootEntity.name}Dto;`);
+        }
+        
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
 
         const hasDateTime = aggregate.entities.some(entity =>
@@ -66,8 +73,13 @@ export class ServiceStructureGenerator {
         }
 
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;');
+        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;');
+        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;');
 
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', 'exception')}.${capitalize(projectName)}Exception;`);
+        
+        // Add CreateRequestDto import for create operations
+        imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'coordination', 'webapi', 'requestDtos')}.Create${capitalize(aggregateName)}RequestDto;`);
         imports.push('');
 
         return imports.join('\n');
@@ -81,16 +93,22 @@ public class ${capitalize(aggregateName)}Service {`;
 
     static generateDependencies(aggregateName: string, aggregate: Aggregate): string {
         const capitalizedAggregate = capitalize(aggregateName);
+        const lowerAggregate = aggregateName.toLowerCase();
         const dependencies = [
             `    private static final Logger logger = LoggerFactory.getLogger(${capitalizedAggregate}Service.class);`,
             '',
-            `    @Autowired
-    private ${capitalizedAggregate}Repository ${aggregateName.toLowerCase()}Repository;`,
+            `    @Autowired`,
+            `    private AggregateIdGeneratorService aggregateIdGeneratorService;`,
             '',
-            `    @Autowired
-    private ${capitalizedAggregate}Factory ${aggregateName.toLowerCase()}Factory;`
+            `    @Autowired`,
+            `    private UnitOfWorkService<UnitOfWork> unitOfWorkService;`,
+            '',
+            `    @Autowired`,
+            `    private ${capitalizedAggregate}Repository ${lowerAggregate}Repository;`,
+            '',
+            `    @Autowired`,
+            `    private ${capitalizedAggregate}Factory ${lowerAggregate}Factory;`
         ];
-
 
         return dependencies.join('\n');
     }

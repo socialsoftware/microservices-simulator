@@ -14,25 +14,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.answer.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service.AnswerService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateAnswerRequestDto;
 import java.util.List;
 
 @Service
 public class AnswerFunctionalities {
     @Autowired
     private AnswerService answerService;
-
-    @Autowired
-    private ExecutionService executionService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private QuizService quizService;
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
@@ -53,15 +42,15 @@ public class AnswerFunctionalities {
         }
     }
 
-    public AnswerDto createAnswer(AnswerDto answerDto) {
+    public AnswerDto createAnswer(CreateAnswerRequestDto createRequest) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(answerDto);
+                checkInput(createRequest);
                 CreateAnswerFunctionalitySagas createAnswerFunctionalitySagas = new CreateAnswerFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, executionService, userService, quizService, answerDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, createRequest);
                 createAnswerFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createAnswerFunctionalitySagas.getCreatedAnswerDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -126,5 +115,8 @@ public class AnswerFunctionalities {
     }
 
     private void checkInput(AnswerDto answerDto) {
+}
+
+    private void checkInput(CreateAnswerRequestDto createRequest) {
 }
 }

@@ -99,6 +99,7 @@ public class TournamentCreator {
     }
 
 
+
     public TournamentCreatorDto buildDto() {
         TournamentCreatorDto dto = new TournamentCreatorDto();
         dto.setAggregateId(getCreatorAggregateId());

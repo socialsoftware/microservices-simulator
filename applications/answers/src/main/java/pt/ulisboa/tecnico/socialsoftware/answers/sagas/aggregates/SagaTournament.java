@@ -7,8 +7,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.Tournament;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentCreator;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipant;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentExecution;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentTopic;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentQuiz;
+import java.util.Set;
 
 @Entity
 public class SagaTournament extends Tournament implements SagaAggregate {
@@ -24,8 +27,8 @@ public class SagaTournament extends Tournament implements SagaAggregate {
         this.sagaState = other.getSagaState();
     }
 
-    public SagaTournament(Integer aggregateId, TournamentDto tournamentDto, TournamentCreator creator, TournamentExecution execution, TournamentQuiz quiz) {
-        super(aggregateId, tournamentDto, creator, execution, quiz);
+    public SagaTournament(Integer aggregateId, TournamentCreator creator, TournamentExecution execution, TournamentQuiz quiz, TournamentDto tournamentDto, Set<TournamentParticipant> participants, Set<TournamentTopic> topics) {
+        super(aggregateId, creator, execution, quiz, tournamentDto, participants, topics);
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 

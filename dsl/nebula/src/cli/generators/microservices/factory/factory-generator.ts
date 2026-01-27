@@ -41,6 +41,7 @@ export class FactoryGenerator extends BaseGenerator {
         if (singleEntityParams) {
             params.push(singleEntityParams);
         }
+        // Use regular DTO for factory interface
         params.push(`${rootEntity.name}Dto ${dtoParamName}Dto`);
         if (collectionEntityParams) {
             params.push(collectionEntityParams);
@@ -98,11 +99,9 @@ export class FactoryGenerator extends BaseGenerator {
                 const relatedEntity = aggregate.entities?.find((e: any) => e.name === entityName);
                 const isEntityInAggregate = !!relatedEntity;
 
-                // Exclude DTO entities (entities marked with 'Dto' keyword)
-                // DTO entities are value objects, not relationships
-                const isDtoEntity = relatedEntity && (relatedEntity as any).generateDto;
-
-                if (isEntityInAggregate && !isDtoEntity) {
+                // Include all entity relationships in the factory signature
+                // Note: generateDto flag just means "generate a DTO class", not "exclude from factory"
+                if (isEntityInAggregate) {
                     const paramName = prop.name;
                     relationships.push({
                         entityType: entityName,

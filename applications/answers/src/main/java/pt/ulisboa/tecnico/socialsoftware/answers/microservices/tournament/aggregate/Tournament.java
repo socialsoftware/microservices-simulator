@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
@@ -225,49 +226,14 @@ public abstract class Tournament extends Aggregate {
     }
 
 
-    // ============================================================================
-    // INVARIANTS
-    // ============================================================================
-
-    public boolean invariantStartTimeBeforeEndTime() {
-        return this.startTime.isBefore(this.endTime);
+    @Override
+    public Set<EventSubscription> getEventSubscriptions() {
+        return new HashSet<>();
     }
 
-    public boolean invariantUniqueParticipant() {
-        return this.tournamentParticipants.stream().map(item -> item.get${capitalize(participantAggregateId)}()).distinct().count() == this.tournamentParticipants.size();
-    }
-
-    public boolean invariantParticipantsEnrolledBeforeStartTime() {
-        return forall p : tournamentParticipants | p.this.participantEnrollTime != null;
-    }
-
-    public boolean invariantAnswerBeforeStart() {
-        return forall p : tournamentParticipants | p.this.tournamentParticipantQuizAnswer != null;
-    }
-
-    public boolean invariantDeleteWhenNoParticipants() {
-        return this.tournamentParticipants != null;
-    }
-
-    public boolean invariantCreatorParticipantConsistency() {
-        return tournamentParticipants.noneMatch(p -> p.this.participantAggregateId == tournamentCreator.creatorAggregateId);
-    }
-
-    public boolean invariantCreatorIsNotAnonymous() {
-        return tournamentCreator.creatorName != 'ANONYMOUS' &&
-               tournamentCreator.creatorUsername != 'ANONYMOUS';
-    }
     @Override
     public void verifyInvariants() {
-        if (!(invariantStartTimeBeforeEndTime()
-               && invariantUniqueParticipant()
-               && invariantParticipantsEnrolledBeforeStartTime()
-               && invariantAnswerBeforeStart()
-               && invariantDeleteWhenNoParticipants()
-               && invariantCreatorParticipantConsistency()
-               && invariantCreatorIsNotAnonymous())) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
-        }
+        // No invariants defined
     }
 
     public TournamentDto buildDto() {

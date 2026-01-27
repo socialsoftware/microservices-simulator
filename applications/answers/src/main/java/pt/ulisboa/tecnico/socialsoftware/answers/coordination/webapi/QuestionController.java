@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.QuestionFunctionalities;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuestionRequestDto;
 
 @RestController
 public class QuestionController {
@@ -12,8 +13,8 @@ public class QuestionController {
     private QuestionFunctionalities questionFunctionalities;
 
     @PostMapping("/questions/create")
-    public QuestionDto createQuestion(@RequestBody QuestionDto questionDto) {
-        return questionFunctionalities.createQuestion(questionDto);
+    public QuestionDto createQuestion(@RequestBody CreateQuestionRequestDto createRequest) {
+        return questionFunctionalities.createQuestion(createRequest);
     }
 
     @GetMapping("/questions/{questionAggregateId}")

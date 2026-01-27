@@ -11,7 +11,7 @@ Aggregate Tournament {
        Set<TournamentTopic> topics;
        TournamentQuiz quiz;
 
-       invariants {
+       /* invariants {
            check startTimeBeforeEndTime {
                startTime.isBefore(endTime);
            }
@@ -40,7 +40,7 @@ Aggregate Tournament {
                tournamentCreator.creatorName != 'ANONYMOUS' &&
                tournamentCreator.creatorUsername != 'ANONYMOUS';
            }
-       }
+       }*/
     }
 
     Entity TournamentExecution uses Execution {

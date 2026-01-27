@@ -14,21 +14,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.execution.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateExecutionRequestDto;
 import java.util.List;
 
 @Service
 public class ExecutionFunctionalities {
     @Autowired
     private ExecutionService executionService;
-
-    @Autowired
-    private CourseService courseService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
@@ -49,15 +42,15 @@ public class ExecutionFunctionalities {
         }
     }
 
-    public ExecutionDto createExecution(ExecutionDto executionDto) {
+    public ExecutionDto createExecution(CreateExecutionRequestDto createRequest) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(executionDto);
+                checkInput(createRequest);
                 CreateExecutionFunctionalitySagas createExecutionFunctionalitySagas = new CreateExecutionFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, executionService, courseService, userService, executionDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, executionService, createRequest);
                 createExecutionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createExecutionFunctionalitySagas.getCreatedExecutionDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -126,6 +119,15 @@ public class ExecutionFunctionalities {
             throw new AnswersException(EXECUTION_MISSING_ACRONYM);
         }
         if (executionDto.getAcademicTerm() == null) {
+            throw new AnswersException(EXECUTION_MISSING_ACADEMICTERM);
+        }
+}
+
+    private void checkInput(CreateExecutionRequestDto createRequest) {
+        if (createRequest.getAcronym() == null) {
+            throw new AnswersException(EXECUTION_MISSING_ACRONYM);
+        }
+        if (createRequest.getAcademicTerm() == null) {
             throw new AnswersException(EXECUTION_MISSING_ACADEMICTERM);
         }
 }

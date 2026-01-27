@@ -20,17 +20,27 @@ import java.util.stream.Collectors;
 import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateAnswerRequestDto;
 
 
 @Service
 @Transactional
 public class AnswerService {
     private static final Logger logger = LoggerFactory.getLogger(AnswerService.class);
+
+    @Autowired
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
+    @Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     @Autowired
     private AnswerRepository answerRepository;
@@ -41,11 +51,18 @@ public class AnswerService {
     public AnswerService() {}
 
     // CRUD Operations
-    public AnswerDto createAnswer(LocalDateTime creationDate, LocalDateTime answerDate, boolean completed, AnswerExecution execution, AnswerUser user, AnswerQuiz quiz, List<QuestionAnswered> questions) {
+    public AnswerDto createAnswer(AnswerExecution execution, AnswerUser user, AnswerQuiz quiz, CreateAnswerRequestDto createRequest, List<QuestionAnswered> questions, UnitOfWork unitOfWork) {
         try {
-            Answer answer = new Answer(creationDate, answerDate, completed, execution, user, quiz, questions);
-            answer = answerRepository.save(answer);
-            return new AnswerDto(answer);
+            // Convert CreateRequestDto to regular DTO
+            AnswerDto answerDto = new AnswerDto();
+            answerDto.setCreationDate(createRequest.getCreationDate());
+            answerDto.setAnswerDate(createRequest.getAnswerDate());
+            answerDto.setCompleted(createRequest.getCompleted());
+            
+            Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+            Answer answer = answerFactory.createAnswer(aggregateId, execution, user, quiz, answerDto, questions);
+            unitOfWorkService.registerChanged(answer, unitOfWork);
+            return answerFactory.createAnswerDto(answer);
         } catch (Exception e) {
             throw new AnswersException("Error creating answer: " + e.getMessage());
         }

@@ -109,6 +109,7 @@ public class QuizQuestion {
     }
 
 
+
     public QuizQuestionDto buildDto() {
         QuizQuestionDto dto = new QuizQuestionDto();
         dto.setState(getQuestionState());

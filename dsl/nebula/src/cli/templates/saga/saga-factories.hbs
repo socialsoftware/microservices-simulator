@@ -6,19 +6,19 @@ package {{packageName}};
 
 @Service
 @Profile("sagas")
-public class Sagas{{aggregateName}}Factory extends {{aggregateName}}Factory {
-@Override
-public {{aggregateName}} create{{aggregateName}}(Integer aggregateId, {{rootEntityName}}Dto {{lowerAggregate}}Dto) {
-return new Saga{{aggregateName}}({{lowerAggregate}}Dto);
-}
+public class Sagas{{aggregateName}}Factory implements {{aggregateName}}Factory {
+    @Override
+    public {{aggregateName}} create{{aggregateName}}({{{createMethodParams}}}) {
+        return new Saga{{aggregateName}}({{{constructorCallArgs}}});
+    }
 
-@Override
-public {{aggregateName}} create{{aggregateName}}FromExisting({{aggregateName}} existing{{aggregateName}}) {
-return new Saga{{aggregateName}}((Saga{{aggregateName}}) existing{{aggregateName}});
-}
+    @Override
+    public {{aggregateName}} create{{aggregateName}}FromExisting({{aggregateName}} existing{{aggregateName}}) {
+        return new Saga{{aggregateName}}((Saga{{aggregateName}}) existing{{aggregateName}});
+    }
 
-@Override
-public {{rootEntityName}}Dto create{{rootEntityName}}Dto({{aggregateName}} {{lowerAggregate}}) {
-return new Saga{{aggregateName}}Dto({{lowerAggregate}});
-}
+    @Override
+    public {{rootEntityName}}Dto create{{rootEntityName}}Dto({{aggregateName}} {{lowerAggregate}}) {
+        return new Saga{{aggregateName}}Dto({{lowerAggregate}});
+    }
 }

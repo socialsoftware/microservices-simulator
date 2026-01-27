@@ -7,22 +7,25 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionFactory;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.SagaExecution;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.dtos.SagaExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourse;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
+import java.util.Set;
 
 @Service
 @Profile("sagas")
-public class SagasExecutionFactory extends ExecutionFactory {
-@Override
-public Execution createExecution(Integer aggregateId, ExecutionDto executionDto) {
-return new SagaExecution(executionDto);
-}
+public class SagasExecutionFactory implements ExecutionFactory {
+    @Override
+    public Execution createExecution(Integer aggregateId, ExecutionCourse course, ExecutionDto executionDto, Set<ExecutionUser> users) {
+        return new SagaExecution(aggregateId, course, executionDto, users);
+    }
 
-@Override
-public Execution createExecutionFromExisting(Execution existingExecution) {
-return new SagaExecution((SagaExecution) existingExecution);
-}
+    @Override
+    public Execution createExecutionFromExisting(Execution existingExecution) {
+        return new SagaExecution((SagaExecution) existingExecution);
+    }
 
-@Override
-public ExecutionDto createExecutionDto(Execution execution) {
-return new SagaExecutionDto(execution);
-}
+    @Override
+    public ExecutionDto createExecutionDto(Execution execution) {
+        return new SagaExecutionDto(execution);
+    }
 }

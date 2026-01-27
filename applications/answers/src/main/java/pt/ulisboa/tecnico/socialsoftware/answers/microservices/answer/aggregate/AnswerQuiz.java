@@ -93,6 +93,7 @@ public class AnswerQuiz {
     }
 
 
+
     public AnswerQuizDto buildDto() {
         AnswerQuizDto dto = new AnswerQuizDto();
         dto.setAggregateId(getQuizAggregateId());

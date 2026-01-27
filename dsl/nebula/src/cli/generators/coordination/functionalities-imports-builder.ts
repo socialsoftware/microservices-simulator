@@ -107,12 +107,18 @@ export class FunctionalitiesImportsBuilder extends OrchestrationBase {
      */
     private addDtoImports(aggregate: Aggregate, imports: string[], projectName: string, entityRegistry: EntityRegistry, businessMethods?: any[]): void {
         const usedDtoTypes = new Set<string>();
+        const usedRequestDtoTypes = new Set<string>();
 
         if (businessMethods && businessMethods.length > 0) {
             businessMethods.forEach(method => {
                 this.collectDtoTypesFromReturnType(method.returnType, usedDtoTypes);
                 method.parameters?.forEach((param: any) => {
-                    this.collectDtoTypesFromReturnType(param.type, usedDtoTypes);
+                    // Check if this is a request DTO (Create/Update RequestDto)
+                    if (param.type && param.type.includes('RequestDto')) {
+                        usedRequestDtoTypes.add(param.type);
+                    } else {
+                        this.collectDtoTypesFromReturnType(param.type, usedDtoTypes);
+                    }
                 });
             });
         } else {
@@ -131,9 +137,16 @@ export class FunctionalitiesImportsBuilder extends OrchestrationBase {
             }
         }
 
-        const dtoPackage = `${this.getBasePackage()}.${projectName}.shared.dtos`;
+        const basePackage = this.getBasePackage();
+        const dtoPackage = `${basePackage}.${projectName}.shared.dtos`;
         usedDtoTypes.forEach(dtoType => {
             imports.push(`import ${dtoPackage}.${dtoType};`);
+        });
+
+        // Import request DTOs from webapi.requestDtos package
+        const requestDtoPackage = `${basePackage}.${projectName}.coordination.webapi.requestDtos`;
+        usedRequestDtoTypes.forEach(requestDtoType => {
+            imports.push(`import ${requestDtoPackage}.${requestDtoType};`);
         });
     }
 

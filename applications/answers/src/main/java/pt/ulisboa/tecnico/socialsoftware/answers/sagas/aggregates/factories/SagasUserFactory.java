@@ -10,19 +10,19 @@ import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.dtos.SagaUserD
 
 @Service
 @Profile("sagas")
-public class SagasUserFactory extends UserFactory {
-@Override
-public User createUser(Integer aggregateId, UserDto userDto) {
-return new SagaUser(userDto);
-}
+public class SagasUserFactory implements UserFactory {
+    @Override
+    public User createUser(Integer aggregateId, UserDto userDto) {
+        return new SagaUser(aggregateId, userDto);
+    }
 
-@Override
-public User createUserFromExisting(User existingUser) {
-return new SagaUser((SagaUser) existingUser);
-}
+    @Override
+    public User createUserFromExisting(User existingUser) {
+        return new SagaUser((SagaUser) existingUser);
+    }
 
-@Override
-public UserDto createUserDto(User user) {
-return new SagaUserDto(user);
-}
+    @Override
+    public UserDto createUserDto(User user) {
+        return new SagaUserDto(user);
+    }
 }

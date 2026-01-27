@@ -7,6 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourse;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
+import java.util.Set;
 
 @Entity
 public class SagaExecution extends Execution implements SagaAggregate {
@@ -22,8 +24,8 @@ public class SagaExecution extends Execution implements SagaAggregate {
         this.sagaState = other.getSagaState();
     }
 
-    public SagaExecution(Integer aggregateId, ExecutionDto executionDto, ExecutionCourse course) {
-        super(aggregateId, executionDto, course);
+    public SagaExecution(Integer aggregateId, ExecutionCourse course, ExecutionDto executionDto, Set<ExecutionUser> users) {
+        super(aggregateId, course, executionDto, users);
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 

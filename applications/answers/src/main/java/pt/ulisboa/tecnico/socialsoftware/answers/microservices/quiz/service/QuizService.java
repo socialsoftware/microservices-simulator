@@ -19,17 +19,27 @@ import java.util.stream.Collectors;
 import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuizRequestDto;
 
 
 @Service
 @Transactional
 public class QuizService {
     private static final Logger logger = LoggerFactory.getLogger(QuizService.class);
+
+    @Autowired
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
+    @Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     @Autowired
     private QuizRepository quizRepository;
@@ -40,11 +50,21 @@ public class QuizService {
     public QuizService() {}
 
     // CRUD Operations
-    public QuizDto createQuiz(String title, QuizType quizType, LocalDateTime creationDate, LocalDateTime availableDate, LocalDateTime conclusionDate, LocalDateTime resultsDate, QuizExecution execution, Set<QuizQuestion> questions) {
+    public QuizDto createQuiz(QuizExecution execution, CreateQuizRequestDto createRequest, Set<QuizQuestion> questions, UnitOfWork unitOfWork) {
         try {
-            Quiz quiz = new Quiz(title, quizType, creationDate, availableDate, conclusionDate, resultsDate, execution, questions);
-            quiz = quizRepository.save(quiz);
-            return new QuizDto(quiz);
+            // Convert CreateRequestDto to regular DTO
+            QuizDto quizDto = new QuizDto();
+            quizDto.setTitle(createRequest.getTitle());
+            quizDto.setQuizType(createRequest.getQuizType() != null ? createRequest.getQuizType().name() : null);
+            quizDto.setCreationDate(createRequest.getCreationDate());
+            quizDto.setAvailableDate(createRequest.getAvailableDate());
+            quizDto.setConclusionDate(createRequest.getConclusionDate());
+            quizDto.setResultsDate(createRequest.getResultsDate());
+            
+            Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+            Quiz quiz = quizFactory.createQuiz(aggregateId, execution, quizDto, questions);
+            unitOfWorkService.registerChanged(quiz, unitOfWork);
+            return quizFactory.createQuizDto(quiz);
         } catch (Exception e) {
             throw new AnswersException("Error creating quiz: " + e.getMessage());
         }

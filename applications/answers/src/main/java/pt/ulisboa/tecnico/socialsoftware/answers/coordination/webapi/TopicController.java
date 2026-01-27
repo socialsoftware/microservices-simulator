@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.TopicFunctionalities;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTopicRequestDto;
 
 @RestController
 public class TopicController {
@@ -12,8 +13,8 @@ public class TopicController {
     private TopicFunctionalities topicFunctionalities;
 
     @PostMapping("/topics/create")
-    public TopicDto createTopic(@RequestBody TopicDto topicDto) {
-        return topicFunctionalities.createTopic(topicDto);
+    public TopicDto createTopic(@RequestBody CreateTopicRequestDto createRequest) {
+        return topicFunctionalities.createTopic(createRequest);
     }
 
     @GetMapping("/topics/{topicAggregateId}")

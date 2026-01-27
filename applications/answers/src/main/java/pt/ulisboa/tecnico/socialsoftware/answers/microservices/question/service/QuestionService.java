@@ -19,17 +19,27 @@ import java.util.stream.Collectors;
 import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuestionRequestDto;
 
 
 @Service
 @Transactional
 public class QuestionService {
     private static final Logger logger = LoggerFactory.getLogger(QuestionService.class);
+
+    @Autowired
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
+    @Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     @Autowired
     private QuestionRepository questionRepository;
@@ -40,11 +50,18 @@ public class QuestionService {
     public QuestionService() {}
 
     // CRUD Operations
-    public QuestionDto createQuestion(String title, String content, LocalDateTime creationDate, QuestionCourse course, Set<QuestionTopic> topics, List<Option> options) {
+    public QuestionDto createQuestion(QuestionCourse course, CreateQuestionRequestDto createRequest, Set<QuestionTopic> topics, List<Option> options, UnitOfWork unitOfWork) {
         try {
-            Question question = new Question(title, content, creationDate, course, topics, options);
-            question = questionRepository.save(question);
-            return new QuestionDto(question);
+            // Convert CreateRequestDto to regular DTO
+            QuestionDto questionDto = new QuestionDto();
+            questionDto.setTitle(createRequest.getTitle());
+            questionDto.setContent(createRequest.getContent());
+            questionDto.setCreationDate(createRequest.getCreationDate());
+            
+            Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+            Question question = questionFactory.createQuestion(aggregateId, course, questionDto, topics, options);
+            unitOfWorkService.registerChanged(question, unitOfWork);
+            return questionFactory.createQuestionDto(question);
         } catch (Exception e) {
             throw new AnswersException("Error creating question: " + e.getMessage());
         }

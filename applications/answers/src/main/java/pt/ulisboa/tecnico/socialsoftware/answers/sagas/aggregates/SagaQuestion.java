@@ -7,6 +7,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionCourse;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionTopic;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Option;
+import java.util.Set;
+import java.util.List;
 
 @Entity
 public class SagaQuestion extends Question implements SagaAggregate {
@@ -22,8 +26,8 @@ public class SagaQuestion extends Question implements SagaAggregate {
         this.sagaState = other.getSagaState();
     }
 
-    public SagaQuestion(Integer aggregateId, QuestionDto questionDto, QuestionCourse course) {
-        super(aggregateId, questionDto, course);
+    public SagaQuestion(Integer aggregateId, QuestionCourse course, QuestionDto questionDto, Set<QuestionTopic> topics, List<Option> options) {
+        super(aggregateId, course, questionDto, topics, options);
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 

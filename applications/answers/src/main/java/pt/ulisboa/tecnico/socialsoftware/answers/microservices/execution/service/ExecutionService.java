@@ -18,17 +18,27 @@ import java.util.stream.Collectors;
 import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateExecutionRequestDto;
 
 
 @Service
 @Transactional
 public class ExecutionService {
     private static final Logger logger = LoggerFactory.getLogger(ExecutionService.class);
+
+    @Autowired
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
+    @Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     @Autowired
     private ExecutionRepository executionRepository;
@@ -39,11 +49,18 @@ public class ExecutionService {
     public ExecutionService() {}
 
     // CRUD Operations
-    public ExecutionDto createExecution(String acronym, String academicTerm, LocalDateTime endDate, ExecutionCourse course, Set<ExecutionUser> users) {
+    public ExecutionDto createExecution(ExecutionCourse course, CreateExecutionRequestDto createRequest, Set<ExecutionUser> users, UnitOfWork unitOfWork) {
         try {
-            Execution execution = new Execution(acronym, academicTerm, endDate, course, users);
-            execution = executionRepository.save(execution);
-            return new ExecutionDto(execution);
+            // Convert CreateRequestDto to regular DTO
+            ExecutionDto executionDto = new ExecutionDto();
+            executionDto.setAcronym(createRequest.getAcronym());
+            executionDto.setAcademicTerm(createRequest.getAcademicTerm());
+            executionDto.setEndDate(createRequest.getEndDate());
+            
+            Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+            Execution execution = executionFactory.createExecution(aggregateId, course, executionDto, users);
+            unitOfWorkService.registerChanged(execution, unitOfWork);
+            return executionFactory.createExecutionDto(execution);
         } catch (Exception e) {
             throw new AnswersException("Error creating execution: " + e.getMessage());
         }

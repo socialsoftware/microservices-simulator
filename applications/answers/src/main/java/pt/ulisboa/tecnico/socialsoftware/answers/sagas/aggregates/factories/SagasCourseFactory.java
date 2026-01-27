@@ -10,19 +10,19 @@ import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.dtos.SagaCours
 
 @Service
 @Profile("sagas")
-public class SagasCourseFactory extends CourseFactory {
-@Override
-public Course createCourse(Integer aggregateId, CourseDto courseDto) {
-return new SagaCourse(courseDto);
-}
+public class SagasCourseFactory implements CourseFactory {
+    @Override
+    public Course createCourse(Integer aggregateId, CourseDto courseDto) {
+        return new SagaCourse(aggregateId, courseDto);
+    }
 
-@Override
-public Course createCourseFromExisting(Course existingCourse) {
-return new SagaCourse((SagaCourse) existingCourse);
-}
+    @Override
+    public Course createCourseFromExisting(Course existingCourse) {
+        return new SagaCourse((SagaCourse) existingCourse);
+    }
 
-@Override
-public CourseDto createCourseDto(Course course) {
-return new SagaCourseDto(course);
-}
+    @Override
+    public CourseDto createCourseDto(Course course) {
+        return new SagaCourseDto(course);
+    }
 }

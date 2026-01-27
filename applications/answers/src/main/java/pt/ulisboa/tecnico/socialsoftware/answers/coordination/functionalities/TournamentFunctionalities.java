@@ -14,25 +14,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.tournament.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.service.TournamentService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTournamentRequestDto;
 import java.util.List;
 
 @Service
 public class TournamentFunctionalities {
     @Autowired
     private TournamentService tournamentService;
-
-    @Autowired
-    private ExecutionService executionService;
-
-    @Autowired
-    private QuizService quizService;
-
-    @Autowired
-    private TopicService topicService;
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
@@ -53,15 +42,15 @@ public class TournamentFunctionalities {
         }
     }
 
-    public TournamentDto createTournament(TournamentDto tournamentDto) {
+    public TournamentDto createTournament(CreateTournamentRequestDto createRequest) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(tournamentDto);
+                checkInput(createRequest);
                 CreateTournamentFunctionalitySagas createTournamentFunctionalitySagas = new CreateTournamentFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, tournamentService, executionService, quizService, topicService, tournamentDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, tournamentService, createRequest);
                 createTournamentFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createTournamentFunctionalitySagas.getCreatedTournamentDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -126,5 +115,8 @@ public class TournamentFunctionalities {
     }
 
     private void checkInput(TournamentDto tournamentDto) {
+}
+
+    private void checkInput(CreateTournamentRequestDto createRequest) {
 }
 }

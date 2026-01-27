@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.ExecutionFunctionalities;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateExecutionRequestDto;
 
 @RestController
 public class ExecutionController {
@@ -12,8 +13,8 @@ public class ExecutionController {
     private ExecutionFunctionalities executionFunctionalities;
 
     @PostMapping("/executions/create")
-    public ExecutionDto createExecution(@RequestBody ExecutionDto executionDto) {
-        return executionFunctionalities.createExecution(executionDto);
+    public ExecutionDto createExecution(@RequestBody CreateExecutionRequestDto createRequest) {
+        return executionFunctionalities.createExecution(createRequest);
     }
 
     @GetMapping("/executions/{executionAggregateId}")

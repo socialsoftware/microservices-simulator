@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.Co
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateCourseRequestDto;
 
 @RestController
 public class CourseController {
@@ -13,8 +14,8 @@ public class CourseController {
     private CourseFunctionalities courseFunctionalities;
 
     @PostMapping("/courses/create")
-    public CourseDto createCourse(@RequestBody CourseDto courseDto) {
-        return courseFunctionalities.createCourse(courseDto);
+    public CourseDto createCourse(@RequestBody CreateCourseRequestDto createRequest) {
+        return courseFunctionalities.createCourse(createRequest);
     }
 
     @GetMapping("/courses/{courseAggregateId}")

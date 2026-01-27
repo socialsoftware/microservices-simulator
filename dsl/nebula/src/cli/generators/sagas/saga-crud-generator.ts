@@ -2,6 +2,14 @@ import { OrchestrationBase } from '../common/orchestration-base.js';
 import type { Entity, Aggregate } from '../../../language/generated/ast.js';
 import { TypeResolver } from '../common/resolvers/type-resolver.js';
 
+export interface CrossAggregateReference {
+    entityType: string;
+    paramName: string;
+    relatedAggregate: string;
+    relatedDtoType: string;
+    isCollection: boolean;
+}
+
 export class SagaCrudGenerator extends OrchestrationBase {
     generateCrudSagaFunctionalities(aggregate: any, options: { projectName: string }, packageName: string, allAggregates?: Aggregate[]): Record<string, string> {
         const outputs: Record<string, string> = {};
@@ -9,20 +17,26 @@ export class SagaCrudGenerator extends OrchestrationBase {
         const lowerAggregate = aggregate.name.toLowerCase();
         const capitalizedAggregate = this.capitalize(aggregate.name);
         const dtoType = `${capitalizedAggregate}Dto`;
+        const createRequestDtoType = `Create${capitalizedAggregate}RequestDto`;
         const rootEntity: Entity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name } as any;
         const entityName = rootEntity.name;
+
+        // Find cross-aggregate references for the create operation
+        const crossAggregateRefs = this.findCrossAggregateReferences(rootEntity, aggregate, allAggregates);
 
         const crudOperations: any[] = [
             {
                 name: `create${capitalizedAggregate}`,
                 stepName: `create${capitalizedAggregate}Step`,
-                params: [{ type: dtoType, name: `${lowerAggregate}Dto` }],
+                // Use CreateRequestDto instead of aggregate DTO
+                params: [{ type: createRequestDtoType, name: `createRequest` }],
                 resultType: dtoType,
                 resultField: `created${capitalizedAggregate}Dto`,
                 resultSetter: `setCreated${capitalizedAggregate}Dto`,
                 resultGetter: `getCreated${capitalizedAggregate}Dto`,
                 serviceCall: `${lowerAggregate}Service.create${capitalizedAggregate}`,
-                serviceArgs: [`${lowerAggregate}Dto`, 'unitOfWork']
+                serviceArgs: [], // Will be built dynamically based on cross-aggregate refs
+                crossAggregateRefs // Store for use in generation
             },
             {
                 name: `get${capitalizedAggregate}ById`,
@@ -225,155 +239,92 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 let stepBody = '';
                 let entityCreationCode = '';
                 let updatedServiceArgs = op.serviceArgs;
-                let crossAggregateSteps: string[] = [];
-                let crossAggregateDependencies: string[] = [];
 
                 if (isCreateOperation) {
+                    // NEW APPROACH: DTOs are passed directly in CreateRequestDto
+                    // No need to fetch from other services - create projection entities directly from the passed DTOs
+                    const crossRefs = op.crossAggregateRefs as CrossAggregateReference[] || [];
                     const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
                     const singleEntityRels = entityRelationships.filter(rel => !rel.isCollection);
                     const collectionEntityRels = entityRelationships.filter(rel => rel.isCollection);
-                    const dtoParamName = `${lowerAggregate}Dto`;
+                    const requestParamName = 'createRequest';
 
+                    // Process single entity relationships
                     for (const rel of singleEntityRels) {
                         const capitalizedRelName = rel.paramName.charAt(0).toUpperCase() + rel.paramName.slice(1);
-                        const dtoGetter = `get${capitalizedRelName}()`;
-                        const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, options, allAggregates);
-
                         const entityPackage = `${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate`;
                         imports.push(`import ${entityPackage}.${rel.entityType};`);
 
-                        if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
-                            const relatedAggregateName = relatedDtoInfo.relatedAggregateName;
-                            const lowerRelatedAggregate = relatedAggregateName.toLowerCase();
-                            const capitalizedRelatedAggregate = this.capitalize(relatedAggregateName);
-                            const sagaDtoType = `Saga${capitalizedRelatedAggregate}Dto`;
-                            const stepName = `get${capitalizedRelatedAggregate}Step`;
-                            const sagaStateType = `${capitalizedRelatedAggregate}SagaState`;
-                            const relatedDtoVarName = `${lowerRelatedAggregate}Dto`;
-                            const aggregateIdFieldName = `${rel.paramName}AggregateId`;
-                            const capitalizedAggregateIdField = aggregateIdFieldName.charAt(0).toUpperCase() + aggregateIdFieldName.slice(1);
-                            const aggregateIdGetter = `${dtoParamName}.get${capitalizedAggregateIdField}()`;
-
-                            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerRelatedAggregate}.service.${capitalizedRelatedAggregate}Service;`);
-                            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.dtos.${sagaDtoType};`);
-                            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.states.${sagaStateType};`);
-                            imports.push(`import ${basePackage}.ms.sagas.aggregate.GenericSagaState;`);
-                            imports.push('import java.util.ArrayList;');
-                            imports.push('import java.util.Arrays;');
-
-                            fieldsDeclaration += `    private ${sagaDtoType} ${relatedDtoVarName};\n`;
-                            fieldsDeclaration += `    private ${rel.entityType} ${rel.paramName};\n`;
-
-                            fieldsDeclaration += `    private final ${capitalizedRelatedAggregate}Service ${lowerRelatedAggregate}Service;\n`;
-
-                            constructorParams.push(`${capitalizedRelatedAggregate}Service ${lowerRelatedAggregate}Service`);
-
-                            const capitalizedRelName = rel.paramName.charAt(0).toUpperCase() + rel.paramName.slice(1);
-                            const getStepCode = `
-        SagaSyncStep ${stepName} = new SagaSyncStep("${stepName}", () -> {
-            Integer ${aggregateIdFieldName} = ${aggregateIdGetter};
-            ${relatedDtoVarName} = (${sagaDtoType}) ${lowerRelatedAggregate}Service.get${capitalizedRelatedAggregate}ById(${aggregateIdFieldName}, unitOfWork);
-            unitOfWorkService.registerSagaState(${relatedDtoVarName}.getAggregateId(), ${sagaStateType}.READ_${capitalizedRelatedAggregate.toUpperCase()}, unitOfWork);
-            ${rel.entityType} ${rel.paramName} = new ${rel.entityType}(${relatedDtoVarName});
-            set${capitalizedRelName}(${rel.paramName});
-        });
-
-        ${stepName}.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(${relatedDtoVarName}.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);`;
-
-                            crossAggregateSteps.push(getStepCode);
-                            crossAggregateDependencies.push(stepName);
-
-                            gettersSettersCode += `
-    public ${rel.entityType} get${capitalizedRelName}() {
-        return ${rel.paramName};
-    }
-
-    public void set${capitalizedRelName}(${rel.entityType} ${rel.paramName}) {
-        this.${rel.paramName} = ${rel.paramName};
-    }
-`;
+                        // Check if this is a cross-aggregate reference
+                        const crossRef = crossRefs.find(cr => cr.paramName === rel.paramName);
+                        
+                        if (crossRef) {
+                            // Cross-aggregate: DTO is passed directly in CreateRequestDto
+                            // Create projection entity directly from the passed DTO
+                            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${crossRef.relatedDtoType};`);
+                            
+                            entityCreationCode += `            ${crossRef.relatedDtoType} ${rel.paramName}Dto = ${requestParamName}.get${capitalizedRelName}();\n`;
+                            entityCreationCode += `            ${rel.entityType} ${rel.paramName} = new ${rel.entityType}(${rel.paramName}Dto);\n`;
                         } else {
-                            entityCreationCode += `            ${rel.entityType} ${rel.paramName} = new ${rel.entityType}(${dtoParamName}.${dtoGetter});\n`;
+                            // Same-aggregate: create from nested DTO in request
+                            const dtoGetter = `get${capitalizedRelName}()`;
+                            entityCreationCode += `            ${rel.entityType} ${rel.paramName} = new ${rel.entityType}(${requestParamName}.${dtoGetter});\n`;
                         }
                     }
 
+                    // Process collection entity relationships
                     for (const rel of collectionEntityRels) {
                         const capitalizedRelName = rel.paramName.charAt(0).toUpperCase() + rel.paramName.slice(1);
                         const elementType = TypeResolver.getElementType(rel.javaType) || rel.javaType.replace(/^(Set|List)<(.+)>$/, '$2');
-                        const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, options, allAggregates);
-
                         const entityPackage = `${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate`;
                         imports.push(`import ${entityPackage}.${elementType};`);
 
-                        if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
-                            // Cross-aggregate collection: need to fetch each entity by aggregate ID
-                            const relatedAggregateName = relatedDtoInfo.relatedAggregateName;
-                            const lowerRelatedAggregate = relatedAggregateName.toLowerCase();
-                            const capitalizedRelatedAggregate = this.capitalize(relatedAggregateName);
-                            const sagaDtoType = `Saga${capitalizedRelatedAggregate}Dto`;
-                            const collectionType = rel.javaType.startsWith('Set') ? 'Set' : 'List';
-                            const collectionImpl = rel.javaType.startsWith('Set') ? 'HashSet' : 'ArrayList';
+                        // Check if this is a cross-aggregate reference
+                        const crossRef = crossRefs.find(cr => cr.paramName === rel.paramName);
+                        const collectionType = rel.javaType.startsWith('Set') ? 'Set' : 'List';
+                        const collectionImpl = rel.javaType.startsWith('Set') ? 'HashSet' : 'ArrayList';
 
-                            // Add service import and field
-                            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerRelatedAggregate}.service.${capitalizedRelatedAggregate}Service;`);
-                            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.dtos.${sagaDtoType};`);
-                            imports.push(`import java.util.${collectionType};`);
-                            imports.push(`import java.util.${collectionImpl};`);
+                        imports.push(`import java.util.${collectionType};`);
+                        imports.push(`import java.util.${collectionImpl};`);
+                        imports.push('import java.util.stream.Collectors;');
 
-                            // Check if this service is already added (from single entity relationships)
-                            const serviceField = `${lowerRelatedAggregate}Service`;
-                            const serviceType = `${capitalizedRelatedAggregate}Service`;
-                            if (!fieldsDeclaration.includes(`private final ${serviceType} ${serviceField}`)) {
-                                fieldsDeclaration += `    private final ${serviceType} ${serviceField};\n`;
-                                constructorParams.push(`${serviceType} ${serviceField}`);
-                            }
-
-                            // Generate code to fetch each entity by aggregate ID
-                            // The DTO field is now named like "usersAggregateIds" (Set<Integer>)
-                            const aggregateIdsFieldName = `${rel.paramName}AggregateIds`;
-                            const capitalizedAggregateIdsField = aggregateIdsFieldName.charAt(0).toUpperCase() + aggregateIdsFieldName.slice(1);
-
+                        if (crossRef) {
+                            // Cross-aggregate collection: DTOs are passed directly
+                            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${crossRef.relatedDtoType};`);
+                            
                             entityCreationCode += `            ${rel.javaType} ${rel.paramName} = null;
-            if (${dtoParamName}.get${capitalizedAggregateIdsField}() != null) {
-                ${rel.paramName} = new ${collectionImpl}<>();
-                for (Integer ${lowerRelatedAggregate}AggregateId : ${dtoParamName}.get${capitalizedAggregateIdsField}()) {
-                    ${sagaDtoType} ${lowerRelatedAggregate}Dto = (${sagaDtoType}) ${serviceField}.get${capitalizedRelatedAggregate}ById(${lowerRelatedAggregate}AggregateId, unitOfWork);
-                    ${rel.paramName}.add(new ${elementType}(${lowerRelatedAggregate}Dto));
-                }
+            if (${requestParamName}.get${capitalizedRelName}() != null) {
+                ${rel.paramName} = ${requestParamName}.get${capitalizedRelName}().stream()
+                    .map(${elementType}::new)
+                    .collect(Collectors.to${collectionType.charAt(0).toUpperCase() + collectionType.slice(1)}());
             }
 `;
                         } else {
-                            // Same-aggregate collection: create directly from DTO
-                            imports.push('import java.util.stream.Collectors;');
+                            // Same-aggregate collection: create from nested DTOs
                             const dtoGetter = `get${capitalizedRelName}()`;
-                            entityCreationCode += `            ${rel.javaType} ${rel.paramName} = ${dtoParamName}.${dtoGetter} != null ? ${dtoParamName}.${dtoGetter}.stream().map(${elementType}::new).collect(java.util.stream.Collectors.to${rel.javaType.startsWith('Set') ? 'Set' : 'List'}()) : null;\n`;
+                            entityCreationCode += `            ${rel.javaType} ${rel.paramName} = ${requestParamName}.${dtoGetter} != null ? ${requestParamName}.${dtoGetter}.stream().map(${elementType}::new).collect(Collectors.to${collectionType.charAt(0).toUpperCase() + collectionType.slice(1)}()) : null;\n`;
                         }
                     }
 
-                    constructorParams.push(`${dtoType} ${dtoParamName}`);
-                    buildWorkflowParams.push(`${dtoType} ${dtoParamName}`);
-                    buildWorkflowCallArgs.push(dtoParamName);
+                    // Add CreateRequestDto import
+                    const createRequestDtoType = `Create${capitalizedAggregate}RequestDto`;
+                    imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.coordination.webapi.requestDtos.${createRequestDtoType};`);
 
-                    if (singleEntityRels.length > 0 || collectionEntityRels.length > 0) {
-                        const newServiceArgs: string[] = [];
-                        for (const rel of singleEntityRels) {
-                            const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, options, allAggregates);
-                            if (relatedDtoInfo.isFromAnotherAggregate) {
-                                const capitalizedRelName = rel.paramName.charAt(0).toUpperCase() + rel.paramName.slice(1);
-                                newServiceArgs.push(`get${capitalizedRelName}()`);
-                            } else {
-                                newServiceArgs.push(rel.paramName);
-                            }
-                        }
-                        newServiceArgs.push(dtoParamName);
-                        for (const rel of collectionEntityRels) {
-                            newServiceArgs.push(rel.paramName);
-                        }
-                        newServiceArgs.push('unitOfWork');
-                        updatedServiceArgs = newServiceArgs;
+                    constructorParams.push(`${createRequestDtoType} ${requestParamName}`);
+                    buildWorkflowParams.push(`${createRequestDtoType} ${requestParamName}`);
+                    buildWorkflowCallArgs.push(requestParamName);
+
+                    // Build service args: projection entities + request DTO + unitOfWork
+                    const newServiceArgs: string[] = [];
+                    for (const rel of singleEntityRels) {
+                        newServiceArgs.push(rel.paramName);
                     }
+                    newServiceArgs.push(requestParamName);
+                    for (const rel of collectionEntityRels) {
+                        newServiceArgs.push(rel.paramName);
+                    }
+                    newServiceArgs.push('unitOfWork');
+                    updatedServiceArgs = newServiceArgs;
                 } else {
                     constructorParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
                     buildWorkflowParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
@@ -390,29 +341,15 @@ export class SagaCrudGenerator extends OrchestrationBase {
                     stepBody = `${entityCreationCode}            ${op.serviceCall}(${updatedServiceArgs.join(', ')});`;
                 }
 
-                if (crossAggregateSteps.length > 0) {
-                    const dependencies = crossAggregateDependencies.length > 0
-                        ? `, new ArrayList<>(Arrays.asList(${crossAggregateDependencies.join(', ')}))`
-                        : '';
-
-                    workflowBody = crossAggregateSteps.join('\n') + `
-
-        SagaSyncStep ${op.stepName} = new SagaSyncStep("${op.stepName}", () -> {
-${stepBody}
-        }${dependencies});
-
-        ${crossAggregateDependencies.map(step => `workflow.addStep(${step});`).join('\n        ')}
-        workflow.addStep(${op.stepName});
-`;
-                } else {
-                    workflowBody = `
+                // With the new approach, we have a single create step that uses the passed DTOs directly
+                // No separate fetch steps are needed since DTOs come directly from the CreateRequestDto
+                workflowBody = `
         SagaSyncStep ${op.stepName} = new SagaSyncStep("${op.stepName}", () -> {
 ${stepBody}
         });
 
         workflow.addStep(${op.stepName});
 `;
-                }
             }
 
             if (keepParamFields) {
@@ -441,41 +378,10 @@ ${stepBody}
     }`;
             }
 
-            // Update constructor body to include cross-aggregate services
+            // Build constructor body - with the new approach, we don't need cross-aggregate services
+            // since the full DTOs are passed directly in the CreateRequestDto
             let constructorBody = `        this.${lowerAggregate}Service = ${lowerAggregate}Service;
         this.unitOfWorkService = unitOfWorkService;`;
-
-            // Add cross-aggregate service assignments
-            if (isCreateOperation) {
-                const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
-                const singleEntityRels = entityRelationships.filter(rel => !rel.isCollection);
-                const collectionEntityRels = entityRelationships.filter(rel => rel.isCollection);
-                const addedServices = new Set<string>();
-
-                // Add single entity relationship services
-                for (const rel of singleEntityRels) {
-                    const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, options, allAggregates);
-                    if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
-                        const lowerRelatedAggregate = relatedDtoInfo.relatedAggregateName.toLowerCase();
-                        if (!addedServices.has(lowerRelatedAggregate)) {
-                            addedServices.add(lowerRelatedAggregate);
-                            constructorBody += `\n        this.${lowerRelatedAggregate}Service = ${lowerRelatedAggregate}Service;`;
-                        }
-                    }
-                }
-
-                // Add collection entity relationship services
-                for (const rel of collectionEntityRels) {
-                    const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, options, allAggregates);
-                    if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
-                        const lowerRelatedAggregate = relatedDtoInfo.relatedAggregateName.toLowerCase();
-                        if (!addedServices.has(lowerRelatedAggregate)) {
-                            addedServices.add(lowerRelatedAggregate);
-                            constructorBody += `\n        this.${lowerRelatedAggregate}Service = ${lowerRelatedAggregate}Service;`;
-                        }
-                    }
-                }
-            }
 
             constructorBody += `\n        this.buildWorkflow(${buildWorkflowCallArgs.join(', ')});`;
 
@@ -595,10 +501,9 @@ ${gettersSettersCode}
                 const relatedEntity = aggregate.entities?.find((e: any) => e.name === entityName);
                 const isEntityInAggregate = !!relatedEntity;
 
-                // Exclude DTO entities (entities marked with 'Dto' keyword or generateDto)
-                const isDtoEntity = relatedEntity && (relatedEntity as any).generateDto;
-
-                if (isEntityInAggregate && !isDtoEntity) {
+                // Include all entity relationships
+                // Note: generateDto flag just means "generate a DTO class", not "exclude from signature"
+                if (isEntityInAggregate) {
                     const paramName = prop.name;
                     relationships.push({
                         entityType: entityName,
@@ -611,6 +516,31 @@ ${gettersSettersCode}
         }
 
         return relationships;
+    }
+
+    /**
+     * Find cross-aggregate references from the root entity's properties.
+     * These are non-root entities that have "uses AnotherAggregate" declarations.
+     */
+    findCrossAggregateReferences(rootEntity: Entity, aggregate: Aggregate, allAggregates?: Aggregate[]): CrossAggregateReference[] {
+        const references: CrossAggregateReference[] = [];
+        const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
+
+        for (const rel of entityRelationships) {
+            const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, { projectName: '' }, allAggregates);
+            
+            if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
+                references.push({
+                    entityType: rel.entityType,
+                    paramName: rel.paramName,
+                    relatedAggregate: relatedDtoInfo.relatedAggregateName,
+                    relatedDtoType: relatedDtoInfo.dtoType || `${relatedDtoInfo.relatedAggregateName}Dto`,
+                    isCollection: rel.isCollection
+                });
+            }
+        }
+
+        return references;
     }
 
     /**

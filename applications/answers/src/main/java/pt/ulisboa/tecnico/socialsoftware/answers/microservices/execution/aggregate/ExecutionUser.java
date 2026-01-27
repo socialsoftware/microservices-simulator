@@ -110,6 +110,7 @@ public class ExecutionUser {
     }
 
 
+
     public ExecutionUserDto buildDto() {
         ExecutionUserDto dto = new ExecutionUserDto();
         dto.setName(getUserName());

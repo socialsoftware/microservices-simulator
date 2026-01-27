@@ -95,46 +95,9 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             });
         }
 
-        // Add cross-aggregate service dependencies if CRUD is enabled and there are cross-aggregate relationships
-        if (aggregate.generateCrud && rootEntity) {
-            const entityRelationships = this.crudGenerator.findEntityRelationships(rootEntity, aggregate);
-            const singleEntityRels = entityRelationships.filter((rel: any) => !rel.isCollection);
-            const collectionEntityRels = entityRelationships.filter((rel: any) => rel.isCollection);
-
-            // Add single entity cross-aggregate services
-            for (const rel of singleEntityRels) {
-                const relatedDtoInfo = this.crudGenerator.getRelatedDtoType(rel, aggregate, allAggregates);
-                if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
-                    const lowerRelatedAggregate = relatedDtoInfo.relatedAggregateName.toLowerCase();
-                    const capitalizedRelatedAggregate = this.capitalize(relatedDtoInfo.relatedAggregateName);
-                    const depName = `${lowerRelatedAggregate}Service`;
-                    if (!dependencies.find((d: any) => d.name === depName)) {
-                        dependencies.push({
-                            name: depName,
-                            type: `${capitalizedRelatedAggregate}Service`,
-                            required: true
-                        });
-                    }
-                }
-            }
-
-            // Add collection entity cross-aggregate services
-            for (const rel of collectionEntityRels) {
-                const relatedDtoInfo = this.crudGenerator.getRelatedDtoType(rel, aggregate, allAggregates);
-                if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
-                    const lowerRelatedAggregate = relatedDtoInfo.relatedAggregateName.toLowerCase();
-                    const capitalizedRelatedAggregate = this.capitalize(relatedDtoInfo.relatedAggregateName);
-                    const depName = `${lowerRelatedAggregate}Service`;
-                    if (!dependencies.find((d: any) => d.name === depName)) {
-                        dependencies.push({
-                            name: depName,
-                            type: `${capitalizedRelatedAggregate}Service`,
-                            required: true
-                        });
-                    }
-                }
-            }
-        }
+        // Note: With the new approach, cross-aggregate DTOs are passed directly in the CreateRequestDto,
+        // so we no longer need to inject cross-aggregate services for create operations.
+        // The saga will receive the full DTOs and create projection entities directly from them.
 
         dependencies.push({
             name: 'sagaUnitOfWorkService',
@@ -226,7 +189,8 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     }
 
     /**
-     * Build checkInput method for validating DTOs
+     * Build checkInput methods for validating DTOs
+     * Generates two overloads: one for ExecutionDto (update) and one for CreateRequestDto (create)
      */
     private buildCheckInputMethod(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, lowerAggregate: string, projectName: string): string | null {
         // Check if CRUD is enabled (which means create/update operations will call checkInput)
@@ -235,18 +199,22 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             return null;
         }
 
+        const dtoType = `${aggregateName}Dto`;
+        const dtoParamName = `${lowerAggregate}Dto`;
+        const createRequestDtoType = `Create${aggregateName}RequestDto`;
+        const ProjectName = this.capitalize(projectName);
+
         if (!rootEntity || !rootEntity.properties) {
-            // Still generate empty method if CRUD is enabled
-            const dtoType = `${aggregateName}Dto`;
-            const dtoParamName = `${lowerAggregate}Dto`;
+            // Generate empty methods if CRUD is enabled but no properties
             return `private void checkInput(${dtoType} ${dtoParamName}) {
+}
+
+    private void checkInput(${createRequestDtoType} createRequest) {
 }`;
         }
 
-        const dtoType = `${aggregateName}Dto`;
-        const dtoParamName = `${lowerAggregate}Dto`;
         const validationChecks: string[] = [];
-        const ProjectName = this.capitalize(projectName);
+        const createValidationChecks: string[] = [];
 
         // Find required String fields
         for (const prop of rootEntity.properties) {
@@ -260,22 +228,43 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
             if (isString && !isCollection && !isEntity && !isEnum) {
                 const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
                 const exceptionConstant = `${aggregateName.toUpperCase()}_MISSING_${prop.name.toUpperCase()}`;
+                
+                // For ExecutionDto (update operations)
                 validationChecks.push(`        if (${dtoParamName}.get${capitalizedName}() == null) {
+            throw new ${ProjectName}Exception(${exceptionConstant});
+        }`);
+                
+                // For CreateRequestDto (create operations)
+                createValidationChecks.push(`        if (createRequest.get${capitalizedName}() == null) {
             throw new ${ProjectName}Exception(${exceptionConstant});
         }`);
             }
         }
 
-        // Always generate the method if CRUD is enabled, even if there are no validation checks
-        // Template will add 4-space indentation, so don't include it here
+        // Generate both methods
+        let dtoMethod: string;
         if (validationChecks.length === 0) {
-            return `private void checkInput(${dtoType} ${dtoParamName}) {
+            dtoMethod = `private void checkInput(${dtoType} ${dtoParamName}) {
+}`;
+        } else {
+            dtoMethod = `private void checkInput(${dtoType} ${dtoParamName}) {
+${validationChecks.join('\n')}
 }`;
         }
 
-        return `private void checkInput(${dtoType} ${dtoParamName}) {
-${validationChecks.join('\n')}
+        let createMethod: string;
+        if (createValidationChecks.length === 0) {
+            createMethod = `private void checkInput(${createRequestDtoType} createRequest) {
 }`;
+        } else {
+            createMethod = `private void checkInput(${createRequestDtoType} createRequest) {
+${createValidationChecks.join('\n')}
+}`;
+        }
+
+        return `${dtoMethod}
+
+    ${createMethod}`;
     }
 
     /**

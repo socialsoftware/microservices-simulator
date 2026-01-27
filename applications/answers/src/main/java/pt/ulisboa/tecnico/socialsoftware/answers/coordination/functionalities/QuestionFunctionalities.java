@@ -14,21 +14,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.question.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.service.QuestionService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.service.TopicService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuestionRequestDto;
 import java.util.List;
 
 @Service
 public class QuestionFunctionalities {
     @Autowired
     private QuestionService questionService;
-
-    @Autowired
-    private CourseService courseService;
-
-    @Autowired
-    private TopicService topicService;
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
@@ -49,15 +42,15 @@ public class QuestionFunctionalities {
         }
     }
 
-    public QuestionDto createQuestion(QuestionDto questionDto) {
+    public QuestionDto createQuestion(CreateQuestionRequestDto createRequest) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(questionDto);
+                checkInput(createRequest);
                 CreateQuestionFunctionalitySagas createQuestionFunctionalitySagas = new CreateQuestionFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, questionService, courseService, topicService, questionDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, questionService, createRequest);
                 createQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createQuestionFunctionalitySagas.getCreatedQuestionDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -126,6 +119,15 @@ public class QuestionFunctionalities {
             throw new AnswersException(QUESTION_MISSING_TITLE);
         }
         if (questionDto.getContent() == null) {
+            throw new AnswersException(QUESTION_MISSING_CONTENT);
+        }
+}
+
+    private void checkInput(CreateQuestionRequestDto createRequest) {
+        if (createRequest.getTitle() == null) {
+            throw new AnswersException(QUESTION_MISSING_TITLE);
+        }
+        if (createRequest.getContent() == null) {
             throw new AnswersException(QUESTION_MISSING_CONTENT);
         }
 }

@@ -93,18 +93,18 @@ export class CrudMethodGenerator {
         const singleEntityRels = entityRelationships.filter(rel => !rel.isCollection);
         const collectionEntityRels = entityRelationships.filter(rel => rel.isCollection);
 
-        // Build parameters: single entities, DTO, collections, UnitOfWork
+        // Build parameters: single entities, CreateRequestDto, collections, UnitOfWork
         const parameters: MethodParameter[] = [];
 
-        // Add single entity relationships first
+        // Add single entity relationships first (projection entities created by saga)
         for (const rel of singleEntityRels) {
             parameters.push({ type: rel.entityType, name: rel.paramName });
         }
 
-        // Add DTO
-        parameters.push({ type: `${entityName}Dto`, name: `${lowerEntity}Dto` });
+        // Add CreateRequestDto (contains primitive fields + cross-aggregate DTOs)
+        parameters.push({ type: `Create${entityName}RequestDto`, name: 'createRequest' });
 
-        // Add collection entity relationships
+        // Add collection entity relationships (projection entities created by saga)
         for (const rel of collectionEntityRels) {
             parameters.push({ type: rel.javaType, name: rel.paramName });
         }
@@ -163,10 +163,9 @@ export class CrudMethodGenerator {
                 const relatedEntity = aggregate.entities?.find((e: any) => e.name === entityName);
                 const isEntityInAggregate = !!relatedEntity;
 
-                // Exclude DTO entities (entities marked with 'Dto' keyword)
-                const isDtoEntity = relatedEntity && (relatedEntity as any).generateDto;
-
-                if (isEntityInAggregate && !isDtoEntity) {
+                // Include all entity relationships
+                // Note: generateDto flag just means "generate a DTO class", not "exclude from signature"
+                if (isEntityInAggregate) {
                     const paramName = prop.name;
                     relationships.push({
                         entityType: entityName,

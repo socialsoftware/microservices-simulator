@@ -14,15 +14,25 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTopicRequestDto;
 
 
 @Service
 @Transactional
 public class TopicService {
     private static final Logger logger = LoggerFactory.getLogger(TopicService.class);
+
+    @Autowired
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
+    @Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     @Autowired
     private TopicRepository topicRepository;
@@ -33,11 +43,16 @@ public class TopicService {
     public TopicService() {}
 
     // CRUD Operations
-    public TopicDto createTopic(String name, TopicCourse course) {
+    public TopicDto createTopic(TopicCourse course, CreateTopicRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
-            Topic topic = new Topic(name, course);
-            topic = topicRepository.save(topic);
-            return new TopicDto(topic);
+            // Convert CreateRequestDto to regular DTO
+            TopicDto topicDto = new TopicDto();
+            topicDto.setName(createRequest.getName());
+            
+            Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+            Topic topic = topicFactory.createTopic(aggregateId, course, topicDto);
+            unitOfWorkService.registerChanged(topic, unitOfWork);
+            return topicFactory.createTopicDto(topic);
         } catch (Exception e) {
             throw new AnswersException("Error creating topic: " + e.getMessage());
         }

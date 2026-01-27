@@ -85,6 +85,9 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
             const eventPackage = getGlobalConfig().buildPackageName(options.projectName, 'microservices', lowerAggregate, 'events', 'publish');
             imports.push(`import ${eventPackage}.${aggregateName}UpdatedEvent;`);
             imports.push(`import ${eventPackage}.${aggregateName}DeletedEvent;`);
+            // Import CreateRequestDto for create operations
+            const requestDtoPackage = getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'webapi', 'requestDtos');
+            imports.push(`import ${requestDtoPackage}.Create${aggregateName}RequestDto;`);
         }
 
         // Build set of entity names in this aggregate (to exclude from enum detection)

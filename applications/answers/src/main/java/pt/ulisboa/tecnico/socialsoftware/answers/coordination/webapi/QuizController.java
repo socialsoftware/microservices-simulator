@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.Qu
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuizRequestDto;
 
 @RestController
 public class QuizController {
@@ -13,8 +14,8 @@ public class QuizController {
     private QuizFunctionalities quizFunctionalities;
 
     @PostMapping("/quizs/create")
-    public QuizDto createQuiz(@RequestBody QuizDto quizDto) {
-        return quizFunctionalities.createQuiz(quizDto);
+    public QuizDto createQuiz(@RequestBody CreateQuizRequestDto createRequest) {
+        return quizFunctionalities.createQuiz(createRequest);
     }
 
     @GetMapping("/quizs/{quizAggregateId}")

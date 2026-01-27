@@ -77,6 +77,7 @@ public class TopicCourse {
     }
 
 
+
     public TopicCourseDto buildDto() {
         TopicCourseDto dto = new TopicCourseDto();
         dto.setAggregateId(getCourseAggregateId());

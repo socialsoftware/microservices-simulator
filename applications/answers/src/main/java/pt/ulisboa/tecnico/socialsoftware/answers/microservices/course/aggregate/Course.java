@@ -1,5 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
@@ -7,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
@@ -57,6 +61,11 @@ public abstract class Course extends Aggregate {
         this.creationDate = creationDate;
     }
 
+
+    @Override
+    public Set<EventSubscription> getEventSubscriptions() {
+        return new HashSet<>();
+    }
 
     @Override
     public void verifyInvariants() {

@@ -18,17 +18,10 @@ public class Saga{{aggregateName}} extends {{aggregateName}} implements SagaAggr
         this.sagaState = other.getSagaState();
     }
 
-    {{#if constructorParams.hasRelationships}}
     public Saga{{aggregateName}}({{constructorParams.paramString}}) {
         super({{constructorParams.superCallString}});
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
-    {{else}}
-    public Saga{{aggregateName}}(Integer aggregateId, {{rootEntityName}}Dto {{lowerAggregate}}Dto) {
-        super(aggregateId, {{lowerAggregate}}Dto);
-        this.sagaState = GenericSagaState.NOT_IN_SAGA;
-    }
-    {{/if}}
 
     @Override
     public void setSagaState(SagaState state) {

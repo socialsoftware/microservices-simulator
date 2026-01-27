@@ -13,15 +13,25 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateUserRequestDto;
 
 
 @Service
 @Transactional
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
+    @Autowired
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
+    @Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     @Autowired
     private UserRepository userRepository;
@@ -32,11 +42,19 @@ public class UserService {
     public UserService() {}
 
     // CRUD Operations
-    public UserDto createUser(String name, String username, UserRole role, boolean active) {
+    public UserDto createUser(CreateUserRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
-            User user = new User(name, username, role, active);
-            user = userRepository.save(user);
-            return new UserDto(user);
+            // Convert CreateRequestDto to regular DTO
+            UserDto userDto = new UserDto();
+            userDto.setName(createRequest.getName());
+            userDto.setUsername(createRequest.getUsername());
+            userDto.setRole(createRequest.getRole() != null ? createRequest.getRole().name() : null);
+            userDto.setActive(createRequest.getActive());
+            
+            Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+            User user = userFactory.createUser(aggregateId, userDto);
+            unitOfWorkService.registerChanged(user, unitOfWork);
+            return userFactory.createUserDto(user);
         } catch (Exception e) {
             throw new AnswersException("Error creating user: " + e.getMessage());
         }

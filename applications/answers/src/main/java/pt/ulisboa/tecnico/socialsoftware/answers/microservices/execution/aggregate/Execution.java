@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
@@ -131,6 +132,11 @@ public abstract class Execution extends Aggregate {
             .orElse(null);
     }
 
+
+    @Override
+    public Set<EventSubscription> getEventSubscriptions() {
+        return new HashSet<>();
+    }
 
     @Override
     public void verifyInvariants() {

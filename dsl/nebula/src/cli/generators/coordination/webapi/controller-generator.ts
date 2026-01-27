@@ -65,12 +65,15 @@ export class ControllerGenerator extends WebApiBaseGenerator {
 
     private generateCrudEndpoints(aggregateName: string, lowerAggregate: string, rootEntity: Entity, aggregate: Aggregate, allAggregates?: Aggregate[]): any[] {
         const dtoType = `${aggregateName}Dto`;
+        const createRequestDtoType = `Create${aggregateName}RequestDto`;
 
-        // For create endpoint, only pass the DTO - aggregateIds are extracted from it in the saga
+        // For create endpoint, use the new CreateXRequestDto which contains:
+        // - Full DTOs for cross-aggregate references (e.g., UserDto, CourseDto)
+        // - Primitive/value fields specific to this aggregate
         const createParameters: any[] = [
             {
-                name: `${lowerAggregate}Dto`,
-                type: dtoType,
+                name: `createRequest`,
+                type: createRequestDtoType,
                 annotation: '@RequestBody'
             }
         ];
@@ -83,7 +86,8 @@ export class ControllerGenerator extends WebApiBaseGenerator {
                 parameters: createParameters,
                 returnType: dtoType,
                 description: `Create a new ${aggregateName}`,
-                isCrud: true
+                isCrud: true,
+                isCreate: true
             },
             {
                 method: 'Get',
@@ -269,6 +273,13 @@ export class ControllerGenerator extends WebApiBaseGenerator {
             imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', 'exception')}.*;`);
         }
 
+        // Add imports for request DTOs (Create/Update)
+        const hasCreateEndpoint = endpoints.some(e => e.isCreate);
+        if (hasCreateEndpoint) {
+            const requestDtoPackage = getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'webapi', 'requestDtos');
+            imports.add(`import ${requestDtoPackage}.Create${aggregate.name}RequestDto;`);
+        }
+
         return Array.from(imports);
     }
 
@@ -278,7 +289,8 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         const dtoMatches = type.match(/(\w+Dto)/g);
         if (dtoMatches) {
             dtoMatches.forEach(dto => {
-                if (dto !== 'Dto') {
+                // Exclude 'Dto' alone and request DTOs (they have their own import)
+                if (dto !== 'Dto' && !dto.endsWith('RequestDto')) {
                     dtoSet.add(dto);
                 }
             });
@@ -342,10 +354,9 @@ export class ControllerGenerator extends WebApiBaseGenerator {
                 const relatedEntity = aggregate.entities?.find((e: any) => e.name === entityName);
                 const isEntityInAggregate = !!relatedEntity;
 
-                // Exclude DTO entities (entities marked with 'Dto' keyword or generateDto)
-                const isDtoEntity = relatedEntity && (relatedEntity as any).generateDto;
-
-                if (isEntityInAggregate && !isDtoEntity) {
+                // Include all entity relationships
+                // Note: generateDto flag just means "generate a DTO class", not "exclude from signature"
+                if (isEntityInAggregate) {
                     const paramName = prop.name;
                     relationships.push({
                         entityType: entityName,

@@ -13,16 +13,16 @@ export class WebApiGenerator {
     private globalControllerGenerator = new GlobalControllerGenerator();
     private utilityServiceGenerator = new UtilityServiceGenerator();
 
-    async generateWebApi(aggregate: Aggregate, options: WebApiGenerationOptions, allAggregates?: Aggregate[]): Promise<{ [key: string]: string }> {
+    async generateWebApi(aggregate: Aggregate, options: WebApiGenerationOptions, allAggregates?: Aggregate[]): Promise<{ [key: string]: string | Record<string, string> }> {
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
         if (!rootEntity) {
             throw new Error(`No root entity found in aggregate ${aggregate.name}`);
         }
 
-        const results: { [key: string]: string } = {};
+        const results: { [key: string]: string | Record<string, string> } = {};
 
         results['controller'] = await this.controllerGenerator.generateController(aggregate, rootEntity, options, allAggregates);
-        results['request-dtos'] = await this.dtoGenerator.generateRequestDtos(aggregate, rootEntity, options);
+        results['request-dtos'] = await this.dtoGenerator.generateRequestDtos(aggregate, rootEntity, options, allAggregates);
         results['response-dtos'] = await this.dtoGenerator.generateResponseDtos(aggregate, rootEntity, options);
 
         return results;

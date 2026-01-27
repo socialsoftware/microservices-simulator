@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.TournamentFunctionalities;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTournamentRequestDto;
 
 @RestController
 public class TournamentController {
@@ -12,8 +13,8 @@ public class TournamentController {
     private TournamentFunctionalities tournamentFunctionalities;
 
     @PostMapping("/tournaments/create")
-    public TournamentDto createTournament(@RequestBody TournamentDto tournamentDto) {
-        return tournamentFunctionalities.createTournament(tournamentDto);
+    public TournamentDto createTournament(@RequestBody CreateTournamentRequestDto createRequest) {
+        return tournamentFunctionalities.createTournament(createRequest);
     }
 
     @GetMapping("/tournaments/{tournamentAggregateId}")

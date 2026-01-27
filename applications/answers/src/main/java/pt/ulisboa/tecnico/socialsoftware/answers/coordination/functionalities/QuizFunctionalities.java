@@ -14,9 +14,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.quiz.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.service.QuizService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.service.QuestionService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuizRequestDto;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 
@@ -24,12 +23,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 public class QuizFunctionalities {
     @Autowired
     private QuizService quizService;
-
-    @Autowired
-    private ExecutionService executionService;
-
-    @Autowired
-    private QuestionService questionService;
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
@@ -50,15 +43,15 @@ public class QuizFunctionalities {
         }
     }
 
-    public QuizDto createQuiz(QuizDto quizDto) {
+    public QuizDto createQuiz(CreateQuizRequestDto createRequest) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(quizDto);
+                checkInput(createRequest);
                 CreateQuizFunctionalitySagas createQuizFunctionalitySagas = new CreateQuizFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, quizService, executionService, questionService, quizDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, quizService, createRequest);
                 createQuizFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createQuizFunctionalitySagas.getCreatedQuizDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -124,6 +117,12 @@ public class QuizFunctionalities {
 
     private void checkInput(QuizDto quizDto) {
         if (quizDto.getTitle() == null) {
+            throw new AnswersException(QUIZ_MISSING_TITLE);
+        }
+}
+
+    private void checkInput(CreateQuizRequestDto createRequest) {
+        if (createRequest.getTitle() == null) {
             throw new AnswersException(QUIZ_MISSING_TITLE);
         }
 }

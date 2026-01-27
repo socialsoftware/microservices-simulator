@@ -16,6 +16,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizExecutionDto;
@@ -169,6 +170,11 @@ public abstract class Quiz extends Aggregate {
             .orElse(null);
     }
 
+
+    @Override
+    public Set<EventSubscription> getEventSubscriptions() {
+        return new HashSet<>();
+    }
 
     @Override
     public void verifyInvariants() {

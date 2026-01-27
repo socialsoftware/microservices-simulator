@@ -33,7 +33,7 @@ public class {{serviceName}} {
     public {{returnType}} {{name}}({{#each parameters}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
 {{#if (eq crudAction "create")}}
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        {{entityName}} {{lowerEntityName}} = {{lowerEntityName}}Factory.create{{entityName}}(aggregateId{{#if entityRelationships.single}}{{#each entityRelationships.single}}, {{paramName}}{{/each}}{{/if}}, {{lowerEntityName}}Dto{{#if entityRelationships.collections}}{{#each entityRelationships.collections}}, {{paramName}}{{/each}}{{/if}});
+        {{entityName}} {{lowerEntityName}} = {{lowerEntityName}}Factory.create{{entityName}}(aggregateId{{#if entityRelationships.single}}{{#each entityRelationships.single}}, {{paramName}}{{/each}}{{/if}}, createRequest{{#if entityRelationships.collections}}{{#each entityRelationships.collections}}, {{paramName}}{{/each}}{{/if}});
         unitOfWorkService.registerChanged({{lowerEntityName}}, unitOfWork);
         return {{lowerEntityName}}Factory.create{{entityName}}Dto({{lowerEntityName}});
 {{else if (eq crudAction "findById")}}

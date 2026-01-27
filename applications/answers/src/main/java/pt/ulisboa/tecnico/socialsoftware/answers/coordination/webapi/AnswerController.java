@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.AnswerFunctionalities;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateAnswerRequestDto;
 
 @RestController
 public class AnswerController {
@@ -12,8 +13,8 @@ public class AnswerController {
     private AnswerFunctionalities answerFunctionalities;
 
     @PostMapping("/answers/create")
-    public AnswerDto createAnswer(@RequestBody AnswerDto answerDto) {
-        return answerFunctionalities.createAnswer(answerDto);
+    public AnswerDto createAnswer(@RequestBody CreateAnswerRequestDto createRequest) {
+        return answerFunctionalities.createAnswer(createRequest);
     }
 
     @GetMapping("/answers/{answerAggregateId}")

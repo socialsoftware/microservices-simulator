@@ -16,10 +16,12 @@ export class WebApiFeature {
 
         try {
             let controllerCode: string;
+            let requestDtos: Record<string, string> | undefined;
 
             if (hasEndpoints) {
                 const webApiCode = await generators.webApiGenerator.generateWebApi(aggregate, options, allAggregates);
-                controllerCode = webApiCode['controller'];
+                controllerCode = webApiCode['controller'] as string;
+                requestDtos = webApiCode['request-dtos'] as Record<string, string>;
             } else {
                 // Generate empty controller
                 controllerCode = await generators.webApiGenerator.generateEmptyController(aggregate, options);
@@ -28,6 +30,22 @@ export class WebApiFeature {
             const webApiPath = path.join(paths.javaPath, 'coordination', 'webapi', `${aggregate.name}Controller.java`);
             await fs.mkdir(path.dirname(webApiPath), { recursive: true });
             await fs.writeFile(webApiPath, controllerCode, 'utf-8');
+
+            // Write request DTOs if generated (each DTO to a separate file)
+            if (requestDtos && typeof requestDtos === 'object') {
+                const dtoKeys = Object.keys(requestDtos);
+                if (dtoKeys.length > 0) {
+                    const dtosDir = path.join(paths.javaPath, 'coordination', 'webapi', 'requestDtos');
+                    await fs.mkdir(dtosDir, { recursive: true });
+                    
+                    for (const [dtoName, dtoContent] of Object.entries(requestDtos)) {
+                        if (dtoContent && typeof dtoContent === 'string' && dtoContent.trim()) {
+                            const dtoPath = path.join(dtosDir, `${dtoName}.java`);
+                            await fs.writeFile(dtoPath, dtoContent, 'utf-8');
+                        }
+                    }
+                }
+            }
 
             if (hasEndpoints) {
                 const endpointCount = hasAutoCrud ? 5 : aggregate.webApiEndpoints.endpoints.length;

@@ -8,60 +8,33 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicCourse;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
-import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.dtos.SagaCourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.states.CourseSagaState;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
-import java.util.ArrayList;
-import java.util.Arrays;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTopicRequestDto;
 
 public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
     private TopicDto createdTopicDto;
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
-    private SagaCourseDto courseDto;
-    private TopicCourse course;
-    private final CourseService courseService;
 
 
-    public CreateTopicFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TopicService topicService, CourseService courseService, TopicDto topicDto) {
+    public CreateTopicFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TopicService topicService, CreateTopicRequestDto createRequest) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
-        this.courseService = courseService;
-        this.buildWorkflow(topicDto, unitOfWork);
+        this.buildWorkflow(createRequest, unitOfWork);
     }
 
-    public void buildWorkflow(TopicDto topicDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(CreateTopicRequestDto createRequest, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getCourseStep = new SagaSyncStep("getCourseStep", () -> {
-            Integer courseAggregateId = topicDto.getCourseAggregateId();
-            courseDto = (SagaCourseDto) courseService.getCourseById(courseAggregateId, unitOfWork);
-            unitOfWorkService.registerSagaState(courseDto.getAggregateId(), CourseSagaState.READ_COURSE, unitOfWork);
+        SagaSyncStep createTopicStep = new SagaSyncStep("createTopicStep", () -> {
+            CourseDto courseDto = createRequest.getCourse();
             TopicCourse course = new TopicCourse(courseDto);
-            setCourse(course);
+            TopicDto createdTopicDto = topicService.createTopic(course, createRequest, unitOfWork);
+            setCreatedTopicDto(createdTopicDto);
         });
 
-        getCourseStep.registerCompensation(() -> {
-            unitOfWorkService.registerSagaState(courseDto.getAggregateId(), GenericSagaState.NOT_IN_SAGA, unitOfWork);
-        }, unitOfWork);
-
-        SagaSyncStep createTopicStep = new SagaSyncStep("createTopicStep", () -> {
-            TopicDto createdTopicDto = topicService.createTopic(getCourse(), topicDto, unitOfWork);
-            setCreatedTopicDto(createdTopicDto);
-        }, new ArrayList<>(Arrays.asList(getCourseStep)));
-
-        workflow.addStep(getCourseStep);
         workflow.addStep(createTopicStep);
 
-    }
-
-    public TopicCourse getCourse() {
-        return course;
-    }
-
-    public void setCourse(TopicCourse course) {
-        this.course = course;
     }
 
     public TopicDto getCreatedTopicDto() {

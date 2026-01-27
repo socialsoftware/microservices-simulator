@@ -120,6 +120,7 @@ public class QuestionAnswered {
     }
 
 
+
     public QuestionAnsweredDto buildDto() {
         QuestionAnsweredDto dto = new QuestionAnsweredDto();
         dto.setSequence(getSequence());

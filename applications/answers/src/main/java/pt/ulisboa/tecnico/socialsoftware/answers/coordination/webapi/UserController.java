@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.Us
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.UserRole;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateUserRequestDto;
 
 @RestController
 public class UserController {
@@ -13,8 +14,8 @@ public class UserController {
     private UserFunctionalities userFunctionalities;
 
     @PostMapping("/users/create")
-    public UserDto createUser(@RequestBody UserDto userDto) {
-        return userFunctionalities.createUser(userDto);
+    public UserDto createUser(@RequestBody CreateUserRequestDto createRequest) {
+        return userFunctionalities.createUser(createRequest);
     }
 
     @GetMapping("/users/{userAggregateId}")

@@ -14,17 +14,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.service.TopicService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.CourseService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTopicRequestDto;
 import java.util.List;
 
 @Service
 public class TopicFunctionalities {
     @Autowired
     private TopicService topicService;
-
-    @Autowired
-    private CourseService courseService;
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
@@ -45,15 +42,15 @@ public class TopicFunctionalities {
         }
     }
 
-    public TopicDto createTopic(TopicDto topicDto) {
+    public TopicDto createTopic(CreateTopicRequestDto createRequest) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(topicDto);
+                checkInput(createRequest);
                 CreateTopicFunctionalitySagas createTopicFunctionalitySagas = new CreateTopicFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, topicService, courseService, topicDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, topicService, createRequest);
                 createTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createTopicFunctionalitySagas.getCreatedTopicDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -119,6 +116,12 @@ public class TopicFunctionalities {
 
     private void checkInput(TopicDto topicDto) {
         if (topicDto.getName() == null) {
+            throw new AnswersException(TOPIC_MISSING_NAME);
+        }
+}
+
+    private void checkInput(CreateTopicRequestDto createRequest) {
+        if (createRequest.getName() == null) {
             throw new AnswersException(TOPIC_MISSING_NAME);
         }
 }

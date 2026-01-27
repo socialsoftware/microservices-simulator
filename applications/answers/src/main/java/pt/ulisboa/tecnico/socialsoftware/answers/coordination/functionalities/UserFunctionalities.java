@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.user.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateUserRequestDto;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.UserRole;
 
@@ -42,15 +43,15 @@ public class UserFunctionalities {
         }
     }
 
-    public UserDto createUser(UserDto userDto) {
+    public UserDto createUser(CreateUserRequestDto createRequest) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(userDto);
+                checkInput(createRequest);
                 CreateUserFunctionalitySagas createUserFunctionalitySagas = new CreateUserFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, userService, userDto);
+                        sagaUnitOfWork, sagaUnitOfWorkService, userService, createRequest);
                 createUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createUserFunctionalitySagas.getCreatedUserDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -119,6 +120,15 @@ public class UserFunctionalities {
             throw new AnswersException(USER_MISSING_NAME);
         }
         if (userDto.getUsername() == null) {
+            throw new AnswersException(USER_MISSING_USERNAME);
+        }
+}
+
+    private void checkInput(CreateUserRequestDto createRequest) {
+        if (createRequest.getName() == null) {
+            throw new AnswersException(USER_MISSING_NAME);
+        }
+        if (createRequest.getUsername() == null) {
             throw new AnswersException(USER_MISSING_USERNAME);
         }
 }

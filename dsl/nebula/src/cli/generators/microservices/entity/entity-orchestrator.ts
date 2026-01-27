@@ -65,9 +65,19 @@ export class EntityOrchestrator {
                 ? generateBackReferenceGetterSetter(entity.$container.name)
                 : '',
             invariants: isRootEntity ? generateInvariants(entity).code : '',
+            // Root entities need getEventSubscriptions() for the Aggregate interface
+            eventSubscriptions: isRootEntity ? this.generateEventSubscriptionsMethod() : '',
             // All entities now get their own DTOs, so all need buildDto() method
             buildDtoMethod: this.generateBuildDtoMethod(entity)
         };
+    }
+
+    private generateEventSubscriptionsMethod(): string {
+        return `
+    @Override
+    public Set<EventSubscription> getEventSubscriptions() {
+        return new HashSet<>();
+    }`;
     }
 
     private buildClassStructure(entity: Entity, projectName: string, isRootEntity: boolean) {
@@ -102,6 +112,7 @@ ${components.dtoConstructor}
 ${components.copyConstructor}
 ${components.gettersSetters}
 ${components.backRefGetterSetter}
+${components.eventSubscriptions}
 ${components.invariants}
 ${components.buildDtoMethod}
 }`;
@@ -179,6 +190,9 @@ ${components.buildDtoMethod}
         if (isRoot) {
             const aggregateImport = `import ${config.getBasePackage()}.ms.domain.aggregate.Aggregate;`;
             imports.push(aggregateImport);
+            // Root entities need EventSubscription for getEventSubscriptions() method
+            const eventSubscriptionImport = `import ${config.getBasePackage()}.ms.domain.event.EventSubscription;`;
+            imports.push(eventSubscriptionImport);
         }
 
         const dtoPattern = /\b([A-Z][a-zA-Z]*Dto)\b/g;

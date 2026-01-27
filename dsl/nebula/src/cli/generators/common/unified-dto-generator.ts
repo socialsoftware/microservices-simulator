@@ -196,8 +196,8 @@ export class UnifiedDtoGenerator {
             case DtoType.RESPONSE_DTO:
             case DtoType.CREATE_REQUEST:
             case DtoType.UPDATE_REQUEST:
-                // WebAPI DTOs go in coordination package
-                return `pt.ulisboa.tecnico.socialsoftware.ms.${options.projectName.toLowerCase()}.coordination.webapi.dtos`;
+                // WebAPI request DTOs go in coordination requestDtos package
+                return `pt.ulisboa.tecnico.socialsoftware.ms.${options.projectName.toLowerCase()}.coordination.webapi.requestDtos`;
             case DtoType.SHARED_DTO:
                 // Shared DTOs go in shared package
                 return `pt.ulisboa.tecnico.socialsoftware.ms.${options.projectName.toLowerCase()}.shared.dtos`;

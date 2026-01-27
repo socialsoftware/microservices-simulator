@@ -1,7 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import java.time.LocalDateTime;
@@ -13,6 +15,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
@@ -164,6 +167,11 @@ public abstract class Answer extends Aggregate {
             .orElse(null);
     }
 
+
+    @Override
+    public Set<EventSubscription> getEventSubscriptions() {
+        return new HashSet<>();
+    }
 
     @Override
     public void verifyInvariants() {

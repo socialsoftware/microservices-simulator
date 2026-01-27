@@ -13,17 +13,27 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateCourseRequestDto;
 
 
 @Service
 @Transactional
 public class CourseService {
     private static final Logger logger = LoggerFactory.getLogger(CourseService.class);
+
+    @Autowired
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
+    @Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     @Autowired
     private CourseRepository courseRepository;
@@ -34,11 +44,18 @@ public class CourseService {
     public CourseService() {}
 
     // CRUD Operations
-    public CourseDto createCourse(String name, CourseType type, LocalDateTime creationDate) {
+    public CourseDto createCourse(CreateCourseRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
-            Course course = new Course(name, type, creationDate);
-            course = courseRepository.save(course);
-            return new CourseDto(course);
+            // Convert CreateRequestDto to regular DTO
+            CourseDto courseDto = new CourseDto();
+            courseDto.setName(createRequest.getName());
+            courseDto.setType(createRequest.getType() != null ? createRequest.getType().name() : null);
+            courseDto.setCreationDate(createRequest.getCreationDate());
+            
+            Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+            Course course = courseFactory.createCourse(aggregateId, courseDto);
+            unitOfWorkService.registerChanged(course, unitOfWork);
+            return courseFactory.createCourseDto(course);
         } catch (Exception e) {
             throw new AnswersException("Error creating course: " + e.getMessage());
         }

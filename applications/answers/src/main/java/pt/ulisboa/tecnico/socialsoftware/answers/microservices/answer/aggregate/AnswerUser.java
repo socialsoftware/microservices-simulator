@@ -88,6 +88,7 @@ public class AnswerUser {
     }
 
 
+
     public AnswerUserDto buildDto() {
         AnswerUserDto dto = new AnswerUserDto();
         dto.setAggregateId(getUserAggregateId());
