@@ -49,7 +49,7 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
             imports,
             methods,
             dependencies,
-            generateCrud: serviceDefinition.generateCrud || false,
+            generateCrud: aggregate.generateCrud || false,
             transactional: serviceDefinition.transactional || false,
             projectName: options.projectName.toLowerCase(),
             annotations: this.getFrameworkAnnotations()
@@ -79,7 +79,7 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
             `import ${getGlobalConfig().buildPackageName(options.projectName, 'shared', 'dtos')}.*;`
         ];
 
-        if (serviceDefinition.generateCrud) {
+        if (aggregate.generateCrud) {
             const aggregateName = aggregate.name;
             const lowerAggregate = aggregateName.toLowerCase();
             const eventPackage = getGlobalConfig().buildPackageName(options.projectName, 'microservices', lowerAggregate, 'events', 'publish');
@@ -141,7 +141,7 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
         const methods: any[] = [];
         const entityName = rootEntity.name;
 
-        if (serviceDefinition.generateCrud) {
+        if (aggregate.generateCrud) {
             const crudOptions = CrudMethodGenerator.createOptions({
                 transactional: serviceDefinition.transactional || false,
                 includeValidation: true
@@ -150,7 +150,7 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
         }
 
         if (serviceDefinition.serviceMethods) {
-            const crudMethodNames = serviceDefinition.generateCrud ? new Set([
+            const crudMethodNames = aggregate.generateCrud ? new Set([
                 `create${entityName}`,
                 `get${entityName}ById`,
                 `update${entityName}`,

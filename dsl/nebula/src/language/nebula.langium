@@ -12,6 +12,7 @@ Aggregate:
     (annotations+=Annotation)*
     (metadata=AggregateMetadata)?
     'Aggregate' name=ID '{'
+        (generateCrud?='@GenerateCrud' ';')?
         (aggregateElements+=AggregateElement)*
     '}';
 
@@ -340,7 +341,6 @@ ExceptionMessage:
 
 WebAPIEndpoints:
     'WebAPIEndpoints' '{'
-        (generateCrud?='@GenerateCrud' ';')?
         (endpoints+=CustomEndpoint)*
     '}';
 
@@ -387,7 +387,6 @@ AggregateMetadata:
 
 ServiceDefinition:
     'Service' name=ID '{'
-        (generateCrud?='@GenerateCrud' ';')?
         (transactional?='@Transactional' ';')?
         ('methods' '{'
             serviceMethods+=ServiceMethod*

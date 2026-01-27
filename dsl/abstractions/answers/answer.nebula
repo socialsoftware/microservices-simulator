@@ -1,4 +1,5 @@
 Aggregate Answer {
+    @GenerateCrud;
     Entity AnswerUser uses User {
         Integer userAggregateId -> aggregateId;
         String userName -> name;
@@ -40,13 +41,5 @@ Aggregate Answer {
     Repository {
         @Query("select a.aggregateId from Answer a where a.quiz.quizAggregateId = :quizAggregateId AND a.user.userAggregateId = :userAggregateId AND a.sagaState = 'NOT_IN_SAGA'")
         Optional<Integer> findAnswerIdByQuizAggregateIdAndUserAggregateIdForSaga(Integer quizAggregateId, Integer userAggregateId);
-    }
-
-    WebAPIEndpoints {
-        @GenerateCrud;
-    }
-
-    Service AnswerService {
-        @GenerateCrud;   
     }
 }

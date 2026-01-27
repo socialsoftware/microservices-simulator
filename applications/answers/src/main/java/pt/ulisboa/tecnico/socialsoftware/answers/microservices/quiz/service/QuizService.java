@@ -1,139 +1,164 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.service;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.*;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizExecution;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizQuestion;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizOption;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.dao.CannotAcquireLockException;
+import java.util.List;
+import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.*;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+
 
 @Service
+@Transactional
 public class QuizService {
+    private static final Logger logger = LoggerFactory.getLogger(QuizService.class);
+
     @Autowired
-    private AggregateIdGeneratorService aggregateIdGeneratorService;
-
-    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
-
-    private final QuizRepository quizRepository;
+    private QuizRepository quizRepository;
 
     @Autowired
     private QuizFactory quizFactory;
 
-    public QuizService(UnitOfWorkService unitOfWorkService, QuizRepository quizRepository) {
-        this.unitOfWorkService = unitOfWorkService;
-        this.quizRepository = quizRepository;
+    public QuizService() {}
+
+    // CRUD Operations
+    public QuizDto createQuiz(String title, QuizType quizType, LocalDateTime creationDate, LocalDateTime availableDate, LocalDateTime conclusionDate, LocalDateTime resultsDate, QuizExecution execution, Set<QuizQuestion> questions) {
+        try {
+            Quiz quiz = new Quiz(title, quizType, creationDate, availableDate, conclusionDate, resultsDate, execution, questions);
+            quiz = quizRepository.save(quiz);
+            return new QuizDto(quiz);
+        } catch (Exception e) {
+            throw new AnswersException("Error creating quiz: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizDto createQuiz(QuizExecution execution, QuizDto quizDto, Set<QuizQuestion> questions, UnitOfWork unitOfWork) {
-        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        Quiz quiz = quizFactory.createQuiz(aggregateId, execution, quizDto, questions);
-        unitOfWorkService.registerChanged(quiz, unitOfWork);
-        return quizFactory.createQuizDto(quiz);
+    public QuizDto getQuizById(Integer id) {
+        try {
+            Quiz quiz = (Quiz) quizRepository.findById(id)
+                .orElseThrow(() -> new AnswersException("Quiz not found with id: " + id));
+            return new QuizDto(quiz);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error retrieving quiz: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizDto getQuizById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return quizFactory.createQuizDto((Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizDto updateQuiz(QuizDto quizDto, UnitOfWork unitOfWork) {
-        Integer aggregateId = quizDto.getAggregateId();
-        Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
-        newQuiz.setTitle(quizDto.getTitle());
-        newQuiz.setCreationDate(quizDto.getCreationDate());
-        newQuiz.setAvailableDate(quizDto.getAvailableDate());
-        newQuiz.setConclusionDate(quizDto.getConclusionDate());
-        newQuiz.setResultsDate(quizDto.getResultsDate());
-        unitOfWorkService.registerChanged(newQuiz, unitOfWork);
-        unitOfWorkService.registerEvent(new QuizUpdatedEvent(newQuiz.getAggregateId(), newQuiz.getTitle(), newQuiz.getCreationDate(), newQuiz.getAvailableDate(), newQuiz.getConclusionDate(), newQuiz.getResultsDate()), unitOfWork);
-        return quizFactory.createQuizDto(newQuiz);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void deleteQuiz(Integer aggregateId, UnitOfWork unitOfWork) {
-        Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
-        newQuiz.remove();
-        unitOfWorkService.registerChanged(newQuiz, unitOfWork);
-        unitOfWorkService.registerEvent(new QuizDeletedEvent(newQuiz.getAggregateId()), unitOfWork);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<QuizDto> searchQuizs(String title, QuizType quizType, UnitOfWork unitOfWork) {
-        Set<Integer> aggregateIds = quizRepository.findAll().stream()
-                .filter(entity -> {
-                    if (title != null) {
-                        if (!entity.getTitle().equals(title)) {
-                            return false;
-                        }
-                    }
-                    if (quizType != null) {
-                        if (!entity.getQuizType().equals(quizType)) {
-                            return false;
-                        }
-                                            }
-                    return true;
-                })
-                .map(Quiz::getAggregateId)
-                .collect(Collectors.toSet());
-        return aggregateIds.stream()
-                .map(id -> (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
-                .map(quizFactory::createQuizDto)
+    public List<QuizDto> getAllQuizs() {
+        try {
+            return quizRepository.findAll().stream()
+                .map(entity -> new QuizDto((Quiz) entity))
                 .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new AnswersException("Error retrieving all quizs: " + e.getMessage());
+        }
     }
 
+    public QuizDto updateQuiz(QuizDto quizDto) {
+        try {
+            Integer id = quizDto.getAggregateId();
+            Quiz quiz = (Quiz) quizRepository.findById(id)
+                .orElseThrow(() -> new AnswersException("Quiz not found with id: " + id));
+            
+                        if (quizDto.getTitle() != null) {
+                quiz.setTitle(quizDto.getTitle());
+            }
+            if (quizDto.getQuizType() != null) {
+                quiz.setQuizType(quizDto.getQuizType());
+            }
+            if (quizDto.getCreationDate() != null) {
+                quiz.setCreationDate(quizDto.getCreationDate());
+            }
+            if (quizDto.getAvailableDate() != null) {
+                quiz.setAvailableDate(quizDto.getAvailableDate());
+            }
+            if (quizDto.getConclusionDate() != null) {
+                quiz.setConclusionDate(quizDto.getConclusionDate());
+            }
+            if (quizDto.getResultsDate() != null) {
+                quiz.setResultsDate(quizDto.getResultsDate());
+            }
+            if (quizDto.getExecution() != null) {
+                quiz.setExecution(quizDto.getExecution());
+            }
+            if (quizDto.getQuestions() != null) {
+                quiz.setQuestions(quizDto.getQuestions());
+            }
+            
+            quiz = quizRepository.save(quiz);
+            return new QuizDto(quiz);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error updating quiz: " + e.getMessage());
+        }
+    }
+
+    public void deleteQuiz(Integer id) {
+        try {
+            if (!quizRepository.existsById(id)) {
+                throw new AnswersException("Quiz not found with id: " + id);
+            }
+            quizRepository.deleteById(id);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error deleting quiz: " + e.getMessage());
+        }
+    }
+
+    // No business methods defined
+
+    // No custom workflows defined
+
+    // Query methods not implemented
+
+    // Event Processing Methods
+    private void publishQuizCreatedEvent(Quiz quiz) {
+        try {
+            // TODO: Implement event publishing for QuizCreated
+            // eventPublisher.publishEvent(new QuizCreatedEvent(quiz));
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            logger.error("Failed to publish QuizCreatedEvent", e);
+        }
+    }
+
+    private void publishQuizUpdatedEvent(Quiz quiz) {
+        try {
+            // TODO: Implement event publishing for QuizUpdated
+            // eventPublisher.publishEvent(new QuizUpdatedEvent(quiz));
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            logger.error("Failed to publish QuizUpdatedEvent", e);
+        }
+    }
+
+    private void publishQuizDeletedEvent(Long quizId) {
+        try {
+            // TODO: Implement event publishing for QuizDeleted
+            // eventPublisher.publishEvent(new QuizDeletedEvent(quizId));
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            logger.error("Failed to publish QuizDeletedEvent", e);
+        }
+    }
 }

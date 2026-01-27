@@ -37,7 +37,7 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         const endpoints: any[] = [];
         const lowerAggregate = aggregateName.toLowerCase();
 
-        if (aggregate.webApiEndpoints?.generateCrud) {
+        if (aggregate.generateCrud) {
             const crudEndpoints = this.generateCrudEndpoints(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates);
             endpoints.push(...crudEndpoints);
         }

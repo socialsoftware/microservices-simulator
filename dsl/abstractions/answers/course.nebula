@@ -1,4 +1,5 @@
 Aggregate Course {
+    @GenerateCrud;
     Root Entity Course {
         String name;
         final CourseType type default CourseType.TECNICO;
@@ -8,13 +9,5 @@ Aggregate Course {
     Repository {
         @Query("select c1.id from Course c1 where c1.name = :courseName AND c1.state = 'ACTIVE' AND c1.sagaState = 'NOT_IN_SAGA'")
         Optional<Integer> findCourseIdByNameForSaga(String courseName);
-    }
-
-    WebAPIEndpoints {
-        @GenerateCrud;
-    }
-
-    Service CourseService {
-        @GenerateCrud;
     }
 }

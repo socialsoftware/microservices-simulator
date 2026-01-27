@@ -1,136 +1,158 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.service;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.*;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionCourse;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionTopic;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Option;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.dao.CannotAcquireLockException;
+import java.util.List;
+import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.*;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.publish.QuestionUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.publish.QuestionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+
 
 @Service
+@Transactional
 public class QuestionService {
+    private static final Logger logger = LoggerFactory.getLogger(QuestionService.class);
+
     @Autowired
-    private AggregateIdGeneratorService aggregateIdGeneratorService;
-
-    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
-
-    private final QuestionRepository questionRepository;
+    private QuestionRepository questionRepository;
 
     @Autowired
     private QuestionFactory questionFactory;
 
-    public QuestionService(UnitOfWorkService unitOfWorkService, QuestionRepository questionRepository) {
-        this.unitOfWorkService = unitOfWorkService;
-        this.questionRepository = questionRepository;
+    public QuestionService() {}
+
+    // CRUD Operations
+    public QuestionDto createQuestion(String title, String content, LocalDateTime creationDate, QuestionCourse course, Set<QuestionTopic> topics, List<Option> options) {
+        try {
+            Question question = new Question(title, content, creationDate, course, topics, options);
+            question = questionRepository.save(question);
+            return new QuestionDto(question);
+        } catch (Exception e) {
+            throw new AnswersException("Error creating question: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuestionDto createQuestion(QuestionCourse course, QuestionDto questionDto, Set<QuestionTopic> topics, UnitOfWork unitOfWork) {
-        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        Question question = questionFactory.createQuestion(aggregateId, course, questionDto, topics);
-        unitOfWorkService.registerChanged(question, unitOfWork);
-        return questionFactory.createQuestionDto(question);
+    public QuestionDto getQuestionById(Integer id) {
+        try {
+            Question question = (Question) questionRepository.findById(id)
+                .orElseThrow(() -> new AnswersException("Question not found with id: " + id));
+            return new QuestionDto(question);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error retrieving question: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuestionDto getQuestionById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return questionFactory.createQuestionDto((Question) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuestionDto updateQuestion(QuestionDto questionDto, UnitOfWork unitOfWork) {
-        Integer aggregateId = questionDto.getAggregateId();
-        Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
-        newQuestion.setTitle(questionDto.getTitle());
-        newQuestion.setContent(questionDto.getContent());
-        newQuestion.setCreationDate(questionDto.getCreationDate());
-        unitOfWorkService.registerChanged(newQuestion, unitOfWork);
-        unitOfWorkService.registerEvent(new QuestionUpdatedEvent(newQuestion.getAggregateId(), newQuestion.getTitle(), newQuestion.getContent(), newQuestion.getCreationDate()), unitOfWork);
-        return questionFactory.createQuestionDto(newQuestion);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void deleteQuestion(Integer aggregateId, UnitOfWork unitOfWork) {
-        Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
-        newQuestion.remove();
-        unitOfWorkService.registerChanged(newQuestion, unitOfWork);
-        unitOfWorkService.registerEvent(new QuestionDeletedEvent(newQuestion.getAggregateId()), unitOfWork);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<QuestionDto> searchQuestions(String title, String content, UnitOfWork unitOfWork) {
-        Set<Integer> aggregateIds = questionRepository.findAll().stream()
-                .filter(entity -> {
-                    if (title != null) {
-                        if (!entity.getTitle().equals(title)) {
-                            return false;
-                        }
-                    }
-                    if (content != null) {
-                        if (!entity.getContent().equals(content)) {
-                            return false;
-                        }
-                    }
-                    return true;
-                })
-                .map(Question::getAggregateId)
-                .collect(Collectors.toSet());
-        return aggregateIds.stream()
-                .map(id -> (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
-                .map(questionFactory::createQuestionDto)
+    public List<QuestionDto> getAllQuestions() {
+        try {
+            return questionRepository.findAll().stream()
+                .map(entity -> new QuestionDto((Question) entity))
                 .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new AnswersException("Error retrieving all questions: " + e.getMessage());
+        }
     }
 
+    public QuestionDto updateQuestion(QuestionDto questionDto) {
+        try {
+            Integer id = questionDto.getAggregateId();
+            Question question = (Question) questionRepository.findById(id)
+                .orElseThrow(() -> new AnswersException("Question not found with id: " + id));
+            
+                        if (questionDto.getTitle() != null) {
+                question.setTitle(questionDto.getTitle());
+            }
+            if (questionDto.getContent() != null) {
+                question.setContent(questionDto.getContent());
+            }
+            if (questionDto.getCreationDate() != null) {
+                question.setCreationDate(questionDto.getCreationDate());
+            }
+            if (questionDto.getCourse() != null) {
+                question.setCourse(questionDto.getCourse());
+            }
+            if (questionDto.getTopics() != null) {
+                question.setTopics(questionDto.getTopics());
+            }
+            if (questionDto.getOptions() != null) {
+                question.setOptions(questionDto.getOptions());
+            }
+            
+            question = questionRepository.save(question);
+            return new QuestionDto(question);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error updating question: " + e.getMessage());
+        }
+    }
+
+    public void deleteQuestion(Integer id) {
+        try {
+            if (!questionRepository.existsById(id)) {
+                throw new AnswersException("Question not found with id: " + id);
+            }
+            questionRepository.deleteById(id);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error deleting question: " + e.getMessage());
+        }
+    }
+
+    // No business methods defined
+
+    // No custom workflows defined
+
+    // Query methods not implemented
+
+    // Event Processing Methods
+    private void publishQuestionCreatedEvent(Question question) {
+        try {
+            // TODO: Implement event publishing for QuestionCreated
+            // eventPublisher.publishEvent(new QuestionCreatedEvent(question));
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            logger.error("Failed to publish QuestionCreatedEvent", e);
+        }
+    }
+
+    private void publishQuestionUpdatedEvent(Question question) {
+        try {
+            // TODO: Implement event publishing for QuestionUpdated
+            // eventPublisher.publishEvent(new QuestionUpdatedEvent(question));
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            logger.error("Failed to publish QuestionUpdatedEvent", e);
+        }
+    }
+
+    private void publishQuestionDeletedEvent(Long questionId) {
+        try {
+            // TODO: Implement event publishing for QuestionDeleted
+            // eventPublisher.publishEvent(new QuestionDeletedEvent(questionId));
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            logger.error("Failed to publish QuestionDeletedEvent", e);
+        }
+    }
 }

@@ -4,7 +4,6 @@ import { PublishedEventGenerator } from "../generators/microservices/events/publ
 import { GenerationOptions, GeneratorRegistry } from "../engine/types.js";
 import { FileWriter } from "../utils/file-writer.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../utils/error-handler.js";
-import { getServiceDefinition } from "../utils/aggregate-helpers.js";
 import * as path from 'path';
 
 interface EventGenerationConfig {
@@ -56,8 +55,7 @@ export class UnifiedEventFeature {
 
                 // Generate CRUD events if @GenerateCrud is used
                 const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
-                const serviceDefinition = getServiceDefinition(aggregate);
-                const hasGenerateCrud = serviceDefinition?.generateCrud;
+                const hasGenerateCrud = aggregate.generateCrud;
 
                 if (hasGenerateCrud && rootEntity) {
                     const crudEvents = await this.publishedEventGenerator.generatePublishedEvents(

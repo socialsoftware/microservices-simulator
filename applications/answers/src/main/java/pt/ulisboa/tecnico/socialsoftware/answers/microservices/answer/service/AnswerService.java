@@ -1,131 +1,160 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.*;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerUser;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerExecution;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.QuestionAnswered;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerQuiz;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.dao.CannotAcquireLockException;
+import java.util.List;
+import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.*;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+
 
 @Service
+@Transactional
 public class AnswerService {
+    private static final Logger logger = LoggerFactory.getLogger(AnswerService.class);
+
     @Autowired
-    private AggregateIdGeneratorService aggregateIdGeneratorService;
-
-    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
-
-    private final AnswerRepository answerRepository;
+    private AnswerRepository answerRepository;
 
     @Autowired
     private AnswerFactory answerFactory;
 
-    public AnswerService(UnitOfWorkService unitOfWorkService, AnswerRepository answerRepository) {
-        this.unitOfWorkService = unitOfWorkService;
-        this.answerRepository = answerRepository;
+    public AnswerService() {}
+
+    // CRUD Operations
+    public AnswerDto createAnswer(LocalDateTime creationDate, LocalDateTime answerDate, boolean completed, AnswerExecution execution, AnswerUser user, AnswerQuiz quiz, List<QuestionAnswered> questions) {
+        try {
+            Answer answer = new Answer(creationDate, answerDate, completed, execution, user, quiz, questions);
+            answer = answerRepository.save(answer);
+            return new AnswerDto(answer);
+        } catch (Exception e) {
+            throw new AnswersException("Error creating answer: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public AnswerDto createAnswer(AnswerExecution execution, AnswerUser user, AnswerQuiz quiz, AnswerDto answerDto, UnitOfWork unitOfWork) {
-        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        Answer answer = answerFactory.createAnswer(aggregateId, execution, user, quiz, answerDto);
-        unitOfWorkService.registerChanged(answer, unitOfWork);
-        return answerFactory.createAnswerDto(answer);
+    public AnswerDto getAnswerById(Integer id) {
+        try {
+            Answer answer = (Answer) answerRepository.findById(id)
+                .orElseThrow(() -> new AnswersException("Answer not found with id: " + id));
+            return new AnswerDto(answer);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error retrieving answer: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public AnswerDto getAnswerById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return answerFactory.createAnswerDto((Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public AnswerDto updateAnswer(AnswerDto answerDto, UnitOfWork unitOfWork) {
-        Integer aggregateId = answerDto.getAggregateId();
-        Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
-        newAnswer.setCreationDate(answerDto.getCreationDate());
-        newAnswer.setAnswerDate(answerDto.getAnswerDate());
-        newAnswer.setCompleted(answerDto.getCompleted());
-        unitOfWorkService.registerChanged(newAnswer, unitOfWork);
-        unitOfWorkService.registerEvent(new AnswerUpdatedEvent(newAnswer.getAggregateId(), newAnswer.getCreationDate(), newAnswer.getAnswerDate(), newAnswer.getCompleted()), unitOfWork);
-        return answerFactory.createAnswerDto(newAnswer);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void deleteAnswer(Integer aggregateId, UnitOfWork unitOfWork) {
-        Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
-        newAnswer.remove();
-        unitOfWorkService.registerChanged(newAnswer, unitOfWork);
-        unitOfWorkService.registerEvent(new AnswerDeletedEvent(newAnswer.getAggregateId()), unitOfWork);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<AnswerDto> searchAnswers(Boolean completed, UnitOfWork unitOfWork) {
-        Set<Integer> aggregateIds = answerRepository.findAll().stream()
-                .filter(entity -> {
-                    if (completed != null) {
-                        if (entity.getCompleted() != completed) {
-                            return false;
-                        }
-                    }
-                    return true;
-                })
-                .map(Answer::getAggregateId)
-                .collect(Collectors.toSet());
-        return aggregateIds.stream()
-                .map(id -> (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
-                .map(answerFactory::createAnswerDto)
+    public List<AnswerDto> getAllAnswers() {
+        try {
+            return answerRepository.findAll().stream()
+                .map(entity -> new AnswerDto((Answer) entity))
                 .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new AnswersException("Error retrieving all answers: " + e.getMessage());
+        }
     }
 
+    public AnswerDto updateAnswer(AnswerDto answerDto) {
+        try {
+            Integer id = answerDto.getAggregateId();
+            Answer answer = (Answer) answerRepository.findById(id)
+                .orElseThrow(() -> new AnswersException("Answer not found with id: " + id));
+            
+                        if (answerDto.getCreationDate() != null) {
+                answer.setCreationDate(answerDto.getCreationDate());
+            }
+            if (answerDto.getAnswerDate() != null) {
+                answer.setAnswerDate(answerDto.getAnswerDate());
+            }
+            answer.setCompleted(answerDto.isCompleted());
+            if (answerDto.getExecution() != null) {
+                answer.setExecution(answerDto.getExecution());
+            }
+            if (answerDto.getUser() != null) {
+                answer.setUser(answerDto.getUser());
+            }
+            if (answerDto.getQuiz() != null) {
+                answer.setQuiz(answerDto.getQuiz());
+            }
+            if (answerDto.getQuestions() != null) {
+                answer.setQuestions(answerDto.getQuestions());
+            }
+            
+            answer = answerRepository.save(answer);
+            return new AnswerDto(answer);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error updating answer: " + e.getMessage());
+        }
+    }
+
+    public void deleteAnswer(Integer id) {
+        try {
+            if (!answerRepository.existsById(id)) {
+                throw new AnswersException("Answer not found with id: " + id);
+            }
+            answerRepository.deleteById(id);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error deleting answer: " + e.getMessage());
+        }
+    }
+
+    // No business methods defined
+
+    // No custom workflows defined
+
+    // Query methods not implemented
+
+    // Event Processing Methods
+    private void publishAnswerCreatedEvent(Answer answer) {
+        try {
+            // TODO: Implement event publishing for AnswerCreated
+            // eventPublisher.publishEvent(new AnswerCreatedEvent(answer));
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            logger.error("Failed to publish AnswerCreatedEvent", e);
+        }
+    }
+
+    private void publishAnswerUpdatedEvent(Answer answer) {
+        try {
+            // TODO: Implement event publishing for AnswerUpdated
+            // eventPublisher.publishEvent(new AnswerUpdatedEvent(answer));
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            logger.error("Failed to publish AnswerUpdatedEvent", e);
+        }
+    }
+
+    private void publishAnswerDeletedEvent(Long answerId) {
+        try {
+            // TODO: Implement event publishing for AnswerDeleted
+            // eventPublisher.publishEvent(new AnswerDeletedEvent(answerId));
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            logger.error("Failed to publish AnswerDeletedEvent", e);
+        }
+    }
 }

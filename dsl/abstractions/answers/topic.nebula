@@ -1,4 +1,5 @@
 Aggregate Topic {
+    @GenerateCrud;
     Entity TopicCourse uses Course {
         Integer courseAggregateId -> aggregateId;
         Integer courseVersion -> version;
@@ -7,13 +8,5 @@ Aggregate Topic {
     Root Entity Topic {
         String name;
         TopicCourse course;
-    }
-
-    WebAPIEndpoints {
-        @GenerateCrud;
-    }
-
-    Service TopicService {
-        @GenerateCrud;
     }
 }

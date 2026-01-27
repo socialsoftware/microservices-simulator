@@ -1,4 +1,5 @@
 Aggregate Tournament {
+    @GenerateCrud;
     Root Entity Tournament { 
        LocalDateTime startTime;
        LocalDateTime endTime;
@@ -88,13 +89,5 @@ Aggregate Tournament {
     Entity TournamentQuiz uses Quiz {
         Integer quizAggregateId -> aggregateId;
         Integer quizVersion -> version;
-    }
-
-    WebAPIEndpoints {
-        @GenerateCrud;
-    }
-
-    Service TournamentService {
-        @GenerateCrud;
     }
 }

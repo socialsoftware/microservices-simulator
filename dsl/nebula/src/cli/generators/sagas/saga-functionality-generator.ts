@@ -30,7 +30,7 @@ export class SagaFunctionalityGenerator extends OrchestrationBase {
         const allWorkflows = getWorkflows(aggregate);
 
         // 1. Generate CRUD saga functionalities if enabled
-        if (aggregate.webApiEndpoints?.generateCrud) {
+        if (aggregate.generateCrud) {
             // Use provided allAggregates or try to get from model
             const aggregatesToUse = allAggregates || (aggregate.$container as any)?.aggregates || [];
             const crudSagas = this.crudGenerator.generateCrudSagaFunctionalities(aggregate, options, packageName, aggregatesToUse);

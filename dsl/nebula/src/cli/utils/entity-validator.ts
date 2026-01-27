@@ -173,7 +173,7 @@ export class EntityValidator {
             }
 
             // CRUD validation
-            if (serviceDefinition.generateCrud) {
+            if (aggregate.generateCrud) {
                 warnings.push(...this.validateCrudConfiguration(serviceDefinition, aggregate));
             }
 
@@ -387,11 +387,11 @@ export class EntityValidator {
     private validateServiceStructure(serviceDefinition: any, aggregate: Aggregate): ValidationError[] {
         const errors: ValidationError[] = [];
 
-        if (!serviceDefinition.name && !serviceDefinition.generateCrud) {
+        if (!serviceDefinition.name && !aggregate.generateCrud) {
             errors.push({
                 code: 'MISSING_SERVICE_NAME',
                 message: 'Service definition must have a name or enable CRUD generation',
-                suggestion: 'Add a service name or set generateCrud: true'
+                suggestion: 'Add a service name or use @GenerateCrud at aggregate level'
             });
         }
 

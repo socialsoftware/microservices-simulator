@@ -96,7 +96,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         }
 
         // Add cross-aggregate service dependencies if CRUD is enabled and there are cross-aggregate relationships
-        if ((aggregate.webApiEndpoints as any)?.generateCrud && rootEntity) {
+        if (aggregate.generateCrud && rootEntity) {
             const entityRelationships = this.crudGenerator.findEntityRelationships(rootEntity, aggregate);
             const singleEntityRels = entityRelationships.filter((rel: any) => !rel.isCollection);
             const collectionEntityRels = entityRelationships.filter((rel: any) => rel.isCollection);
@@ -154,7 +154,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         const lowerAggregate = aggregateName.toLowerCase();
 
         // 1. Add CRUD methods if generateCrud is enabled
-        if ((aggregate.webApiEndpoints as any)?.generateCrud) {
+        if (aggregate.generateCrud) {
             const crudMethods = this.crudGenerator.generateCrudMethods(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates);
             crudMethods.forEach(method => {
                 const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
@@ -230,7 +230,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
      */
     private buildCheckInputMethod(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, lowerAggregate: string, projectName: string): string | null {
         // Check if CRUD is enabled (which means create/update operations will call checkInput)
-        const hasCrud = (aggregate.webApiEndpoints as any)?.generateCrud;
+        const hasCrud = aggregate.generateCrud;
         if (!hasCrud) {
             return null;
         }

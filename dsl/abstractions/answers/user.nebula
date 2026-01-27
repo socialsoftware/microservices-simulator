@@ -1,16 +1,9 @@
 Aggregate User {
+    @GenerateCrud;
     Root Entity User {
         String name;
         String username;
         final UserRole role;
         Boolean active;
-    }
-
-    WebAPIEndpoints {
-        @GenerateCrud;
-    }
-
-    Service UserService {
-        @GenerateCrud;
     }
 }

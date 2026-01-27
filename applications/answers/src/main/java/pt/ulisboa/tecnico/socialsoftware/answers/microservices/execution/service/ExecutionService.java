@@ -1,136 +1,154 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.*;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourse;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.dao.CannotAcquireLockException;
+import java.util.List;
+import java.util.stream.Collectors;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.*;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.*;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+
 
 @Service
+@Transactional
 public class ExecutionService {
+    private static final Logger logger = LoggerFactory.getLogger(ExecutionService.class);
+
     @Autowired
-    private AggregateIdGeneratorService aggregateIdGeneratorService;
-
-    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
-
-    private final ExecutionRepository executionRepository;
+    private ExecutionRepository executionRepository;
 
     @Autowired
     private ExecutionFactory executionFactory;
 
-    public ExecutionService(UnitOfWorkService unitOfWorkService, ExecutionRepository executionRepository) {
-        this.unitOfWorkService = unitOfWorkService;
-        this.executionRepository = executionRepository;
+    public ExecutionService() {}
+
+    // CRUD Operations
+    public ExecutionDto createExecution(String acronym, String academicTerm, LocalDateTime endDate, ExecutionCourse course, Set<ExecutionUser> users) {
+        try {
+            Execution execution = new Execution(acronym, academicTerm, endDate, course, users);
+            execution = executionRepository.save(execution);
+            return new ExecutionDto(execution);
+        } catch (Exception e) {
+            throw new AnswersException("Error creating execution: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public ExecutionDto createExecution(ExecutionCourse course, ExecutionDto executionDto, Set<ExecutionUser> users, UnitOfWork unitOfWork) {
-        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        Execution execution = executionFactory.createExecution(aggregateId, course, executionDto, users);
-        unitOfWorkService.registerChanged(execution, unitOfWork);
-        return executionFactory.createExecutionDto(execution);
+    public ExecutionDto getExecutionById(Integer id) {
+        try {
+            Execution execution = (Execution) executionRepository.findById(id)
+                .orElseThrow(() -> new AnswersException("Execution not found with id: " + id));
+            return new ExecutionDto(execution);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error retrieving execution: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public ExecutionDto getExecutionById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return executionFactory.createExecutionDto((Execution) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public ExecutionDto updateExecution(ExecutionDto executionDto, UnitOfWork unitOfWork) {
-        Integer aggregateId = executionDto.getAggregateId();
-        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
-        newExecution.setAcronym(executionDto.getAcronym());
-        newExecution.setAcademicTerm(executionDto.getAcademicTerm());
-        newExecution.setEndDate(executionDto.getEndDate());
-        unitOfWorkService.registerChanged(newExecution, unitOfWork);
-        unitOfWorkService.registerEvent(new ExecutionUpdatedEvent(newExecution.getAggregateId(), newExecution.getAcronym(), newExecution.getAcademicTerm(), newExecution.getEndDate()), unitOfWork);
-        return executionFactory.createExecutionDto(newExecution);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void deleteExecution(Integer aggregateId, UnitOfWork unitOfWork) {
-        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
-        newExecution.remove();
-        unitOfWorkService.registerChanged(newExecution, unitOfWork);
-        unitOfWorkService.registerEvent(new ExecutionDeletedEvent(newExecution.getAggregateId()), unitOfWork);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<ExecutionDto> searchExecutions(String acronym, String academicTerm, UnitOfWork unitOfWork) {
-        Set<Integer> aggregateIds = executionRepository.findAll().stream()
-                .filter(entity -> {
-                    if (acronym != null) {
-                        if (!entity.getAcronym().equals(acronym)) {
-                            return false;
-                        }
-                    }
-                    if (academicTerm != null) {
-                        if (!entity.getAcademicTerm().equals(academicTerm)) {
-                            return false;
-                        }
-                    }
-                    return true;
-                })
-                .map(Execution::getAggregateId)
-                .collect(Collectors.toSet());
-        return aggregateIds.stream()
-                .map(id -> (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
-                .map(executionFactory::createExecutionDto)
+    public List<ExecutionDto> getAllExecutions() {
+        try {
+            return executionRepository.findAll().stream()
+                .map(entity -> new ExecutionDto((Execution) entity))
                 .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new AnswersException("Error retrieving all executions: " + e.getMessage());
+        }
     }
 
+    public ExecutionDto updateExecution(ExecutionDto executionDto) {
+        try {
+            Integer id = executionDto.getAggregateId();
+            Execution execution = (Execution) executionRepository.findById(id)
+                .orElseThrow(() -> new AnswersException("Execution not found with id: " + id));
+            
+                        if (executionDto.getAcronym() != null) {
+                execution.setAcronym(executionDto.getAcronym());
+            }
+            if (executionDto.getAcademicTerm() != null) {
+                execution.setAcademicTerm(executionDto.getAcademicTerm());
+            }
+            if (executionDto.getEndDate() != null) {
+                execution.setEndDate(executionDto.getEndDate());
+            }
+            if (executionDto.getCourse() != null) {
+                execution.setCourse(executionDto.getCourse());
+            }
+            if (executionDto.getUsers() != null) {
+                execution.setUsers(executionDto.getUsers());
+            }
+            
+            execution = executionRepository.save(execution);
+            return new ExecutionDto(execution);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error updating execution: " + e.getMessage());
+        }
+    }
+
+    public void deleteExecution(Integer id) {
+        try {
+            if (!executionRepository.existsById(id)) {
+                throw new AnswersException("Execution not found with id: " + id);
+            }
+            executionRepository.deleteById(id);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error deleting execution: " + e.getMessage());
+        }
+    }
+
+    // No business methods defined
+
+    // No custom workflows defined
+
+    // Query methods not implemented
+
+    // Event Processing Methods
+    private void publishExecutionCreatedEvent(Execution execution) {
+        try {
+            // TODO: Implement event publishing for ExecutionCreated
+            // eventPublisher.publishEvent(new ExecutionCreatedEvent(execution));
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            logger.error("Failed to publish ExecutionCreatedEvent", e);
+        }
+    }
+
+    private void publishExecutionUpdatedEvent(Execution execution) {
+        try {
+            // TODO: Implement event publishing for ExecutionUpdated
+            // eventPublisher.publishEvent(new ExecutionUpdatedEvent(execution));
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            logger.error("Failed to publish ExecutionUpdatedEvent", e);
+        }
+    }
+
+    private void publishExecutionDeletedEvent(Long executionId) {
+        try {
+            // TODO: Implement event publishing for ExecutionDeleted
+            // eventPublisher.publishEvent(new ExecutionDeletedEvent(executionId));
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            logger.error("Failed to publish ExecutionDeletedEvent", e);
+        }
+    }
 }
