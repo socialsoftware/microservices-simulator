@@ -7,11 +7,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import java.util.Set;
 import java.time.LocalDateTime;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentTopicDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
 
 public class CreateTournamentRequestDto {
     @NotNull

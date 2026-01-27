@@ -2,7 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDto
 
 import jakarta.validation.constraints.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicCourseDto;
 
 public class CreateTopicRequestDto {
     @NotNull

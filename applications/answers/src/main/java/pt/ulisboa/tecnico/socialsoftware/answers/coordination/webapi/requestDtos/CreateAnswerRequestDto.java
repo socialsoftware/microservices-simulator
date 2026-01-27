@@ -7,9 +7,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import java.time.LocalDateTime;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionAnsweredDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerUserDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
 
 public class CreateAnswerRequestDto {
     @NotNull

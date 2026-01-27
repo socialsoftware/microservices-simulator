@@ -6,8 +6,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 import java.util.Set;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 import java.time.LocalDateTime;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizQuestionDto;
 
 public class CreateQuizRequestDto {
     @NotNull

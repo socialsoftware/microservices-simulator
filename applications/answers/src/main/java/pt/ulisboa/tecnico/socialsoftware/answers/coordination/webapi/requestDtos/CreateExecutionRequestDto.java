@@ -5,8 +5,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import java.util.Set;
 import java.time.LocalDateTime;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionCourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionUserDto;
 
 public class CreateExecutionRequestDto {
     @NotNull

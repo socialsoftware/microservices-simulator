@@ -119,12 +119,10 @@ export class UnifiedDtoGenerator {
      */
     generateCrudDtos(entity: Entity, baseOptions: Omit<DtoGenerationOptions, 'dtoType'>): {
         create: GeneratedDto;
-        update: GeneratedDto;
         response: GeneratedDto;
     } {
         return {
             create: this.generateDto(entity, { ...baseOptions, dtoType: DtoType.CREATE_REQUEST, excludeFields: ['id'] }),
-            update: this.generateDto(entity, { ...baseOptions, dtoType: DtoType.UPDATE_REQUEST }),
             response: this.generateDto(entity, { ...baseOptions, dtoType: DtoType.RESPONSE_DTO, includeAggregateFields: true })
         };
     }
@@ -167,8 +165,6 @@ export class UnifiedDtoGenerator {
         switch (options.dtoType) {
             case DtoType.CREATE_REQUEST:
                 return `Create${entityName}RequestDto`;
-            case DtoType.UPDATE_REQUEST:
-                return `Update${entityName}RequestDto`;
             case DtoType.REQUEST_DTO:
                 return `${entityName}RequestDto`;
             case DtoType.RESPONSE_DTO:

@@ -133,18 +133,13 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
     private buildRequestDtos(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, dtoRegistry?: DtoSchemaRegistry, allAggregates?: Aggregate[]): any[] {
         const dtos: any[] = [];
 
-        // Find cross-aggregate references for create DTO
+        // Only generate Create<Request> DTOs; Update<Request> DTOs are no longer used
         const crossAggregateRefs = this.findCrossAggregateReferences(rootEntity, aggregate, allAggregates);
 
         dtos.push({
             name: `Create${aggregateName}RequestDto`,
             fields: this.extractCreateDtoFields(rootEntity, aggregate, dtoRegistry, crossAggregateRefs),
-            crossAggregateRefs // Store for import generation
-        });
-
-        dtos.push({
-            name: `Update${aggregateName}RequestDto`,
-            fields: this.extractDtoFields(rootEntity, 'update', dtoRegistry)
+            crossAggregateRefs
         });
 
         return dtos;
