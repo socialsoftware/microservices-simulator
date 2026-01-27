@@ -109,8 +109,7 @@ public class ExecutionService {
             Integer id = executionDto.getAggregateId();
             Execution execution = (Execution) executionRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Execution not found with id: " + id));
-            
-                        if (executionDto.getAcronym() != null) {
+            if (executionDto.getAcronym() != null) {
                 execution.setAcronym(executionDto.getAcronym());
             }
             if (executionDto.getAcademicTerm() != null) {
@@ -119,7 +118,7 @@ public class ExecutionService {
             if (executionDto.getEndDate() != null) {
                 execution.setEndDate(executionDto.getEndDate());
             }
-            
+
             execution = executionRepository.save(execution);
             return new ExecutionDto(execution);
         } catch (AnswersException e) {

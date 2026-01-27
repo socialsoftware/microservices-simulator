@@ -112,8 +112,7 @@ public class QuestionService {
             Integer id = questionDto.getAggregateId();
             Question question = (Question) questionRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Question not found with id: " + id));
-            
-                        if (questionDto.getTitle() != null) {
+            if (questionDto.getTitle() != null) {
                 question.setTitle(questionDto.getTitle());
             }
             if (questionDto.getContent() != null) {
@@ -122,7 +121,7 @@ public class QuestionService {
             if (questionDto.getCreationDate() != null) {
                 question.setCreationDate(questionDto.getCreationDate());
             }
-            
+
             question = questionRepository.save(question);
             return new QuestionDto(question);
         } catch (AnswersException e) {

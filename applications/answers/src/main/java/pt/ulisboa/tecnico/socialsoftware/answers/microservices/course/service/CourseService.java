@@ -87,14 +87,13 @@ public class CourseService {
             Integer id = courseDto.getAggregateId();
             Course course = (Course) courseRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
-            
-                        if (courseDto.getName() != null) {
+            if (courseDto.getName() != null) {
                 course.setName(courseDto.getName());
             }
             if (courseDto.getCreationDate() != null) {
                 course.setCreationDate(courseDto.getCreationDate());
             }
-            
+
             course = courseRepository.save(course);
             return new CourseDto(course);
         } catch (AnswersException e) {

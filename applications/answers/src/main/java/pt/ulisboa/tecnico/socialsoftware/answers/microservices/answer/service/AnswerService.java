@@ -119,15 +119,14 @@ public class AnswerService {
             Integer id = answerDto.getAggregateId();
             Answer answer = (Answer) answerRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Answer not found with id: " + id));
-            
-                        if (answerDto.getCreationDate() != null) {
+            if (answerDto.getCreationDate() != null) {
                 answer.setCreationDate(answerDto.getCreationDate());
             }
             if (answerDto.getAnswerDate() != null) {
                 answer.setAnswerDate(answerDto.getAnswerDate());
             }
             answer.setCompleted(answerDto.getCompleted());
-            
+
             answer = answerRepository.save(answer);
             return new AnswerDto(answer);
         } catch (AnswersException e) {

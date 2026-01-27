@@ -46,9 +46,8 @@ ${createBody}
             Integer id = ${lowerAggregate}Dto.getAggregateId();
             ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) ${lowerAggregate}Repository.findById(id)
                 .orElseThrow(() -> new ${capitalize(projectName)}Exception("${capitalizedAggregate} not found with id: " + id));
-            
-            ${this.generateUpdateLogic(rootEntity, aggregateName)}
-            
+${this.generateUpdateLogic(rootEntity, aggregateName)}
+
             ${lowerAggregate} = ${lowerAggregate}Repository.save(${lowerAggregate});
             return new ${rootEntityName}Dto(${lowerAggregate});
         } catch (${capitalize(projectName)}Exception e) {

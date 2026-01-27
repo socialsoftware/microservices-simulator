@@ -141,8 +141,7 @@ public class TournamentService {
             Integer id = tournamentDto.getAggregateId();
             Tournament tournament = (Tournament) tournamentRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
-            
-                        if (tournamentDto.getStartTime() != null) {
+            if (tournamentDto.getStartTime() != null) {
                 tournament.setStartTime(tournamentDto.getStartTime());
             }
             if (tournamentDto.getEndTime() != null) {
@@ -152,7 +151,7 @@ public class TournamentService {
                 tournament.setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
             }
             tournament.setCancelled(tournamentDto.getCancelled());
-            
+
             tournament = tournamentRepository.save(tournament);
             return new TournamentDto(tournament);
         } catch (AnswersException e) {

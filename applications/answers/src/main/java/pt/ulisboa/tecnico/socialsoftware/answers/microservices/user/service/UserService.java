@@ -86,15 +86,14 @@ public class UserService {
             Integer id = userDto.getAggregateId();
             User user = (User) userRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("User not found with id: " + id));
-            
-                        if (userDto.getName() != null) {
+            if (userDto.getName() != null) {
                 user.setName(userDto.getName());
             }
             if (userDto.getUsername() != null) {
                 user.setUsername(userDto.getUsername());
             }
             user.setActive(userDto.getActive());
-            
+
             user = userRepository.save(user);
             return new UserDto(user);
         } catch (AnswersException e) {

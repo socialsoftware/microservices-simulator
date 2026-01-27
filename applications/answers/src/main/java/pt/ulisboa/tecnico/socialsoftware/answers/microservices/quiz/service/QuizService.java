@@ -115,8 +115,7 @@ public class QuizService {
             Integer id = quizDto.getAggregateId();
             Quiz quiz = (Quiz) quizRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Quiz not found with id: " + id));
-            
-                        if (quizDto.getTitle() != null) {
+            if (quizDto.getTitle() != null) {
                 quiz.setTitle(quizDto.getTitle());
             }
             if (quizDto.getQuizType() != null) {
@@ -134,7 +133,7 @@ public class QuizService {
             if (quizDto.getResultsDate() != null) {
                 quiz.setResultsDate(quizDto.getResultsDate());
             }
-            
+
             quiz = quizRepository.save(quiz);
             return new QuizDto(quiz);
         } catch (AnswersException e) {

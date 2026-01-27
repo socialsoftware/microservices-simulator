@@ -91,11 +91,10 @@ public class TopicService {
             Integer id = topicDto.getAggregateId();
             Topic topic = (Topic) topicRepository.findById(id)
                 .orElseThrow(() -> new AnswersException("Topic not found with id: " + id));
-            
-                        if (topicDto.getName() != null) {
+            if (topicDto.getName() != null) {
                 topic.setName(topicDto.getName());
             }
-            
+
             topic = topicRepository.save(topic);
             return new TopicDto(topic);
         } catch (AnswersException e) {
