@@ -115,6 +115,7 @@ public class QuestionService {
             }
 
             unitOfWorkService.registerChanged(question, unitOfWork);
+            unitOfWorkService.registerEvent(new QuestionUpdatedEvent(question.getAggregateId(), question.getTitle(), question.getContent(), question.getCreationDate()), unitOfWork);
             return questionFactory.createQuestionDto(question);
         } catch (AnswersException e) {
             throw e;

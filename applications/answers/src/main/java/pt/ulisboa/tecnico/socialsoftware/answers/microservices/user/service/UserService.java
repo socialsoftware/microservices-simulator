@@ -92,6 +92,7 @@ public class UserService {
             user.setActive(userDto.getActive());
 
             unitOfWorkService.registerChanged(user, unitOfWork);
+            unitOfWorkService.registerEvent(new UserUpdatedEvent(user.getAggregateId(), user.getName(), user.getUsername(), user.getActive()), unitOfWork);
             return userFactory.createUserDto(user);
         } catch (AnswersException e) {
             throw e;

@@ -93,6 +93,7 @@ public class TopicService {
             }
 
             unitOfWorkService.registerChanged(topic, unitOfWork);
+            unitOfWorkService.registerEvent(new TopicUpdatedEvent(topic.getAggregateId(), topic.getName()), unitOfWork);
             return topicFactory.createTopicDto(topic);
         } catch (AnswersException e) {
             throw e;

@@ -119,6 +119,7 @@ public class AnswerService {
             answer.setCompleted(answerDto.getCompleted());
 
             unitOfWorkService.registerChanged(answer, unitOfWork);
+            unitOfWorkService.registerEvent(new AnswerUpdatedEvent(answer.getAggregateId(), answer.getCreationDate(), answer.getAnswerDate(), answer.getCompleted()), unitOfWork);
             return answerFactory.createAnswerDto(answer);
         } catch (AnswersException e) {
             throw e;

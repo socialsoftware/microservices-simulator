@@ -92,6 +92,7 @@ public class CourseService {
             }
 
             unitOfWorkService.registerChanged(course, unitOfWork);
+            unitOfWorkService.registerEvent(new CourseUpdatedEvent(course.getAggregateId(), course.getName(), course.getCreationDate()), unitOfWork);
             return courseFactory.createCourseDto(course);
         } catch (AnswersException e) {
             throw e;

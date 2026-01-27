@@ -113,6 +113,7 @@ public class ExecutionService {
             }
 
             unitOfWorkService.registerChanged(execution, unitOfWork);
+            unitOfWorkService.registerEvent(new ExecutionUpdatedEvent(execution.getAggregateId(), execution.getAcronym(), execution.getAcademicTerm(), execution.getEndDate()), unitOfWork);
             return executionFactory.createExecutionDto(execution);
         } catch (AnswersException e) {
             throw e;

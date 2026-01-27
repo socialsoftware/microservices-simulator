@@ -142,6 +142,7 @@ public class TournamentService {
             tournament.setCancelled(tournamentDto.getCancelled());
 
             unitOfWorkService.registerChanged(tournament, unitOfWork);
+            unitOfWorkService.registerEvent(new TournamentUpdatedEvent(tournament.getAggregateId(), tournament.getStartTime(), tournament.getEndTime(), tournament.getNumberOfQuestions(), tournament.getCancelled()), unitOfWork);
             return tournamentFactory.createTournamentDto(tournament);
         } catch (AnswersException e) {
             throw e;

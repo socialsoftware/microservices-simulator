@@ -53,6 +53,10 @@ ${createBody}
 ${this.generateUpdateLogic(rootEntity, aggregateName)}
 
             unitOfWorkService.registerChanged(${lowerAggregate}, unitOfWork);
+            unitOfWorkService.registerEvent(new ${capitalizedAggregate}UpdatedEvent(${this.generateUpdateEventArgs(
+                rootEntity,
+                aggregateName
+            )}), unitOfWork);
             return ${lowerAggregate}Factory.create${rootEntityName}Dto(${lowerAggregate});
         } catch (${capitalize(projectName)}Exception e) {
             throw e;
@@ -117,6 +121,48 @@ ${this.generateUpdateLogic(rootEntity, aggregateName)}
             });
 
         return updates.join('\n');
+    }
+
+    /**
+     * Build argument list for <Aggregate>UpdatedEvent constructor.
+     * Convention: first argument is aggregateId, followed by all primitive (non-relationship)
+     * updatable properties of the root entity, in declaration order.
+     */
+    private static generateUpdateEventArgs(rootEntity: Entity, aggregateName: string): string {
+        const lowerAggregate = aggregateName.toLowerCase();
+
+        const args: string[] = [];
+        // Always pass aggregateId first
+        args.push(`${lowerAggregate}.getAggregateId()`);
+
+        if (!rootEntity.properties) {
+            return args.join(', ');
+        }
+
+        for (const prop of rootEntity.properties) {
+            const propName = (prop as any).name?.toLowerCase?.() ?? '';
+            if (propName === 'id') continue;
+
+            if ((prop as any).isFinal) continue;
+
+            const javaType = TypeResolver.resolveJavaType((prop as any).type);
+            const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
+            const isEntityType =
+                !this.isEnumType((prop as any).type) && TypeResolver.isEntityType(javaType);
+            if (isCollection || isEntityType) continue;
+
+            // Skip enum-like properties; current *UpdatedEvent classes usually
+            // don't carry enum fields such as Role/Type/State
+            const isEnum =
+                this.isEnumType((prop as any).type) ||
+                javaType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/);
+            if (isEnum) continue;
+
+            const getterName = this.getGetterMethodName(prop as any);
+            args.push(`${lowerAggregate}.${getterName}()`);
+        }
+
+        return args.join(', ');
     }
 
     private static getGetterMethodName(property: any): string {

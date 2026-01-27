@@ -127,6 +127,7 @@ public class QuizService {
             }
 
             unitOfWorkService.registerChanged(quiz, unitOfWork);
+            unitOfWorkService.registerEvent(new QuizUpdatedEvent(quiz.getAggregateId(), quiz.getTitle(), quiz.getCreationDate(), quiz.getAvailableDate(), quiz.getConclusionDate(), quiz.getResultsDate()), unitOfWork);
             return quizFactory.createQuizDto(quiz);
         } catch (AnswersException e) {
             throw e;
