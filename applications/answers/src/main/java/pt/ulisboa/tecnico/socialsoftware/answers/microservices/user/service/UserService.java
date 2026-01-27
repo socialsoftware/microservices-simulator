@@ -42,10 +42,8 @@ public class UserService {
 
     public UserService() {}
 
-    // CRUD Operations
     public UserDto createUser(CreateUserRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
-            // Convert CreateRequestDto to regular DTO
             UserDto userDto = new UserDto();
             userDto.setName(createRequest.getName());
             userDto.setUsername(createRequest.getUsername());

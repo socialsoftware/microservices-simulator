@@ -6,5 +6,4 @@ import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.SagaCourse;
 
 @Repository
 public interface CourseCustomRepositorySagas extends JpaRepository<SagaCourse, Integer> {
-    // Saga-specific repository methods can be added here
-    }
+}

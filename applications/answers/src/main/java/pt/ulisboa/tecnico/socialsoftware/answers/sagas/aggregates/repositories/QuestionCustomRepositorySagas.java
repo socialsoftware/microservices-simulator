@@ -6,5 +6,4 @@ import pt.ulisboa.tecnico.socialsoftware.answers.sagas.aggregates.SagaQuestion;
 
 @Repository
 public interface QuestionCustomRepositorySagas extends JpaRepository<SagaQuestion, Integer> {
-    // Saga-specific repository methods can be added here
-    }
+}

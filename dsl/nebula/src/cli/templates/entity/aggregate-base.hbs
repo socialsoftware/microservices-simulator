@@ -65,10 +65,6 @@ public abstract class {{aggregateName}} extends Aggregate {
         {{#each invariantChecks}}
         {{this}}
         {{/each}}
-        {{#unless invariantChecks}}
-        // Invariant verification implementation
-        // Override in concrete classes if needed
-        {{/unless}}
     }
 
     {{#each gettersSetters}}

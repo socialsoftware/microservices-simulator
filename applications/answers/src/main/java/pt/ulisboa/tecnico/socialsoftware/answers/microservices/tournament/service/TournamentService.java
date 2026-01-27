@@ -58,16 +58,13 @@ public class TournamentService {
 
     public TournamentService() {}
 
-    // CRUD Operations
     public TournamentDto createTournament(CreateTournamentRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
-            // Convert CreateRequestDto to regular DTO
             TournamentDto tournamentDto = new TournamentDto();
             tournamentDto.setStartTime(createRequest.getStartTime());
             tournamentDto.setEndTime(createRequest.getEndTime());
             tournamentDto.setNumberOfQuestions(createRequest.getNumberOfQuestions());
             tournamentDto.setCancelled(createRequest.getCancelled());
-            // Convert ExecutionUserDto to TournamentCreatorDto
             if (createRequest.getCreator() != null) {
                 TournamentCreatorDto creatorDto = new TournamentCreatorDto();
                 creatorDto.setAggregateId(createRequest.getCreator().getAggregateId());
@@ -75,7 +72,6 @@ public class TournamentService {
                 creatorDto.setState(createRequest.getCreator().getState());
                 tournamentDto.setCreator(creatorDto);
             }
-            // Convert ExecutionUserDto collection to TournamentParticipantDto collection
             if (createRequest.getParticipants() != null) {
                 tournamentDto.setParticipants(createRequest.getParticipants().stream().map(srcDto -> {
                     TournamentParticipantDto projDto = new TournamentParticipantDto();
@@ -85,7 +81,6 @@ public class TournamentService {
                     return projDto;
                 }).collect(Collectors.toSet()));
             }
-            // Convert ExecutionDto to TournamentExecutionDto
             if (createRequest.getExecution() != null) {
                 TournamentExecutionDto executionDto = new TournamentExecutionDto();
                 executionDto.setAggregateId(createRequest.getExecution().getAggregateId());
@@ -93,7 +88,6 @@ public class TournamentService {
                 executionDto.setState(createRequest.getExecution().getState());
                 tournamentDto.setExecution(executionDto);
             }
-            // Convert TopicDto collection to TournamentTopicDto collection
             if (createRequest.getTopics() != null) {
                 tournamentDto.setTopics(createRequest.getTopics().stream().map(srcDto -> {
                     TournamentTopicDto projDto = new TournamentTopicDto();
@@ -103,7 +97,6 @@ public class TournamentService {
                     return projDto;
                 }).collect(Collectors.toSet()));
             }
-            // Convert QuizDto to TournamentQuizDto
             if (createRequest.getQuiz() != null) {
                 TournamentQuizDto quizDto = new TournamentQuizDto();
                 quizDto.setAggregateId(createRequest.getQuiz().getAggregateId());

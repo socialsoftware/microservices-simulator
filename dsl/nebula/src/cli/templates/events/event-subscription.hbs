@@ -20,7 +20,6 @@ public void handle{{subscription.capitalizedEventName}}({{subscription.fullEvent
 try {
 logger.info("Handling {{subscription.eventType}} event for {{aggregateName}} with ID: {}", event.getAggregateId());
 
-// Process the {{subscription.eventType}} event
 process{{subscription.capitalizedEventName}}(event);
 
 } catch (Exception e) {
@@ -35,7 +34,6 @@ try {
 logger.info("Post-commit handling {{subscription.eventType}} event for {{aggregateName}} with ID: {}",
 event.getAggregateId());
 
-// Post-transaction processing
 postProcess{{subscription.capitalizedEventName}}(event);
 
 } catch (Exception e) {
@@ -45,7 +43,6 @@ event.getAggregateId(), e);
 }
 
 private void process{{subscription.capitalizedEventName}}({{subscription.fullEventName}} event) {
-// TODO: Implement {{subscription.eventType}} event processing logic
 switch (event.getEventType()) {
 case "{{subscription.eventType}}":
 handle{{subscription.eventType}}Logic(event);
@@ -56,16 +53,10 @@ logger.warn("Unknown event type: {}", event.getEventType());
 }
 
 private void postProcess{{subscription.capitalizedEventName}}({{subscription.fullEventName}} event) {
-// TODO: Implement post-transaction {{subscription.eventType}} event processing
-// This could include:
-// - Sending notifications
-// - Updating external systems
-// - Triggering workflows
 logger.debug("Post-processing {{subscription.eventType}} event completed for aggregate ID: {}", event.getAggregateId());
 }
 
 private void handle{{subscription.eventType}}Logic({{subscription.fullEventName}} event) {
-// TODO: Implement specific {{subscription.eventType}} business logic
 logger.debug("Processing {{subscription.eventType}} logic for aggregate ID: {}", event.getAggregateId());
 }
 }

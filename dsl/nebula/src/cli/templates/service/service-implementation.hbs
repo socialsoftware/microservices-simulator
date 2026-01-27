@@ -60,11 +60,6 @@ public class {{serviceName}} {
                 .map(id -> ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map({{lowerEntityName}}Factory::create{{entityName}}Dto)
                 .collect(Collectors.toList());
-{{else}}
-        // TODO: Implement {{name}} method
-{{#if (ne returnType "void")}}
-        return null;
-{{/if}}
 {{/if}}
     }
 

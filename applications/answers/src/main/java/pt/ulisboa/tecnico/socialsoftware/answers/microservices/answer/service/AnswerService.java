@@ -54,15 +54,12 @@ public class AnswerService {
 
     public AnswerService() {}
 
-    // CRUD Operations
     public AnswerDto createAnswer(CreateAnswerRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
-            // Convert CreateRequestDto to regular DTO
             AnswerDto answerDto = new AnswerDto();
             answerDto.setCreationDate(createRequest.getCreationDate());
             answerDto.setAnswerDate(createRequest.getAnswerDate());
             answerDto.setCompleted(createRequest.getCompleted());
-            // Convert ExecutionDto to AnswerExecutionDto
             if (createRequest.getExecution() != null) {
                 AnswerExecutionDto executionDto = new AnswerExecutionDto();
                 executionDto.setAggregateId(createRequest.getExecution().getAggregateId());
@@ -70,7 +67,6 @@ public class AnswerService {
                 executionDto.setState(createRequest.getExecution().getState());
                 answerDto.setExecution(executionDto);
             }
-            // Convert UserDto to AnswerUserDto
             if (createRequest.getUser() != null) {
                 AnswerUserDto userDto = new AnswerUserDto();
                 userDto.setAggregateId(createRequest.getUser().getAggregateId());
@@ -78,7 +74,6 @@ public class AnswerService {
                 userDto.setState(createRequest.getUser().getState());
                 answerDto.setUser(userDto);
             }
-            // Convert QuizDto to AnswerQuizDto
             if (createRequest.getQuiz() != null) {
                 AnswerQuizDto quizDto = new AnswerQuizDto();
                 quizDto.setAggregateId(createRequest.getQuiz().getAggregateId());

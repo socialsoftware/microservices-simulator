@@ -8,12 +8,10 @@ export class ServiceCrudGenerator {
         const lowerAggregate = aggregateName.toLowerCase();
         const rootEntityName = rootEntity.name;
 
-        // SIMPLIFIED: Create method just takes CreateRequestDto + UnitOfWork
         const createParams = `Create${capitalizedAggregate}RequestDto createRequest, UnitOfWork unitOfWork`;
         const createBody = this.generateCreateMethodBody(rootEntity, aggregateName, projectName, aggregate);
 
-        return `    // CRUD Operations
-    public ${rootEntityName}Dto create${capitalizedAggregate}(${createParams}) {
+        return `    public ${rootEntityName}Dto create${capitalizedAggregate}(${createParams}) {
         try {
 ${createBody}
         } catch (Exception e) {
@@ -173,10 +171,8 @@ ${createBody}
         const rootEntityName = rootEntity.name;
         const capitalizedAggregate = capitalize(aggregateName);
 
-        // Find entity relationships with their details (including aggregateRef)
         const entityRelationships = aggregate ? this.findEntityRelationshipsWithDetails(rootEntity, aggregate) : [];
 
-        // Get primitive properties from rootEntity (these come from createRequest)
         const primitiveProps = rootEntity.properties?.filter(prop => {
             const javaType = TypeResolver.resolveJavaType(prop.type);
             const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
@@ -185,34 +181,25 @@ ${createBody}
             return isPrimitive && prop.name.toLowerCase() !== 'id';
         }) || [];
 
-        // Build DTO conversion statements for primitive fields
         const primitiveSetters = primitiveProps.map(prop => {
             const capitalizedName = capitalize(prop.name);
             const javaType = TypeResolver.resolveJavaType(prop.type);
             const isEnum = this.isEnumType(prop.type) || javaType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/);
             
-            // For enum types, convert to string using .name()
             if (isEnum) {
                 return `            ${lowerAggregate}Dto.set${capitalizedName}(createRequest.get${capitalizedName}() != null ? createRequest.get${capitalizedName}().name() : null);`;
             }
             return `            ${lowerAggregate}Dto.set${capitalizedName}(createRequest.get${capitalizedName}());`;
         }).join('\n');
 
-        // Build DTO conversion statements for entity relationships
-        // For entities with aggregateRef: convert cross-aggregate DTO to projection DTO
-        // For entities without aggregateRef: copy directly
         const entitySetters = entityRelationships.map(rel => {
             const capitalizedName = capitalize(rel.paramName);
             
             if (rel.aggregateRef) {
-                // This entity references another aggregate
-                // Need to convert from cross-aggregate DTO (e.g., ExecutionDto) to projection DTO (e.g., AnswerExecutionDto)
                 const projectionDtoName = `${rel.entityName}Dto`;
                 
                 if (rel.isCollection) {
-                    // Collection: convert each item
-                    return `            // Convert ${rel.aggregateRef}Dto collection to ${projectionDtoName} collection
-            if (createRequest.get${capitalizedName}() != null) {
+                    return `            if (createRequest.get${capitalizedName}() != null) {
                 ${lowerAggregate}Dto.set${capitalizedName}(createRequest.get${capitalizedName}().stream().map(srcDto -> {
                     ${projectionDtoName} projDto = new ${projectionDtoName}();
                     projDto.setAggregateId(srcDto.getAggregateId());
@@ -222,9 +209,7 @@ ${createBody}
                 }).collect(Collectors.to${rel.collectionType}()));
             }`;
                 } else {
-                    // Single entity: convert one
-                    return `            // Convert ${rel.aggregateRef}Dto to ${projectionDtoName}
-            if (createRequest.get${capitalizedName}() != null) {
+                    return `            if (createRequest.get${capitalizedName}() != null) {
                 ${projectionDtoName} ${rel.paramName}Dto = new ${projectionDtoName}();
                 ${rel.paramName}Dto.setAggregateId(createRequest.get${capitalizedName}().getAggregateId());
                 ${rel.paramName}Dto.setVersion(createRequest.get${capitalizedName}().getVersion());
@@ -233,8 +218,6 @@ ${createBody}
             }`;
                 }
             } else {
-                // No aggregateRef - this is a projection entity without external reference
-                // Copy directly (types should match)
                 if (rel.isCollection) {
                     return `            ${lowerAggregate}Dto.set${capitalizedName}(createRequest.get${capitalizedName}());`;
                 } else {
@@ -245,9 +228,7 @@ ${createBody}
 
         const allSetters = [primitiveSetters, entitySetters].filter(s => s).join('\n');
 
-        // SIMPLIFIED: Factory just takes (aggregateId, dto)
-        return `            // Convert CreateRequestDto to regular DTO
-            ${rootEntityName}Dto ${lowerAggregate}Dto = new ${rootEntityName}Dto();
+        return `            ${rootEntityName}Dto ${lowerAggregate}Dto = new ${rootEntityName}Dto();
 ${allSetters}
             
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();

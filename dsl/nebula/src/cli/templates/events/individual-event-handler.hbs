@@ -15,7 +15,6 @@ super({{lowerAggregate}}Repository, {{lowerAggregate}}EventProcessing);
 @EventListener
 public void handle{{handler.capitalizedEventName}}({{handler.fullEventName}} event) {
 try {
-// Handle {{handler.eventType}} event for {{aggregateName}}
 {{lowerAggregate}}EventProcessing.process{{handler.capitalizedEventName}}(event);
 } catch (Exception e) {
 logger.error("Error handling {{handler.fullEventName}}", e);

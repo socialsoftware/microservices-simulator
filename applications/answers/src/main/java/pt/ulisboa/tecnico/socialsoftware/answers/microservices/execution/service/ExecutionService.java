@@ -50,15 +50,12 @@ public class ExecutionService {
 
     public ExecutionService() {}
 
-    // CRUD Operations
     public ExecutionDto createExecution(CreateExecutionRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
-            // Convert CreateRequestDto to regular DTO
             ExecutionDto executionDto = new ExecutionDto();
             executionDto.setAcronym(createRequest.getAcronym());
             executionDto.setAcademicTerm(createRequest.getAcademicTerm());
             executionDto.setEndDate(createRequest.getEndDate());
-            // Convert CourseDto to ExecutionCourseDto
             if (createRequest.getCourse() != null) {
                 ExecutionCourseDto courseDto = new ExecutionCourseDto();
                 courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
@@ -66,7 +63,6 @@ public class ExecutionService {
                 courseDto.setState(createRequest.getCourse().getState());
                 executionDto.setCourse(courseDto);
             }
-            // Convert UserDto collection to ExecutionUserDto collection
             if (createRequest.getUsers() != null) {
                 executionDto.setUsers(createRequest.getUsers().stream().map(srcDto -> {
                     ExecutionUserDto projDto = new ExecutionUserDto();

@@ -53,10 +53,8 @@ public class QuizService {
 
     public QuizService() {}
 
-    // CRUD Operations
     public QuizDto createQuiz(CreateQuizRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
-            // Convert CreateRequestDto to regular DTO
             QuizDto quizDto = new QuizDto();
             quizDto.setTitle(createRequest.getTitle());
             quizDto.setQuizType(createRequest.getQuizType() != null ? createRequest.getQuizType().name() : null);
@@ -64,7 +62,6 @@ public class QuizService {
             quizDto.setAvailableDate(createRequest.getAvailableDate());
             quizDto.setConclusionDate(createRequest.getConclusionDate());
             quizDto.setResultsDate(createRequest.getResultsDate());
-            // Convert ExecutionDto to QuizExecutionDto
             if (createRequest.getExecution() != null) {
                 QuizExecutionDto executionDto = new QuizExecutionDto();
                 executionDto.setAggregateId(createRequest.getExecution().getAggregateId());
@@ -72,7 +69,6 @@ public class QuizService {
                 executionDto.setState(createRequest.getExecution().getState());
                 quizDto.setExecution(executionDto);
             }
-            // Convert QuestionDto collection to QuizQuestionDto collection
             if (createRequest.getQuestions() != null) {
                 quizDto.setQuestions(createRequest.getQuestions().stream().map(srcDto -> {
                     QuizQuestionDto projDto = new QuizQuestionDto();

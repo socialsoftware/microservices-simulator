@@ -52,15 +52,12 @@ public class QuestionService {
 
     public QuestionService() {}
 
-    // CRUD Operations
     public QuestionDto createQuestion(CreateQuestionRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
-            // Convert CreateRequestDto to regular DTO
             QuestionDto questionDto = new QuestionDto();
             questionDto.setTitle(createRequest.getTitle());
             questionDto.setContent(createRequest.getContent());
             questionDto.setCreationDate(createRequest.getCreationDate());
-            // Convert CourseDto to QuestionCourseDto
             if (createRequest.getCourse() != null) {
                 QuestionCourseDto courseDto = new QuestionCourseDto();
                 courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
@@ -68,7 +65,6 @@ public class QuestionService {
                 courseDto.setState(createRequest.getCourse().getState());
                 questionDto.setCourse(courseDto);
             }
-            // Convert TopicDto collection to QuestionTopicDto collection
             if (createRequest.getTopics() != null) {
                 questionDto.setTopics(createRequest.getTopics().stream().map(srcDto -> {
                     QuestionTopicDto projDto = new QuestionTopicDto();

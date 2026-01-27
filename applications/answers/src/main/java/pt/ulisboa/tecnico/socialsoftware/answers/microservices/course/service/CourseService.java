@@ -44,10 +44,8 @@ public class CourseService {
 
     public CourseService() {}
 
-    // CRUD Operations
     public CourseDto createCourse(CreateCourseRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
-            // Convert CreateRequestDto to regular DTO
             CourseDto courseDto = new CourseDto();
             courseDto.setName(createRequest.getName());
             courseDto.setType(createRequest.getType() != null ? createRequest.getType().name() : null);

@@ -43,13 +43,10 @@ public class TopicService {
 
     public TopicService() {}
 
-    // CRUD Operations
     public TopicDto createTopic(CreateTopicRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
-            // Convert CreateRequestDto to regular DTO
             TopicDto topicDto = new TopicDto();
             topicDto.setName(createRequest.getName());
-            // Convert CourseDto to TopicCourseDto
             if (createRequest.getCourse() != null) {
                 TopicCourseDto courseDto = new TopicCourseDto();
                 courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
