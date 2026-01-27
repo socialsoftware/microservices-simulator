@@ -2,7 +2,7 @@ import { Entity } from "../../../../language/generated/ast.js";
 import { getGlobalConfig } from "../../common/config.js";
 import { EntityGenerationOptions } from "./types.js";
 import { generateFields } from "./fields.js";
-import { generateDefaultConstructor, generateEntityDtoConstructor, generateCopyConstructor } from "./constructors.js";
+import { generateDefaultConstructor, generateEntityDtoConstructor, generateCopyConstructor, generateProjectionDtoConstructor } from "./constructors.js";
 import { generateGettersSetters, generateBackReferenceGetterSetter } from "./methods.js";
 import { generateInvariants } from "./invariants.js";
 import { ImportManager, ImportManagerFactory } from "../../../utils/import-manager.js";
@@ -55,10 +55,15 @@ export class EntityOrchestrator {
     private generateEntityComponents(entity: Entity, projectName: string, opts: EntityGenerationOptions, isRootEntity: boolean) {
         // Get effective properties including those from mapping definitions
         const effectiveProps = getEffectiveProperties(entity);
+        
+        // For non-root entities with aggregateRef, also generate a projection DTO constructor
+        const projectionDtoResult = generateProjectionDtoConstructor(entity, projectName, this.dtoRegistry);
+        
         return {
             fields: generateFields(effectiveProps, entity, isRootEntity, projectName).code,
             defaultConstructor: generateDefaultConstructor(entity).code,
             dtoConstructor: generateEntityDtoConstructor(entity, projectName, this.dtoRegistry).code,
+            projectionDtoConstructor: projectionDtoResult?.code || '',
             copyConstructor: generateCopyConstructor(entity).code,
             gettersSetters: generateGettersSetters(effectiveProps, entity, projectName, opts.allEntities).code,
             backRefGetterSetter: (!isRootEntity && entity.$container)
@@ -109,6 +114,7 @@ public ${classStructure.abstractModifier}class ${entityName}${classStructure.ext
 ${components.fields}
 ${components.defaultConstructor}
 ${components.dtoConstructor}
+${components.projectionDtoConstructor}
 ${components.copyConstructor}
 ${components.gettersSetters}
 ${components.backRefGetterSetter}

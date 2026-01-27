@@ -20,6 +20,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionTopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
@@ -50,16 +53,35 @@ public class QuestionService {
     public QuestionService() {}
 
     // CRUD Operations
-    public QuestionDto createQuestion(QuestionCourse course, CreateQuestionRequestDto createRequest, Set<QuestionTopic> topics, List<Option> options, UnitOfWork unitOfWork) {
+    public QuestionDto createQuestion(CreateQuestionRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
             // Convert CreateRequestDto to regular DTO
             QuestionDto questionDto = new QuestionDto();
             questionDto.setTitle(createRequest.getTitle());
             questionDto.setContent(createRequest.getContent());
             questionDto.setCreationDate(createRequest.getCreationDate());
+            // Convert CourseDto to QuestionCourseDto
+            if (createRequest.getCourse() != null) {
+                QuestionCourseDto courseDto = new QuestionCourseDto();
+                courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
+                courseDto.setVersion(createRequest.getCourse().getVersion());
+                courseDto.setState(createRequest.getCourse().getState());
+                questionDto.setCourse(courseDto);
+            }
+            // Convert TopicDto collection to QuestionTopicDto collection
+            if (createRequest.getTopics() != null) {
+                questionDto.setTopics(createRequest.getTopics().stream().map(srcDto -> {
+                    QuestionTopicDto projDto = new QuestionTopicDto();
+                    projDto.setAggregateId(srcDto.getAggregateId());
+                    projDto.setVersion(srcDto.getVersion());
+                    projDto.setState(srcDto.getState());
+                    return projDto;
+                }).collect(Collectors.toSet()));
+            }
+            questionDto.setOptions(createRequest.getOptions());
             
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-            Question question = questionFactory.createQuestion(aggregateId, course, questionDto, topics, options);
+            Question question = questionFactory.createQuestion(aggregateId, questionDto);
             unitOfWorkService.registerChanged(question, unitOfWork);
             return questionFactory.createQuestionDto(question);
         } catch (Exception e) {
@@ -103,15 +125,6 @@ public class QuestionService {
             }
             if (questionDto.getCreationDate() != null) {
                 question.setCreationDate(questionDto.getCreationDate());
-            }
-            if (questionDto.getCourse() != null) {
-                question.setCourse(questionDto.getCourse());
-            }
-            if (questionDto.getTopics() != null) {
-                question.setTopics(questionDto.getTopics());
-            }
-            if (questionDto.getOptions() != null) {
-                question.setOptions(questionDto.getOptions());
             }
             
             question = questionRepository.save(question);

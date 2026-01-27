@@ -41,17 +41,18 @@ public abstract class Answer extends Aggregate {
 
     }
 
-    public Answer(Integer aggregateId, AnswerExecution execution, AnswerUser user, AnswerQuiz quiz, AnswerDto answerDto, List<QuestionAnswered> questions) {
+    public Answer(Integer aggregateId, AnswerDto answerDto) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setCreationDate(answerDto.getCreationDate());
         setAnswerDate(answerDto.getAnswerDate());
         setCompleted(answerDto.getCompleted());
-        setExecution(execution);
-        setUser(user);
-        setQuiz(quiz);
-        setQuestions(questions);
+        setExecution(answerDto.getExecution() != null ? new AnswerExecution(answerDto.getExecution()) : null);
+        setUser(answerDto.getUser() != null ? new AnswerUser(answerDto.getUser()) : null);
+        setQuiz(answerDto.getQuiz() != null ? new AnswerQuiz(answerDto.getQuiz()) : null);
+        setQuestions(answerDto.getQuestions() != null ? answerDto.getQuestions().stream().map(QuestionAnswered::new).collect(Collectors.toList()) : null);
     }
+
 
     public Answer(Answer other) {
         super(other);

@@ -7,36 +7,37 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import java.util.List;
 
-public class GetCourseByIdFunctionalitySagas extends WorkflowFunctionality {
-    private CourseDto courseDto;
+public class GetAllCoursesFunctionalitySagas extends WorkflowFunctionality {
+    private List<CourseDto> courses;
     private final CourseService courseService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public GetCourseByIdFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, CourseService courseService, Integer courseAggregateId) {
+    public GetAllCoursesFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, CourseService courseService) {
         this.courseService = courseService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(courseAggregateId, unitOfWork);
+        this.buildWorkflow(unitOfWork);
     }
 
-    public void buildWorkflow(Integer courseAggregateId, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getCourseStep = new SagaSyncStep("getCourseStep", () -> {
-            CourseDto courseDto = courseService.getCourseById(courseAggregateId);
-            setCourseDto(courseDto);
+        SagaSyncStep getAllCoursesStep = new SagaSyncStep("getAllCoursesStep", () -> {
+            List<CourseDto> courses = courseService.getAllCourses();
+            setCourses(courses);
         });
 
-        workflow.addStep(getCourseStep);
+        workflow.addStep(getAllCoursesStep);
 
     }
 
-    public CourseDto getCourseDto() {
-        return courseDto;
+    public List<CourseDto> getCourses() {
+        return courses;
     }
 
-    public void setCourseDto(CourseDto courseDto) {
-        this.courseDto = courseDto;
+    public void setCourses(List<CourseDto> courses) {
+        this.courses = courses;
     }
 }

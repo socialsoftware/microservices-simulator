@@ -23,6 +23,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantQuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentTopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
@@ -53,7 +59,7 @@ public class TournamentService {
     public TournamentService() {}
 
     // CRUD Operations
-    public TournamentDto createTournament(TournamentCreator creator, TournamentExecution execution, TournamentQuiz quiz, CreateTournamentRequestDto createRequest, Set<TournamentParticipant> participants, Set<TournamentTopic> topics, UnitOfWork unitOfWork) {
+    public TournamentDto createTournament(CreateTournamentRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
             // Convert CreateRequestDto to regular DTO
             TournamentDto tournamentDto = new TournamentDto();
@@ -61,9 +67,53 @@ public class TournamentService {
             tournamentDto.setEndTime(createRequest.getEndTime());
             tournamentDto.setNumberOfQuestions(createRequest.getNumberOfQuestions());
             tournamentDto.setCancelled(createRequest.getCancelled());
+            // Convert ExecutionUserDto to TournamentCreatorDto
+            if (createRequest.getCreator() != null) {
+                TournamentCreatorDto creatorDto = new TournamentCreatorDto();
+                creatorDto.setAggregateId(createRequest.getCreator().getAggregateId());
+                creatorDto.setVersion(createRequest.getCreator().getVersion());
+                creatorDto.setState(createRequest.getCreator().getState());
+                tournamentDto.setCreator(creatorDto);
+            }
+            // Convert ExecutionUserDto collection to TournamentParticipantDto collection
+            if (createRequest.getParticipants() != null) {
+                tournamentDto.setParticipants(createRequest.getParticipants().stream().map(srcDto -> {
+                    TournamentParticipantDto projDto = new TournamentParticipantDto();
+                    projDto.setAggregateId(srcDto.getAggregateId());
+                    projDto.setVersion(srcDto.getVersion());
+                    projDto.setState(srcDto.getState());
+                    return projDto;
+                }).collect(Collectors.toSet()));
+            }
+            // Convert ExecutionDto to TournamentExecutionDto
+            if (createRequest.getExecution() != null) {
+                TournamentExecutionDto executionDto = new TournamentExecutionDto();
+                executionDto.setAggregateId(createRequest.getExecution().getAggregateId());
+                executionDto.setVersion(createRequest.getExecution().getVersion());
+                executionDto.setState(createRequest.getExecution().getState());
+                tournamentDto.setExecution(executionDto);
+            }
+            // Convert TopicDto collection to TournamentTopicDto collection
+            if (createRequest.getTopics() != null) {
+                tournamentDto.setTopics(createRequest.getTopics().stream().map(srcDto -> {
+                    TournamentTopicDto projDto = new TournamentTopicDto();
+                    projDto.setAggregateId(srcDto.getAggregateId());
+                    projDto.setVersion(srcDto.getVersion());
+                    projDto.setState(srcDto.getState());
+                    return projDto;
+                }).collect(Collectors.toSet()));
+            }
+            // Convert QuizDto to TournamentQuizDto
+            if (createRequest.getQuiz() != null) {
+                TournamentQuizDto quizDto = new TournamentQuizDto();
+                quizDto.setAggregateId(createRequest.getQuiz().getAggregateId());
+                quizDto.setVersion(createRequest.getQuiz().getVersion());
+                quizDto.setState(createRequest.getQuiz().getState());
+                tournamentDto.setQuiz(quizDto);
+            }
             
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-            Tournament tournament = tournamentFactory.createTournament(aggregateId, creator, execution, quiz, tournamentDto, participants, topics);
+            Tournament tournament = tournamentFactory.createTournament(aggregateId, tournamentDto);
             unitOfWorkService.registerChanged(tournament, unitOfWork);
             return tournamentFactory.createTournamentDto(tournament);
         } catch (Exception e) {
@@ -108,22 +158,7 @@ public class TournamentService {
             if (tournamentDto.getNumberOfQuestions() != null) {
                 tournament.setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
             }
-            tournament.setCancelled(tournamentDto.isCancelled());
-            if (tournamentDto.getCreator() != null) {
-                tournament.setCreator(tournamentDto.getCreator());
-            }
-            if (tournamentDto.getParticipants() != null) {
-                tournament.setParticipants(tournamentDto.getParticipants());
-            }
-            if (tournamentDto.getExecution() != null) {
-                tournament.setExecution(tournamentDto.getExecution());
-            }
-            if (tournamentDto.getTopics() != null) {
-                tournament.setTopics(tournamentDto.getTopics());
-            }
-            if (tournamentDto.getQuiz() != null) {
-                tournament.setQuiz(tournamentDto.getQuiz());
-            }
+            tournament.setCancelled(tournamentDto.getCancelled());
             
             tournament = tournamentRepository.save(tournament);
             return new TournamentDto(tournament);

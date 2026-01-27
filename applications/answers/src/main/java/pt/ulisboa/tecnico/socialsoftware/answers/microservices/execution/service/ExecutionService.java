@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionCourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionUserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
@@ -49,16 +51,34 @@ public class ExecutionService {
     public ExecutionService() {}
 
     // CRUD Operations
-    public ExecutionDto createExecution(ExecutionCourse course, CreateExecutionRequestDto createRequest, Set<ExecutionUser> users, UnitOfWork unitOfWork) {
+    public ExecutionDto createExecution(CreateExecutionRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
             // Convert CreateRequestDto to regular DTO
             ExecutionDto executionDto = new ExecutionDto();
             executionDto.setAcronym(createRequest.getAcronym());
             executionDto.setAcademicTerm(createRequest.getAcademicTerm());
             executionDto.setEndDate(createRequest.getEndDate());
+            // Convert CourseDto to ExecutionCourseDto
+            if (createRequest.getCourse() != null) {
+                ExecutionCourseDto courseDto = new ExecutionCourseDto();
+                courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
+                courseDto.setVersion(createRequest.getCourse().getVersion());
+                courseDto.setState(createRequest.getCourse().getState());
+                executionDto.setCourse(courseDto);
+            }
+            // Convert UserDto collection to ExecutionUserDto collection
+            if (createRequest.getUsers() != null) {
+                executionDto.setUsers(createRequest.getUsers().stream().map(srcDto -> {
+                    ExecutionUserDto projDto = new ExecutionUserDto();
+                    projDto.setAggregateId(srcDto.getAggregateId());
+                    projDto.setVersion(srcDto.getVersion());
+                    projDto.setState(srcDto.getState());
+                    return projDto;
+                }).collect(Collectors.toSet()));
+            }
             
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-            Execution execution = executionFactory.createExecution(aggregateId, course, executionDto, users);
+            Execution execution = executionFactory.createExecution(aggregateId, executionDto);
             unitOfWorkService.registerChanged(execution, unitOfWork);
             return executionFactory.createExecutionDto(execution);
         } catch (Exception e) {
@@ -102,12 +122,6 @@ public class ExecutionService {
             }
             if (executionDto.getEndDate() != null) {
                 execution.setEndDate(executionDto.getEndDate());
-            }
-            if (executionDto.getCourse() != null) {
-                execution.setCourse(executionDto.getCourse());
-            }
-            if (executionDto.getUsers() != null) {
-                execution.setUsers(executionDto.getUsers());
             }
             
             execution = executionRepository.save(execution);

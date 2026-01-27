@@ -5,10 +5,10 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import java.util.Set;
 import java.time.LocalDateTime;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionTopicDto;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionTopicDto;
 
 public class UpdateQuestionRequestDto {
     @NotNull

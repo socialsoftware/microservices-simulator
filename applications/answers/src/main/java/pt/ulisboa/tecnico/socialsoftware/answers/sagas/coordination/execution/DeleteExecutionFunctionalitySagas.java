@@ -22,7 +22,7 @@ public class DeleteExecutionFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep deleteExecutionStep = new SagaSyncStep("deleteExecutionStep", () -> {
-            executionService.deleteExecution(executionAggregateId, unitOfWork);
+            executionService.deleteExecution(executionAggregateId);
         });
 
         workflow.addStep(deleteExecutionStep);

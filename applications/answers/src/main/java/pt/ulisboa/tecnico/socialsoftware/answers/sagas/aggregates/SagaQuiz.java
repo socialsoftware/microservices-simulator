@@ -24,8 +24,8 @@ public class SagaQuiz extends Quiz implements SagaAggregate {
         this.sagaState = other.getSagaState();
     }
 
-    public SagaQuiz(Integer aggregateId, QuizExecution execution, QuizDto quizDto, Set<QuizQuestion> questions) {
-        super(aggregateId, execution, quizDto, questions);
+    public SagaQuiz(Integer aggregateId, QuizDto quizDto) {
+        super(aggregateId, quizDto);
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 

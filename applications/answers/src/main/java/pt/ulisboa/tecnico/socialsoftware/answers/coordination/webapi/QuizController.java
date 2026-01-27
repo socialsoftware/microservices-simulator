@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.QuizFunctionalities;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuizRequestDto;
 
 @RestController
@@ -34,7 +33,7 @@ public class QuizController {
     }
 
     @GetMapping("/quizs")
-    public List<QuizDto> searchQuizs(@RequestParam(required = false) String title, @RequestParam(required = false) QuizType quizType) {
-        return quizFunctionalities.searchQuizs(title, quizType);
+    public List<QuizDto> getAllQuizs() {
+        return quizFunctionalities.getAllQuizs();
     }
 }

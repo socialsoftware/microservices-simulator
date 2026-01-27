@@ -5,10 +5,10 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import java.util.Set;
 import java.time.LocalDateTime;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionTopicDto;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionTopicDto;
 
 public class CreateQuestionRequestDto {
     @NotNull
@@ -21,15 +21,17 @@ public class CreateQuestionRequestDto {
     private String content;
     @NotNull
     private LocalDateTime creationDate;
+    private List<OptionDto> options;
 
     public CreateQuestionRequestDto() {}
 
-    public CreateQuestionRequestDto(CourseDto course, Set<TopicDto> topics, String title, String content, LocalDateTime creationDate) {
+    public CreateQuestionRequestDto(CourseDto course, Set<TopicDto> topics, String title, String content, LocalDateTime creationDate, List<OptionDto> options) {
         this.course = course;
         this.topics = topics;
         this.title = title;
         this.content = content;
         this.creationDate = creationDate;
+        this.options = options;
     }
 
     public CourseDto getCourse() {
@@ -66,5 +68,12 @@ public class CreateQuestionRequestDto {
 
     public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
+    }
+    public List<OptionDto> getOptions() {
+        return options;
+    }
+
+    public void setOptions(List<OptionDto> options) {
+        this.options = options;
     }
 }

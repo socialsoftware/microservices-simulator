@@ -100,16 +100,16 @@ public class ExecutionFunctionalities {
         }
     }
 
-    public List<ExecutionDto> searchExecutions(String acronym, String academicTerm) {
+    public List<ExecutionDto> getAllExecutions() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                SearchExecutionsFunctionalitySagas searchExecutionsFunctionalitySagas = new SearchExecutionsFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, executionService, acronym, academicTerm);
-                searchExecutionsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return searchExecutionsFunctionalitySagas.getSearchedExecutionDtos();
+                GetAllExecutionsFunctionalitySagas getAllExecutionsFunctionalitySagas = new GetAllExecutionsFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, executionService);
+                getAllExecutionsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getAllExecutionsFunctionalitySagas.getExecutions();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }

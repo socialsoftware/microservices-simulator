@@ -37,16 +37,17 @@ public abstract class Question extends Aggregate {
 
     }
 
-    public Question(Integer aggregateId, QuestionCourse course, QuestionDto questionDto, Set<QuestionTopic> topics, List<Option> options) {
+    public Question(Integer aggregateId, QuestionDto questionDto) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setTitle(questionDto.getTitle());
         setContent(questionDto.getContent());
         setCreationDate(questionDto.getCreationDate());
-        setCourse(course);
-        setTopics(topics);
-        setOptions(options);
+        setCourse(questionDto.getCourse() != null ? new QuestionCourse(questionDto.getCourse()) : null);
+        setTopics(questionDto.getTopics() != null ? questionDto.getTopics().stream().map(QuestionTopic::new).collect(Collectors.toSet()) : null);
+        setOptions(questionDto.getOptions() != null ? questionDto.getOptions().stream().map(Option::new).collect(Collectors.toList()) : null);
     }
+
 
     public Question(Question other) {
         super(other);

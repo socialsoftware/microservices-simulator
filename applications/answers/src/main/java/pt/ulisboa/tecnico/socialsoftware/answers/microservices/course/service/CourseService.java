@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
@@ -91,9 +92,6 @@ public class CourseService {
             
                         if (courseDto.getName() != null) {
                 course.setName(courseDto.getName());
-            }
-            if (courseDto.getType() != null) {
-                course.setType(courseDto.getType());
             }
             if (courseDto.getCreationDate() != null) {
                 course.setCreationDate(courseDto.getCreationDate());

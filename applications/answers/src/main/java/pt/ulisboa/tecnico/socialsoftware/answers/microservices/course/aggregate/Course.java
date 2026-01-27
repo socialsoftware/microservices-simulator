@@ -34,6 +34,7 @@ public abstract class Course extends Aggregate {
         setCreationDate(courseDto.getCreationDate());
     }
 
+
     public Course(Course other) {
         super(other);
         setName(other.getName());

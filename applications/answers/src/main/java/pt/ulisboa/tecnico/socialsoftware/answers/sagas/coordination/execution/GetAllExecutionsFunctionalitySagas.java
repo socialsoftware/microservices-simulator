@@ -7,36 +7,37 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import java.util.List;
 
-public class UpdateExecutionFunctionalitySagas extends WorkflowFunctionality {
-    private ExecutionDto updatedExecutionDto;
+public class GetAllExecutionsFunctionalitySagas extends WorkflowFunctionality {
+    private List<ExecutionDto> executions;
     private final ExecutionService executionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public UpdateExecutionFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, ExecutionDto executionDto) {
+    public GetAllExecutionsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(executionDto, unitOfWork);
+        this.buildWorkflow(unitOfWork);
     }
 
-    public void buildWorkflow(ExecutionDto executionDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep updateExecutionStep = new SagaSyncStep("updateExecutionStep", () -> {
-            ExecutionDto updatedExecutionDto = executionService.updateExecution(executionDto);
-            setUpdatedExecutionDto(updatedExecutionDto);
+        SagaSyncStep getAllExecutionsStep = new SagaSyncStep("getAllExecutionsStep", () -> {
+            List<ExecutionDto> executions = executionService.getAllExecutions();
+            setExecutions(executions);
         });
 
-        workflow.addStep(updateExecutionStep);
+        workflow.addStep(getAllExecutionsStep);
 
     }
 
-    public ExecutionDto getUpdatedExecutionDto() {
-        return updatedExecutionDto;
+    public List<ExecutionDto> getExecutions() {
+        return executions;
     }
 
-    public void setUpdatedExecutionDto(ExecutionDto updatedExecutionDto) {
-        this.updatedExecutionDto = updatedExecutionDto;
+    public void setExecutions(List<ExecutionDto> executions) {
+        this.executions = executions;
     }
 }

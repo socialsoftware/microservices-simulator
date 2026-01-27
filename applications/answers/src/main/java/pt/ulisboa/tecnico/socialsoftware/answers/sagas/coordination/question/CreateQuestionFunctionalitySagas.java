@@ -7,17 +7,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionCourse;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionTopic;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Option;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuestionRequestDto;
 
 public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
@@ -36,16 +25,7 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createQuestionStep = new SagaSyncStep("createQuestionStep", () -> {
-            CourseDto courseDto = createRequest.getCourse();
-            QuestionCourse course = new QuestionCourse(courseDto);
-            Set<QuestionTopic> topics = null;
-            if (createRequest.getTopics() != null) {
-                topics = createRequest.getTopics().stream()
-                    .map(QuestionTopic::new)
-                    .collect(Collectors.toSet());
-            }
-            List<Option> options = createRequest.getOptions() != null ? createRequest.getOptions().stream().map(Option::new).collect(Collectors.toList()) : null;
-            QuestionDto createdQuestionDto = questionService.createQuestion(course, createRequest, topics, options, unitOfWork);
+            QuestionDto createdQuestionDto = questionService.createQuestion(createRequest, unitOfWork);
             setCreatedQuestionDto(createdQuestionDto);
         });
 

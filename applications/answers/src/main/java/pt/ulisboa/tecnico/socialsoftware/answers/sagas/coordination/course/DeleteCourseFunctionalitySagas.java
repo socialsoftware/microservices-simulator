@@ -22,7 +22,7 @@ public class DeleteCourseFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep deleteCourseStep = new SagaSyncStep("deleteCourseStep", () -> {
-            courseService.deleteCourse(courseAggregateId, unitOfWork);
+            courseService.deleteCourse(courseAggregateId);
         });
 
         workflow.addStep(deleteCourseStep);

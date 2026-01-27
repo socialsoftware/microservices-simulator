@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.CourseFunctionalities;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateCourseRequestDto;
 
 @RestController
@@ -34,7 +33,7 @@ public class CourseController {
     }
 
     @GetMapping("/courses")
-    public List<CourseDto> searchCourses(@RequestParam(required = false) String name, @RequestParam(required = false) CourseType type) {
-        return courseFunctionalities.searchCourses(name, type);
+    public List<CourseDto> getAllCourses() {
+        return courseFunctionalities.getAllCourses();
     }
 }

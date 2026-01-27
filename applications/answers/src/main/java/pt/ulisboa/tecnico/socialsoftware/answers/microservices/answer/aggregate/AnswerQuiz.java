@@ -38,6 +38,13 @@ public class AnswerQuiz {
         setQuizQuestionsAggregateIds(quizDto.getQuestions() != null ? quizDto.getQuestions().stream().map((QuizQuestionDto dto) -> dto.getAggregateId()).collect(Collectors.toList()) : null);
     }
 
+    public AnswerQuiz(AnswerQuizDto answerQuizDto) {
+        setQuizAggregateId(answerQuizDto.getAggregateId());
+        setQuizVersion(answerQuizDto.getVersion());
+        setQuizQuestionsAggregateIds(answerQuizDto.getQuestions() != null ? answerQuizDto.getQuestions().stream().map(Integer::new).collect(Collectors.toList()) : null);
+        setQuizState(answerQuizDto.getState());
+    }
+
     public AnswerQuiz(AnswerQuiz other) {
         setQuizVersion(other.getQuizVersion());
         setQuizQuestionsAggregateIds(new ArrayList<>(other.getQuizQuestionsAggregateIds()));

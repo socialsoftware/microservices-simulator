@@ -24,7 +24,7 @@ public class UpdateCourseFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep updateCourseStep = new SagaSyncStep("updateCourseStep", () -> {
-            CourseDto updatedCourseDto = courseService.updateCourse(courseDto, unitOfWork);
+            CourseDto updatedCourseDto = courseService.updateCourse(courseDto);
             setUpdatedCourseDto(updatedCourseDto);
         });
 

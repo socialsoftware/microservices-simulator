@@ -7,36 +7,37 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import java.util.List;
 
-public class GetQuizByIdFunctionalitySagas extends WorkflowFunctionality {
-    private QuizDto quizDto;
+public class GetAllQuizsFunctionalitySagas extends WorkflowFunctionality {
+    private List<QuizDto> quizs;
     private final QuizService quizService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public GetQuizByIdFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, QuizService quizService, Integer quizAggregateId) {
+    public GetAllQuizsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, QuizService quizService) {
         this.quizService = quizService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(quizAggregateId, unitOfWork);
+        this.buildWorkflow(unitOfWork);
     }
 
-    public void buildWorkflow(Integer quizAggregateId, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getQuizStep = new SagaSyncStep("getQuizStep", () -> {
-            QuizDto quizDto = quizService.getQuizById(quizAggregateId);
-            setQuizDto(quizDto);
+        SagaSyncStep getAllQuizsStep = new SagaSyncStep("getAllQuizsStep", () -> {
+            List<QuizDto> quizs = quizService.getAllQuizs();
+            setQuizs(quizs);
         });
 
-        workflow.addStep(getQuizStep);
+        workflow.addStep(getAllQuizsStep);
 
     }
 
-    public QuizDto getQuizDto() {
-        return quizDto;
+    public List<QuizDto> getQuizs() {
+        return quizs;
     }
 
-    public void setQuizDto(QuizDto quizDto) {
-        this.quizDto = quizDto;
+    public void setQuizs(List<QuizDto> quizs) {
+        this.quizs = quizs;
     }
 }

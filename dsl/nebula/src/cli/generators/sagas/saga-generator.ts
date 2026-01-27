@@ -124,53 +124,16 @@ export class SagaGenerator extends OrchestrationBase {
         const lowerAggregate = rootEntityName.toLowerCase();
         const dtoTypeName = `${rootEntityName}Dto`;
 
-        // Separate single and collection relationships
-        const singleRels = relationships.filter((r: any) => !r.isCollection);
-        const collectionRels = relationships.filter((r: any) => r.isCollection);
-
-        // Build constructor matching base aggregate order:
-        // (Integer aggregateId, single entities, DTO, collection entities)
-        const params: string[] = [];
-        params.push(`Integer aggregateId`);
-
-        // Add single entity relationships first
-        for (const rel of singleRels) {
-            params.push(`${rel.type} ${rel.name}`);
-        }
-
-        // Add DTO
-        params.push(`${dtoTypeName} ${lowerAggregate}Dto`);
-
-        // Add collection relationships
-        for (const rel of collectionRels) {
-            params.push(`${rel.javaType} ${rel.name}`);
-        }
-
-        const paramString = params.join(', ');
-        
-        // Build super call with same order
-        const superCallParams: string[] = [];
-        superCallParams.push('aggregateId');
-        for (const rel of singleRels) {
-            superCallParams.push(rel.name);
-        }
-        superCallParams.push(`${lowerAggregate}Dto`);
-        for (const rel of collectionRels) {
-            superCallParams.push(rel.name);
-        }
-        const superCallString = superCallParams.join(', ');
-
-        // Build relationship params for reference
-        const relationshipParams = [...singleRels, ...collectionRels].map(rel => ({
-            type: rel.javaType,
-            name: rel.name
-        }));
+        // SIMPLIFIED: Constructor just takes (aggregateId, dto)
+        // The base aggregate constructor handles DTO-to-entity conversion internally
+        const paramString = `Integer aggregateId, ${dtoTypeName} ${lowerAggregate}Dto`;
+        const superCallString = `aggregateId, ${lowerAggregate}Dto`;
 
         return {
             paramString,
             superCallString,
-            hasRelationships: relationships.length > 0,
-            relationshipParams
+            hasRelationships: false, // No longer passing relationships as params
+            relationshipParams: [] // Empty since we no longer pass relationships
         };
     }
 
@@ -279,29 +242,13 @@ export class SagaGenerator extends OrchestrationBase {
 
         const rootEntityName = rootEntity ? rootEntity.name : aggregateName;
 
-        // Extract entity relationships for the create method parameters
-        const entityRelationships = this.extractEntityRelationshipsForFactory(aggregate, rootEntity);
-        const singleEntityRels = entityRelationships.filter((rel: any) => !rel.isCollection);
-        const collectionEntityRels = entityRelationships.filter((rel: any) => rel.isCollection);
+        // SIMPLIFIED: Factory interface just takes (aggregateId, dto)
+        const createMethodParams = `Integer aggregateId, ${rootEntityName}Dto ${lowerAggregate}Dto`;
 
-        // Build parameter string for create method matching the Factory interface (using regular DTO)
-        const createMethodParams = this.buildFactoryCreateMethodParams(
-            rootEntityName, lowerAggregate, singleEntityRels, collectionEntityRels
-        );
+        const imports = this.buildSagaFactoriesImportsSimplified(aggregate, options);
 
-        const imports = this.buildSagaFactoriesImports(aggregate, options, entityRelationships);
-
-        // Build constructor call args for SagaAggregate constructor
-        // Order: aggregateId, single entities, dto, collection entities (matching base aggregate)
-        const constructorArgs: string[] = ['aggregateId'];
-        for (const rel of singleEntityRels) {
-            constructorArgs.push(rel.paramName);
-        }
-        constructorArgs.push(`${lowerAggregate}Dto`);
-        for (const rel of collectionEntityRels) {
-            constructorArgs.push(rel.paramName);
-        }
-        const constructorCallArgs = constructorArgs.join(', ');
+        // SIMPLIFIED: Constructor call just passes (aggregateId, dto)
+        const constructorCallArgs = `aggregateId, ${lowerAggregate}Dto`;
 
         return {
             aggregateName: capitalizedAggregate,
@@ -311,77 +258,9 @@ export class SagaGenerator extends OrchestrationBase {
             imports,
             createMethodParams,
             constructorCallArgs,
-            singleEntityRels,
-            collectionEntityRels
+            singleEntityRels: [],
+            collectionEntityRels: []
         };
-    }
-
-    /**
-     * Extract entity relationships for factory method parameters
-     * Matches the logic in factory-generator.ts
-     */
-    private extractEntityRelationshipsForFactory(aggregate: Aggregate, rootEntity: Entity): any[] {
-        const relationships: any[] = [];
-
-        if (!rootEntity || !rootEntity.properties) {
-            return relationships;
-        }
-
-        const aggregateEntityNames = new Set(aggregate.entities.map((e: Entity) => e.name));
-
-        for (const prop of rootEntity.properties) {
-            const javaType = this.resolveJavaType(prop.type);
-            const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
-            const isPrimitive = UnifiedTypeResolver.isPrimitiveType(javaType);
-            const isEnum = javaType.endsWith('Type') && javaType !== 'AggregateState';
-
-            // Get the element type for collections
-            let entityType = javaType;
-            if (isCollection) {
-                entityType = javaType.replace(/^(Set|List)<(.+)>$/, '$2');
-            }
-
-            // Check if it's an entity within this aggregate
-            const isEntityInAggregate = aggregateEntityNames.has(entityType);
-
-            if (isEntityInAggregate && !isPrimitive && !isEnum) {
-                relationships.push({
-                    entityType: entityType,
-                    paramName: prop.name,
-                    javaType: javaType,
-                    isCollection: isCollection
-                });
-            }
-        }
-
-        return relationships;
-    }
-
-    /**
-     * Build the create method parameter string matching the Factory interface
-     */
-    private buildFactoryCreateMethodParams(
-        rootEntityName: string,
-        lowerAggregate: string,
-        singleEntityRels: any[],
-        collectionEntityRels: any[]
-    ): string {
-        const params: string[] = ['Integer aggregateId'];
-
-        // Add single entity relationships first
-        for (const rel of singleEntityRels) {
-            params.push(`${rel.entityType} ${rel.paramName}`);
-        }
-
-        // Add the regular DTO parameter
-        params.push(`${rootEntityName}Dto ${lowerAggregate}Dto`);
-
-        // Add collection entity relationships
-        for (const rel of collectionEntityRels) {
-            params.push(`${rel.javaType} ${rel.paramName}`);
-        }
-
-        return params.join(', ');
     }
 
     private buildSagaRepositoriesContext(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): any {
@@ -463,7 +342,11 @@ export class SagaGenerator extends OrchestrationBase {
         return imports;
     }
 
-    private buildSagaFactoriesImports(aggregate: Aggregate, options: SagaGenerationOptions, entityRelationships?: any[]): string[] {
+    /**
+     * SIMPLIFIED: Only need basic imports for saga factories
+     * Entity relationships are no longer passed as parameters
+     */
+    private buildSagaFactoriesImportsSimplified(aggregate: Aggregate, options: SagaGenerationOptions): string[] {
         const imports: string[] = [];
 
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
@@ -479,24 +362,6 @@ export class SagaGenerator extends OrchestrationBase {
 
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.Saga${capitalizedAggregate};`);
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.dtos.Saga${capitalizedAggregate}Dto;`);
-
-        // Add imports for entity relationships (projection entities)
-        if (entityRelationships && entityRelationships.length > 0) {
-            for (const rel of entityRelationships) {
-                imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${rel.entityType};`);
-            }
-
-            // Add collection imports if needed
-            const hasSet = entityRelationships.some((rel: any) => rel.javaType?.startsWith('Set<'));
-            const hasList = entityRelationships.some((rel: any) => rel.javaType?.startsWith('List<'));
-
-            if (hasSet) {
-                imports.push('import java.util.Set;');
-            }
-            if (hasList) {
-                imports.push('import java.util.List;');
-            }
-        }
 
         return imports;
     }

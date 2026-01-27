@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.UserRole;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
@@ -94,10 +95,7 @@ public class UserService {
             if (userDto.getUsername() != null) {
                 user.setUsername(userDto.getUsername());
             }
-            if (userDto.getRole() != null) {
-                user.setRole(userDto.getRole());
-            }
-            user.setActive(userDto.isActive());
+            user.setActive(userDto.getActive());
             
             user = userRepository.save(user);
             return new UserDto(user);

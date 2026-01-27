@@ -33,7 +33,7 @@ public class ExecutionController {
     }
 
     @GetMapping("/executions")
-    public List<ExecutionDto> searchExecutions(@RequestParam(required = false) String acronym, @RequestParam(required = false) String academicTerm) {
-        return executionFunctionalities.searchExecutions(acronym, academicTerm);
+    public List<ExecutionDto> getAllExecutions() {
+        return executionFunctionalities.getAllExecutions();
     }
 }

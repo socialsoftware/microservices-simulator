@@ -5,11 +5,11 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import java.time.LocalDateTime;
+import java.util.List;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionAnsweredDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerUserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
-import java.util.List;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionAnsweredDto;
 
 public class CreateAnswerRequestDto {
     @NotNull
@@ -24,16 +24,18 @@ public class CreateAnswerRequestDto {
     private LocalDateTime answerDate;
     @NotNull
     private Boolean completed;
+    private List<QuestionAnsweredDto> questions;
 
     public CreateAnswerRequestDto() {}
 
-    public CreateAnswerRequestDto(ExecutionDto execution, UserDto user, QuizDto quiz, LocalDateTime creationDate, LocalDateTime answerDate, Boolean completed) {
+    public CreateAnswerRequestDto(ExecutionDto execution, UserDto user, QuizDto quiz, LocalDateTime creationDate, LocalDateTime answerDate, Boolean completed, List<QuestionAnsweredDto> questions) {
         this.execution = execution;
         this.user = user;
         this.quiz = quiz;
         this.creationDate = creationDate;
         this.answerDate = answerDate;
         this.completed = completed;
+        this.questions = questions;
     }
 
     public ExecutionDto getExecution() {
@@ -77,5 +79,12 @@ public class CreateAnswerRequestDto {
 
     public void setCompleted(Boolean completed) {
         this.completed = completed;
+    }
+    public List<QuestionAnsweredDto> getQuestions() {
+        return questions;
+    }
+
+    public void setQuestions(List<QuestionAnsweredDto> questions) {
+        this.questions = questions;
     }
 }

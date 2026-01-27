@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos;
 
 import jakarta.validation.constraints.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;

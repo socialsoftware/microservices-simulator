@@ -32,15 +32,16 @@ public abstract class Execution extends Aggregate {
 
     }
 
-    public Execution(Integer aggregateId, ExecutionCourse course, ExecutionDto executionDto, Set<ExecutionUser> users) {
+    public Execution(Integer aggregateId, ExecutionDto executionDto) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setAcronym(executionDto.getAcronym());
         setAcademicTerm(executionDto.getAcademicTerm());
         setEndDate(executionDto.getEndDate());
-        setCourse(course);
-        setUsers(users);
+        setCourse(executionDto.getCourse() != null ? new ExecutionCourse(executionDto.getCourse()) : null);
+        setUsers(executionDto.getUsers() != null ? executionDto.getUsers().stream().map(ExecutionUser::new).collect(Collectors.toSet()) : null);
     }
+
 
     public Execution(Execution other) {
         super(other);

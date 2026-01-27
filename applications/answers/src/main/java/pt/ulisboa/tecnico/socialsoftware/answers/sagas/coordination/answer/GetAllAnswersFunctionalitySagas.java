@@ -7,36 +7,37 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import java.util.List;
 
-public class UpdateAnswerFunctionalitySagas extends WorkflowFunctionality {
-    private AnswerDto updatedAnswerDto;
+public class GetAllAnswersFunctionalitySagas extends WorkflowFunctionality {
+    private List<AnswerDto> answers;
     private final AnswerService answerService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public UpdateAnswerFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, AnswerService answerService, AnswerDto answerDto) {
+    public GetAllAnswersFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, AnswerService answerService) {
         this.answerService = answerService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(answerDto, unitOfWork);
+        this.buildWorkflow(unitOfWork);
     }
 
-    public void buildWorkflow(AnswerDto answerDto, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep updateAnswerStep = new SagaSyncStep("updateAnswerStep", () -> {
-            AnswerDto updatedAnswerDto = answerService.updateAnswer(answerDto);
-            setUpdatedAnswerDto(updatedAnswerDto);
+        SagaSyncStep getAllAnswersStep = new SagaSyncStep("getAllAnswersStep", () -> {
+            List<AnswerDto> answers = answerService.getAllAnswers();
+            setAnswers(answers);
         });
 
-        workflow.addStep(updateAnswerStep);
+        workflow.addStep(getAllAnswersStep);
 
     }
 
-    public AnswerDto getUpdatedAnswerDto() {
-        return updatedAnswerDto;
+    public List<AnswerDto> getAnswers() {
+        return answers;
     }
 
-    public void setUpdatedAnswerDto(AnswerDto updatedAnswerDto) {
-        this.updatedAnswerDto = updatedAnswerDto;
+    public void setAnswers(List<AnswerDto> answers) {
+        this.answers = answers;
     }
 }

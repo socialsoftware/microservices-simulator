@@ -9,35 +9,35 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import java.util.List;
 
-public class SearchQuestionsFunctionalitySagas extends WorkflowFunctionality {
-    private List<QuestionDto> searchedQuestionDtos;
+public class GetAllQuestionsFunctionalitySagas extends WorkflowFunctionality {
+    private List<QuestionDto> questions;
     private final QuestionService questionService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public SearchQuestionsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, QuestionService questionService, String title, String content) {
+    public GetAllQuestionsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, QuestionService questionService) {
         this.questionService = questionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(title, content, unitOfWork);
+        this.buildWorkflow(unitOfWork);
     }
 
-    public void buildWorkflow(String title, String content, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep searchQuestionsStep = new SagaSyncStep("searchQuestionsStep", () -> {
-            List<QuestionDto> searchedQuestionDtos = questionService.searchQuestions(title, content, unitOfWork);
-            setSearchedQuestionDtos(searchedQuestionDtos);
+        SagaSyncStep getAllQuestionsStep = new SagaSyncStep("getAllQuestionsStep", () -> {
+            List<QuestionDto> questions = questionService.getAllQuestions();
+            setQuestions(questions);
         });
 
-        workflow.addStep(searchQuestionsStep);
+        workflow.addStep(getAllQuestionsStep);
 
     }
 
-    public List<QuestionDto> getSearchedQuestionDtos() {
-        return searchedQuestionDtos;
+    public List<QuestionDto> getQuestions() {
+        return questions;
     }
 
-    public void setSearchedQuestionDtos(List<QuestionDto> searchedQuestionDtos) {
-        this.searchedQuestionDtos = searchedQuestionDtos;
+    public void setQuestions(List<QuestionDto> questions) {
+        this.questions = questions;
     }
 }

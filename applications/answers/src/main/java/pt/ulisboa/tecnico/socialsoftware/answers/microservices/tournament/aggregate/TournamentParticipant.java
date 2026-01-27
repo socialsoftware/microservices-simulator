@@ -42,6 +42,16 @@ public class TournamentParticipant {
         setParticipantState(executionUserDto.getState());
     }
 
+    public TournamentParticipant(TournamentParticipantDto tournamentParticipantDto) {
+        setParticipantAggregateId(tournamentParticipantDto.getAggregateId());
+        setParticipantVersion(tournamentParticipantDto.getVersion());
+        setParticipantState(tournamentParticipantDto.getState());
+        setParticipantEnrollTime(tournamentParticipantDto.getParticipantEnrollTime());
+        setParticipantQuiz(tournamentParticipantDto.getParticipantQuiz() != null ? new TournamentParticipantQuiz(tournamentParticipantDto.getParticipantQuiz()) : null);
+        setParticipantName(tournamentParticipantDto.getName());
+        setParticipantUsername(tournamentParticipantDto.getUsername());
+    }
+
     public TournamentParticipant(TournamentParticipant other) {
         setParticipantVersion(other.getParticipantVersion());
         setParticipantState(other.getParticipantState());

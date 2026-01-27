@@ -7,20 +7,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentCreator;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentExecution;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentQuiz;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipant;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentTopic;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTournamentRequestDto;
 
 public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
@@ -39,19 +25,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createTournamentStep = new SagaSyncStep("createTournamentStep", () -> {
-            TournamentCreator creator = new TournamentCreator(createRequest.getCreator());
-            ExecutionDto executionDto = createRequest.getExecution();
-            TournamentExecution execution = new TournamentExecution(executionDto);
-            QuizDto quizDto = createRequest.getQuiz();
-            TournamentQuiz quiz = new TournamentQuiz(quizDto);
-            Set<TournamentParticipant> participants = createRequest.getParticipants() != null ? createRequest.getParticipants().stream().map(TournamentParticipant::new).collect(Collectors.toSet()) : null;
-            Set<TournamentTopic> topics = null;
-            if (createRequest.getTopics() != null) {
-                topics = createRequest.getTopics().stream()
-                    .map(TournamentTopic::new)
-                    .collect(Collectors.toSet());
-            }
-            TournamentDto createdTournamentDto = tournamentService.createTournament(creator, execution, quiz, createRequest, participants, topics, unitOfWork);
+            TournamentDto createdTournamentDto = tournamentService.createTournament(createRequest, unitOfWork);
             setCreatedTournamentDto(createdTournamentDto);
         });
 

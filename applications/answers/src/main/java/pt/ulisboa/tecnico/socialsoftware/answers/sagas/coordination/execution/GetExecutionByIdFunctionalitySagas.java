@@ -24,7 +24,7 @@ public class GetExecutionByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getExecutionStep = new SagaSyncStep("getExecutionStep", () -> {
-            ExecutionDto executionDto = executionService.getExecutionById(executionAggregateId, unitOfWork);
+            ExecutionDto executionDto = executionService.getExecutionById(executionAggregateId);
             setExecutionDto(executionDto);
         });
 

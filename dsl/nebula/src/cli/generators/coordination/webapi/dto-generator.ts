@@ -164,6 +164,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
     /**
      * Find cross-aggregate references from the root entity's properties.
      * These are non-root entities that have "uses AnotherAggregate" declarations.
+     * Also handles transitive references (e.g., TournamentCreator uses ExecutionUser uses User)
      */
     findCrossAggregateReferences(rootEntity: Entity, aggregate: Aggregate, allAggregates?: Aggregate[]): CrossAggregateReference[] {
         const references: CrossAggregateReference[] = [];
@@ -202,30 +203,44 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                 const aggregateRef = entityAny.aggregateRef;
 
                 if (aggregateRef) {
-                    // Get the referenced aggregate name
-                    let relatedAggregateName: string | undefined;
+                    // Get the referenced name (could be aggregate or entity)
+                    let referencedName: string | undefined;
                     if (typeof aggregateRef === 'string') {
-                        relatedAggregateName = aggregateRef;
+                        referencedName = aggregateRef;
                     } else if (aggregateRef.ref?.name) {
-                        relatedAggregateName = aggregateRef.ref.name;
+                        referencedName = aggregateRef.ref.name;
                     } else if (aggregateRef.$refText) {
-                        relatedAggregateName = aggregateRef.$refText;
+                        referencedName = aggregateRef.$refText;
                     }
 
-                    if (relatedAggregateName) {
-                        // Verify this is a different aggregate
-                        const isFromAnotherAggregate = allAggregates?.some(
-                            agg => agg.name === relatedAggregateName && agg.name !== aggregate.name
+                    if (referencedName) {
+                        // First, try to find it as a direct aggregate
+                        const directAggregate = allAggregates?.find(
+                            agg => agg.name === referencedName && agg.name !== aggregate.name
                         );
 
-                        if (isFromAnotherAggregate) {
+                        if (directAggregate) {
+                            // Direct aggregate reference
                             references.push({
                                 entityType: entityName,
                                 paramName: prop.name,
-                                relatedAggregate: relatedAggregateName,
-                                relatedDtoType: `${relatedAggregateName}Dto`,
+                                relatedAggregate: referencedName,
+                                relatedDtoType: `${referencedName}Dto`,
                                 isCollection
                             });
+                        } else {
+                            // Not a direct aggregate - try to resolve transitive references
+                            // (e.g., "uses ExecutionUser" where ExecutionUser is an entity that "uses User")
+                            const ultimateAggregate = this.resolveTransitiveAggregateRef(referencedName, allAggregates);
+                            if (ultimateAggregate) {
+                                references.push({
+                                    entityType: entityName,
+                                    paramName: prop.name,
+                                    relatedAggregate: ultimateAggregate,
+                                    relatedDtoType: `${ultimateAggregate}Dto`,
+                                    isCollection
+                                });
+                            }
                         }
                     }
                 }
@@ -233,6 +248,55 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         }
 
         return references;
+    }
+
+    /**
+     * Resolve transitive aggregate references.
+     * E.g., if TournamentCreator uses ExecutionUser, and ExecutionUser uses User,
+     * this returns "User".
+     */
+    private resolveTransitiveAggregateRef(entityName: string, allAggregates?: Aggregate[]): string | undefined {
+        if (!allAggregates) return undefined;
+
+        // Search all aggregates for an entity with this name
+        for (const agg of allAggregates) {
+            const entities = getEntities(agg);
+            const entity = entities.find(e => e.name === entityName);
+            
+            if (entity) {
+                const entityAny = entity as any;
+                const aggregateRef = entityAny.aggregateRef;
+                
+                if (aggregateRef) {
+                    let refName: string | undefined;
+                    if (typeof aggregateRef === 'string') {
+                        refName = aggregateRef;
+                    } else if (aggregateRef.ref?.name) {
+                        refName = aggregateRef.ref.name;
+                    } else if (aggregateRef.$refText) {
+                        refName = aggregateRef.$refText;
+                    }
+
+                    if (refName) {
+                        // Check if this is a direct aggregate
+                        const directAgg = allAggregates.find(a => a.name === refName);
+                        if (directAgg) {
+                            return refName;
+                        }
+                        // Otherwise, recurse (but limit depth to prevent infinite loops)
+                        return this.resolveTransitiveAggregateRef(refName, allAggregates);
+                    }
+                }
+                
+                // Entity found but no aggregateRef - might be a root entity
+                // Check if it's the root entity of its aggregate
+                if (entityAny.isRoot) {
+                    return agg.name;
+                }
+            }
+        }
+
+        return undefined;
     }
 
     /**
@@ -284,8 +348,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                 const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
                 
                 if (isEntityType) {
-                    // For same-aggregate entities, skip them - they'll be created internally
-                    // or include their own DTO if needed
+                    // For same-aggregate entities, check if they have DTOs
                     const entityRef = (prop.type as any).type?.ref;
                     let entityName: string;
 
@@ -296,10 +359,21 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                         entityName = entityRef?.name || javaType;
                     }
 
-                    // Check if this is an entity in the same aggregate without cross-aggregate ref
+                    // Check if this is an entity in the same aggregate
                     const relatedEntity = entities.find(e => e.name === entityName);
                     if (relatedEntity) {
-                        // Same-aggregate entity - skip it (will be created internally or use projection DTO)
+                        const entityAny = relatedEntity as any;
+                        // If the entity has generateDto, include the DTO collection in CreateRequestDto
+                        if (entityAny.generateDto && isCollection) {
+                            const collectionPrefix = javaType.startsWith('Set<') ? 'Set' : 'List';
+                            fields.push({
+                                name: prop.name,
+                                type: `${collectionPrefix}<${entityName}Dto>`,
+                                required: false,  // Collections are typically optional
+                                isProjectionDtoCollection: true
+                            });
+                        }
+                        // Skip single same-aggregate entities (they're created internally)
                         continue;
                     }
                 }

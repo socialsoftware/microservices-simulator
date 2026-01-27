@@ -31,6 +31,12 @@ public class TopicCourse {
         setCourseState(courseDto.getState());
     }
 
+    public TopicCourse(TopicCourseDto topicCourseDto) {
+        setCourseAggregateId(topicCourseDto.getAggregateId());
+        setCourseVersion(topicCourseDto.getVersion());
+        setCourseState(topicCourseDto.getState());
+    }
+
     public TopicCourse(TopicCourse other) {
         setCourseVersion(other.getCourseVersion());
         setCourseState(other.getCourseState());

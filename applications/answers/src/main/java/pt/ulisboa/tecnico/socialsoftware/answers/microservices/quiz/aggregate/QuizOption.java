@@ -35,6 +35,15 @@ public class QuizOption {
         setOptionContent(questionDto.getContent());
     }
 
+    public QuizOption(QuizOptionDto quizOptionDto) {
+        setOptionSequence(quizOptionDto.getSequence());
+        setOptionCorrect(quizOptionDto.getCorrect());
+        setOptionContent(quizOptionDto.getContent());
+        setQuestionAggregateId(quizOptionDto.getAggregateId());
+        setQuestionVersion(quizOptionDto.getVersion());
+        setQuestionState(quizOptionDto.getState());
+    }
+
     public QuizOption(QuizOption other) {
         setOptionCorrect(other.getOptionCorrect());
         setOptionContent(other.getOptionContent());

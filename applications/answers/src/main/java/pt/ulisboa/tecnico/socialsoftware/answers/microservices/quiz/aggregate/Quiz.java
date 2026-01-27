@@ -40,7 +40,7 @@ public abstract class Quiz extends Aggregate {
 
     }
 
-    public Quiz(Integer aggregateId, QuizExecution execution, QuizDto quizDto, Set<QuizQuestion> questions) {
+    public Quiz(Integer aggregateId, QuizDto quizDto) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setTitle(quizDto.getTitle());
@@ -49,9 +49,10 @@ public abstract class Quiz extends Aggregate {
         setAvailableDate(quizDto.getAvailableDate());
         setConclusionDate(quizDto.getConclusionDate());
         setResultsDate(quizDto.getResultsDate());
-        setExecution(execution);
-        setQuestions(questions);
+        setExecution(quizDto.getExecution() != null ? new QuizExecution(quizDto.getExecution()) : null);
+        setQuestions(quizDto.getQuestions() != null ? quizDto.getQuestions().stream().map(QuizQuestion::new).collect(Collectors.toSet()) : null);
     }
+
 
     public Quiz(Quiz other) {
         super(other);

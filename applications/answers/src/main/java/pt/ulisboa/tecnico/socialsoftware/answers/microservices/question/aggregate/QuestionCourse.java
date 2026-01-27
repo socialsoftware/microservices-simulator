@@ -33,6 +33,13 @@ public class QuestionCourse {
         setCourseName(courseDto.getName());
     }
 
+    public QuestionCourse(QuestionCourseDto questionCourseDto) {
+        setCourseName(questionCourseDto.getName());
+        setCourseAggregateId(questionCourseDto.getAggregateId());
+        setCourseVersion(questionCourseDto.getVersion());
+        setCourseState(questionCourseDto.getState());
+    }
+
     public QuestionCourse(QuestionCourse other) {
         setCourseAggregateId(other.getCourseAggregateId());
         setCourseVersion(other.getCourseVersion());

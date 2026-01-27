@@ -7,13 +7,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizExecution;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizQuestion;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuizRequestDto;
 
 public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
@@ -32,15 +25,7 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createQuizStep = new SagaSyncStep("createQuizStep", () -> {
-            ExecutionDto executionDto = createRequest.getExecution();
-            QuizExecution execution = new QuizExecution(executionDto);
-            Set<QuizQuestion> questions = null;
-            if (createRequest.getQuestions() != null) {
-                questions = createRequest.getQuestions().stream()
-                    .map(QuizQuestion::new)
-                    .collect(Collectors.toSet());
-            }
-            QuizDto createdQuizDto = quizService.createQuiz(execution, createRequest, questions, unitOfWork);
+            QuizDto createdQuizDto = quizService.createQuiz(createRequest, unitOfWork);
             setCreatedQuizDto(createdQuizDto);
         });
 

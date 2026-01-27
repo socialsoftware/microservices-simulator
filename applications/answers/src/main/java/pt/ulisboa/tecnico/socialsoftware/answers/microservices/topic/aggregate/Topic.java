@@ -23,12 +23,13 @@ public abstract class Topic extends Aggregate {
 
     }
 
-    public Topic(Integer aggregateId, TopicCourse course, TopicDto topicDto) {
+    public Topic(Integer aggregateId, TopicDto topicDto) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setName(topicDto.getName());
-        setCourse(course);
+        setCourse(topicDto.getCourse() != null ? new TopicCourse(topicDto.getCourse()) : null);
     }
+
 
     public Topic(Topic other) {
         super(other);

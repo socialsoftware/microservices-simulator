@@ -7,8 +7,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicCourse;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTopicRequestDto;
 
 public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
@@ -27,9 +25,7 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createTopicStep = new SagaSyncStep("createTopicStep", () -> {
-            CourseDto courseDto = createRequest.getCourse();
-            TopicCourse course = new TopicCourse(courseDto);
-            TopicDto createdTopicDto = topicService.createTopic(course, createRequest, unitOfWork);
+            TopicDto createdTopicDto = topicService.createTopic(createRequest, unitOfWork);
             setCreatedTopicDto(createdTopicDto);
         });
 

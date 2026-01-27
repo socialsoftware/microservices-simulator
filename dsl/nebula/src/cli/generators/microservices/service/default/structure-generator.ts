@@ -52,6 +52,27 @@ export class ServiceStructureGenerator {
             imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.${rootEntity.name}Dto;`);
         }
         
+        // Import projection DTOs for non-root entities (e.g., AnswerExecutionDto, AnswerUserDto)
+        // These are needed for converting cross-aggregate DTOs to projection DTOs in create method
+        aggregate.entities.forEach(entity => {
+            if (!entity.isRoot) {
+                imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.${entity.name}Dto;`);
+            }
+        });
+        
+        // Import enum types used in root entity properties (needed for update methods)
+        if (rootEntity && rootEntity.properties) {
+            for (const prop of rootEntity.properties) {
+                const propType = (prop as any).type;
+                if (propType && propType.$type === 'EntityType' && propType.type) {
+                    const typeName = propType.type.$refText || propType.type.ref?.name;
+                    if (typeName && typeName.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/) && typeName !== 'AggregateState') {
+                        imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'enums')}.${typeName};`);
+                    }
+                }
+            }
+        }
+        
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
 
         const hasDateTime = aggregate.entities.some(entity =>

@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos;
 
 import jakarta.validation.constraints.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
@@ -13,6 +14,10 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
 
 public class CreateTournamentRequestDto {
+    @NotNull
+    private UserDto creator;
+    @NotNull
+    private Set<UserDto> participants;
     @NotNull
     private ExecutionDto execution;
     @NotNull
@@ -30,7 +35,9 @@ public class CreateTournamentRequestDto {
 
     public CreateTournamentRequestDto() {}
 
-    public CreateTournamentRequestDto(ExecutionDto execution, Set<TopicDto> topics, QuizDto quiz, LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, Boolean cancelled) {
+    public CreateTournamentRequestDto(UserDto creator, Set<UserDto> participants, ExecutionDto execution, Set<TopicDto> topics, QuizDto quiz, LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, Boolean cancelled) {
+        this.creator = creator;
+        this.participants = participants;
         this.execution = execution;
         this.topics = topics;
         this.quiz = quiz;
@@ -40,6 +47,20 @@ public class CreateTournamentRequestDto {
         this.cancelled = cancelled;
     }
 
+    public UserDto getCreator() {
+        return creator;
+    }
+
+    public void setCreator(UserDto creator) {
+        this.creator = creator;
+    }
+    public Set<UserDto> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(Set<UserDto> participants) {
+        this.participants = participants;
+    }
     public ExecutionDto getExecution() {
         return execution;
     }

@@ -33,7 +33,7 @@ public class TopicController {
     }
 
     @GetMapping("/topics")
-    public List<TopicDto> searchTopics(@RequestParam(required = false) String name) {
-        return topicFunctionalities.searchTopics(name);
+    public List<TopicDto> getAllTopics() {
+        return topicFunctionalities.getAllTopics();
     }
 }

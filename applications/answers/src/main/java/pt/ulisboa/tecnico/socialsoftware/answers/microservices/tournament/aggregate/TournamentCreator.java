@@ -35,6 +35,14 @@ public class TournamentCreator {
         setCreatorState(executionUserDto.getState());
     }
 
+    public TournamentCreator(TournamentCreatorDto tournamentCreatorDto) {
+        setCreatorAggregateId(tournamentCreatorDto.getAggregateId());
+        setCreatorVersion(tournamentCreatorDto.getVersion());
+        setCreatorState(tournamentCreatorDto.getState());
+        setCreatorName(tournamentCreatorDto.getName());
+        setCreatorUsername(tournamentCreatorDto.getUsername());
+    }
+
     public TournamentCreator(TournamentCreator other) {
         setCreatorVersion(other.getCreatorVersion());
         setCreatorState(other.getCreatorState());

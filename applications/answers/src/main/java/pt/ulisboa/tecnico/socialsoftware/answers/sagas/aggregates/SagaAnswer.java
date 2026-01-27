@@ -26,8 +26,8 @@ public class SagaAnswer extends Answer implements SagaAggregate {
         this.sagaState = other.getSagaState();
     }
 
-    public SagaAnswer(Integer aggregateId, AnswerExecution execution, AnswerUser user, AnswerQuiz quiz, AnswerDto answerDto, List<QuestionAnswered> questions) {
-        super(aggregateId, execution, user, quiz, answerDto, questions);
+    public SagaAnswer(Integer aggregateId, AnswerDto answerDto) {
+        super(aggregateId, answerDto);
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 

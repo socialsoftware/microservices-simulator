@@ -27,8 +27,8 @@ public class SagaTournament extends Tournament implements SagaAggregate {
         this.sagaState = other.getSagaState();
     }
 
-    public SagaTournament(Integer aggregateId, TournamentCreator creator, TournamentExecution execution, TournamentQuiz quiz, TournamentDto tournamentDto, Set<TournamentParticipant> participants, Set<TournamentTopic> topics) {
-        super(aggregateId, creator, execution, quiz, tournamentDto, participants, topics);
+    public SagaTournament(Integer aggregateId, TournamentDto tournamentDto) {
+        super(aggregateId, tournamentDto);
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 

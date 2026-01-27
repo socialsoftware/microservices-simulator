@@ -9,35 +9,35 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import java.util.List;
 
-public class SearchTopicsFunctionalitySagas extends WorkflowFunctionality {
-    private List<TopicDto> searchedTopicDtos;
+public class GetAllTopicsFunctionalitySagas extends WorkflowFunctionality {
+    private List<TopicDto> topics;
     private final TopicService topicService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public SearchTopicsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TopicService topicService, String name) {
+    public GetAllTopicsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TopicService topicService) {
         this.topicService = topicService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(name, unitOfWork);
+        this.buildWorkflow(unitOfWork);
     }
 
-    public void buildWorkflow(String name, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep searchTopicsStep = new SagaSyncStep("searchTopicsStep", () -> {
-            List<TopicDto> searchedTopicDtos = topicService.searchTopics(name, unitOfWork);
-            setSearchedTopicDtos(searchedTopicDtos);
+        SagaSyncStep getAllTopicsStep = new SagaSyncStep("getAllTopicsStep", () -> {
+            List<TopicDto> topics = topicService.getAllTopics();
+            setTopics(topics);
         });
 
-        workflow.addStep(searchTopicsStep);
+        workflow.addStep(getAllTopicsStep);
 
     }
 
-    public List<TopicDto> getSearchedTopicDtos() {
-        return searchedTopicDtos;
+    public List<TopicDto> getTopics() {
+        return topics;
     }
 
-    public void setSearchedTopicDtos(List<TopicDto> searchedTopicDtos) {
-        this.searchedTopicDtos = searchedTopicDtos;
+    public void setTopics(List<TopicDto> topics) {
+        this.topics = topics;
     }
 }

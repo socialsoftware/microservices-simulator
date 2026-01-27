@@ -22,7 +22,7 @@ public class DeleteAnswerFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep deleteAnswerStep = new SagaSyncStep("deleteAnswerStep", () -> {
-            answerService.deleteAnswer(answerAggregateId, unitOfWork);
+            answerService.deleteAnswer(answerAggregateId);
         });
 
         workflow.addStep(deleteAnswerStep);

@@ -36,6 +36,15 @@ public class QuizExecution {
         setExecutionAcademicTerm(executionDto.getAcademicTerm());
     }
 
+    public QuizExecution(QuizExecutionDto quizExecutionDto) {
+        setExecutionName(quizExecutionDto.getExecutionName());
+        setExecutionAcronym(quizExecutionDto.getAcronym());
+        setExecutionAcademicTerm(quizExecutionDto.getAcademicTerm());
+        setExecutionAggregateId(quizExecutionDto.getAggregateId());
+        setExecutionVersion(quizExecutionDto.getVersion());
+        setExecutionState(quizExecutionDto.getState());
+    }
+
     public QuizExecution(QuizExecution other) {
         setExecutionAcronym(other.getExecutionAcronym());
         setExecutionAcademicTerm(other.getExecutionAcademicTerm());

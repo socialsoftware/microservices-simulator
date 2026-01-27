@@ -100,16 +100,16 @@ public class TopicFunctionalities {
         }
     }
 
-    public List<TopicDto> searchTopics(String name) {
+    public List<TopicDto> getAllTopics() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                SearchTopicsFunctionalitySagas searchTopicsFunctionalitySagas = new SearchTopicsFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, topicService, name);
-                searchTopicsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return searchTopicsFunctionalitySagas.getSearchedTopicDtos();
+                GetAllTopicsFunctionalitySagas getAllTopicsFunctionalitySagas = new GetAllTopicsFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, topicService);
+                getAllTopicsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getAllTopicsFunctionalitySagas.getTopics();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }

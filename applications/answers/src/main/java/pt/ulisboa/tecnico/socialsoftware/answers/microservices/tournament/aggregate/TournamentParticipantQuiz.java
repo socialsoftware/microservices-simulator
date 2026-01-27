@@ -38,6 +38,16 @@ public class TournamentParticipantQuiz {
         setQuizState(quizDto.getState());
     }
 
+    public TournamentParticipantQuiz(TournamentParticipantQuizDto tournamentParticipantQuizDto) {
+        setParticipantQuizAggregateId(tournamentParticipantQuizDto.getAggregateId());
+        setParticipantQuizVersion(tournamentParticipantQuizDto.getVersion());
+        setParticipantQuizAnswered(tournamentParticipantQuizDto.getParticipantQuizAnswered());
+        setParticipantQuizNumberOfAnswered(tournamentParticipantQuizDto.getParticipantQuizNumberOfAnswered());
+        setParticipantQuizNumberOfCorrect(tournamentParticipantQuizDto.getParticipantQuizNumberOfCorrect());
+        setTournamentParticipant(tournamentParticipantQuizDto.getTournamentParticipant() != null ? new TournamentParticipant(tournamentParticipantQuizDto.getTournamentParticipant()) : null);
+        setQuizState(tournamentParticipantQuizDto.getState());
+    }
+
     public TournamentParticipantQuiz(TournamentParticipantQuiz other) {
         setParticipantQuizVersion(other.getParticipantQuizVersion());
         setParticipantQuizAnswered(other.getParticipantQuizAnswered());

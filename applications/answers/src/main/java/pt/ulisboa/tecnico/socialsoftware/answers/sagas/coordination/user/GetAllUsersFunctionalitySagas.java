@@ -7,36 +7,37 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import java.util.List;
 
-public class GetUserByIdFunctionalitySagas extends WorkflowFunctionality {
-    private UserDto userDto;
+public class GetAllUsersFunctionalitySagas extends WorkflowFunctionality {
+    private List<UserDto> users;
     private final UserService userService;
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public GetUserByIdFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, UserService userService, Integer userAggregateId) {
+    public GetAllUsersFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, UserService userService) {
         this.userService = userService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(userAggregateId, unitOfWork);
+        this.buildWorkflow(unitOfWork);
     }
 
-    public void buildWorkflow(Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            UserDto userDto = userService.getUserById(userAggregateId);
-            setUserDto(userDto);
+        SagaSyncStep getAllUsersStep = new SagaSyncStep("getAllUsersStep", () -> {
+            List<UserDto> users = userService.getAllUsers();
+            setUsers(users);
         });
 
-        workflow.addStep(getUserStep);
+        workflow.addStep(getAllUsersStep);
 
     }
 
-    public UserDto getUserDto() {
-        return userDto;
+    public List<UserDto> getUsers() {
+        return users;
     }
 
-    public void setUserDto(UserDto userDto) {
-        this.userDto = userDto;
+    public void setUsers(List<UserDto> users) {
+        this.users = users;
     }
 }

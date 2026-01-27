@@ -17,7 +17,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.Co
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateCourseRequestDto;
 import java.util.List;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
 
 @Service
 public class CourseFunctionalities {
@@ -101,16 +100,16 @@ public class CourseFunctionalities {
         }
     }
 
-    public List<CourseDto> searchCourses(String name, CourseType type) {
+    public List<CourseDto> getAllCourses() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                SearchCoursesFunctionalitySagas searchCoursesFunctionalitySagas = new SearchCoursesFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, courseService, name, type);
-                searchCoursesFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return searchCoursesFunctionalitySagas.getSearchedCourseDtos();
+                GetAllCoursesFunctionalitySagas getAllCoursesFunctionalitySagas = new GetAllCoursesFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, courseService);
+                getAllCoursesFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getAllCoursesFunctionalitySagas.getCourses();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }

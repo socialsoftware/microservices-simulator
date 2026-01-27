@@ -34,6 +34,14 @@ public class QuestionTopic {
         setTopicName(topicDto.getName());
     }
 
+    public QuestionTopic(QuestionTopicDto questionTopicDto) {
+        setTopicId(questionTopicDto.getTopicId());
+        setTopicState(questionTopicDto.getState());
+        setTopicName(questionTopicDto.getName());
+        setTopicAggregateId(questionTopicDto.getAggregateId());
+        setTopicVersion(questionTopicDto.getVersion());
+    }
+
     public QuestionTopic(QuestionTopic other) {
         setTopicState(other.getTopicState());
         setTopicName(other.getTopicName());

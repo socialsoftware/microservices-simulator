@@ -41,19 +41,20 @@ public abstract class Tournament extends Aggregate {
 
     }
 
-    public Tournament(Integer aggregateId, TournamentCreator creator, TournamentExecution execution, TournamentQuiz quiz, TournamentDto tournamentDto, Set<TournamentParticipant> participants, Set<TournamentTopic> topics) {
+    public Tournament(Integer aggregateId, TournamentDto tournamentDto) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setStartTime(tournamentDto.getStartTime());
         setEndTime(tournamentDto.getEndTime());
         setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
         setCancelled(tournamentDto.getCancelled());
-        setCreator(creator);
-        setExecution(execution);
-        setQuiz(quiz);
-        setParticipants(participants);
-        setTopics(topics);
+        setCreator(tournamentDto.getCreator() != null ? new TournamentCreator(tournamentDto.getCreator()) : null);
+        setExecution(tournamentDto.getExecution() != null ? new TournamentExecution(tournamentDto.getExecution()) : null);
+        setQuiz(tournamentDto.getQuiz() != null ? new TournamentQuiz(tournamentDto.getQuiz()) : null);
+        setParticipants(tournamentDto.getParticipants() != null ? tournamentDto.getParticipants().stream().map(TournamentParticipant::new).collect(Collectors.toSet()) : null);
+        setTopics(tournamentDto.getTopics() != null ? tournamentDto.getTopics().stream().map(TournamentTopic::new).collect(Collectors.toSet()) : null);
     }
+
 
     public Tournament(Tournament other) {
         super(other);

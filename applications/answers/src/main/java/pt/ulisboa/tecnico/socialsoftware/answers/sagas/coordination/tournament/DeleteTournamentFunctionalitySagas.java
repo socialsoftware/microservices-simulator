@@ -22,7 +22,7 @@ public class DeleteTournamentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep deleteTournamentStep = new SagaSyncStep("deleteTournamentStep", () -> {
-            tournamentService.deleteTournament(tournamentAggregateId, unitOfWork);
+            tournamentService.deleteTournament(tournamentAggregateId);
         });
 
         workflow.addStep(deleteTournamentStep);

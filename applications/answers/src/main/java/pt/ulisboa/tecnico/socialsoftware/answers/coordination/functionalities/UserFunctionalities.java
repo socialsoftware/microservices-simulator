@@ -17,7 +17,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.User
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateUserRequestDto;
 import java.util.List;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.UserRole;
 
 @Service
 public class UserFunctionalities {
@@ -101,16 +100,16 @@ public class UserFunctionalities {
         }
     }
 
-    public List<UserDto> searchUsers(String name, String username, UserRole role, Boolean active) {
+    public List<UserDto> getAllUsers() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                SearchUsersFunctionalitySagas searchUsersFunctionalitySagas = new SearchUsersFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, userService, name, username, role, active);
-                searchUsersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return searchUsersFunctionalitySagas.getSearchedUserDtos();
+                GetAllUsersFunctionalitySagas getAllUsersFunctionalitySagas = new GetAllUsersFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, userService);
+                getAllUsersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getAllUsersFunctionalitySagas.getUsers();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }

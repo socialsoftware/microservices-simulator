@@ -33,6 +33,13 @@ public class AnswerUser {
         setUserName(userDto.getName());
     }
 
+    public AnswerUser(AnswerUserDto answerUserDto) {
+        setUserAggregateId(answerUserDto.getAggregateId());
+        setUserName(answerUserDto.getName());
+        setUserVersion(answerUserDto.getVersion());
+        setUserState(answerUserDto.getState());
+    }
+
     public AnswerUser(AnswerUser other) {
         setUserName(other.getUserName());
         setUserVersion(other.getUserVersion());

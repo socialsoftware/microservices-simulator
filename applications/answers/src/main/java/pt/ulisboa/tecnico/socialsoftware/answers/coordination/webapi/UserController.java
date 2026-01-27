@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.UserFunctionalities;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.UserRole;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateUserRequestDto;
 
 @RestController
@@ -34,7 +33,7 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public List<UserDto> searchUsers(@RequestParam(required = false) String name, @RequestParam(required = false) String username, @RequestParam(required = false) UserRole role, @RequestParam(required = false) Boolean active) {
-        return userFunctionalities.searchUsers(name, username, role, active);
+    public List<UserDto> getAllUsers() {
+        return userFunctionalities.getAllUsers();
     }
 }

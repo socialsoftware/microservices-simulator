@@ -21,6 +21,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerUserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionAnsweredDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
@@ -51,16 +55,41 @@ public class AnswerService {
     public AnswerService() {}
 
     // CRUD Operations
-    public AnswerDto createAnswer(AnswerExecution execution, AnswerUser user, AnswerQuiz quiz, CreateAnswerRequestDto createRequest, List<QuestionAnswered> questions, UnitOfWork unitOfWork) {
+    public AnswerDto createAnswer(CreateAnswerRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
             // Convert CreateRequestDto to regular DTO
             AnswerDto answerDto = new AnswerDto();
             answerDto.setCreationDate(createRequest.getCreationDate());
             answerDto.setAnswerDate(createRequest.getAnswerDate());
             answerDto.setCompleted(createRequest.getCompleted());
+            // Convert ExecutionDto to AnswerExecutionDto
+            if (createRequest.getExecution() != null) {
+                AnswerExecutionDto executionDto = new AnswerExecutionDto();
+                executionDto.setAggregateId(createRequest.getExecution().getAggregateId());
+                executionDto.setVersion(createRequest.getExecution().getVersion());
+                executionDto.setState(createRequest.getExecution().getState());
+                answerDto.setExecution(executionDto);
+            }
+            // Convert UserDto to AnswerUserDto
+            if (createRequest.getUser() != null) {
+                AnswerUserDto userDto = new AnswerUserDto();
+                userDto.setAggregateId(createRequest.getUser().getAggregateId());
+                userDto.setVersion(createRequest.getUser().getVersion());
+                userDto.setState(createRequest.getUser().getState());
+                answerDto.setUser(userDto);
+            }
+            // Convert QuizDto to AnswerQuizDto
+            if (createRequest.getQuiz() != null) {
+                AnswerQuizDto quizDto = new AnswerQuizDto();
+                quizDto.setAggregateId(createRequest.getQuiz().getAggregateId());
+                quizDto.setVersion(createRequest.getQuiz().getVersion());
+                quizDto.setState(createRequest.getQuiz().getState());
+                answerDto.setQuiz(quizDto);
+            }
+            answerDto.setQuestions(createRequest.getQuestions());
             
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-            Answer answer = answerFactory.createAnswer(aggregateId, execution, user, quiz, answerDto, questions);
+            Answer answer = answerFactory.createAnswer(aggregateId, answerDto);
             unitOfWorkService.registerChanged(answer, unitOfWork);
             return answerFactory.createAnswerDto(answer);
         } catch (Exception e) {
@@ -102,19 +131,7 @@ public class AnswerService {
             if (answerDto.getAnswerDate() != null) {
                 answer.setAnswerDate(answerDto.getAnswerDate());
             }
-            answer.setCompleted(answerDto.isCompleted());
-            if (answerDto.getExecution() != null) {
-                answer.setExecution(answerDto.getExecution());
-            }
-            if (answerDto.getUser() != null) {
-                answer.setUser(answerDto.getUser());
-            }
-            if (answerDto.getQuiz() != null) {
-                answer.setQuiz(answerDto.getQuiz());
-            }
-            if (answerDto.getQuestions() != null) {
-                answer.setQuestions(answerDto.getQuestions());
-            }
+            answer.setCompleted(answerDto.getCompleted());
             
             answer = answerRepository.save(answer);
             return new AnswerDto(answer);

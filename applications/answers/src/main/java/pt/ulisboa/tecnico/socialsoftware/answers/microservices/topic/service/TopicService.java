@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
@@ -43,14 +44,22 @@ public class TopicService {
     public TopicService() {}
 
     // CRUD Operations
-    public TopicDto createTopic(TopicCourse course, CreateTopicRequestDto createRequest, UnitOfWork unitOfWork) {
+    public TopicDto createTopic(CreateTopicRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
             // Convert CreateRequestDto to regular DTO
             TopicDto topicDto = new TopicDto();
             topicDto.setName(createRequest.getName());
+            // Convert CourseDto to TopicCourseDto
+            if (createRequest.getCourse() != null) {
+                TopicCourseDto courseDto = new TopicCourseDto();
+                courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
+                courseDto.setVersion(createRequest.getCourse().getVersion());
+                courseDto.setState(createRequest.getCourse().getState());
+                topicDto.setCourse(courseDto);
+            }
             
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-            Topic topic = topicFactory.createTopic(aggregateId, course, topicDto);
+            Topic topic = topicFactory.createTopic(aggregateId, topicDto);
             unitOfWorkService.registerChanged(topic, unitOfWork);
             return topicFactory.createTopicDto(topic);
         } catch (Exception e) {
@@ -88,9 +97,6 @@ public class TopicService {
             
                         if (topicDto.getName() != null) {
                 topic.setName(topicDto.getName());
-            }
-            if (topicDto.getCourse() != null) {
-                topic.setCourse(topicDto.getCourse());
             }
             
             topic = topicRepository.save(topic);

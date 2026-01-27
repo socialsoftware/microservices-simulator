@@ -20,6 +20,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizQuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizOptionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
@@ -50,7 +54,7 @@ public class QuizService {
     public QuizService() {}
 
     // CRUD Operations
-    public QuizDto createQuiz(QuizExecution execution, CreateQuizRequestDto createRequest, Set<QuizQuestion> questions, UnitOfWork unitOfWork) {
+    public QuizDto createQuiz(CreateQuizRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
             // Convert CreateRequestDto to regular DTO
             QuizDto quizDto = new QuizDto();
@@ -60,9 +64,27 @@ public class QuizService {
             quizDto.setAvailableDate(createRequest.getAvailableDate());
             quizDto.setConclusionDate(createRequest.getConclusionDate());
             quizDto.setResultsDate(createRequest.getResultsDate());
+            // Convert ExecutionDto to QuizExecutionDto
+            if (createRequest.getExecution() != null) {
+                QuizExecutionDto executionDto = new QuizExecutionDto();
+                executionDto.setAggregateId(createRequest.getExecution().getAggregateId());
+                executionDto.setVersion(createRequest.getExecution().getVersion());
+                executionDto.setState(createRequest.getExecution().getState());
+                quizDto.setExecution(executionDto);
+            }
+            // Convert QuestionDto collection to QuizQuestionDto collection
+            if (createRequest.getQuestions() != null) {
+                quizDto.setQuestions(createRequest.getQuestions().stream().map(srcDto -> {
+                    QuizQuestionDto projDto = new QuizQuestionDto();
+                    projDto.setAggregateId(srcDto.getAggregateId());
+                    projDto.setVersion(srcDto.getVersion());
+                    projDto.setState(srcDto.getState());
+                    return projDto;
+                }).collect(Collectors.toSet()));
+            }
             
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-            Quiz quiz = quizFactory.createQuiz(aggregateId, execution, quizDto, questions);
+            Quiz quiz = quizFactory.createQuiz(aggregateId, quizDto);
             unitOfWorkService.registerChanged(quiz, unitOfWork);
             return quizFactory.createQuizDto(quiz);
         } catch (Exception e) {
@@ -102,7 +124,7 @@ public class QuizService {
                 quiz.setTitle(quizDto.getTitle());
             }
             if (quizDto.getQuizType() != null) {
-                quiz.setQuizType(quizDto.getQuizType());
+                quiz.setQuizType(QuizType.valueOf(quizDto.getQuizType()));
             }
             if (quizDto.getCreationDate() != null) {
                 quiz.setCreationDate(quizDto.getCreationDate());
@@ -115,12 +137,6 @@ public class QuizService {
             }
             if (quizDto.getResultsDate() != null) {
                 quiz.setResultsDate(quizDto.getResultsDate());
-            }
-            if (quizDto.getExecution() != null) {
-                quiz.setExecution(quizDto.getExecution());
-            }
-            if (quizDto.getQuestions() != null) {
-                quiz.setQuestions(quizDto.getQuestions());
             }
             
             quiz = quizRepository.save(quiz);

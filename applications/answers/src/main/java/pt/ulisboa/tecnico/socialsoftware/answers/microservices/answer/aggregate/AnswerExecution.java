@@ -31,6 +31,12 @@ public class AnswerExecution {
         setExecutionState(executionDto.getState());
     }
 
+    public AnswerExecution(AnswerExecutionDto answerExecutionDto) {
+        setExecutionAggregateId(answerExecutionDto.getAggregateId());
+        setExecutionVersion(answerExecutionDto.getVersion());
+        setExecutionState(answerExecutionDto.getState());
+    }
+
     public AnswerExecution(AnswerExecution other) {
         setExecutionVersion(other.getExecutionVersion());
         setExecutionState(other.getExecutionState());

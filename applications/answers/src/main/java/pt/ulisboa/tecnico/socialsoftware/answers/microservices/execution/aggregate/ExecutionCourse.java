@@ -39,6 +39,14 @@ public class ExecutionCourse {
         setCourseType(CourseType.valueOf(courseDto.getType()));
     }
 
+    public ExecutionCourse(ExecutionCourseDto executionCourseDto) {
+        setCourseName(executionCourseDto.getName());
+        setCourseType(executionCourseDto.getType() != null ? CourseType.valueOf(executionCourseDto.getType()) : null);
+        setCourseAggregateId(executionCourseDto.getAggregateId());
+        setCourseVersion(executionCourseDto.getVersion());
+        setCourseState(executionCourseDto.getState());
+    }
+
     public ExecutionCourse(ExecutionCourse other) {
         setCourseType(other.getCourseType());
         setCourseAggregateId(other.getCourseAggregateId());

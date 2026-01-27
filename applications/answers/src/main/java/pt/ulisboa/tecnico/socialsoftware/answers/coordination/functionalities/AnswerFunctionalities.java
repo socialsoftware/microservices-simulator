@@ -100,16 +100,16 @@ public class AnswerFunctionalities {
         }
     }
 
-    public List<AnswerDto> searchAnswers(Boolean completed, Integer userAggregateId, Integer quizAggregateId) {
+    public List<AnswerDto> getAllAnswers() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                SearchAnswersFunctionalitySagas searchAnswersFunctionalitySagas = new SearchAnswersFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, answerService, completed, userAggregateId, quizAggregateId);
-                searchAnswersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return searchAnswersFunctionalitySagas.getSearchedAnswerDtos();
+                GetAllAnswersFunctionalitySagas getAllAnswersFunctionalitySagas = new GetAllAnswersFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService);
+                getAllAnswersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getAllAnswersFunctionalitySagas.getAnswers();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }

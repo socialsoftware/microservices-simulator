@@ -34,6 +34,7 @@ public abstract class User extends Aggregate {
         setActive(userDto.getActive());
     }
 
+
     public User(User other) {
         super(other);
         setName(other.getName());

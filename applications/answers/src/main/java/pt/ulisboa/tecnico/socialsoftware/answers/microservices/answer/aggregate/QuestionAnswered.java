@@ -38,6 +38,7 @@ public class QuestionAnswered {
         setState(questionAnsweredDto.getState());
     }
 
+
     public QuestionAnswered(QuestionAnswered other) {
         setKey(other.getKey());
         setTimeTaken(other.getTimeTaken());

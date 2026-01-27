@@ -22,8 +22,8 @@ public class SagaTopic extends Topic implements SagaAggregate {
         this.sagaState = other.getSagaState();
     }
 
-    public SagaTopic(Integer aggregateId, TopicCourse course, TopicDto topicDto) {
-        super(aggregateId, course, topicDto);
+    public SagaTopic(Integer aggregateId, TopicDto topicDto) {
+        super(aggregateId, topicDto);
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 

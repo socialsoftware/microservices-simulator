@@ -33,7 +33,7 @@ public class AnswerController {
     }
 
     @GetMapping("/answers")
-    public List<AnswerDto> searchAnswers(@RequestParam(required = false) Boolean completed, @RequestParam(required = false) Integer userAggregateId, @RequestParam(required = false) Integer quizAggregateId) {
-        return answerFunctionalities.searchAnswers(completed, userAggregateId, quizAggregateId);
+    public List<AnswerDto> getAllAnswers() {
+        return answerFunctionalities.getAllAnswers();
     }
 }

@@ -24,8 +24,8 @@ public class SagaExecution extends Execution implements SagaAggregate {
         this.sagaState = other.getSagaState();
     }
 
-    public SagaExecution(Integer aggregateId, ExecutionCourse course, ExecutionDto executionDto, Set<ExecutionUser> users) {
-        super(aggregateId, course, executionDto, users);
+    public SagaExecution(Integer aggregateId, ExecutionDto executionDto) {
+        super(aggregateId, executionDto);
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 

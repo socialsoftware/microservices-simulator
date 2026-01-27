@@ -34,6 +34,14 @@ public class TournamentExecution {
         setExecutionAcronym(executionDto.getAcronym());
     }
 
+    public TournamentExecution(TournamentExecutionDto tournamentExecutionDto) {
+        setExecutionState(tournamentExecutionDto.getState());
+        setExecutionVersion(tournamentExecutionDto.getVersion());
+        setExecutionCourseAggregateId(tournamentExecutionDto.getCourseAggregateId());
+        setExecutionAcronym(tournamentExecutionDto.getAcronym());
+        setExecutionAggregateId(tournamentExecutionDto.getAggregateId());
+    }
+
     public TournamentExecution(TournamentExecution other) {
         setExecutionVersion(other.getExecutionVersion());
         setExecutionCourseAggregateId(other.getExecutionCourseAggregateId());

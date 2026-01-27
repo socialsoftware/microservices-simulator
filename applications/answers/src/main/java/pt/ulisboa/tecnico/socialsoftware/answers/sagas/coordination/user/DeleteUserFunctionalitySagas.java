@@ -22,7 +22,7 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep deleteUserStep = new SagaSyncStep("deleteUserStep", () -> {
-            userService.deleteUser(userAggregateId, unitOfWork);
+            userService.deleteUser(userAggregateId);
         });
 
         workflow.addStep(deleteUserStep);

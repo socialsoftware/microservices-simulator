@@ -30,6 +30,7 @@ public class Option {
         setContent(optionDto.getContent());
     }
 
+
     public Option(Option other) {
         setSequence(other.getSequence());
         setCorrect(other.getCorrect());

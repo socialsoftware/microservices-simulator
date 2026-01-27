@@ -37,6 +37,15 @@ public class ExecutionUser {
         setUserActive(userDto.getActive());
     }
 
+    public ExecutionUser(ExecutionUserDto executionUserDto) {
+        setUserName(executionUserDto.getName());
+        setUserUsername(executionUserDto.getUsername());
+        setUserActive(executionUserDto.getActive());
+        setUserAggregateId(executionUserDto.getAggregateId());
+        setUserVersion(executionUserDto.getVersion());
+        setUserState(executionUserDto.getState());
+    }
+
     public ExecutionUser(ExecutionUser other) {
         setUserUsername(other.getUserUsername());
         setUserActive(other.getUserActive());

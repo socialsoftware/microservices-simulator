@@ -34,6 +34,14 @@ public class TournamentTopic {
         setTopicName(topicDto.getName());
     }
 
+    public TournamentTopic(TournamentTopicDto tournamentTopicDto) {
+        setTopicAggregateId(tournamentTopicDto.getAggregateId());
+        setTopicVersion(tournamentTopicDto.getVersion());
+        setTopicState(tournamentTopicDto.getState());
+        setTopicName(tournamentTopicDto.getName());
+        setTopicCourseAggregateId(tournamentTopicDto.getCourseAggregateId());
+    }
+
     public TournamentTopic(TournamentTopic other) {
         setTopicVersion(other.getTopicVersion());
         setTopicState(other.getTopicState());

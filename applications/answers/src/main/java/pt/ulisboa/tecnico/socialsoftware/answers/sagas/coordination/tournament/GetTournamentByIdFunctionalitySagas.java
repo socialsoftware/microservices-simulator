@@ -24,7 +24,7 @@ public class GetTournamentByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getTournamentStep = new SagaSyncStep("getTournamentStep", () -> {
-            TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, unitOfWork);
+            TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId);
             setTournamentDto(tournamentDto);
         });
 

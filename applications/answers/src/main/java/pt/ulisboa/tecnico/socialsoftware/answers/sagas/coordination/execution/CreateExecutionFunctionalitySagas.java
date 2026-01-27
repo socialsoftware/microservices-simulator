@@ -7,13 +7,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourse;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateExecutionRequestDto;
 
 public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
@@ -32,15 +25,7 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep createExecutionStep = new SagaSyncStep("createExecutionStep", () -> {
-            CourseDto courseDto = createRequest.getCourse();
-            ExecutionCourse course = new ExecutionCourse(courseDto);
-            Set<ExecutionUser> users = null;
-            if (createRequest.getUsers() != null) {
-                users = createRequest.getUsers().stream()
-                    .map(ExecutionUser::new)
-                    .collect(Collectors.toSet());
-            }
-            ExecutionDto createdExecutionDto = executionService.createExecution(course, createRequest, users, unitOfWork);
+            ExecutionDto createdExecutionDto = executionService.createExecution(createRequest, unitOfWork);
             setCreatedExecutionDto(createdExecutionDto);
         });
 

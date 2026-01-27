@@ -19,7 +19,6 @@ export class SagaCrudGenerator extends OrchestrationBase {
         const dtoType = `${capitalizedAggregate}Dto`;
         const createRequestDtoType = `Create${capitalizedAggregate}RequestDto`;
         const rootEntity: Entity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name } as any;
-        const entityName = rootEntity.name;
 
         // Find cross-aggregate references for the create operation
         const crossAggregateRefs = this.findCrossAggregateReferences(rootEntity, aggregate, allAggregates);
@@ -47,7 +46,7 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 resultSetter: `set${capitalizedAggregate}Dto`,
                 resultGetter: `get${capitalizedAggregate}Dto`,
                 serviceCall: `${lowerAggregate}Service.get${capitalizedAggregate}ById`,
-                serviceArgs: [`${lowerAggregate}AggregateId`, 'unitOfWork']
+                serviceArgs: [`${lowerAggregate}AggregateId`]
             },
             {
                 name: `update${capitalizedAggregate}`,
@@ -60,52 +59,33 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 resultSetter: `setUpdated${capitalizedAggregate}Dto`,
                 resultGetter: `getUpdated${capitalizedAggregate}Dto`,
                 serviceCall: `${lowerAggregate}Service.update${capitalizedAggregate}`,
-                serviceArgs: [`${lowerAggregate}Dto`, 'unitOfWork']
+                serviceArgs: [`${lowerAggregate}Dto`]
             },
             {
                 name: `delete${capitalizedAggregate}`,
                 stepName: `delete${capitalizedAggregate}Step`,
                 params: [{ type: 'Integer', name: `${lowerAggregate}AggregateId` }],
-                resultType: dtoType,
-                resultField: `deleted${capitalizedAggregate}Dto`,
-                resultSetter: `setDeleted${capitalizedAggregate}Dto`,
-                resultGetter: `getDeleted${capitalizedAggregate}Dto`,
+                resultType: null,
+                resultField: null,
+                resultSetter: null,
+                resultGetter: null,
                 serviceCall: `${lowerAggregate}Service.delete${capitalizedAggregate}`,
-                serviceArgs: [`${lowerAggregate}AggregateId`, 'unitOfWork']
+                serviceArgs: [`${lowerAggregate}AggregateId`]
             }
         ];
 
-        const searchableProperties = this.getSearchableProperties(rootEntity);
-        if (searchableProperties.length > 0) {
-            const searchParams = searchableProperties.map(prop => ({
-                type: prop.type,
-                name: prop.name
-            }));
-
-            crudOperations.push({
-                name: `search${capitalizedAggregate}s`,
-                stepName: `search${capitalizedAggregate}sStep`,
-                params: searchParams,
-                resultType: `List<${dtoType}>`,
-                resultField: `searched${entityName}Dtos`,
-                resultSetter: `setSearched${entityName}Dtos`,
-                resultGetter: `getSearched${entityName}Dtos`,
-                serviceCall: `${lowerAggregate}Service.search${capitalizedAggregate}s`,
-                serviceArgs: [...searchableProperties.map((p: any) => p.name), 'unitOfWork']
-            });
-        } else {
-            crudOperations.push({
-                name: `getAll${capitalizedAggregate}s`,
-                stepName: `getAll${capitalizedAggregate}sStep`,
-                params: [],
-                resultType: `List<${dtoType}>`,
-                resultField: `${lowerAggregate}s`,
-                resultSetter: `set${capitalizedAggregate}s`,
-                resultGetter: `get${capitalizedAggregate}s`,
-                serviceCall: `${lowerAggregate}Service.getAll${capitalizedAggregate}s`,
-                serviceArgs: ['unitOfWork']
-            });
-        }
+        // Always use getAll (service doesn't generate search methods by default)
+        crudOperations.push({
+            name: `getAll${capitalizedAggregate}s`,
+            stepName: `getAll${capitalizedAggregate}sStep`,
+            params: [],
+            resultType: `List<${dtoType}>`,
+            resultField: `${lowerAggregate}s`,
+            resultSetter: `set${capitalizedAggregate}s`,
+            resultGetter: `get${capitalizedAggregate}s`,
+            serviceCall: `${lowerAggregate}Service.getAll${capitalizedAggregate}s`,
+            serviceArgs: []
+        });
 
         for (const op of crudOperations) {
             const className = `${this.capitalize(op.name)}FunctionalitySagas`;
@@ -208,7 +188,7 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 buildWorkflowCallArgs.push('unitOfWork');
 
                 // For all delete operations, call delete directly without get step
-                // Similar to update operations, we don't need to fetch the entity first
+                // Service delete method doesn't take unitOfWork
                 workflowBody = `
         SagaSyncStep delete${capitalizedAggregate}Step = new SagaSyncStep(\"delete${capitalizedAggregate}Step\", () -> {
             ${op.serviceCall}(${op.serviceArgs.join(', ')});
@@ -216,8 +196,6 @@ export class SagaCrudGenerator extends OrchestrationBase {
 
         workflow.addStep(delete${capitalizedAggregate}Step);
 `;
-                // For simple delete operations, we don't need the deletedUserDto field
-                // The field won't be added because of the condition in the field declaration section
             } else if (isUpdateOperation) {
                 const dtoParamName = op.params[0]?.name || `${lowerAggregate}Dto`;
 
@@ -227,9 +205,10 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 buildWorkflowParams.push('SagaUnitOfWork unitOfWork');
                 buildWorkflowCallArgs.push('unitOfWork');
 
+                // Service update method doesn't take unitOfWork
                 workflowBody = `
         SagaSyncStep update${capitalizedAggregate}Step = new SagaSyncStep(\"update${capitalizedAggregate}Step\", () -> {
-            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${dtoParamName}, unitOfWork);
+            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${dtoParamName});
             ${op.resultSetter}(${op.resultField});
         });
 
@@ -237,74 +216,12 @@ export class SagaCrudGenerator extends OrchestrationBase {
 `;
             } else {
                 let stepBody = '';
-                let entityCreationCode = '';
                 let updatedServiceArgs = op.serviceArgs;
 
                 if (isCreateOperation) {
-                    // NEW APPROACH: DTOs are passed directly in CreateRequestDto
-                    // No need to fetch from other services - create projection entities directly from the passed DTOs
-                    const crossRefs = op.crossAggregateRefs as CrossAggregateReference[] || [];
-                    const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
-                    const singleEntityRels = entityRelationships.filter(rel => !rel.isCollection);
-                    const collectionEntityRels = entityRelationships.filter(rel => rel.isCollection);
+                    // SIMPLIFIED APPROACH: Service handles all DTO conversions internally
+                    // The saga just passes CreateRequestDto + UnitOfWork to the service
                     const requestParamName = 'createRequest';
-
-                    // Process single entity relationships
-                    for (const rel of singleEntityRels) {
-                        const capitalizedRelName = rel.paramName.charAt(0).toUpperCase() + rel.paramName.slice(1);
-                        const entityPackage = `${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate`;
-                        imports.push(`import ${entityPackage}.${rel.entityType};`);
-
-                        // Check if this is a cross-aggregate reference
-                        const crossRef = crossRefs.find(cr => cr.paramName === rel.paramName);
-                        
-                        if (crossRef) {
-                            // Cross-aggregate: DTO is passed directly in CreateRequestDto
-                            // Create projection entity directly from the passed DTO
-                            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${crossRef.relatedDtoType};`);
-                            
-                            entityCreationCode += `            ${crossRef.relatedDtoType} ${rel.paramName}Dto = ${requestParamName}.get${capitalizedRelName}();\n`;
-                            entityCreationCode += `            ${rel.entityType} ${rel.paramName} = new ${rel.entityType}(${rel.paramName}Dto);\n`;
-                        } else {
-                            // Same-aggregate: create from nested DTO in request
-                            const dtoGetter = `get${capitalizedRelName}()`;
-                            entityCreationCode += `            ${rel.entityType} ${rel.paramName} = new ${rel.entityType}(${requestParamName}.${dtoGetter});\n`;
-                        }
-                    }
-
-                    // Process collection entity relationships
-                    for (const rel of collectionEntityRels) {
-                        const capitalizedRelName = rel.paramName.charAt(0).toUpperCase() + rel.paramName.slice(1);
-                        const elementType = TypeResolver.getElementType(rel.javaType) || rel.javaType.replace(/^(Set|List)<(.+)>$/, '$2');
-                        const entityPackage = `${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate`;
-                        imports.push(`import ${entityPackage}.${elementType};`);
-
-                        // Check if this is a cross-aggregate reference
-                        const crossRef = crossRefs.find(cr => cr.paramName === rel.paramName);
-                        const collectionType = rel.javaType.startsWith('Set') ? 'Set' : 'List';
-                        const collectionImpl = rel.javaType.startsWith('Set') ? 'HashSet' : 'ArrayList';
-
-                        imports.push(`import java.util.${collectionType};`);
-                        imports.push(`import java.util.${collectionImpl};`);
-                        imports.push('import java.util.stream.Collectors;');
-
-                        if (crossRef) {
-                            // Cross-aggregate collection: DTOs are passed directly
-                            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${crossRef.relatedDtoType};`);
-                            
-                            entityCreationCode += `            ${rel.javaType} ${rel.paramName} = null;
-            if (${requestParamName}.get${capitalizedRelName}() != null) {
-                ${rel.paramName} = ${requestParamName}.get${capitalizedRelName}().stream()
-                    .map(${elementType}::new)
-                    .collect(Collectors.to${collectionType.charAt(0).toUpperCase() + collectionType.slice(1)}());
-            }
-`;
-                        } else {
-                            // Same-aggregate collection: create from nested DTOs
-                            const dtoGetter = `get${capitalizedRelName}()`;
-                            entityCreationCode += `            ${rel.javaType} ${rel.paramName} = ${requestParamName}.${dtoGetter} != null ? ${requestParamName}.${dtoGetter}.stream().map(${elementType}::new).collect(Collectors.to${collectionType.charAt(0).toUpperCase() + collectionType.slice(1)}()) : null;\n`;
-                        }
-                    }
 
                     // Add CreateRequestDto import
                     const createRequestDtoType = `Create${capitalizedAggregate}RequestDto`;
@@ -314,17 +231,8 @@ export class SagaCrudGenerator extends OrchestrationBase {
                     buildWorkflowParams.push(`${createRequestDtoType} ${requestParamName}`);
                     buildWorkflowCallArgs.push(requestParamName);
 
-                    // Build service args: projection entities + request DTO + unitOfWork
-                    const newServiceArgs: string[] = [];
-                    for (const rel of singleEntityRels) {
-                        newServiceArgs.push(rel.paramName);
-                    }
-                    newServiceArgs.push(requestParamName);
-                    for (const rel of collectionEntityRels) {
-                        newServiceArgs.push(rel.paramName);
-                    }
-                    newServiceArgs.push('unitOfWork');
-                    updatedServiceArgs = newServiceArgs;
+                    // Service just takes (createRequest, unitOfWork) - all conversion happens in service
+                    updatedServiceArgs = [requestParamName, 'unitOfWork'];
                 } else {
                     constructorParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
                     buildWorkflowParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
@@ -335,14 +243,12 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 buildWorkflowCallArgs.push('unitOfWork');
 
                 if (op.resultType) {
-                    stepBody = `${entityCreationCode}            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${updatedServiceArgs.join(', ')});
+                    stepBody = `            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${updatedServiceArgs.join(', ')});
             ${op.resultSetter}(${op.resultField});`;
                 } else {
-                    stepBody = `${entityCreationCode}            ${op.serviceCall}(${updatedServiceArgs.join(', ')});`;
+                    stepBody = `            ${op.serviceCall}(${updatedServiceArgs.join(', ')});`;
                 }
 
-                // With the new approach, we have a single create step that uses the passed DTOs directly
-                // No separate fetch steps are needed since DTOs come directly from the CreateRequestDto
                 workflowBody = `
         SagaSyncStep ${op.stepName} = new SagaSyncStep("${op.stepName}", () -> {
 ${stepBody}
@@ -408,63 +314,6 @@ ${gettersSettersCode}
         }
 
         return outputs;
-    }
-
-    private getSearchableProperties(entity: any): { name: string; type: string }[] {
-        if (!entity.properties) return [];
-
-        const searchableTypes = ['String', 'Boolean'];
-        const properties: { name: string; type: string }[] = [];
-
-        for (const prop of entity.properties) {
-            const propType = (prop as any).type;
-            const typeName = propType?.typeName || propType?.type?.$refText || propType?.$refText || '';
-
-            let isEnum = false;
-            if (propType && typeof propType === 'object' && propType.$type === 'EntityType' && propType.type) {
-                const ref = propType.type.ref;
-                if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
-                    isEnum = true;
-                } else if (propType.type.$refText) {
-                    const javaType = this.resolveJavaType(prop.type);
-                    if (!this.isPrimitiveType(javaType) && !this.isEntityType(javaType) &&
-                        !javaType.startsWith('List<') && !javaType.startsWith('Set<')) {
-                        isEnum = true;
-                    }
-                }
-            }
-
-            if (searchableTypes.includes(typeName) || isEnum) {
-                const javaType = this.resolveJavaType(prop.type);
-                properties.push({
-                    name: prop.name,
-                    type: javaType
-                });
-            }
-        }
-
-        for (const prop of entity.properties) {
-            const typeNode: any = (prop as any).type;
-            if (!typeNode || typeNode.$type !== 'EntityType' || !typeNode.type) continue;
-
-            const refEntity = typeNode.type.ref as any;
-            if (!refEntity || !refEntity.properties) continue;
-
-            for (const relProp of refEntity.properties as any[]) {
-                if (!relProp.name || !relProp.name.endsWith('AggregateId')) continue;
-
-                const relType = relProp.type;
-                const relTypeName = relType?.typeName || relType?.type?.$refText || relType?.$refText || '';
-                if (relTypeName !== 'Integer' && relTypeName !== 'Long') continue;
-
-                properties.push({
-                    name: relProp.name,
-                    type: relTypeName
-                });
-            }
-        }
-
-        return properties;
     }
 
     /**

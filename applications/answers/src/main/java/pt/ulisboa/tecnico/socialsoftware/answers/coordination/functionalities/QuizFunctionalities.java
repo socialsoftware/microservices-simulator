@@ -17,7 +17,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.service.Quiz
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuizRequestDto;
 import java.util.List;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 
 @Service
 public class QuizFunctionalities {
@@ -101,16 +100,16 @@ public class QuizFunctionalities {
         }
     }
 
-    public List<QuizDto> searchQuizs(String title, QuizType quizType) {
+    public List<QuizDto> getAllQuizs() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                SearchQuizsFunctionalitySagas searchQuizsFunctionalitySagas = new SearchQuizsFunctionalitySagas(
-                        sagaUnitOfWork, sagaUnitOfWorkService, quizService, title, quizType);
-                searchQuizsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return searchQuizsFunctionalitySagas.getSearchedQuizDtos();
+                GetAllQuizsFunctionalitySagas getAllQuizsFunctionalitySagas = new GetAllQuizsFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, quizService);
+                getAllQuizsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getAllQuizsFunctionalitySagas.getQuizs();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
