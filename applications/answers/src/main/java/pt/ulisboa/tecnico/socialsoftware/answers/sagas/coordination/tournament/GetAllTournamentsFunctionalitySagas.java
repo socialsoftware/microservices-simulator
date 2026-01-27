@@ -25,7 +25,7 @@ public class GetAllTournamentsFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getAllTournamentsStep = new SagaSyncStep("getAllTournamentsStep", () -> {
-            List<TournamentDto> tournaments = tournamentService.getAllTournaments();
+            List<TournamentDto> tournaments = tournamentService.getAllTournaments(unitOfWork);
             setTournaments(tournaments);
         });
 

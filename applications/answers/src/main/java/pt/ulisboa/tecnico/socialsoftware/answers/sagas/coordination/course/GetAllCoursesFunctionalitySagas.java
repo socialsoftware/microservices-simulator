@@ -25,7 +25,7 @@ public class GetAllCoursesFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getAllCoursesStep = new SagaSyncStep("getAllCoursesStep", () -> {
-            List<CourseDto> courses = courseService.getAllCourses();
+            List<CourseDto> courses = courseService.getAllCourses(unitOfWork);
             setCourses(courses);
         });
 

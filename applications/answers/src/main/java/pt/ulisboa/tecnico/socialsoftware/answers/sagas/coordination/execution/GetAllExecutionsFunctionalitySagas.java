@@ -25,7 +25,7 @@ public class GetAllExecutionsFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getAllExecutionsStep = new SagaSyncStep("getAllExecutionsStep", () -> {
-            List<ExecutionDto> executions = executionService.getAllExecutions();
+            List<ExecutionDto> executions = executionService.getAllExecutions(unitOfWork);
             setExecutions(executions);
         });
 

@@ -24,7 +24,7 @@ public class UpdateExecutionFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep updateExecutionStep = new SagaSyncStep("updateExecutionStep", () -> {
-            ExecutionDto updatedExecutionDto = executionService.updateExecution(executionDto);
+            ExecutionDto updatedExecutionDto = executionService.updateExecution(executionDto, unitOfWork);
             setUpdatedExecutionDto(updatedExecutionDto);
         });
 

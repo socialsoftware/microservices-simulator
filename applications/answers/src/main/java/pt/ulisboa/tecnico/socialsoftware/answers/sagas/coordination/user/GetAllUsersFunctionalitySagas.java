@@ -25,7 +25,7 @@ public class GetAllUsersFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getAllUsersStep = new SagaSyncStep("getAllUsersStep", () -> {
-            List<UserDto> users = userService.getAllUsers();
+            List<UserDto> users = userService.getAllUsers(unitOfWork);
             setUsers(users);
         });
 

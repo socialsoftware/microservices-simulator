@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
@@ -114,11 +115,10 @@ public class TournamentService {
         }
     }
 
-    public TournamentDto getTournamentById(Integer id) {
+    public TournamentDto getTournamentById(Integer id, UnitOfWork unitOfWork) {
         try {
-            Tournament tournament = (Tournament) tournamentRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
-            return new TournamentDto(tournament);
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            return tournamentFactory.createTournamentDto(tournament);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -126,21 +126,26 @@ public class TournamentService {
         }
     }
 
-    public List<TournamentDto> getAllTournaments() {
+    public List<TournamentDto> getAllTournaments(UnitOfWork unitOfWork) {
         try {
-            return tournamentRepository.findAll().stream()
-                .map(entity -> new TournamentDto((Tournament) entity))
+            // First collect aggregateIds, then load each aggregate through UnitOfWork
+            Set<Integer> aggregateIds = tournamentRepository.findAll().stream()
+                .map(Tournament::getAggregateId)
+                .collect(Collectors.toSet());
+
+            return aggregateIds.stream()
+                .map(id -> (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(tournamentFactory::createTournamentDto)
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new AnswersException("Error retrieving all tournaments: " + e.getMessage());
         }
     }
 
-    public TournamentDto updateTournament(TournamentDto tournamentDto) {
+    public TournamentDto updateTournament(TournamentDto tournamentDto, UnitOfWork unitOfWork) {
         try {
             Integer id = tournamentDto.getAggregateId();
-            Tournament tournament = (Tournament) tournamentRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Tournament not found with id: " + id));
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             if (tournamentDto.getStartTime() != null) {
                 tournament.setStartTime(tournamentDto.getStartTime());
             }
@@ -152,8 +157,8 @@ public class TournamentService {
             }
             tournament.setCancelled(tournamentDto.getCancelled());
 
-            tournament = tournamentRepository.save(tournament);
-            return new TournamentDto(tournament);
+            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            return tournamentFactory.createTournamentDto(tournament);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -161,12 +166,11 @@ public class TournamentService {
         }
     }
 
-    public void deleteTournament(Integer id) {
+    public void deleteTournament(Integer id, UnitOfWork unitOfWork) {
         try {
-            if (!tournamentRepository.existsById(id)) {
-                throw new AnswersException("Tournament not found with id: " + id);
-            }
-            tournamentRepository.deleteById(id);
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            tournament.remove();
+            unitOfWorkService.registerChanged(tournament, unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

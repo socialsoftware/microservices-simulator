@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
@@ -88,11 +89,10 @@ public class QuizService {
         }
     }
 
-    public QuizDto getQuizById(Integer id) {
+    public QuizDto getQuizById(Integer id, UnitOfWork unitOfWork) {
         try {
-            Quiz quiz = (Quiz) quizRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Quiz not found with id: " + id));
-            return new QuizDto(quiz);
+            Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            return quizFactory.createQuizDto(quiz);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -100,21 +100,26 @@ public class QuizService {
         }
     }
 
-    public List<QuizDto> getAllQuizs() {
+    public List<QuizDto> getAllQuizs(UnitOfWork unitOfWork) {
         try {
-            return quizRepository.findAll().stream()
-                .map(entity -> new QuizDto((Quiz) entity))
+            // First collect aggregateIds, then load each aggregate through UnitOfWork
+            Set<Integer> aggregateIds = quizRepository.findAll().stream()
+                .map(Quiz::getAggregateId)
+                .collect(Collectors.toSet());
+
+            return aggregateIds.stream()
+                .map(id -> (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(quizFactory::createQuizDto)
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new AnswersException("Error retrieving all quizs: " + e.getMessage());
         }
     }
 
-    public QuizDto updateQuiz(QuizDto quizDto) {
+    public QuizDto updateQuiz(QuizDto quizDto, UnitOfWork unitOfWork) {
         try {
             Integer id = quizDto.getAggregateId();
-            Quiz quiz = (Quiz) quizRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Quiz not found with id: " + id));
+            Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             if (quizDto.getTitle() != null) {
                 quiz.setTitle(quizDto.getTitle());
             }
@@ -134,8 +139,8 @@ public class QuizService {
                 quiz.setResultsDate(quizDto.getResultsDate());
             }
 
-            quiz = quizRepository.save(quiz);
-            return new QuizDto(quiz);
+            unitOfWorkService.registerChanged(quiz, unitOfWork);
+            return quizFactory.createQuizDto(quiz);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -143,12 +148,11 @@ public class QuizService {
         }
     }
 
-    public void deleteQuiz(Integer id) {
+    public void deleteQuiz(Integer id, UnitOfWork unitOfWork) {
         try {
-            if (!quizRepository.existsById(id)) {
-                throw new AnswersException("Quiz not found with id: " + id);
-            }
-            quizRepository.deleteById(id);
+            Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            quiz.remove();
+            unitOfWorkService.registerChanged(quiz, unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

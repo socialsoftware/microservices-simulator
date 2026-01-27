@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
@@ -60,11 +61,10 @@ public class CourseService {
         }
     }
 
-    public CourseDto getCourseById(Integer id) {
+    public CourseDto getCourseById(Integer id, UnitOfWork unitOfWork) {
         try {
-            Course course = (Course) courseRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
-            return new CourseDto(course);
+            Course course = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            return courseFactory.createCourseDto(course);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -72,21 +72,26 @@ public class CourseService {
         }
     }
 
-    public List<CourseDto> getAllCourses() {
+    public List<CourseDto> getAllCourses(UnitOfWork unitOfWork) {
         try {
-            return courseRepository.findAll().stream()
-                .map(entity -> new CourseDto((Course) entity))
+            // First collect aggregateIds, then load each aggregate through UnitOfWork
+            Set<Integer> aggregateIds = courseRepository.findAll().stream()
+                .map(Course::getAggregateId)
+                .collect(Collectors.toSet());
+
+            return aggregateIds.stream()
+                .map(id -> (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(courseFactory::createCourseDto)
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new AnswersException("Error retrieving all courses: " + e.getMessage());
         }
     }
 
-    public CourseDto updateCourse(CourseDto courseDto) {
+    public CourseDto updateCourse(CourseDto courseDto, UnitOfWork unitOfWork) {
         try {
             Integer id = courseDto.getAggregateId();
-            Course course = (Course) courseRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Course not found with id: " + id));
+            Course course = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             if (courseDto.getName() != null) {
                 course.setName(courseDto.getName());
             }
@@ -94,8 +99,8 @@ public class CourseService {
                 course.setCreationDate(courseDto.getCreationDate());
             }
 
-            course = courseRepository.save(course);
-            return new CourseDto(course);
+            unitOfWorkService.registerChanged(course, unitOfWork);
+            return courseFactory.createCourseDto(course);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -103,12 +108,11 @@ public class CourseService {
         }
     }
 
-    public void deleteCourse(Integer id) {
+    public void deleteCourse(Integer id, UnitOfWork unitOfWork) {
         try {
-            if (!courseRepository.existsById(id)) {
-                throw new AnswersException("Course not found with id: " + id);
-            }
-            courseRepository.deleteById(id);
+            Course course = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            course.remove();
+            unitOfWorkService.registerChanged(course, unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

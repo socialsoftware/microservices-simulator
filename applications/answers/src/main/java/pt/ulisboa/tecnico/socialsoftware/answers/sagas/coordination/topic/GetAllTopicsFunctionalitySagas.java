@@ -25,7 +25,7 @@ public class GetAllTopicsFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getAllTopicsStep = new SagaSyncStep("getAllTopicsStep", () -> {
-            List<TopicDto> topics = topicService.getAllTopics();
+            List<TopicDto> topics = topicService.getAllTopics(unitOfWork);
             setTopics(topics);
         });
 

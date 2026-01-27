@@ -24,7 +24,7 @@ public class GetQuestionByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getQuestionStep = new SagaSyncStep("getQuestionStep", () -> {
-            QuestionDto questionDto = questionService.getQuestionById(questionAggregateId);
+            QuestionDto questionDto = questionService.getQuestionById(questionAggregateId, unitOfWork);
             setQuestionDto(questionDto);
         });
 

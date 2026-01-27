@@ -24,7 +24,7 @@ public class UpdateAnswerFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep updateAnswerStep = new SagaSyncStep("updateAnswerStep", () -> {
-            AnswerDto updatedAnswerDto = answerService.updateAnswer(answerDto);
+            AnswerDto updatedAnswerDto = answerService.updateAnswer(answerDto, unitOfWork);
             setUpdatedAnswerDto(updatedAnswerDto);
         });
 

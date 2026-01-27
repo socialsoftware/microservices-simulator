@@ -23,7 +23,7 @@ ${createBody}
     public ${rootEntityName}Dto get${capitalizedAggregate}ById(Integer id, UnitOfWork unitOfWork) {
         try {
             ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-            return new ${rootEntityName}Dto(${lowerAggregate});
+            return ${lowerAggregate}Factory.create${rootEntityName}Dto(${lowerAggregate});
         } catch (${capitalize(projectName)}Exception e) {
             throw e;
         } catch (Exception e) {
@@ -40,7 +40,7 @@ ${createBody}
 
             return aggregateIds.stream()
                 .map(id -> (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
-                .map(${rootEntityName}Dto::new)
+                .map(${lowerAggregate}Factory::create${rootEntityName}Dto)
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new ${capitalize(projectName)}Exception("Error retrieving all ${lowerAggregate}s: " + e.getMessage());
@@ -54,7 +54,7 @@ ${createBody}
 ${this.generateUpdateLogic(rootEntity, aggregateName)}
 
             unitOfWorkService.registerChanged(${lowerAggregate}, unitOfWork);
-            return new ${rootEntityName}Dto(${lowerAggregate});
+            return ${lowerAggregate}Factory.create${rootEntityName}Dto(${lowerAggregate});
         } catch (${capitalize(projectName)}Exception e) {
             throw e;
         } catch (Exception e) {

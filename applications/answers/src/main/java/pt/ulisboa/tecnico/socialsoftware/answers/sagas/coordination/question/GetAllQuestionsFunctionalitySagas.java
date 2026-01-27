@@ -25,7 +25,7 @@ public class GetAllQuestionsFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getAllQuestionsStep = new SagaSyncStep("getAllQuestionsStep", () -> {
-            List<QuestionDto> questions = questionService.getAllQuestions();
+            List<QuestionDto> questions = questionService.getAllQuestions(unitOfWork);
             setQuestions(questions);
         });
 

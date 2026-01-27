@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
@@ -85,11 +86,10 @@ public class QuestionService {
         }
     }
 
-    public QuestionDto getQuestionById(Integer id) {
+    public QuestionDto getQuestionById(Integer id, UnitOfWork unitOfWork) {
         try {
-            Question question = (Question) questionRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Question not found with id: " + id));
-            return new QuestionDto(question);
+            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            return questionFactory.createQuestionDto(question);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -97,21 +97,26 @@ public class QuestionService {
         }
     }
 
-    public List<QuestionDto> getAllQuestions() {
+    public List<QuestionDto> getAllQuestions(UnitOfWork unitOfWork) {
         try {
-            return questionRepository.findAll().stream()
-                .map(entity -> new QuestionDto((Question) entity))
+            // First collect aggregateIds, then load each aggregate through UnitOfWork
+            Set<Integer> aggregateIds = questionRepository.findAll().stream()
+                .map(Question::getAggregateId)
+                .collect(Collectors.toSet());
+
+            return aggregateIds.stream()
+                .map(id -> (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(questionFactory::createQuestionDto)
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new AnswersException("Error retrieving all questions: " + e.getMessage());
         }
     }
 
-    public QuestionDto updateQuestion(QuestionDto questionDto) {
+    public QuestionDto updateQuestion(QuestionDto questionDto, UnitOfWork unitOfWork) {
         try {
             Integer id = questionDto.getAggregateId();
-            Question question = (Question) questionRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Question not found with id: " + id));
+            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             if (questionDto.getTitle() != null) {
                 question.setTitle(questionDto.getTitle());
             }
@@ -122,8 +127,8 @@ public class QuestionService {
                 question.setCreationDate(questionDto.getCreationDate());
             }
 
-            question = questionRepository.save(question);
-            return new QuestionDto(question);
+            unitOfWorkService.registerChanged(question, unitOfWork);
+            return questionFactory.createQuestionDto(question);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -131,12 +136,11 @@ public class QuestionService {
         }
     }
 
-    public void deleteQuestion(Integer id) {
+    public void deleteQuestion(Integer id, UnitOfWork unitOfWork) {
         try {
-            if (!questionRepository.existsById(id)) {
-                throw new AnswersException("Question not found with id: " + id);
-            }
-            questionRepository.deleteById(id);
+            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            question.remove();
+            unitOfWorkService.registerChanged(question, unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

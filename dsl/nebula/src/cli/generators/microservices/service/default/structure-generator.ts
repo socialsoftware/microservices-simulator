@@ -41,7 +41,9 @@ export class ServiceStructureGenerator {
             imports.push('');
         }
 
+        // Always import List/Set and Collectors, since getAll* now uses Set<Integer> aggregateIds
         imports.push('import java.util.List;');
+        imports.push('import java.util.Set;');
         imports.push('import java.util.stream.Collectors;');
 
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.UserDto;`);

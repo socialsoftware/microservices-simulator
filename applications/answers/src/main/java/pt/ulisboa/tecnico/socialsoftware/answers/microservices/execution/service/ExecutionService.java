@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
@@ -82,11 +83,10 @@ public class ExecutionService {
         }
     }
 
-    public ExecutionDto getExecutionById(Integer id) {
+    public ExecutionDto getExecutionById(Integer id, UnitOfWork unitOfWork) {
         try {
-            Execution execution = (Execution) executionRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Execution not found with id: " + id));
-            return new ExecutionDto(execution);
+            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            return executionFactory.createExecutionDto(execution);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -94,21 +94,26 @@ public class ExecutionService {
         }
     }
 
-    public List<ExecutionDto> getAllExecutions() {
+    public List<ExecutionDto> getAllExecutions(UnitOfWork unitOfWork) {
         try {
-            return executionRepository.findAll().stream()
-                .map(entity -> new ExecutionDto((Execution) entity))
+            // First collect aggregateIds, then load each aggregate through UnitOfWork
+            Set<Integer> aggregateIds = executionRepository.findAll().stream()
+                .map(Execution::getAggregateId)
+                .collect(Collectors.toSet());
+
+            return aggregateIds.stream()
+                .map(id -> (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(executionFactory::createExecutionDto)
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new AnswersException("Error retrieving all executions: " + e.getMessage());
         }
     }
 
-    public ExecutionDto updateExecution(ExecutionDto executionDto) {
+    public ExecutionDto updateExecution(ExecutionDto executionDto, UnitOfWork unitOfWork) {
         try {
             Integer id = executionDto.getAggregateId();
-            Execution execution = (Execution) executionRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Execution not found with id: " + id));
+            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             if (executionDto.getAcronym() != null) {
                 execution.setAcronym(executionDto.getAcronym());
             }
@@ -119,8 +124,8 @@ public class ExecutionService {
                 execution.setEndDate(executionDto.getEndDate());
             }
 
-            execution = executionRepository.save(execution);
-            return new ExecutionDto(execution);
+            unitOfWorkService.registerChanged(execution, unitOfWork);
+            return executionFactory.createExecutionDto(execution);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -128,12 +133,11 @@ public class ExecutionService {
         }
     }
 
-    public void deleteExecution(Integer id) {
+    public void deleteExecution(Integer id, UnitOfWork unitOfWork) {
         try {
-            if (!executionRepository.existsById(id)) {
-                throw new AnswersException("Execution not found with id: " + id);
-            }
-            executionRepository.deleteById(id);
+            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            execution.remove();
+            unitOfWorkService.registerChanged(execution, unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

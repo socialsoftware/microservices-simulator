@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
@@ -59,11 +60,10 @@ public class UserService {
         }
     }
 
-    public UserDto getUserById(Integer id) {
+    public UserDto getUserById(Integer id, UnitOfWork unitOfWork) {
         try {
-            User user = (User) userRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("User not found with id: " + id));
-            return new UserDto(user);
+            User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            return userFactory.createUserDto(user);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -71,21 +71,26 @@ public class UserService {
         }
     }
 
-    public List<UserDto> getAllUsers() {
+    public List<UserDto> getAllUsers(UnitOfWork unitOfWork) {
         try {
-            return userRepository.findAll().stream()
-                .map(entity -> new UserDto((User) entity))
+            // First collect aggregateIds, then load each aggregate through UnitOfWork
+            Set<Integer> aggregateIds = userRepository.findAll().stream()
+                .map(User::getAggregateId)
+                .collect(Collectors.toSet());
+
+            return aggregateIds.stream()
+                .map(id -> (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(userFactory::createUserDto)
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new AnswersException("Error retrieving all users: " + e.getMessage());
         }
     }
 
-    public UserDto updateUser(UserDto userDto) {
+    public UserDto updateUser(UserDto userDto, UnitOfWork unitOfWork) {
         try {
             Integer id = userDto.getAggregateId();
-            User user = (User) userRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("User not found with id: " + id));
+            User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             if (userDto.getName() != null) {
                 user.setName(userDto.getName());
             }
@@ -94,8 +99,8 @@ public class UserService {
             }
             user.setActive(userDto.getActive());
 
-            user = userRepository.save(user);
-            return new UserDto(user);
+            unitOfWorkService.registerChanged(user, unitOfWork);
+            return userFactory.createUserDto(user);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -103,12 +108,11 @@ public class UserService {
         }
     }
 
-    public void deleteUser(Integer id) {
+    public void deleteUser(Integer id, UnitOfWork unitOfWork) {
         try {
-            if (!userRepository.existsById(id)) {
-                throw new AnswersException("User not found with id: " + id);
-            }
-            userRepository.deleteById(id);
+            User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            user.remove();
+            unitOfWorkService.registerChanged(user, unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

@@ -24,7 +24,7 @@ public class GetCourseByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getCourseStep = new SagaSyncStep("getCourseStep", () -> {
-            CourseDto courseDto = courseService.getCourseById(courseAggregateId);
+            CourseDto courseDto = courseService.getCourseById(courseAggregateId, unitOfWork);
             setCourseDto(courseDto);
         });
 

@@ -12,6 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.T
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
@@ -64,11 +65,10 @@ public class TopicService {
         }
     }
 
-    public TopicDto getTopicById(Integer id) {
+    public TopicDto getTopicById(Integer id, UnitOfWork unitOfWork) {
         try {
-            Topic topic = (Topic) topicRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Topic not found with id: " + id));
-            return new TopicDto(topic);
+            Topic topic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            return topicFactory.createTopicDto(topic);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -76,27 +76,32 @@ public class TopicService {
         }
     }
 
-    public List<TopicDto> getAllTopics() {
+    public List<TopicDto> getAllTopics(UnitOfWork unitOfWork) {
         try {
-            return topicRepository.findAll().stream()
-                .map(entity -> new TopicDto((Topic) entity))
+            // First collect aggregateIds, then load each aggregate through UnitOfWork
+            Set<Integer> aggregateIds = topicRepository.findAll().stream()
+                .map(Topic::getAggregateId)
+                .collect(Collectors.toSet());
+
+            return aggregateIds.stream()
+                .map(id -> (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(topicFactory::createTopicDto)
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new AnswersException("Error retrieving all topics: " + e.getMessage());
         }
     }
 
-    public TopicDto updateTopic(TopicDto topicDto) {
+    public TopicDto updateTopic(TopicDto topicDto, UnitOfWork unitOfWork) {
         try {
             Integer id = topicDto.getAggregateId();
-            Topic topic = (Topic) topicRepository.findById(id)
-                .orElseThrow(() -> new AnswersException("Topic not found with id: " + id));
+            Topic topic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             if (topicDto.getName() != null) {
                 topic.setName(topicDto.getName());
             }
 
-            topic = topicRepository.save(topic);
-            return new TopicDto(topic);
+            unitOfWorkService.registerChanged(topic, unitOfWork);
+            return topicFactory.createTopicDto(topic);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -104,12 +109,11 @@ public class TopicService {
         }
     }
 
-    public void deleteTopic(Integer id) {
+    public void deleteTopic(Integer id, UnitOfWork unitOfWork) {
         try {
-            if (!topicRepository.existsById(id)) {
-                throw new AnswersException("Topic not found with id: " + id);
-            }
-            topicRepository.deleteById(id);
+            Topic topic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            topic.remove();
+            unitOfWorkService.registerChanged(topic, unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

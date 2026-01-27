@@ -24,7 +24,7 @@ public class GetUserByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep getUserStep = new SagaSyncStep("getUserStep", () -> {
-            UserDto userDto = userService.getUserById(userAggregateId);
+            UserDto userDto = userService.getUserById(userAggregateId, unitOfWork);
             setUserDto(userDto);
         });
 

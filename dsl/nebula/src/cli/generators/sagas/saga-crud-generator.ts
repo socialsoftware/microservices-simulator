@@ -187,11 +187,11 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 buildWorkflowParams.push('SagaUnitOfWork unitOfWork');
                 buildWorkflowCallArgs.push('unitOfWork');
 
-                // For all delete operations, call delete directly without get step
-                // Service delete method doesn't take unitOfWork
+                // For all delete operations, call delete with (id, unitOfWork)
+                const updatedServiceArgs = [...op.serviceArgs, 'unitOfWork'];
                 workflowBody = `
         SagaSyncStep delete${capitalizedAggregate}Step = new SagaSyncStep(\"delete${capitalizedAggregate}Step\", () -> {
-            ${op.serviceCall}(${op.serviceArgs.join(', ')});
+            ${op.serviceCall}(${updatedServiceArgs.join(', ')});
         });
 
         workflow.addStep(delete${capitalizedAggregate}Step);
@@ -205,10 +205,9 @@ export class SagaCrudGenerator extends OrchestrationBase {
                 buildWorkflowParams.push('SagaUnitOfWork unitOfWork');
                 buildWorkflowCallArgs.push('unitOfWork');
 
-                // Service update method doesn't take unitOfWork
                 workflowBody = `
         SagaSyncStep update${capitalizedAggregate}Step = new SagaSyncStep(\"update${capitalizedAggregate}Step\", () -> {
-            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${dtoParamName});
+            ${op.resultType} ${op.resultField} = ${op.serviceCall}(${dtoParamName}, unitOfWork);
             ${op.resultSetter}(${op.resultField});
         });
 
@@ -216,14 +215,11 @@ export class SagaCrudGenerator extends OrchestrationBase {
 `;
             } else {
                 let stepBody = '';
-                let updatedServiceArgs = op.serviceArgs;
+                let updatedServiceArgs: string[];
 
                 if (isCreateOperation) {
-                    // SIMPLIFIED APPROACH: Service handles all DTO conversions internally
-                    // The saga just passes CreateRequestDto + UnitOfWork to the service
                     const requestParamName = 'createRequest';
 
-                    // Add CreateRequestDto import
                     const createRequestDtoType = `Create${capitalizedAggregate}RequestDto`;
                     imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.coordination.webapi.requestDtos.${createRequestDtoType};`);
 
@@ -231,12 +227,13 @@ export class SagaCrudGenerator extends OrchestrationBase {
                     buildWorkflowParams.push(`${createRequestDtoType} ${requestParamName}`);
                     buildWorkflowCallArgs.push(requestParamName);
 
-                    // Service just takes (createRequest, unitOfWork) - all conversion happens in service
                     updatedServiceArgs = [requestParamName, 'unitOfWork'];
                 } else {
                     constructorParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
                     buildWorkflowParams.push(...op.params.map((p: any) => `${p.type} ${p.name}`));
                     buildWorkflowCallArgs.push(...op.params.map((p: any) => p.name));
+                    // For non-create operations here (getById, getAll), append unitOfWork to service args
+                    updatedServiceArgs = [...op.serviceArgs, 'unitOfWork'];
                 }
 
                 buildWorkflowParams.push('SagaUnitOfWork unitOfWork');

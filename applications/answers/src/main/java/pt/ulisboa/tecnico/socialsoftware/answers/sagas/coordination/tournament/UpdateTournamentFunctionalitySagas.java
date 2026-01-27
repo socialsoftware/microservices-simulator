@@ -24,7 +24,7 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep updateTournamentStep = new SagaSyncStep("updateTournamentStep", () -> {
-            TournamentDto updatedTournamentDto = tournamentService.updateTournament(tournamentDto);
+            TournamentDto updatedTournamentDto = tournamentService.updateTournament(tournamentDto, unitOfWork);
             setUpdatedTournamentDto(updatedTournamentDto);
         });
 
