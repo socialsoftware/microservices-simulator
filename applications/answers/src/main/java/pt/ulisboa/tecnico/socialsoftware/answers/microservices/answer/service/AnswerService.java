@@ -161,35 +161,4 @@ public class AnswerService {
     // No custom workflows defined
 
     // Query methods not implemented
-
-    // Event Processing Methods
-    private void publishAnswerCreatedEvent(Answer answer) {
-        try {
-            // TODO: Implement event publishing for AnswerCreated
-            // eventPublisher.publishEvent(new AnswerCreatedEvent(answer));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish AnswerCreatedEvent", e);
-        }
-    }
-
-    private void publishAnswerUpdatedEvent(Answer answer) {
-        try {
-            // TODO: Implement event publishing for AnswerUpdated
-            // eventPublisher.publishEvent(new AnswerUpdatedEvent(answer));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish AnswerUpdatedEvent", e);
-        }
-    }
-
-    private void publishAnswerDeletedEvent(Long answerId) {
-        try {
-            // TODO: Implement event publishing for AnswerDeleted
-            // eventPublisher.publishEvent(new AnswerDeletedEvent(answerId));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish AnswerDeletedEvent", e);
-        }
-    }
 }

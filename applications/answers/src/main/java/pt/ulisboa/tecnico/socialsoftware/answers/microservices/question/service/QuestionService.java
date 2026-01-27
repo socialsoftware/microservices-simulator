@@ -156,35 +156,4 @@ public class QuestionService {
     // No custom workflows defined
 
     // Query methods not implemented
-
-    // Event Processing Methods
-    private void publishQuestionCreatedEvent(Question question) {
-        try {
-            // TODO: Implement event publishing for QuestionCreated
-            // eventPublisher.publishEvent(new QuestionCreatedEvent(question));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish QuestionCreatedEvent", e);
-        }
-    }
-
-    private void publishQuestionUpdatedEvent(Question question) {
-        try {
-            // TODO: Implement event publishing for QuestionUpdated
-            // eventPublisher.publishEvent(new QuestionUpdatedEvent(question));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish QuestionUpdatedEvent", e);
-        }
-    }
-
-    private void publishQuestionDeletedEvent(Long questionId) {
-        try {
-            // TODO: Implement event publishing for QuestionDeleted
-            // eventPublisher.publishEvent(new QuestionDeletedEvent(questionId));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish QuestionDeletedEvent", e);
-        }
-    }
 }

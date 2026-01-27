@@ -186,35 +186,4 @@ public class TournamentService {
     // No custom workflows defined
 
     // Query methods not implemented
-
-    // Event Processing Methods
-    private void publishTournamentCreatedEvent(Tournament tournament) {
-        try {
-            // TODO: Implement event publishing for TournamentCreated
-            // eventPublisher.publishEvent(new TournamentCreatedEvent(tournament));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish TournamentCreatedEvent", e);
-        }
-    }
-
-    private void publishTournamentUpdatedEvent(Tournament tournament) {
-        try {
-            // TODO: Implement event publishing for TournamentUpdated
-            // eventPublisher.publishEvent(new TournamentUpdatedEvent(tournament));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish TournamentUpdatedEvent", e);
-        }
-    }
-
-    private void publishTournamentDeletedEvent(Long tournamentId) {
-        try {
-            // TODO: Implement event publishing for TournamentDeleted
-            // eventPublisher.publishEvent(new TournamentDeletedEvent(tournamentId));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish TournamentDeletedEvent", e);
-        }
-    }
 }

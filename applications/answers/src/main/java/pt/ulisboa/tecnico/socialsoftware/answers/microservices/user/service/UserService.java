@@ -128,35 +128,4 @@ public class UserService {
     // No custom workflows defined
 
     // Query methods not implemented
-
-    // Event Processing Methods
-    private void publishUserCreatedEvent(User user) {
-        try {
-            // TODO: Implement event publishing for UserCreated
-            // eventPublisher.publishEvent(new UserCreatedEvent(user));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish UserCreatedEvent", e);
-        }
-    }
-
-    private void publishUserUpdatedEvent(User user) {
-        try {
-            // TODO: Implement event publishing for UserUpdated
-            // eventPublisher.publishEvent(new UserUpdatedEvent(user));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish UserUpdatedEvent", e);
-        }
-    }
-
-    private void publishUserDeletedEvent(Long userId) {
-        try {
-            // TODO: Implement event publishing for UserDeleted
-            // eventPublisher.publishEvent(new UserDeletedEvent(userId));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish UserDeletedEvent", e);
-        }
-    }
 }

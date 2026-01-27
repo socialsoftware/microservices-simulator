@@ -128,35 +128,4 @@ public class CourseService {
     // No custom workflows defined
 
     // Query methods not implemented
-
-    // Event Processing Methods
-    private void publishCourseCreatedEvent(Course course) {
-        try {
-            // TODO: Implement event publishing for CourseCreated
-            // eventPublisher.publishEvent(new CourseCreatedEvent(course));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish CourseCreatedEvent", e);
-        }
-    }
-
-    private void publishCourseUpdatedEvent(Course course) {
-        try {
-            // TODO: Implement event publishing for CourseUpdated
-            // eventPublisher.publishEvent(new CourseUpdatedEvent(course));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish CourseUpdatedEvent", e);
-        }
-    }
-
-    private void publishCourseDeletedEvent(Long courseId) {
-        try {
-            // TODO: Implement event publishing for CourseDeleted
-            // eventPublisher.publishEvent(new CourseDeletedEvent(courseId));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish CourseDeletedEvent", e);
-        }
-    }
 }

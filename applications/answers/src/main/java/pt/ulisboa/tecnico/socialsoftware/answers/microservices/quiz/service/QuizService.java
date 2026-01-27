@@ -168,35 +168,4 @@ public class QuizService {
     // No custom workflows defined
 
     // Query methods not implemented
-
-    // Event Processing Methods
-    private void publishQuizCreatedEvent(Quiz quiz) {
-        try {
-            // TODO: Implement event publishing for QuizCreated
-            // eventPublisher.publishEvent(new QuizCreatedEvent(quiz));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish QuizCreatedEvent", e);
-        }
-    }
-
-    private void publishQuizUpdatedEvent(Quiz quiz) {
-        try {
-            // TODO: Implement event publishing for QuizUpdated
-            // eventPublisher.publishEvent(new QuizUpdatedEvent(quiz));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish QuizUpdatedEvent", e);
-        }
-    }
-
-    private void publishQuizDeletedEvent(Long quizId) {
-        try {
-            // TODO: Implement event publishing for QuizDeleted
-            // eventPublisher.publishEvent(new QuizDeletedEvent(quizId));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish QuizDeletedEvent", e);
-        }
-    }
 }

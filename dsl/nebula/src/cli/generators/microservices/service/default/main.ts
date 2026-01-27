@@ -3,7 +3,6 @@ import { ServiceGenerationOptions } from "./types.js";
 import { ServiceStructureGenerator } from "./structure-generator.js";
 import { ServiceCrudGenerator } from "./crud-generator.js";
 import { ServiceBusinessGenerator } from "./business-generator.js";
-import { ServiceEventGenerator } from "./event-generator.js";
 
 export function generateServiceCode(aggregate: Aggregate, projectName: string): string {
     const context = ServiceStructureGenerator.createServiceContext(aggregate, projectName);
@@ -26,10 +25,6 @@ export function generateServiceCode(aggregate: Aggregate, projectName: string): 
         projectName
     );
     const queryMethods = '    // Query methods not implemented';
-    const eventProcessingMethods = ServiceEventGenerator.generateEventProcessingMethods(
-        context.capitalizedAggregate,
-        aggregate
-    );
 
     return `package ${context.packageName};
 
@@ -47,8 +42,6 @@ ${businessMethods}
 ${customMethods}
 
 ${queryMethods}
-
-${eventProcessingMethods}
 }`;
 }
 

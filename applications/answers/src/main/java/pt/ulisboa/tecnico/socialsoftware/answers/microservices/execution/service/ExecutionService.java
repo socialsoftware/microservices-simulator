@@ -153,35 +153,4 @@ public class ExecutionService {
     // No custom workflows defined
 
     // Query methods not implemented
-
-    // Event Processing Methods
-    private void publishExecutionCreatedEvent(Execution execution) {
-        try {
-            // TODO: Implement event publishing for ExecutionCreated
-            // eventPublisher.publishEvent(new ExecutionCreatedEvent(execution));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish ExecutionCreatedEvent", e);
-        }
-    }
-
-    private void publishExecutionUpdatedEvent(Execution execution) {
-        try {
-            // TODO: Implement event publishing for ExecutionUpdated
-            // eventPublisher.publishEvent(new ExecutionUpdatedEvent(execution));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish ExecutionUpdatedEvent", e);
-        }
-    }
-
-    private void publishExecutionDeletedEvent(Long executionId) {
-        try {
-            // TODO: Implement event publishing for ExecutionDeleted
-            // eventPublisher.publishEvent(new ExecutionDeletedEvent(executionId));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish ExecutionDeletedEvent", e);
-        }
-    }
 }

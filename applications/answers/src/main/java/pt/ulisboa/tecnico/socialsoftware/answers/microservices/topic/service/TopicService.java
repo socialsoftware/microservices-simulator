@@ -129,35 +129,4 @@ public class TopicService {
     // No custom workflows defined
 
     // Query methods not implemented
-
-    // Event Processing Methods
-    private void publishTopicCreatedEvent(Topic topic) {
-        try {
-            // TODO: Implement event publishing for TopicCreated
-            // eventPublisher.publishEvent(new TopicCreatedEvent(topic));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish TopicCreatedEvent", e);
-        }
-    }
-
-    private void publishTopicUpdatedEvent(Topic topic) {
-        try {
-            // TODO: Implement event publishing for TopicUpdated
-            // eventPublisher.publishEvent(new TopicUpdatedEvent(topic));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish TopicUpdatedEvent", e);
-        }
-    }
-
-    private void publishTopicDeletedEvent(Long topicId) {
-        try {
-            // TODO: Implement event publishing for TopicDeleted
-            // eventPublisher.publishEvent(new TopicDeletedEvent(topicId));
-        } catch (Exception e) {
-            // Log error but don't fail the transaction
-            logger.error("Failed to publish TopicDeletedEvent", e);
-        }
-    }
 }
