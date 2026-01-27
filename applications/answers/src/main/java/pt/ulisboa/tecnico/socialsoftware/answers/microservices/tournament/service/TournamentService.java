@@ -3,26 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.servi
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.*;
-
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentExecution;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentCreator;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipant;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipantQuiz;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentTopic;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentQuiz;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDto;
@@ -30,7 +16,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipa
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
@@ -45,8 +30,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos
 @Service
 @Transactional
 public class TournamentService {
-    private static final Logger logger = LoggerFactory.getLogger(TournamentService.class);
-
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
@@ -130,7 +113,6 @@ public class TournamentService {
 
     public List<TournamentDto> getAllTournaments(UnitOfWork unitOfWork) {
         try {
-            // First collect aggregateIds, then load each aggregate through UnitOfWork
             Set<Integer> aggregateIds = tournamentRepository.findAll().stream()
                 .map(Tournament::getAggregateId)
                 .collect(Collectors.toSet());
@@ -181,9 +163,7 @@ public class TournamentService {
         }
     }
 
-    // No business methods defined
 
-    // No custom workflows defined
 
-    // Query methods not implemented
+
 }

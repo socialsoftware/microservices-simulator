@@ -3,28 +3,16 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.service
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.*;
-
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionCourse;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionTopic;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Option;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
@@ -39,8 +27,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos
 @Service
 @Transactional
 public class QuestionService {
-    private static final Logger logger = LoggerFactory.getLogger(QuestionService.class);
-
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
@@ -101,7 +87,6 @@ public class QuestionService {
 
     public List<QuestionDto> getAllQuestions(UnitOfWork unitOfWork) {
         try {
-            // First collect aggregateIds, then load each aggregate through UnitOfWork
             Set<Integer> aggregateIds = questionRepository.findAll().stream()
                 .map(Question::getAggregateId)
                 .collect(Collectors.toSet());
@@ -151,9 +136,7 @@ public class QuestionService {
         }
     }
 
-    // No business methods defined
 
-    // No custom workflows defined
 
-    // Query methods not implemented
+
 }

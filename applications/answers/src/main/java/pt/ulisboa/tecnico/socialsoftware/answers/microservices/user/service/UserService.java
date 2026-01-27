@@ -3,20 +3,13 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.*;
-
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.UserRole;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
@@ -29,8 +22,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos
 @Service
 @Transactional
 public class UserService {
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
@@ -75,7 +66,6 @@ public class UserService {
 
     public List<UserDto> getAllUsers(UnitOfWork unitOfWork) {
         try {
-            // First collect aggregateIds, then load each aggregate through UnitOfWork
             Set<Integer> aggregateIds = userRepository.findAll().stream()
                 .map(User::getAggregateId)
                 .collect(Collectors.toSet());
@@ -123,9 +113,7 @@ public class UserService {
         }
     }
 
-    // No business methods defined
 
-    // No custom workflows defined
 
-    // Query methods not implemented
+
 }

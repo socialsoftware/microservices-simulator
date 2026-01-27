@@ -3,21 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.*;
-
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicCourse;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicCourseDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
@@ -30,8 +23,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos
 @Service
 @Transactional
 public class TopicService {
-    private static final Logger logger = LoggerFactory.getLogger(TopicService.class);
-
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
@@ -80,7 +71,6 @@ public class TopicService {
 
     public List<TopicDto> getAllTopics(UnitOfWork unitOfWork) {
         try {
-            // First collect aggregateIds, then load each aggregate through UnitOfWork
             Set<Integer> aggregateIds = topicRepository.findAll().stream()
                 .map(Topic::getAggregateId)
                 .collect(Collectors.toSet());
@@ -124,9 +114,7 @@ public class TopicService {
         }
     }
 
-    // No business methods defined
 
-    // No custom workflows defined
 
-    // Query methods not implemented
+
 }

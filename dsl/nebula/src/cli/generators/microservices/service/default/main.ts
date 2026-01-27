@@ -24,7 +24,6 @@ export function generateServiceCode(aggregate: Aggregate, projectName: string): 
         aggregate,
         projectName
     );
-    const queryMethods = '    // Query methods not implemented';
 
     return `package ${context.packageName};
 
@@ -40,8 +39,6 @@ ${crudMethods}
 ${businessMethods}
 
 ${customMethods}
-
-${queryMethods}
 }`;
 }
 

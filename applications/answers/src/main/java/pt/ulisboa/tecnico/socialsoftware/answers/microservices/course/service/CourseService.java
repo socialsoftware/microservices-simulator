@@ -3,20 +3,13 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.*;
-
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
@@ -31,8 +24,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos
 @Service
 @Transactional
 public class CourseService {
-    private static final Logger logger = LoggerFactory.getLogger(CourseService.class);
-
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
@@ -76,7 +67,6 @@ public class CourseService {
 
     public List<CourseDto> getAllCourses(UnitOfWork unitOfWork) {
         try {
-            // First collect aggregateIds, then load each aggregate through UnitOfWork
             Set<Integer> aggregateIds = courseRepository.findAll().stream()
                 .map(Course::getAggregateId)
                 .collect(Collectors.toSet());
@@ -123,9 +113,7 @@ public class CourseService {
         }
     }
 
-    // No business methods defined
 
-    // No custom workflows defined
 
-    // Query methods not implemented
+
 }

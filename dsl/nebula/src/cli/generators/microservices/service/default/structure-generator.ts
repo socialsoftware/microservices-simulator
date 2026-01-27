@@ -2,6 +2,7 @@ import { Aggregate } from "../../../../../language/generated/ast.js";
 import { capitalize } from "../../../../utils/generator-utils.js";
 import { getGlobalConfig } from "../../../common/config.js";
 import { ServiceContext } from "./types.js";
+import { TypeResolver } from "../../../common/resolvers/type-resolver.js";
 
 export class ServiceStructureGenerator {
     static generateServiceImports(aggregate: Aggregate, projectName: string): string {
@@ -15,38 +16,15 @@ export class ServiceStructureGenerator {
             'import org.springframework.beans.factory.annotation.Autowired;',
             'import org.springframework.stereotype.Service;',
             'import org.springframework.transaction.annotation.Transactional;',
-            'import org.slf4j.Logger;',
-            'import org.slf4j.LoggerFactory;',
             '',
             `import ${getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'aggregate')}.*;`,
             ''
         ];
 
-        aggregate.entities.forEach(entity => {
-            if (!entity.isRoot) {
-                imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'aggregate')}.${entity.name};`);
-            }
-        });
-
-        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.exception.*;');
-        imports.push('');
-
-        const hasCollections = aggregate.entities.some(entity =>
-            entity.properties?.some(prop => prop.type && this.isCollectionType(prop.type))
-        );
-
-        if (hasCollections) {
-            imports.push('import java.util.*;');
-            imports.push('import java.util.stream.Collectors;');
-            imports.push('');
-        }
-
         // Always import List/Set and Collectors, since getAll* now uses Set<Integer> aggregateIds
         imports.push('import java.util.List;');
         imports.push('import java.util.Set;');
         imports.push('import java.util.stream.Collectors;');
-
-        imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.UserDto;`);
         
         // Import the root entity's DTO (e.g., AnswerDto, CourseDto)
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
@@ -62,21 +40,6 @@ export class ServiceStructureGenerator {
             }
         });
         
-        // Import enum types used in root entity properties (needed for update methods)
-        if (rootEntity && rootEntity.properties) {
-            for (const prop of rootEntity.properties) {
-                const propType = (prop as any).type;
-                if (propType && propType.$type === 'EntityType' && propType.type) {
-                    const typeName = propType.type.$refText || propType.type.ref?.name;
-                    if (typeName && typeName.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/) && typeName !== 'AggregateState') {
-                        imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'enums')}.${typeName};`);
-                    }
-                }
-            }
-        }
-        
-        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
-
         const hasDateTime = aggregate.entities.some(entity =>
             entity.properties?.some(prop => {
                 if (!prop.type) return false;
@@ -93,6 +56,48 @@ export class ServiceStructureGenerator {
         if (hasDateTime) {
             imports.push('import java.time.LocalDateTime;');
             imports.push('');
+        }
+
+        // Import enum types that are actually used in update methods
+        if (rootEntity && rootEntity.properties) {
+            for (const prop of rootEntity.properties) {
+                const propName = (prop as any).name?.toLowerCase?.() ?? '';
+                // Skip id fields
+                if (propName === 'id') {
+                    continue;
+                }
+                // Skip final fields (not updatable)
+                if ((prop as any).isFinal) {
+                    continue;
+                }
+
+                const javaType = TypeResolver.resolveJavaType((prop as any).type);
+                const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
+                // Entity relationships are handled via DTOs, not primitive setters
+                const isEntityType = TypeResolver.isEntityType(javaType);
+                if (isCollection || isEntityType) {
+                    continue;
+                }
+
+                // Only import enum-like types that follow our naming convention
+                const propType = (prop as any).type;
+                if (propType && propType.$type === 'EntityType' && propType.type) {
+                    const typeName = propType.type.$refText || propType.type.ref?.name;
+                    if (
+                        typeName &&
+                        typeName !== 'AggregateState' &&
+                        /^[A-Z][a-zA-Z]*(Type|State|Role)$/.test(typeName)
+                    ) {
+                        imports.push(
+                            `import ${getGlobalConfig().buildPackageName(
+                                projectName,
+                                'shared',
+                                'enums'
+                            )}.${typeName};`
+                        );
+                    }
+                }
+            }
         }
 
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;');
@@ -123,8 +128,6 @@ public class ${capitalize(aggregateName)}Service {`;
         const capitalizedAggregate = capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
         const dependencies = [
-            `    private static final Logger logger = LoggerFactory.getLogger(${capitalizedAggregate}Service.class);`,
-            '',
             `    @Autowired`,
             `    private AggregateIdGeneratorService aggregateIdGeneratorService;`,
             '',
@@ -165,11 +168,4 @@ public class ${capitalize(aggregateName)}Service {`;
         };
     }
 
-    private static isCollectionType(type: any): boolean {
-        if (!type) return false;
-        if (typeof type === 'string') {
-            return type.toLowerCase().includes('list') || type.toLowerCase().includes('set');
-        }
-        return type.$type === 'CollectionType' || type.type === 'Collection';
-    }
 }

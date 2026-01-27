@@ -33,7 +33,6 @@ ${createBody}
 
     public List<${rootEntityName}Dto> getAll${capitalizedAggregate}s(UnitOfWork unitOfWork) {
         try {
-            // First collect aggregateIds, then load each aggregate through UnitOfWork
             Set<Integer> aggregateIds = ${lowerAggregate}Repository.findAll().stream()
                 .map(${rootEntityName}::getAggregateId)
                 .collect(Collectors.toSet());

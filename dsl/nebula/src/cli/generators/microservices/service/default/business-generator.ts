@@ -5,7 +5,7 @@ import { TypeResolver } from "../../../common/resolvers/type-resolver.js";
 export class ServiceBusinessGenerator {
     static generateBusinessMethods(aggregateName: string, aggregate: Aggregate, rootEntity: Entity, projectName: string): string {
         if (!aggregate.methods || aggregate.methods.length === 0) {
-            return '    // No business methods defined';
+            return '';
         }
 
         const entityMethods = aggregate.methods.filter(method => {
@@ -19,21 +19,19 @@ export class ServiceBusinessGenerator {
             this.generateBusinessMethod(method, aggregateName, rootEntity, projectName)
         ).join('\n\n');
 
-        return `    // Business Methods
-${methods}`;
+        return methods;
     }
 
     static generateCustomMethods(aggregateName: string, aggregate: Aggregate, projectName: string): string {
         if (!aggregate.workflows || aggregate.workflows.length === 0) {
-            return '    // No custom workflows defined';
+            return '';
         }
 
         const methods = aggregate.workflows.map(workflow =>
             this.generateWorkflowMethod(workflow, aggregateName, projectName)
         ).join('\n\n');
 
-        return `    // Custom Workflow Methods
-${methods}`;
+        return methods;
     }
 
     private static generateBusinessMethod(method: Method, aggregateName: string, rootEntity: Entity, projectName: string): string {
