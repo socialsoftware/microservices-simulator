@@ -36,6 +36,8 @@ import java.time.LocalDateTime;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTournamentRequestDto;
 
@@ -171,6 +173,7 @@ public class TournamentService {
             Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             tournament.remove();
             unitOfWorkService.registerChanged(tournament, unitOfWork);
+            unitOfWorkService.registerEvent(new TournamentDeletedEvent(tournament.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

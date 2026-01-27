@@ -31,6 +31,8 @@ import java.time.LocalDateTime;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuizRequestDto;
 
@@ -153,6 +155,7 @@ public class QuizService {
             Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             quiz.remove();
             unitOfWorkService.registerChanged(quiz, unitOfWork);
+            unitOfWorkService.registerEvent(new QuizDeletedEvent(quiz.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

@@ -21,6 +21,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTopicRequestDto;
 
@@ -114,6 +116,7 @@ public class TopicService {
             Topic topic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             topic.remove();
             unitOfWorkService.registerChanged(topic, unitOfWork);
+            unitOfWorkService.registerEvent(new TopicDeletedEvent(topic.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

@@ -28,6 +28,8 @@ import java.time.LocalDateTime;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateExecutionRequestDto;
 
@@ -138,6 +140,7 @@ public class ExecutionService {
             Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             execution.remove();
             unitOfWorkService.registerChanged(execution, unitOfWork);
+            unitOfWorkService.registerEvent(new ExecutionDeletedEvent(execution.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

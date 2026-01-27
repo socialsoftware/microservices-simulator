@@ -67,6 +67,7 @@ ${this.generateUpdateLogic(rootEntity, aggregateName)}
             ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             ${lowerAggregate}.remove();
             unitOfWorkService.registerChanged(${lowerAggregate}, unitOfWork);
+            unitOfWorkService.registerEvent(new ${capitalizedAggregate}DeletedEvent(${lowerAggregate}.getAggregateId()), unitOfWork);
         } catch (${capitalize(projectName)}Exception e) {
             throw e;
         } catch (Exception e) {

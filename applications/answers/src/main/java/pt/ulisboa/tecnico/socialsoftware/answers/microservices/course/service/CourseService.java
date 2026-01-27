@@ -22,6 +22,8 @@ import java.time.LocalDateTime;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.events.publish.CourseDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.events.publish.CourseUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateCourseRequestDto;
 
@@ -113,6 +115,7 @@ public class CourseService {
             Course course = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             course.remove();
             unitOfWorkService.registerChanged(course, unitOfWork);
+            unitOfWorkService.registerEvent(new CourseDeletedEvent(course.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

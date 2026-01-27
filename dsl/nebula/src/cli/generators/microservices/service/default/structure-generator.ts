@@ -99,6 +99,11 @@ export class ServiceStructureGenerator {
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;');
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;');
 
+        // Import published events for delete/update so services can register them in UnitOfWork
+        const eventsPackage = getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'events', 'publish');
+        imports.push(`import ${eventsPackage}.${aggregateName}DeletedEvent;`);
+        imports.push(`import ${eventsPackage}.${aggregateName}UpdatedEvent;`);
+
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', 'exception')}.${capitalize(projectName)}Exception;`);
         
         // Add CreateRequestDto import for create operations
