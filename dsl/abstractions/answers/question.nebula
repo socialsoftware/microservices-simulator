@@ -1,5 +1,6 @@
 Aggregate Question {
     @GenerateCrud;
+    
     Entity QuestionCourse uses Course {
         Integer courseAggregateId -> aggregateId;
         String courseName -> name;
