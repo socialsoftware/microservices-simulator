@@ -5,16 +5,16 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregat
 
 public class QuestionCourseDto implements Serializable {
     private Integer aggregateId;
-    private String name;
     private Integer version;
+    private String name;
 
     public QuestionCourseDto() {
     }
 
     public QuestionCourseDto(QuestionCourse questionCourse) {
         this.aggregateId = questionCourse.getCourseAggregateId();
-        this.name = questionCourse.getCourseName();
         this.version = questionCourse.getCourseVersion();
+        this.name = questionCourse.getCourseName();
     }
 
     public Integer getAggregateId() {
@@ -25,19 +25,19 @@ public class QuestionCourseDto implements Serializable {
         this.aggregateId = aggregateId;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Integer getVersion() {
         return version;
     }
 
     public void setVersion(Integer version) {
         this.version = version;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

@@ -15,17 +15,17 @@ public class SearchQuestionsFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public SearchQuestionsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, QuestionService questionService, String title, String content) {
+    public SearchQuestionsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, QuestionService questionService, String title, String content, Integer courseAggregateId) {
         this.questionService = questionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(title, content, unitOfWork);
+        this.buildWorkflow(title, content, courseAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(String title, String content, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(String title, String content, Integer courseAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep searchQuestionsStep = new SagaSyncStep("searchQuestionsStep", () -> {
-            List<QuestionDto> searchedQuestionDtos = questionService.searchQuestions(title, content, unitOfWork);
+            List<QuestionDto> searchedQuestionDtos = questionService.searchQuestions(title, content, courseAggregateId, unitOfWork);
             setSearchedQuestionDtos(searchedQuestionDtos);
         });
 

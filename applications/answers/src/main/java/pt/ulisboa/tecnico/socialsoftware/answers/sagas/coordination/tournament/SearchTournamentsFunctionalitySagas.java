@@ -15,17 +15,17 @@ public class SearchTournamentsFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public SearchTournamentsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TournamentService tournamentService, Boolean cancelled) {
+    public SearchTournamentsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, TournamentService tournamentService, Boolean cancelled, Integer creatorAggregateId, Integer executionAggregateId, Integer quizAggregateId) {
         this.tournamentService = tournamentService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(cancelled, unitOfWork);
+        this.buildWorkflow(cancelled, creatorAggregateId, executionAggregateId, quizAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(Boolean cancelled, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(Boolean cancelled, Integer creatorAggregateId, Integer executionAggregateId, Integer quizAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep searchTournamentsStep = new SagaSyncStep("searchTournamentsStep", () -> {
-            List<TournamentDto> searchedTournamentDtos = tournamentService.searchTournaments(cancelled, unitOfWork);
+            List<TournamentDto> searchedTournamentDtos = tournamentService.searchTournaments(cancelled, creatorAggregateId, executionAggregateId, quizAggregateId, unitOfWork);
             setSearchedTournamentDtos(searchedTournamentDtos);
         });
 

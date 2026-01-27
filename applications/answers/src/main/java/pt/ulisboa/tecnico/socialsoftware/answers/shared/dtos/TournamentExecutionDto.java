@@ -6,20 +6,20 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggreg
 
 public class TournamentExecutionDto implements Serializable {
     private Integer aggregateId;
-    private Integer courseAggregateId;
-    private String acronym;
     private AggregateState state;
     private Integer version;
+    private Integer courseAggregateId;
+    private String acronym;
 
     public TournamentExecutionDto() {
     }
 
     public TournamentExecutionDto(TournamentExecution tournamentExecution) {
         this.aggregateId = tournamentExecution.getExecutionAggregateId();
-        this.courseAggregateId = tournamentExecution.getExecutionCourseAggregateId();
-        this.acronym = tournamentExecution.getExecutionAcronym();
         this.state = tournamentExecution.getExecutionState();
         this.version = tournamentExecution.getExecutionVersion();
+        this.courseAggregateId = tournamentExecution.getExecutionCourseAggregateId();
+        this.acronym = tournamentExecution.getExecutionAcronym();
     }
 
     public Integer getAggregateId() {
@@ -28,22 +28,6 @@ public class TournamentExecutionDto implements Serializable {
 
     public void setAggregateId(Integer aggregateId) {
         this.aggregateId = aggregateId;
-    }
-
-    public Integer getCourseAggregateId() {
-        return courseAggregateId;
-    }
-
-    public void setCourseAggregateId(Integer courseAggregateId) {
-        this.courseAggregateId = courseAggregateId;
-    }
-
-    public String getAcronym() {
-        return acronym;
-    }
-
-    public void setAcronym(String acronym) {
-        this.acronym = acronym;
     }
 
     public AggregateState getState() {
@@ -60,5 +44,21 @@ public class TournamentExecutionDto implements Serializable {
 
     public void setVersion(Integer version) {
         this.version = version;
+    }
+
+    public Integer getCourseAggregateId() {
+        return courseAggregateId;
+    }
+
+    public void setCourseAggregateId(Integer courseAggregateId) {
+        this.courseAggregateId = courseAggregateId;
+    }
+
+    public String getAcronym() {
+        return acronym;
+    }
+
+    public void setAcronym(String acronym) {
+        this.acronym = acronym;
     }
 }

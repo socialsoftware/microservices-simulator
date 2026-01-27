@@ -4,8 +4,8 @@ import java.io.Serializable;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizExecution;
 
 public class QuizExecutionDto implements Serializable {
-    private String executionName;
     private Integer aggregateId;
+    private String executionName;
     private String acronym;
     private String academicTerm;
 
@@ -13,18 +13,10 @@ public class QuizExecutionDto implements Serializable {
     }
 
     public QuizExecutionDto(QuizExecution quizExecution) {
-        this.executionName = quizExecution.getExecutionName();
         this.aggregateId = quizExecution.getExecutionAggregateId();
+        this.executionName = quizExecution.getExecutionName();
         this.acronym = quizExecution.getExecutionAcronym();
         this.academicTerm = quizExecution.getExecutionAcademicTerm();
-    }
-
-    public String getExecutionName() {
-        return executionName;
-    }
-
-    public void setExecutionName(String executionName) {
-        this.executionName = executionName;
     }
 
     public Integer getAggregateId() {
@@ -33,6 +25,14 @@ public class QuizExecutionDto implements Serializable {
 
     public void setAggregateId(Integer aggregateId) {
         this.aggregateId = aggregateId;
+    }
+
+    public String getExecutionName() {
+        return executionName;
+    }
+
+    public void setExecutionName(String executionName) {
+        this.executionName = executionName;
     }
 
     public String getAcronym() {

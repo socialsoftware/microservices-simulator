@@ -3,7 +3,7 @@ import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 import { getGlobalConfig } from "../../common/config.js";
 import { ImportRequirements } from "./types.js";
 import type { DtoSchemaRegistry } from "../../../services/dto-schema-service.js";
-import { getEffectiveProperties } from "../../../utils/aggregate-helpers.js";
+import { getEffectiveFieldMappings, getEffectiveProperties } from "../../../utils/aggregate-helpers.js";
 
 const resolveJavaType = (type: any, fieldName?: string) => {
     return TypeResolver.resolveJavaType(type);
@@ -136,7 +136,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
     const entityAny = entity as any;
     const aggregateRef = entityAny.aggregateRef as string | undefined;
     const dtoFieldMappingEntries: { dtoField: string; entityField: string; extractField?: string }[] =
-        (entityAny.fieldMappings || [])
+        getEffectiveFieldMappings(entity)
             .filter((mapping: any) => mapping?.dtoField && mapping?.entityField)
             .map((mapping: any) => ({
                 dtoField: mapping.dtoField,

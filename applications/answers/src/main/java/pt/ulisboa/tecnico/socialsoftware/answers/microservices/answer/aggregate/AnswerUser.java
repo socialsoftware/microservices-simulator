@@ -16,8 +16,8 @@ public class AnswerUser {
     @GeneratedValue
     private Long id;
     private Integer userAggregateId;
-    private String userName;
     private AggregateState userState;
+    private String userName;
     @OneToOne
     private Answer answer;
 
@@ -32,8 +32,8 @@ public class AnswerUser {
     }
 
     public AnswerUser(AnswerUser other) {
-        setUserName(other.getUserName());
         setUserState(other.getUserState());
+        setUserName(other.getUserName());
     }
 
     public Long getId() {
@@ -52,20 +52,20 @@ public class AnswerUser {
         this.userAggregateId = userAggregateId;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
     public AggregateState getUserState() {
         return userState;
     }
 
     public void setUserState(AggregateState userState) {
         this.userState = userState;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public Answer getAnswer() {
@@ -80,8 +80,8 @@ public class AnswerUser {
     public AnswerUserDto buildDto() {
         AnswerUserDto dto = new AnswerUserDto();
         dto.setAggregateId(getUserAggregateId());
-        dto.setName(getUserName());
         dto.setState(getUserState());
+        dto.setName(getUserName());
         return dto;
     }
 }

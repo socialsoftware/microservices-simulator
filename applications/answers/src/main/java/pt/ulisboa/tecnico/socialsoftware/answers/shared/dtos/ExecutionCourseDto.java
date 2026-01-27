@@ -5,18 +5,18 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggrega
 
 public class ExecutionCourseDto implements Serializable {
     private Integer aggregateId;
+    private Integer version;
     private String name;
     private String type;
-    private Integer version;
 
     public ExecutionCourseDto() {
     }
 
     public ExecutionCourseDto(ExecutionCourse executionCourse) {
         this.aggregateId = executionCourse.getCourseAggregateId();
+        this.version = executionCourse.getCourseVersion();
         this.name = executionCourse.getCourseName();
         this.type = executionCourse.getCourseType() != null ? executionCourse.getCourseType().name() : null;
-        this.version = executionCourse.getCourseVersion();
     }
 
     public Integer getAggregateId() {
@@ -25,6 +25,14 @@ public class ExecutionCourseDto implements Serializable {
 
     public void setAggregateId(Integer aggregateId) {
         this.aggregateId = aggregateId;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 
     public String getName() {
@@ -41,13 +49,5 @@ public class ExecutionCourseDto implements Serializable {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
     }
 }

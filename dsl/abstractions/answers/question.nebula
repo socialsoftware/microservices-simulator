@@ -2,15 +2,15 @@ Aggregate Question {
     @GenerateCrud;
     
     Entity QuestionCourse uses Course {
-        Integer courseAggregateId -> aggregateId;
+        Integer courseAggregateId;
         String courseName -> name;
-        Integer courseVersion -> version;
+        Integer courseVersion;
     }
 
     Entity QuestionTopic uses Topic {
-        Integer topicAggregateId -> aggregateId;
+        Integer topicAggregateId;
         String topicName -> name;
-        Integer topicVersion -> version;
+        Integer topicVersion;
         Integer topicId;
         AggregateState topicState;
     }

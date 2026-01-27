@@ -13,8 +13,8 @@ public class QuizExecution {
     @Id
     @GeneratedValue
     private Long id;
-    private String executionName;
     private Integer executionAggregateId;
+    private String executionName;
     private String executionAcronym;
     private String executionAcademicTerm;
     @OneToOne
@@ -31,7 +31,7 @@ public class QuizExecution {
     }
 
     public QuizExecution(QuizExecution other) {
-        setExecutionAggregateId(other.getExecutionAggregateId());
+        setExecutionName(other.getExecutionName());
         setExecutionAcronym(other.getExecutionAcronym());
         setExecutionAcademicTerm(other.getExecutionAcademicTerm());
     }
@@ -44,20 +44,20 @@ public class QuizExecution {
         this.id = id;
     }
 
-    public String getExecutionName() {
-        return executionName;
-    }
-
-    public void setExecutionName(String executionName) {
-        this.executionName = executionName;
-    }
-
     public Integer getExecutionAggregateId() {
         return executionAggregateId;
     }
 
     public void setExecutionAggregateId(Integer executionAggregateId) {
         this.executionAggregateId = executionAggregateId;
+    }
+
+    public String getExecutionName() {
+        return executionName;
+    }
+
+    public void setExecutionName(String executionName) {
+        this.executionName = executionName;
     }
 
     public String getExecutionAcronym() {
@@ -87,8 +87,8 @@ public class QuizExecution {
 
     public QuizExecutionDto buildDto() {
         QuizExecutionDto dto = new QuizExecutionDto();
-        dto.setExecutionName(getExecutionName());
         dto.setAggregateId(getExecutionAggregateId());
+        dto.setExecutionName(getExecutionName());
         dto.setAcronym(getExecutionAcronym());
         dto.setAcademicTerm(getExecutionAcademicTerm());
         return dto;

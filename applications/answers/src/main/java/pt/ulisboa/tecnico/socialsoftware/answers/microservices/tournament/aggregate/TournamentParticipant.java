@@ -10,23 +10,23 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionUserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantQuizDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 @Entity
 public class TournamentParticipant {
     @Id
     @GeneratedValue
     private Long id;
+    private Integer participantAggregateId;
+    private Integer participantVersion;
+    private AggregateState participantState;
     private LocalDateTime participantEnrollTime;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentparticipant")
     private TournamentParticipantQuiz participantQuiz;
-    private Integer participantAggregateId;
     private String participantName;
     private String participantUsername;
-    private Integer participantVersion;
-    private AggregateState participantState;
     @OneToOne
     private Tournament tournament;
 
@@ -34,21 +34,21 @@ public class TournamentParticipant {
 
     }
 
-    public TournamentParticipant(UserDto userDto) {
-        setParticipantAggregateId(userDto.getAggregateId());
-        setParticipantVersion(userDto.getVersion());
-        setParticipantState(userDto.getState());
-        setParticipantName(userDto.getName());
-        setParticipantUsername(userDto.getUsername());
+    public TournamentParticipant(ExecutionUserDto executionUserDto) {
+        setParticipantAggregateId(executionUserDto.getAggregateId());
+        setParticipantVersion(executionUserDto.getVersion());
+        setParticipantState(executionUserDto.getState());
+        setParticipantName(executionUserDto.getName());
+        setParticipantUsername(executionUserDto.getUsername());
     }
 
     public TournamentParticipant(TournamentParticipant other) {
-        setParticipantQuiz(new TournamentParticipantQuiz(other.getParticipantQuiz()));
-        setParticipantAggregateId(other.getParticipantAggregateId());
-        setParticipantName(other.getParticipantName());
-        setParticipantUsername(other.getParticipantUsername());
         setParticipantVersion(other.getParticipantVersion());
         setParticipantState(other.getParticipantState());
+        setParticipantEnrollTime(other.getParticipantEnrollTime());
+        setParticipantQuiz(new TournamentParticipantQuiz(other.getParticipantQuiz()));
+        setParticipantName(other.getParticipantName());
+        setParticipantUsername(other.getParticipantUsername());
     }
 
     public Long getId() {
@@ -57,6 +57,30 @@ public class TournamentParticipant {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Integer getParticipantAggregateId() {
+        return participantAggregateId;
+    }
+
+    public void setParticipantAggregateId(Integer participantAggregateId) {
+        this.participantAggregateId = participantAggregateId;
+    }
+
+    public Integer getParticipantVersion() {
+        return participantVersion;
+    }
+
+    public void setParticipantVersion(Integer participantVersion) {
+        this.participantVersion = participantVersion;
+    }
+
+    public AggregateState getParticipantState() {
+        return participantState;
+    }
+
+    public void setParticipantState(AggregateState participantState) {
+        this.participantState = participantState;
     }
 
     public LocalDateTime getParticipantEnrollTime() {
@@ -78,14 +102,6 @@ public class TournamentParticipant {
         }
     }
 
-    public Integer getParticipantAggregateId() {
-        return participantAggregateId;
-    }
-
-    public void setParticipantAggregateId(Integer participantAggregateId) {
-        this.participantAggregateId = participantAggregateId;
-    }
-
     public String getParticipantName() {
         return participantName;
     }
@@ -102,22 +118,6 @@ public class TournamentParticipant {
         this.participantUsername = participantUsername;
     }
 
-    public Integer getParticipantVersion() {
-        return participantVersion;
-    }
-
-    public void setParticipantVersion(Integer participantVersion) {
-        this.participantVersion = participantVersion;
-    }
-
-    public AggregateState getParticipantState() {
-        return participantState;
-    }
-
-    public void setParticipantState(AggregateState participantState) {
-        this.participantState = participantState;
-    }
-
     public Tournament getTournament() {
         return tournament;
     }
@@ -129,13 +129,13 @@ public class TournamentParticipant {
 
     public TournamentParticipantDto buildDto() {
         TournamentParticipantDto dto = new TournamentParticipantDto();
-        dto.setParticipantEnrollTime(getParticipantEnrollTime());
-        dto.setParticipantQuiz(getParticipantQuiz() != null ? new TournamentParticipantQuizDto(getParticipantQuiz()) : null);
         dto.setAggregateId(getParticipantAggregateId());
-        dto.setName(getParticipantName());
-        dto.setUsername(getParticipantUsername());
         dto.setVersion(getParticipantVersion());
         dto.setState(getParticipantState());
+        dto.setParticipantEnrollTime(getParticipantEnrollTime());
+        dto.setParticipantQuiz(getParticipantQuiz() != null ? new TournamentParticipantQuizDto(getParticipantQuiz()) : null);
+        dto.setName(getParticipantName());
+        dto.setUsername(getParticipantUsername());
         return dto;
     }
 }

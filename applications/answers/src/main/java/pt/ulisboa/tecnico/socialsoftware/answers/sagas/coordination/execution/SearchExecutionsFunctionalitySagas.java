@@ -15,17 +15,17 @@ public class SearchExecutionsFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
 
 
-    public SearchExecutionsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, String acronym, String academicTerm) {
+    public SearchExecutionsFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, ExecutionService executionService, String acronym, String academicTerm, Integer courseAggregateId) {
         this.executionService = executionService;
         this.unitOfWorkService = unitOfWorkService;
-        this.buildWorkflow(acronym, academicTerm, unitOfWork);
+        this.buildWorkflow(acronym, academicTerm, courseAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow(String acronym, String academicTerm, SagaUnitOfWork unitOfWork) {
+    public void buildWorkflow(String acronym, String academicTerm, Integer courseAggregateId, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaSyncStep searchExecutionsStep = new SagaSyncStep("searchExecutionsStep", () -> {
-            List<ExecutionDto> searchedExecutionDtos = executionService.searchExecutions(acronym, academicTerm, unitOfWork);
+            List<ExecutionDto> searchedExecutionDtos = executionService.searchExecutions(acronym, academicTerm, courseAggregateId, unitOfWork);
             setSearchedExecutionDtos(searchedExecutionDtos);
         });
 

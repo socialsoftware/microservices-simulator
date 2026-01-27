@@ -146,7 +146,7 @@ public abstract class Quiz extends Aggregate {
     public void removeQuizQuestion(Integer id) {
         if (this.questions != null) {
             this.questions.removeIf(item -> 
-                item.getQuestionSequence() != null && item.getQuestionSequence().equals(id));
+                item.getQuestionAggregateId() != null && item.getQuestionAggregateId().equals(id));
         }
     }
 
@@ -155,7 +155,7 @@ public abstract class Quiz extends Aggregate {
             return false;
         }
         return this.questions.stream().anyMatch(item -> 
-            item.getQuestionSequence() != null && item.getQuestionSequence().equals(id));
+            item.getQuestionAggregateId() != null && item.getQuestionAggregateId().equals(id));
     }
 
     public QuizQuestion findQuizQuestionById(Integer id) {
@@ -163,7 +163,7 @@ public abstract class Quiz extends Aggregate {
             return null;
         }
         return this.questions.stream()
-            .filter(item -> item.getQuestionSequence() != null && item.getQuestionSequence().equals(id))
+            .filter(item -> item.getQuestionAggregateId() != null && item.getQuestionAggregateId().equals(id))
             .findFirst()
             .orElse(null);
     }

@@ -130,6 +130,93 @@ export function getAggregateEntities(aggregate: Aggregate): Entity[] {
     return aggregate.entities;
 }
 
+function lowerFirst(s: string): string {
+    if (!s) return s;
+    return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
+function getAggregateRefName(entity: Entity): string | undefined {
+    const anyEntity = entity as any;
+    const ref = anyEntity.aggregateRef;
+    if (!ref) return undefined;
+    if (typeof ref === 'string') return ref;
+    return ref.ref?.name || ref.$refText;
+}
+
+/**
+ * Returns the entity's explicit fieldMappings plus implicit base mappings (if applicable).
+ *
+ * Implicit base mappings are only added when the corresponding projection fields exist on the entity:
+ *   <lower(aggregateRef)>AggregateId  -> aggregateId
+ *   <lower(aggregateRef)>Version      -> version
+ *   <lower(aggregateRef)>State        -> state
+ *
+ * This lets users declare the fields as plain properties without having to write boilerplate mappings
+ * for fields inherited from the Aggregate base class.
+ */
+export function getEffectiveFieldMappings(entity: Entity): any[] {
+    const anyEntity = entity as any;
+    const explicitMappings: any[] = Array.isArray(anyEntity.fieldMappings) ? anyEntity.fieldMappings : [];
+
+    const aggregateRefName = getAggregateRefName(entity);
+    if (!aggregateRefName) {
+        return explicitMappings;
+    }
+
+    // Collect fields that exist on the entity (explicit properties + mapping-defined properties)
+    const explicitProps = entity.properties || [];
+    const mappingDefinedProps = explicitMappings
+        .filter((m: any) => m?.type && m?.entityField)
+        .map((m: any) => m.entityField);
+
+    const existingEntityFields = new Set<string>([
+        ...explicitProps.map((p: any) => p?.name).filter(Boolean),
+        ...mappingDefinedProps.filter(Boolean),
+    ]);
+
+    const existingDtoFields = new Set<string>(explicitMappings.map((m: any) => m?.dtoField).filter(Boolean));
+    const explicitlyMappedEntityFields = new Set<string>(explicitMappings.map((m: any) => m?.entityField).filter(Boolean));
+
+    const prefix = lowerFirst(aggregateRefName);
+
+    const pickBaseField = (dtoField: 'aggregateId' | 'version' | 'state', suffix: 'AggregateId' | 'Version' | 'State'): string | undefined => {
+        if (existingDtoFields.has(dtoField)) return undefined;
+
+        // 1) Prefer conventional name based on aggregateRef (e.g., userAggregateId)
+        const conventional = `${prefix}${suffix}`;
+        if (existingEntityFields.has(conventional) && !explicitlyMappedEntityFields.has(conventional)) {
+            return conventional;
+        }
+
+        // 2) If there is exactly one remaining *<suffix>* field that isn't already mapped to something else,
+        // use it. This supports names like "creatorAggregateId" or "executionAggregateId".
+        const candidates = Array.from(existingEntityFields)
+            .filter(name => typeof name === 'string' && name.endsWith(suffix))
+            .filter(name => !explicitlyMappedEntityFields.has(name));
+
+        if (candidates.length === 1) {
+            return candidates[0];
+        }
+
+        return undefined;
+    };
+
+    const implicitBase = [
+        { dtoField: 'aggregateId', suffix: 'AggregateId' },
+        { dtoField: 'version', suffix: 'Version' },
+        { dtoField: 'state', suffix: 'State' },
+    ] as const;
+
+    const implicitMappings = implicitBase
+        .map(({ dtoField, suffix }) => {
+            const entityField = pickBaseField(dtoField, suffix);
+            return entityField ? { entityField, dtoField } : null;
+        })
+        .filter(Boolean) as any[];
+
+    return [...explicitMappings, ...implicitMappings];
+}
+
 /**
  * Get effective properties for an entity, including those defined in DTO mappings.
  * With the simplified mapping syntax, properties can be defined inline:
@@ -138,8 +225,7 @@ export function getAggregateEntities(aggregate: Aggregate): Entity[] {
  */
 export function getEffectiveProperties(entity: Entity): any[] {
     const explicitProps = entity.properties || [];
-    const entityAny = entity as any;
-    const mappings = entityAny.fieldMappings || [];
+    const mappings = getEffectiveFieldMappings(entity);
 
     // Get properties defined in mappings (new syntax with type)
     const mappingProps = mappings

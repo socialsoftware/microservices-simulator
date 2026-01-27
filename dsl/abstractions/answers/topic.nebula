@@ -1,8 +1,8 @@
 Aggregate Topic {
     @GenerateCrud;
     Entity TopicCourse uses Course {
-        Integer courseAggregateId -> aggregateId;
-        Integer courseVersion -> version;
+        Integer courseAggregateId;
+        Integer courseVersion;
     }
 
     Root Entity Topic {

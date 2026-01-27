@@ -16,10 +16,10 @@ public class TournamentExecution {
     @GeneratedValue
     private Long id;
     private Integer executionAggregateId;
-    private Integer executionCourseAggregateId;
-    private String executionAcronym;
     private AggregateState executionState;
     private Integer executionVersion;
+    private Integer executionCourseAggregateId;
+    private String executionAcronym;
     @OneToOne
     private Tournament tournament;
 
@@ -35,10 +35,10 @@ public class TournamentExecution {
     }
 
     public TournamentExecution(TournamentExecution other) {
-        setExecutionCourseAggregateId(other.getExecutionCourseAggregateId());
-        setExecutionAcronym(other.getExecutionAcronym());
         setExecutionState(other.getExecutionState());
         setExecutionVersion(other.getExecutionVersion());
+        setExecutionCourseAggregateId(other.getExecutionCourseAggregateId());
+        setExecutionAcronym(other.getExecutionAcronym());
     }
 
     public Long getId() {
@@ -57,22 +57,6 @@ public class TournamentExecution {
         this.executionAggregateId = executionAggregateId;
     }
 
-    public Integer getExecutionCourseAggregateId() {
-        return executionCourseAggregateId;
-    }
-
-    public void setExecutionCourseAggregateId(Integer executionCourseAggregateId) {
-        this.executionCourseAggregateId = executionCourseAggregateId;
-    }
-
-    public String getExecutionAcronym() {
-        return executionAcronym;
-    }
-
-    public void setExecutionAcronym(String executionAcronym) {
-        this.executionAcronym = executionAcronym;
-    }
-
     public AggregateState getExecutionState() {
         return executionState;
     }
@@ -89,6 +73,22 @@ public class TournamentExecution {
         this.executionVersion = executionVersion;
     }
 
+    public Integer getExecutionCourseAggregateId() {
+        return executionCourseAggregateId;
+    }
+
+    public void setExecutionCourseAggregateId(Integer executionCourseAggregateId) {
+        this.executionCourseAggregateId = executionCourseAggregateId;
+    }
+
+    public String getExecutionAcronym() {
+        return executionAcronym;
+    }
+
+    public void setExecutionAcronym(String executionAcronym) {
+        this.executionAcronym = executionAcronym;
+    }
+
     public Tournament getTournament() {
         return tournament;
     }
@@ -101,10 +101,10 @@ public class TournamentExecution {
     public TournamentExecutionDto buildDto() {
         TournamentExecutionDto dto = new TournamentExecutionDto();
         dto.setAggregateId(getExecutionAggregateId());
-        dto.setCourseAggregateId(getExecutionCourseAggregateId());
-        dto.setAcronym(getExecutionAcronym());
         dto.setState(getExecutionState());
         dto.setVersion(getExecutionVersion());
+        dto.setCourseAggregateId(getExecutionCourseAggregateId());
+        dto.setAcronym(getExecutionAcronym());
         return dto;
     }
 }

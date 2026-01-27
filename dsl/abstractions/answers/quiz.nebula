@@ -3,16 +3,16 @@ import shared-enums;
 Aggregate Quiz {
     @GenerateCrud;
     Entity QuizExecution uses Execution {
-        Integer executionAggregateId -> aggregateId;
+        Integer executionAggregateId;
         String executionAcronym -> acronym;
         String executionAcademicTerm -> academicTerm;
         String executionName;
     }
 
     Entity QuizQuestion uses Question {
-        Integer questionAggregateId -> aggregateId;
-        Integer questionVersion -> version;
-        AggregateState questionState -> state;
+        Integer questionAggregateId;
+        Integer questionVersion;
+        AggregateState questionState;
         String questionTitle -> title;
         String questionContent -> content;
         Integer questionSequence;

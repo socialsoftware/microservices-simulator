@@ -14,8 +14,8 @@ public class QuestionCourse {
     @GeneratedValue
     private Long id;
     private Integer courseAggregateId;
-    private String courseName;
     private Integer courseVersion;
+    private String courseName;
     @OneToOne
     private Question question;
 
@@ -30,8 +30,8 @@ public class QuestionCourse {
     }
 
     public QuestionCourse(QuestionCourse other) {
-        setCourseName(other.getCourseName());
         setCourseVersion(other.getCourseVersion());
+        setCourseName(other.getCourseName());
     }
 
     public Long getId() {
@@ -50,20 +50,20 @@ public class QuestionCourse {
         this.courseAggregateId = courseAggregateId;
     }
 
-    public String getCourseName() {
-        return courseName;
-    }
-
-    public void setCourseName(String courseName) {
-        this.courseName = courseName;
-    }
-
     public Integer getCourseVersion() {
         return courseVersion;
     }
 
     public void setCourseVersion(Integer courseVersion) {
         this.courseVersion = courseVersion;
+    }
+
+    public String getCourseName() {
+        return courseName;
+    }
+
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
     }
 
     public Question getQuestion() {
@@ -78,8 +78,8 @@ public class QuestionCourse {
     public QuestionCourseDto buildDto() {
         QuestionCourseDto dto = new QuestionCourseDto();
         dto.setAggregateId(getCourseAggregateId());
-        dto.setName(getCourseName());
         dto.setVersion(getCourseVersion());
+        dto.setName(getCourseName());
         return dto;
     }
 }

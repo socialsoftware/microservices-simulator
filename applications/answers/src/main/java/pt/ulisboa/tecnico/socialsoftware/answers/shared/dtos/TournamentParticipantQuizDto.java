@@ -4,31 +4,39 @@ import java.io.Serializable;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipantQuiz;
 
 public class TournamentParticipantQuizDto implements Serializable {
-    private Integer participantQuizVersion;
+    private Integer aggregateId;
+    private Integer version;
     private Boolean participantQuizAnswered;
     private Integer participantQuizNumberOfAnswered;
     private Integer participantQuizNumberOfCorrect;
     private TournamentParticipantDto tournamentParticipant;
-    private Integer aggregateId;
 
     public TournamentParticipantQuizDto() {
     }
 
     public TournamentParticipantQuizDto(TournamentParticipantQuiz tournamentParticipantQuiz) {
-        this.participantQuizVersion = tournamentParticipantQuiz.getParticipantQuizVersion();
+        this.aggregateId = tournamentParticipantQuiz.getParticipantQuizAggregateId();
+        this.version = tournamentParticipantQuiz.getParticipantQuizVersion();
         this.participantQuizAnswered = tournamentParticipantQuiz.getParticipantQuizAnswered();
         this.participantQuizNumberOfAnswered = tournamentParticipantQuiz.getParticipantQuizNumberOfAnswered();
         this.participantQuizNumberOfCorrect = tournamentParticipantQuiz.getParticipantQuizNumberOfCorrect();
         this.tournamentParticipant = tournamentParticipantQuiz.getTournamentParticipant() != null ? new TournamentParticipantDto(tournamentParticipantQuiz.getTournamentParticipant()) : null;
-        this.aggregateId = tournamentParticipantQuiz.getParticipantQuizAggregateId();
     }
 
-    public Integer getParticipantQuizVersion() {
-        return participantQuizVersion;
+    public Integer getAggregateId() {
+        return aggregateId;
     }
 
-    public void setParticipantQuizVersion(Integer participantQuizVersion) {
-        this.participantQuizVersion = participantQuizVersion;
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 
     public Boolean getParticipantQuizAnswered() {
@@ -61,13 +69,5 @@ public class TournamentParticipantQuizDto implements Serializable {
 
     public void setTournamentParticipant(TournamentParticipantDto tournamentParticipant) {
         this.tournamentParticipant = tournamentParticipant;
-    }
-
-    public Integer getAggregateId() {
-        return aggregateId;
-    }
-
-    public void setAggregateId(Integer aggregateId) {
-        this.aggregateId = aggregateId;
     }
 }

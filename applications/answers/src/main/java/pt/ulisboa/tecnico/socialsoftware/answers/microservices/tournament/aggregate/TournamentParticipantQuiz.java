@@ -15,13 +15,13 @@ public class TournamentParticipantQuiz {
     @Id
     @GeneratedValue
     private Long id;
+    private Integer participantQuizAggregateId;
     private Integer participantQuizVersion;
     private boolean participantQuizAnswered;
     private Integer participantQuizNumberOfAnswered;
     private Integer participantQuizNumberOfCorrect;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentparticipantquiz")
     private TournamentParticipant tournamentParticipant;
-    private Integer participantQuizAggregateId;
     @OneToOne
     private Tournament tournament;
 
@@ -31,14 +31,15 @@ public class TournamentParticipantQuiz {
 
     public TournamentParticipantQuiz(QuizDto quizDto) {
         setParticipantQuizAggregateId(quizDto.getAggregateId());
+        setParticipantQuizVersion(quizDto.getVersion());
     }
 
     public TournamentParticipantQuiz(TournamentParticipantQuiz other) {
+        setParticipantQuizVersion(other.getParticipantQuizVersion());
         setParticipantQuizAnswered(other.getParticipantQuizAnswered());
         setParticipantQuizNumberOfAnswered(other.getParticipantQuizNumberOfAnswered());
         setParticipantQuizNumberOfCorrect(other.getParticipantQuizNumberOfCorrect());
         setTournamentParticipant(new TournamentParticipant(other.getTournamentParticipant()));
-        setParticipantQuizAggregateId(other.getParticipantQuizAggregateId());
     }
 
     public Long getId() {
@@ -47,6 +48,14 @@ public class TournamentParticipantQuiz {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Integer getParticipantQuizAggregateId() {
+        return participantQuizAggregateId;
+    }
+
+    public void setParticipantQuizAggregateId(Integer participantQuizAggregateId) {
+        this.participantQuizAggregateId = participantQuizAggregateId;
     }
 
     public Integer getParticipantQuizVersion() {
@@ -92,14 +101,6 @@ public class TournamentParticipantQuiz {
         }
     }
 
-    public Integer getParticipantQuizAggregateId() {
-        return participantQuizAggregateId;
-    }
-
-    public void setParticipantQuizAggregateId(Integer participantQuizAggregateId) {
-        this.participantQuizAggregateId = participantQuizAggregateId;
-    }
-
     public Tournament getTournament() {
         return tournament;
     }
@@ -111,12 +112,12 @@ public class TournamentParticipantQuiz {
 
     public TournamentParticipantQuizDto buildDto() {
         TournamentParticipantQuizDto dto = new TournamentParticipantQuizDto();
-        dto.setParticipantQuizVersion(getParticipantQuizVersion());
+        dto.setAggregateId(getParticipantQuizAggregateId());
+        dto.setVersion(getParticipantQuizVersion());
         dto.setParticipantQuizAnswered(getParticipantQuizAnswered());
         dto.setParticipantQuizNumberOfAnswered(getParticipantQuizNumberOfAnswered());
         dto.setParticipantQuizNumberOfCorrect(getParticipantQuizNumberOfCorrect());
         dto.setTournamentParticipant(getTournamentParticipant() != null ? new TournamentParticipantDto(getTournamentParticipant()) : null);
-        dto.setAggregateId(getParticipantQuizAggregateId());
         return dto;
     }
 }

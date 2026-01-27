@@ -15,10 +15,10 @@ public class QuizQuestion {
     @Id
     @GeneratedValue
     private Long id;
-    private Integer questionSequence;
     private Integer questionAggregateId;
     private Integer questionVersion;
     private AggregateState questionState;
+    private Integer questionSequence;
     private String questionTitle;
     private String questionContent;
     @OneToOne
@@ -37,9 +37,9 @@ public class QuizQuestion {
     }
 
     public QuizQuestion(QuizQuestion other) {
-        setQuestionAggregateId(other.getQuestionAggregateId());
         setQuestionVersion(other.getQuestionVersion());
         setQuestionState(other.getQuestionState());
+        setQuestionSequence(other.getQuestionSequence());
         setQuestionTitle(other.getQuestionTitle());
         setQuestionContent(other.getQuestionContent());
     }
@@ -50,14 +50,6 @@ public class QuizQuestion {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Integer getQuestionSequence() {
-        return questionSequence;
-    }
-
-    public void setQuestionSequence(Integer questionSequence) {
-        this.questionSequence = questionSequence;
     }
 
     public Integer getQuestionAggregateId() {
@@ -82,6 +74,14 @@ public class QuizQuestion {
 
     public void setQuestionState(AggregateState questionState) {
         this.questionState = questionState;
+    }
+
+    public Integer getQuestionSequence() {
+        return questionSequence;
+    }
+
+    public void setQuestionSequence(Integer questionSequence) {
+        this.questionSequence = questionSequence;
     }
 
     public String getQuestionTitle() {
@@ -111,10 +111,10 @@ public class QuizQuestion {
 
     public QuizQuestionDto buildDto() {
         QuizQuestionDto dto = new QuizQuestionDto();
-        dto.setQuestionSequence(getQuestionSequence());
         dto.setAggregateId(getQuestionAggregateId());
         dto.setVersion(getQuestionVersion());
         dto.setState(getQuestionState());
+        dto.setQuestionSequence(getQuestionSequence());
         dto.setTitle(getQuestionTitle());
         dto.setContent(getQuestionContent());
         return dto;

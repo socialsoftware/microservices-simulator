@@ -1,14 +1,14 @@
 Aggregate Answer {
     @GenerateCrud;
     Entity AnswerUser uses User {
-        Integer userAggregateId -> aggregateId;
+        Integer userAggregateId;
         String userName -> name;
-        AggregateState userState -> state;
+        AggregateState userState;
     }
 
     Entity AnswerExecution uses Execution {
-        Integer executionAggregateId -> aggregateId;
-        Integer executionVersion -> version;
+        Integer executionAggregateId;
+        Integer executionVersion;
     }
 
     Dto Entity QuestionAnswered {
@@ -22,8 +22,8 @@ Aggregate Answer {
     }
 
     Entity AnswerQuiz uses Quiz {
-        Integer quizAggregateId -> aggregateId;
-        Integer quizVersion -> version;
+        Integer quizAggregateId;
+        Integer quizVersion;
         List<Integer> quizQuestionsAggregateIds -> questions extract aggregateId;
     }
 

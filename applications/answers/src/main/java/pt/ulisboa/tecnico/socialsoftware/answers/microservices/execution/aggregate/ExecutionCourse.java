@@ -17,10 +17,10 @@ public class ExecutionCourse {
     @GeneratedValue
     private Long id;
     private Integer courseAggregateId;
+    private Integer courseVersion;
     private String courseName;
     @Enumerated(EnumType.STRING)
     private CourseType courseType;
-    private Integer courseVersion;
     @OneToOne
     private Execution execution;
 
@@ -36,9 +36,9 @@ public class ExecutionCourse {
     }
 
     public ExecutionCourse(ExecutionCourse other) {
+        setCourseVersion(other.getCourseVersion());
         setCourseName(other.getCourseName());
         setCourseType(other.getCourseType());
-        setCourseVersion(other.getCourseVersion());
     }
 
     public Long getId() {
@@ -57,6 +57,14 @@ public class ExecutionCourse {
         this.courseAggregateId = courseAggregateId;
     }
 
+    public Integer getCourseVersion() {
+        return courseVersion;
+    }
+
+    public void setCourseVersion(Integer courseVersion) {
+        this.courseVersion = courseVersion;
+    }
+
     public String getCourseName() {
         return courseName;
     }
@@ -73,14 +81,6 @@ public class ExecutionCourse {
         this.courseType = courseType;
     }
 
-    public Integer getCourseVersion() {
-        return courseVersion;
-    }
-
-    public void setCourseVersion(Integer courseVersion) {
-        this.courseVersion = courseVersion;
-    }
-
     public Execution getExecution() {
         return execution;
     }
@@ -93,9 +93,9 @@ public class ExecutionCourse {
     public ExecutionCourseDto buildDto() {
         ExecutionCourseDto dto = new ExecutionCourseDto();
         dto.setAggregateId(getCourseAggregateId());
+        dto.setVersion(getCourseVersion());
         dto.setName(getCourseName());
         dto.setType(getCourseType() != null ? getCourseType().name() : null);
-        dto.setVersion(getCourseVersion());
         return dto;
     }
 }

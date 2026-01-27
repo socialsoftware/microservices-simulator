@@ -6,25 +6,49 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipant;
 
 public class TournamentParticipantDto implements Serializable {
-    private LocalDateTime participantEnrollTime;
-    private TournamentParticipantQuizDto participantQuiz;
     private Integer aggregateId;
-    private String name;
-    private String username;
     private Integer version;
     private AggregateState state;
+    private LocalDateTime participantEnrollTime;
+    private TournamentParticipantQuizDto participantQuiz;
+    private String name;
+    private String username;
 
     public TournamentParticipantDto() {
     }
 
     public TournamentParticipantDto(TournamentParticipant tournamentParticipant) {
-        this.participantEnrollTime = tournamentParticipant.getParticipantEnrollTime();
-        this.participantQuiz = tournamentParticipant.getParticipantQuiz() != null ? new TournamentParticipantQuizDto(tournamentParticipant.getParticipantQuiz()) : null;
         this.aggregateId = tournamentParticipant.getParticipantAggregateId();
-        this.name = tournamentParticipant.getParticipantName();
-        this.username = tournamentParticipant.getParticipantUsername();
         this.version = tournamentParticipant.getParticipantVersion();
         this.state = tournamentParticipant.getParticipantState();
+        this.participantEnrollTime = tournamentParticipant.getParticipantEnrollTime();
+        this.participantQuiz = tournamentParticipant.getParticipantQuiz() != null ? new TournamentParticipantQuizDto(tournamentParticipant.getParticipantQuiz()) : null;
+        this.name = tournamentParticipant.getParticipantName();
+        this.username = tournamentParticipant.getParticipantUsername();
+    }
+
+    public Integer getAggregateId() {
+        return aggregateId;
+    }
+
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    public AggregateState getState() {
+        return state;
+    }
+
+    public void setState(AggregateState state) {
+        this.state = state;
     }
 
     public LocalDateTime getParticipantEnrollTime() {
@@ -43,14 +67,6 @@ public class TournamentParticipantDto implements Serializable {
         this.participantQuiz = participantQuiz;
     }
 
-    public Integer getAggregateId() {
-        return aggregateId;
-    }
-
-    public void setAggregateId(Integer aggregateId) {
-        this.aggregateId = aggregateId;
-    }
-
     public String getName() {
         return name;
     }
@@ -65,21 +81,5 @@ public class TournamentParticipantDto implements Serializable {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
-    public AggregateState getState() {
-        return state;
-    }
-
-    public void setState(AggregateState state) {
-        this.state = state;
     }
 }

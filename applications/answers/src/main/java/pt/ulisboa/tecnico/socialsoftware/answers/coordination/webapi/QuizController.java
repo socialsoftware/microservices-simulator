@@ -33,7 +33,7 @@ public class QuizController {
     }
 
     @GetMapping("/quizs")
-    public List<QuizDto> searchQuizs(@RequestParam(required = false) String title, @RequestParam(required = false) QuizType quizType) {
-        return quizFunctionalities.searchQuizs(title, quizType);
+    public List<QuizDto> searchQuizs(@RequestParam(required = false) String title, @RequestParam(required = false) QuizType quizType, @RequestParam(required = false) Integer executionAggregateId) {
+        return quizFunctionalities.searchQuizs(title, quizType, executionAggregateId);
     }
 }

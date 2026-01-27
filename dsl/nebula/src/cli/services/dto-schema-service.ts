@@ -1,5 +1,5 @@
-import type { Aggregate, DtoFieldMapping, Entity, Model, Property } from "../../language/generated/ast.js";
-import { getEntities, getEffectiveProperties } from "../utils/aggregate-helpers.js";
+import type { Aggregate, Entity, Model, Property } from "../../language/generated/ast.js";
+import { getEntities, getEffectiveFieldMappings, getEffectiveProperties } from "../utils/aggregate-helpers.js";
 import { UnifiedTypeResolver, type ResolvedType } from "../generators/common/unified-type-resolver.js";
 
 export interface DtoFieldSchema {
@@ -209,15 +209,12 @@ export class DtoSchemaService {
 
                     // Determine the correct accessor from the element entity's fieldMappings
                     let derivedAccessor = 'getAggregateId';
-                    const elementEntityAny = elementEntity as any;
-                    if (elementEntityAny.fieldMappings) {
-                        const aggIdMapping = elementEntityAny.fieldMappings.find((fm: any) =>
-                            fm.dtoField === 'aggregateId'
-                        );
-                        if (aggIdMapping && aggIdMapping.entityField) {
-                            const capField = aggIdMapping.entityField.charAt(0).toUpperCase() + aggIdMapping.entityField.slice(1);
-                            derivedAccessor = `get${capField}`;
-                        }
+                    const aggIdMapping = getEffectiveFieldMappings(elementEntity).find((fm: any) =>
+                        fm.dtoField === 'aggregateId'
+                    );
+                    if (aggIdMapping && aggIdMapping.entityField) {
+                        const capField = aggIdMapping.entityField.charAt(0).toUpperCase() + aggIdMapping.entityField.slice(1);
+                        derivedAccessor = `get${capField}`;
                     }
 
                     return {
@@ -271,23 +268,14 @@ export class DtoSchemaService {
 
             if (targetEntity && !targetEntity.isRoot) {
                 // For non-root entities (like TopicCourse), check if they have a mapping that defines the aggregateId field
-                const entityAny = targetEntity as any;
-                if (entityAny.fieldMappings) {
-                    const aggIdMapping = entityAny.fieldMappings.find((fm: any) =>
-                        fm.dtoField === 'aggregateId'
-                    );
-                    if (aggIdMapping && aggIdMapping.entityField) {
-                        aggregateFieldName = aggIdMapping.entityField;
-                        const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
-                        derivedAccessor = `get${capField}`;
-                    } else {
-                        const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
-                        derivedAccessor = `get${capField}`;
-                    }
-                } else {
-                    const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
-                    derivedAccessor = `get${capField}`;
+                const aggIdMapping = getEffectiveFieldMappings(targetEntity).find((fm: any) =>
+                    fm.dtoField === 'aggregateId'
+                );
+                if (aggIdMapping && aggIdMapping.entityField) {
+                    aggregateFieldName = aggIdMapping.entityField;
                 }
+                const capField = aggregateFieldName.charAt(0).toUpperCase() + aggregateFieldName.slice(1);
+                derivedAccessor = `get${capField}`;
             }
 
             return {
@@ -351,10 +339,8 @@ export class DtoSchemaService {
 
     private createFieldMappingMap(entity: any): Map<string, { dtoField: string; extractField?: string }> {
         const map = new Map<string, { dtoField: string; extractField?: string }>();
-        const mapping = entity?.fieldMappings as DtoFieldMapping[] | undefined;
-        if (!mapping) {
-            return map;
-        }
+        const mapping = entity ? (getEffectiveFieldMappings(entity as Entity) as any[]) : undefined;
+        if (!mapping || mapping.length === 0) return map;
 
         for (const fieldMap of mapping) {
             if (!fieldMap?.entityField || !fieldMap.dtoField) continue;

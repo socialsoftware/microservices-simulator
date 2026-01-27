@@ -44,33 +44,33 @@ Aggregate Tournament {
     }
 
     Entity TournamentExecution uses Execution {
-        Integer executionAggregateId -> aggregateId;
+        Integer executionAggregateId;
         Integer executionCourseAggregateId -> courseAggregateId;
         String executionAcronym -> acronym;
-        AggregateState executionState -> state;
-        Integer executionVersion -> version;
+        AggregateState executionState;
+        Integer executionVersion;
     }
 
-    Entity TournamentCreator uses User {
-        Integer creatorAggregateId -> aggregateId;
+    Entity TournamentCreator uses ExecutionUser {
+        Integer creatorAggregateId;
         String creatorName -> name;
         String creatorUsername -> username;
-        Integer creatorVersion -> version;
-        AggregateState creatorState -> state;
+        Integer creatorVersion;
+        AggregateState creatorState;
     }
 
-    Entity TournamentParticipant uses User {
-        Integer participantAggregateId -> aggregateId;
+    Entity TournamentParticipant uses ExecutionUser {
+        Integer participantAggregateId;
         String participantName -> name;
         String participantUsername -> username;
-        Integer participantVersion -> version;
-        AggregateState participantState -> state;
+        Integer participantVersion;
+        AggregateState participantState;
         LocalDateTime participantEnrollTime;
         TournamentParticipantQuiz participantQuiz;
     }
 
     Entity TournamentParticipantQuiz uses Quiz {
-        Integer participantQuizAggregateId -> aggregateId;
+        Integer participantQuizAggregateId;
         Integer participantQuizVersion;
         Boolean participantQuizAnswered;
         Integer participantQuizNumberOfAnswered;
@@ -79,15 +79,15 @@ Aggregate Tournament {
     }
 
     Entity TournamentTopic uses Topic {
-        Integer topicAggregateId -> aggregateId;
-        Integer topicVersion -> version;
-        AggregateState topicState -> state;
+        Integer topicAggregateId;
+        Integer topicVersion;
+        AggregateState topicState;
         String topicName -> name;
         Integer topicCourseAggregateId -> courseAggregateId;
     }
 
     Entity TournamentQuiz uses Quiz {
-        Integer quizAggregateId -> aggregateId;
-        Integer quizVersion -> version;
+        Integer quizAggregateId;
+        Integer quizVersion;
     }
 }

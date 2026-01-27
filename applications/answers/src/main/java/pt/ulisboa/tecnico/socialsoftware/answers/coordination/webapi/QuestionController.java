@@ -32,7 +32,7 @@ public class QuestionController {
     }
 
     @GetMapping("/questions")
-    public List<QuestionDto> searchQuestions(@RequestParam(required = false) String title, @RequestParam(required = false) String content) {
-        return questionFunctionalities.searchQuestions(title, content);
+    public List<QuestionDto> searchQuestions(@RequestParam(required = false) String title, @RequestParam(required = false) String content, @RequestParam(required = false) Integer courseAggregateId) {
+        return questionFunctionalities.searchQuestions(title, content, courseAggregateId);
     }
 }

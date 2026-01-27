@@ -9,7 +9,7 @@ import { ImportManager, ImportManagerFactory } from "../../../utils/import-manag
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../../../utils/error-handler.js";
 import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 import type { DtoSchemaRegistry, DtoFieldSchema } from "../../../services/dto-schema-service.js";
-import { getEffectiveProperties } from "../../../utils/aggregate-helpers.js";
+import { getEffectiveFieldMappings, getEffectiveProperties } from "../../../utils/aggregate-helpers.js";
 
 // ============================================================================
 // ENTITY GENERATION ORCHESTRATION
@@ -450,11 +450,8 @@ ${components.buildDtoMethod}
 
     private resolveDtoFieldMappings(entity: Entity): Map<string, { property: any; extractField?: string }> {
         const overrides = new Map<string, { property: any; extractField?: string }>();
-        const entityAny = entity as any;
-        const fieldMappings = entityAny?.fieldMappings as any[] | undefined;
-        if (!fieldMappings) {
-            return overrides;
-        }
+        const fieldMappings = getEffectiveFieldMappings(entity);
+        if (!fieldMappings || fieldMappings.length === 0) return overrides;
 
         const effectiveProps = getEffectiveProperties(entity);
         for (const mapping of fieldMappings) {
