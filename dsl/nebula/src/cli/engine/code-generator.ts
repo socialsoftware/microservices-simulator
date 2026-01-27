@@ -72,6 +72,15 @@ export class CodeGenerator {
             const config = await this.setupConfiguration(opts, inputPath);
             const paths = await ProjectSetup.setupProjectPaths(config.baseOutputDir, inputPath, config.projectName);
 
+            // Clean previous generated project before writing new code
+            // This ensures removed components don't linger on disk between generations.
+            try {
+                await fs.rm(paths.projectPath, { recursive: true, force: true });
+                console.log(`Cleaning existing project directory: ${paths.projectPath}`);
+            } catch {
+                // Ignore cleanup failures; generation will recreate what's needed.
+            }
+
             // Validate domain models for correctness
             await this.validateModels(models, config);
 
