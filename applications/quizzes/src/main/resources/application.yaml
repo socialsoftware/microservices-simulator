@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: quizzes
   profiles:
     active: "@activatedProperties@"
 
@@ -179,3 +181,86 @@ spring:
     port: 5672
     username: guest
     password: guest
+---
+version-service: http://${VERSION_SERVICE_HOST:localhost}:8081
+
+spring:
+  config:
+    activate:
+      on-profile: grpc
+
+  cloud:
+    function:
+      definition: >-
+        questionEventSubscriber;
+        tournamentEventSubscriber;
+        courseExecutionEventSubscriber;
+        answerEventSubscriber;
+        quizEventSubscriber;
+        courseEventSubscriber;
+        topicEventSubscriber;
+        userEventSubscriber
+
+    stream:
+      default:
+        contentType: application/json
+
+      bindings:
+        # --- Single Event channel (all events go through here) ---
+        event-channel:
+          destination: event-channel
+
+        # --- Event Subscribers ---
+        questionEventSubscriber-in-0:
+          destination: event-channel
+          group: question-service-group
+        tournamentEventSubscriber-in-0:
+          destination: event-channel
+          group: tournament-service-group
+        courseExecutionEventSubscriber-in-0:
+          destination: event-channel
+          group: course-execution-service-group
+        answerEventSubscriber-in-0:
+          destination: event-channel
+          group: answer-service-group
+        quizEventSubscriber-in-0:
+          destination: event-channel
+          group: quiz-service-group
+        courseEventSubscriber-in-0:
+          destination: event-channel
+          group: course-service-group
+        topicEventSubscriber-in-0:
+          destination: event-channel
+          group: topic-service-group
+        userEventSubscriber-in-0:
+          destination: event-channel
+          group: user-service-group
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+grpc:
+  server:
+    port: 9090
+  fallback-service: quizzes
+  command:
+    default-port: 9090
+    version:
+      port: 9091
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+    metadata-map:
+      grpcPort: ${grpc.server.port}

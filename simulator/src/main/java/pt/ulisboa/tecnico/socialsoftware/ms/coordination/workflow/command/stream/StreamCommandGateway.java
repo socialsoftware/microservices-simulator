@@ -49,7 +49,7 @@ public class StreamCommandGateway extends CommandGateway {
         String correlationId = java.util.UUID.randomUUID().toString();
 
         String appName = applicationContext.getEnvironment().getProperty("spring.application.name");
-        String replyTo = (appName != null && !appName.isEmpty()) ? appName + "-command-responses" : "command-responses";
+        String replyTo = (appName != null && !appName.isEmpty() && !appName.equals("quizzes")) ? appName + "-command-responses" : "command-responses";
 
         CompletableFuture<CommandResponse> responseFuture = responseAggregator.createResponseFuture(correlationId);
         logger.info("Sending command " + command.getClass().getSimpleName() + " to " + destination);

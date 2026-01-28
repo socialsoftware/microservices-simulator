@@ -12,10 +12,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * Service that dynamically discovers available microservices using Spring Cloud
- * DiscoveryClient.
- */
 @Service
 public class DynamicGatewayService {
 

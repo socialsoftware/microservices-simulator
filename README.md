@@ -493,6 +493,14 @@ in [application.yaml](applications/quizzes/src/main/resources/application.yaml):
 Service-specific bindings override only the channels relevant to that service, as shown
 in [application-tournament-service.yaml](applications/quizzes/src/main/resources/application-tournament-service.yaml).
 
+### gRPC Command Gateway
+
+An alternative remote transport is available with the `grpc` profile. Each service exposes a gRPC endpoint for
+commands (see `GrpcServerRunner`), and callers use `GrpcCommandGateway` with Eureka-based discovery. Default and
+service-specific gRPC ports are configured in the `application-*-service.yaml` files (and exposed via Eureka metadata
+key `grpcPort`). Override the default client port with `grpc.command.default-port` or per-service with
+`grpc.command.<service>.port` when needed.
+
 ### Service URLs and Ports
 
 Each microservice runs on a dedicated port:

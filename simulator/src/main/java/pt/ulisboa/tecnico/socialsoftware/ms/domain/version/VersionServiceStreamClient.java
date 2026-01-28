@@ -11,7 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.GetVersionCom
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.IncrementVersionCommand;
 
 @Service
-@Profile("stream")
+@Profile({ "stream", "grpc" })
 public class VersionServiceStreamClient implements IVersionService {
     private static final Logger logger = LoggerFactory.getLogger(VersionServiceStreamClient.class);
 

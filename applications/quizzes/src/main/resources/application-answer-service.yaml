@@ -23,6 +23,9 @@ spring:
 
 server:
   port: 8082
+grpc:
+  server:
+    port: 9092
 
 ---
 spring:
@@ -44,3 +47,5 @@ eureka:
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${random.uuid}
+    metadata-map:
+      grpcPort: ${grpc.server.port}
