@@ -28,8 +28,8 @@ spring:
         webflux:
           routes:
             # Course Execution Service (User Executions)
-            - id: course-execution-service-users
-              uri: lb://course-execution${gateway.service-suffix}
+            - id: courseExecution-service-users
+              uri: lb://courseExecution${gateway.service-suffix}
               predicates:
                 - Path=/users/*/executions
 
@@ -70,8 +70,8 @@ spring:
                 - Path=/quizzes/**
 
             # Execution Routes (Ordered)
-            - id: course-execution-service-create
-              uri: lb://course-execution${gateway.service-suffix}
+            - id: courseExecution-service-create
+              uri: lb://courseExecution${gateway.service-suffix}
               predicates:
                 - Path=/executions/create
 
@@ -81,8 +81,8 @@ spring:
                 - Method=POST
                 - Path=/executions/{executionId}
 
-            - id: course-execution-service
-              uri: lb://course-execution${gateway.service-suffix}
+            - id: courseExecution-service
+              uri: lb://courseExecution${gateway.service-suffix}
               predicates:
                 - Path=/executions/**
 
