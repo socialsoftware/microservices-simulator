@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="user-sagas-grpc" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="microservices-sagas-grpc">
+    <option name="ACTIVE_PROFILES" value="grpc,sagas,user-service" />
+    <module name="QuizzesTutor" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.UserServiceApplication" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

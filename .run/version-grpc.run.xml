@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="version-stream" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="version-service">
-    <option name="ACTIVE_PROFILES" value="version-service, stream" />
+  <configuration default="false" name="version-grpc" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="version-service">
+    <option name="ACTIVE_PROFILES" value="version-service, grpc" />
     <module name="MicroservicesSimulator" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionServiceApplication" />
     <extension name="coverage">
