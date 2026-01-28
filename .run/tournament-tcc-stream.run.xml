@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="TournamentServiceApplication Sagas" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="microservices-sagas">
-    <option name="ACTIVE_PROFILES" value="sagas,stream,tournament-service" />
+  <configuration default="false" name="tournament-tcc-stream" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="microservices-tcc-stream">
+    <option name="ACTIVE_PROFILES" value="tcc,stream,tournament-service" />
     <module name="QuizzesTutor" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.TournamentServiceApplication" />
     <extension name="coverage">

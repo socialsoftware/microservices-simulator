@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="CourseServiceApplication TCC" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="microservices-tcc">
+  <configuration default="false" name="course-tcc-stream" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="microservices-tcc-stream">
     <option name="ACTIVE_PROFILES" value="tcc,stream,course-service" />
     <module name="QuizzesTutor" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.CourseServiceApplication" />

@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="TopicServiceApplication Sagas" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="microservices-sagas">
+  <configuration default="false" name="topic-sagas-stream" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="microservices-sagas-stream">
     <option name="ACTIVE_PROFILES" value="sagas,stream,topic-service" />
     <module name="QuizzesTutor" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.TopicServiceApplication" />

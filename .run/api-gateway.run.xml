@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="GatewayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+  <configuration default="false" name="api-gateway" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <module name="gateway" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.gateway.GatewayApplication" />
     <extension name="coverage">
