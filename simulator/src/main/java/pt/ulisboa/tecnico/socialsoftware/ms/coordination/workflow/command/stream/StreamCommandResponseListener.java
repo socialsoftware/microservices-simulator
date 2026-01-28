@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandResponse;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.MessagingObjectMapperProvider;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import java.util.function.Consumer;

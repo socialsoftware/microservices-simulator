@@ -182,8 +182,6 @@ spring:
     username: guest
     password: guest
 ---
-version-service: http://${VERSION_SERVICE_HOST:localhost}:8081
-
 spring:
   config:
     activate:

@@ -15,8 +15,6 @@ eureka:
   instance:
     prefer-ip-address: true
 
-version-service: http://${VERSION_SERVICE_HOST:localhost}:8081
-
 spring:
   application:
     name: gateway

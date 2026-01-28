@@ -42,7 +42,6 @@ spring:
           group: version-service
         command-responses-out-0:
           destination: command-responses
-
 ---
 spring:
   config:
@@ -62,6 +61,6 @@ eureka:
     registry-fetch-interval-seconds: 5
   instance:
     prefer-ip-address: true
-    instance-id: ${spring.application.name:${spring.application.name:version-service}}:${random.uuid}
+    instance-id: ${spring.application.name}:${random.uuid}
     metadata-map:
       grpcPort: ${grpc.server.port}

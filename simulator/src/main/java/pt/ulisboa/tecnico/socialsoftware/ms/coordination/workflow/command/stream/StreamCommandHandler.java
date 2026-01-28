@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandResponse;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.MessagingObjectMapperProvider;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import java.util.logging.Logger;

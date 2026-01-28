@@ -22,11 +22,8 @@ public class DynamicGatewayService {
     @Value("${gateway.service-suffix:-service}")
     private String serviceSuffix;
 
-    @Value("#{'${gateway.exclude-services:gateway}'.split(',')}")
+    @Value("#{'${gateway.exclude-services:gateway,version}'.split(',')}")
     private List<String> excludeServices;
-
-    @Value("${version-service}")
-    private String versionService;
 
     public DynamicGatewayService(DiscoveryClient discoveryClient) {
         this.discoveryClient = discoveryClient;
@@ -82,6 +79,6 @@ public class DynamicGatewayService {
     }
 
     public String getVersionServiceUrl() {
-        return versionService;
+        return getServiceUrl("version");
     }
 }

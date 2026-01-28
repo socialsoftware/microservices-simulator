@@ -15,19 +15,17 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandResponse;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.stream.MessagingObjectMapperProvider;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.MessagingObjectMapperProvider;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandReply;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandRequest;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandServiceGrpc;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 
-import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
@@ -37,9 +35,6 @@ public class GrpcCommandGateway extends CommandGateway {
     private final DiscoveryClient discoveryClient;
     private final Environment environment;
     private final ObjectMapper objectMapper;
-
-    @Value("${version-service:}")
-    private String versionServiceUrl;
 
     @Value("${grpc.fallback-service:}")
     private String fallbackService;
@@ -102,25 +97,13 @@ public class GrpcCommandGateway extends CommandGateway {
         String host;
         int port;
 
-        // For version service, always use hardcoded URL
-        if ("version".equals(service) && versionServiceUrl != null && !versionServiceUrl.isEmpty()) {
-            try {
-                URI uri = URI.create(versionServiceUrl);
-                host = uri.getHost();
-                port = environment.getProperty("grpc.command.version.port", Integer.class, 9091);
-                logger.info("Using hardcoded version service: " + host + ":" + port);
-            } catch (Exception e) {
-                throw new RuntimeException("Invalid version-service URL: " + versionServiceUrl, e);
-            }
-        } else {
-            // For other services, use discovery
-            ServiceInstance instance = chooseInstance(service);
-            if (instance == null) {
-                throw new RuntimeException("No available instances for service: " + service);
-            }
-            host = instance.getHost();
-            port = resolveGrpcPort(instance, service);
+        // Using service discovery
+        ServiceInstance instance = chooseInstance(service);
+        if (instance == null) {
+            throw new RuntimeException("No available instances for service: " + service);
         }
+        host = instance.getHost();
+        port = resolveGrpcPort(instance, service);
 
         ManagedChannel channel = ManagedChannelBuilder
                 .forAddress(host, port)
@@ -170,43 +153,5 @@ public class GrpcCommandGateway extends CommandGateway {
         }
 
         return environment.getProperty("grpc.command.default-port", Integer.class, instance.getPort());
-    }
-
-    private void mergeUnitOfWork(UnitOfWork target, UnitOfWork source) {
-        if (target == null || source == null)
-            return;
-        if (source.getId() != null)
-            target.setId(source.getId());
-        if (source.getVersion() != null)
-            target.setVersion(source.getVersion());
-        if (source.getAggregatesToCommit() != null) {
-            for (Aggregate sourceAgg : source.getAggregatesToCommit()) {
-                boolean alreadyExists = target.getAggregatesToCommit().stream()
-                        .anyMatch(targetAgg -> targetAgg.getAggregateType().equals(sourceAgg.getAggregateType())
-                                && targetAgg.getAggregateId().equals(sourceAgg.getAggregateId()));
-                if (!alreadyExists) {
-                    target.getAggregatesToCommit().add(sourceAgg);
-                }
-            }
-        }
-        if (source.getEventsToEmit() != null)
-            target.getEventsToEmit().addAll(source.getEventsToEmit());
-        logger.info("Merging UnitOfWork - target aggregatesToCommit after: " +
-                (target.getAggregatesToCommit() != null
-                        ? target.getAggregatesToCommit().size() + " aggregates"
-                        : "null"));
-
-        if (target instanceof SagaUnitOfWork t && source instanceof SagaUnitOfWork s) {
-            if (s.getAggregatesInSaga() != null) {
-                s.getAggregatesInSaga().forEach((aggregateId, aggregateType) -> {
-                    if (!t.getAggregatesInSaga().containsKey(aggregateId)) {
-                        t.getAggregatesInSaga().put(aggregateId, aggregateType);
-                    }
-                });
-            }
-            if (s.getPreviousStates() != null) {
-                t.getPreviousStates().putAll(s.getPreviousStates());
-            }
-        }
     }
 }

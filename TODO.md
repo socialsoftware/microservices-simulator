@@ -3,7 +3,6 @@
 - [ ] Verify idempotency
 - [ ] Local calls in StreamComandGateway
 - [ ] Use kafka streams
-- [ ] GrpcCommandGateway
 - [ ] Verify 2 phase commit in TCC commit
 - [ ] Pass all jmeter tests
   - TCC local tests
@@ -39,7 +38,6 @@
 - [ ] Verify Upgrade to Java 25 
 - [ ] Verify upgrade to spring boot 4
 - [ ] Version Service Distributed
-- [ ] Create TCC profile for microservices in docker compose
 - [ ] See `TraceService` and `utils/`
 - [ ] Check the need of a transactional Outbox Table
 - [ ] Create database persistence in docker compose and kubernetes for each microservice
