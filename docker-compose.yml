@@ -110,9 +110,9 @@ services:
     networks:
       - messaging-network
 
-  # ============================================
+  # =====================================================
   # MICROSERVICE DATABASES (Database-per-service pattern)
-  # ============================================
+  # =====================================================
 
   answer-db:
     image: postgres:14-alpine
@@ -305,7 +305,7 @@ services:
       context: .
       dockerfile: simulator/Dockerfile
       args:
-        PROFILE: version-service,stream
+        PROFILE: version-service,${COMM_LAYER:-stream}
     image: simulator
     container_name: version-service
     depends_on:
@@ -336,7 +336,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: answer-${TX_MODE:-saga}
+        PROFILE: answer,${TX_MODE:-sagas},${COMM_LAYER:-stream}
     image: quizzes-answer
     container_name: answer-service
     depends_on:
@@ -367,7 +367,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: course-${TX_MODE:-saga}
+        PROFILE: course,${TX_MODE:-sagas},${COMM_LAYER:-stream}
     image: quizzes-course
     container_name: course-service
     depends_on:
@@ -398,7 +398,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: course-execution-${TX_MODE:-saga}
+        PROFILE: course-execution,${TX_MODE:-sagas},${COMM_LAYER:-stream}
     image: quizzes-course-execution
     container_name: course-execution-service
     depends_on:
@@ -429,7 +429,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: question-${TX_MODE:-saga}
+        PROFILE: question,${TX_MODE:-sagas},${COMM_LAYER:-stream}
     image: quizzes-question
     container_name: question-service
     depends_on:
@@ -460,7 +460,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: quiz-${TX_MODE:-saga}
+        PROFILE: quiz,${TX_MODE:-sagas},${COMM_LAYER:-stream}
     image: quizzes-quiz
     container_name: quiz-service
     depends_on:
@@ -491,7 +491,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: topic-${TX_MODE:-saga}
+        PROFILE: topic,${TX_MODE:-sagas},${COMM_LAYER:-stream}
     image: quizzes-topic
     container_name: topic-service
     depends_on:
@@ -522,7 +522,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: tournament-${TX_MODE:-saga}
+        PROFILE: tournament,${TX_MODE:-sagas},${COMM_LAYER:-stream}
     image: quizzes-tournament
     container_name: tournament-service
     depends_on:
@@ -553,7 +553,7 @@ services:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: user-${TX_MODE:-saga}
+        PROFILE: user,${TX_MODE:-sagas},${COMM_LAYER:-stream}
     image: quizzes-user
     container_name: user-service
     depends_on:

@@ -133,8 +133,7 @@ public class GrpcCommandGateway extends CommandGateway {
         if (instances.isEmpty()) {
             return null;
         }
-        int idx = Math.abs(service.hashCode()) % instances.size();
-        return instances.get(idx);
+        return instances.getFirst();
     }
 
     private int resolveGrpcPort(ServiceInstance instance, String service) {

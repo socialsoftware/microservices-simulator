@@ -18,12 +18,13 @@ in [Transactional Causal Consistent Microservices Simulator](https://doi.org/10.
 The simulator supports multiple execution modes to test different aspects of system behavior, ranging from simple local
 execution to full distributed deployment.
 
-| Mode                  | Description                                                                                                        | Profiles                               | Infrastructure                                                                                                               |
-|-----------------------|--------------------------------------------------------------------------------------------------------------------|----------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
-| **Monolith (Local)**  | Runs as a single application. Service calls are internal.                                                          | `sagas` or `tcc` (`local` variant)     | PostgreSQL, Jaeger                                                                                                           |
-| **Monolith (Stream)** | Single application but uses RabbitMQ for remote communication between components. Simulates distributed messaging. | `sagas,stream` or `tcc,stream`         | PostgreSQL, Jaeger, RabbitMQ                                                                                                 |
-| **Microservices**     | Fully distributed. Each domain service runs independently. Uses Eureka for discovery and RabbitMQ for messaging.   | Service-specific (e.g., `answer-saga`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, RabbitMQ, Eureka |
-| **Kubernetes**        | Distributed microservices orchestrated by Kubernetes. Uses Spring Cloud Kubernetes for discovery.                  | `kubernetes`                           | K8s Cluster, RabbitMQ, PostgreSQL                                                                                            |
+| Mode                  | Description                                                                                                        | Profiles                                      | Infrastructure                                                                                                               |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------|-----------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| **Monolith (Local)**  | Runs as a single application. Service calls are internal.                                                          | `sagas,local` or `tcc,local`                  | PostgreSQL, Jaeger                                                                                                           |
+| **Monolith (Stream)** | Single application but uses RabbitMQ for remote communication between components. Simulates distributed messaging. | `sagas,stream` or `tcc,stream`                | PostgreSQL, Jaeger, RabbitMQ                                                                                                 |
+| **Monolith (gRPC)**   | Single application using gRPC for remote communication between components.                                         | `sagas,grpc` or `tcc,grpc`                    | PostgreSQL, Jaeger                                                                                                           |
+| **Microservices**     | Fully distributed. Each domain service runs independently. Uses Eureka for discovery and RabbitMQ for messaging.   | Service-specific (e.g., `answer,sagas,stream`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, RabbitMQ, Eureka |
+| **Kubernetes**        | Distributed microservices orchestrated by Kubernetes. Uses Spring Cloud Kubernetes for discovery.                  | `kubernetes`                                  | K8s Cluster, RabbitMQ, PostgreSQL                                                                                            |
 
 ## Run Using Docker
 
@@ -62,11 +63,17 @@ docker compose up quizzes-tcc-stream
 ### Running as Microservices
 
 ```bash
-# Sagas
+# Sagas (default) with Stream (default)
 docker compose build --with-dependencies gateway
 
-# TCC
+# TCC with Stream (default)
 TX_MODE=tcc docker compose build --with-dependencies gateway
+
+# With gRPC instead of stream
+COMM_LAYER=grpc docker compose build --with-dependencies gateway
+
+# TCC + gRPC
+TX_MODE=tcc COMM_LAYER=grpc docker compose build --with-dependencies gateway
 ```
 
 This will build the gateway and all microservices.
@@ -251,16 +258,16 @@ mvn clean -Ptest-sagas test
 cd applications/quizzes
 ```
 
-#### Launch simulator for Sagas
+#### Launch simulator for Sagas with local
 
 ```bash
-mvn clean -Psagas spring-boot:run
+mvn clean spring-boot:run -Psagas,local
 ```
 
 #### Launch simulator for TCC
 
 ```bash
-mvn clean -Ptcc spring-boot:run
+mvn clean spring-boot:run -Ptcc,local
 ```
 
 #### Running Sagas Tests
@@ -281,11 +288,25 @@ mvn clean -Ptest-tcc test
 
 #### Additional Requirements:
 
-1. **Start RabbitMQ:**
+1. **Start RabbitMQ (for stream profile):**
 
     ```bash
     docker compose up rabbitmq -d
     ```
+
+#### Running with Stream
+
+```bash
+cd applications/quizzes
+mvn spring-boot:run -Psagas,stream
+```
+
+#### Running with gRPC
+
+```bash
+cd applications/quizzes
+mvn spring-boot:run -Psagas,grpc
+```
 
 ---
 
@@ -329,31 +350,44 @@ mvn spring-boot:run -Dspring-boot.run.profiles=version-service,stream
 cd applications/quizzes
 ```
 
-**Sagas:**
+**Sagas with Stream (RabbitMQ):**
 
-| Service                  | Command                                       |
+| Service                  | Command                                            |
+|--------------------------|-------------------------------------------------|
+| Answer Service           | `mvn spring-boot:run -Panswer,sagas,stream`           |
+| Course Service           | `mvn spring-boot:run -Pcourse,sagas,stream`           |
+| Course Execution Service | `mvn spring-boot:run -Pcourse-execution,sagas,stream` |
+| Question Service         | `mvn spring-boot:run -Pquestion,sagas,stream`         |
+| Quiz Service             | `mvn spring-boot:run -Pquiz,sagas,stream`             |
+| Topic Service            | `mvn spring-boot:run -Ptopic,sagas,stream`            |
+| Tournament Service       | `mvn spring-boot:run -Ptournament,sagas,stream`       |
+| User Service             | `mvn spring-boot:run -Puser,sagas,stream`             |
+
+**Sagas with gRPC:**
+
+| Service                  | Command                                          |
 |--------------------------|-----------------------------------------------|
-| Answer Service           | `mvn spring-boot:run -Panswer-saga`           |
-| Course Service           | `mvn spring-boot:run -Pcourse-saga`           |
-| Course Execution Service | `mvn spring-boot:run -Pcourse-execution-saga` |
-| Question Service         | `mvn spring-boot:run -Pquestion-saga`         |
-| Quiz Service             | `mvn spring-boot:run -Pquiz-saga`             |
-| Topic Service            | `mvn spring-boot:run -Ptopic-saga`            |
-| Tournament Service       | `mvn spring-boot:run -Ptournament-saga`       |
-| User Service             | `mvn spring-boot:run -Puser-saga`             |
+| Answer Service           | `mvn spring-boot:run -Panswer,sagas,grpc`           |
+| Course Service           | `mvn spring-boot:run -Pcourse,sagas,grpc`           |
+| Course Execution Service | `mvn spring-boot:run -Pcourse-execution,sagas,grpc` |
+| Question Service         | `mvn spring-boot:run -Pquestion,sagas,grpc`         |
+| Quiz Service             | `mvn spring-boot:run -Pquiz,sagas,grpc`             |
+| Topic Service            | `mvn spring-boot:run -Ptopic,sagas,grpc`            |
+| Tournament Service       | `mvn spring-boot:run -Ptournament,sagas,grpc`       |
+| User Service             | `mvn spring-boot:run -Puser,sagas,grpc`             |
 
-**TCC:**
+**TCC with Stream:**
 
-| Service                  | Command                                      |
+| Service                  | Command                                        |
 |--------------------------|----------------------------------------------|
-| Answer Service           | `mvn spring-boot:run -Panswer-tcc`           |
-| Course Service           | `mvn spring-boot:run -Pcourse-tcc`           |
-| Course Execution Service | `mvn spring-boot:run -Pcourse-execution-tcc` |
-| Question Service         | `mvn spring-boot:run -Pquestion-tcc`         |
-| Quiz Service             | `mvn spring-boot:run -Pquiz-tcc`             |
-| Topic Service            | `mvn spring-boot:run -Ptopic-tcc`            |
-| Tournament Service       | `mvn spring-boot:run -Ptournament-tcc`       |
-| User Service             | `mvn spring-boot:run -Puser-tcc`             |
+| Answer Service           | `mvn spring-boot:run -Panswer,tcc,stream`           |
+| Course Service           | `mvn spring-boot:run -Pcourse,tcc,stream`           |
+| Course Execution Service | `mvn spring-boot:run -Pcourse-execution,tcc,stream` |
+| Question Service         | `mvn spring-boot:run -Pquestion,tcc,stream`         |
+| Quiz Service             | `mvn spring-boot:run -Pquiz,tcc,stream`             |
+| Topic Service            | `mvn spring-boot:run -Ptopic,tcc,stream`            |
+| Tournament Service       | `mvn spring-boot:run -Ptournament,tcc,stream`       |
+| User Service             | `mvn spring-boot:run -Puser,tcc,stream`             |
 
 **3. Start the Gateway (from `applications/gateway`):**
 
