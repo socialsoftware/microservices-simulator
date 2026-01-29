@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="tcc local" type="MavenRunConfiguration" factoryName="Maven">
+  <configuration default="false" name="sagas local" type="MavenRunConfiguration" factoryName="Maven">
     <MavenSettings>
       <option name="myGeneralSettings" />
       <option name="myRunnerSettings" />
@@ -19,7 +19,7 @@
           <option name="pomFileName" />
           <option name="profilesMap">
             <map>
-              <entry key="tcc," value="true" />
+              <entry key="sagas," value="true" />
               <entry key="local" value="true" />
             </map>
           </option>

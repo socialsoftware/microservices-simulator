@@ -19,6 +19,7 @@
         <spring-cloud.version>2025.0.0</spring-cloud.version>
         <transaction.pattern>sagas</transaction.pattern>
         <communication.layer>local</communication.layer>
+        <activatedProperties>${transaction.pattern},${communication.layer}</activatedProperties>
     </properties>
     <dependencyManagement>
         <dependencies>
