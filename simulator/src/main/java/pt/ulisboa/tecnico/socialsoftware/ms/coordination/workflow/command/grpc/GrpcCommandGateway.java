@@ -26,8 +26,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandReply;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandRequest;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandServiceGrpc;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import jakarta.annotation.PostConstruct;
 
 @Component
 @Profile("grpc")
@@ -39,6 +42,9 @@ public class GrpcCommandGateway extends CommandGateway {
     @Value("${grpc.fallback-service:}")
     private String fallbackService;
 
+    @Value("${grpc.service-suffix:}")
+    private String serviceSuffix;
+
     @Autowired
     public GrpcCommandGateway(ApplicationContext applicationContext,
             RetryRegistry retryRegistry,
@@ -49,6 +55,26 @@ public class GrpcCommandGateway extends CommandGateway {
         this.discoveryClient = discoveryClient;
         this.environment = environment;
         this.objectMapper = mapperProvider.newMapper();
+    }
+
+    @PostConstruct
+    public void logDiscoveryStatus() {
+        logger.info("=== GrpcCommandGateway Service Discovery Status ===");
+        logger.info("Discovery client type: " + discoveryClient.getClass().getSimpleName());
+
+        List<String> allServices = discoveryClient.getServices();
+        logger.info("Total services found: " + allServices.size());
+
+        if (allServices.isEmpty()) {
+            logger.warning("No services discovered! Check if Kubernetes discovery is configured correctly.");
+            logger.warning("Make sure spring-cloud-starter-kubernetes-client-all is included in the build.");
+        } else {
+            logger.info("All discovered services: " + allServices);
+        }
+
+        logger.info("Service suffix configured: '" + serviceSuffix + "'");
+        logger.info("Fallback service configured: '" + fallbackService + "'");
+        logger.info("=================================================");
     }
 
     @Override
@@ -119,15 +145,17 @@ public class GrpcCommandGateway extends CommandGateway {
     }
 
     private ServiceInstance chooseInstance(String service) {
-        var instances = discoveryClient.getInstances(service);
-        logger.info("Found " + instances.size() + " instances for service " + service);
+        String resolvedService = service + (serviceSuffix != null ? serviceSuffix : "");
+        var instances = discoveryClient.getInstances(resolvedService);
+        logger.info("Found " + instances.size() + " instances for service " + resolvedService);
 
         // If no instances found and fallback service is configured, try fallback
         if (instances.isEmpty() && fallbackService != null && !fallbackService.isEmpty()
                 && !service.equals(fallbackService)) {
-            logger.info("No instances for " + service + ", trying fallback service: " + fallbackService);
-            instances = discoveryClient.getInstances(fallbackService);
-            logger.info("Found " + instances.size() + " instances for fallback service " + fallbackService);
+            String resolvedFallback = fallbackService + (serviceSuffix != null ? serviceSuffix : "");
+            logger.info("No instances for " + resolvedService + ", trying fallback service: " + resolvedFallback);
+            instances = discoveryClient.getInstances(resolvedFallback);
+            logger.info("Found " + instances.size() + " instances for fallback service " + resolvedFallback);
         }
 
         if (instances.isEmpty()) {

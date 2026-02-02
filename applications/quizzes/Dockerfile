@@ -16,7 +16,7 @@ CMD ["mvn", "-Ptest", "test"]
 
 FROM base AS run
 ARG PROFILE=tcc,dev
-RUN mvn clean -P$PROFILE -Dmaven.test.skip=true package
+RUN mvn clean -P$PROFILE,kubernetes -Dmaven.test.skip=true package
 
 FROM eclipse-temurin:21-jre-alpine
 ARG APP_VERSION=3.0.0-SNAPSHOT

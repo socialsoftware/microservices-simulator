@@ -32,7 +32,7 @@ public class GrpcCommandService extends CommandServiceGrpc.CommandServiceImplBas
     public void send(CommandRequest request, StreamObserver<CommandReply> responseObserver) {
         try {
             Command command = objectMapper.readValue(request.getCommandJson(), Command.class);
-            logger.info("Received gRPC command for service: " + command.getServiceName() + "for bean grpc" + command.getServiceName() + "CommandHandler");
+            logger.info("Received gRPC command for service: " + command.getServiceName() + " for bean grpc " + command.getServiceName() + "CommandHandler");
             GrpcCommandHandler handler = (GrpcCommandHandler) applicationContext
                     .getBean(command.getServiceName() + "GrpcCommandHandler");
 

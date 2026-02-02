@@ -8,7 +8,7 @@ COPY ./simulator/src ./src
 
 FROM base AS run
 ARG PROFILE=version-service,stream
-RUN mvn clean package -Dmaven.test.skip=true
+RUN mvn clean package -P$PROFILE,kubernetes -Dmaven.test.skip=true
 
 FROM eclipse-temurin:21-jre-alpine
 ARG APP_VERSION=3.0.0-SNAPSHOT

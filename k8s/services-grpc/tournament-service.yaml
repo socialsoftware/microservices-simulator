@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tournament-service
+  namespace: microservices-simulator
+  annotations:
+    grpcPort: "9097"
+spec:
+  selector:
+    app: tournament-service
+  ports:
+    - name: http
+      port: 8087
+      targetPort: 8087
+    - name: grpc
+      port: 9097
+      targetPort: 9097
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tournament-service
+  namespace: microservices-simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tournament-service
+  template:
+    metadata:
+      labels:
+        app: tournament-service
+    spec:
+      serviceAccountName: microservices-sa
+      containers:
+        - name: tournament-service
+          image: quizzes-tournament:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8087
+              name: http
+            - containerPort: 9097
+              name: grpc
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes,tournament-service,sagas,grpc"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://localhost:5432/tournamentdb"
+            - name: SPRING_RABBITMQ_HOST
+              value: "rabbitmq"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8087
+            initialDelaySeconds: 60
+            periodSeconds: 10
+
+        - name: postgres
+          image: postgres:14-alpine
+          ports:
+            - containerPort: 5432
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: POSTGRES_DB
+              value: "tournamentdb"
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
