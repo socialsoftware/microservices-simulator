@@ -7,10 +7,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.CreateCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.CreateCourseRemoteCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.DeleteCourseCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByNameRemoteCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.CreateCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
 import java.util.ArrayList;
