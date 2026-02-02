@@ -1,5 +1,6 @@
 # Gateway Dockerfile
 FROM maven:3.9.7-eclipse-temurin-21-alpine AS base
+RUN apk add --no-cache gcompat
 
 COPY ./simulator/pom.xml ./simulator/pom.xml
 COPY ./simulator/src ./simulator/src

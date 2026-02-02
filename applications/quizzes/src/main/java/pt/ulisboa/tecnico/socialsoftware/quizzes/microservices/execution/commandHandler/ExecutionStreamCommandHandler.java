@@ -14,30 +14,30 @@ import java.util.function.Consumer;
 
 @Component
 @Profile("stream")
-public class CourseExecutionStreamCommandHandler extends StreamCommandHandler {
+public class ExecutionStreamCommandHandler extends StreamCommandHandler {
 
-    private final CourseExecutionCommandHandler courseExecutionCommandHandler;
+    private final ExecutionCommandHandler executionCommandHandler;
 
     @Autowired
-    public CourseExecutionStreamCommandHandler(StreamBridge streamBridge,
-            CourseExecutionCommandHandler courseExecutionCommandHandler,
-            MessagingObjectMapperProvider mapperProvider) {
+    public ExecutionStreamCommandHandler(StreamBridge streamBridge,
+                                         ExecutionCommandHandler executionCommandHandler,
+                                         MessagingObjectMapperProvider mapperProvider) {
         super(streamBridge, mapperProvider);
-        this.courseExecutionCommandHandler = courseExecutionCommandHandler;
+        this.executionCommandHandler = executionCommandHandler;
     }
 
     @Override
     protected String getAggregateTypeName() {
-        return "CourseExecution";
+        return "Execution";
     }
 
     @Override
     protected Object handleDomainCommand(Command command) {
-        return courseExecutionCommandHandler.handleDomainCommand(command);
+        return executionCommandHandler.handleDomainCommand(command);
     }
 
     @Bean
-    public Consumer<Message<?>> courseExecutionServiceCommandChannel() {
+    public Consumer<Message<?>> executionServiceCommandChannel() {
         return this::handleCommandMessage;
     }
 }

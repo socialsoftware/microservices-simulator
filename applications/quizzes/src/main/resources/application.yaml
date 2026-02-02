@@ -75,7 +75,7 @@ spring:
         commandResponseChannel;
 
         answerServiceCommandChannel;
-        courseExecutionServiceCommandChannel;
+        executionServiceCommandChannel;
         questionServiceCommandChannel;
         quizServiceCommandChannel;
         topicServiceCommandChannel;
@@ -85,7 +85,7 @@ spring:
 
         questionEventSubscriber;
         tournamentEventSubscriber;
-        courseExecutionEventSubscriber;
+        executionEventSubscriber;
         answerEventSubscriber;
         quizEventSubscriber;
         courseEventSubscriber;
@@ -106,8 +106,8 @@ spring:
           destination: user-command-channel
         answer-command-channel:
           destination: answer-command-channel
-        course-execution-command-channel:
-          destination: courseExecution-command-channel
+        execution-command-channel:
+          destination: execution-command-channel
         question-command-channel:
           destination: question-command-channel
         tournament-command-channel:
@@ -128,9 +128,9 @@ spring:
         answerServiceCommandChannel-in-0:
           destination: answer-command-channel
           group: answer-service-group
-        courseExecutionServiceCommandChannel-in-0:
-          destination: courseExecution-command-channel
-          group: course-execution-service-group
+        executionServiceCommandChannel-in-0:
+          destination: execution-command-channel
+          group: execution-service-group
         questionServiceCommandChannel-in-0:
           destination: question-command-channel
           group: question-service-group
@@ -157,9 +157,9 @@ spring:
         tournamentEventSubscriber-in-0:
           destination: event-channel
           group: tournament-service-group
-        courseExecutionEventSubscriber-in-0:
+        executionEventSubscriber-in-0:
           destination: event-channel
-          group: course-execution-service-group
+          group: execution-service-group
         answerEventSubscriber-in-0:
           destination: event-channel
           group: answer-service-group
@@ -192,7 +192,7 @@ spring:
       definition: >-
         questionEventSubscriber;
         tournamentEventSubscriber;
-        courseExecutionEventSubscriber;
+        executionEventSubscriber;
         answerEventSubscriber;
         quizEventSubscriber;
         courseEventSubscriber;
@@ -215,9 +215,9 @@ spring:
         tournamentEventSubscriber-in-0:
           destination: event-channel
           group: tournament-service-group
-        courseExecutionEventSubscriber-in-0:
+        executionEventSubscriber-in-0:
           destination: event-channel
-          group: course-execution-service-group
+          group: execution-service-group
         answerEventSubscriber-in-0:
           destination: event-channel
           group: answer-service-group

@@ -25,7 +25,7 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.TCC;
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.*;
 
 @Service
-public class CourseExecutionFunctionalities {
+public class ExecutionFunctionalities {
     @Autowired(required = false)
     private SagaUnitOfWorkService sagaUnitOfWorkService;
     @Autowired(required = false)

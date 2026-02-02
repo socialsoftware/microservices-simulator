@@ -14,9 +14,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.
 @RestController
 @EnableScheduling
 @RequestMapping("/scheduler")
-@Profile("course-execution-service")
-public class CourseExecutionEnableDisableEventsController {
-    private static final Logger logger = LoggerFactory.getLogger(CourseExecutionEnableDisableEventsController.class);
+@Profile("execution-service")
+public class ExecutionEnableDisableEventsController {
+    private static final Logger logger = LoggerFactory.getLogger(ExecutionEnableDisableEventsController.class);
     private static final String SCHEDULED_TASKS = "scheduledTasks";
 
     @Autowired

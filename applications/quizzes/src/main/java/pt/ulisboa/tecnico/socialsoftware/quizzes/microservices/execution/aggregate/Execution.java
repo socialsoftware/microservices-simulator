@@ -27,19 +27,19 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
  */
 
 @Entity
-public abstract class CourseExecution extends Aggregate {
+public abstract class Execution extends Aggregate {
     private String acronym;
     private String academicTerm;
     private LocalDateTime endDate;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "courseExecution")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "execution")
     private CourseExecutionCourse courseExecutionCourse;
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "courseExecution")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "execution")
     private Set<CourseExecutionStudent> students = new HashSet<>();
 
-    public CourseExecution() {
+    public Execution() {
     }
 
-    public CourseExecution(Integer aggregateId, CourseExecutionDto courseExecutionDto, CourseExecutionCourse courseExecutionCourse) {
+    public Execution(Integer aggregateId, CourseExecutionDto courseExecutionDto, CourseExecutionCourse courseExecutionCourse) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setAcronym(courseExecutionDto.getAcronym());
@@ -48,7 +48,7 @@ public abstract class CourseExecution extends Aggregate {
         setExecutionCourse(courseExecutionCourse);
     }
 
-    public CourseExecution(CourseExecution other) {
+    public Execution(Execution other) {
         super(other);
         setAcronym(other.getAcronym());
         setAcademicTerm(other.getAcademicTerm());

@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 
-@Profile("course-execution-service")
+@Profile("execution-service")
 @SpringBootApplication(scanBasePackages = {
         "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution",
         "pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.webapi",
@@ -29,14 +29,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
         "pt.ulisboa.tecnico.socialsoftware.quizzes.events",
         "pt.ulisboa.tecnico.socialsoftware.ms"
 })
-@PropertySource({"classpath:application-course-execution-service.yaml"})
+@PropertySource({"classpath:application-execution-service.yaml"})
 @EnableScheduling
-public class CourseExecutionServiceApplication implements InitializingBean {
+public class ExecutionServiceApplication implements InitializingBean {
     @Autowired
     private EventService eventService;
 
     public static void main(String[] args) {
-        SpringApplication.run(CourseExecutionServiceApplication.class, args);
+        SpringApplication.run(ExecutionServiceApplication.class, args);
     }
 
     @Override

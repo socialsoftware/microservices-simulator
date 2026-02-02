@@ -9,8 +9,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.RemoveStudentFromCourseExecutionCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.GetCourseExecutionByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.RemoveStudentFromCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState;
 
@@ -36,20 +36,20 @@ public class RemoveStudentFromCourseExecutionFunctionalitySagas extends Workflow
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep getOldCourseExecutionStep = new SagaStep("getOldCourseExecutionStep", () -> {
-            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionAggregateId);
+            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), courseExecutionAggregateId);
             getCourseExecutionByIdCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
             CourseExecutionDto oldCourseExecution = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
             this.setOldCourseExecution(oldCourseExecution);
         });
 
         getOldCourseExecutionStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionAggregateId);
+            Command command = new Command(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), courseExecutionAggregateId);
             command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
             commandGateway.send(command);
         }, unitOfWork);
 
         SagaStep removeStudentStep = new SagaStep("removeStudentStep", () -> {
-            RemoveStudentFromCourseExecutionCommand removeStudentFromCourseExecutionCommand = new RemoveStudentFromCourseExecutionCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionAggregateId, userAggregateId);
+            RemoveStudentFromCourseExecutionCommand removeStudentFromCourseExecutionCommand = new RemoveStudentFromCourseExecutionCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), courseExecutionAggregateId, userAggregateId);
             commandGateway.send(removeStudentFromCourseExecutionCommand);
         }, new ArrayList<>(Arrays.asList(getOldCourseExecutionStep)));
 

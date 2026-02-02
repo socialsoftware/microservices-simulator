@@ -1,25 +1,25 @@
 spring:
   application:
-    name: courseExecution
+    name: execution
   datasource:
     url: jdbc:postgresql://localhost:5432/executiondb
 
   cloud:
     function:
-      definition: commandResponseChannel;courseExecutionServiceCommandChannel;courseExecutionEventSubscriber;
+      definition: commandResponseChannel;executionServiceCommandChannel;executionEventSubscriber;
     stream:
       bindings:
-        course-execution-command-channel:
-          destination: courseExecution-command-channel
-        courseExecutionServiceCommandChannel-in-0:
-          destination: courseExecution-command-channel
-          group: course-execution-service-group
+        execution-command-channel:
+          destination: execution-command-channel
+        executionServiceCommandChannel-in-0:
+          destination: execution-command-channel
+          group: execution-service-group
         commandResponseChannel-in-0:
-          destination: course-execution-command-responses
-          group: course-execution-response-group
-        courseExecutionEventSubscriber-in-0:
+          destination: execution-command-responses
+          group: execution-response-group
+        executionEventSubscriber-in-0:
           destination: event-channel
-          group: course-execution-service-group
+          group: execution-service-group
 
 server:
   port: 8083

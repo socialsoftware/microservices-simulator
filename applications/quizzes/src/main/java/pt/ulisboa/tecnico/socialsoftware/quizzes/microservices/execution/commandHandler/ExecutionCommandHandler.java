@@ -4,22 +4,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.ExecutionService;
 
 import java.util.logging.Logger;
 
 @Component
-public class CourseExecutionCommandHandler extends CommandHandler {
-    private static final Logger logger = Logger.getLogger(CourseExecutionCommandHandler.class.getName());
+public class ExecutionCommandHandler extends CommandHandler {
+    private static final Logger logger = Logger.getLogger(ExecutionCommandHandler.class.getName());
 
     @Autowired
-    private CourseExecutionService courseExecutionService;
+    private ExecutionService executionService;
 
     @Override
     protected String getAggregateTypeName() {
-        return "CourseExecution";
+        return "Execution";
     }
 
     @Override
@@ -46,7 +46,7 @@ public class CourseExecutionCommandHandler extends CommandHandler {
     private Object handleCreateCourseExecution(CreateCourseExecutionCommand command) {
         logger.info("Creating course execution: " + command.getCourseExecutionDto());
         try {
-            CourseExecutionDto courseExecutionDto = courseExecutionService.createCourseExecution(
+            CourseExecutionDto courseExecutionDto = executionService.createCourseExecution(
                     command.getCourseExecutionDto(),
                     command.getUnitOfWork());
             return courseExecutionDto;
@@ -59,7 +59,7 @@ public class CourseExecutionCommandHandler extends CommandHandler {
     private Object handleRemoveCourseExecution(RemoveCourseExecutionCommand command) {
         logger.info("Removing course execution: " + command.getExecutionAggregateId());
         try {
-            courseExecutionService.removeCourseExecution(
+            executionService.removeCourseExecution(
                     command.getExecutionAggregateId(),
                     command.getUnitOfWork());
             return null;
@@ -73,7 +73,7 @@ public class CourseExecutionCommandHandler extends CommandHandler {
         logger.info("Removing student from course execution: " + command.getCourseExecutionAggregateId() + ", "
                 + command.getUserAggregateId());
         try {
-            courseExecutionService.removeStudentFromCourseExecution(
+            executionService.removeStudentFromCourseExecution(
                     command.getCourseExecutionAggregateId(),
                     command.getUserAggregateId(),
                     command.getUnitOfWork());
@@ -89,7 +89,7 @@ public class CourseExecutionCommandHandler extends CommandHandler {
                 + command.getUserAggregateId() + ", "
                 + command.getName());
         try {
-            courseExecutionService.updateExecutionStudentName(
+            executionService.updateExecutionStudentName(
                     command.getExecutionAggregateId(),
                     command.getUserAggregateId(),
                     command.getName(),
@@ -105,7 +105,7 @@ public class CourseExecutionCommandHandler extends CommandHandler {
         logger.info("Getting student by execution id and user id: " + command.getExecutionAggregateId() + ", "
                 + command.getUserAggregateId());
         try {
-            return courseExecutionService.getStudentByExecutionIdAndUserId(
+            return executionService.getStudentByExecutionIdAndUserId(
                     command.getExecutionAggregateId(),
                     command.getUserAggregateId(),
                     command.getUnitOfWork());
@@ -118,7 +118,7 @@ public class CourseExecutionCommandHandler extends CommandHandler {
     private Object handleGetCourseExecutionsByUserId(GetCourseExecutionsByUserIdCommand command) {
         logger.info("Getting course executions by user id: " + command.getUserAggregateId());
         try {
-            return courseExecutionService.getCourseExecutionsByUserId(
+            return executionService.getCourseExecutionsByUserId(
                     command.getUserAggregateId(),
                     command.getUnitOfWork());
         } catch (Exception e) {
@@ -130,7 +130,7 @@ public class CourseExecutionCommandHandler extends CommandHandler {
     private Object handleGetCourseExecutionById(GetCourseExecutionByIdCommand command) {
         logger.info("Getting course execution by id: " + command.getExecutionAggregateId());
         try {
-            return courseExecutionService.getCourseExecutionById(
+            return executionService.getCourseExecutionById(
                     command.getExecutionAggregateId(),
                     command.getUnitOfWork());
         } catch (Exception e) {
@@ -142,7 +142,7 @@ public class CourseExecutionCommandHandler extends CommandHandler {
     private Object handleGetAllCourseExecutions(GetAllCourseExecutionsCommand command) {
         logger.info("Getting all course executions");
         try {
-            return courseExecutionService.getAllCourseExecutions(command.getUnitOfWork());
+            return executionService.getAllCourseExecutions(command.getUnitOfWork());
         } catch (Exception e) {
             logger.severe("Failed to get all course executions: " + e.getMessage());
             return e;
@@ -153,7 +153,7 @@ public class CourseExecutionCommandHandler extends CommandHandler {
         logger.info("Enrolling student: " + command.getUserDto().getAggregateId() + " in course execution: "
                 + command.getCourseExecutionAggregateId());
         try {
-            courseExecutionService.enrollStudent(
+            executionService.enrollStudent(
                     command.getCourseExecutionAggregateId(),
                     command.getUserDto(),
                     command.getUnitOfWork());
@@ -169,7 +169,7 @@ public class CourseExecutionCommandHandler extends CommandHandler {
                 "Anonymizing student: " + command.getUserAggregateId() + " in course execution: "
                         + command.getExecutionAggregateId());
         try {
-            courseExecutionService.anonymizeStudent(
+            executionService.anonymizeStudent(
                     command.getExecutionAggregateId(),
                     command.getUserAggregateId(),
                     command.getUnitOfWork());
@@ -185,7 +185,7 @@ public class CourseExecutionCommandHandler extends CommandHandler {
                 "Removing user: " + command.getUserAggregateId() + " in course execution: "
                         + command.getCourseExecutionAggregateId());
         try {
-            courseExecutionService.removeUser(
+            executionService.removeUser(
                     command.getCourseExecutionAggregateId(),
                     command.getUserAggregateId(),
                     command.getUnitOfWork());

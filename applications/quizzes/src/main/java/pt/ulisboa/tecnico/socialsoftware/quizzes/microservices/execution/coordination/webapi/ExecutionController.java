@@ -3,61 +3,61 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordi
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 import java.util.List;
 import java.util.Set;
 
 @RestController
-public class CourseExecutionController {
+public class ExecutionController {
     @Autowired
-    private CourseExecutionFunctionalities courseExecutionFunctionalities;
+    private ExecutionFunctionalities executionFunctionalities;
 
     @PostMapping(value = "/executions/create")
     public CourseExecutionDto createCourseExecution(@RequestBody CourseExecutionDto executionDto) throws Exception {
-        CourseExecutionDto courseExecutionDto = courseExecutionFunctionalities.createCourseExecution(executionDto);
+        CourseExecutionDto courseExecutionDto = executionFunctionalities.createCourseExecution(executionDto);
         return courseExecutionDto;
     }
 
     @GetMapping(value = "/executions/{executionAggregateId}")
     public CourseExecutionDto getCourseExecutionByAggregateId(@PathVariable Integer executionAggregateId) {
-        return courseExecutionFunctionalities.getCourseExecutionByAggregateId(executionAggregateId);
+        return executionFunctionalities.getCourseExecutionByAggregateId(executionAggregateId);
     }
 
     @GetMapping(value = "/executions")
     public List<CourseExecutionDto> getCourseExecutions() {
         System.out.println("getCourseExecutions");
-        return courseExecutionFunctionalities.getCourseExecutions();
+        return executionFunctionalities.getCourseExecutions();
     }
 
     @PostMapping("/executions/{executionAggregateId}/delete")
     public void removeCourseExecution(@PathVariable Integer executionAggregateId) throws Exception {
-        courseExecutionFunctionalities.removeCourseExecution(executionAggregateId);
+        executionFunctionalities.removeCourseExecution(executionAggregateId);
     }
 
     @PostMapping("/executions/{executionAggregateId}/students/add")
     public void enrollStudent(@PathVariable Integer executionAggregateId, @RequestParam Integer userAggregateId) throws Exception {
-        courseExecutionFunctionalities.addStudent(executionAggregateId, userAggregateId);
+        executionFunctionalities.addStudent(executionAggregateId, userAggregateId);
     }
 
     @GetMapping("/users/{userAggregateId}/executions")
     public Set<CourseExecutionDto> getUserCourseExecutions(@PathVariable Integer userAggregateId) {
-        return courseExecutionFunctionalities.getCourseExecutionsByUser(userAggregateId);
+        return executionFunctionalities.getCourseExecutionsByUser(userAggregateId);
     }
 
     @PostMapping("/executions/{executionAggregateId}/students/remove")
     public void removeStudentFromCourseExecution(@PathVariable Integer executionAggregateId, @RequestParam Integer userAggregateId) throws Exception {
-        courseExecutionFunctionalities.removeStudentFromCourseExecution(executionAggregateId, userAggregateId);
+        executionFunctionalities.removeStudentFromCourseExecution(executionAggregateId, userAggregateId);
     }
 
     @PostMapping("/executions/{executionAggregateId}/anonymize")
     public void anonymizeExecutionStudent(@PathVariable Integer executionAggregateId, @RequestParam Integer userAggregateId) throws Exception {
-        courseExecutionFunctionalities.anonymizeStudent(executionAggregateId, userAggregateId);
+        executionFunctionalities.anonymizeStudent(executionAggregateId, userAggregateId);
     }
 
     @PostMapping("/executions/{executionAggregateId}/students/{userAggregateId}/update/name")
     public void updateExecutionStudentName(@PathVariable Integer executionAggregateId, @PathVariable Integer userAggregateId, @RequestBody UserDto userDto) throws Exception {
-        courseExecutionFunctionalities.updateStudentName(executionAggregateId, userAggregateId, userDto);
+        executionFunctionalities.updateStudentName(executionAggregateId, userAggregateId, userDto);
     }
 }

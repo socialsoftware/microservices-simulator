@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;

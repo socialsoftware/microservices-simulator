@@ -124,10 +124,10 @@
             </properties>
         </profile>
         <profile>
-            <id>course-execution</id>
+            <id>execution</id>
             <properties>
-                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.CourseExecutionServiceApplication</start-class>
-                <activatedProperties>course-execution-service,${transaction.pattern},${communication.layer}</activatedProperties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.ExecutionServiceApplication</start-class>
+                <activatedProperties>execution-service,${transaction.pattern},${communication.layer}</activatedProperties>
             </properties>
         </profile>
         <profile>
@@ -196,7 +196,15 @@
             <properties>
                 <communication.layer>grpc</communication.layer>
             </properties>
-            <!-- gRPC dependencies already included in common dependencies -->
+        </profile>
+        <profile>
+            <id>kubernetes</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
     <dependencies>

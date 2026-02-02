@@ -7,14 +7,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.EnrollStudentCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.EnrollStudentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetUserByIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 public class AddStudentFunctionalityTCC extends WorkflowFunctionality {
     private UserDto userDto;
-    private CourseExecution oldCourseExecution;
+    private Execution oldExecution;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
@@ -33,7 +33,7 @@ public class AddStudentFunctionalityTCC extends WorkflowFunctionality {
         Step step = new Step(() -> {
             GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             UserDto userDto = (UserDto) commandGateway.send(getUserByIdCommand);
-            EnrollStudentCommand enrollStudentCommand = new EnrollStudentCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, userDto);
+            EnrollStudentCommand enrollStudentCommand = new EnrollStudentCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId, userDto);
             commandGateway.send(enrollStudentCommand);
         });
 
@@ -48,11 +48,11 @@ public class AddStudentFunctionalityTCC extends WorkflowFunctionality {
         this.userDto = userDto;
     }
 
-    public CourseExecution getOldCourseExecution() {
-        return oldCourseExecution;
+    public Execution getOldCourseExecution() {
+        return oldExecution;
     }
 
-    public void setOldCourseExecution(CourseExecution oldCourseExecution) {
-        this.oldCourseExecution = oldCourseExecution;
+    public void setOldCourseExecution(Execution oldExecution) {
+        this.oldExecution = oldExecution;
     }
 }

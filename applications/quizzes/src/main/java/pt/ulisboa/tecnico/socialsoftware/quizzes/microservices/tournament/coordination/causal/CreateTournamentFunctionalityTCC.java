@@ -7,8 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetStudentByExecutionIdAndUserIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.GetCourseExecutionByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.FindQuestionsByTopicIdsCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GenerateQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
@@ -49,10 +49,10 @@ public class CreateTournamentFunctionalityTCC extends WorkflowFunctionality {
         Step step = new Step(() -> {
             // by making this call the invariants regarding the course execution and the
             // role of the creator are guaranteed
-            GetStudentByExecutionIdAndUserIdCommand GetStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId, userId);
+            GetStudentByExecutionIdAndUserIdCommand GetStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionId, userId);
             UserDto creatorDto = (UserDto) commandGateway.send(GetStudentByExecutionIdAndUserIdCommand);
 
-            GetCourseExecutionByIdCommand GetCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId);
+            GetCourseExecutionByIdCommand GetCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionId);
             CourseExecutionDto courseExecutionDto = (CourseExecutionDto) commandGateway.send(GetCourseExecutionByIdCommand);
 
             Set<TopicDto> topicDtos = topicsId.stream()
@@ -67,7 +67,7 @@ public class CreateTournamentFunctionalityTCC extends WorkflowFunctionality {
             FindQuestionsByTopicIdsCommand findQuestionsByTopicIdsCommand = new FindQuestionsByTopicIdsCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), topicsId);
             List<QuestionDto> questionDtos = (List<QuestionDto>) commandGateway.send(findQuestionsByTopicIdsCommand);
 
-            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork,  ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId);
+            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork,  ServiceMapping.EXECUTION.getServiceName(), executionId);
             this.courseExecutionDto = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
 
             GenerateQuizCommand GenerateQuizCommand = new GenerateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), this.courseExecutionDto, quizDto, questionDtos, tournamentDto.getNumberOfQuestions());

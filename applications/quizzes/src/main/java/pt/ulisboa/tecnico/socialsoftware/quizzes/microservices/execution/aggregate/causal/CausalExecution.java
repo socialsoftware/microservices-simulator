@@ -5,7 +5,7 @@ import jakarta.persistence.Entity;
 import org.apache.commons.collections4.SetUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionCourse;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionStudent;
@@ -14,16 +14,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-public class CausalCourseExecution extends CourseExecution implements CausalAggregate {
-    public CausalCourseExecution() {
+public class CausalExecution extends Execution implements CausalAggregate {
+    public CausalExecution() {
         super();
     }
 
-    public CausalCourseExecution(Integer aggregateId, CourseExecutionDto courseExecutionDto, CourseExecutionCourse courseExecutionCourse) {
+    public CausalExecution(Integer aggregateId, CourseExecutionDto courseExecutionDto, CourseExecutionCourse courseExecutionCourse) {
         super(aggregateId, courseExecutionDto, courseExecutionCourse);
     }
 
-    public CausalCourseExecution(CausalCourseExecution other) {
+    public CausalExecution(CausalExecution other) {
         super(other);
     }
 
@@ -41,12 +41,12 @@ public class CausalCourseExecution extends CourseExecution implements CausalAggr
 
     @Override
     public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
-        CourseExecution committedCourseExecution = (CourseExecution) committedVersion;
-        mergeQuizQuestions((CourseExecution) getPrev(), this, committedCourseExecution, this);
+        Execution committedExecution = (Execution) committedVersion;
+        mergeQuizQuestions((Execution) getPrev(), this, committedExecution, this);
         return this;
     }
 
-    private void mergeQuizQuestions(CourseExecution prev, CourseExecution toCommitQuiz, CourseExecution committedQuiz, CourseExecution mergedCourseExecution) {
+    private void mergeQuizQuestions(Execution prev, Execution toCommitQuiz, Execution committedQuiz, Execution mergedExecution) {
         Set<CourseExecutionStudent> prevStudentsPre = new HashSet<>(prev.getStudents());
         Set<CourseExecutionStudent> toCommitStudentsPre = new HashSet<>(toCommitQuiz.getStudents());
         Set<CourseExecutionStudent> committedStudentsPre = new HashSet<>(committedQuiz.getStudents());
@@ -69,6 +69,6 @@ public class CausalCourseExecution extends CourseExecution implements CausalAggr
         );
 
         Set<CourseExecutionStudent> mergedStudents = SetUtils.union(SetUtils.difference(prevStudents, removedStudents), addedStudents);
-        mergedCourseExecution.setStudents(mergedStudents);
+        mergedExecution.setStudents(mergedStudents);
     }
 }

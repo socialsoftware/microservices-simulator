@@ -8,23 +8,23 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Messag
 
 @Component
 @Profile("grpc")
-public class CourseExecutionGrpcCommandHandler extends GrpcCommandHandler {
+public class ExecutionGrpcCommandHandler extends GrpcCommandHandler {
 
-    private final CourseExecutionCommandHandler courseExecutionCommandHandler;
+    private final ExecutionCommandHandler executionCommandHandler;
 
-    public CourseExecutionGrpcCommandHandler(MessagingObjectMapperProvider mapperProvider,
-            CourseExecutionCommandHandler courseExecutionCommandHandler) {
+    public ExecutionGrpcCommandHandler(MessagingObjectMapperProvider mapperProvider,
+                                       ExecutionCommandHandler executionCommandHandler) {
         super(mapperProvider);
-        this.courseExecutionCommandHandler = courseExecutionCommandHandler;
+        this.executionCommandHandler = executionCommandHandler;
     }
 
     @Override
     protected String getAggregateTypeName() {
-        return "CourseExecution";
+        return "Execution";
     }
 
     @Override
     protected Object handleDomainCommand(Command command) {
-        return courseExecutionCommandHandler.handleDomainCommand(command);
+        return executionCommandHandler.handleDomainCommand(command);
     }
 }

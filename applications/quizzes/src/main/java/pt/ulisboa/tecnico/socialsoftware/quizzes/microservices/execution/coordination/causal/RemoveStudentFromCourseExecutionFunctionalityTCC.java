@@ -7,11 +7,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.RemoveStudentFromCourseExecutionCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.RemoveStudentFromCourseExecutionCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.Execution;
 
 public class RemoveStudentFromCourseExecutionFunctionalityTCC extends WorkflowFunctionality {
-    private CourseExecution oldCourseExecution;
+    private Execution oldExecution;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
@@ -28,18 +28,18 @@ public class RemoveStudentFromCourseExecutionFunctionalityTCC extends WorkflowFu
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         Step step = new Step(() -> {
-            RemoveStudentFromCourseExecutionCommand removeStudentFromCourseExecutionCommand = new RemoveStudentFromCourseExecutionCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), courseExecutionAggregateId, userAggregateId);
+            RemoveStudentFromCourseExecutionCommand removeStudentFromCourseExecutionCommand = new RemoveStudentFromCourseExecutionCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), courseExecutionAggregateId, userAggregateId);
             commandGateway.send(removeStudentFromCourseExecutionCommand);
         });
 
         workflow.addStep(step);
     }
 
-    public CourseExecution getOldCourseExecution() {
-        return oldCourseExecution;
+    public Execution getOldCourseExecution() {
+        return oldExecution;
     }
 
-    public void setOldCourseExecution(CourseExecution oldCourseExecution) {
-        this.oldCourseExecution = oldCourseExecution;
+    public void setOldCourseExecution(Execution oldExecution) {
+        this.oldExecution = oldExecution;
     }
 }

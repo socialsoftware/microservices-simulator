@@ -7,14 +7,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.UpdateExecutionStudentNameCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.UpdateExecutionStudentNameCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.causal.CausalUser;
 
 public class UpdateStudentNameFunctionalityTCC extends WorkflowFunctionality {
     private CausalUser student;
-    private CourseExecution oldCourseExecution;
+    private Execution oldExecution;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
@@ -31,7 +31,7 @@ public class UpdateStudentNameFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         Step step = new Step(() -> {
-            UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand = new UpdateExecutionStudentNameCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId, userAggregateId, userDto.getName());
+            UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand = new UpdateExecutionStudentNameCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId, userAggregateId, userDto.getName());
             commandGateway.send(updateExecutionStudentNameCommand);
         });
 
@@ -46,11 +46,11 @@ public class UpdateStudentNameFunctionalityTCC extends WorkflowFunctionality {
         this.student = student;
     }
 
-    public CourseExecution getOldCourseExecution() {
-        return oldCourseExecution;
+    public Execution getOldCourseExecution() {
+        return oldExecution;
     }
 
-    public void setOldCourseExecution(CourseExecution oldCourseExecution) {
-        this.oldCourseExecution = oldCourseExecution;
+    public void setOldCourseExecution(Execution oldExecution) {
+        this.oldExecution = oldExecution;
     }
 }

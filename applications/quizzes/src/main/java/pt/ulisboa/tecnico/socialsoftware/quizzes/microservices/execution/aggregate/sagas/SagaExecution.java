@@ -3,25 +3,25 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggreg
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionCourse;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
 @Entity
-public class SagaCourseExecution extends CourseExecution implements SagaAggregate {
+public class SagaExecution extends Execution implements SagaAggregate {
     private SagaState sagaState;
     
-    public SagaCourseExecution() {
+    public SagaExecution() {
         super();
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 
-    public SagaCourseExecution(Integer aggregateId, CourseExecutionDto courseExecutionDto, CourseExecutionCourse courseExecutionCourse) {
+    public SagaExecution(Integer aggregateId, CourseExecutionDto courseExecutionDto, CourseExecutionCourse courseExecutionCourse) {
         super(aggregateId, courseExecutionDto, courseExecutionCourse);
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 
-    public SagaCourseExecution(SagaCourseExecution other) {
+    public SagaExecution(SagaExecution other) {
         super(other);
         this.sagaState = other.getSagaState();
     }

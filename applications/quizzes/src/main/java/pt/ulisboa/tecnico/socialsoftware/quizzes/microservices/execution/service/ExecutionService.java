@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.*;
 
 @Service
-public class CourseExecutionService {
+public class ExecutionService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
@@ -38,9 +38,9 @@ public class CourseExecutionService {
     @Autowired
     private CourseExecutionFactory courseExecutionFactory;
 
-    private static final Logger logger = LoggerFactory.getLogger(CourseExecutionService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExecutionService.class);
 
-    public CourseExecutionService(UnitOfWorkService unitOfWorkService, CourseExecutionRepository courseExecutionRepository, CourseExecutionCustomRepository courseExecutionCustomRepository) {
+    public ExecutionService(UnitOfWorkService unitOfWorkService, CourseExecutionRepository courseExecutionRepository, CourseExecutionCustomRepository courseExecutionCustomRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.courseExecutionRepository = courseExecutionRepository;
         this.courseExecutionCustomRepository = courseExecutionCustomRepository;
@@ -48,7 +48,7 @@ public class CourseExecutionService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public CourseExecutionDto getCourseExecutionById(Integer executionAggregateId, UnitOfWork unitOfWorkWork) {
-        return courseExecutionFactory.createCourseExecutionDto((CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWorkWork));
+        return courseExecutionFactory.createCourseExecutionDto((Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWorkWork));
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -56,95 +56,95 @@ public class CourseExecutionService {
 //        CourseExecutionCourse courseExecutionCourse = new CourseExecutionCourse(courseService.getAndOrCreateCourseRemote(courseExecutionDto, unitOfWork));
         CourseExecutionCourse courseExecutionCourse = new CourseExecutionCourse(courseExecutionDto);
 
-        CourseExecution courseExecution = courseExecutionFactory.createCourseExecution(aggregateIdGeneratorService.getNewAggregateId(), courseExecutionDto, courseExecutionCourse);
+        Execution execution = courseExecutionFactory.createCourseExecution(aggregateIdGeneratorService.getNewAggregateId(), courseExecutionDto, courseExecutionCourse);
 
-        unitOfWorkService.registerChanged(courseExecution, unitOfWork);
-        return courseExecutionFactory.createCourseExecutionDto(courseExecution);
+        unitOfWorkService.registerChanged(execution, unitOfWork);
+        return courseExecutionFactory.createCourseExecutionDto(execution);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<CourseExecutionDto> getAllCourseExecutions(UnitOfWork unitOfWork) {
         return courseExecutionCustomRepository.findCourseExecutionIdsOfAllNonDeleted().stream()
-                .map(id -> (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(CourseExecutionDto::new)
                 .collect(Collectors.toList());
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeCourseExecution(Integer executionAggregateId, UnitOfWork unitOfWork) {
-        CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-        CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldCourseExecution);
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+        Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
 
         /*
             REMOVE_COURSE_IS_VALID
          */
         int numberOfExecutionsOfCourse = Math.toIntExact(getAllCourseExecutions(unitOfWork).stream()
-                .filter(ce -> ce.getCourseAggregateId() == newCourseExecution.getExecutionCourse().getCourseAggregateId())
+                .filter(ce -> ce.getCourseAggregateId() == newExecution.getExecutionCourse().getCourseAggregateId())
                 .count());
         if (numberOfExecutionsOfCourse == 1) {
             throw new QuizzesException(CANNOT_DELETE_COURSE_EXECUTION);
         }
 
-        newCourseExecution.remove();
-        unitOfWorkService.registerChanged(newCourseExecution, unitOfWork);
-        unitOfWorkService.registerEvent(new DeleteCourseExecutionEvent(newCourseExecution.getAggregateId()), unitOfWork);
+        newExecution.remove();
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
+        unitOfWorkService.registerEvent(new DeleteCourseExecutionEvent(newExecution.getAggregateId()), unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void enrollStudent(Integer courseExecutionAggregateId, UserDto userDto, UnitOfWork unitOfWork) {
-        CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
 
         CourseExecutionStudent courseExecutionStudent = new CourseExecutionStudent(userDto);
         if (!courseExecutionStudent.isActive()){
             throw new QuizzesException(QuizzesErrorMessage.INACTIVE_USER, courseExecutionStudent.getUserAggregateId());
         }
 
-        if (oldCourseExecution.hasStudent(courseExecutionStudent.getUserAggregateId())) {
+        if (oldExecution.hasStudent(courseExecutionStudent.getUserAggregateId())) {
             throw new QuizzesException(COURSE_EXECUTION_STUDENT_ALREADY_ENROLLED, courseExecutionStudent.getUserAggregateId(), courseExecutionAggregateId);
         }
 
-        CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldCourseExecution);
-        newCourseExecution.addStudent(courseExecutionStudent);
+        Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
+        newExecution.addStudent(courseExecutionStudent);
 
-        unitOfWorkService.registerChanged(newCourseExecution, unitOfWork);
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public Set<CourseExecutionDto> getCourseExecutionsByUserId(Integer userAggregateId, UnitOfWork unitOfWork) {
         return courseExecutionRepository.findAll().stream()
-                .map(CourseExecution::getAggregateId)
-                .map(aggregateId -> (CourseExecution) unitOfWorkService.aggregateLoad(aggregateId, unitOfWork))
+                .map(Execution::getAggregateId)
+                .map(aggregateId -> (Execution) unitOfWorkService.aggregateLoad(aggregateId, unitOfWork))
                 .filter(ce -> ce.hasStudent(userAggregateId))
-                .map(courseExecution -> (CourseExecution) unitOfWorkService.registerRead(courseExecution, unitOfWork))
+                .map(courseExecution -> (Execution) unitOfWorkService.registerRead(courseExecution, unitOfWork))
                 .map(ce -> courseExecutionFactory.createCourseExecutionDto(ce))
                 .collect(Collectors.toSet());
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeStudentFromCourseExecution(Integer courseExecutionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
-        CourseExecution oldCourseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
-        CourseExecution newCourseExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldCourseExecution);
-        newCourseExecution.removeStudent(userAggregateId);
-        unitOfWorkService.registerChanged(newCourseExecution, unitOfWork);
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
+        Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
+        newExecution.removeStudent(userAggregateId);
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
         unitOfWorkService.registerEvent(new DisenrollStudentFromCourseExecutionEvent(courseExecutionAggregateId, userAggregateId), unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public UserDto getStudentByExecutionIdAndUserId(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
-        CourseExecution courseExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-        if (!courseExecution.hasStudent(userAggregateId)) {
+        Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+        if (!execution.hasStudent(userAggregateId)) {
             throw new QuizzesException(COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, executionAggregateId);
         }
-        return courseExecution.findStudent(userAggregateId).buildDto();
+        return execution.findStudent(userAggregateId).buildDto();
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void anonymizeStudent(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
-        CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
         if (!oldExecution.hasStudent(userAggregateId)) {
             throw new QuizzesException(COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, executionAggregateId);
         }
-        CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
+        Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).anonymize();
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
         unitOfWorkService.registerEvent(new AnonymizeStudentEvent(executionAggregateId, "ANONYMOUS", "ANONYMOUS", userAggregateId), unitOfWork);
@@ -152,14 +152,14 @@ public class CourseExecutionService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateExecutionStudentName(Integer executionAggregateId, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
-        CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
 
         logger.info("Updating student name for user {} in execution {}", userAggregateId, executionAggregateId);
 
         if (!oldExecution.hasStudent(userAggregateId)) {
             throw new QuizzesException(COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, executionAggregateId);
         }
-        CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
+        Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setName(name);
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
         unitOfWorkService.registerEvent(new UpdateStudentNameEvent(executionAggregateId, userAggregateId, name), unitOfWork);
@@ -170,8 +170,8 @@ public class CourseExecutionService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public CourseExecutionDto removeUser(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         logger.info("Removing user by creating DisenrollStudentFromCourseExecutionEvent");
-        CourseExecution oldExecution = (CourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
-        CourseExecution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+        Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setActive(false);
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
         unitOfWorkService.registerEvent(new DisenrollStudentFromCourseExecutionEvent(executionAggregateId, userAggregateId), unitOfWork);

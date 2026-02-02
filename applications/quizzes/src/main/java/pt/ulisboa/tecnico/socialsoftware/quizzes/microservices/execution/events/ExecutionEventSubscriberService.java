@@ -15,13 +15,13 @@ import java.util.function.Consumer;
 
 @Component
 @Profile("!local")
-public class CourseExecutionEventSubscriberService extends EventSubscriberService {
+public class ExecutionEventSubscriberService extends EventSubscriberService {
 
     @Autowired
     private CourseExecutionRepository courseExecutionRepository;
 
-    public CourseExecutionEventSubscriberService(EventRepository eventRepository,
-            MessagingObjectMapperProvider mapperProvider) {
+    public ExecutionEventSubscriberService(EventRepository eventRepository,
+                                           MessagingObjectMapperProvider mapperProvider) {
         super(eventRepository, mapperProvider);
     }
 
@@ -36,7 +36,7 @@ public class CourseExecutionEventSubscriberService extends EventSubscriberServic
     }
 
     @Bean
-    public Consumer<Message<String>> courseExecutionEventSubscriber() {
+    public Consumer<Message<String>> executionEventSubscriber() {
         return this::processEvent;
     }
 }

@@ -1,5 +1,6 @@
 # Simulator Dockerfile for version-service
 FROM maven:3.9.7-eclipse-temurin-21-alpine AS base
+RUN apk add --no-cache gcompat
 
 COPY ./simulator/pom.xml ./pom.xml
 RUN mvn dependency:go-offline -B

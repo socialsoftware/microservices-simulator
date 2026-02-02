@@ -7,11 +7,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.RemoveCourseExecutionCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.causal.CausalCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.RemoveCourseExecutionCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.causal.CausalExecution;
 
 public class RemoveCourseExecutionFunctionalityTCC extends WorkflowFunctionality {
-    private CausalCourseExecution courseExecution;
+    private CausalExecution courseExecution;
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
@@ -26,18 +26,18 @@ public class RemoveCourseExecutionFunctionalityTCC extends WorkflowFunctionality
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         Step step = new Step(() -> {
-            RemoveCourseExecutionCommand removeCourseExecutionCommand = new RemoveCourseExecutionCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionAggregateId);
+            RemoveCourseExecutionCommand removeCourseExecutionCommand = new RemoveCourseExecutionCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
             commandGateway.send(removeCourseExecutionCommand);
         });
 
         workflow.addStep(step);
     }
 
-    public CausalCourseExecution getCourseExecution() {
+    public CausalExecution getCourseExecution() {
         return courseExecution;
     }
 
-    public void setCourseExecution(CausalCourseExecution courseExecution) {
+    public void setCourseExecution(CausalExecution courseExecution) {
         this.courseExecution = courseExecution;
     }
 }
