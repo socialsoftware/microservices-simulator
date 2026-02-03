@@ -229,7 +229,12 @@ public abstract class Tournament extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> subscriptions = new HashSet<>();
+        subscriptions.add(new TournamentSubscribesUnknown());
+        subscriptions.add(new TournamentSubscribesUnknown());
+        subscriptions.add(new TournamentSubscribesUnknown());
+        subscriptions.add(new TournamentSubscribesUnknown());
+        return subscriptions;
     }
 
     @Override

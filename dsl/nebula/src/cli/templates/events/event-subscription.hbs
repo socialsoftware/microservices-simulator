@@ -4,59 +4,15 @@ package {{packageName}};
 {{this}}
 {{/each}}
 
-@Component
-public class {{subscription.capitalizedSubscriptionName}} {
-private static final Logger logger = LoggerFactory.getLogger({{subscription.capitalizedSubscriptionName}}.class);
+public class {{subscription.capitalizedSubscriptionName}} extends EventSubscription {
+    public {{subscription.capitalizedSubscriptionName}}({{subscription.projectionEntityName}} {{subscription.projectionPart}}Projection) {
+        super({{subscription.projectionPart}}Projection.get{{subscription.capitalizedAggregateIdField}}(),
+                {{subscription.projectionPart}}Projection.get{{subscription.capitalizedVersionField}}(),
+                {{subscription.eventTypeName}}.class.getSimpleName());
+    }
 
-private final {{aggregateName}}Service {{lowerAggregate}}Service;
+    public boolean subscribesEvent(Event event) {
+         return super.subscribesEvent(event);
+    }
 
-public {{subscription.capitalizedSubscriptionName}}({{aggregateName}}Service {{lowerAggregate}}Service) {
-this.{{lowerAggregate}}Service = {{lowerAggregate}}Service;
-}
-
-@EventListener
-@Async
-public void handle{{subscription.capitalizedEventName}}({{subscription.fullEventName}} event) {
-try {
-logger.info("Handling {{subscription.eventType}} event for {{aggregateName}} with ID: {}", event.getAggregateId());
-
-process{{subscription.capitalizedEventName}}(event);
-
-} catch (Exception e) {
-logger.error("Error handling {{subscription.fullEventName}} for aggregate ID: {}", event.getAggregateId(), e);
-// Consider implementing retry logic or dead letter queue
-}
-}
-
-@TransactionalEventListener(phase = TransactionPhase.{{subscription.transactionPhase}})
-public void handleAfterCommit{{subscription.capitalizedEventName}}({{subscription.fullEventName}} event) {
-try {
-logger.info("Post-commit handling {{subscription.eventType}} event for {{aggregateName}} with ID: {}",
-event.getAggregateId());
-
-postProcess{{subscription.capitalizedEventName}}(event);
-
-} catch (Exception e) {
-logger.error("Error in post-commit handling of {{subscription.fullEventName}} for aggregate ID: {}",
-event.getAggregateId(), e);
-}
-}
-
-private void process{{subscription.capitalizedEventName}}({{subscription.fullEventName}} event) {
-switch (event.getEventType()) {
-case "{{subscription.eventType}}":
-handle{{subscription.eventType}}Logic(event);
-break;
-default:
-logger.warn("Unknown event type: {}", event.getEventType());
-}
-}
-
-private void postProcess{{subscription.capitalizedEventName}}({{subscription.fullEventName}} event) {
-logger.debug("Post-processing {{subscription.eventType}} event completed for aggregate ID: {}", event.getAggregateId());
-}
-
-private void handle{{subscription.eventType}}Logic({{subscription.fullEventName}} event) {
-logger.debug("Processing {{subscription.eventType}} logic for aggregate ID: {}", event.getAggregateId());
-}
 }

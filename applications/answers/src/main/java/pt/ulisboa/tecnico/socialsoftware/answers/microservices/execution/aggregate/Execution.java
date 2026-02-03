@@ -136,7 +136,9 @@ public abstract class Execution extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> subscriptions = new HashSet<>();
+        subscriptions.add(new ExecutionSubscribesUnknown());
+        return subscriptions;
     }
 
     @Override

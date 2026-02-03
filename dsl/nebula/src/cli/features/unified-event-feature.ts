@@ -169,7 +169,7 @@ export class UnifiedEventFeature {
 
         const eventMap = new Map<string, any>();
         allSubscribed.forEach((event: any) => {
-            const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
+            const eventTypeName = event.eventType || 'UnknownEvent';
             if (!eventMap.has(eventTypeName)) {
                 eventMap.set(eventTypeName, event);
             }
@@ -180,7 +180,7 @@ export class UnifiedEventFeature {
             await ErrorHandler.wrapAsync(
                 async () => {
                     const subscriptionCode = this.eventGenerator.generateSubscribedEvent(subscribedEvent, aggregate, options);
-                    const eventTypeName = subscribedEvent.eventType.ref?.name || subscribedEvent.eventType.$refText || 'UnknownEvent';
+                    const eventTypeName = (subscribedEvent as any).eventType || 'UnknownEvent';
                     const subscriptionName = `${aggregate.name}Subscribes${eventTypeName.replace('Event', '')}`;
                     const subscriptionPath = path.join(aggregatePath, 'events', 'subscribe', `${subscriptionName}.java`);
                     await FileWriter.writeGeneratedFile(subscriptionPath, subscriptionCode, `subscribed event ${subscriptionName}`);
@@ -193,7 +193,7 @@ export class UnifiedEventFeature {
                 ErrorUtils.entityContext(
                     'generate custom subscribed event',
                     aggregate.name,
-                    subscribedEvent.eventType.ref?.name || subscribedEvent.eventType.$refText || 'UnknownEvent',
+                    (subscribedEvent as any).eventType || 'UnknownEvent',
                     'event-generator'
                 ),
                 ErrorSeverity.ERROR

@@ -32,4 +32,10 @@ Aggregate Quiz {
         Set<QuizQuestion> questions;
         
     }
+
+    Events {
+        subscribe ExecutionDeletedEvent;
+        subscribe TopicUpdatedEvent;
+        subscribe TopicDeletedEvent;
+    }
 }

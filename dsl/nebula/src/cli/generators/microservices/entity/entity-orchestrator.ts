@@ -1,4 +1,4 @@
-import { Entity } from "../../../../language/generated/ast.js";
+import { Entity, Aggregate } from "../../../../language/generated/ast.js";
 import { getGlobalConfig } from "../../common/config.js";
 import { EntityGenerationOptions } from "./types.js";
 import { generateFields } from "./fields.js";
@@ -9,7 +9,7 @@ import { ImportManager, ImportManagerFactory } from "../../../utils/import-manag
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../../../utils/error-handler.js";
 import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 import type { DtoSchemaRegistry, DtoFieldSchema } from "../../../services/dto-schema-service.js";
-import { getEffectiveFieldMappings, getEffectiveProperties } from "../../../utils/aggregate-helpers.js";
+import { getEffectiveFieldMappings, getEffectiveProperties, getEvents } from "../../../utils/aggregate-helpers.js";
 
 // ============================================================================
 // ENTITY GENERATION ORCHESTRATION
@@ -71,17 +71,55 @@ export class EntityOrchestrator {
                 : '',
             invariants: isRootEntity ? generateInvariants(entity).code : '',
             // Root entities need getEventSubscriptions() for the Aggregate interface
-            eventSubscriptions: isRootEntity ? this.generateEventSubscriptionsMethod() : '',
+            eventSubscriptions: isRootEntity ? this.generateEventSubscriptionsMethod(entity.$container as any) : '',
             // All entities now get their own DTOs, so all need buildDto() method
             buildDtoMethod: this.generateBuildDtoMethod(entity)
         };
     }
 
-    private generateEventSubscriptionsMethod(): string {
-        return `
+    private generateEventSubscriptionsMethod(aggregate: Aggregate | undefined): string {
+        if (!aggregate) {
+            return `
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
         return new HashSet<>();
+    }`;
+        }
+
+        const events = getEvents(aggregate);
+        const subscribedEvents = events?.subscribedEvents || [];
+        
+        // Filter for simple subscriptions (no conditions, no routing)
+        const simpleSubscriptions = subscribedEvents.filter((sub: any) => {
+            // Simple subscription: no conditions block or empty conditions, no routing
+            const hasConditions = sub.conditions && sub.conditions.length > 0 && 
+                sub.conditions.some((c: any) => c.condition);
+            const hasRouting = (sub as any).routingIdExpr;
+            return !hasConditions && !hasRouting;
+        });
+
+        if (simpleSubscriptions.length === 0) {
+            return `
+    @Override
+    public Set<EventSubscription> getEventSubscriptions() {
+        return new HashSet<>();
+    }`;
+        }
+
+        const subscriptionLines = simpleSubscriptions.map((sub: any) => {
+            const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
+            // Extract aggregate name from event name (e.g., UpdateTopicEvent -> Topic)
+            const eventNameWithoutPrefix = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
+            const subscriptionClassName = `${aggregate.name}Subscribes${eventNameWithoutPrefix}`;
+            return `        subscriptions.add(new ${subscriptionClassName}());`;
+        }).join('\n');
+
+        return `
+    @Override
+    public Set<EventSubscription> getEventSubscriptions() {
+        Set<EventSubscription> subscriptions = new HashSet<>();
+${subscriptionLines}
+        return subscriptions;
     }`;
     }
 

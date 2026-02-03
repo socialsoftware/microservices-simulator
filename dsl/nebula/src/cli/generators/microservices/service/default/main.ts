@@ -13,6 +13,7 @@ export function generateServiceCode(aggregate: Aggregate, projectName: string): 
     const constructor = ServiceStructureGenerator.generateConstructor(context.aggregateName);
 
     const crudMethods = ServiceCrudGenerator.generateCrudMethods(context.capitalizedAggregate, context.rootEntity, projectName, aggregate);
+    const projectionMethods = ServiceCrudGenerator.generateProjectionMethods(context.capitalizedAggregate, aggregate, projectName);
     const businessMethods = ServiceBusinessGenerator.generateBusinessMethods(
         context.capitalizedAggregate,
         aggregate,
@@ -35,6 +36,8 @@ ${dependencies}
 ${constructor}
 
 ${crudMethods}
+
+${projectionMethods}
 
 ${businessMethods}
 

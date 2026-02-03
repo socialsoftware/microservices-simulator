@@ -1,6 +1,7 @@
 import { Aggregate, Entity } from "../../../../../language/generated/ast.js";
 import { capitalize } from "../../../../utils/generator-utils.js";
 import { TypeResolver } from "../../../common/resolvers/type-resolver.js";
+import { getEntities, getEvents } from "../../../../utils/aggregate-helpers.js";
 
 export class ServiceCrudGenerator {
     static generateCrudMethods(aggregateName: string, rootEntity: Entity, projectName: string, aggregate?: Aggregate): string {
@@ -348,5 +349,179 @@ ${allSetters}
         }
 
         return relationships;
+    }
+
+    /**
+     * Generate projection-sync methods for subscribed events.
+     * These methods update/remove projections when events are received from other aggregates.
+     */
+    static generateProjectionMethods(aggregateName: string, aggregate: Aggregate, projectName: string): string {
+        const events = getEvents(aggregate);
+        if (!events || !events.subscribedEvents) {
+            return '';
+        }
+
+        // Filter for simple subscriptions (Update/Delete events)
+        const simpleSubscriptions = events.subscribedEvents.filter((sub: any) => {
+            const hasConditions = sub.conditions && sub.conditions.length > 0 && 
+                sub.conditions.some((c: any) => c.condition);
+            const hasRouting = (sub as any).routingIdExpr;
+            return !hasConditions && !hasRouting;
+        });
+
+        if (simpleSubscriptions.length === 0) {
+            return '';
+        }
+
+        const capitalizedAggregate = capitalize(aggregateName);
+        const lowerAggregate = aggregateName.toLowerCase();
+        const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+        if (!rootEntity) {
+            return '';
+        }
+
+        const methods: string[] = [];
+
+        for (const subscription of simpleSubscriptions) {
+            const eventTypeName = (subscription as any).eventType || '';
+            if (!eventTypeName) continue;
+
+            const isUpdate = eventTypeName.startsWith('Update');
+            const isDelete = eventTypeName.startsWith('Delete') || eventTypeName.startsWith('Remove');
+            
+            if (!isUpdate && !isDelete) continue;
+
+            // Extract publisher aggregate name (e.g., UpdateTopicEvent -> Topic)
+            const publisherAggregateName = eventTypeName.replace(/^(Update|Delete|Remove|Create)/, '').replace(/Event$/, '');
+            
+            // Find entities in this aggregate that use the publisher aggregate
+            const entities = getEntities(aggregate);
+            const projectionEntities = entities.filter((e: any) => {
+                const aggregateRef = e.aggregateRef;
+                return aggregateRef && aggregateRef.toLowerCase() === publisherAggregateName.toLowerCase();
+            });
+
+            if (projectionEntities.length === 0) continue;
+
+            // Use the first projection entity (e.g., QuestionTopic)
+            const projectionEntity = projectionEntities[0];
+            const projectionEntityName = projectionEntity.name;
+            // Extract projection part (e.g., QuestionTopic -> Topic)
+            const projectionPart = projectionEntityName.replace(new RegExp(`^${aggregateName}`, 'i'), '');
+            
+            // We don't know the exact published event shape here; projection
+            // methods will receive only the fields we explicitly pass from the
+            // event-processing layer. For now, use an empty field list.
+            const eventFields: any[] = [];
+
+            if (isUpdate) {
+                methods.push(this.generateUpdateProjectionMethod(
+                    capitalizedAggregate,
+                    lowerAggregate,
+                    rootEntity.name,
+                    projectionEntity,
+                    projectionPart,
+                    publisherAggregateName,
+                    eventFields,
+                    projectName
+                ));
+            } else if (isDelete) {
+                methods.push(this.generateRemoveProjectionMethod(
+                    capitalizedAggregate,
+                    lowerAggregate,
+                    rootEntity.name,
+                    projectionEntity,
+                    projectionPart,
+                    publisherAggregateName,
+                    projectName
+                ));
+            }
+        }
+
+        return methods.length > 0 ? '\n' + methods.join('\n\n') : '';
+    }
+
+    private static generateUpdateProjectionMethod(
+        capitalizedAggregate: string,
+        lowerAggregate: string,
+        rootEntityName: string,
+        projectionEntity: Entity,
+        projectionPart: string,
+        publisherAggregateName: string,
+        eventFields: any[],
+        projectName: string
+    ): string {
+        const projectionEntityName = projectionEntity.name;
+        
+        // Get field mappings from projection entity
+        const mappings = (projectionEntity as any).fieldMappings || [];
+        const mappingMap = new Map<string, string>();
+        for (const mapping of mappings) {
+            if (mapping.dtoField && mapping.entityField) {
+                mappingMap.set(mapping.dtoField, mapping.entityField);
+            }
+        }
+
+        // Build method parameters: aggregateId, publisherAggregateId, [event fields...], publisherAggregateVersion, unitOfWork
+        const paramParts: string[] = [];
+        const fieldUpdates: string[] = [];
+        
+        // Add event-specific fields (skip aggregateId, version, state)
+        for (const field of eventFields) {
+            const fieldName = field.name;
+            if (fieldName !== 'aggregateId' && fieldName !== 'version' && fieldName !== 'state') {
+                const javaType = TypeResolver.resolveJavaType(field.type);
+                paramParts.push(`${javaType} ${fieldName}`);
+                
+                // Map event field to projection entity field
+                const projectionFieldName = mappingMap.get(fieldName) || fieldName;
+                const capitalizedField = projectionFieldName.charAt(0).toUpperCase() + projectionFieldName.slice(1);
+                fieldUpdates.push(`                projection.set${capitalizedField}(${fieldName});`);
+            }
+        }
+
+        const paramsStr = `Integer aggregateId, Integer publisherAggregateId${paramParts.length > 0 ? ', ' + paramParts.join(', ') : ''}, Integer publisherAggregateVersion, UnitOfWork unitOfWork`;
+
+        return `    public void update${projectionPart}(${paramsStr}) {
+        try {
+            ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            ${projectionEntityName} projection = ${lowerAggregate}.get${projectionPart}();
+            if (projection != null && projection.get${capitalize(publisherAggregateName)}AggregateId().equals(publisherAggregateId)) {
+${fieldUpdates.join('\n')}
+                projection.setVersion(publisherAggregateVersion);
+                unitOfWorkService.registerChanged(${lowerAggregate}, unitOfWork);
+            }
+        } catch (${capitalize(projectName)}Exception e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ${capitalize(projectName)}Exception("Error updating ${projectionPart.toLowerCase()}: " + e.getMessage());
+        }
+    }`;
+    }
+
+    private static generateRemoveProjectionMethod(
+        capitalizedAggregate: string,
+        lowerAggregate: string,
+        rootEntityName: string,
+        projectionEntity: Entity,
+        projectionPart: string,
+        publisherAggregateName: string,
+        projectName: string
+    ): string {
+        const projectionEntityName = projectionEntity.name;
+        return `    public void remove${projectionPart}(Integer aggregateId, Integer publisherAggregateId, Integer publisherAggregateVersion, UnitOfWork unitOfWork) {
+        try {
+            ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            ${projectionEntityName} projection = ${lowerAggregate}.get${projectionPart}();
+            if (projection != null && projection.get${capitalize(publisherAggregateName)}AggregateId().equals(publisherAggregateId)) {
+                ${lowerAggregate}.remove${projectionPart}();
+                unitOfWorkService.registerChanged(${lowerAggregate}, unitOfWork);
+            }
+        } catch (${capitalize(projectName)}Exception e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ${capitalize(projectName)}Exception("Error removing ${projectionPart.toLowerCase()}: " + e.getMessage());
+        }
+    }`;
     }
 }

@@ -37,14 +37,50 @@ export class EventHandlerGenerator extends EventBaseGenerator {
     }
 
     private buildEventHandlers(aggregate: Aggregate, rootEntity: Entity, aggregateName: string): any[] {
-        const eventTypes = ['Created', 'Updated', 'Deleted'];
+        // Get actual subscribed events from DSL
+        const events = (aggregate as any).events;
+        if (!events || !events.subscribedEvents) {
+            return [];
+        }
 
-        return eventTypes.map(eventType => {
-            const variations = this.getEventNameVariations(eventType, aggregateName);
+        // Filter for simple subscriptions (no conditions, no routing)
+        const simpleSubscriptions = events.subscribedEvents.filter((sub: any) => {
+            const hasConditions = sub.conditions && sub.conditions.length > 0 && 
+                sub.conditions.some((c: any) => c.condition);
+            const hasRouting = (sub as any).routingIdExpr;
+            return !hasConditions && !hasRouting;
+        });
+
+        const projectName = (this as any).projectName?.toLowerCase() || 'unknown';
+        const basePackage = (this as any).getBasePackage?.() || 'pt.ulisboa.tecnico.socialsoftware';
+
+        return simpleSubscriptions.map((sub: any) => {
+            const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
+            
+            // Determine source aggregate from published event
+            let sourceAggregateName = 'unknown';
+            const publishedEvent = sub.eventType?.ref as any;
+            const eventsContainer = publishedEvent?.$container as any;
+            const sourceAggregate = eventsContainer?.$container as Aggregate | undefined;
+            if (sourceAggregate?.name) {
+                sourceAggregateName = sourceAggregate.name.toLowerCase();
+            } else if (sub.sourceAggregate) {
+                sourceAggregateName = sub.sourceAggregate.toLowerCase();
+            }
+
+            // Extract entity name from event (e.g., UpdateTopicEvent -> Topic)
+            const entityName = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
+            const handlerName = `${entityName}EventHandler`;
+            
             return {
-                eventType,
-                ...variations,
-                properties: this.buildEventProperties(rootEntity, eventType)
+                eventType: eventTypeName.replace(/Event$/, ''),
+                eventTypeName: eventTypeName,
+                handlerName: handlerName,
+                capitalizedHandlerName: handlerName,
+                capitalizedEventName: eventTypeName,
+                fullEventName: eventTypeName,
+                eventTypePackage: `${basePackage}.${projectName}.microservices.${sourceAggregateName}.events.publish`,
+                properties: this.buildEventProperties(rootEntity, eventTypeName.replace(/Event$/, ''))
             };
         });
     }
@@ -53,18 +89,23 @@ export class EventHandlerGenerator extends EventBaseGenerator {
         const baseImports = this.buildBaseImports(aggregate, options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const projectName = options?.projectName?.toLowerCase() || 'unknown';
+        const basePackage = (this as any).getBasePackage?.() || 'pt.ulisboa.tecnico.socialsoftware';
 
-        return [
+        const imports = [
             ...baseImports,
-            `import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;`,
-            `import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;`,
-            `import pt.ulisboa.tecnico.socialsoftware.${projectName}.microservices.${lowerAggregate}.aggregate.*;`,
-            `import pt.ulisboa.tecnico.socialsoftware.${projectName}.microservices.${lowerAggregate}.service.*;`,
-            `import pt.ulisboa.tecnico.socialsoftware.${projectName}.coordination.eventProcessing.${aggregate.name}EventProcessing;`,
-            'import java.util.Set;',
-            'import java.util.stream.Collectors;',
-            ''
+            `import ${basePackage}.ms.domain.event.EventHandler;`,
+            `import ${basePackage}.ms.domain.event.Event;`,
+            `import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${this.capitalize(aggregate.name)}Repository;`,
+            `import ${basePackage}.${projectName}.coordination.eventProcessing.${this.capitalize(aggregate.name)}EventProcessing;`
         ];
+
+        // Add imports for each event type
+        eventHandlers.forEach((handler: any) => {
+            imports.push(`import ${handler.eventTypePackage}.${handler.eventTypeName};`);
+        });
+
+        imports.push('');
+        return imports;
     }
 
     private async generateEventHandlerBase(context: EventHandlerContext): Promise<string> {

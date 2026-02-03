@@ -122,12 +122,18 @@ PublishedEvent:
     '}';
 
 SubscribedEvent:
-    'subscribe' eventType=[PublishedEvent:QualifiedName]
-    'from' sourceAggregate=ID
+    // Simple subscription: only reference the event name as a string.
+    // We intentionally do NOT require a PublishedEvent definition here, since
+    // many events (e.g., standard CRUD events) are generated automatically.
+    'subscribe' eventType=ID
+    ('from' sourceAggregate=ID)?
     ('routing' '(' routingIdExpr=Expression (',' routingVersionExpr=Expression)? ')')?
-    '{'
-        conditions+=EventCondition*
-    '}';
+    (
+        '{'
+            conditions+=EventCondition*
+        '}'
+      | ';'
+    );
 
 EventField:
     type=Type name=ID ';';

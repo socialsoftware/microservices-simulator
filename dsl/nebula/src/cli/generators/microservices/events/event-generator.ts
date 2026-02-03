@@ -71,7 +71,7 @@ export class EventGenerator extends OrchestrationBase {
 
     private buildSubscribedEventContext(event: SubscribedEvent, aggregate: Aggregate, options: { projectName: string }): any {
         const aggregateName = aggregate.name.toLowerCase();
-        const eventTypeName = event.eventType.ref?.name || event.eventType.$refText || 'UnknownEvent';
+        const eventTypeName = (event as any).eventType || 'UnknownEvent';
 
         const subscriptionName = `${aggregate.name}Subscribes${eventTypeName.replace('Event', '')}`;
 
@@ -82,13 +82,10 @@ export class EventGenerator extends OrchestrationBase {
             ? subscribingEntityName.charAt(0).toLowerCase() + subscribingEntityName.slice(1)
             : '';
 
-        let eventSourceAggregate = 'unknown';
-        const publishedEvent = event.eventType.ref as any;
-        const eventsContainer = publishedEvent?.$container as any;
-        const sourceAggregate = eventsContainer?.$container as Aggregate | undefined;
-        if (sourceAggregate?.name) {
-            eventSourceAggregate = sourceAggregate.name.toLowerCase();
-        }
+        // With implicit/standard events we may not know the publishing aggregate
+        // from the DSL alone, so we default to the current aggregate unless a
+        // more advanced resolution mechanism is added later.
+        let eventSourceAggregate = aggregateName;
 
         const conditions = event.conditions?.map((condition: any) => {
             if (!condition.condition) {
@@ -280,25 +277,17 @@ export class EventGenerator extends OrchestrationBase {
         const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
 
         const subscribedEvents = allSubscribedEvents.map(event => {
-            const eventTypeName = event.eventType.ref?.name || event.eventType.$refText || 'UnknownEvent';
+            const eventTypeName = (event as any).eventType || 'UnknownEvent';
             const handlerName = `${eventTypeName}Handler`;
             return { eventName: eventTypeName, handlerName };
         }) || [];
 
         const subscribedEventImports = allSubscribedEvents.map(event => {
-            const eventTypeName = event.eventType.ref?.name || event.eventType.$refText || 'UnknownEvent';
+            const eventTypeName = (event as any).eventType || 'UnknownEvent';
             const handlerName = `${eventTypeName}Handler`;
 
-            // Determine the actual source aggregate (the aggregate that declares the published event)
-            let sourceAggregateName = 'unknown';
-            const publishedEvent = event.eventType.ref as any;
-            const eventsContainer = publishedEvent?.$container as any;
-            const sourceAggregate = eventsContainer?.$container as Aggregate | undefined;
-            if (sourceAggregate?.name) {
-                sourceAggregateName = sourceAggregate.name.toLowerCase();
-            } else if (event.sourceAggregate) {
-                sourceAggregateName = event.sourceAggregate.toLowerCase();
-            }
+            // With implicit events we don't know the true source aggregate; default to current aggregate.
+            const sourceAggregateName = lowerAggregateName;
 
             return {
                 handlerName,
@@ -322,23 +311,11 @@ export class EventGenerator extends OrchestrationBase {
     private buildEventHandlerContext(event: SubscribedEvent, aggregate: Aggregate, options: { projectName: string }): any {
         const aggregateName = aggregate.name;
         const lowerAggregateName = aggregateName.toLowerCase();
-        const eventTypeName = event.eventType.ref?.name || event.eventType.$refText || 'UnknownEvent';
+        const eventTypeName = (event as any).eventType || 'UnknownEvent';
         const handlerName = `${eventTypeName}Handler`;
 
-        // Resolve the aggregate that actually publishes the event
-        let sourceAggregateName: string | undefined;
-        const publishedEvent = event.eventType.ref as any;
-        const eventsContainer = publishedEvent?.$container as any;
-        const sourceAggregate = eventsContainer?.$container as Aggregate | undefined;
-        if (sourceAggregate?.name) {
-            sourceAggregateName = sourceAggregate.name.toLowerCase();
-        } else if (event.sourceAggregate) {
-            sourceAggregateName = event.sourceAggregate.toLowerCase();
-        }
-
-        if (!sourceAggregateName) {
-            throw new Error(`Cannot determine publishing aggregate for event '${eventTypeName}'`);
-        }
+        // With implicit events we don't know the true source aggregate; default to current aggregate.
+        const sourceAggregateName = lowerAggregateName;
 
         return {
             packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.events.handling.handlers`,
@@ -361,7 +338,7 @@ export class EventGenerator extends OrchestrationBase {
         // Deduplicate by event type name to avoid duplicate handlers
         const eventMap = new Map<string, any>();
         allSubscribed.forEach((event: any) => {
-            const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
+            const eventTypeName = (event as any).eventType || 'UnknownEvent';
             if (!eventMap.has(eventTypeName)) {
                 eventMap.set(eventTypeName, event);
             }

@@ -44,7 +44,6 @@ Aggregate Tournament {
     }
 
     Entity TournamentExecution uses Execution {
-        
         Integer executionCourseAggregateId -> courseAggregateId;
         String executionAcronym -> acronym;
         AggregateState executionState;
@@ -89,5 +88,12 @@ Aggregate Tournament {
     Entity TournamentQuiz uses Quiz {
         Integer quizAggregateId;
         Integer quizVersion;
+    }
+
+    Events {
+        subscribe ExecutionDeletedEvent;
+        subscribe ExecutionUpdatedEvent;
+        subscribe TopicUpdatedEvent;
+        subscribe TopicDeletedEvent;
     }
 }

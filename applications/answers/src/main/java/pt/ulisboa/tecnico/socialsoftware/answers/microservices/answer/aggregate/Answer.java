@@ -171,7 +171,11 @@ public abstract class Answer extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> subscriptions = new HashSet<>();
+        subscriptions.add(new AnswerSubscribesUnknown());
+        subscriptions.add(new AnswerSubscribesUnknown());
+        subscriptions.add(new AnswerSubscribesUnknown());
+        return subscriptions;
     }
 
     @Override
