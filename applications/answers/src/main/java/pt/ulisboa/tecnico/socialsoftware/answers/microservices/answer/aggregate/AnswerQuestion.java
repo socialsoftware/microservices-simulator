@@ -7,10 +7,11 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionAnsweredDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 @Entity
-public class QuestionAnswered {
+public class AnswerQuestion {
     @Id
     @GeneratedValue
     private Long id;
@@ -20,32 +21,37 @@ public class QuestionAnswered {
     private boolean correct;
     private Integer questionAggregateId;
     private Integer questionVersion;
-    private AggregateState state;
+    private AggregateState questionState;
     @OneToOne
     private Answer answer;
 
-    public QuestionAnswered() {
-        this.state = AggregateState.ACTIVE;
+    public AnswerQuestion() {
+
     }
 
-    public QuestionAnswered(QuestionAnsweredDto questionAnsweredDto) {
-        setSequence(questionAnsweredDto.getSequence());
-        setKey(questionAnsweredDto.getKey());
-        setTimeTaken(questionAnsweredDto.getTimeTaken());
-        setCorrect(questionAnsweredDto.getCorrect());
-        setQuestionAggregateId(questionAnsweredDto.getQuestionAggregateId());
-        setQuestionVersion(questionAnsweredDto.getQuestionVersion());
-        setState(questionAnsweredDto.getState());
+    public AnswerQuestion(QuestionDto questionDto) {
+        setQuestionAggregateId(questionDto.getAggregateId());
+        setQuestionVersion(questionDto.getVersion());
+        setQuestionState(questionDto.getState());
     }
 
+    public AnswerQuestion(AnswerQuestionDto answerQuestionDto) {
+        setSequence(answerQuestionDto.getSequence());
+        setKey(answerQuestionDto.getKey());
+        setTimeTaken(answerQuestionDto.getTimeTaken());
+        setCorrect(answerQuestionDto.getCorrect());
+        setQuestionAggregateId(answerQuestionDto.getAggregateId());
+        setQuestionVersion(answerQuestionDto.getVersion());
+        setQuestionState(answerQuestionDto.getState());
+    }
 
-    public QuestionAnswered(QuestionAnswered other) {
+    public AnswerQuestion(AnswerQuestion other) {
         setKey(other.getKey());
         setTimeTaken(other.getTimeTaken());
         setCorrect(other.getCorrect());
         setQuestionAggregateId(other.getQuestionAggregateId());
         setQuestionVersion(other.getQuestionVersion());
-        setState(other.getState());
+        setQuestionState(other.getQuestionState());
     }
 
     public Long getId() {
@@ -104,12 +110,12 @@ public class QuestionAnswered {
         this.questionVersion = questionVersion;
     }
 
-    public AggregateState getState() {
-        return state;
+    public AggregateState getQuestionState() {
+        return questionState;
     }
 
-    public void setState(AggregateState state) {
-        this.state = state;
+    public void setQuestionState(AggregateState questionState) {
+        this.questionState = questionState;
     }
 
     public Answer getAnswer() {
@@ -122,15 +128,15 @@ public class QuestionAnswered {
 
 
 
-    public QuestionAnsweredDto buildDto() {
-        QuestionAnsweredDto dto = new QuestionAnsweredDto();
+    public AnswerQuestionDto buildDto() {
+        AnswerQuestionDto dto = new AnswerQuestionDto();
         dto.setSequence(getSequence());
         dto.setKey(getKey());
         dto.setTimeTaken(getTimeTaken());
         dto.setCorrect(getCorrect());
-        dto.setQuestionAggregateId(getQuestionAggregateId());
-        dto.setQuestionVersion(getQuestionVersion());
-        dto.setState(getState());
+        dto.setAggregateId(getQuestionAggregateId());
+        dto.setVersion(getQuestionVersion());
+        dto.setState(getQuestionState());
         return dto;
     }
 }

@@ -107,8 +107,20 @@ export class EntityOrchestrator {
         }
 
         const subscriptionLines = simpleSubscriptions.map((sub: any) => {
-            const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
-            // Extract aggregate name from event name (e.g., UpdateTopicEvent -> Topic)
+            // Handle different AST structures for event types
+            let eventTypeName = 'UnknownEvent';
+            if (typeof sub.eventType === 'string') {
+                eventTypeName = sub.eventType;
+            } else if (sub.eventType?.ref?.name) {
+                eventTypeName = sub.eventType.ref.name;
+            } else if (sub.eventType?.$refText) {
+                eventTypeName = sub.eventType.$refText;
+            } else if ((sub as any).eventType) {
+                // Fallback: try to extract from the raw eventType
+                eventTypeName = (sub as any).eventType;
+            }
+
+            // Extract aggregate name from event name (e.g., UpdateTopicEvent -> Topic, UserDeletedEvent -> User)
             const eventNameWithoutPrefix = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
             const subscriptionClassName = `${aggregate.name}Subscribes${eventNameWithoutPrefix}`;
             return `        subscriptions.add(new ${subscriptionClassName}());`;
@@ -237,6 +249,15 @@ ${components.buildDtoMethod}
             // Root entities need EventSubscription for getEventSubscriptions() method
             const eventSubscriptionImport = `import ${config.getBasePackage()}.ms.domain.event.EventSubscription;`;
             imports.push(eventSubscriptionImport);
+
+            // Add imports for subscription classes used in getEventSubscriptions()
+            const subscriptionPattern = /new\s+([A-Z][a-zA-Z]*Subscribes[A-Z][a-zA-Z]*)\(\)/g;
+            let subscriptionMatch;
+            while ((subscriptionMatch = subscriptionPattern.exec(javaCode)) !== null) {
+                const subscriptionClassName = subscriptionMatch[1];
+                const subscriptionImport = `import ${config.buildPackageName(projectName, 'microservices', aggregateName?.toLowerCase() || 'unknown', 'events', 'subscribe')}.${subscriptionClassName};`;
+                imports.push(subscriptionImport);
+            }
         }
 
         const dtoPattern = /\b([A-Z][a-zA-Z]*Dto)\b/g;

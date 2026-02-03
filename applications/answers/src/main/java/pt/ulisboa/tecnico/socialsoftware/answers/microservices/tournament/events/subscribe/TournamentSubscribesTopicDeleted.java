@@ -2,17 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.event
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TopicDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.Tournament;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicDeletedEvent;
 
 public class TournamentSubscribesTopicDeleted extends EventSubscription {
     
 
-    public TournamentSubscribesTopicDeleted( ) {
-        super(.getCreator().getCreatorAggregateId(),
-                .getCreator().getCreatorVersion(),
-                TopicDeletedEvent.class.getSimpleName());
-        
+    public TournamentSubscribesTopicDeleted() {
+        // Parameterless constructor for simple subscriptions
+        // Event matching is handled by the framework
     }
 
     public boolean subscribesEvent(Event event) {

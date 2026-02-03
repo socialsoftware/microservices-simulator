@@ -123,6 +123,9 @@ export class SagaEventProcessingGenerator extends OrchestrationBase {
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.dtos.Saga${capitalizedAggregate}Dto;`);
         }
 
+        // Extract entity name from event (e.g., UserDeletedEvent -> User, TopicUpdatedEvent -> Topic)
+        const entityName = eventTypeName.replace(/(Updated|Deleted|Created)Event$/, '');
+
         // Determine the actual source aggregate for the event
         let sourceAggregateName = 'unknown';
         const publishedEvent = subscribedEvent.eventType?.ref as any;
@@ -130,6 +133,12 @@ export class SagaEventProcessingGenerator extends OrchestrationBase {
         const sourceAggregate = eventsContainer?.$container as any;
         if (sourceAggregate?.name) {
             sourceAggregateName = sourceAggregate.name.toLowerCase();
+        } else if (subscribedEvent.sourceAggregate) {
+            sourceAggregateName = subscribedEvent.sourceAggregate.toLowerCase();
+        } else {
+            // Fallback: infer source aggregate from event name
+            // UserDeletedEvent -> user, TopicUpdatedEvent -> topic
+            sourceAggregateName = entityName.toLowerCase();
         }
 
         // Add event import

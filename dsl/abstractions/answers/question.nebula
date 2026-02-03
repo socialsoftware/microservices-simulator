@@ -26,4 +26,9 @@ Aggregate Question {
         Set<QuestionTopic> topics;
         List<Option> options;
     }
+
+    Events {
+        subscribe TopicUpdatedEvent;
+        subscribe TopicDeletedEvent;
+    }
 }

@@ -2,17 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.event
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.ExecutionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.Tournament;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUpdatedEvent;
 
 public class TournamentSubscribesExecutionUpdated extends EventSubscription {
     
 
-    public TournamentSubscribesExecutionUpdated( ) {
-        super(.getCreator().getCreatorAggregateId(),
-                .getCreator().getCreatorVersion(),
-                ExecutionUpdatedEvent.class.getSimpleName());
-        
+    public TournamentSubscribesExecutionUpdated() {
+        // Parameterless constructor for simple subscriptions
+        // Event matching is handled by the framework
     }
 
     public boolean subscribesEvent(Event event) {

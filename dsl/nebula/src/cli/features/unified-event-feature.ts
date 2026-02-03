@@ -51,7 +51,13 @@ export class UnifiedEventFeature {
     ): Promise<void> {
         await ErrorHandler.wrapAsync(
             async () => {
-                const eventCode = await generators.eventGenerator.generateEvents(aggregate, options);
+                // Extract all aggregates from models if available
+                const allAggregates = options.allModels?.flatMap((model: any) => model.aggregates) || [];
+
+                const eventCode = await generators.eventGenerator.generateEvents(aggregate, {
+                    ...options,
+                    allAggregates
+                });
 
                 // Generate CRUD events if @GenerateCrud is used
                 const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
@@ -61,7 +67,10 @@ export class UnifiedEventFeature {
                     const crudEvents = await this.publishedEventGenerator.generatePublishedEvents(
                         aggregate,
                         rootEntity,
-                        { projectName: options.projectName || 'unknown' }
+                        {
+                            projectName: options.projectName || 'unknown',
+                            allAggregates
+                        }
                     );
 
                     Object.assign(eventCode, crudEvents);
@@ -83,7 +92,10 @@ export class UnifiedEventFeature {
                 await this.generateEventSubscriptionsFromCode(eventCode, aggregatePath);
 
                 if (generators.eventHandlerGenerator) {
-                    const individualEventHandlers = await generators.eventHandlerGenerator.generateEventHandlers(aggregate, options);
+                    const individualEventHandlers = await generators.eventHandlerGenerator.generateEventHandlers(aggregate, {
+                        ...options,
+                        allAggregates
+                    });
                     await this.generateIndividualEventHandlers(individualEventHandlers, aggregatePath);
                 }
             },
@@ -163,6 +175,10 @@ export class UnifiedEventFeature {
         aggregatePath: string,
         options: GenerationOptions
     ): Promise<void> {
+        // Extract all aggregates from models if available
+        const allAggregates = options.allModels?.flatMap((model: any) => model.aggregates) || [];
+        const enhancedOptions = { ...options, allAggregates };
+
         const directSubscribed = aggregate.events?.subscribedEvents || [];
         const interSubscribed = (aggregate.events as any)?.interInvariants?.flatMap((ii: any) => ii?.subscribedEvents || []) || [];
         const allSubscribed = [...directSubscribed, ...interSubscribed];
@@ -179,13 +195,13 @@ export class UnifiedEventFeature {
         for (const subscribedEvent of uniqueSubscribed) {
             await ErrorHandler.wrapAsync(
                 async () => {
-                    const subscriptionCode = this.eventGenerator.generateSubscribedEvent(subscribedEvent, aggregate, options);
+                    const subscriptionCode = this.eventGenerator.generateSubscribedEvent(subscribedEvent, aggregate, enhancedOptions);
                     const eventTypeName = (subscribedEvent as any).eventType || 'UnknownEvent';
                     const subscriptionName = `${aggregate.name}Subscribes${eventTypeName.replace('Event', '')}`;
                     const subscriptionPath = path.join(aggregatePath, 'events', 'subscribe', `${subscriptionName}.java`);
                     await FileWriter.writeGeneratedFile(subscriptionPath, subscriptionCode, `subscribed event ${subscriptionName}`);
 
-                    const handlerCode = this.eventGenerator.generateEventHandler(subscribedEvent, aggregate, options);
+                    const handlerCode = this.eventGenerator.generateEventHandler(subscribedEvent, aggregate, enhancedOptions);
                     const handlerName = `${eventTypeName}Handler`;
                     const handlerPath = path.join(aggregatePath, 'events', 'handling', 'handlers', `${handlerName}.java`);
                     await FileWriter.writeGeneratedFile(handlerPath, handlerCode, `event handler ${handlerName}`);

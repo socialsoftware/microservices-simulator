@@ -15,6 +15,9 @@ import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.subscribe.ExecutionSubscribesUserDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.subscribe.ExecutionSubscribesUserUpdated;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 
@@ -137,7 +140,8 @@ public abstract class Execution extends Aggregate {
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> subscriptions = new HashSet<>();
-        subscriptions.add(new ExecutionSubscribesUnknown());
+        subscriptions.add(new ExecutionSubscribesUserUpdated());
+        subscriptions.add(new ExecutionSubscribesUserDeleted());
         return subscriptions;
     }
 

@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.event
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.TournamentEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TopicUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicUpdatedEvent;
 
 public class TopicUpdatedEventHandler extends TournamentEventHandler {
     public TopicUpdatedEventHandler(TournamentRepository tournamentRepository, TournamentEventProcessing tournamentEventProcessing) {

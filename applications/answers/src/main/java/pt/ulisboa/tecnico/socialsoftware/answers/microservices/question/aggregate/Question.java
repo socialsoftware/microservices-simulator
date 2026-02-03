@@ -17,6 +17,9 @@ import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesTopicDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesTopicUpdated;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
@@ -189,7 +192,10 @@ public abstract class Question extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> subscriptions = new HashSet<>();
+        subscriptions.add(new QuestionSubscribesTopicUpdated());
+        subscriptions.add(new QuestionSubscribesTopicDeleted());
+        return subscriptions;
     }
 
     @Override

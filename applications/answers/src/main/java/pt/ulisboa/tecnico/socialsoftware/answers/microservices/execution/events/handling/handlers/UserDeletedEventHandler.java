@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.ExecutionEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.UserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UserDeletedEvent;
 
 public class UserDeletedEventHandler extends ExecutionEventHandler {
     public UserDeletedEventHandler(ExecutionRepository executionRepository, ExecutionEventProcessing executionEventProcessing) {

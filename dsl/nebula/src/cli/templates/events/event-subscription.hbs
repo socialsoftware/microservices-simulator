@@ -5,10 +5,9 @@ package {{packageName}};
 {{/each}}
 
 public class {{subscription.capitalizedSubscriptionName}} extends EventSubscription {
-    public {{subscription.capitalizedSubscriptionName}}({{subscription.projectionEntityName}} {{subscription.projectionPart}}Projection) {
-        super({{subscription.projectionPart}}Projection.get{{subscription.capitalizedAggregateIdField}}(),
-                {{subscription.projectionPart}}Projection.get{{subscription.capitalizedVersionField}}(),
-                {{subscription.eventTypeName}}.class.getSimpleName());
+    public {{subscription.capitalizedSubscriptionName}}() {
+        // Parameterless constructor for framework instantiation
+        // Subscription matching is handled by the framework
     }
 
     public boolean subscribesEvent(Event event) {

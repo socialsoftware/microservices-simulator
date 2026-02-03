@@ -51,4 +51,51 @@ export abstract class EventBaseGenerator extends OrchestrationBase {
             capitalizedSubscriptionName: `${this.capitalize(eventName)}Subscription`
         };
     }
+
+    /**
+     * Find which aggregate publishes a given event by checking all aggregates' published events.
+     * Handles both custom published events and auto-generated CRUD events.
+     * This is a shared helper used by multiple event generators.
+     */
+    protected findEventPublisher(eventTypeName: string, allAggregates: Aggregate[]): string | null {
+        for (const agg of allAggregates) {
+            const aggName = agg.name;
+
+            // 1. Check custom published events (explicitly defined in DSL)
+            const aggregateEvents = (agg as any).events;
+            const customEvents = aggregateEvents?.publishedEvents || [];
+            if (customEvents.some((e: any) => e.name === eventTypeName)) {
+                return aggName.toLowerCase();
+            }
+
+            // 2. Check root entity CRUD events (auto-generated for @GenerateCrud)
+            if (agg.generateCrud) {
+                const rootCrudEvents = [
+                    `${aggName}UpdatedEvent`,
+                    `${aggName}DeletedEvent`
+                ];
+                if (rootCrudEvents.includes(eventTypeName)) {
+                    return aggName.toLowerCase();
+                }
+            }
+
+            // 3. Check projection entity CRUD events
+            const projectionEntities = (agg.entities || []).filter((e: any) =>
+                !e.isRoot && e.aggregateRef
+            );
+            for (const proj of projectionEntities) {
+                const projName = proj.name;
+                const projCrudEvents = [
+                    `${projName}UpdatedEvent`,
+                    `${projName}DeletedEvent`,
+                    `${projName}RemovedEvent`  // For collection manipulation
+                ];
+                if (projCrudEvents.includes(eventTypeName)) {
+                    return aggName.toLowerCase();  // Return AGGREGATE name, not projection name
+                }
+            }
+        }
+
+        return null;  // Not found in any aggregate
+    }
 }

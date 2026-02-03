@@ -69,23 +69,67 @@ export class EventGenerator extends OrchestrationBase {
         };
     }
 
-    private buildSubscribedEventContext(event: SubscribedEvent, aggregate: Aggregate, options: { projectName: string }): any {
+    private buildSubscribedEventContext(event: SubscribedEvent, aggregate: Aggregate, options: any): any {
         const aggregateName = aggregate.name.toLowerCase();
         const eventTypeName = (event as any).eventType || 'UnknownEvent';
 
         const subscriptionName = `${aggregate.name}Subscribes${eventTypeName.replace('Event', '')}`;
 
-        const subscribingEntityName = event.sourceAggregate;
+        // Infer source aggregate if not explicitly provided
+        let subscribingEntityName = event.sourceAggregate;
+        if (!subscribingEntityName) {
+            // Extract entity name from event (e.g., TopicDeletedEvent -> Topic)
+            const inferredEntityName = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
+
+            // Try to find a projection entity that references this entity
+            const entities = (aggregate as any).entities || [];
+            const projectionEntity = entities.find((e: any) => {
+                const aggregateRef = e.aggregateRef;
+                return aggregateRef && aggregateRef.toLowerCase() === inferredEntityName.toLowerCase();
+            });
+
+            // Use projection entity if found, otherwise use root entity
+            subscribingEntityName = projectionEntity ? projectionEntity.name : aggregate.name;
+        }
+
         // use lower-camel case so multi-word entity names (e.g., AnswerQuiz) keep
         // their internal capitalization and still match routing expressions
         const subscribingEntityVariable = subscribingEntityName
             ? subscribingEntityName.charAt(0).toLowerCase() + subscribingEntityName.slice(1)
             : '';
 
-        // With implicit/standard events we may not know the publishing aggregate
-        // from the DSL alone, so we default to the current aggregate unless a
-        // more advanced resolution mechanism is added later.
-        let eventSourceAggregate = aggregateName;
+        // Determine the publishing aggregate from the event
+        let eventSourceAggregate = aggregateName;  // default to current aggregate
+
+        // PRIORITY 1: Try AST reference (works for custom events with explicit references)
+        const publishedEvent = (event as any).eventType?.ref;
+        const eventsContainer = publishedEvent?.$container;
+        const sourceAggregate = eventsContainer?.$container;
+        if (sourceAggregate?.name) {
+            eventSourceAggregate = sourceAggregate.name.toLowerCase();
+        } else if (event.sourceAggregate) {
+            eventSourceAggregate = event.sourceAggregate.toLowerCase();
+        }
+        // PRIORITY 2: Search all aggregates for event publisher (works for CRUD events)
+        else if (options?.allAggregates && options.allAggregates.length > 0) {
+            const found = this.findEventPublisher(eventTypeName, options.allAggregates);
+            if (found) {
+                eventSourceAggregate = found;
+            } else {
+                console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
+                // Fallback to inferring from event name
+                const inferredPublisher = eventTypeName.replace(/(Deleted|Updated|Created)?Event$/, '');
+                eventSourceAggregate = inferredPublisher.toLowerCase();
+            }
+        }
+        // PRIORITY 3: Fallback (only when allAggregates not available)
+        else {
+            // Infer the publishing aggregate from the event name
+            // Extract entity name from event (e.g., UserDeletedEvent -> User, TopicUpdatedEvent -> Topic)
+            // Pattern is: {Entity}{Action}Event where Action is Deleted, Updated, or Created
+            const inferredPublisher = eventTypeName.replace(/(Deleted|Updated|Created)?Event$/, '');
+            eventSourceAggregate = inferredPublisher.toLowerCase();
+        }
 
         const conditions = event.conditions?.map((condition: any) => {
             if (!condition.condition) {
@@ -270,7 +314,7 @@ export class EventGenerator extends OrchestrationBase {
         return this.renderTemplate(template, context);
     }
 
-    private buildCustomEventHandlingContext(aggregate: Aggregate, options: { projectName: string }): any {
+    private buildCustomEventHandlingContext(aggregate: Aggregate, options: any): any {
         const aggregateName = aggregate.name;
         const lowerAggregateName = aggregateName.toLowerCase();
 
@@ -286,8 +330,38 @@ export class EventGenerator extends OrchestrationBase {
             const eventTypeName = (event as any).eventType || 'UnknownEvent';
             const handlerName = `${eventTypeName}Handler`;
 
-            // With implicit events we don't know the true source aggregate; default to current aggregate.
-            const sourceAggregateName = lowerAggregateName;
+            // Extract entity name from event (e.g., UserDeletedEvent -> User, TopicUpdatedEvent -> Topic)
+            const entityName = eventTypeName.replace(/(Updated|Deleted|Created)Event$/, '');
+
+            // Determine source aggregate from published event
+            let sourceAggregateName = lowerAggregateName;
+
+            // PRIORITY 1: Try AST reference (works for custom events with explicit references)
+            const publishedEvent = (event as any).eventType?.ref;
+            const eventsContainer = publishedEvent?.$container;
+            const sourceAggregate = eventsContainer?.$container;
+            if (sourceAggregate?.name) {
+                sourceAggregateName = sourceAggregate.name.toLowerCase();
+            } else if ((event as any).sourceAggregate) {
+                sourceAggregateName = ((event as any).sourceAggregate as string).toLowerCase();
+            }
+            // PRIORITY 2: Search all aggregates for event publisher (works for CRUD events)
+            else if (options?.allAggregates && options.allAggregates.length > 0) {
+                const found = this.findEventPublisher(eventTypeName, options.allAggregates);
+                if (found) {
+                    sourceAggregateName = found;
+                } else {
+                    console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
+                    // Fallback to simple name matching
+                    sourceAggregateName = entityName.toLowerCase();
+                }
+            }
+            // PRIORITY 3: Fallback (only when allAggregates not available)
+            else {
+                // Fallback: infer source aggregate from event name
+                // UserDeletedEvent -> user, TopicUpdatedEvent -> topic
+                sourceAggregateName = entityName.toLowerCase();
+            }
 
             return {
                 handlerName,
@@ -308,14 +382,44 @@ export class EventGenerator extends OrchestrationBase {
         };
     }
 
-    private buildEventHandlerContext(event: SubscribedEvent, aggregate: Aggregate, options: { projectName: string }): any {
+    private buildEventHandlerContext(event: SubscribedEvent, aggregate: Aggregate, options: any): any {
         const aggregateName = aggregate.name;
         const lowerAggregateName = aggregateName.toLowerCase();
         const eventTypeName = (event as any).eventType || 'UnknownEvent';
         const handlerName = `${eventTypeName}Handler`;
 
-        // With implicit events we don't know the true source aggregate; default to current aggregate.
-        const sourceAggregateName = lowerAggregateName;
+        // Extract entity name from event (e.g., UserDeletedEvent -> User, TopicUpdatedEvent -> Topic)
+        const entityName = eventTypeName.replace(/(Updated|Deleted|Created)Event$/, '');
+
+        // Determine source aggregate from published event
+        let sourceAggregateName = lowerAggregateName;
+
+        // PRIORITY 1: Try AST reference (works for custom events with explicit references)
+        const publishedEvent = (event as any).eventType?.ref;
+        const eventsContainer = publishedEvent?.$container;
+        const sourceAggregate = eventsContainer?.$container;
+        if (sourceAggregate?.name) {
+            sourceAggregateName = sourceAggregate.name.toLowerCase();
+        } else if ((event as any).sourceAggregate) {
+            sourceAggregateName = ((event as any).sourceAggregate as string).toLowerCase();
+        }
+        // PRIORITY 2: Search all aggregates for event publisher (works for CRUD events)
+        else if (options?.allAggregates && options.allAggregates.length > 0) {
+            const found = this.findEventPublisher(eventTypeName, options.allAggregates);
+            if (found) {
+                sourceAggregateName = found;
+            } else {
+                console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
+                // Fallback to simple name matching
+                sourceAggregateName = entityName.toLowerCase();
+            }
+        }
+        // PRIORITY 3: Fallback (only when allAggregates not available)
+        else {
+            // Fallback: infer source aggregate from event name
+            // UserDeletedEvent -> user, TopicUpdatedEvent -> topic
+            sourceAggregateName = entityName.toLowerCase();
+        }
 
         return {
             packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.events.handling.handlers`,
@@ -345,6 +449,52 @@ export class EventGenerator extends OrchestrationBase {
         });
 
         return Array.from(eventMap.values());
+    }
+
+    /**
+     * Find which aggregate publishes a given event by checking all aggregates' published events.
+     * Handles both custom published events and auto-generated CRUD events.
+     */
+    private findEventPublisher(eventTypeName: string, allAggregates: Aggregate[]): string | null {
+        for (const agg of allAggregates) {
+            const aggName = agg.name;
+
+            // 1. Check custom published events (explicitly defined in DSL)
+            const aggregateEvents = (agg as any).events;
+            const customEvents = aggregateEvents?.publishedEvents || [];
+            if (customEvents.some((e: any) => e.name === eventTypeName)) {
+                return aggName.toLowerCase();
+            }
+
+            // 2. Check root entity CRUD events (auto-generated for @GenerateCrud)
+            if (agg.generateCrud) {
+                const rootCrudEvents = [
+                    `${aggName}UpdatedEvent`,
+                    `${aggName}DeletedEvent`
+                ];
+                if (rootCrudEvents.includes(eventTypeName)) {
+                    return aggName.toLowerCase();
+                }
+            }
+
+            // 3. Check projection entity CRUD events
+            const projectionEntities = (agg.entities || []).filter((e: any) =>
+                !e.isRoot && e.aggregateRef
+            );
+            for (const proj of projectionEntities) {
+                const projName = proj.name;
+                const projCrudEvents = [
+                    `${projName}UpdatedEvent`,
+                    `${projName}DeletedEvent`,
+                    `${projName}RemovedEvent`  // For collection manipulation
+                ];
+                if (projCrudEvents.includes(eventTypeName)) {
+                    return aggName.toLowerCase();  // Return AGGREGATE name, not projection name
+                }
+            }
+        }
+
+        return null;  // Not found in any aggregate
     }
 
     private buildBaseEventHandlerContext(aggregate: Aggregate, options: { projectName: string }): any {

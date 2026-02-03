@@ -2,6 +2,7 @@ import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { OrchestrationBase } from "../../common/orchestration-base.js";
 import { getGlobalConfig } from "../../common/config.js";
 import { CrudMethodGenerator } from "./crud-method-generator.js";
+import { CollectionMethodGenerator } from "./collection-method-generator.js";
 
 export interface ServiceGenerationOptions {
     architecture?: string;
@@ -11,10 +12,12 @@ export interface ServiceGenerationOptions {
 
 export class ServiceDefinitionGenerator extends OrchestrationBase {
     private crudGenerator: CrudMethodGenerator;
+    private collectionGenerator: CollectionMethodGenerator;
 
     constructor() {
         super();
         this.crudGenerator = new CrudMethodGenerator();
+        this.collectionGenerator = new CollectionMethodGenerator();
     }
     async generateServiceFromDefinition(aggregate: Aggregate, rootEntity: Entity, options: ServiceGenerationOptions): Promise<string> {
         const serviceDefinition = (aggregate as any).serviceDefinition;
@@ -150,6 +153,9 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
                 includeValidation: true
             });
             methods.push(...this.crudGenerator.generateCrudMethods(aggregate, rootEntity, crudOptions));
+
+            // Generate collection manipulation methods
+            methods.push(...this.collectionGenerator.generateCollectionMethods(aggregate, rootEntity));
         }
 
         if (serviceDefinition.serviceMethods) {

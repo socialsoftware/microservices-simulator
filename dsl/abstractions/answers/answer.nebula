@@ -8,14 +8,11 @@ Aggregate Answer {
     Entity AnswerExecution uses Execution {
     }
 
-    Dto Entity QuestionAnswered {
+    Entity AnswerQuestion uses Question {
         Integer sequence;
         Integer key;
         Integer timeTaken;
         Boolean correct;
-        Integer questionAggregateId;
-        Integer questionVersion;
-        AggregateState state default AggregateState.ACTIVE;
     }
 
     Entity AnswerQuiz uses Quiz {
@@ -31,13 +28,14 @@ Aggregate Answer {
         AnswerExecution execution;
         AnswerUser user;
         AnswerQuiz quiz;
-        List<QuestionAnswered> questions;
+        List<AnswerQuestion> questions;
     }
 
     Events {
-        subscribe UserDeletedEvent;
-        subscribe ExecutionDeletedEvent;
-        subscribe ExecutionUpdatedEvent;
+        subscribe ExecutionUserUpdatedEvent;
+        subscribe ExecutionUserDeletedEvent;
+        subscribe QuestionUpdatedEvent;
+        subscribe QuestionDeletedEvent;
     }
 
     Repository {

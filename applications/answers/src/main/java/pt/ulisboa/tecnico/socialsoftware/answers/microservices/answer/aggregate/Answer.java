@@ -17,11 +17,15 @@ import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesExecutionUserDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesExecutionUserUpdated;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesQuestionDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesQuestionUpdated;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerUserDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionAnsweredDto;
 
 @Entity
 public abstract class Answer extends Aggregate {
@@ -35,7 +39,7 @@ public abstract class Answer extends Aggregate {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
     private AnswerQuiz quiz;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "answer")
-    private List<QuestionAnswered> questions = new ArrayList<>();
+    private List<AnswerQuestion> questions = new ArrayList<>();
 
     public Answer() {
 
@@ -50,7 +54,7 @@ public abstract class Answer extends Aggregate {
         setExecution(answerDto.getExecution() != null ? new AnswerExecution(answerDto.getExecution()) : null);
         setUser(answerDto.getUser() != null ? new AnswerUser(answerDto.getUser()) : null);
         setQuiz(answerDto.getQuiz() != null ? new AnswerQuiz(answerDto.getQuiz()) : null);
-        setQuestions(answerDto.getQuestions() != null ? answerDto.getQuestions().stream().map(QuestionAnswered::new).collect(Collectors.toList()) : null);
+        setQuestions(answerDto.getQuestions() != null ? answerDto.getQuestions().stream().map(AnswerQuestion::new).collect(Collectors.toList()) : null);
     }
 
 
@@ -62,7 +66,7 @@ public abstract class Answer extends Aggregate {
         setExecution(new AnswerExecution(other.getExecution()));
         setUser(new AnswerUser(other.getUser()));
         setQuiz(new AnswerQuiz(other.getQuiz()));
-        setQuestions(other.getQuestions().stream().map(QuestionAnswered::new).collect(Collectors.toList()));
+        setQuestions(other.getQuestions().stream().map(AnswerQuestion::new).collect(Collectors.toList()));
     }
 
     public LocalDateTime getCreationDate() {
@@ -122,35 +126,35 @@ public abstract class Answer extends Aggregate {
         }
     }
 
-    public List<QuestionAnswered> getQuestions() {
+    public List<AnswerQuestion> getQuestions() {
         return questions;
     }
 
-    public void setQuestions(List<QuestionAnswered> questions) {
+    public void setQuestions(List<AnswerQuestion> questions) {
         this.questions = questions;
         if (this.questions != null) {
             this.questions.forEach(item -> item.setAnswer(this));
         }
     }
 
-    public void addQuestionAnswered(QuestionAnswered questionAnswered) {
+    public void addAnswerQuestion(AnswerQuestion answerQuestion) {
         if (this.questions == null) {
             this.questions = new ArrayList<>();
         }
-        this.questions.add(questionAnswered);
-        if (questionAnswered != null) {
-            questionAnswered.setAnswer(this);
+        this.questions.add(answerQuestion);
+        if (answerQuestion != null) {
+            answerQuestion.setAnswer(this);
         }
     }
 
-    public void removeQuestionAnswered(Integer id) {
+    public void removeAnswerQuestion(Integer id) {
         if (this.questions != null) {
             this.questions.removeIf(item -> 
                 item.getSequence() != null && item.getSequence().equals(id));
         }
     }
 
-    public boolean containsQuestionAnswered(Integer id) {
+    public boolean containsAnswerQuestion(Integer id) {
         if (this.questions == null) {
             return false;
         }
@@ -158,7 +162,7 @@ public abstract class Answer extends Aggregate {
             item.getSequence() != null && item.getSequence().equals(id));
     }
 
-    public QuestionAnswered findQuestionAnsweredById(Integer id) {
+    public AnswerQuestion findAnswerQuestionById(Integer id) {
         if (this.questions == null) {
             return null;
         }
@@ -172,9 +176,10 @@ public abstract class Answer extends Aggregate {
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> subscriptions = new HashSet<>();
-        subscriptions.add(new AnswerSubscribesUnknown());
-        subscriptions.add(new AnswerSubscribesUnknown());
-        subscriptions.add(new AnswerSubscribesUnknown());
+        subscriptions.add(new AnswerSubscribesExecutionUserUpdated());
+        subscriptions.add(new AnswerSubscribesExecutionUserDeleted());
+        subscriptions.add(new AnswerSubscribesQuestionUpdated());
+        subscriptions.add(new AnswerSubscribesQuestionDeleted());
         return subscriptions;
     }
 
@@ -194,7 +199,7 @@ public abstract class Answer extends Aggregate {
         dto.setExecution(getExecution() != null ? new AnswerExecutionDto(getExecution()) : null);
         dto.setUser(getUser() != null ? new AnswerUserDto(getUser()) : null);
         dto.setQuiz(getQuiz() != null ? new AnswerQuizDto(getQuiz()) : null);
-        dto.setQuestions(getQuestions() != null ? getQuestions().stream().map(QuestionAnsweredDto::new).collect(Collectors.toList()) : null);
+        dto.setQuestions(getQuestions() != null ? getQuestions().stream().map(AnswerQuestion::buildDto).collect(Collectors.toList()) : null);
         return dto;
     }
 }

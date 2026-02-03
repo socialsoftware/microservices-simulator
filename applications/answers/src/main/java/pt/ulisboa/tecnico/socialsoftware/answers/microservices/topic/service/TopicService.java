@@ -13,9 +13,12 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicCourseDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicCourseUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTopicRequestDto;
 
@@ -93,7 +96,9 @@ public class TopicService {
             }
 
             unitOfWorkService.registerChanged(topic, unitOfWork);
-            unitOfWorkService.registerEvent(new TopicUpdatedEvent(topic.getAggregateId(), topic.getName()), unitOfWork);
+            TopicUpdatedEvent event = new TopicUpdatedEvent(topic.getAggregateId(), topic.getName());
+            event.setPublisherAggregateVersion(topic.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
             return topicFactory.createTopicDto(topic);
         } catch (AnswersException e) {
             throw e;
@@ -114,6 +119,8 @@ public class TopicService {
             throw new AnswersException("Error deleting topic: " + e.getMessage());
         }
     }
+
+
 
 
 

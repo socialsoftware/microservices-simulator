@@ -7,8 +7,10 @@ import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.ExecutionEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionRepository;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.handling.handlers.UserUpdatedEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.handling.handlers.UserDeletedEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.UserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UserDeletedEvent;
 
 @Component
 public class ExecutionEventHandling {
@@ -18,6 +20,12 @@ public class ExecutionEventHandling {
     private ExecutionEventProcessing executionEventProcessing;
     @Autowired
     private ExecutionRepository executionRepository;
+
+    @Scheduled(fixedDelay = 1000)
+    public void handleUserUpdatedEventEvents() {
+        eventApplicationService.handleSubscribedEvent(UserUpdatedEvent.class,
+                new UserUpdatedEventHandler(executionRepository, executionEventProcessing));
+    }
 
     @Scheduled(fixedDelay = 1000)
     public void handleUserDeletedEventEvents() {

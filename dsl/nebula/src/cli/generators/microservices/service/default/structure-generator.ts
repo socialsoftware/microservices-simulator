@@ -102,12 +102,42 @@ export class ServiceStructureGenerator {
 
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;');
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;');
+        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;');
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;');
 
         // Import published events for delete/update so services can register them in UnitOfWork
         const eventsPackage = getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'events', 'publish');
         imports.push(`import ${eventsPackage}.${aggregateName}DeletedEvent;`);
         imports.push(`import ${eventsPackage}.${aggregateName}UpdatedEvent;`);
+
+        // Import projection entity events
+        const projectionEntities = (aggregate.entities || []).filter((e: any) =>
+            !e.isRoot && e.aggregateRef
+        );
+
+        projectionEntities.forEach((projEntity: any) => {
+            const projEntityName = projEntity.name;
+            imports.push(`import ${eventsPackage}.${projEntityName}DeletedEvent;`);
+            imports.push(`import ${eventsPackage}.${projEntityName}UpdatedEvent;`);
+        });
+
+        // Import collection element events (RemovedEvent and UpdatedEvent for all non-root entities in collections)
+        const rootEntityForCollections = aggregate.entities?.find((e: any) => e.isRoot);
+        if (rootEntityForCollections && rootEntityForCollections.properties) {
+            for (const prop of rootEntityForCollections.properties) {
+                const propType = (prop as any).type;
+                // Check if this is a collection type
+                const javaType = TypeResolver.resolveJavaType(propType);
+                if (javaType && (javaType.startsWith('Set<') || javaType.startsWith('List<'))) {
+                    const elementType = TypeResolver.getElementType(propType);
+                    if (elementType && TypeResolver.isEntityType(javaType)) {
+                        // Import RemovedEvent and UpdatedEvent for collection elements
+                        imports.push(`import ${eventsPackage}.${elementType}RemovedEvent;`);
+                        imports.push(`import ${eventsPackage}.${elementType}UpdatedEvent;`);
+                    }
+                }
+            }
+        }
 
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', 'exception')}.${capitalize(projectName)}Exception;`);
         

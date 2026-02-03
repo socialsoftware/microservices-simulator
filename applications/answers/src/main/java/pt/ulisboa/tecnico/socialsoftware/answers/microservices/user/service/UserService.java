@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UserDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UserUpdatedEvent;
@@ -92,7 +93,9 @@ public class UserService {
             user.setActive(userDto.getActive());
 
             unitOfWorkService.registerChanged(user, unitOfWork);
-            unitOfWorkService.registerEvent(new UserUpdatedEvent(user.getAggregateId(), user.getName(), user.getUsername(), user.getActive()), unitOfWork);
+            UserUpdatedEvent event = new UserUpdatedEvent(user.getAggregateId(), user.getName(), user.getUsername(), user.getActive());
+            event.setPublisherAggregateVersion(user.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
             return userFactory.createUserDto(user);
         } catch (AnswersException e) {
             throw e;
@@ -113,6 +116,8 @@ public class UserService {
             throw new AnswersException("Error deleting user: " + e.getMessage());
         }
     }
+
+
 
 
 

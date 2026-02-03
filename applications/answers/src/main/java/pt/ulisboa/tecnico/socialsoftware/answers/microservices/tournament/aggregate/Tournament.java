@@ -15,6 +15,15 @@ import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionUpdated;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionUserDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionUserUpdated;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesQuizDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesQuizUpdated;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesTopicDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesTopicUpdated;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentExecutionDto;
@@ -230,10 +239,14 @@ public abstract class Tournament extends Aggregate {
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> subscriptions = new HashSet<>();
-        subscriptions.add(new TournamentSubscribesUnknown());
-        subscriptions.add(new TournamentSubscribesUnknown());
-        subscriptions.add(new TournamentSubscribesUnknown());
-        subscriptions.add(new TournamentSubscribesUnknown());
+        subscriptions.add(new TournamentSubscribesExecutionUpdated());
+        subscriptions.add(new TournamentSubscribesExecutionDeleted());
+        subscriptions.add(new TournamentSubscribesExecutionUserUpdated());
+        subscriptions.add(new TournamentSubscribesExecutionUserDeleted());
+        subscriptions.add(new TournamentSubscribesTopicUpdated());
+        subscriptions.add(new TournamentSubscribesTopicDeleted());
+        subscriptions.add(new TournamentSubscribesQuizUpdated());
+        subscriptions.add(new TournamentSubscribesQuizDeleted());
         return subscriptions;
     }
 

@@ -5,7 +5,8 @@ import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.unknown.events.publish.UnknownEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UserDeletedEvent;
 
 @Service
 public class ExecutionEventProcessing {
@@ -18,9 +19,15 @@ public class ExecutionEventProcessing {
         this.unitOfWorkService = unitOfWorkService;
     }
 
+    public void processUserUpdatedEvent(Integer aggregateId, UserUpdatedEvent userUpdatedEvent) {
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        executionService.handleUserUpdatedEvent(aggregateId, userUpdatedEvent.getPublisherAggregateId(), userUpdatedEvent.getPublisherAggregateVersion(), userUpdatedEvent.getName(), userUpdatedEvent.getUsername(), userUpdatedEvent.getActive(), unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
     public void processUserDeletedEvent(Integer aggregateId, UserDeletedEvent userDeletedEvent) {
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        executionService.userDeleted(aggregateId, userDeletedEvent.getPublisherAggregateId(), userDeletedEvent.getPublisherAggregateVersion(), unitOfWork);
+        executionService.handleUserDeletedEvent(aggregateId, userDeletedEvent.getPublisherAggregateId(), userDeletedEvent.getPublisherAggregateVersion(), unitOfWork);
         unitOfWorkService.commit(unitOfWork);
     }
 }

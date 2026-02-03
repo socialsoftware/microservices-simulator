@@ -91,9 +91,13 @@ Aggregate Tournament {
     }
 
     Events {
-        subscribe ExecutionDeletedEvent;
         subscribe ExecutionUpdatedEvent;
+        subscribe ExecutionDeletedEvent;
+        subscribe ExecutionUserUpdatedEvent;
+        subscribe ExecutionUserDeletedEvent;
         subscribe TopicUpdatedEvent;
         subscribe TopicDeletedEvent;
+        subscribe QuizUpdatedEvent;
+        subscribe QuizDeletedEvent;
     }
 }

@@ -2,17 +2,17 @@ package {{packageName}};
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+{{#if sourceAggregate}}
 import {{sourceAggregatePackage}}.{{sourceAggregate}};
+{{/if}}
 import {{eventTypePackage}}.{{eventTypeName}};
 
 public class {{subscriptionName}} extends EventSubscription {
     {{#if (length conditions)}}private final {{sourceAggregate}} {{sourceAggregateVariable}};{{/if}}
 
-    public {{subscriptionName}}({{sourceAggregate}} {{sourceAggregateVariable}}) {
-        super({{subscriptionKeyAggregateIdExpr}},
-                {{subscriptionKeyVersionExpr}},
-                {{eventTypeName}}.class.getSimpleName());
-        {{#if (length conditions)}}this.{{sourceAggregateVariable}} = {{sourceAggregateVariable}};{{/if}}
+    public {{subscriptionName}}() {
+        // Parameterless constructor for simple subscriptions
+        // Event matching is handled by the framework
     }
 
     public boolean subscribesEvent(Event event) {

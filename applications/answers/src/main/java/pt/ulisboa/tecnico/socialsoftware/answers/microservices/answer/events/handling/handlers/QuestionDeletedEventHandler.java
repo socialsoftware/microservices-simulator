@@ -3,15 +3,15 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.ha
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.AnswerEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.ExecutionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.publish.QuestionDeletedEvent;
 
-public class ExecutionUpdatedEventHandler extends AnswerEventHandler {
-    public ExecutionUpdatedEventHandler(AnswerRepository answerRepository, AnswerEventProcessing answerEventProcessing) {
+public class QuestionDeletedEventHandler extends AnswerEventHandler {
+    public QuestionDeletedEventHandler(AnswerRepository answerRepository, AnswerEventProcessing answerEventProcessing) {
         super(answerRepository, answerEventProcessing);
     }
 
     @Override
     public void handleEvent(Integer subscriberAggregateId, Event event) {
-        this.answerEventProcessing.processExecutionUpdatedEvent(subscriberAggregateId, (ExecutionUpdatedEvent) event);
+        this.answerEventProcessing.processQuestionDeletedEvent(subscriberAggregateId, (QuestionDeletedEvent) event);
     }
 }

@@ -1,9 +1,10 @@
-import { Entity } from "../../../../language/generated/ast.js";
+import { Entity, Aggregate } from "../../../../language/generated/ast.js";
 
 export interface EventGenerationOptions {
     architecture?: string;
     features?: string[];
     projectName: string;
+    allAggregates?: Aggregate[];
 }
 
 export interface EventContext {

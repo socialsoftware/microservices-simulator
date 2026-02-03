@@ -20,9 +20,26 @@ import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentExecutionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentExecutionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentCreatorDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentCreatorUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentParticipantDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentParticipantUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentParticipantQuizDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentParticipantQuizUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentTopicDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentTopicUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentQuizDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentQuizUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentParticipantRemovedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentParticipantUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentTopicRemovedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentTopicUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTournamentRequestDto;
 
@@ -142,7 +159,9 @@ public class TournamentService {
             tournament.setCancelled(tournamentDto.getCancelled());
 
             unitOfWorkService.registerChanged(tournament, unitOfWork);
-            unitOfWorkService.registerEvent(new TournamentUpdatedEvent(tournament.getAggregateId(), tournament.getStartTime(), tournament.getEndTime(), tournament.getNumberOfQuestions(), tournament.getCancelled()), unitOfWork);
+            TournamentUpdatedEvent event = new TournamentUpdatedEvent(tournament.getAggregateId(), tournament.getStartTime(), tournament.getEndTime(), tournament.getNumberOfQuestions(), tournament.getCancelled());
+            event.setPublisherAggregateVersion(tournament.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
             return tournamentFactory.createTournamentDto(tournament);
         } catch (AnswersException e) {
             throw e;
@@ -164,7 +183,465 @@ public class TournamentService {
         }
     }
 
+    public TournamentParticipantDto addTournamentParticipant(Integer tournamentId, Integer participantAggregateId, TournamentParticipantDto TournamentParticipantDto, UnitOfWork unitOfWork) {
+        try {
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            TournamentParticipant element = new TournamentParticipant(TournamentParticipantDto);
+            tournament.getParticipants().add(element);
+            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            return TournamentParticipantDto;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error adding TournamentParticipant: " + e.getMessage());
+        }
+    }
 
+    public List<TournamentParticipantDto> addTournamentParticipants(Integer tournamentId, List<TournamentParticipantDto> TournamentParticipantDtos, UnitOfWork unitOfWork) {
+        try {
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            TournamentParticipantDtos.forEach(dto -> {
+                TournamentParticipant element = new TournamentParticipant(dto);
+                tournament.getParticipants().add(element);
+            });
+            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            return TournamentParticipantDtos;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error adding TournamentParticipants: " + e.getMessage());
+        }
+    }
+
+    public TournamentParticipantDto getTournamentParticipant(Integer tournamentId, Integer participantAggregateId, UnitOfWork unitOfWork) {
+        try {
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            TournamentParticipant element = tournament.getParticipants().stream()
+                .filter(item -> item.getParticipantAggregateId() != null &&
+                               item.getParticipantAggregateId().equals(participantAggregateId))
+                .findFirst()
+                .orElseThrow(() -> new AnswersException("TournamentParticipant not found"));
+            return element.buildDto();
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error retrieving TournamentParticipant: " + e.getMessage());
+        }
+    }
+
+    public void removeTournamentParticipant(Integer tournamentId, Integer participantAggregateId, UnitOfWork unitOfWork) {
+        try {
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            tournament.getParticipants().removeIf(item ->
+                item.getParticipantAggregateId() != null &&
+                item.getParticipantAggregateId().equals(participantAggregateId)
+            );
+            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            TournamentParticipantRemovedEvent event = new TournamentParticipantRemovedEvent(tournamentId, participantAggregateId);
+            event.setPublisherAggregateVersion(tournament.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error removing TournamentParticipant: " + e.getMessage());
+        }
+    }
+
+    public TournamentParticipantDto updateTournamentParticipant(Integer tournamentId, Integer participantAggregateId, TournamentParticipantDto TournamentParticipantDto, UnitOfWork unitOfWork) {
+        try {
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            TournamentParticipant element = tournament.getParticipants().stream()
+                .filter(item -> item.getParticipantAggregateId() != null &&
+                               item.getParticipantAggregateId().equals(participantAggregateId))
+                .findFirst()
+                .orElseThrow(() -> new AnswersException("TournamentParticipant not found"));
+            if (TournamentParticipantDto.getName() != null) {
+                element.setParticipantName(TournamentParticipantDto.getName());
+            }
+            if (TournamentParticipantDto.getUsername() != null) {
+                element.setParticipantUsername(TournamentParticipantDto.getUsername());
+            }
+            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            TournamentParticipantUpdatedEvent event = new TournamentParticipantUpdatedEvent(tournamentId, element.getParticipantAggregateId(), element.getParticipantVersion(), element.getParticipantName(), element.getParticipantUsername(), element.getParticipantEnrollTime());
+            event.setPublisherAggregateVersion(tournament.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
+            return element.buildDto();
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error updating TournamentParticipant: " + e.getMessage());
+        }
+    }
+
+    public TournamentTopicDto addTournamentTopic(Integer tournamentId, Integer topicAggregateId, TournamentTopicDto TournamentTopicDto, UnitOfWork unitOfWork) {
+        try {
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            TournamentTopic element = new TournamentTopic(TournamentTopicDto);
+            tournament.getTopics().add(element);
+            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            return TournamentTopicDto;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error adding TournamentTopic: " + e.getMessage());
+        }
+    }
+
+    public List<TournamentTopicDto> addTournamentTopics(Integer tournamentId, List<TournamentTopicDto> TournamentTopicDtos, UnitOfWork unitOfWork) {
+        try {
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            TournamentTopicDtos.forEach(dto -> {
+                TournamentTopic element = new TournamentTopic(dto);
+                tournament.getTopics().add(element);
+            });
+            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            return TournamentTopicDtos;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error adding TournamentTopics: " + e.getMessage());
+        }
+    }
+
+    public TournamentTopicDto getTournamentTopic(Integer tournamentId, Integer topicAggregateId, UnitOfWork unitOfWork) {
+        try {
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            TournamentTopic element = tournament.getTopics().stream()
+                .filter(item -> item.getTopicAggregateId() != null &&
+                               item.getTopicAggregateId().equals(topicAggregateId))
+                .findFirst()
+                .orElseThrow(() -> new AnswersException("TournamentTopic not found"));
+            return element.buildDto();
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error retrieving TournamentTopic: " + e.getMessage());
+        }
+    }
+
+    public void removeTournamentTopic(Integer tournamentId, Integer topicAggregateId, UnitOfWork unitOfWork) {
+        try {
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            tournament.getTopics().removeIf(item ->
+                item.getTopicAggregateId() != null &&
+                item.getTopicAggregateId().equals(topicAggregateId)
+            );
+            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            TournamentTopicRemovedEvent event = new TournamentTopicRemovedEvent(tournamentId, topicAggregateId);
+            event.setPublisherAggregateVersion(tournament.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error removing TournamentTopic: " + e.getMessage());
+        }
+    }
+
+    public TournamentTopicDto updateTournamentTopic(Integer tournamentId, Integer topicAggregateId, TournamentTopicDto TournamentTopicDto, UnitOfWork unitOfWork) {
+        try {
+            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            TournamentTopic element = tournament.getTopics().stream()
+                .filter(item -> item.getTopicAggregateId() != null &&
+                               item.getTopicAggregateId().equals(topicAggregateId))
+                .findFirst()
+                .orElseThrow(() -> new AnswersException("TournamentTopic not found"));
+            if (TournamentTopicDto.getName() != null) {
+                element.setTopicName(TournamentTopicDto.getName());
+            }
+            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            TournamentTopicUpdatedEvent event = new TournamentTopicUpdatedEvent(tournamentId, element.getTopicAggregateId(), element.getTopicVersion(), element.getTopicName());
+            event.setPublisherAggregateVersion(tournament.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
+            return element.buildDto();
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error updating TournamentTopic: " + e.getMessage());
+        }
+    }
+
+
+    public Tournament handleExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, String acronym, UnitOfWork unitOfWork) {
+        try {
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+
+        // Handle execution single reference
+        if (newTournament.getExecution() != null && 
+            newTournament.getExecution().getExecutionAggregateId() != null &&
+            newTournament.getExecution().getExecutionAggregateId().equals(executionAggregateId)) {
+            newTournament.getExecution().setExecutionVersion(executionVersion);
+        }
+
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new TournamentExecutionUpdatedEvent(
+                    newTournament.getAggregateId(),
+                    executionAggregateId,
+                    executionVersion,
+                    acronym
+            ),
+            unitOfWork
+        );
+
+            return newTournament;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error handling ExecutionUpdatedEvent: " + e.getMessage());
+        }
+    }
+
+    public Tournament handleExecutionDeletedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, UnitOfWork unitOfWork) {
+        try {
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+
+        // Handle execution single reference
+        if (newTournament.getExecution() != null && 
+            newTournament.getExecution().getExecutionAggregateId() != null &&
+            newTournament.getExecution().getExecutionAggregateId().equals(executionAggregateId)) {
+            newTournament.getExecution().setExecutionState(Aggregate.AggregateState.INACTIVE);
+        }
+
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new TournamentExecutionDeletedEvent(
+                newTournament.getAggregateId(),
+                executionAggregateId
+            ),
+            unitOfWork
+        );
+
+            return newTournament;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error handling ExecutionDeletedEvent: " + e.getMessage());
+        }
+    }
+
+    public Tournament handleExecutionUserUpdatedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, String name, String username, UnitOfWork unitOfWork) {
+        try {
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+
+        // Handle creator single reference
+        if (newTournament.getCreator() != null && 
+            newTournament.getCreator().getCreatorAggregateId() != null &&
+            newTournament.getCreator().getCreatorAggregateId().equals(executionuserAggregateId)) {
+            newTournament.getCreator().setCreatorVersion(executionuserVersion);
+        }
+
+        // Handle participants collection
+        if (newTournament.getParticipants() != null) {
+            newTournament.getParticipants().stream()
+                .filter(item -> item.getParticipantAggregateId() != null && 
+                               item.getParticipantAggregateId().equals(executionuserAggregateId))
+                .forEach(item -> item.setParticipantVersion(executionuserVersion));
+        }
+
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new TournamentCreatorUpdatedEvent(
+                    newTournament.getAggregateId(),
+                    executionuserAggregateId,
+                    executionuserVersion,
+                    name,
+                    username
+            ),
+            unitOfWork
+        );
+
+            return newTournament;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error handling ExecutionUserUpdatedEvent: " + e.getMessage());
+        }
+    }
+
+    public Tournament handleExecutionUserDeletedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, UnitOfWork unitOfWork) {
+        try {
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+
+        // Handle creator single reference
+        if (newTournament.getCreator() != null && 
+            newTournament.getCreator().getCreatorAggregateId() != null &&
+            newTournament.getCreator().getCreatorAggregateId().equals(executionuserAggregateId)) {
+            newTournament.getCreator().setCreatorState(Aggregate.AggregateState.INACTIVE);
+        }
+
+        // Handle participants collection
+        if (newTournament.getParticipants() != null) {
+            newTournament.getParticipants().stream()
+                .filter(item -> item.getParticipantAggregateId() != null && 
+                               item.getParticipantAggregateId().equals(executionuserAggregateId))
+                .forEach(item -> item.setParticipantState(Aggregate.AggregateState.INACTIVE));
+        }
+
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new TournamentCreatorDeletedEvent(
+                newTournament.getAggregateId(),
+                executionuserAggregateId
+            ),
+            unitOfWork
+        );
+
+        unitOfWorkService.registerEvent(
+            new TournamentParticipantDeletedEvent(
+                newTournament.getAggregateId(),
+                executionuserAggregateId
+            ),
+            unitOfWork
+        );
+
+            return newTournament;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error handling ExecutionUserDeletedEvent: " + e.getMessage());
+        }
+    }
+
+    public Tournament handleTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, String name, UnitOfWork unitOfWork) {
+        try {
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+
+        // Handle topics collection
+        if (newTournament.getTopics() != null) {
+            newTournament.getTopics().stream()
+                .filter(item -> item.getTopicAggregateId() != null && 
+                               item.getTopicAggregateId().equals(topicAggregateId))
+                .forEach(item -> item.setTopicVersion(topicVersion));
+        }
+
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new TournamentTopicUpdatedEvent(
+                    newTournament.getAggregateId(),
+                    topicAggregateId,
+                    topicVersion,
+                    name
+            ),
+            unitOfWork
+        );
+
+            return newTournament;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error handling TopicUpdatedEvent: " + e.getMessage());
+        }
+    }
+
+    public Tournament handleTopicDeletedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, UnitOfWork unitOfWork) {
+        try {
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+
+        // Handle topics collection
+        if (newTournament.getTopics() != null) {
+            newTournament.getTopics().stream()
+                .filter(item -> item.getTopicAggregateId() != null && 
+                               item.getTopicAggregateId().equals(topicAggregateId))
+                .forEach(item -> item.setTopicState(Aggregate.AggregateState.INACTIVE));
+        }
+
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new TournamentTopicDeletedEvent(
+                newTournament.getAggregateId(),
+                topicAggregateId
+            ),
+            unitOfWork
+        );
+
+            return newTournament;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error handling TopicDeletedEvent: " + e.getMessage());
+        }
+    }
+
+    public Tournament handleQuizUpdatedEvent(Integer aggregateId, Integer quizAggregateId, Integer quizVersion, UnitOfWork unitOfWork) {
+        try {
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+
+        // Handle quiz single reference
+        if (newTournament.getQuiz() != null && 
+            newTournament.getQuiz().getQuizAggregateId() != null &&
+            newTournament.getQuiz().getQuizAggregateId().equals(quizAggregateId)) {
+            newTournament.getQuiz().setQuizVersion(quizVersion);
+        }
+
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new TournamentQuizUpdatedEvent(
+                    newTournament.getAggregateId(),
+                    quizAggregateId,
+                    quizVersion
+            ),
+            unitOfWork
+        );
+
+            return newTournament;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error handling QuizUpdatedEvent: " + e.getMessage());
+        }
+    }
+
+    public Tournament handleQuizDeletedEvent(Integer aggregateId, Integer quizAggregateId, Integer quizVersion, UnitOfWork unitOfWork) {
+        try {
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+
+        // Handle quiz single reference
+        if (newTournament.getQuiz() != null && 
+            newTournament.getQuiz().getQuizAggregateId() != null &&
+            newTournament.getQuiz().getQuizAggregateId().equals(quizAggregateId)) {
+            newTournament.getQuiz().setQuizState(Aggregate.AggregateState.INACTIVE);
+        }
+
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new TournamentParticipantQuizDeletedEvent(
+                newTournament.getAggregateId(),
+                quizAggregateId
+            ),
+            unitOfWork
+        );
+
+        unitOfWorkService.registerEvent(
+            new TournamentQuizDeletedEvent(
+                newTournament.getAggregateId(),
+                quizAggregateId
+            ),
+            unitOfWork
+        );
+
+            return newTournament;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error handling QuizDeletedEvent: " + e.getMessage());
+        }
+    }
 
 
 

@@ -90,6 +90,71 @@ public class {{serviceName}} {
                 .map(id -> ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map({{lowerEntityName}}Factory::create{{entityName}}Dto)
                 .collect(Collectors.toList());
+{{else if (eq operation "add")}}
+        try {
+            {{entityName}} {{lowerEntityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead({{lowerEntityName}}Id, unitOfWork);
+            {{collectionInfo.elementType}} element = new {{collectionInfo.elementType}}({{collectionInfo.singularName}}Dto);
+            {{lowerEntityName}}.get{{collectionInfo.capitalizedCollection}}().add(element);
+            unitOfWorkService.registerChanged({{lowerEntityName}}, unitOfWork);
+            return {{collectionInfo.singularName}}Dto;
+        } catch (Exception e) {
+            throw new RuntimeException("Error adding {{collectionInfo.singularName}}: " + e.getMessage(), e);
+        }
+{{else if (eq operation "addBatch")}}
+        try {
+            {{entityName}} {{lowerEntityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead({{lowerEntityName}}Id, unitOfWork);
+            {{collectionInfo.singularName}}Dtos.forEach(dto -> {
+                {{collectionInfo.elementType}} element = new {{collectionInfo.elementType}}(dto);
+                {{lowerEntityName}}.get{{collectionInfo.capitalizedCollection}}().add(element);
+            });
+            unitOfWorkService.registerChanged({{lowerEntityName}}, unitOfWork);
+            return {{collectionInfo.singularName}}Dtos;
+        } catch (Exception e) {
+            throw new RuntimeException("Error adding {{collectionInfo.singularName}}s: " + e.getMessage(), e);
+        }
+{{else if (eq operation "get")}}
+        try {
+            {{entityName}} {{lowerEntityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead({{lowerEntityName}}Id, unitOfWork);
+            {{collectionInfo.elementType}} element = {{lowerEntityName}}.get{{collectionInfo.capitalizedCollection}}().stream()
+                .filter(item -> item.get{{capitalize collectionInfo.identifierField}}() != null &&
+                               item.get{{capitalize collectionInfo.identifierField}}().equals({{collectionInfo.identifierField}}))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("{{collectionInfo.elementType}} not found"));
+            return element.buildDto();
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving {{collectionInfo.singularName}}: " + e.getMessage(), e);
+        }
+{{else if (eq operation "remove")}}
+        try {
+            {{entityName}} {{lowerEntityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead({{lowerEntityName}}Id, unitOfWork);
+            {{lowerEntityName}}.get{{collectionInfo.capitalizedCollection}}().removeIf(item ->
+                item.get{{capitalize collectionInfo.identifierField}}() != null &&
+                item.get{{capitalize collectionInfo.identifierField}}().equals({{collectionInfo.identifierField}})
+            );
+            unitOfWorkService.registerChanged({{lowerEntityName}}, unitOfWork);
+            unitOfWorkService.registerEvent(new {{collectionInfo.elementType}}RemovedEvent({{lowerEntityName}}Id, {{collectionInfo.identifierField}}), unitOfWork);
+        } catch (Exception e) {
+            throw new RuntimeException("Error removing {{collectionInfo.singularName}}: " + e.getMessage(), e);
+        }
+{{else if (eq operation "update")}}
+        try {
+            {{entityName}} {{lowerEntityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead({{lowerEntityName}}Id, unitOfWork);
+            {{collectionInfo.elementType}} element = {{lowerEntityName}}.get{{collectionInfo.capitalizedCollection}}().stream()
+                .filter(item -> item.get{{capitalize collectionInfo.identifierField}}() != null &&
+                               item.get{{capitalize collectionInfo.identifierField}}().equals({{collectionInfo.identifierField}}))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("{{collectionInfo.elementType}} not found"));
+{{#each updatableFields}}
+            if ({{../../collectionInfo.singularName}}Dto.get{{capitalizedName}}() != null) {
+                element.set{{capitalizedName}}({{../../collectionInfo.singularName}}Dto.get{{capitalizedName}}());
+            }
+{{/each}}
+            unitOfWorkService.registerChanged({{lowerEntityName}}, unitOfWork);
+            unitOfWorkService.registerEvent(new {{collectionInfo.elementType}}UpdatedEvent({{lowerEntityName}}Id, {{collectionInfo.identifierField}}{{#each updatableFields}}, element.get{{capitalizedName}}(){{/each}}), unitOfWork);
+            return element.buildDto();
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating {{collectionInfo.singularName}}: " + e.getMessage(), e);
+        }
 {{/if}}
     }
 

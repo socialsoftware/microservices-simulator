@@ -9,7 +9,11 @@ export class ProjectSetup {
         inputPath: string,
         projectName: string
     ): Promise<ProjectPaths> {
-        const projectPath = path.join(baseOutputDir, projectName);
+        // Check if baseOutputDir already ends with the project name to avoid duplication
+        const outputDirName = path.basename(baseOutputDir);
+        const projectPath = outputDirName.toLowerCase() === projectName.toLowerCase()
+            ? baseOutputDir
+            : path.join(baseOutputDir, projectName);
 
         // Use configuration for all paths instead of hardcoded values
         const config = getGlobalConfig();

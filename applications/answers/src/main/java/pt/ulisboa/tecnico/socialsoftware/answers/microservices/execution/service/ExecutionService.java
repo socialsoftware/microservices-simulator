@@ -16,9 +16,16 @@ import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionCourseDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionCourseUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserRemovedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateExecutionRequestDto;
 
@@ -113,7 +120,9 @@ public class ExecutionService {
             }
 
             unitOfWorkService.registerChanged(execution, unitOfWork);
-            unitOfWorkService.registerEvent(new ExecutionUpdatedEvent(execution.getAggregateId(), execution.getAcronym(), execution.getAcademicTerm(), execution.getEndDate()), unitOfWork);
+            ExecutionUpdatedEvent event = new ExecutionUpdatedEvent(execution.getAggregateId(), execution.getAcronym(), execution.getAcademicTerm(), execution.getEndDate());
+            event.setPublisherAggregateVersion(execution.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
             return executionFactory.createExecutionDto(execution);
         } catch (AnswersException e) {
             throw e;
@@ -135,7 +144,165 @@ public class ExecutionService {
         }
     }
 
+    public ExecutionUserDto addExecutionUser(Integer executionId, Integer userAggregateId, ExecutionUserDto ExecutionUserDto, UnitOfWork unitOfWork) {
+        try {
+            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+            ExecutionUser element = new ExecutionUser(ExecutionUserDto);
+            execution.getUsers().add(element);
+            unitOfWorkService.registerChanged(execution, unitOfWork);
+            return ExecutionUserDto;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error adding ExecutionUser: " + e.getMessage());
+        }
+    }
 
+    public List<ExecutionUserDto> addExecutionUsers(Integer executionId, List<ExecutionUserDto> ExecutionUserDtos, UnitOfWork unitOfWork) {
+        try {
+            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+            ExecutionUserDtos.forEach(dto -> {
+                ExecutionUser element = new ExecutionUser(dto);
+                execution.getUsers().add(element);
+            });
+            unitOfWorkService.registerChanged(execution, unitOfWork);
+            return ExecutionUserDtos;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error adding ExecutionUsers: " + e.getMessage());
+        }
+    }
+
+    public ExecutionUserDto getExecutionUser(Integer executionId, Integer userAggregateId, UnitOfWork unitOfWork) {
+        try {
+            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+            ExecutionUser element = execution.getUsers().stream()
+                .filter(item -> item.getUserAggregateId() != null &&
+                               item.getUserAggregateId().equals(userAggregateId))
+                .findFirst()
+                .orElseThrow(() -> new AnswersException("ExecutionUser not found"));
+            return element.buildDto();
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error retrieving ExecutionUser: " + e.getMessage());
+        }
+    }
+
+    public void removeExecutionUser(Integer executionId, Integer userAggregateId, UnitOfWork unitOfWork) {
+        try {
+            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+            execution.getUsers().removeIf(item ->
+                item.getUserAggregateId() != null &&
+                item.getUserAggregateId().equals(userAggregateId)
+            );
+            unitOfWorkService.registerChanged(execution, unitOfWork);
+            ExecutionUserRemovedEvent event = new ExecutionUserRemovedEvent(executionId, userAggregateId);
+            event.setPublisherAggregateVersion(execution.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error removing ExecutionUser: " + e.getMessage());
+        }
+    }
+
+    public ExecutionUserDto updateExecutionUser(Integer executionId, Integer userAggregateId, ExecutionUserDto ExecutionUserDto, UnitOfWork unitOfWork) {
+        try {
+            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+            ExecutionUser element = execution.getUsers().stream()
+                .filter(item -> item.getUserAggregateId() != null &&
+                               item.getUserAggregateId().equals(userAggregateId))
+                .findFirst()
+                .orElseThrow(() -> new AnswersException("ExecutionUser not found"));
+            if (ExecutionUserDto.getName() != null) {
+                element.setUserName(ExecutionUserDto.getName());
+            }
+            if (ExecutionUserDto.getUsername() != null) {
+                element.setUserUsername(ExecutionUserDto.getUsername());
+            }
+            if (ExecutionUserDto.getActive() != null) {
+                element.setUserActive(ExecutionUserDto.getActive());
+            }
+            unitOfWorkService.registerChanged(execution, unitOfWork);
+            ExecutionUserUpdatedEvent event = new ExecutionUserUpdatedEvent(executionId, element.getUserAggregateId(), element.getUserVersion(), element.getUserName(), element.getUserUsername(), element.getUserActive());
+            event.setPublisherAggregateVersion(execution.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
+            return element.buildDto();
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error updating ExecutionUser: " + e.getMessage());
+        }
+    }
+
+
+    public Execution handleUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, String name, String username, boolean active, UnitOfWork unitOfWork) {
+        try {
+            Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
+
+        // Handle users collection
+        if (newExecution.getUsers() != null) {
+            newExecution.getUsers().stream()
+                .filter(item -> item.getUserAggregateId() != null && 
+                               item.getUserAggregateId().equals(userAggregateId))
+                .forEach(item -> item.setUserVersion(userVersion));
+        }
+
+            unitOfWorkService.registerChanged(newExecution, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new ExecutionUserUpdatedEvent(
+                    newExecution.getAggregateId(),
+                    userAggregateId,
+                    userVersion,
+                    name,
+                    username,
+                    active
+            ),
+            unitOfWork
+        );
+
+            return newExecution;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error handling UserUpdatedEvent: " + e.getMessage());
+        }
+    }
+
+    public Execution handleUserDeletedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, UnitOfWork unitOfWork) {
+        try {
+            Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
+
+        // Handle users collection
+        if (newExecution.getUsers() != null) {
+            newExecution.getUsers().stream()
+                .filter(item -> item.getUserAggregateId() != null && 
+                               item.getUserAggregateId().equals(userAggregateId))
+                .forEach(item -> item.setUserState(Aggregate.AggregateState.INACTIVE));
+        }
+
+            unitOfWorkService.registerChanged(newExecution, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new ExecutionUserDeletedEvent(
+                newExecution.getAggregateId(),
+                userAggregateId
+            ),
+            unitOfWork
+        );
+
+            return newExecution;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error handling UserDeletedEvent: " + e.getMessage());
+        }
+    }
 
 
 

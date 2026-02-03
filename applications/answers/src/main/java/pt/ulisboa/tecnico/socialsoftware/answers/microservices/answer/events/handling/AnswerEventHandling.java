@@ -7,12 +7,14 @@ import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.AnswerEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.UserDeletedEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.UserDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.ExecutionDeletedEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.ExecutionDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.ExecutionUpdatedEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.ExecutionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.ExecutionUserUpdatedEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.ExecutionUserDeletedEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.QuestionUpdatedEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.publish.QuestionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.QuestionDeletedEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.publish.QuestionDeletedEvent;
 
 @Component
 public class AnswerEventHandling {
@@ -24,21 +26,27 @@ public class AnswerEventHandling {
     private AnswerRepository answerRepository;
 
     @Scheduled(fixedDelay = 1000)
-    public void handleUserDeletedEventEvents() {
-        eventApplicationService.handleSubscribedEvent(UserDeletedEvent.class,
-                new UserDeletedEventHandler(answerRepository, answerEventProcessing));
+    public void handleExecutionUserUpdatedEventEvents() {
+        eventApplicationService.handleSubscribedEvent(ExecutionUserUpdatedEvent.class,
+                new ExecutionUserUpdatedEventHandler(answerRepository, answerEventProcessing));
     }
 
     @Scheduled(fixedDelay = 1000)
-    public void handleExecutionDeletedEventEvents() {
-        eventApplicationService.handleSubscribedEvent(ExecutionDeletedEvent.class,
-                new ExecutionDeletedEventHandler(answerRepository, answerEventProcessing));
+    public void handleExecutionUserDeletedEventEvents() {
+        eventApplicationService.handleSubscribedEvent(ExecutionUserDeletedEvent.class,
+                new ExecutionUserDeletedEventHandler(answerRepository, answerEventProcessing));
     }
 
     @Scheduled(fixedDelay = 1000)
-    public void handleExecutionUpdatedEventEvents() {
-        eventApplicationService.handleSubscribedEvent(ExecutionUpdatedEvent.class,
-                new ExecutionUpdatedEventHandler(answerRepository, answerEventProcessing));
+    public void handleQuestionUpdatedEventEvents() {
+        eventApplicationService.handleSubscribedEvent(QuestionUpdatedEvent.class,
+                new QuestionUpdatedEventHandler(answerRepository, answerEventProcessing));
+    }
+
+    @Scheduled(fixedDelay = 1000)
+    public void handleQuestionDeletedEventEvents() {
+        eventApplicationService.handleSubscribedEvent(QuestionDeletedEvent.class,
+                new QuestionDeletedEventHandler(answerRepository, answerEventProcessing));
     }
 
 }

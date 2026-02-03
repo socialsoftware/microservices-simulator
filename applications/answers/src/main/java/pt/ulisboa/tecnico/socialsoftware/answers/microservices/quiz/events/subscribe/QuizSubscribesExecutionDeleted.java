@@ -2,17 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subs
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.ExecutionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionDeletedEvent;
 
 public class QuizSubscribesExecutionDeleted extends EventSubscription {
     
 
-    public QuizSubscribesExecutionDeleted( ) {
-        super(.getAggregateId(),
-                0,
-                ExecutionDeletedEvent.class.getSimpleName());
-        
+    public QuizSubscribesExecutionDeleted() {
+        // Parameterless constructor for simple subscriptions
+        // Event matching is handled by the framework
     }
 
     public boolean subscribesEvent(Event event) {

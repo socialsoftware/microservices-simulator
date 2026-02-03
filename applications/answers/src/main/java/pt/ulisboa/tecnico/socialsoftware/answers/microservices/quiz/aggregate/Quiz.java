@@ -18,6 +18,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesExecutionDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesExecutionUpdated;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesTopicDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesTopicUpdated;
+
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
@@ -175,9 +180,10 @@ public abstract class Quiz extends Aggregate {
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> subscriptions = new HashSet<>();
-        subscriptions.add(new QuizSubscribesUnknown());
-        subscriptions.add(new QuizSubscribesUnknown());
-        subscriptions.add(new QuizSubscribesUnknown());
+        subscriptions.add(new QuizSubscribesExecutionUpdated());
+        subscriptions.add(new QuizSubscribesExecutionDeleted());
+        subscriptions.add(new QuizSubscribesTopicUpdated());
+        subscriptions.add(new QuizSubscribesTopicDeleted());
         return subscriptions;
     }
 

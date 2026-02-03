@@ -4,15 +4,15 @@ import { OrchestrationBase } from '../common/orchestration-base.js';
 import { getEntities } from '../../utils/aggregate-helpers.js';
 
 export class EventProcessingGenerator extends OrchestrationBase {
-    async generate(aggregate: Aggregate, rootEntity: Entity, options: CoordinationGenerationOptions): Promise<string> {
-        const context = this.buildContext(aggregate, rootEntity, options);
+    async generate(aggregate: Aggregate, rootEntity: Entity, options: CoordinationGenerationOptions, allAggregates?: Aggregate[]): Promise<string> {
+        const context = this.buildContext(aggregate, rootEntity, options, allAggregates);
         // Check if there are methods before building template
         const hasMethods = context.eventProcessingMethods !== undefined && context.eventProcessingMethods.trim().length > 0;
         const template = this.buildTemplateString(context, hasMethods);
         return this.renderSimpleTemplate(template, context);
     }
 
-    private buildContext(aggregate: Aggregate, rootEntity: Entity, options: CoordinationGenerationOptions): any {
+    private buildContext(aggregate: Aggregate, rootEntity: Entity, options: CoordinationGenerationOptions, allAggregates?: Aggregate[]): any {
         const aggregateName = aggregate.name;
         const capitalizedAggregate = this.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
@@ -20,7 +20,7 @@ export class EventProcessingGenerator extends OrchestrationBase {
         const ProjectName = this.capitalize(options.projectName);
 
         const eventProcessingMethodsArray = this.buildEventProcessingMethods(aggregate, rootEntity, capitalizedAggregate);
-        const imports = this.buildImports(aggregate, options);
+        const imports = this.buildImports(aggregate, options, allAggregates);
 
         const basePackage = this.getBasePackage();
         const tempContext = {
@@ -102,7 +102,53 @@ export class EventProcessingGenerator extends OrchestrationBase {
         return Array.from(eventMap.values());
     }
 
-    private buildImports(aggregate: Aggregate, options: CoordinationGenerationOptions): string[] {
+    /**
+     * Find which aggregate publishes a given event by checking all aggregates' published events.
+     * Handles both custom published events and auto-generated CRUD events.
+     */
+    private findEventPublisher(eventTypeName: string, allAggregates: Aggregate[]): string | null {
+        for (const agg of allAggregates) {
+            const aggName = agg.name;
+
+            // 1. Check custom published events (explicitly defined in DSL)
+            const aggregateEvents = (agg as any).events;
+            const customEvents = aggregateEvents?.publishedEvents || [];
+            if (customEvents.some((e: any) => e.name === eventTypeName)) {
+                return aggName.toLowerCase();
+            }
+
+            // 2. Check root entity CRUD events (auto-generated for @GenerateCrud)
+            if (agg.generateCrud) {
+                const rootCrudEvents = [
+                    `${aggName}UpdatedEvent`,
+                    `${aggName}DeletedEvent`
+                ];
+                if (rootCrudEvents.includes(eventTypeName)) {
+                    return aggName.toLowerCase();
+                }
+            }
+
+            // 3. Check projection entity CRUD events
+            const projectionEntities = (agg.entities || []).filter((e: any) =>
+                !e.isRoot && e.aggregateRef
+            );
+            for (const proj of projectionEntities) {
+                const projName = proj.name;
+                const projCrudEvents = [
+                    `${projName}UpdatedEvent`,
+                    `${projName}DeletedEvent`,
+                    `${projName}RemovedEvent`  // For collection manipulation
+                ];
+                if (projCrudEvents.includes(eventTypeName)) {
+                    return aggName.toLowerCase();  // Return AGGREGATE name, not projection name
+                }
+            }
+        }
+
+        return null;  // Not found in any aggregate
+    }
+
+    private buildImports(aggregate: Aggregate, options: CoordinationGenerationOptions, allAggregates?: Aggregate[]): string[] {
         const imports: string[] = [];
         const projectName = options.projectName.toLowerCase();
         const basePackage = this.getBasePackage();
@@ -117,17 +163,36 @@ export class EventProcessingGenerator extends OrchestrationBase {
         const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
 
         allSubscribedEvents.forEach((event: any) => {
-            const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
-
-            // Determine the actual source aggregate (the aggregate that declares the published event)
+            const eventTypeName = event.eventType || 'UnknownEvent';
             let sourceAggregateName = 'unknown';
+
+            // PRIORITY 1: Try AST reference (works for custom events with explicit references)
             const publishedEvent = event.eventType?.ref as any;
             const eventsContainer = publishedEvent?.$container as any;
-            const sourceAggregate = eventsContainer?.$container as Aggregate | undefined;
+            const sourceAggregate = eventsContainer?.$container as any;
+
             if (sourceAggregate?.name) {
                 sourceAggregateName = sourceAggregate.name.toLowerCase();
-            } else if (event.sourceAggregate) {
-                sourceAggregateName = event.sourceAggregate.toLowerCase();
+            }
+            // PRIORITY 2: Search all aggregates for event publisher (works for CRUD events)
+            else if (allAggregates && allAggregates.length > 0) {
+                const found = this.findEventPublisher(eventTypeName, allAggregates);
+                if (found) {
+                    sourceAggregateName = found;
+                } else {
+                    console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
+                    // Fallback to regex as last resort
+                    sourceAggregateName = eventTypeName
+                        .replace(/(Updated|Deleted|Created)Event$/, '')
+                        .toLowerCase();
+                }
+            }
+            // PRIORITY 3: Fallback to regex (only when allAggregates not available)
+            else {
+                console.warn(`Warning: allAggregates not available, using fallback for ${eventTypeName}`);
+                sourceAggregateName = eventTypeName
+                    .replace(/(Updated|Deleted|Created)Event$/, '')
+                    .toLowerCase();
             }
 
             imports.push(`import ${basePackage}.${projectName}.microservices.${sourceAggregateName}.events.publish.${eventTypeName};`);
@@ -187,110 +252,80 @@ public class {{aggregateName}}EventProcessing {
     }
 
     private deriveServiceMethodName(eventTypeName: string, aggregate: Aggregate): string {
-        // Remove "Event" suffix
-        const nameWithoutEvent = eventTypeName.replace(/Event$/, '');
-        
-        // Extract publisher aggregate name (e.g., UpdateTopicEvent -> Topic)
-        const publisherAggregateName = nameWithoutEvent.replace(/^(Update|Delete|Remove|Create)/, '');
-        
-        // Find entities in this aggregate that use the publisher aggregate
-        const entities = getEntities(aggregate);
-        const projectionEntities = entities.filter((e: any) => {
-            const aggregateRef = e.aggregateRef;
-            return aggregateRef && aggregateRef.toLowerCase() === publisherAggregateName.toLowerCase();
-        });
-        
-        // Handle common patterns
-        if (nameWithoutEvent.startsWith('Update')) {
-            if (projectionEntities.length > 0) {
-                // Use the first projection entity name (e.g., QuestionTopic -> updateTopic)
-                const projectionEntityName = projectionEntities[0].name;
-                // Extract the part after the aggregate name (e.g., QuestionTopic -> Topic)
-                const projectionPart = projectionEntityName.replace(new RegExp(`^${aggregate.name}`, 'i'), '');
-                return `update${projectionPart}`;
-            }
-            const entityName = nameWithoutEvent.replace(/^Update/, '');
-            return `update${entityName}`;
-        } else if (nameWithoutEvent.startsWith('Delete')) {
-            if (projectionEntities.length > 0) {
-                const projectionEntityName = projectionEntities[0].name;
-                const projectionPart = projectionEntityName.replace(new RegExp(`^${aggregate.name}`, 'i'), '');
-                return `remove${projectionPart}`;
-            }
-            const entityName = nameWithoutEvent.replace(/^Delete/, '');
-            return `remove${entityName}`;
-        } else if (nameWithoutEvent.startsWith('Remove')) {
-            if (projectionEntities.length > 0) {
-                const projectionEntityName = projectionEntities[0].name;
-                const projectionPart = projectionEntityName.replace(new RegExp(`^${aggregate.name}`, 'i'), '');
-                return `remove${projectionPart}`;
-            }
-            const entityName = nameWithoutEvent.replace(/^Remove/, '');
-            return `remove${entityName}`;
-        }
-        
-        // Default: convert to camelCase
-        return nameWithoutEvent.charAt(0).toLowerCase() + nameWithoutEvent.slice(1);
+        // Use handle{EventName} pattern (e.g., UserDeletedEvent -> handleUserDeletedEvent)
+        return `handle${eventTypeName}`;
     }
 
     private buildServiceMethodParams(eventTypeName: string, eventVarName: string, aggregateIdName: string, aggregate: Aggregate, subscribedEvent: any): string {
         const nameWithoutEvent = eventTypeName.replace(/Event$/, '');
-        const isUpdate = nameWithoutEvent.startsWith('Update');
-        const isDelete = nameWithoutEvent.startsWith('Delete') || nameWithoutEvent.startsWith('Remove');
-        
-        // Extract publisher aggregate name from event (e.g., UpdateTopicEvent -> Topic)
-        const publisherAggregateName = nameWithoutEvent.replace(/^(Update|Delete|Remove|Create)/, '');
-        
-        // Find entities in this aggregate that use the publisher aggregate
+        const isUpdate = nameWithoutEvent.endsWith('Updated');
+        const isDelete = nameWithoutEvent.endsWith('Deleted');
+
+        // Extract publisher aggregate name from event
+        let publisherAggregateName = nameWithoutEvent.replace(/(Updated|Deleted|Removed|Created)$/, '');
+
+        // Check if there's a projection entity that references the publisher aggregate
         const entities = getEntities(aggregate);
-        const projectionEntities = entities.filter((e: any) => {
-            const aggregateRef = e.aggregateRef;
-            return aggregateRef && aggregateRef.toLowerCase() === publisherAggregateName.toLowerCase();
+        const matchingProjection = entities.find((e: any) => {
+            const aggregateRef = (e as any).aggregateRef;
+            return !e.isRoot && aggregateRef && aggregateRef.toLowerCase() === publisherAggregateName.toLowerCase();
         });
-        
-        if (projectionEntities.length === 0) {
-            // No projection found, use generic pattern
-            if (isUpdate) {
-                return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
-            } else if (isDelete) {
-                return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
-            }
-            return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
-        }
-        
-        // Get event fields from the published event
-        let eventFields: any[] = [];
-        if (subscribedEvent && subscribedEvent.eventType) {
-            const publishedEvent = subscribedEvent.eventType.ref as any;
-            eventFields = publishedEvent?.fields || [];
-        }
-        
-        // For Update events, extract field values from event
+
+        // For Update events, pass aggregateId, publisherAggregateId, publisherAggregateVersion, and primitive fields from event
         if (isUpdate) {
             const fieldParams: string[] = [];
-            // Common fields: publisherAggregateId, then event-specific fields, then version
+
+            // Use Event base class methods
             fieldParams.push(`${eventVarName}.getPublisherAggregateId()`);
-            
-            // Add event-specific fields (skip aggregateId, version, state as those are handled separately)
-            for (const field of eventFields) {
-                const fieldName = field.name;
-                if (fieldName !== 'aggregateId' && fieldName !== 'version' && fieldName !== 'state') {
-                    const capitalizedField = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+            fieldParams.push(`${eventVarName}.getPublisherAggregateVersion()`);
+
+            // Extract primitive fields from the projection entity's field mappings (if exists)
+            // ONLY extract from fieldMappings (mapped properties from referenced aggregate)
+            // DO NOT extract local properties - those don't exist in the incoming event!
+            if (matchingProjection) {
+                const fieldMappings = (matchingProjection as any).fieldMappings || [];
+                const aggregateRef = (matchingProjection as any).aggregateRef;
+
+                // Determine the correct field names to use for event method calls
+                // Pattern matching for projection entity names like "ExecutionUser", "AnswerQuestion", etc.
+                // If aggregateRef matches pattern [Aggregate][Entity] (e.g., "ExecutionUser"),
+                // the event uses entity field names with lowercase [Entity] prefix (e.g., "userName")
+                // Otherwise (simple names like "User"), the event uses DTO field names (e.g., "name")
+
+                let fieldPrefix = '';
+                // Check if aggregateRef looks like a projection (multiple capital letters)
+                const projectionPattern = /^([A-Z][a-z]+)([A-Z][a-z]+)$/;
+                const match = aggregateRef.match(projectionPattern);
+
+                if (match) {
+                    // It's a projection like "ExecutionUser" -> prefix is "user"
+                    fieldPrefix = match[2].toLowerCase();
+                }
+
+                for (const mapping of fieldMappings) {
+                    const dtoField = mapping.dtoField;
+
+                    // Skip system fields
+                    if (dtoField.endsWith('AggregateId') || dtoField.endsWith('Version') || dtoField.endsWith('State')) {
+                        continue;
+                    }
+
+                    // Build field name: if prefix exists, use prefix + dtoField, otherwise just dtoField
+                    const fieldName = fieldPrefix ? fieldPrefix + this.capitalize(dtoField) : dtoField;
+                    const capitalizedField = this.capitalize(fieldName);
                     fieldParams.push(`${eventVarName}.get${capitalizedField}()`);
                 }
             }
-            
-            fieldParams.push(`${eventVarName}.getPublisherAggregateVersion()`);
+
             fieldParams.push('unitOfWork');
-            
             return `${aggregateIdName}, ${fieldParams.join(', ')}`;
         } else if (isDelete) {
-            // For Delete events: aggregateId, publisherAggregateId, version, unitOfWork
+            // For Delete events: aggregateId, publisherAggregateId, publisherAggregateVersion, unitOfWork
             return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
         }
-        
+
         // Default fallback
-        return `${aggregateIdName}, ${eventVarName}.getPublisherAggregateId(), ${eventVarName}.getPublisherAggregateVersion(), unitOfWork`;
+        return `${aggregateIdName}, unitOfWork`;
     }
 
 
