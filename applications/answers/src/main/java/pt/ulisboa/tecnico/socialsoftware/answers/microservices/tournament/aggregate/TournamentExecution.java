@@ -107,6 +107,7 @@ public class TournamentExecution {
 
 
 
+
     public TournamentExecutionDto buildDto() {
         TournamentExecutionDto dto = new TournamentExecutionDto();
         dto.setState(getExecutionState());

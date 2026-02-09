@@ -13,11 +13,13 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.subscribe.ExecutionSubscribesUserDeleted;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.subscribe.ExecutionSubscribesUserUpdated;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.subscribe.ExecutionSubscribesCourseDeletedCourseExists;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.subscribe.ExecutionSubscribesUserDeletedUsersExist;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.subscribe.ExecutionSubscribesUserUpdatedUsersExist;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
@@ -142,10 +144,22 @@ public abstract class Execution extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        Set<EventSubscription> subscriptions = new HashSet<>();
-        subscriptions.add(new ExecutionSubscribesUserUpdated());
-        subscriptions.add(new ExecutionSubscribesUserDeleted());
-        return subscriptions;
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();
+        if (this.getState() == AggregateState.ACTIVE) {
+            interInvariantCourseExists(eventSubscriptions);
+            interInvariantUsersExist(eventSubscriptions);
+        }
+        return eventSubscriptions;
+    }
+    private void interInvariantCourseExists(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new ExecutionSubscribesCourseDeletedCourseExists(this.getCourse()));
+    }
+
+    private void interInvariantUsersExist(Set<EventSubscription> eventSubscriptions) {
+        for (ExecutionUser item : this.users) {
+            eventSubscriptions.add(new ExecutionSubscribesUserDeletedUsersExist(item));
+            eventSubscriptions.add(new ExecutionSubscribesUserUpdatedUsersExist(item));
+        }
     }
 
     // ============================================================================

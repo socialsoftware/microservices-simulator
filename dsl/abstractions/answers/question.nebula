@@ -37,6 +37,17 @@ Aggregate Question {
 
     Events {
         subscribe TopicUpdatedEvent;
-        subscribe TopicDeletedEvent;
+
+        interInvariant QUESTION_COURSE_EXISTS {
+            subscribe CourseDeletedEvent from Course {
+                course.courseAggregateId == event.aggregateId;
+            }
+        }
+
+        interInvariant QUESTION_TOPICS_EXIST {
+            subscribe TopicDeletedEvent from Topic {
+                topics.topicAggregateId == event.aggregateId;
+            }
+        }
     }
 }

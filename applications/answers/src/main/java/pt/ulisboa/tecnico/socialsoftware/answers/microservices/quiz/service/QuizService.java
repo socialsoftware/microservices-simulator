@@ -280,36 +280,6 @@ public class QuizService {
         }
     }
 
-    public Quiz handleExecutionDeletedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, UnitOfWork unitOfWork) {
-        try {
-            Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-            Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
-
-        // Handle execution single reference
-        if (newQuiz.getExecution() != null && 
-            newQuiz.getExecution().getExecutionAggregateId() != null &&
-            newQuiz.getExecution().getExecutionAggregateId().equals(executionAggregateId)) {
-            newQuiz.getExecution().setExecutionState(Aggregate.AggregateState.INACTIVE);
-        }
-
-            unitOfWorkService.registerChanged(newQuiz, unitOfWork);
-
-        unitOfWorkService.registerEvent(
-            new QuizExecutionDeletedEvent(
-                newQuiz.getAggregateId(),
-                executionAggregateId
-            ),
-            unitOfWork
-        );
-
-            return newQuiz;
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error handling ExecutionDeletedEvent: " + e.getMessage());
-        }
-    }
-
     public Quiz handleTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, UnitOfWork unitOfWork) {
         try {
             Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);

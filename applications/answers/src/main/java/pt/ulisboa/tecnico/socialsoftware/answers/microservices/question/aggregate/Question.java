@@ -15,10 +15,12 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesTopicDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesCourseDeletedQuestionCourseExists;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesTopicDeletedQuestionTopicsExist;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesTopicUpdated;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
@@ -195,10 +197,22 @@ public abstract class Question extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        Set<EventSubscription> subscriptions = new HashSet<>();
-        subscriptions.add(new QuestionSubscribesTopicUpdated());
-        subscriptions.add(new QuestionSubscribesTopicDeleted());
-        return subscriptions;
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();
+        if (this.getState() == AggregateState.ACTIVE) {
+            interInvariantQuestionCourseExists(eventSubscriptions);
+            interInvariantQuestionTopicsExist(eventSubscriptions);
+        }
+        eventSubscriptions.add(new QuestionSubscribesTopicUpdated());
+        return eventSubscriptions;
+    }
+    private void interInvariantQuestionCourseExists(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new QuestionSubscribesCourseDeletedQuestionCourseExists(this.getCourse()));
+    }
+
+    private void interInvariantQuestionTopicsExist(Set<EventSubscription> eventSubscriptions) {
+        for (QuestionTopic item : this.topics) {
+            eventSubscriptions.add(new QuestionSubscribesTopicDeletedQuestionTopicsExist(item));
+        }
     }
 
     // ============================================================================

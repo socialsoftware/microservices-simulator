@@ -15,13 +15,16 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesExecutionUserDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesExecutionDeletedAnswerExecutionExists;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesExecutionUserUpdated;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesQuestionDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesQuestionDeletedAnswerQuestionsExist;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesQuestionUpdated;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesQuizDeletedAnswerQuizExists;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesUserDeletedAnswerUserExists;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
@@ -178,12 +181,33 @@ public abstract class Answer extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        Set<EventSubscription> subscriptions = new HashSet<>();
-        subscriptions.add(new AnswerSubscribesExecutionUserUpdated());
-        subscriptions.add(new AnswerSubscribesExecutionUserDeleted());
-        subscriptions.add(new AnswerSubscribesQuestionUpdated());
-        subscriptions.add(new AnswerSubscribesQuestionDeleted());
-        return subscriptions;
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();
+        if (this.getState() == AggregateState.ACTIVE) {
+            interInvariantAnswerExecutionExists(eventSubscriptions);
+            interInvariantAnswerUserExists(eventSubscriptions);
+            interInvariantAnswerQuizExists(eventSubscriptions);
+            interInvariantAnswerQuestionsExist(eventSubscriptions);
+        }
+        eventSubscriptions.add(new AnswerSubscribesExecutionUserUpdated());
+        eventSubscriptions.add(new AnswerSubscribesQuestionUpdated());
+        return eventSubscriptions;
+    }
+    private void interInvariantAnswerExecutionExists(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new AnswerSubscribesExecutionDeletedAnswerExecutionExists(this.getExecution()));
+    }
+
+    private void interInvariantAnswerUserExists(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new AnswerSubscribesUserDeletedAnswerUserExists(this.getUser()));
+    }
+
+    private void interInvariantAnswerQuizExists(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new AnswerSubscribesQuizDeletedAnswerQuizExists(this.getQuiz()));
+    }
+
+    private void interInvariantAnswerQuestionsExist(Set<EventSubscription> eventSubscriptions) {
+        for (AnswerQuestion item : this.questions) {
+            eventSubscriptions.add(new AnswerSubscribesQuestionDeletedAnswerQuestionsExist(item));
+        }
     }
 
     // ============================================================================

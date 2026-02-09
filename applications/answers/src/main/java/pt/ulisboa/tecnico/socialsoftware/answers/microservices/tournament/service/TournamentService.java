@@ -403,36 +403,6 @@ public class TournamentService {
         }
     }
 
-    public Tournament handleExecutionDeletedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, UnitOfWork unitOfWork) {
-        try {
-            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
-
-        // Handle execution single reference
-        if (newTournament.getExecution() != null && 
-            newTournament.getExecution().getExecutionAggregateId() != null &&
-            newTournament.getExecution().getExecutionAggregateId().equals(executionAggregateId)) {
-            newTournament.getExecution().setExecutionState(Aggregate.AggregateState.INACTIVE);
-        }
-
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
-
-        unitOfWorkService.registerEvent(
-            new TournamentExecutionDeletedEvent(
-                newTournament.getAggregateId(),
-                executionAggregateId
-            ),
-            unitOfWork
-        );
-
-            return newTournament;
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error handling ExecutionDeletedEvent: " + e.getMessage());
-        }
-    }
-
     public Tournament handleExecutionUserUpdatedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, String name, String username, UnitOfWork unitOfWork) {
         try {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
@@ -474,52 +444,6 @@ public class TournamentService {
         }
     }
 
-    public Tournament handleExecutionUserDeletedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, UnitOfWork unitOfWork) {
-        try {
-            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
-
-        // Handle creator single reference
-        if (newTournament.getCreator() != null && 
-            newTournament.getCreator().getCreatorAggregateId() != null &&
-            newTournament.getCreator().getCreatorAggregateId().equals(executionuserAggregateId)) {
-            newTournament.getCreator().setCreatorState(Aggregate.AggregateState.INACTIVE);
-        }
-
-        // Handle participants collection
-        if (newTournament.getParticipants() != null) {
-            newTournament.getParticipants().stream()
-                .filter(item -> item.getParticipantAggregateId() != null && 
-                               item.getParticipantAggregateId().equals(executionuserAggregateId))
-                .forEach(item -> item.setParticipantState(Aggregate.AggregateState.INACTIVE));
-        }
-
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
-
-        unitOfWorkService.registerEvent(
-            new TournamentCreatorDeletedEvent(
-                newTournament.getAggregateId(),
-                executionuserAggregateId
-            ),
-            unitOfWork
-        );
-
-        unitOfWorkService.registerEvent(
-            new TournamentParticipantDeletedEvent(
-                newTournament.getAggregateId(),
-                executionuserAggregateId
-            ),
-            unitOfWork
-        );
-
-            return newTournament;
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error handling ExecutionUserDeletedEvent: " + e.getMessage());
-        }
-    }
-
     public Tournament handleTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, String name, UnitOfWork unitOfWork) {
         try {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
@@ -553,37 +477,6 @@ public class TournamentService {
         }
     }
 
-    public Tournament handleTopicDeletedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, UnitOfWork unitOfWork) {
-        try {
-            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
-
-        // Handle topics collection
-        if (newTournament.getTopics() != null) {
-            newTournament.getTopics().stream()
-                .filter(item -> item.getTopicAggregateId() != null && 
-                               item.getTopicAggregateId().equals(topicAggregateId))
-                .forEach(item -> item.setTopicState(Aggregate.AggregateState.INACTIVE));
-        }
-
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
-
-        unitOfWorkService.registerEvent(
-            new TournamentTopicDeletedEvent(
-                newTournament.getAggregateId(),
-                topicAggregateId
-            ),
-            unitOfWork
-        );
-
-            return newTournament;
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error handling TopicDeletedEvent: " + e.getMessage());
-        }
-    }
-
     public Tournament handleQuizUpdatedEvent(Integer aggregateId, Integer quizAggregateId, Integer quizVersion, UnitOfWork unitOfWork) {
         try {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
@@ -612,44 +505,6 @@ public class TournamentService {
             throw e;
         } catch (Exception e) {
             throw new AnswersException("Error handling QuizUpdatedEvent: " + e.getMessage());
-        }
-    }
-
-    public Tournament handleQuizDeletedEvent(Integer aggregateId, Integer quizAggregateId, Integer quizVersion, UnitOfWork unitOfWork) {
-        try {
-            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
-
-        // Handle quiz single reference
-        if (newTournament.getQuiz() != null && 
-            newTournament.getQuiz().getQuizAggregateId() != null &&
-            newTournament.getQuiz().getQuizAggregateId().equals(quizAggregateId)) {
-            newTournament.getQuiz().setQuizState(Aggregate.AggregateState.INACTIVE);
-        }
-
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
-
-        unitOfWorkService.registerEvent(
-            new TournamentParticipantQuizDeletedEvent(
-                newTournament.getAggregateId(),
-                quizAggregateId
-            ),
-            unitOfWork
-        );
-
-        unitOfWorkService.registerEvent(
-            new TournamentQuizDeletedEvent(
-                newTournament.getAggregateId(),
-                quizAggregateId
-            ),
-            unitOfWork
-        );
-
-            return newTournament;
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error handling QuizDeletedEvent: " + e.getMessage());
         }
     }
 

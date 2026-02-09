@@ -84,6 +84,7 @@ public class TournamentQuiz {
 
 
 
+
     public TournamentQuizDto buildDto() {
         TournamentQuizDto dto = new TournamentQuizDto();
         dto.setAggregateId(getQuizAggregateId());

@@ -112,6 +112,7 @@ public class ExecutionCourse {
 
 
 
+
     public ExecutionCourseDto buildDto() {
         ExecutionCourseDto dto = new ExecutionCourseDto();
         dto.setName(getCourseName());

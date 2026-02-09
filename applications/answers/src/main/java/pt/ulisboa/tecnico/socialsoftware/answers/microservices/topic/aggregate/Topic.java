@@ -8,8 +8,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.subscribe.TopicSubscribesCourseDeletedTopicCourseExists;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
@@ -62,7 +65,14 @@ public abstract class Topic extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();
+        if (this.getState() == AggregateState.ACTIVE) {
+            interInvariantTopicCourseExists(eventSubscriptions);
+        }
+        return eventSubscriptions;
+    }
+    private void interInvariantTopicCourseExists(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new TopicSubscribesCourseDeletedTopicCourseExists(this.getCourse()));
     }
 
     // ============================================================================

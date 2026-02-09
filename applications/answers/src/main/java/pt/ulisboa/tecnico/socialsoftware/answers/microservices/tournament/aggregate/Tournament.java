@@ -13,17 +13,19 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionDeletedTournamentExecutionExists;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionUpdated;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionUserDeleted;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionUserUpdated;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesQuizDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesQuizDeletedTournamentQuizExists;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesQuizUpdated;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesTopicDeleted;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesTopicDeletedTournamentTopicsExist;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesTopicUpdated;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesUserDeletedTournamentCreatorExists;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesUserDeletedTournamentParticipantsExist;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
@@ -241,16 +243,42 @@ public abstract class Tournament extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        Set<EventSubscription> subscriptions = new HashSet<>();
-        subscriptions.add(new TournamentSubscribesExecutionUpdated());
-        subscriptions.add(new TournamentSubscribesExecutionDeleted());
-        subscriptions.add(new TournamentSubscribesExecutionUserUpdated());
-        subscriptions.add(new TournamentSubscribesExecutionUserDeleted());
-        subscriptions.add(new TournamentSubscribesTopicUpdated());
-        subscriptions.add(new TournamentSubscribesTopicDeleted());
-        subscriptions.add(new TournamentSubscribesQuizUpdated());
-        subscriptions.add(new TournamentSubscribesQuizDeleted());
-        return subscriptions;
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();
+        if (this.getState() == AggregateState.ACTIVE) {
+            interInvariantTournamentExecutionExists(eventSubscriptions);
+            interInvariantTournamentCreatorExists(eventSubscriptions);
+            interInvariantTournamentParticipantsExist(eventSubscriptions);
+            interInvariantTournamentTopicsExist(eventSubscriptions);
+            interInvariantTournamentQuizExists(eventSubscriptions);
+        }
+        eventSubscriptions.add(new TournamentSubscribesExecutionUpdated());
+        eventSubscriptions.add(new TournamentSubscribesExecutionUserUpdated());
+        eventSubscriptions.add(new TournamentSubscribesTopicUpdated());
+        eventSubscriptions.add(new TournamentSubscribesQuizUpdated());
+        return eventSubscriptions;
+    }
+    private void interInvariantTournamentExecutionExists(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new TournamentSubscribesExecutionDeletedTournamentExecutionExists(this.getExecution()));
+    }
+
+    private void interInvariantTournamentCreatorExists(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new TournamentSubscribesUserDeletedTournamentCreatorExists(this.getCreator()));
+    }
+
+    private void interInvariantTournamentParticipantsExist(Set<EventSubscription> eventSubscriptions) {
+        for (TournamentParticipant item : this.participants) {
+            eventSubscriptions.add(new TournamentSubscribesUserDeletedTournamentParticipantsExist(item));
+        }
+    }
+
+    private void interInvariantTournamentTopicsExist(Set<EventSubscription> eventSubscriptions) {
+        for (TournamentTopic item : this.topics) {
+            eventSubscriptions.add(new TournamentSubscribesTopicDeletedTournamentTopicsExist(item));
+        }
+    }
+
+    private void interInvariantTournamentQuizExists(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new TournamentSubscribesQuizDeletedTournamentQuizExists(this.getQuiz()));
     }
 
     // ============================================================================

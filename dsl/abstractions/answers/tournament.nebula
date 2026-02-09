@@ -87,12 +87,38 @@ Aggregate Tournament {
 
     Events {
         subscribe ExecutionUpdatedEvent;
-        subscribe ExecutionDeletedEvent;
         subscribe ExecutionUserUpdatedEvent;
-        subscribe ExecutionUserDeletedEvent;
         subscribe TopicUpdatedEvent;
-        subscribe TopicDeletedEvent;
         subscribe QuizUpdatedEvent;
-        subscribe QuizDeletedEvent;
+
+        interInvariant TOURNAMENT_EXECUTION_EXISTS {
+            subscribe ExecutionDeletedEvent from Execution {
+                execution.executionAggregateId == event.aggregateId;
+            }
+        }
+
+        interInvariant TOURNAMENT_CREATOR_EXISTS {
+            subscribe UserDeletedEvent from User {
+                creator.creatorAggregateId == event.aggregateId;
+            }
+        }
+
+        interInvariant TOURNAMENT_PARTICIPANTS_EXIST {
+            subscribe UserDeletedEvent from User {
+                participants.participantAggregateId == event.aggregateId;
+            }
+        }
+
+        interInvariant TOURNAMENT_TOPICS_EXIST {
+            subscribe TopicDeletedEvent from Topic {
+                topics.topicAggregateId == event.aggregateId;
+            }
+        }
+
+        interInvariant TOURNAMENT_QUIZ_EXISTS {
+            subscribe QuizDeletedEvent from Quiz {
+                quiz.quizAggregateId == event.aggregateId;
+            }
+        }
     }
 }

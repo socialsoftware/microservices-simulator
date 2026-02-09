@@ -180,14 +180,21 @@ export class UnifiedEventFeature {
         const enhancedOptions = { ...options, allAggregates };
 
         const directSubscribed = aggregate.events?.subscribedEvents || [];
-        const interSubscribed = (aggregate.events as any)?.interInvariants?.flatMap((ii: any) => ii?.subscribedEvents || []) || [];
+        const interSubscribed = (aggregate.events as any)?.interInvariants?.flatMap((ii: any) =>
+            (ii?.subscribedEvents || []).map((sub: any) => ({ ...sub, isInterInvariant: true, interInvariantName: ii.name }))
+        ) || [];
         const allSubscribed = [...directSubscribed, ...interSubscribed];
 
         const eventMap = new Map<string, any>();
         allSubscribed.forEach((event: any) => {
             const eventTypeName = event.eventType || 'UnknownEvent';
-            if (!eventMap.has(eventTypeName)) {
-                eventMap.set(eventTypeName, event);
+            // For inter-invariants, make the key unique by including the inter-invariant name
+            // This prevents deduplication when multiple inter-invariants subscribe to the same event
+            const mapKey = event.isInterInvariant
+                ? `${eventTypeName}:${event.interInvariantName}`
+                : eventTypeName;
+            if (!eventMap.has(mapKey)) {
+                eventMap.set(mapKey, event);
             }
         });
         const uniqueSubscribed = Array.from(eventMap.values());
@@ -197,14 +204,31 @@ export class UnifiedEventFeature {
                 async () => {
                     const subscriptionCode = this.eventGenerator.generateSubscribedEvent(subscribedEvent, aggregate, enhancedOptions);
                     const eventTypeName = (subscribedEvent as any).eventType || 'UnknownEvent';
-                    const subscriptionName = `${aggregate.name}Subscribes${eventTypeName.replace('Event', '')}`;
+
+                    // For inter-invariants, include the inter-invariant name in the file name
+                    let subscriptionName = `${aggregate.name}Subscribes${eventTypeName.replace('Event', '')}`;
+                    if ((subscribedEvent as any).isInterInvariant && (subscribedEvent as any).interInvariantName) {
+                        // Convert TOURNAMENT_CREATOR_EXISTS to TournamentCreatorExists
+                        const interInvariantName = (subscribedEvent as any).interInvariantName;
+                        const interInvariantSuffix = interInvariantName
+                            .split('_')
+                            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                            .join('');
+                        subscriptionName = `${aggregate.name}Subscribes${eventTypeName.replace('Event', '')}${interInvariantSuffix}`;
+                    }
+
                     const subscriptionPath = path.join(aggregatePath, 'events', 'subscribe', `${subscriptionName}.java`);
                     await FileWriter.writeGeneratedFile(subscriptionPath, subscriptionCode, `subscribed event ${subscriptionName}`);
 
-                    const handlerCode = this.eventGenerator.generateEventHandler(subscribedEvent, aggregate, enhancedOptions);
-                    const handlerName = `${eventTypeName}Handler`;
-                    const handlerPath = path.join(aggregatePath, 'events', 'handling', 'handlers', `${handlerName}.java`);
-                    await FileWriter.writeGeneratedFile(handlerPath, handlerCode, `event handler ${handlerName}`);
+                    // Only generate event handlers for non-inter-invariant subscriptions
+                    // Inter-invariant subscriptions rely on framework invariant checking
+                    const isInterInvariant = (subscribedEvent as any).isInterInvariant;
+                    if (!isInterInvariant) {
+                        const handlerCode = this.eventGenerator.generateEventHandler(subscribedEvent, aggregate, enhancedOptions);
+                        const handlerName = `${eventTypeName}Handler`;
+                        const handlerPath = path.join(aggregatePath, 'events', 'handling', 'handlers', `${handlerName}.java`);
+                        await FileWriter.writeGeneratedFile(handlerPath, handlerCode, `event handler ${handlerName}`);
+                    }
                 },
                 ErrorUtils.entityContext(
                     'generate custom subscribed event',

@@ -9,11 +9,30 @@ import { ImportManager, ImportManagerFactory } from "../../../utils/import-manag
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../../../utils/error-handler.js";
 import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 import type { DtoSchemaRegistry, DtoFieldSchema } from "../../../services/dto-schema-service.js";
-import { getEffectiveFieldMappings, getEffectiveProperties, getEvents } from "../../../utils/aggregate-helpers.js";
+import { getEffectiveFieldMappings, getEffectiveProperties, getEvents, getEntities } from "../../../utils/aggregate-helpers.js";
 
 // ============================================================================
 // ENTITY GENERATION ORCHESTRATION
 // ============================================================================
+
+// Type definitions for inter-invariant processing
+interface EntityReference {
+    fieldName: string;
+    fieldType: string;
+    isCollection: boolean;
+}
+
+interface EntitySubscriptionGroup {
+    fieldName: string;
+    fieldType: string;
+    isCollection: boolean;
+    subscriptions: SubscriptionInfo[];
+}
+
+interface SubscriptionInfo {
+    subscriptionClass: string;
+    eventType: string;
+}
 
 export class EntityOrchestrator {
     private importManager: ImportManager;
@@ -55,10 +74,10 @@ export class EntityOrchestrator {
     private generateEntityComponents(entity: Entity, projectName: string, opts: EntityGenerationOptions, isRootEntity: boolean) {
         // Get effective properties including those from mapping definitions
         const effectiveProps = getEffectiveProperties(entity);
-        
+
         // For non-root entities with aggregateRef, also generate a projection DTO constructor
         const projectionDtoResult = generateProjectionDtoConstructor(entity, projectName, this.dtoRegistry);
-        
+
         return {
             fields: generateFields(effectiveProps, entity, isRootEntity, projectName).code,
             defaultConstructor: generateDefaultConstructor(entity).code,
@@ -72,6 +91,8 @@ export class EntityOrchestrator {
             invariants: isRootEntity ? generateInvariants(entity).code : '',
             // Root entities need getEventSubscriptions() for the Aggregate interface
             eventSubscriptions: isRootEntity ? this.generateEventSubscriptionsMethod(entity.$container as any) : '',
+            // Inter-invariant methods
+            interInvariantMethods: isRootEntity ? this.generateInterInvariantMethods(entity.$container as any) : '',
             // All entities now get their own DTOs, so all need buildDto() method
             buildDtoMethod: this.generateBuildDtoMethod(entity)
         };
@@ -88,17 +109,20 @@ export class EntityOrchestrator {
 
         const events = getEvents(aggregate);
         const subscribedEvents = events?.subscribedEvents || [];
-        
+        const interInvariants = (events as any)?.interInvariants || [];
+
         // Filter for simple subscriptions (no conditions, no routing)
         const simpleSubscriptions = subscribedEvents.filter((sub: any) => {
             // Simple subscription: no conditions block or empty conditions, no routing
-            const hasConditions = sub.conditions && sub.conditions.length > 0 && 
+            const hasConditions = sub.conditions && sub.conditions.length > 0 &&
                 sub.conditions.some((c: any) => c.condition);
             const hasRouting = (sub as any).routingIdExpr;
             return !hasConditions && !hasRouting;
         });
 
-        if (simpleSubscriptions.length === 0) {
+        const hasInterInvariants = interInvariants.length > 0;
+
+        if (simpleSubscriptions.length === 0 && !hasInterInvariants) {
             return `
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
@@ -106,33 +130,211 @@ export class EntityOrchestrator {
     }`;
         }
 
-        const subscriptionLines = simpleSubscriptions.map((sub: any) => {
-            // Handle different AST structures for event types
-            let eventTypeName = 'UnknownEvent';
-            if (typeof sub.eventType === 'string') {
-                eventTypeName = sub.eventType;
-            } else if (sub.eventType?.ref?.name) {
-                eventTypeName = sub.eventType.ref.name;
-            } else if (sub.eventType?.$refText) {
-                eventTypeName = sub.eventType.$refText;
-            } else if ((sub as any).eventType) {
-                // Fallback: try to extract from the raw eventType
-                eventTypeName = (sub as any).eventType;
-            }
-
-            // Extract aggregate name from event name (e.g., UpdateTopicEvent -> Topic, UserDeletedEvent -> User)
-            const eventNameWithoutPrefix = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
-            const subscriptionClassName = `${aggregate.name}Subscribes${eventNameWithoutPrefix}`;
-            return `        subscriptions.add(new ${subscriptionClassName}());`;
-        }).join('\n');
-
-        return `
+        let methodBody = `
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        Set<EventSubscription> subscriptions = new HashSet<>();
-${subscriptionLines}
-        return subscriptions;
-    }`;
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();`;
+
+        // Add inter-invariant method calls (only for ACTIVE aggregates)
+        if (hasInterInvariants) {
+            methodBody += `\n        if (this.getState() == AggregateState.ACTIVE) {`;
+            for (const invariant of interInvariants) {
+                const methodName = `interInvariant${this.toCamelCase(invariant.name)}`;
+                methodBody += `\n            ${methodName}(eventSubscriptions);`;
+            }
+            methodBody += `\n        }`;
+        }
+
+        // Add simple subscriptions
+        if (simpleSubscriptions.length > 0) {
+            for (const sub of simpleSubscriptions) {
+                // Handle different AST structures for event types
+                let eventTypeName = 'UnknownEvent';
+                if (typeof sub.eventType === 'string') {
+                    eventTypeName = sub.eventType;
+                } else if ((sub.eventType as any)?.ref?.name) {
+                    eventTypeName = (sub.eventType as any).ref.name;
+                } else if ((sub.eventType as any)?.$refText) {
+                    eventTypeName = (sub.eventType as any).$refText;
+                } else if ((sub as any).eventType) {
+                    // Fallback: try to extract from the raw eventType
+                    eventTypeName = (sub as any).eventType;
+                }
+
+                // Extract aggregate name from event name (e.g., UpdateTopicEvent -> Topic, UserDeletedEvent -> User)
+                const eventNameWithoutPrefix = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
+                const subscriptionClassName = `${aggregate.name}Subscribes${eventNameWithoutPrefix}`;
+                methodBody += `\n        eventSubscriptions.add(new ${subscriptionClassName}());`;
+            }
+        }
+
+        methodBody += `\n        return eventSubscriptions;\n    }`;
+
+        return methodBody;
+    }
+
+    private toCamelCase(snakeCaseUpper: string): string {
+        // Convert COURSE_EXISTS to CourseExists
+        return snakeCaseUpper
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join('');
+    }
+
+    private generateInterInvariantMethods(aggregate: Aggregate | undefined): string {
+        if (!aggregate) return '';
+
+        const events = getEvents(aggregate);
+        const interInvariants = (events as any)?.interInvariants || [];
+        if (interInvariants.length === 0) return '';
+
+        const entities = getEntities(aggregate);
+        const rootEntity = entities.find(e => e.isRoot);
+        if (!rootEntity) return '';
+
+        return interInvariants.map((invariant: any) =>
+            this.generateInterInvariantMethod(invariant, aggregate, rootEntity)
+        ).join('\n\n');
+    }
+
+    private generateInterInvariantMethod(invariant: any, aggregate: Aggregate, rootEntity: Entity): string {
+        const methodName = `interInvariant${this.toCamelCase(invariant.name)}`;
+        const subscribedEvents = invariant.subscribedEvents || [];
+
+        // Group subscriptions by entity field, passing invariant name for proper class naming
+        const groupedSubs = this.groupSubscriptionsByEntity(subscribedEvents, rootEntity, invariant.name);
+
+        let methodBody = `    private void ${methodName}(Set<EventSubscription> eventSubscriptions) {`;
+
+        for (const group of groupedSubs) {
+            if (group.isCollection) {
+                // Generate for-loop for collections
+                const elementType = this.extractElementType(group.fieldType);
+                methodBody += `\n        for (${elementType} item : this.${group.fieldName}) {`;
+                for (const sub of group.subscriptions) {
+                    methodBody += `\n            eventSubscriptions.add(new ${sub.subscriptionClass}(item));`;
+                }
+                methodBody += `\n        }`;
+            } else {
+                // Generate direct subscription for single reference
+                for (const sub of group.subscriptions) {
+                    methodBody += `\n        eventSubscriptions.add(new ${sub.subscriptionClass}(this.get${this.capitalize(group.fieldName)}()));`;
+                }
+            }
+        }
+
+        methodBody += `\n    }`;
+        return methodBody;
+    }
+
+    private groupSubscriptionsByEntity(subscriptions: any[], rootEntity: Entity, invariantName: string): EntitySubscriptionGroup[] {
+        const groups = new Map<string, EntitySubscriptionGroup>();
+
+        for (const sub of subscriptions) {
+            const entityRef = this.extractEntityReference(sub, rootEntity);
+            if (!entityRef) {
+                continue;
+            }
+
+            if (!groups.has(entityRef.fieldName)) {
+                groups.set(entityRef.fieldName, {
+                    fieldName: entityRef.fieldName,
+                    fieldType: entityRef.fieldType,
+                    isCollection: entityRef.isCollection,
+                    subscriptions: []
+                });
+            }
+
+            const subscriptionClass = this.buildSubscriptionClassName(sub, rootEntity, invariantName);
+            groups.get(entityRef.fieldName)!.subscriptions.push({
+                subscriptionClass,
+                eventType: this.extractEventTypeName(sub)
+            });
+        }
+
+        return Array.from(groups.values());
+    }
+
+    private extractEntityReference(subscription: any, rootEntity: Entity): EntityReference | null {
+        // Parse condition: "course.courseAggregateId == event.aggregateId"
+        // Extract: "course" as the field name
+        const conditions = subscription.conditions || [];
+        if (conditions.length === 0) return null;
+
+        const condition = conditions[0];
+
+        // Extract text from CST node
+        let conditionText = '';
+        if (condition.condition?.$cstNode?.text) {
+            conditionText = condition.condition.$cstNode.text.trim();
+        } else if (typeof condition === 'string') {
+            conditionText = condition;
+        } else if (typeof condition.condition === 'string') {
+            conditionText = condition.condition;
+        } else {
+            return null;
+        }
+
+        // Simple regex to extract field name from "fieldName.property == ..."
+        const match = conditionText.match(/^(\w+)\./);
+        if (!match) {
+            return null;
+        }
+
+        const fieldName = match[1];
+
+        // Find property in root entity
+        const property = rootEntity.properties.find(p => p.name === fieldName);
+        if (!property) {
+            return null;
+        }
+
+        const javaType = TypeResolver.resolveJavaType(property.type);
+        const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
+
+        return {
+            fieldName,
+            fieldType: javaType,
+            isCollection
+        };
+    }
+
+    private extractEventTypeName(subscription: any): string {
+        if (typeof subscription.eventType === 'string') {
+            return subscription.eventType;
+        } else if (subscription.eventType?.ref?.name) {
+            return subscription.eventType.ref.name;
+        } else if (subscription.eventType?.$refText) {
+            return subscription.eventType.$refText;
+        }
+        return 'UnknownEvent';
+    }
+
+    private buildSubscriptionClassName(subscription: any, rootEntity: Entity, invariantName: string): string {
+        const eventTypeName = this.extractEventTypeName(subscription);
+        // Remove "Event" suffix and common prefixes to get base name
+        const baseEventName = eventTypeName
+            .replace(/Event$/, '')
+            .replace(/^(Update|Delete|Create|Disenroll|Anonymize|Invalidate|Answer)/, '');
+
+        const aggregate = rootEntity.$container as Aggregate;
+
+        // Convert invariant name from ANSWER_EXECUTION_EXISTS to AnswerExecutionExists
+        const interInvariantSuffix = invariantName
+            .split('_')
+            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join('');
+
+        return `${aggregate.name}Subscribes${baseEventName}${interInvariantSuffix}`;
+    }
+
+    private extractElementType(javaType: string): string {
+        const match = javaType.match(/<(.+)>/);
+        return match ? match[1] : 'Object';
+    }
+
+    private capitalize(str: string): string {
+        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
     private buildClassStructure(entity: Entity, projectName: string, isRootEntity: boolean) {
@@ -169,6 +371,7 @@ ${components.copyConstructor}
 ${components.gettersSetters}
 ${components.backRefGetterSetter}
 ${components.eventSubscriptions}
+${components.interInvariantMethods}
 ${components.invariants}
 ${components.buildDtoMethod}
 }`;
@@ -251,12 +454,14 @@ ${components.buildDtoMethod}
             imports.push(eventSubscriptionImport);
 
             // Add imports for subscription classes used in getEventSubscriptions()
-            const subscriptionPattern = /new\s+([A-Z][a-zA-Z]*Subscribes[A-Z][a-zA-Z]*)\(\)/g;
+            const subscriptionPattern = /new\s+([A-Z][a-zA-Z]*Subscribes[A-Z][a-zA-Z]*)\(/g;
             let subscriptionMatch;
             while ((subscriptionMatch = subscriptionPattern.exec(javaCode)) !== null) {
                 const subscriptionClassName = subscriptionMatch[1];
                 const subscriptionImport = `import ${config.buildPackageName(projectName, 'microservices', aggregateName?.toLowerCase() || 'unknown', 'events', 'subscribe')}.${subscriptionClassName};`;
-                imports.push(subscriptionImport);
+                if (!imports.includes(subscriptionImport)) {
+                    imports.push(subscriptionImport);
+                }
             }
 
             // Add imports for invariants if SimulatorException is used

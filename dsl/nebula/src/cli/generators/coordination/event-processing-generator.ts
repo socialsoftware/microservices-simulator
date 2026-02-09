@@ -49,7 +49,10 @@ export class EventProcessingGenerator extends OrchestrationBase {
         // Collect all subscribed events (direct + interInvariants)
         const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
 
-        allSubscribedEvents.forEach((event: any) => {
+        // Filter out inter-invariant subscriptions as they don't have handler methods
+        const eventsWithHandlers = allSubscribedEvents.filter((event: any) => !event.isInterInvariant);
+
+        eventsWithHandlers.forEach((event: any) => {
             const eventTypeName = event.eventType || 'UnknownEvent';
             methods.push({
                 name: `process${eventTypeName}`,
@@ -87,7 +90,9 @@ export class EventProcessingGenerator extends OrchestrationBase {
         }
 
         const directSubscribed = aggregateEvents.subscribedEvents || [];
-        const interSubscribed = aggregateEvents.interInvariants?.flatMap((ii: any) => ii?.subscribedEvents || []) || [];
+        const interSubscribed = aggregateEvents.interInvariants?.flatMap((ii: any) =>
+            (ii?.subscribedEvents || []).map((sub: any) => ({ ...sub, isInterInvariant: true }))
+        ) || [];
         const allSubscribed = [...directSubscribed, ...interSubscribed];
 
         // Deduplicate by event type name
@@ -162,7 +167,10 @@ export class EventProcessingGenerator extends OrchestrationBase {
         // Add imports for subscribed events (direct + interInvariants)
         const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
 
-        allSubscribedEvents.forEach((event: any) => {
+        // Filter out inter-invariant subscriptions as they don't have handler methods
+        const eventsWithHandlers = allSubscribedEvents.filter((event: any) => !event.isInterInvariant);
+
+        eventsWithHandlers.forEach((event: any) => {
             const eventTypeName = event.eventType || 'UnknownEvent';
             let sourceAggregateName = 'unknown';
 

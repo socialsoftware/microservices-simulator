@@ -13,4 +13,12 @@ Aggregate Topic {
             check courseNotNull { course != null; }
         }
     }
+
+    Events {
+        interInvariant TOPIC_COURSE_EXISTS {
+            subscribe CourseDeletedEvent from Course {
+                course.courseAggregateId == event.aggregateId;
+            }
+        }
+    }
 }

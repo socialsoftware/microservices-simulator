@@ -32,9 +32,17 @@ export class EventGenerator extends OrchestrationBase {
     }
 
     generateSubscribedEvent(event: SubscribedEvent, aggregate: Aggregate, options: { projectName: string }): string {
-        const context = this.buildSubscribedEventContext(event, aggregate, options);
-        const template = this.loadTemplate('events/subscribed-event.hbs');
-        return this.renderTemplate(template, context);
+        const isInterInvariant = (event as any).isInterInvariant;
+
+        if (isInterInvariant) {
+            const context = this.buildInterInvariantSubscriptionContext(event, aggregate, options);
+            const template = this.loadTemplate('events/inter-invariant-subscription.hbs');
+            return this.renderTemplate(template, context);
+        } else {
+            const context = this.buildSubscribedEventContext(event, aggregate, options);
+            const template = this.loadTemplate('events/subscribed-event.hbs');
+            return this.renderTemplate(template, context);
+        }
     }
 
     generateEventHandler(event: SubscribedEvent, aggregate: Aggregate, options: { projectName: string }): string {
@@ -159,6 +167,167 @@ export class EventGenerator extends OrchestrationBase {
             subscriptionKeyAggregateIdExpr: aggregateIdExpr,
             subscriptionKeyVersionExpr: versionExpr
         };
+    }
+
+    private buildInterInvariantSubscriptionContext(event: SubscribedEvent, aggregate: Aggregate, options: any): any {
+        const aggregateName = aggregate.name;
+        const eventTypeName = (event as any).eventType || 'UnknownEvent';
+        const eventBaseName = eventTypeName.replace(/Event$/, '');
+
+        // For inter-invariants, include the field name in the subscription class name to avoid conflicts
+        // when multiple inter-invariants subscribe to the same event
+        const interInvariantName = (event as any).interInvariantName || '';
+        // Convert TOURNAMENT_CREATOR_EXISTS to TournamentCreatorExists
+        const fieldSuffix = interInvariantName
+            ? interInvariantName.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join('')
+            : '';
+        const subscriptionName = `${aggregateName}Subscribes${eventBaseName}${fieldSuffix}`;
+
+        // Extract entity reference from condition
+        const entityRef = this.extractEntityReferenceFromCondition(event, aggregate);
+        if (!entityRef) {
+            console.warn(`Warning: Could not extract entity reference for inter-invariant subscription ${subscriptionName}`);
+            return this.buildSubscribedEventContext(event, aggregate, options);
+        }
+
+        // Determine source aggregate from event
+        // First check if it's explicitly specified in the DSL with "from Aggregate"
+        let eventSourceAggregate = aggregateName.toLowerCase();
+        if (event.sourceAggregate) {
+            eventSourceAggregate = event.sourceAggregate.toLowerCase();
+        } else {
+            // Check if the referenced entity is a projection entity
+            const entities = (aggregate as any).entities || [];
+            const referencedEntity = entities.find((e: any) => e.name === entityRef.entityTypeName);
+
+            if (referencedEntity && (referencedEntity as any).aggregateRef) {
+                // It's a projection entity - use the aggregate it projects from
+                eventSourceAggregate = (referencedEntity as any).aggregateRef.toLowerCase();
+            } else {
+                // Try AST reference
+                const publishedEvent = (event as any).eventType?.ref;
+                const eventsContainer = publishedEvent?.$container;
+                const sourceAggregate = eventsContainer?.$container;
+                if (sourceAggregate?.name) {
+                    eventSourceAggregate = sourceAggregate.name.toLowerCase();
+                } else {
+                    // Infer from event name
+                    const inferredPublisher = eventTypeName.replace(/(Deleted|Updated|Created)?Event$/, '');
+                    eventSourceAggregate = inferredPublisher.toLowerCase();
+                }
+            }
+        }
+
+        // Build field names from entity type
+        const cleanEntityName = entityRef.entityTypeName.replace(new RegExp(`^${aggregateName}`, 'i'), '');
+        const lowerEntityName = cleanEntityName.charAt(0).toLowerCase() + cleanEntityName.slice(1);
+        const aggregateIdField = `${lowerEntityName}AggregateId`;
+        const versionField = `${lowerEntityName}Version`;
+
+        return {
+            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregateName.toLowerCase()}.events.subscribe`,
+            subscription: {
+                capitalizedSubscriptionName: subscriptionName,
+                entityTypeName: entityRef.entityTypeName,
+                entityParamName: entityRef.fieldName,
+                aggregateIdField: aggregateIdField,
+                versionField: versionField,
+                capitalizedAggregateIdField: aggregateIdField.charAt(0).toUpperCase() + aggregateIdField.slice(1),
+                capitalizedVersionField: versionField.charAt(0).toUpperCase() + versionField.slice(1),
+                eventTypeName: eventTypeName,
+                eventType: eventBaseName
+            },
+            imports: [
+                `import ${this.getBasePackage()}.ms.domain.event.Event;`,
+                `import ${this.getBasePackage()}.ms.domain.event.EventSubscription;`,
+                `import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregateName.toLowerCase()}.aggregate.${entityRef.entityTypeName};`,
+                `import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${eventSourceAggregate}.events.publish.${eventTypeName};`,
+                ''
+            ]
+        };
+    }
+
+    private extractEntityReferenceFromCondition(event: SubscribedEvent, aggregate: Aggregate): { fieldName: string, entityTypeName: string } | null {
+        const conditions = event.conditions || [];
+        if (conditions.length === 0) {
+            return null;
+        }
+
+        const condition = conditions[0];
+        let conditionText = '';
+
+        if ((condition as any).condition?.$cstNode?.text) {
+            conditionText = (condition as any).condition.$cstNode.text.trim();
+        } else {
+            return null;
+        }
+
+        // Extract field name from "fieldName.property == ..."
+        const match = conditionText.match(/^(\w+)\./);
+        if (!match) {
+            return null;
+        }
+
+        const fieldName = match[1];
+
+        // Find the property in the root entity
+        const rootEntity: any = (aggregate as any).entities?.find((e: any) => e.isRoot);
+        if (!rootEntity) {
+            return null;
+        }
+
+        const property = rootEntity.properties.find((p: any) => p.name === fieldName);
+        if (!property) {
+            return null;
+        }
+
+        // Extract entity type name
+        const entityTypeName = this.extractEntityTypeName(property);
+        if (!entityTypeName) {
+            return null;
+        }
+
+        return { fieldName, entityTypeName };
+    }
+
+    private extractEntityTypeName(property: any): string | null {
+        const typeObj = property.type;
+        if (!typeObj) {
+            return null;
+        }
+
+        // CollectionType pattern (Set<T>, List<T>)
+        if (typeObj.$type === 'CollectionType' && typeObj.elementType) {
+            const elementType = typeObj.elementType;
+            if (elementType.$refText) {
+                return elementType.$refText;
+            }
+            if (elementType.type?.$refText) {
+                return elementType.type.$refText;
+            }
+        }
+
+        // EntityType pattern
+        if (typeObj.$type === 'EntityType' && typeObj.type?.$refText) {
+            return typeObj.type.$refText;
+        }
+
+        // Simple entity type (legacy pattern)
+        if (typeObj.type?.$refText) {
+            return typeObj.type.$refText;
+        }
+
+        // Collection type (legacy pattern)
+        if (typeObj.collection) {
+            if (typeObj.type?.type?.$refText) {
+                return typeObj.type.type.$refText;
+            }
+            if (typeObj.type?.$refText) {
+                return typeObj.type.$refText;
+            }
+        }
+
+        return null;
     }
 
     private buildSubscriptionKeyExpressions(
@@ -320,13 +489,16 @@ export class EventGenerator extends OrchestrationBase {
 
         const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
 
-        const subscribedEvents = allSubscribedEvents.map(event => {
+        // Filter out inter-invariant subscriptions as they don't have handlers
+        const eventsWithHandlers = allSubscribedEvents.filter((event: any) => !(event as any).isInterInvariant);
+
+        const subscribedEvents = eventsWithHandlers.map(event => {
             const eventTypeName = (event as any).eventType || 'UnknownEvent';
             const handlerName = `${eventTypeName}Handler`;
             return { eventName: eventTypeName, handlerName };
         }) || [];
 
-        const subscribedEventImports = allSubscribedEvents.map(event => {
+        const subscribedEventImports = eventsWithHandlers.map(event => {
             const eventTypeName = (event as any).eventType || 'UnknownEvent';
             const handlerName = `${eventTypeName}Handler`;
 
@@ -436,7 +608,9 @@ export class EventGenerator extends OrchestrationBase {
     private collectSubscribedEvents(aggregate: Aggregate): any[] {
         const direct = aggregate.events?.subscribedEvents || [];
         const interInvariants = (aggregate.events as any)?.interInvariants || [];
-        const interSubs = interInvariants.flatMap((ii: any) => ii?.subscribedEvents || []);
+        const interSubs = interInvariants.flatMap((ii: any) =>
+            (ii?.subscribedEvents || []).map((sub: any) => ({ ...sub, isInterInvariant: true }))
+        );
         const allSubscribed = [...direct, ...interSubs];
 
         // Deduplicate by event type name to avoid duplicate handlers

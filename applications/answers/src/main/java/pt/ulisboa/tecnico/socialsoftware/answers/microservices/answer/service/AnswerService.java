@@ -272,24 +272,6 @@ public class AnswerService {
         }
     }
 
-    public Answer handleExecutionUserDeletedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, UnitOfWork unitOfWork) {
-        try {
-            Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-            Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
-
-
-
-            unitOfWorkService.registerChanged(newAnswer, unitOfWork);
-
-
-            return newAnswer;
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error handling ExecutionUserDeletedEvent: " + e.getMessage());
-        }
-    }
-
     public Answer handleQuestionUpdatedEvent(Integer aggregateId, Integer questionAggregateId, Integer questionVersion, UnitOfWork unitOfWork) {
         try {
             Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
@@ -311,37 +293,6 @@ public class AnswerService {
             throw e;
         } catch (Exception e) {
             throw new AnswersException("Error handling QuestionUpdatedEvent: " + e.getMessage());
-        }
-    }
-
-    public Answer handleQuestionDeletedEvent(Integer aggregateId, Integer questionAggregateId, Integer questionVersion, UnitOfWork unitOfWork) {
-        try {
-            Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-            Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
-
-        // Handle questions collection
-        if (newAnswer.getQuestions() != null) {
-            newAnswer.getQuestions().stream()
-                .filter(item -> item.getQuestionAggregateId() != null && 
-                               item.getQuestionAggregateId().equals(questionAggregateId))
-                .forEach(item -> item.setQuestionState(Aggregate.AggregateState.INACTIVE));
-        }
-
-            unitOfWorkService.registerChanged(newAnswer, unitOfWork);
-
-        unitOfWorkService.registerEvent(
-            new AnswerQuestionDeletedEvent(
-                newAnswer.getAggregateId(),
-                questionAggregateId
-            ),
-            unitOfWork
-        );
-
-            return newAnswer;
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error handling QuestionDeletedEvent: " + e.getMessage());
         }
     }
 

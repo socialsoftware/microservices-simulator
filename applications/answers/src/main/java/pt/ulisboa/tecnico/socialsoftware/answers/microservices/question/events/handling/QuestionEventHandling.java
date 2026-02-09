@@ -9,8 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.Qu
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionRepository;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.handling.handlers.TopicUpdatedEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.handling.handlers.TopicDeletedEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicDeletedEvent;
 
 @Component
 public class QuestionEventHandling {
@@ -25,12 +23,6 @@ public class QuestionEventHandling {
     public void handleTopicUpdatedEventEvents() {
         eventApplicationService.handleSubscribedEvent(TopicUpdatedEvent.class,
                 new TopicUpdatedEventHandler(questionRepository, questionEventProcessing));
-    }
-
-    @Scheduled(fixedDelay = 1000)
-    public void handleTopicDeletedEventEvents() {
-        eventApplicationService.handleSubscribedEvent(TopicDeletedEvent.class,
-                new TopicDeletedEventHandler(questionRepository, questionEventProcessing));
     }
 
 }

@@ -29,8 +29,20 @@ Aggregate Execution  {
     }
 
     Events {
-        subscribe UserUpdatedEvent;
-        subscribe UserDeletedEvent;
+        interInvariant COURSE_EXISTS {
+            subscribe CourseDeletedEvent from Course {
+                course.courseAggregateId == event.aggregateId;
+            }
+        }
+
+        interInvariant USERS_EXIST {
+            subscribe UserDeletedEvent from User {
+                users.userAggregateId == event.aggregateId;
+            }
+            subscribe UserUpdatedEvent from User {
+                users.userAggregateId == event.aggregateId;
+            }
+        }
     }
 
     Repository {

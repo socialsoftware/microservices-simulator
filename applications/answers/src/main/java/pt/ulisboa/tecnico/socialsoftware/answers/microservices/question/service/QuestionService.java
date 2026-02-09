@@ -363,37 +363,6 @@ public class QuestionService {
         }
     }
 
-    public Question handleTopicDeletedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, UnitOfWork unitOfWork) {
-        try {
-            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-            Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
-
-        // Handle topics collection
-        if (newQuestion.getTopics() != null) {
-            newQuestion.getTopics().stream()
-                .filter(item -> item.getTopicAggregateId() != null && 
-                               item.getTopicAggregateId().equals(topicAggregateId))
-                .forEach(item -> item.setTopicState(Aggregate.AggregateState.INACTIVE));
-        }
-
-            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
-
-        unitOfWorkService.registerEvent(
-            new QuestionTopicDeletedEvent(
-                newQuestion.getAggregateId(),
-                topicAggregateId
-            ),
-            unitOfWork
-        );
-
-            return newQuestion;
-        } catch (AnswersException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new AnswersException("Error handling TopicDeletedEvent: " + e.getMessage());
-        }
-    }
-
 
 
 

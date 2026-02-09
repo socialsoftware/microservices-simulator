@@ -44,8 +44,19 @@ Aggregate Quiz {
 
     Events {
         subscribe ExecutionUpdatedEvent;
-        subscribe ExecutionDeletedEvent;
         subscribe TopicUpdatedEvent;
         subscribe TopicDeletedEvent;
+
+        interInvariant QUIZ_EXECUTION_EXISTS {
+            subscribe ExecutionDeletedEvent from Execution {
+                execution.executionAggregateId == event.aggregateId;
+            }
+        }
+
+        interInvariant QUIZ_QUESTIONS_EXIST {
+            subscribe QuestionDeletedEvent from Question {
+                questions.questionAggregateId == event.aggregateId;
+            }
+        }
     }
 }

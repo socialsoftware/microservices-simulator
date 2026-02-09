@@ -9,12 +9,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.An
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.ExecutionUserUpdatedEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.ExecutionUserDeletedEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.QuestionUpdatedEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.publish.QuestionUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.QuestionDeletedEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.publish.QuestionDeletedEvent;
 
 @Component
 public class AnswerEventHandling {
@@ -32,21 +28,9 @@ public class AnswerEventHandling {
     }
 
     @Scheduled(fixedDelay = 1000)
-    public void handleExecutionUserDeletedEventEvents() {
-        eventApplicationService.handleSubscribedEvent(ExecutionUserDeletedEvent.class,
-                new ExecutionUserDeletedEventHandler(answerRepository, answerEventProcessing));
-    }
-
-    @Scheduled(fixedDelay = 1000)
     public void handleQuestionUpdatedEventEvents() {
         eventApplicationService.handleSubscribedEvent(QuestionUpdatedEvent.class,
                 new QuestionUpdatedEventHandler(answerRepository, answerEventProcessing));
-    }
-
-    @Scheduled(fixedDelay = 1000)
-    public void handleQuestionDeletedEventEvents() {
-        eventApplicationService.handleSubscribedEvent(QuestionDeletedEvent.class,
-                new QuestionDeletedEventHandler(answerRepository, answerEventProcessing));
     }
 
 }

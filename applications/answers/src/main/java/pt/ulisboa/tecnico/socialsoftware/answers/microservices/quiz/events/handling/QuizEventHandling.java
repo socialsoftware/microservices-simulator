@@ -9,8 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.Qu
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizRepository;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.handling.handlers.ExecutionUpdatedEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.handling.handlers.ExecutionDeletedEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.handling.handlers.TopicUpdatedEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.handling.handlers.TopicDeletedEventHandler;
@@ -29,12 +27,6 @@ public class QuizEventHandling {
     public void handleExecutionUpdatedEventEvents() {
         eventApplicationService.handleSubscribedEvent(ExecutionUpdatedEvent.class,
                 new ExecutionUpdatedEventHandler(quizRepository, quizEventProcessing));
-    }
-
-    @Scheduled(fixedDelay = 1000)
-    public void handleExecutionDeletedEventEvents() {
-        eventApplicationService.handleSubscribedEvent(ExecutionDeletedEvent.class,
-                new ExecutionDeletedEventHandler(quizRepository, quizEventProcessing));
     }
 
     @Scheduled(fixedDelay = 1000)

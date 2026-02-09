@@ -107,6 +107,7 @@ public class TournamentTopic {
 
 
 
+
     public TournamentTopicDto buildDto() {
         TournamentTopicDto dto = new TournamentTopicDto();
         dto.setAggregateId(getTopicAggregateId());

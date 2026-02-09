@@ -134,6 +134,7 @@ public class TournamentParticipantQuiz {
 
 
 
+
     public TournamentParticipantQuizDto buildDto() {
         TournamentParticipantQuizDto dto = new TournamentParticipantQuizDto();
         dto.setAggregateId(getParticipantQuizAggregateId());
