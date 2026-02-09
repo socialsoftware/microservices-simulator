@@ -19,6 +19,13 @@ Aggregate Execution  {
         LocalDateTime endDate;
         ExecutionCourse course;
         Set<ExecutionUser> users;
+
+        invariants {
+            check acronymNotBlank { acronym.length() > 0; }
+            check academicTermNotBlank { academicTerm.length() > 0; }
+            check courseNotNull { course != null; }
+            check usersNotNull { users != null; }
+        }
     }
 
     Events {

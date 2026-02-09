@@ -25,6 +25,14 @@ Aggregate Question {
         QuestionCourse course;
         Set<QuestionTopic> topics;
         List<Option> options;
+
+        invariants {
+            check titleNotBlank { title.length() > 0; }
+            check contentNotBlank { content.length() > 0; }
+            check courseNotNull { course != null; }
+            check topicsNotNull { topics != null; }
+            check optionsNotNull { options != null; }
+        }
     }
 
     Events {

@@ -7,5 +7,10 @@ Aggregate Topic {
     Root Entity Topic {
         String name;
         TopicCourse course;
+
+        invariants {
+            check nameNotBlank { name.length() > 0; }
+            check courseNotNull { course != null; }
+        }
     }
 }

@@ -9,9 +9,12 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
 
 @Entity
 public abstract class Topic extends Aggregate {
@@ -62,9 +65,23 @@ public abstract class Topic extends Aggregate {
         return new HashSet<>();
     }
 
+    // ============================================================================
+    // INVARIANTS
+    // ============================================================================
+
+    private boolean invariantNameNotBlank() {
+        return this.name != null && this.name.length() > 0;
+    }
+
+    private boolean invariantCourseNotNull() {
+        return this.course != null;
+    }
     @Override
     public void verifyInvariants() {
-        // No invariants defined
+        if (!(invariantNameNotBlank()
+               && invariantCourseNotNull())) {
+            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        }
     }
 
     public TopicDto buildDto() {

@@ -11,9 +11,12 @@ import jakarta.persistence.EnumType;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.CourseType;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
 
 @Entity
 public abstract class Course extends Aggregate {
@@ -68,9 +71,23 @@ public abstract class Course extends Aggregate {
         return new HashSet<>();
     }
 
+    // ============================================================================
+    // INVARIANTS
+    // ============================================================================
+
+    private boolean invariantNameNotBlank() {
+        return this.name != null && this.name.length() > 0;
+    }
+
+    private boolean invariantTypeNotNull() {
+        return this.type != null;
+    }
     @Override
     public void verifyInvariants() {
-        // No invariants defined
+        if (!(invariantNameNotBlank()
+               && invariantTypeNotNull())) {
+            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        }
     }
 
     public CourseDto buildDto() {

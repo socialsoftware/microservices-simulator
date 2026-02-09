@@ -14,6 +14,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionDeleted;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionUpdated;
@@ -28,6 +29,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDt
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
 
 @Entity
 public abstract class Tournament extends Aggregate {
@@ -250,9 +253,43 @@ public abstract class Tournament extends Aggregate {
         return subscriptions;
     }
 
+    // ============================================================================
+    // INVARIANTS
+    // ============================================================================
+
+    private boolean invariantStartTimeBeforeEndTime() {
+        return this.startTime.isBefore(this.endTime);
+    }
+
+    private boolean invariantParticipantsNotNull() {
+        return this.participants != null;
+    }
+
+    private boolean invariantCreatorNotNull() {
+        return this.creator != null;
+    }
+
+    private boolean invariantExecutionNotNull() {
+        return this.execution != null;
+    }
+
+    private boolean invariantTopicsNotNull() {
+        return this.topics != null;
+    }
+
+    private boolean invariantQuizNotNull() {
+        return this.quiz != null;
+    }
     @Override
     public void verifyInvariants() {
-        // No invariants defined
+        if (!(invariantStartTimeBeforeEndTime()
+               && invariantParticipantsNotNull()
+               && invariantCreatorNotNull()
+               && invariantExecutionNotNull()
+               && invariantTopicsNotNull()
+               && invariantQuizNotNull())) {
+            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        }
     }
 
     public TournamentDto buildDto() {

@@ -29,6 +29,13 @@ Aggregate Answer {
         AnswerUser user;
         AnswerQuiz quiz;
         List<AnswerQuestion> questions;
+
+        invariants {
+            check executionNotNull { execution != null; }
+            check userNotNull { user != null; }
+            check quizNotNull { quiz != null; }
+            check questionsNotNull { questions != null; }
+        }
     }
 
     Events {

@@ -5,5 +5,11 @@ Aggregate User {
         String username;
         final UserRole role;
         Boolean active;
+
+        invariants {
+            check nameNotBlank { name.length() > 0; }
+            check usernameNotBlank { username.length() > 0; }
+            check roleNotNull { role != null; }
+        }
     }
 }

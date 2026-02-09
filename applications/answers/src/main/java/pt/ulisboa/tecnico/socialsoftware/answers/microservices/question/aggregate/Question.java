@@ -16,6 +16,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesTopicDeleted;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesTopicUpdated;
@@ -23,6 +24,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.s
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
 
 @Entity
 public abstract class Question extends Aggregate {
@@ -198,9 +201,38 @@ public abstract class Question extends Aggregate {
         return subscriptions;
     }
 
+    // ============================================================================
+    // INVARIANTS
+    // ============================================================================
+
+    private boolean invariantTitleNotBlank() {
+        return this.title != null && this.title.length() > 0;
+    }
+
+    private boolean invariantContentNotBlank() {
+        return this.content != null && this.content.length() > 0;
+    }
+
+    private boolean invariantCourseNotNull() {
+        return this.course != null;
+    }
+
+    private boolean invariantTopicsNotNull() {
+        return this.topics != null;
+    }
+
+    private boolean invariantOptionsNotNull() {
+        return this.options != null;
+    }
     @Override
     public void verifyInvariants() {
-        // No invariants defined
+        if (!(invariantTitleNotBlank()
+               && invariantContentNotBlank()
+               && invariantCourseNotNull()
+               && invariantTopicsNotNull()
+               && invariantOptionsNotNull())) {
+            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        }
     }
 
     public QuestionDto buildDto() {

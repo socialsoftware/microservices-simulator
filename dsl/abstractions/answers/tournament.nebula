@@ -1,6 +1,6 @@
 Aggregate Tournament {
     @GenerateCrud;
-    Root Entity Tournament { 
+    Root Entity Tournament {
        LocalDateTime startTime;
        LocalDateTime endTime;
        Integer numberOfQuestions;
@@ -11,36 +11,31 @@ Aggregate Tournament {
        Set<TournamentTopic> topics;
        TournamentQuiz quiz;
 
-       /* invariants {
+       invariants {
            check startTimeBeforeEndTime {
                startTime.isBefore(endTime);
            }
 
-           check uniqueParticipant {
-               tournamentParticipants.unique(participantAggregateId);
+           check participantsNotNull {
+               participants != null;
            }
 
-           check participantsEnrolledBeforeStartTime {
-               forall p : tournamentParticipants | p.participantEnrollTime != null;
+           check creatorNotNull {
+               creator != null;
            }
 
-           check answerBeforeStart {
-               forall p : tournamentParticipants | p.tournamentParticipantQuizAnswer != null;
+           check executionNotNull {
+               execution != null;
            }
 
-           check deleteWhenNoParticipants {
-               tournamentParticipants != null;
+           check topicsNotNull {
+               topics != null;
            }
 
-           check creatorParticipantConsistency {
-               tournamentParticipants.noneMatch(p -> p.participantAggregateId == tournamentCreator.creatorAggregateId);
+           check quizNotNull {
+               quiz != null;
            }
-
-           check creatorIsNotAnonymous {
-               tournamentCreator.creatorName != 'ANONYMOUS' &&
-               tournamentCreator.creatorUsername != 'ANONYMOUS';
-           }
-       }*/
+       }
     }
 
     Entity TournamentExecution uses Execution {

@@ -9,9 +9,12 @@ import jakarta.persistence.EnumType;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.UserRole;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
 
 @Entity
 public abstract class User extends Aggregate {
@@ -77,9 +80,28 @@ public abstract class User extends Aggregate {
         return new HashSet<>();
     }
 
+    // ============================================================================
+    // INVARIANTS
+    // ============================================================================
+
+    private boolean invariantNameNotBlank() {
+        return this.name != null && this.name.length() > 0;
+    }
+
+    private boolean invariantUsernameNotBlank() {
+        return this.username != null && this.username.length() > 0;
+    }
+
+    private boolean invariantRoleNotNull() {
+        return this.role != null;
+    }
     @Override
     public void verifyInvariants() {
-        // No invariants defined
+        if (!(invariantNameNotBlank()
+               && invariantUsernameNotBlank()
+               && invariantRoleNotNull())) {
+            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        }
     }
 
     public UserDto buildDto() {

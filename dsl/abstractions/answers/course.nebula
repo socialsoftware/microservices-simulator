@@ -4,6 +4,11 @@ Aggregate Course {
         String name;
         final CourseType type default CourseType.TECNICO;
         LocalDateTime creationDate;
+
+        invariants {
+            check nameNotBlank { name.length() > 0; }
+            check typeNotNull { type != null; }
+        }
     }
 
     Repository {

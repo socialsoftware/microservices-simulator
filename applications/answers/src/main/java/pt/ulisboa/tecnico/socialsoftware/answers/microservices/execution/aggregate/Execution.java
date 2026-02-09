@@ -14,12 +14,15 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.subscribe.ExecutionSubscribesUserDeleted;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.subscribe.ExecutionSubscribesUserUpdated;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
 
 @Entity
 public abstract class Execution extends Aggregate {
@@ -145,9 +148,33 @@ public abstract class Execution extends Aggregate {
         return subscriptions;
     }
 
+    // ============================================================================
+    // INVARIANTS
+    // ============================================================================
+
+    private boolean invariantAcronymNotBlank() {
+        return this.acronym != null && this.acronym.length() > 0;
+    }
+
+    private boolean invariantAcademicTermNotBlank() {
+        return this.academicTerm != null && this.academicTerm.length() > 0;
+    }
+
+    private boolean invariantCourseNotNull() {
+        return this.course != null;
+    }
+
+    private boolean invariantUsersNotNull() {
+        return this.users != null;
+    }
     @Override
     public void verifyInvariants() {
-        // No invariants defined
+        if (!(invariantAcronymNotBlank()
+               && invariantAcademicTermNotBlank()
+               && invariantCourseNotNull()
+               && invariantUsersNotNull())) {
+            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        }
     }
 
     public ExecutionDto buildDto() {

@@ -258,6 +258,14 @@ ${components.buildDtoMethod}
                 const subscriptionImport = `import ${config.buildPackageName(projectName, 'microservices', aggregateName?.toLowerCase() || 'unknown', 'events', 'subscribe')}.${subscriptionClassName};`;
                 imports.push(subscriptionImport);
             }
+
+            // Add imports for invariants if SimulatorException is used
+            if (javaCode.includes('SimulatorException')) {
+                imports.push(`import ${config.getBasePackage()}.ms.exception.SimulatorException;`);
+            }
+            if (javaCode.includes('INVARIANT_BREAK')) {
+                imports.push(`import static ${config.getBasePackage()}.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;`);
+            }
         }
 
         const dtoPattern = /\b([A-Z][a-zA-Z]*Dto)\b/g;

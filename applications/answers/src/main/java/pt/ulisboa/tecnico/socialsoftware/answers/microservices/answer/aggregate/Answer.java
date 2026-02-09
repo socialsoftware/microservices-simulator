@@ -16,6 +16,7 @@ import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesExecutionUserDeleted;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe.AnswerSubscribesExecutionUserUpdated;
@@ -26,6 +27,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerUserDto;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
 
 @Entity
 public abstract class Answer extends Aggregate {
@@ -183,9 +186,33 @@ public abstract class Answer extends Aggregate {
         return subscriptions;
     }
 
+    // ============================================================================
+    // INVARIANTS
+    // ============================================================================
+
+    private boolean invariantExecutionNotNull() {
+        return this.execution != null;
+    }
+
+    private boolean invariantUserNotNull() {
+        return this.user != null;
+    }
+
+    private boolean invariantQuizNotNull() {
+        return this.quiz != null;
+    }
+
+    private boolean invariantQuestionsNotNull() {
+        return this.questions != null;
+    }
     @Override
     public void verifyInvariants() {
-        // No invariants defined
+        if (!(invariantExecutionNotNull()
+               && invariantUserNotNull()
+               && invariantQuizNotNull()
+               && invariantQuestionsNotNull())) {
+            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        }
     }
 
     public AnswerDto buildDto() {

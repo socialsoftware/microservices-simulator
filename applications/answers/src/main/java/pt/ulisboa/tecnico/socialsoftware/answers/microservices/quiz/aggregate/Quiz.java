@@ -17,6 +17,7 @@ import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesExecutionDeleted;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesExecutionUpdated;
@@ -26,6 +27,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subsc
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
 
 @Entity
 public abstract class Quiz extends Aggregate {
@@ -187,9 +190,34 @@ public abstract class Quiz extends Aggregate {
         return subscriptions;
     }
 
+    // ============================================================================
+    // INVARIANTS
+    // ============================================================================
+
+    private boolean invariantTitleNotBlank() {
+        return this.title != null && this.title.length() > 0;
+    }
+
+    private boolean invariantDateOrdering() {
+        return this.availableDate.isBefore(this.conclusionDate) &&
+                this.conclusionDate.isBefore(this.resultsDate);
+    }
+
+    private boolean invariantQuestionsNotNull() {
+        return this.questions != null;
+    }
+
+    private boolean invariantExecutionNotNull() {
+        return this.execution != null;
+    }
     @Override
     public void verifyInvariants() {
-        // No invariants defined
+        if (!(invariantTitleNotBlank()
+               && invariantDateOrdering()
+               && invariantQuestionsNotNull()
+               && invariantExecutionNotNull())) {
+            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        }
     }
 
     public QuizDto buildDto() {

@@ -30,7 +30,16 @@ Aggregate Quiz {
         LocalDateTime resultsDate;
         QuizExecution execution;
         Set<QuizQuestion> questions;
-        
+
+        invariants {
+            check titleNotBlank { title.length() > 0; }
+            check dateOrdering {
+                availableDate.isBefore(conclusionDate) &&
+                conclusionDate.isBefore(resultsDate);
+            }
+            check questionsNotNull { questions != null; }
+            check executionNotNull { execution != null; }
+        }
     }
 
     Events {
