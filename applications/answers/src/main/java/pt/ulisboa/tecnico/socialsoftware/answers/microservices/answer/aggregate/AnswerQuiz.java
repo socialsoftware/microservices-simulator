@@ -46,6 +46,7 @@ public class AnswerQuiz {
     }
 
     public AnswerQuiz(AnswerQuiz other) {
+        setQuizAggregateId(other.getQuizAggregateId());
         setQuizVersion(other.getQuizVersion());
         setQuizQuestionsAggregateIds(new ArrayList<>(other.getQuizQuestionsAggregateIds()));
         setQuizState(other.getQuizState());

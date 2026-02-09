@@ -45,6 +45,7 @@ public class QuizOption {
     }
 
     public QuizOption(QuizOption other) {
+        setOptionSequence(other.getOptionSequence());
         setOptionCorrect(other.getOptionCorrect());
         setOptionContent(other.getOptionContent());
         setQuestionAggregateId(other.getQuestionAggregateId());

@@ -47,6 +47,7 @@ public class ExecutionUser {
     }
 
     public ExecutionUser(ExecutionUser other) {
+        setUserName(other.getUserName());
         setUserUsername(other.getUserUsername());
         setUserActive(other.getUserActive());
         setUserAggregateId(other.getUserAggregateId());

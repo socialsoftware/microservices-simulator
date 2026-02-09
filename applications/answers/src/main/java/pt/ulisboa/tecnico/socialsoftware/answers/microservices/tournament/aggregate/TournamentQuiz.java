@@ -38,6 +38,7 @@ public class TournamentQuiz {
     }
 
     public TournamentQuiz(TournamentQuiz other) {
+        setQuizAggregateId(other.getQuizAggregateId());
         setQuizVersion(other.getQuizVersion());
         setQuizState(other.getQuizState());
     }

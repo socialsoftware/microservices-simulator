@@ -44,6 +44,7 @@ public class TournamentCreator {
     }
 
     public TournamentCreator(TournamentCreator other) {
+        setCreatorAggregateId(other.getCreatorAggregateId());
         setCreatorVersion(other.getCreatorVersion());
         setCreatorState(other.getCreatorState());
         setCreatorName(other.getCreatorName());

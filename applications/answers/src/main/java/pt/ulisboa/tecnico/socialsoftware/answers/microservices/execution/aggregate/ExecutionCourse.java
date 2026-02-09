@@ -48,6 +48,7 @@ public class ExecutionCourse {
     }
 
     public ExecutionCourse(ExecutionCourse other) {
+        setCourseName(other.getCourseName());
         setCourseType(other.getCourseType());
         setCourseAggregateId(other.getCourseAggregateId());
         setCourseVersion(other.getCourseVersion());

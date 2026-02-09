@@ -38,6 +38,7 @@ public class AnswerExecution {
     }
 
     public AnswerExecution(AnswerExecution other) {
+        setExecutionAggregateId(other.getExecutionAggregateId());
         setExecutionVersion(other.getExecutionVersion());
         setExecutionState(other.getExecutionState());
     }

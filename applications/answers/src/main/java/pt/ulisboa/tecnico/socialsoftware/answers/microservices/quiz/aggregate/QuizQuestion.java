@@ -46,6 +46,7 @@ public class QuizQuestion {
     }
 
     public QuizQuestion(QuizQuestion other) {
+        setQuestionState(other.getQuestionState());
         setQuestionSequence(other.getQuestionSequence());
         setQuestionTitle(other.getQuestionTitle());
         setQuestionContent(other.getQuestionContent());

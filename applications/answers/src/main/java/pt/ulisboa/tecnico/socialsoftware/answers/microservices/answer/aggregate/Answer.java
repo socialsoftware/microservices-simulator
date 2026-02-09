@@ -187,9 +187,9 @@ public abstract class Answer extends Aggregate {
             interInvariantAnswerUserExists(eventSubscriptions);
             interInvariantAnswerQuizExists(eventSubscriptions);
             interInvariantAnswerQuestionsExist(eventSubscriptions);
+            eventSubscriptions.add(new AnswerSubscribesExecutionUserUpdated());
+            eventSubscriptions.add(new AnswerSubscribesQuestionUpdated());
         }
-        eventSubscriptions.add(new AnswerSubscribesExecutionUserUpdated());
-        eventSubscriptions.add(new AnswerSubscribesQuestionUpdated());
         return eventSubscriptions;
     }
     private void interInvariantAnswerExecutionExists(Set<EventSubscription> eventSubscriptions) {

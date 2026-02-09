@@ -41,6 +41,7 @@ public class AnswerUser {
     }
 
     public AnswerUser(AnswerUser other) {
+        setUserAggregateId(other.getUserAggregateId());
         setUserName(other.getUserName());
         setUserVersion(other.getUserVersion());
         setUserState(other.getUserState());

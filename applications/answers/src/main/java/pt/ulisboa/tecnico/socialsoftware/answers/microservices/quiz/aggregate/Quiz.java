@@ -187,10 +187,10 @@ public abstract class Quiz extends Aggregate {
         if (this.getState() == AggregateState.ACTIVE) {
             interInvariantQuizExecutionExists(eventSubscriptions);
             interInvariantQuizQuestionsExist(eventSubscriptions);
+            eventSubscriptions.add(new QuizSubscribesExecutionUpdated());
+            eventSubscriptions.add(new QuizSubscribesTopicUpdated());
+            eventSubscriptions.add(new QuizSubscribesTopicDeleted());
         }
-        eventSubscriptions.add(new QuizSubscribesExecutionUpdated());
-        eventSubscriptions.add(new QuizSubscribesTopicUpdated());
-        eventSubscriptions.add(new QuizSubscribesTopicDeleted());
         return eventSubscriptions;
     }
     private void interInvariantQuizExecutionExists(Set<EventSubscription> eventSubscriptions) {

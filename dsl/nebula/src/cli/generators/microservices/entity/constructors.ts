@@ -511,8 +511,15 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
     const imports: ImportRequirements = {};
     const effectiveProps = getEffectiveProperties(entity);
 
+    // Check if this is a projection entity (uses dto pattern)
+    const entityAny = entity as any;
+    const isProjectionEntity = !!entityAny.aggregateRef;
+
     const setterCalls = effectiveProps.map((prop: any, index: number) => {
-        if (!isRootEntity && index === 0) {
+        // Skip first property only for regular nested entities (not projection entities)
+        // Regular nested entities have a back-reference as first property
+        // Projection entities (with aggregateRef) have all real properties from mapping
+        if (!isRootEntity && !isProjectionEntity && index === 0) {
             return '';
         }
 

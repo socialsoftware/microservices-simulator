@@ -49,6 +49,7 @@ public class TournamentParticipantQuiz {
     }
 
     public TournamentParticipantQuiz(TournamentParticipantQuiz other) {
+        setParticipantQuizAggregateId(other.getParticipantQuizAggregateId());
         setParticipantQuizVersion(other.getParticipantQuizVersion());
         setParticipantQuizAnswered(other.getParticipantQuizAnswered());
         setParticipantQuizNumberOfAnswered(other.getParticipantQuizNumberOfAnswered());

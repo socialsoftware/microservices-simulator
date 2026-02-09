@@ -53,6 +53,7 @@ public class TournamentParticipant {
     }
 
     public TournamentParticipant(TournamentParticipant other) {
+        setParticipantAggregateId(other.getParticipantAggregateId());
         setParticipantVersion(other.getParticipantVersion());
         setParticipantState(other.getParticipantState());
         setParticipantEnrollTime(other.getParticipantEnrollTime());

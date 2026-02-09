@@ -46,6 +46,7 @@ public class QuizExecution {
     }
 
     public QuizExecution(QuizExecution other) {
+        setExecutionName(other.getExecutionName());
         setExecutionAcronym(other.getExecutionAcronym());
         setExecutionAcademicTerm(other.getExecutionAcademicTerm());
         setExecutionAggregateId(other.getExecutionAggregateId());

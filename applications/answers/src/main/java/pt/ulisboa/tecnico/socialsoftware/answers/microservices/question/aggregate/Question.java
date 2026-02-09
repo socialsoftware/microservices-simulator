@@ -201,8 +201,8 @@ public abstract class Question extends Aggregate {
         if (this.getState() == AggregateState.ACTIVE) {
             interInvariantQuestionCourseExists(eventSubscriptions);
             interInvariantQuestionTopicsExist(eventSubscriptions);
+            eventSubscriptions.add(new QuestionSubscribesTopicUpdated());
         }
-        eventSubscriptions.add(new QuestionSubscribesTopicUpdated());
         return eventSubscriptions;
     }
     private void interInvariantQuestionCourseExists(Set<EventSubscription> eventSubscriptions) {

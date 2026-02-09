@@ -135,37 +135,44 @@ export class EntityOrchestrator {
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();`;
 
-        // Add inter-invariant method calls (only for ACTIVE aggregates)
-        if (hasInterInvariants) {
+        // All subscriptions should only be added for ACTIVE aggregates
+        const hasAnySubscriptions = hasInterInvariants || simpleSubscriptions.length > 0;
+
+        if (hasAnySubscriptions) {
             methodBody += `\n        if (this.getState() == AggregateState.ACTIVE) {`;
-            for (const invariant of interInvariants) {
-                const methodName = `interInvariant${this.toCamelCase(invariant.name)}`;
-                methodBody += `\n            ${methodName}(eventSubscriptions);`;
-            }
-            methodBody += `\n        }`;
-        }
 
-        // Add simple subscriptions
-        if (simpleSubscriptions.length > 0) {
-            for (const sub of simpleSubscriptions) {
-                // Handle different AST structures for event types
-                let eventTypeName = 'UnknownEvent';
-                if (typeof sub.eventType === 'string') {
-                    eventTypeName = sub.eventType;
-                } else if ((sub.eventType as any)?.ref?.name) {
-                    eventTypeName = (sub.eventType as any).ref.name;
-                } else if ((sub.eventType as any)?.$refText) {
-                    eventTypeName = (sub.eventType as any).$refText;
-                } else if ((sub as any).eventType) {
-                    // Fallback: try to extract from the raw eventType
-                    eventTypeName = (sub as any).eventType;
+            // Add inter-invariant method calls
+            if (hasInterInvariants) {
+                for (const invariant of interInvariants) {
+                    const methodName = `interInvariant${this.toCamelCase(invariant.name)}`;
+                    methodBody += `\n            ${methodName}(eventSubscriptions);`;
                 }
-
-                // Extract aggregate name from event name (e.g., UpdateTopicEvent -> Topic, UserDeletedEvent -> User)
-                const eventNameWithoutPrefix = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
-                const subscriptionClassName = `${aggregate.name}Subscribes${eventNameWithoutPrefix}`;
-                methodBody += `\n        eventSubscriptions.add(new ${subscriptionClassName}());`;
             }
+
+            // Add simple subscriptions (inside ACTIVE guard)
+            if (simpleSubscriptions.length > 0) {
+                for (const sub of simpleSubscriptions) {
+                    // Handle different AST structures for event types
+                    let eventTypeName = 'UnknownEvent';
+                    if (typeof sub.eventType === 'string') {
+                        eventTypeName = sub.eventType;
+                    } else if ((sub.eventType as any)?.ref?.name) {
+                        eventTypeName = (sub.eventType as any).ref.name;
+                    } else if ((sub.eventType as any)?.$refText) {
+                        eventTypeName = (sub.eventType as any).$refText;
+                    } else if ((sub as any).eventType) {
+                        // Fallback: try to extract from the raw eventType
+                        eventTypeName = (sub as any).eventType;
+                    }
+
+                    // Extract aggregate name from event name (e.g., UpdateTopicEvent -> Topic, UserDeletedEvent -> User)
+                    const eventNameWithoutPrefix = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
+                    const subscriptionClassName = `${aggregate.name}Subscribes${eventNameWithoutPrefix}`;
+                    methodBody += `\n            eventSubscriptions.add(new ${subscriptionClassName}());`;
+                }
+            }
+
+            methodBody += `\n        }`;
         }
 
         methodBody += `\n        return eventSubscriptions;\n    }`;

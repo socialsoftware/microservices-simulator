@@ -43,6 +43,7 @@ public class TournamentTopic {
     }
 
     public TournamentTopic(TournamentTopic other) {
+        setTopicAggregateId(other.getTopicAggregateId());
         setTopicVersion(other.getTopicVersion());
         setTopicState(other.getTopicState());
         setTopicName(other.getTopicName());

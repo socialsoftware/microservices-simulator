@@ -41,6 +41,7 @@ public class QuestionCourse {
     }
 
     public QuestionCourse(QuestionCourse other) {
+        setCourseName(other.getCourseName());
         setCourseAggregateId(other.getCourseAggregateId());
         setCourseVersion(other.getCourseVersion());
         setCourseState(other.getCourseState());

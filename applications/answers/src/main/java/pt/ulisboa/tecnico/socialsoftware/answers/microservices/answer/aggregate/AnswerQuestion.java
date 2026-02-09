@@ -46,6 +46,7 @@ public class AnswerQuestion {
     }
 
     public AnswerQuestion(AnswerQuestion other) {
+        setSequence(other.getSequence());
         setKey(other.getKey());
         setTimeTaken(other.getTimeTaken());
         setCorrect(other.getCorrect());

@@ -250,11 +250,11 @@ public abstract class Tournament extends Aggregate {
             interInvariantTournamentParticipantsExist(eventSubscriptions);
             interInvariantTournamentTopicsExist(eventSubscriptions);
             interInvariantTournamentQuizExists(eventSubscriptions);
+            eventSubscriptions.add(new TournamentSubscribesExecutionUpdated());
+            eventSubscriptions.add(new TournamentSubscribesExecutionUserUpdated());
+            eventSubscriptions.add(new TournamentSubscribesTopicUpdated());
+            eventSubscriptions.add(new TournamentSubscribesQuizUpdated());
         }
-        eventSubscriptions.add(new TournamentSubscribesExecutionUpdated());
-        eventSubscriptions.add(new TournamentSubscribesExecutionUserUpdated());
-        eventSubscriptions.add(new TournamentSubscribesTopicUpdated());
-        eventSubscriptions.add(new TournamentSubscribesQuizUpdated());
         return eventSubscriptions;
     }
     private void interInvariantTournamentExecutionExists(Set<EventSubscription> eventSubscriptions) {

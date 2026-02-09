@@ -43,6 +43,7 @@ public class TournamentExecution {
     }
 
     public TournamentExecution(TournamentExecution other) {
+        setExecutionState(other.getExecutionState());
         setExecutionVersion(other.getExecutionVersion());
         setExecutionCourseAggregateId(other.getExecutionCourseAggregateId());
         setExecutionAcronym(other.getExecutionAcronym());

@@ -43,6 +43,7 @@ public class QuestionTopic {
     }
 
     public QuestionTopic(QuestionTopic other) {
+        setTopicId(other.getTopicId());
         setTopicState(other.getTopicState());
         setTopicName(other.getTopicName());
         setTopicAggregateId(other.getTopicAggregateId());
