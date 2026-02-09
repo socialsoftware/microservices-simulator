@@ -10,7 +10,7 @@ public class TournamentSubscribesUserDeletedTournamentParticipantsExist extends 
     public TournamentSubscribesUserDeletedTournamentParticipantsExist(TournamentParticipant participants) {
         super(participants.getParticipantAggregateId(),
                 participants.getParticipantVersion(),
-                UserDeletedEvent.class.getSimpleName());
+                UserDeletedEvent.class);
     }
 
     @Override

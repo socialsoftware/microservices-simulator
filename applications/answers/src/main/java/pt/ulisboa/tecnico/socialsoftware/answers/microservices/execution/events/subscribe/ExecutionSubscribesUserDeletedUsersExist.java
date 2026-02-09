@@ -10,7 +10,7 @@ public class ExecutionSubscribesUserDeletedUsersExist extends EventSubscription 
     public ExecutionSubscribesUserDeletedUsersExist(ExecutionUser users) {
         super(users.getUserAggregateId(),
                 users.getUserVersion(),
-                UserDeletedEvent.class.getSimpleName());
+                UserDeletedEvent.class);
     }
 
     @Override

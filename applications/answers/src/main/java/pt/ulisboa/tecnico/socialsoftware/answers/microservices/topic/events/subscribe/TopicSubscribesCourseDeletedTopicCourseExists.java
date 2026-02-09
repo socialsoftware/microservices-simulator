@@ -10,7 +10,7 @@ public class TopicSubscribesCourseDeletedTopicCourseExists extends EventSubscrip
     public TopicSubscribesCourseDeletedTopicCourseExists(TopicCourse course) {
         super(course.getCourseAggregateId(),
                 course.getCourseVersion(),
-                CourseDeletedEvent.class.getSimpleName());
+                CourseDeletedEvent.class);
     }
 
     @Override

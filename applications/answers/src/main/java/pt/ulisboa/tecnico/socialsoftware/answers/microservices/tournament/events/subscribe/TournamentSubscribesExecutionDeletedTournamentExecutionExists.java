@@ -10,7 +10,7 @@ public class TournamentSubscribesExecutionDeletedTournamentExecutionExists exten
     public TournamentSubscribesExecutionDeletedTournamentExecutionExists(TournamentExecution execution) {
         super(execution.getExecutionAggregateId(),
                 execution.getExecutionVersion(),
-                ExecutionDeletedEvent.class.getSimpleName());
+                ExecutionDeletedEvent.class);
     }
 
     @Override

@@ -10,7 +10,7 @@ public class QuestionSubscribesTopicDeletedQuestionTopicsExist extends EventSubs
     public QuestionSubscribesTopicDeletedQuestionTopicsExist(QuestionTopic topics) {
         super(topics.getTopicAggregateId(),
                 topics.getTopicVersion(),
-                TopicDeletedEvent.class.getSimpleName());
+                TopicDeletedEvent.class);
     }
 
     @Override

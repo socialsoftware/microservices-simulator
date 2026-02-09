@@ -10,7 +10,7 @@ public class QuizSubscribesExecutionDeletedQuizExecutionExists extends EventSubs
     public QuizSubscribesExecutionDeletedQuizExecutionExists(QuizExecution execution) {
         super(execution.getExecutionAggregateId(),
                 execution.getExecutionVersion(),
-                ExecutionDeletedEvent.class.getSimpleName());
+                ExecutionDeletedEvent.class);
     }
 
     @Override

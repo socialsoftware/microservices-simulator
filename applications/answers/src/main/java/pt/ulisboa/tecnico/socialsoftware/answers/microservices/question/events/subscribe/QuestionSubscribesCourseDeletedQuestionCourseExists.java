@@ -10,7 +10,7 @@ public class QuestionSubscribesCourseDeletedQuestionCourseExists extends EventSu
     public QuestionSubscribesCourseDeletedQuestionCourseExists(QuestionCourse course) {
         super(course.getCourseAggregateId(),
                 course.getCourseVersion(),
-                CourseDeletedEvent.class.getSimpleName());
+                CourseDeletedEvent.class);
     }
 
     @Override

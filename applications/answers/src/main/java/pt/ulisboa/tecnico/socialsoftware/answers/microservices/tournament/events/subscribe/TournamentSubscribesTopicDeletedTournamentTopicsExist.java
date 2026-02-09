@@ -10,7 +10,7 @@ public class TournamentSubscribesTopicDeletedTournamentTopicsExist extends Event
     public TournamentSubscribesTopicDeletedTournamentTopicsExist(TournamentTopic topics) {
         super(topics.getTopicAggregateId(),
                 topics.getTopicVersion(),
-                TopicDeletedEvent.class.getSimpleName());
+                TopicDeletedEvent.class);
     }
 
     @Override

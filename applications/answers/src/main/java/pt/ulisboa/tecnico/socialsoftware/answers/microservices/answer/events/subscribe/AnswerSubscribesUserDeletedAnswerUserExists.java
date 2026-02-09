@@ -10,7 +10,7 @@ public class AnswerSubscribesUserDeletedAnswerUserExists extends EventSubscripti
     public AnswerSubscribesUserDeletedAnswerUserExists(AnswerUser user) {
         super(user.getUserAggregateId(),
                 user.getUserVersion(),
-                UserDeletedEvent.class.getSimpleName());
+                UserDeletedEvent.class);
     }
 
     @Override

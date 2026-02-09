@@ -10,7 +10,7 @@ public class ExecutionSubscribesCourseDeletedCourseExists extends EventSubscript
     public ExecutionSubscribesCourseDeletedCourseExists(ExecutionCourse course) {
         super(course.getCourseAggregateId(),
                 course.getCourseVersion(),
-                CourseDeletedEvent.class.getSimpleName());
+                CourseDeletedEvent.class);
     }
 
     @Override

@@ -10,7 +10,7 @@ public class TournamentSubscribesUserDeletedTournamentCreatorExists extends Even
     public TournamentSubscribesUserDeletedTournamentCreatorExists(TournamentCreator creator) {
         super(creator.getCreatorAggregateId(),
                 creator.getCreatorVersion(),
-                UserDeletedEvent.class.getSimpleName());
+                UserDeletedEvent.class);
     }
 
     @Override

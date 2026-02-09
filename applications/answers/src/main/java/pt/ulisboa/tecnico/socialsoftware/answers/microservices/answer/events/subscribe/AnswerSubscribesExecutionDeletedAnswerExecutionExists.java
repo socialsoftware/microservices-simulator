@@ -10,7 +10,7 @@ public class AnswerSubscribesExecutionDeletedAnswerExecutionExists extends Event
     public AnswerSubscribesExecutionDeletedAnswerExecutionExists(AnswerExecution execution) {
         super(execution.getExecutionAggregateId(),
                 execution.getExecutionVersion(),
-                ExecutionDeletedEvent.class.getSimpleName());
+                ExecutionDeletedEvent.class);
     }
 
     @Override

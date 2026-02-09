@@ -10,7 +10,7 @@ public class AnswerSubscribesQuestionDeletedAnswerQuestionsExist extends EventSu
     public AnswerSubscribesQuestionDeletedAnswerQuestionsExist(AnswerQuestion questions) {
         super(questions.getQuestionAggregateId(),
                 questions.getQuestionVersion(),
-                QuestionDeletedEvent.class.getSimpleName());
+                QuestionDeletedEvent.class);
     }
 
     @Override

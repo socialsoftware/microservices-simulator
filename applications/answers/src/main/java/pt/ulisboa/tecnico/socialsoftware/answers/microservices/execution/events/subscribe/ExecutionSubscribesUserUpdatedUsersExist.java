@@ -10,7 +10,7 @@ public class ExecutionSubscribesUserUpdatedUsersExist extends EventSubscription 
     public ExecutionSubscribesUserUpdatedUsersExist(ExecutionUser users) {
         super(users.getUserAggregateId(),
                 users.getUserVersion(),
-                UserUpdatedEvent.class.getSimpleName());
+                UserUpdatedEvent.class);
     }
 
     @Override

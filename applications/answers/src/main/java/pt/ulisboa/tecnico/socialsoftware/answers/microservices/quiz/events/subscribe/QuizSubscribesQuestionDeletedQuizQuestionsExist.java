@@ -10,7 +10,7 @@ public class QuizSubscribesQuestionDeletedQuizQuestionsExist extends EventSubscr
     public QuizSubscribesQuestionDeletedQuizQuestionsExist(QuizQuestion questions) {
         super(questions.getQuestionAggregateId(),
                 questions.getQuestionVersion(),
-                QuestionDeletedEvent.class.getSimpleName());
+                QuestionDeletedEvent.class);
     }
 
     @Override

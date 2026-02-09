@@ -10,7 +10,7 @@ public class TournamentSubscribesQuizDeletedTournamentQuizExists extends EventSu
     public TournamentSubscribesQuizDeletedTournamentQuizExists(TournamentQuiz quiz) {
         super(quiz.getQuizAggregateId(),
                 quiz.getQuizVersion(),
-                QuizDeletedEvent.class.getSimpleName());
+                QuizDeletedEvent.class);
     }
 
     @Override
