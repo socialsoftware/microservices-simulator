@@ -20,6 +20,12 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
         const serviceName = this.getServiceName(projectName);
 
         const properties = [
+            '# Profile Configuration',
+            this.buildPropertyLine('spring.profiles.active', '@activatedProperties@'),
+            '',
+            '# Maven Properties',
+            this.buildPropertyLine('maven.basedir', '@project.basedir@'),
+            '',
             '# Application Configuration',
             this.buildPropertyLine('spring.application.name', serviceName),
             this.buildPropertyLine('server.port', port),
@@ -34,7 +40,19 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             this.buildPropertyLine('spring.jpa.database-platform', this.getDatabaseDialect()),
             this.buildPropertyLine('spring.jpa.hibernate.ddl-auto', 'create-drop'),
             this.buildPropertyLine('spring.jpa.show-sql', 'true'),
-            this.buildPropertyLine('spring.jpa.properties.hibernate.format_sql', 'true')
+            this.buildPropertyLine('spring.jpa.properties.hibernate.format_sql', 'true'),
+            this.buildPropertyLine('spring.jpa.properties.jakarta.persistence.sharedCache.mode', 'UNSPECIFIED'),
+            '',
+            '# Scheduling Configuration',
+            this.buildPropertyLine('spring.task.scheduling.pool.size', '5'),
+            '',
+            '# Retry Configuration',
+            this.buildPropertyLine('retry.db.maxAttempts', '3'),
+            this.buildPropertyLine('retry.db.delay', '200'),
+            this.buildPropertyLine('retry.db.multiplier', '2'),
+            '',
+            '# Template Configuration',
+            this.buildPropertyLine('spring.groovy.template.check-template-location', 'false')
         ];
 
         if (this.getDatabaseType() === 'h2') {

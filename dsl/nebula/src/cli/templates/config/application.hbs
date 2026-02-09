@@ -5,10 +5,14 @@ package {{packageName}};
 {{/each}}
 
 @PropertySource({"classpath:application.properties"})
-@EnableJpaRepositories(basePackages = {"{{basePackage}}.ms.*",
-"{{basePackage}}.{{lowerProjectName}}.*"})
-@EntityScan(basePackages = {"{{basePackage}}.ms.*",
-"{{basePackage}}.{{lowerProjectName}}.*"})
+@EnableJpaRepositories(basePackages = {
+    "{{basePackage}}.ms",
+    "{{basePackage}}.{{lowerProjectName}}"
+})
+@EntityScan(basePackages = {
+    "{{basePackage}}.ms",
+    "{{basePackage}}.{{lowerProjectName}}"
+})
 @EnableTransactionManagement
 @EnableJpaAuditing
 {{#if hasScheduling}}
@@ -17,8 +21,10 @@ package {{packageName}};
 {{#if hasRetry}}
 @EnableRetry
 {{/if}}
-@SpringBootApplication(scanBasePackages = {"{{basePackage}}.ms.*",
-"{{basePackage}}.{{lowerProjectName}}.*"})
+@SpringBootApplication(scanBasePackages = {
+    "{{basePackage}}.ms",
+    "{{basePackage}}.{{lowerProjectName}}"
+})
 public class {{projectName}}Simulator implements InitializingBean {
 {{#if hasEventService}}
 @Autowired

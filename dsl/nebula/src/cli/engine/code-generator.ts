@@ -190,6 +190,8 @@ export class CodeGenerator {
                 });
                 console.log(`\t- Generated configuration files`);
             } catch (error) {
+                console.error(`\t⚠ Configuration generation failed: ${error instanceof Error ? error.message : String(error)}`);
+                console.error(`\t  Configuration files may need manual creation`);
             }
 
             console.log(`\t- Test generation skipped (disabled)`);

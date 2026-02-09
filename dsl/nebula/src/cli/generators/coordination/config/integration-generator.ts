@@ -66,11 +66,16 @@ export class IntegrationGenerator extends OrchestrationBase {
             packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}`,
             basePackage: this.getBasePackage(),
             imports,
-            hasEventService: (aggregate as any).metadata?.hasEventService || !!options.features?.includes('events'),
-            hasScheduling: (aggregate as any).metadata?.hasScheduling || !!options.features?.includes('scheduling'),
-            hasRetry: (aggregate as any).metadata?.hasRetry || !!options.features?.includes('retry'),
-            hasJpa: (aggregate as any).metadata?.hasJpa || !!options.features?.includes('jpa'),
-            hasTransactions: (aggregate as any).metadata?.hasTransactions || !!options.features?.includes('transactions')
+            // Event service is always needed for microservices simulator
+            hasEventService: true,
+            // Scheduling is always needed for event processing
+            hasScheduling: true,
+            // Retry is always needed for database operations
+            hasRetry: true,
+            // JPA is always used
+            hasJpa: true,
+            // Transactions are always needed
+            hasTransactions: true
         };
     }
 
@@ -144,13 +149,12 @@ export class IntegrationGenerator extends OrchestrationBase {
         imports.push('import org.springframework.data.jpa.repository.config.EnableJpaAuditing;');
         imports.push('import org.springframework.data.jpa.repository.config.EnableJpaRepositories;');
         imports.push('import org.springframework.transaction.annotation.EnableTransactionManagement;');
-        if (options.features?.includes('retry')) {
-            imports.push('import org.springframework.retry.annotation.EnableRetry;');
-        }
-        if (options.features?.includes('scheduling')) {
-            imports.push('import org.springframework.scheduling.annotation.EnableScheduling;');
-        }
+        // Always enable retry for database operations
+        imports.push('import org.springframework.retry.annotation.EnableRetry;');
+        // Always enable scheduling for event processing
+        imports.push('import org.springframework.scheduling.annotation.EnableScheduling;');
 
+        // Always include EventService for microservices simulator
         imports.push(`import ${this.getBasePackage()}.ms.domain.event.EventService;`);
 
         return imports;
@@ -284,10 +288,11 @@ export class IntegrationGenerator extends OrchestrationBase {
         }
 
         result = result.replace(/\{\{packageName\}\}/g, context.packageName);
+        result = result.replace(/\{\{basePackage\}\}/g, context.basePackage);
         result = result.replace(/\{\{aggregateName\}\}/g, context.aggregateName);
         result = result.replace(/\{\{lowerAggregate\}\}/g, context.lowerAggregate);
         result = result.replace(/\{\{projectName\}\}/g, this.capitalize(context.projectName));
-        result = result.replace(/\{\{lowerProjectName\}\}/g, context.projectName);
+        result = result.replace(/\{\{lowerProjectName\}\}/g, context.lowerProjectName);
 
         result = result.replace(/\{\{#if hasEventService\}\}([\s\S]*?)\{\{\/if\}\}/g, context.hasEventService ? '$1' : '');
         result = result.replace(/\{\{#if hasScheduling\}\}([\s\S]*?)\{\{\/if\}\}/g, context.hasScheduling ? '$1' : '');
