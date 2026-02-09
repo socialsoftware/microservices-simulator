@@ -115,31 +115,32 @@ public class QuizService {
     public QuizDto updateQuiz(QuizDto quizDto, UnitOfWork unitOfWork) {
         try {
             Integer id = quizDto.getAggregateId();
-            Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
             if (quizDto.getTitle() != null) {
-                quiz.setTitle(quizDto.getTitle());
+                newQuiz.setTitle(quizDto.getTitle());
             }
             if (quizDto.getQuizType() != null) {
-                quiz.setQuizType(QuizType.valueOf(quizDto.getQuizType()));
+                newQuiz.setQuizType(QuizType.valueOf(quizDto.getQuizType()));
             }
             if (quizDto.getCreationDate() != null) {
-                quiz.setCreationDate(quizDto.getCreationDate());
+                newQuiz.setCreationDate(quizDto.getCreationDate());
             }
             if (quizDto.getAvailableDate() != null) {
-                quiz.setAvailableDate(quizDto.getAvailableDate());
+                newQuiz.setAvailableDate(quizDto.getAvailableDate());
             }
             if (quizDto.getConclusionDate() != null) {
-                quiz.setConclusionDate(quizDto.getConclusionDate());
+                newQuiz.setConclusionDate(quizDto.getConclusionDate());
             }
             if (quizDto.getResultsDate() != null) {
-                quiz.setResultsDate(quizDto.getResultsDate());
+                newQuiz.setResultsDate(quizDto.getResultsDate());
             }
 
-            unitOfWorkService.registerChanged(quiz, unitOfWork);
-            QuizUpdatedEvent event = new QuizUpdatedEvent(quiz.getAggregateId(), quiz.getTitle(), quiz.getCreationDate(), quiz.getAvailableDate(), quiz.getConclusionDate(), quiz.getResultsDate());
-            event.setPublisherAggregateVersion(quiz.getVersion());
+            unitOfWorkService.registerChanged(newQuiz, unitOfWork);
+            QuizUpdatedEvent event = new QuizUpdatedEvent(newQuiz.getAggregateId(), newQuiz.getTitle(), newQuiz.getCreationDate(), newQuiz.getAvailableDate(), newQuiz.getConclusionDate(), newQuiz.getResultsDate());
+            event.setPublisherAggregateVersion(newQuiz.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
-            return quizFactory.createQuizDto(quiz);
+            return quizFactory.createQuizDto(newQuiz);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -149,10 +150,11 @@ public class QuizService {
 
     public void deleteQuiz(Integer id, UnitOfWork unitOfWork) {
         try {
-            Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-            quiz.remove();
-            unitOfWorkService.registerChanged(quiz, unitOfWork);
-            unitOfWorkService.registerEvent(new QuizDeletedEvent(quiz.getAggregateId()), unitOfWork);
+            Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
+            newQuiz.remove();
+            unitOfWorkService.registerChanged(newQuiz, unitOfWork);
+            unitOfWorkService.registerEvent(new QuizDeletedEvent(newQuiz.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -162,10 +164,11 @@ public class QuizService {
 
     public QuizQuestionDto addQuizQuestion(Integer quizId, Integer questionAggregateId, QuizQuestionDto QuizQuestionDto, UnitOfWork unitOfWork) {
         try {
-            Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizId, unitOfWork);
+            Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizId, unitOfWork);
+            Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
             QuizQuestion element = new QuizQuestion(QuizQuestionDto);
-            quiz.getQuestions().add(element);
-            unitOfWorkService.registerChanged(quiz, unitOfWork);
+            newQuiz.getQuestions().add(element);
+            unitOfWorkService.registerChanged(newQuiz, unitOfWork);
             return QuizQuestionDto;
         } catch (AnswersException e) {
             throw e;
@@ -176,12 +179,13 @@ public class QuizService {
 
     public List<QuizQuestionDto> addQuizQuestions(Integer quizId, List<QuizQuestionDto> QuizQuestionDtos, UnitOfWork unitOfWork) {
         try {
-            Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizId, unitOfWork);
+            Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizId, unitOfWork);
+            Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
             QuizQuestionDtos.forEach(dto -> {
                 QuizQuestion element = new QuizQuestion(dto);
-                quiz.getQuestions().add(element);
+                newQuiz.getQuestions().add(element);
             });
-            unitOfWorkService.registerChanged(quiz, unitOfWork);
+            unitOfWorkService.registerChanged(newQuiz, unitOfWork);
             return QuizQuestionDtos;
         } catch (AnswersException e) {
             throw e;
@@ -208,14 +212,15 @@ public class QuizService {
 
     public void removeQuizQuestion(Integer quizId, Integer questionAggregateId, UnitOfWork unitOfWork) {
         try {
-            Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizId, unitOfWork);
-            quiz.getQuestions().removeIf(item ->
+            Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizId, unitOfWork);
+            Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
+            newQuiz.getQuestions().removeIf(item ->
                 item.getQuestionAggregateId() != null &&
                 item.getQuestionAggregateId().equals(questionAggregateId)
             );
-            unitOfWorkService.registerChanged(quiz, unitOfWork);
+            unitOfWorkService.registerChanged(newQuiz, unitOfWork);
             QuizQuestionRemovedEvent event = new QuizQuestionRemovedEvent(quizId, questionAggregateId);
-            event.setPublisherAggregateVersion(quiz.getVersion());
+            event.setPublisherAggregateVersion(newQuiz.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
         } catch (AnswersException e) {
             throw e;
@@ -226,8 +231,9 @@ public class QuizService {
 
     public QuizQuestionDto updateQuizQuestion(Integer quizId, Integer questionAggregateId, QuizQuestionDto QuizQuestionDto, UnitOfWork unitOfWork) {
         try {
-            Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizId, unitOfWork);
-            QuizQuestion element = quiz.getQuestions().stream()
+            Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizId, unitOfWork);
+            Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
+            QuizQuestion element = newQuiz.getQuestions().stream()
                 .filter(item -> item.getQuestionAggregateId() != null &&
                                item.getQuestionAggregateId().equals(questionAggregateId))
                 .findFirst()
@@ -238,9 +244,9 @@ public class QuizService {
             if (QuizQuestionDto.getContent() != null) {
                 element.setQuestionContent(QuizQuestionDto.getContent());
             }
-            unitOfWorkService.registerChanged(quiz, unitOfWork);
+            unitOfWorkService.registerChanged(newQuiz, unitOfWork);
             QuizQuestionUpdatedEvent event = new QuizQuestionUpdatedEvent(quizId, element.getQuestionAggregateId(), element.getQuestionVersion(), element.getQuestionTitle(), element.getQuestionContent(), element.getQuestionSequence());
-            event.setPublisherAggregateVersion(quiz.getVersion());
+            event.setPublisherAggregateVersion(newQuiz.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
         } catch (AnswersException e) {

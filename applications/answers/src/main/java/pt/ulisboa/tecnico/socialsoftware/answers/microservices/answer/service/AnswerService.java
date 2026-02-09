@@ -128,20 +128,21 @@ public class AnswerService {
     public AnswerDto updateAnswer(AnswerDto answerDto, UnitOfWork unitOfWork) {
         try {
             Integer id = answerDto.getAggregateId();
-            Answer answer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
             if (answerDto.getCreationDate() != null) {
-                answer.setCreationDate(answerDto.getCreationDate());
+                newAnswer.setCreationDate(answerDto.getCreationDate());
             }
             if (answerDto.getAnswerDate() != null) {
-                answer.setAnswerDate(answerDto.getAnswerDate());
+                newAnswer.setAnswerDate(answerDto.getAnswerDate());
             }
-            answer.setCompleted(answerDto.getCompleted());
+            newAnswer.setCompleted(answerDto.getCompleted());
 
-            unitOfWorkService.registerChanged(answer, unitOfWork);
-            AnswerUpdatedEvent event = new AnswerUpdatedEvent(answer.getAggregateId(), answer.getCreationDate(), answer.getAnswerDate(), answer.getCompleted());
-            event.setPublisherAggregateVersion(answer.getVersion());
+            unitOfWorkService.registerChanged(newAnswer, unitOfWork);
+            AnswerUpdatedEvent event = new AnswerUpdatedEvent(newAnswer.getAggregateId(), newAnswer.getCreationDate(), newAnswer.getAnswerDate(), newAnswer.getCompleted());
+            event.setPublisherAggregateVersion(newAnswer.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
-            return answerFactory.createAnswerDto(answer);
+            return answerFactory.createAnswerDto(newAnswer);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -151,10 +152,11 @@ public class AnswerService {
 
     public void deleteAnswer(Integer id, UnitOfWork unitOfWork) {
         try {
-            Answer answer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-            answer.remove();
-            unitOfWorkService.registerChanged(answer, unitOfWork);
-            unitOfWorkService.registerEvent(new AnswerDeletedEvent(answer.getAggregateId()), unitOfWork);
+            Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
+            newAnswer.remove();
+            unitOfWorkService.registerChanged(newAnswer, unitOfWork);
+            unitOfWorkService.registerEvent(new AnswerDeletedEvent(newAnswer.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -164,10 +166,11 @@ public class AnswerService {
 
     public AnswerQuestionDto addAnswerQuestion(Integer answerId, Integer questionAggregateId, AnswerQuestionDto AnswerQuestionDto, UnitOfWork unitOfWork) {
         try {
-            Answer answer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(answerId, unitOfWork);
+            Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(answerId, unitOfWork);
+            Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
             AnswerQuestion element = new AnswerQuestion(AnswerQuestionDto);
-            answer.getQuestions().add(element);
-            unitOfWorkService.registerChanged(answer, unitOfWork);
+            newAnswer.getQuestions().add(element);
+            unitOfWorkService.registerChanged(newAnswer, unitOfWork);
             return AnswerQuestionDto;
         } catch (AnswersException e) {
             throw e;
@@ -178,12 +181,13 @@ public class AnswerService {
 
     public List<AnswerQuestionDto> addAnswerQuestions(Integer answerId, List<AnswerQuestionDto> AnswerQuestionDtos, UnitOfWork unitOfWork) {
         try {
-            Answer answer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(answerId, unitOfWork);
+            Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(answerId, unitOfWork);
+            Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
             AnswerQuestionDtos.forEach(dto -> {
                 AnswerQuestion element = new AnswerQuestion(dto);
-                answer.getQuestions().add(element);
+                newAnswer.getQuestions().add(element);
             });
-            unitOfWorkService.registerChanged(answer, unitOfWork);
+            unitOfWorkService.registerChanged(newAnswer, unitOfWork);
             return AnswerQuestionDtos;
         } catch (AnswersException e) {
             throw e;
@@ -210,14 +214,15 @@ public class AnswerService {
 
     public void removeAnswerQuestion(Integer answerId, Integer questionAggregateId, UnitOfWork unitOfWork) {
         try {
-            Answer answer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(answerId, unitOfWork);
-            answer.getQuestions().removeIf(item ->
+            Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(answerId, unitOfWork);
+            Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
+            newAnswer.getQuestions().removeIf(item ->
                 item.getQuestionAggregateId() != null &&
                 item.getQuestionAggregateId().equals(questionAggregateId)
             );
-            unitOfWorkService.registerChanged(answer, unitOfWork);
+            unitOfWorkService.registerChanged(newAnswer, unitOfWork);
             AnswerQuestionRemovedEvent event = new AnswerQuestionRemovedEvent(answerId, questionAggregateId);
-            event.setPublisherAggregateVersion(answer.getVersion());
+            event.setPublisherAggregateVersion(newAnswer.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
         } catch (AnswersException e) {
             throw e;
@@ -228,16 +233,17 @@ public class AnswerService {
 
     public AnswerQuestionDto updateAnswerQuestion(Integer answerId, Integer questionAggregateId, AnswerQuestionDto AnswerQuestionDto, UnitOfWork unitOfWork) {
         try {
-            Answer answer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(answerId, unitOfWork);
-            AnswerQuestion element = answer.getQuestions().stream()
+            Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(answerId, unitOfWork);
+            Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
+            AnswerQuestion element = newAnswer.getQuestions().stream()
                 .filter(item -> item.getQuestionAggregateId() != null &&
                                item.getQuestionAggregateId().equals(questionAggregateId))
                 .findFirst()
                 .orElseThrow(() -> new AnswersException("AnswerQuestion not found"));
 
-            unitOfWorkService.registerChanged(answer, unitOfWork);
+            unitOfWorkService.registerChanged(newAnswer, unitOfWork);
             AnswerQuestionUpdatedEvent event = new AnswerQuestionUpdatedEvent(answerId, element.getQuestionAggregateId(), element.getQuestionVersion(), element.getSequence(), element.getKey(), element.getTimeTaken(), element.getCorrect());
-            event.setPublisherAggregateVersion(answer.getVersion());
+            event.setPublisherAggregateVersion(newAnswer.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
         } catch (AnswersException e) {

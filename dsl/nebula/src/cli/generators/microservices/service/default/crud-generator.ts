@@ -50,17 +50,19 @@ ${createBody}
     public ${rootEntityName}Dto update${capitalizedAggregate}(${rootEntityName}Dto ${lowerAggregate}Dto, UnitOfWork unitOfWork) {
         try {
             Integer id = ${lowerAggregate}Dto.getAggregateId();
-            ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-${this.generateUpdateLogic(rootEntity, aggregateName)}
+            ${rootEntityName} old${capitalizedAggregate} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            ${rootEntityName} new${capitalizedAggregate} = ${lowerAggregate}Factory.create${rootEntityName}FromExisting(old${capitalizedAggregate});
+${this.generateUpdateLogic(rootEntity, aggregateName, true)}
 
-            unitOfWorkService.registerChanged(${lowerAggregate}, unitOfWork);
+            unitOfWorkService.registerChanged(new${capitalizedAggregate}, unitOfWork);
             ${capitalizedAggregate}UpdatedEvent event = new ${capitalizedAggregate}UpdatedEvent(${this.generateUpdateEventArgs(
                 rootEntity,
-                aggregateName
+                aggregateName,
+                true
             )});
-            event.setPublisherAggregateVersion(${lowerAggregate}.getVersion());
+            event.setPublisherAggregateVersion(new${capitalizedAggregate}.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
-            return ${lowerAggregate}Factory.create${rootEntityName}Dto(${lowerAggregate});
+            return ${lowerAggregate}Factory.create${rootEntityName}Dto(new${capitalizedAggregate});
         } catch (${capitalize(projectName)}Exception e) {
             throw e;
         } catch (Exception e) {
@@ -70,10 +72,11 @@ ${this.generateUpdateLogic(rootEntity, aggregateName)}
 
     public void delete${capitalizedAggregate}(Integer id, UnitOfWork unitOfWork) {
         try {
-            ${rootEntityName} ${lowerAggregate} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-            ${lowerAggregate}.remove();
-            unitOfWorkService.registerChanged(${lowerAggregate}, unitOfWork);
-            unitOfWorkService.registerEvent(new ${capitalizedAggregate}DeletedEvent(${lowerAggregate}.getAggregateId()), unitOfWork);
+            ${rootEntityName} old${capitalizedAggregate} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            ${rootEntityName} new${capitalizedAggregate} = ${lowerAggregate}Factory.create${rootEntityName}FromExisting(old${capitalizedAggregate});
+            new${capitalizedAggregate}.remove();
+            unitOfWorkService.registerChanged(new${capitalizedAggregate}, unitOfWork);
+            unitOfWorkService.registerEvent(new ${capitalizedAggregate}DeletedEvent(new${capitalizedAggregate}.getAggregateId()), unitOfWork);
         } catch (${capitalize(projectName)}Exception e) {
             throw e;
         } catch (Exception e) {
@@ -82,24 +85,27 @@ ${this.generateUpdateLogic(rootEntity, aggregateName)}
     }`;
     }
 
-    private static generateUpdateLogic(rootEntity: Entity, aggregateName: string): string {
+    private static generateUpdateLogic(rootEntity: Entity, aggregateName: string, useNewVersion: boolean = false): string {
         if (!rootEntity.properties) return '';
 
         const lowerAggregate = aggregateName.toLowerCase();
+        const capitalizedAggregate = capitalize(aggregateName);
+        const targetVar = useNewVersion ? `new${capitalizedAggregate}` : lowerAggregate;
+
         const updates = rootEntity.properties
             .filter(prop => {
                 const propName = prop.name.toLowerCase();
                 if (propName === 'id') return false;
-                
+
                 // Skip final fields - they can't be updated
                 if ((prop as any).isFinal) return false;
-                
+
                 // Skip entity relationships - they shouldn't be updated directly from DTO
                 const javaType = TypeResolver.resolveJavaType(prop.type);
                 const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
                 const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
                 if (isCollection || isEntityType) return false;
-                
+
                 return true;
             })
             .map(prop => {
@@ -110,15 +116,15 @@ ${this.generateUpdateLogic(rootEntity, aggregateName)}
                 const isEnum = this.isEnumType(prop.type) || javaType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/);
 
                 if (isBoolean) {
-                    return `            ${lowerAggregate}.${setterName}(${lowerAggregate}Dto.${getterName}());`;
+                    return `            ${targetVar}.${setterName}(${lowerAggregate}Dto.${getterName}());`;
                 } else if (isEnum) {
                     // For enum types, convert String from DTO to enum using valueOf
                     return `            if (${lowerAggregate}Dto.${getterName}() != null) {
-                ${lowerAggregate}.${setterName}(${javaType}.valueOf(${lowerAggregate}Dto.${getterName}()));
+                ${targetVar}.${setterName}(${javaType}.valueOf(${lowerAggregate}Dto.${getterName}()));
             }`;
                 } else {
                     return `            if (${lowerAggregate}Dto.${getterName}() != null) {
-                ${lowerAggregate}.${setterName}(${lowerAggregate}Dto.${getterName}());
+                ${targetVar}.${setterName}(${lowerAggregate}Dto.${getterName}());
             }`;
                 }
             });
@@ -131,12 +137,14 @@ ${this.generateUpdateLogic(rootEntity, aggregateName)}
      * Convention: first argument is aggregateId, followed by all primitive (non-relationship)
      * updatable properties of the root entity, in declaration order.
      */
-    private static generateUpdateEventArgs(rootEntity: Entity, aggregateName: string): string {
+    private static generateUpdateEventArgs(rootEntity: Entity, aggregateName: string, useNewVersion: boolean = false): string {
         const lowerAggregate = aggregateName.toLowerCase();
+        const capitalizedAggregate = capitalize(aggregateName);
+        const targetVar = useNewVersion ? `new${capitalizedAggregate}` : lowerAggregate;
 
         const args: string[] = [];
         // Always pass aggregateId first
-        args.push(`${lowerAggregate}.getAggregateId()`);
+        args.push(`${targetVar}.getAggregateId()`);
 
         if (!rootEntity.properties) {
             return args.join(', ');
@@ -162,7 +170,7 @@ ${this.generateUpdateLogic(rootEntity, aggregateName)}
             if (isEnum) continue;
 
             const getterName = this.getGetterMethodName(prop as any);
-            args.push(`${lowerAggregate}.${getterName}()`);
+            args.push(`${targetVar}.${getterName}()`);
         }
 
         return args.join(', ');

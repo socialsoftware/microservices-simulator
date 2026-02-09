@@ -90,16 +90,17 @@ public class TopicService {
     public TopicDto updateTopic(TopicDto topicDto, UnitOfWork unitOfWork) {
         try {
             Integer id = topicDto.getAggregateId();
-            Topic topic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
             if (topicDto.getName() != null) {
-                topic.setName(topicDto.getName());
+                newTopic.setName(topicDto.getName());
             }
 
-            unitOfWorkService.registerChanged(topic, unitOfWork);
-            TopicUpdatedEvent event = new TopicUpdatedEvent(topic.getAggregateId(), topic.getName());
-            event.setPublisherAggregateVersion(topic.getVersion());
+            unitOfWorkService.registerChanged(newTopic, unitOfWork);
+            TopicUpdatedEvent event = new TopicUpdatedEvent(newTopic.getAggregateId(), newTopic.getName());
+            event.setPublisherAggregateVersion(newTopic.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
-            return topicFactory.createTopicDto(topic);
+            return topicFactory.createTopicDto(newTopic);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -109,10 +110,11 @@ public class TopicService {
 
     public void deleteTopic(Integer id, UnitOfWork unitOfWork) {
         try {
-            Topic topic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-            topic.remove();
-            unitOfWorkService.registerChanged(topic, unitOfWork);
-            unitOfWorkService.registerEvent(new TopicDeletedEvent(topic.getAggregateId()), unitOfWork);
+            Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
+            newTopic.remove();
+            unitOfWorkService.registerChanged(newTopic, unitOfWork);
+            unitOfWorkService.registerEvent(new TopicDeletedEvent(newTopic.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

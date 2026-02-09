@@ -108,22 +108,23 @@ public class ExecutionService {
     public ExecutionDto updateExecution(ExecutionDto executionDto, UnitOfWork unitOfWork) {
         try {
             Integer id = executionDto.getAggregateId();
-            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
             if (executionDto.getAcronym() != null) {
-                execution.setAcronym(executionDto.getAcronym());
+                newExecution.setAcronym(executionDto.getAcronym());
             }
             if (executionDto.getAcademicTerm() != null) {
-                execution.setAcademicTerm(executionDto.getAcademicTerm());
+                newExecution.setAcademicTerm(executionDto.getAcademicTerm());
             }
             if (executionDto.getEndDate() != null) {
-                execution.setEndDate(executionDto.getEndDate());
+                newExecution.setEndDate(executionDto.getEndDate());
             }
 
-            unitOfWorkService.registerChanged(execution, unitOfWork);
-            ExecutionUpdatedEvent event = new ExecutionUpdatedEvent(execution.getAggregateId(), execution.getAcronym(), execution.getAcademicTerm(), execution.getEndDate());
-            event.setPublisherAggregateVersion(execution.getVersion());
+            unitOfWorkService.registerChanged(newExecution, unitOfWork);
+            ExecutionUpdatedEvent event = new ExecutionUpdatedEvent(newExecution.getAggregateId(), newExecution.getAcronym(), newExecution.getAcademicTerm(), newExecution.getEndDate());
+            event.setPublisherAggregateVersion(newExecution.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
-            return executionFactory.createExecutionDto(execution);
+            return executionFactory.createExecutionDto(newExecution);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -133,10 +134,11 @@ public class ExecutionService {
 
     public void deleteExecution(Integer id, UnitOfWork unitOfWork) {
         try {
-            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-            execution.remove();
-            unitOfWorkService.registerChanged(execution, unitOfWork);
-            unitOfWorkService.registerEvent(new ExecutionDeletedEvent(execution.getAggregateId()), unitOfWork);
+            Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
+            newExecution.remove();
+            unitOfWorkService.registerChanged(newExecution, unitOfWork);
+            unitOfWorkService.registerEvent(new ExecutionDeletedEvent(newExecution.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -146,10 +148,11 @@ public class ExecutionService {
 
     public ExecutionUserDto addExecutionUser(Integer executionId, Integer userAggregateId, ExecutionUserDto ExecutionUserDto, UnitOfWork unitOfWork) {
         try {
-            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+            Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+            Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
             ExecutionUser element = new ExecutionUser(ExecutionUserDto);
-            execution.getUsers().add(element);
-            unitOfWorkService.registerChanged(execution, unitOfWork);
+            newExecution.getUsers().add(element);
+            unitOfWorkService.registerChanged(newExecution, unitOfWork);
             return ExecutionUserDto;
         } catch (AnswersException e) {
             throw e;
@@ -160,12 +163,13 @@ public class ExecutionService {
 
     public List<ExecutionUserDto> addExecutionUsers(Integer executionId, List<ExecutionUserDto> ExecutionUserDtos, UnitOfWork unitOfWork) {
         try {
-            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+            Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+            Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
             ExecutionUserDtos.forEach(dto -> {
                 ExecutionUser element = new ExecutionUser(dto);
-                execution.getUsers().add(element);
+                newExecution.getUsers().add(element);
             });
-            unitOfWorkService.registerChanged(execution, unitOfWork);
+            unitOfWorkService.registerChanged(newExecution, unitOfWork);
             return ExecutionUserDtos;
         } catch (AnswersException e) {
             throw e;
@@ -192,14 +196,15 @@ public class ExecutionService {
 
     public void removeExecutionUser(Integer executionId, Integer userAggregateId, UnitOfWork unitOfWork) {
         try {
-            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
-            execution.getUsers().removeIf(item ->
+            Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+            Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
+            newExecution.getUsers().removeIf(item ->
                 item.getUserAggregateId() != null &&
                 item.getUserAggregateId().equals(userAggregateId)
             );
-            unitOfWorkService.registerChanged(execution, unitOfWork);
+            unitOfWorkService.registerChanged(newExecution, unitOfWork);
             ExecutionUserRemovedEvent event = new ExecutionUserRemovedEvent(executionId, userAggregateId);
-            event.setPublisherAggregateVersion(execution.getVersion());
+            event.setPublisherAggregateVersion(newExecution.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
         } catch (AnswersException e) {
             throw e;
@@ -210,8 +215,9 @@ public class ExecutionService {
 
     public ExecutionUserDto updateExecutionUser(Integer executionId, Integer userAggregateId, ExecutionUserDto ExecutionUserDto, UnitOfWork unitOfWork) {
         try {
-            Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
-            ExecutionUser element = execution.getUsers().stream()
+            Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+            Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
+            ExecutionUser element = newExecution.getUsers().stream()
                 .filter(item -> item.getUserAggregateId() != null &&
                                item.getUserAggregateId().equals(userAggregateId))
                 .findFirst()
@@ -225,9 +231,9 @@ public class ExecutionService {
             if (ExecutionUserDto.getActive() != null) {
                 element.setUserActive(ExecutionUserDto.getActive());
             }
-            unitOfWorkService.registerChanged(execution, unitOfWork);
+            unitOfWorkService.registerChanged(newExecution, unitOfWork);
             ExecutionUserUpdatedEvent event = new ExecutionUserUpdatedEvent(executionId, element.getUserAggregateId(), element.getUserVersion(), element.getUserName(), element.getUserUsername(), element.getUserActive());
-            event.setPublisherAggregateVersion(execution.getVersion());
+            event.setPublisherAggregateVersion(newExecution.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
         } catch (AnswersException e) {

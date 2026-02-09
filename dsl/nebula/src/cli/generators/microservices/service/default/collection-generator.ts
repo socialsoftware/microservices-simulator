@@ -127,13 +127,15 @@ export class ServiceCollectionGenerator {
     private static generateAddMethod(collection: any, aggregateName: string, rootEntity: Entity, projectName: string): string {
         const entityName = rootEntity.name;
         const lowerEntity = entityName.toLowerCase();
+        const lowerAggregate = aggregateName.toLowerCase();
 
         return `    public ${collection.elementType}Dto add${collection.capitalizedSingular}(Integer ${lowerEntity}Id, Integer ${collection.identifierField}, ${collection.elementType}Dto ${collection.singularName}Dto, UnitOfWork unitOfWork) {
         try {
-            ${entityName} ${lowerEntity} = (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(${lowerEntity}Id, unitOfWork);
+            ${entityName} old${entityName} = (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(${lowerEntity}Id, unitOfWork);
+            ${entityName} new${entityName} = ${lowerAggregate}Factory.create${entityName}FromExisting(old${entityName});
             ${collection.elementType} element = new ${collection.elementType}(${collection.singularName}Dto);
-            ${lowerEntity}.get${collection.capitalizedCollection}().add(element);
-            unitOfWorkService.registerChanged(${lowerEntity}, unitOfWork);
+            new${entityName}.get${collection.capitalizedCollection}().add(element);
+            unitOfWorkService.registerChanged(new${entityName}, unitOfWork);
             return ${collection.singularName}Dto;
         } catch (${capitalize(projectName)}Exception e) {
             throw e;
@@ -146,15 +148,17 @@ export class ServiceCollectionGenerator {
     private static generateAddBatchMethod(collection: any, aggregateName: string, rootEntity: Entity, projectName: string): string {
         const entityName = rootEntity.name;
         const lowerEntity = entityName.toLowerCase();
+        const lowerAggregate = aggregateName.toLowerCase();
 
         return `    public List<${collection.elementType}Dto> add${collection.capitalizedSingular}s(Integer ${lowerEntity}Id, List<${collection.elementType}Dto> ${collection.singularName}Dtos, UnitOfWork unitOfWork) {
         try {
-            ${entityName} ${lowerEntity} = (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(${lowerEntity}Id, unitOfWork);
+            ${entityName} old${entityName} = (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(${lowerEntity}Id, unitOfWork);
+            ${entityName} new${entityName} = ${lowerAggregate}Factory.create${entityName}FromExisting(old${entityName});
             ${collection.singularName}Dtos.forEach(dto -> {
                 ${collection.elementType} element = new ${collection.elementType}(dto);
-                ${lowerEntity}.get${collection.capitalizedCollection}().add(element);
+                new${entityName}.get${collection.capitalizedCollection}().add(element);
             });
-            unitOfWorkService.registerChanged(${lowerEntity}, unitOfWork);
+            unitOfWorkService.registerChanged(new${entityName}, unitOfWork);
             return ${collection.singularName}Dtos;
         } catch (${capitalize(projectName)}Exception e) {
             throw e;
@@ -189,18 +193,20 @@ export class ServiceCollectionGenerator {
     private static generateRemoveMethod(collection: any, aggregateName: string, rootEntity: Entity, projectName: string): string {
         const entityName = rootEntity.name;
         const lowerEntity = entityName.toLowerCase();
+        const lowerAggregate = aggregateName.toLowerCase();
         const capitalizedIdentifier = capitalize(collection.identifierField);
 
         return `    public void remove${collection.capitalizedSingular}(Integer ${lowerEntity}Id, Integer ${collection.identifierField}, UnitOfWork unitOfWork) {
         try {
-            ${entityName} ${lowerEntity} = (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(${lowerEntity}Id, unitOfWork);
-            ${lowerEntity}.get${collection.capitalizedCollection}().removeIf(item ->
+            ${entityName} old${entityName} = (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(${lowerEntity}Id, unitOfWork);
+            ${entityName} new${entityName} = ${lowerAggregate}Factory.create${entityName}FromExisting(old${entityName});
+            new${entityName}.get${collection.capitalizedCollection}().removeIf(item ->
                 item.get${capitalizedIdentifier}() != null &&
                 item.get${capitalizedIdentifier}().equals(${collection.identifierField})
             );
-            unitOfWorkService.registerChanged(${lowerEntity}, unitOfWork);
+            unitOfWorkService.registerChanged(new${entityName}, unitOfWork);
             ${collection.elementType}RemovedEvent event = new ${collection.elementType}RemovedEvent(${lowerEntity}Id, ${collection.identifierField});
-            event.setPublisherAggregateVersion(${lowerEntity}.getVersion());
+            event.setPublisherAggregateVersion(new${entityName}.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
         } catch (${capitalize(projectName)}Exception e) {
             throw e;
@@ -213,6 +219,7 @@ export class ServiceCollectionGenerator {
     private static generateUpdateMethod(collection: any, aggregateName: string, rootEntity: Entity, projectName: string, aggregate: Aggregate): string {
         const entityName = rootEntity.name;
         const lowerEntity = entityName.toLowerCase();
+        const lowerAggregate = aggregateName.toLowerCase();
         const capitalizedIdentifier = capitalize(collection.identifierField);
 
         // Get updatable fields from the element entity
@@ -250,16 +257,17 @@ export class ServiceCollectionGenerator {
 
         return `    public ${collection.elementType}Dto update${collection.capitalizedSingular}(Integer ${lowerEntity}Id, Integer ${collection.identifierField}, ${collection.elementType}Dto ${collection.singularName}Dto, UnitOfWork unitOfWork) {
         try {
-            ${entityName} ${lowerEntity} = (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(${lowerEntity}Id, unitOfWork);
-            ${collection.elementType} element = ${lowerEntity}.get${collection.capitalizedCollection}().stream()
+            ${entityName} old${entityName} = (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(${lowerEntity}Id, unitOfWork);
+            ${entityName} new${entityName} = ${lowerAggregate}Factory.create${entityName}FromExisting(old${entityName});
+            ${collection.elementType} element = new${entityName}.get${collection.capitalizedCollection}().stream()
                 .filter(item -> item.get${capitalizedIdentifier}() != null &&
                                item.get${capitalizedIdentifier}().equals(${collection.identifierField}))
                 .findFirst()
                 .orElseThrow(() -> new ${capitalize(projectName)}Exception("${collection.elementType} not found"));
 ${updateFieldsCode}
-            unitOfWorkService.registerChanged(${lowerEntity}, unitOfWork);
+            unitOfWorkService.registerChanged(new${entityName}, unitOfWork);
             ${collection.elementType}UpdatedEvent event = new ${collection.elementType}UpdatedEvent(${eventConstructorParams});
-            event.setPublisherAggregateVersion(${lowerEntity}.getVersion());
+            event.setPublisherAggregateVersion(new${entityName}.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
         } catch (${capitalize(projectName)}Exception e) {

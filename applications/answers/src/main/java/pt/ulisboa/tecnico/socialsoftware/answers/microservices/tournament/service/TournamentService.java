@@ -146,23 +146,24 @@ public class TournamentService {
     public TournamentDto updateTournament(TournamentDto tournamentDto, UnitOfWork unitOfWork) {
         try {
             Integer id = tournamentDto.getAggregateId();
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
             if (tournamentDto.getStartTime() != null) {
-                tournament.setStartTime(tournamentDto.getStartTime());
+                newTournament.setStartTime(tournamentDto.getStartTime());
             }
             if (tournamentDto.getEndTime() != null) {
-                tournament.setEndTime(tournamentDto.getEndTime());
+                newTournament.setEndTime(tournamentDto.getEndTime());
             }
             if (tournamentDto.getNumberOfQuestions() != null) {
-                tournament.setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
+                newTournament.setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
             }
-            tournament.setCancelled(tournamentDto.getCancelled());
+            newTournament.setCancelled(tournamentDto.getCancelled());
 
-            unitOfWorkService.registerChanged(tournament, unitOfWork);
-            TournamentUpdatedEvent event = new TournamentUpdatedEvent(tournament.getAggregateId(), tournament.getStartTime(), tournament.getEndTime(), tournament.getNumberOfQuestions(), tournament.getCancelled());
-            event.setPublisherAggregateVersion(tournament.getVersion());
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+            TournamentUpdatedEvent event = new TournamentUpdatedEvent(newTournament.getAggregateId(), newTournament.getStartTime(), newTournament.getEndTime(), newTournament.getNumberOfQuestions(), newTournament.getCancelled());
+            event.setPublisherAggregateVersion(newTournament.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
-            return tournamentFactory.createTournamentDto(tournament);
+            return tournamentFactory.createTournamentDto(newTournament);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -172,10 +173,11 @@ public class TournamentService {
 
     public void deleteTournament(Integer id, UnitOfWork unitOfWork) {
         try {
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-            tournament.remove();
-            unitOfWorkService.registerChanged(tournament, unitOfWork);
-            unitOfWorkService.registerEvent(new TournamentDeletedEvent(tournament.getAggregateId()), unitOfWork);
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+            newTournament.remove();
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+            unitOfWorkService.registerEvent(new TournamentDeletedEvent(newTournament.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -185,10 +187,11 @@ public class TournamentService {
 
     public TournamentParticipantDto addTournamentParticipant(Integer tournamentId, Integer participantAggregateId, TournamentParticipantDto TournamentParticipantDto, UnitOfWork unitOfWork) {
         try {
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
             TournamentParticipant element = new TournamentParticipant(TournamentParticipantDto);
-            tournament.getParticipants().add(element);
-            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            newTournament.getParticipants().add(element);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
             return TournamentParticipantDto;
         } catch (AnswersException e) {
             throw e;
@@ -199,12 +202,13 @@ public class TournamentService {
 
     public List<TournamentParticipantDto> addTournamentParticipants(Integer tournamentId, List<TournamentParticipantDto> TournamentParticipantDtos, UnitOfWork unitOfWork) {
         try {
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
             TournamentParticipantDtos.forEach(dto -> {
                 TournamentParticipant element = new TournamentParticipant(dto);
-                tournament.getParticipants().add(element);
+                newTournament.getParticipants().add(element);
             });
-            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
             return TournamentParticipantDtos;
         } catch (AnswersException e) {
             throw e;
@@ -231,14 +235,15 @@ public class TournamentService {
 
     public void removeTournamentParticipant(Integer tournamentId, Integer participantAggregateId, UnitOfWork unitOfWork) {
         try {
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
-            tournament.getParticipants().removeIf(item ->
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+            newTournament.getParticipants().removeIf(item ->
                 item.getParticipantAggregateId() != null &&
                 item.getParticipantAggregateId().equals(participantAggregateId)
             );
-            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
             TournamentParticipantRemovedEvent event = new TournamentParticipantRemovedEvent(tournamentId, participantAggregateId);
-            event.setPublisherAggregateVersion(tournament.getVersion());
+            event.setPublisherAggregateVersion(newTournament.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
         } catch (AnswersException e) {
             throw e;
@@ -249,8 +254,9 @@ public class TournamentService {
 
     public TournamentParticipantDto updateTournamentParticipant(Integer tournamentId, Integer participantAggregateId, TournamentParticipantDto TournamentParticipantDto, UnitOfWork unitOfWork) {
         try {
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
-            TournamentParticipant element = tournament.getParticipants().stream()
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+            TournamentParticipant element = newTournament.getParticipants().stream()
                 .filter(item -> item.getParticipantAggregateId() != null &&
                                item.getParticipantAggregateId().equals(participantAggregateId))
                 .findFirst()
@@ -261,9 +267,9 @@ public class TournamentService {
             if (TournamentParticipantDto.getUsername() != null) {
                 element.setParticipantUsername(TournamentParticipantDto.getUsername());
             }
-            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
             TournamentParticipantUpdatedEvent event = new TournamentParticipantUpdatedEvent(tournamentId, element.getParticipantAggregateId(), element.getParticipantVersion(), element.getParticipantName(), element.getParticipantUsername(), element.getParticipantEnrollTime());
-            event.setPublisherAggregateVersion(tournament.getVersion());
+            event.setPublisherAggregateVersion(newTournament.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
         } catch (AnswersException e) {
@@ -275,10 +281,11 @@ public class TournamentService {
 
     public TournamentTopicDto addTournamentTopic(Integer tournamentId, Integer topicAggregateId, TournamentTopicDto TournamentTopicDto, UnitOfWork unitOfWork) {
         try {
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
             TournamentTopic element = new TournamentTopic(TournamentTopicDto);
-            tournament.getTopics().add(element);
-            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            newTournament.getTopics().add(element);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
             return TournamentTopicDto;
         } catch (AnswersException e) {
             throw e;
@@ -289,12 +296,13 @@ public class TournamentService {
 
     public List<TournamentTopicDto> addTournamentTopics(Integer tournamentId, List<TournamentTopicDto> TournamentTopicDtos, UnitOfWork unitOfWork) {
         try {
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
             TournamentTopicDtos.forEach(dto -> {
                 TournamentTopic element = new TournamentTopic(dto);
-                tournament.getTopics().add(element);
+                newTournament.getTopics().add(element);
             });
-            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
             return TournamentTopicDtos;
         } catch (AnswersException e) {
             throw e;
@@ -321,14 +329,15 @@ public class TournamentService {
 
     public void removeTournamentTopic(Integer tournamentId, Integer topicAggregateId, UnitOfWork unitOfWork) {
         try {
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
-            tournament.getTopics().removeIf(item ->
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+            newTournament.getTopics().removeIf(item ->
                 item.getTopicAggregateId() != null &&
                 item.getTopicAggregateId().equals(topicAggregateId)
             );
-            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
             TournamentTopicRemovedEvent event = new TournamentTopicRemovedEvent(tournamentId, topicAggregateId);
-            event.setPublisherAggregateVersion(tournament.getVersion());
+            event.setPublisherAggregateVersion(newTournament.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
         } catch (AnswersException e) {
             throw e;
@@ -339,8 +348,9 @@ public class TournamentService {
 
     public TournamentTopicDto updateTournamentTopic(Integer tournamentId, Integer topicAggregateId, TournamentTopicDto TournamentTopicDto, UnitOfWork unitOfWork) {
         try {
-            Tournament tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
-            TournamentTopic element = tournament.getTopics().stream()
+            Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+            Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+            TournamentTopic element = newTournament.getTopics().stream()
                 .filter(item -> item.getTopicAggregateId() != null &&
                                item.getTopicAggregateId().equals(topicAggregateId))
                 .findFirst()
@@ -348,9 +358,9 @@ public class TournamentService {
             if (TournamentTopicDto.getName() != null) {
                 element.setTopicName(TournamentTopicDto.getName());
             }
-            unitOfWorkService.registerChanged(tournament, unitOfWork);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);
             TournamentTopicUpdatedEvent event = new TournamentTopicUpdatedEvent(tournamentId, element.getTopicAggregateId(), element.getTopicVersion(), element.getTopicName());
-            event.setPublisherAggregateVersion(tournament.getVersion());
+            event.setPublisherAggregateVersion(newTournament.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
         } catch (AnswersException e) {

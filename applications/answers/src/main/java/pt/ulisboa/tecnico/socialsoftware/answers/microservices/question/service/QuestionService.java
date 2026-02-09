@@ -112,22 +112,23 @@ public class QuestionService {
     public QuestionDto updateQuestion(QuestionDto questionDto, UnitOfWork unitOfWork) {
         try {
             Integer id = questionDto.getAggregateId();
-            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
             if (questionDto.getTitle() != null) {
-                question.setTitle(questionDto.getTitle());
+                newQuestion.setTitle(questionDto.getTitle());
             }
             if (questionDto.getContent() != null) {
-                question.setContent(questionDto.getContent());
+                newQuestion.setContent(questionDto.getContent());
             }
             if (questionDto.getCreationDate() != null) {
-                question.setCreationDate(questionDto.getCreationDate());
+                newQuestion.setCreationDate(questionDto.getCreationDate());
             }
 
-            unitOfWorkService.registerChanged(question, unitOfWork);
-            QuestionUpdatedEvent event = new QuestionUpdatedEvent(question.getAggregateId(), question.getTitle(), question.getContent(), question.getCreationDate());
-            event.setPublisherAggregateVersion(question.getVersion());
+            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
+            QuestionUpdatedEvent event = new QuestionUpdatedEvent(newQuestion.getAggregateId(), newQuestion.getTitle(), newQuestion.getContent(), newQuestion.getCreationDate());
+            event.setPublisherAggregateVersion(newQuestion.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
-            return questionFactory.createQuestionDto(question);
+            return questionFactory.createQuestionDto(newQuestion);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -137,10 +138,11 @@ public class QuestionService {
 
     public void deleteQuestion(Integer id, UnitOfWork unitOfWork) {
         try {
-            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-            question.remove();
-            unitOfWorkService.registerChanged(question, unitOfWork);
-            unitOfWorkService.registerEvent(new QuestionDeletedEvent(question.getAggregateId()), unitOfWork);
+            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
+            newQuestion.remove();
+            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
+            unitOfWorkService.registerEvent(new QuestionDeletedEvent(newQuestion.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -150,10 +152,11 @@ public class QuestionService {
 
     public QuestionTopicDto addQuestionTopic(Integer questionId, Integer topicAggregateId, QuestionTopicDto QuestionTopicDto, UnitOfWork unitOfWork) {
         try {
-            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
+            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
+            Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
             QuestionTopic element = new QuestionTopic(QuestionTopicDto);
-            question.getTopics().add(element);
-            unitOfWorkService.registerChanged(question, unitOfWork);
+            newQuestion.getTopics().add(element);
+            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
             return QuestionTopicDto;
         } catch (AnswersException e) {
             throw e;
@@ -164,12 +167,13 @@ public class QuestionService {
 
     public List<QuestionTopicDto> addQuestionTopics(Integer questionId, List<QuestionTopicDto> QuestionTopicDtos, UnitOfWork unitOfWork) {
         try {
-            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
+            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
+            Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
             QuestionTopicDtos.forEach(dto -> {
                 QuestionTopic element = new QuestionTopic(dto);
-                question.getTopics().add(element);
+                newQuestion.getTopics().add(element);
             });
-            unitOfWorkService.registerChanged(question, unitOfWork);
+            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
             return QuestionTopicDtos;
         } catch (AnswersException e) {
             throw e;
@@ -196,14 +200,15 @@ public class QuestionService {
 
     public void removeQuestionTopic(Integer questionId, Integer topicAggregateId, UnitOfWork unitOfWork) {
         try {
-            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
-            question.getTopics().removeIf(item ->
+            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
+            Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
+            newQuestion.getTopics().removeIf(item ->
                 item.getTopicAggregateId() != null &&
                 item.getTopicAggregateId().equals(topicAggregateId)
             );
-            unitOfWorkService.registerChanged(question, unitOfWork);
+            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
             QuestionTopicRemovedEvent event = new QuestionTopicRemovedEvent(questionId, topicAggregateId);
-            event.setPublisherAggregateVersion(question.getVersion());
+            event.setPublisherAggregateVersion(newQuestion.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
         } catch (AnswersException e) {
             throw e;
@@ -214,8 +219,9 @@ public class QuestionService {
 
     public QuestionTopicDto updateQuestionTopic(Integer questionId, Integer topicAggregateId, QuestionTopicDto QuestionTopicDto, UnitOfWork unitOfWork) {
         try {
-            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
-            QuestionTopic element = question.getTopics().stream()
+            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
+            Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
+            QuestionTopic element = newQuestion.getTopics().stream()
                 .filter(item -> item.getTopicAggregateId() != null &&
                                item.getTopicAggregateId().equals(topicAggregateId))
                 .findFirst()
@@ -223,9 +229,9 @@ public class QuestionService {
             if (QuestionTopicDto.getName() != null) {
                 element.setTopicName(QuestionTopicDto.getName());
             }
-            unitOfWorkService.registerChanged(question, unitOfWork);
+            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
             QuestionTopicUpdatedEvent event = new QuestionTopicUpdatedEvent(questionId, element.getTopicAggregateId(), element.getTopicVersion(), element.getTopicName(), element.getTopicId());
-            event.setPublisherAggregateVersion(question.getVersion());
+            event.setPublisherAggregateVersion(newQuestion.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
         } catch (AnswersException e) {
@@ -237,10 +243,11 @@ public class QuestionService {
 
     public OptionDto addOption(Integer questionId, Integer key, OptionDto OptionDto, UnitOfWork unitOfWork) {
         try {
-            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
+            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
+            Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
             Option element = new Option(OptionDto);
-            question.getOptions().add(element);
-            unitOfWorkService.registerChanged(question, unitOfWork);
+            newQuestion.getOptions().add(element);
+            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
             return OptionDto;
         } catch (AnswersException e) {
             throw e;
@@ -251,12 +258,13 @@ public class QuestionService {
 
     public List<OptionDto> addOptions(Integer questionId, List<OptionDto> OptionDtos, UnitOfWork unitOfWork) {
         try {
-            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
+            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
+            Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
             OptionDtos.forEach(dto -> {
                 Option element = new Option(dto);
-                question.getOptions().add(element);
+                newQuestion.getOptions().add(element);
             });
-            unitOfWorkService.registerChanged(question, unitOfWork);
+            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
             return OptionDtos;
         } catch (AnswersException e) {
             throw e;
@@ -283,14 +291,15 @@ public class QuestionService {
 
     public void removeOption(Integer questionId, Integer key, UnitOfWork unitOfWork) {
         try {
-            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
-            question.getOptions().removeIf(item ->
+            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
+            Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
+            newQuestion.getOptions().removeIf(item ->
                 item.getKey() != null &&
                 item.getKey().equals(key)
             );
-            unitOfWorkService.registerChanged(question, unitOfWork);
+            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
             OptionRemovedEvent event = new OptionRemovedEvent(questionId, key);
-            event.setPublisherAggregateVersion(question.getVersion());
+            event.setPublisherAggregateVersion(newQuestion.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
         } catch (AnswersException e) {
             throw e;
@@ -301,8 +310,9 @@ public class QuestionService {
 
     public OptionDto updateOption(Integer questionId, Integer key, OptionDto OptionDto, UnitOfWork unitOfWork) {
         try {
-            Question question = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
-            Option element = question.getOptions().stream()
+            Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
+            Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
+            Option element = newQuestion.getOptions().stream()
                 .filter(item -> item.getKey() != null &&
                                item.getKey().equals(key))
                 .findFirst()
@@ -316,9 +326,9 @@ public class QuestionService {
             if (OptionDto.getContent() != null) {
                 element.setContent(OptionDto.getContent());
             }
-            unitOfWorkService.registerChanged(question, unitOfWork);
+            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
             OptionUpdatedEvent event = new OptionUpdatedEvent(questionId, key);
-            event.setPublisherAggregateVersion(question.getVersion());
+            event.setPublisherAggregateVersion(newQuestion.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
         } catch (AnswersException e) {

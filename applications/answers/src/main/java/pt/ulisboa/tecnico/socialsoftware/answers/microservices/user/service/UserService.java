@@ -83,20 +83,21 @@ public class UserService {
     public UserDto updateUser(UserDto userDto, UnitOfWork unitOfWork) {
         try {
             Integer id = userDto.getAggregateId();
-            User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            User newUser = userFactory.createUserFromExisting(oldUser);
             if (userDto.getName() != null) {
-                user.setName(userDto.getName());
+                newUser.setName(userDto.getName());
             }
             if (userDto.getUsername() != null) {
-                user.setUsername(userDto.getUsername());
+                newUser.setUsername(userDto.getUsername());
             }
-            user.setActive(userDto.getActive());
+            newUser.setActive(userDto.getActive());
 
-            unitOfWorkService.registerChanged(user, unitOfWork);
-            UserUpdatedEvent event = new UserUpdatedEvent(user.getAggregateId(), user.getName(), user.getUsername(), user.getActive());
-            event.setPublisherAggregateVersion(user.getVersion());
+            unitOfWorkService.registerChanged(newUser, unitOfWork);
+            UserUpdatedEvent event = new UserUpdatedEvent(newUser.getAggregateId(), newUser.getName(), newUser.getUsername(), newUser.getActive());
+            event.setPublisherAggregateVersion(newUser.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
-            return userFactory.createUserDto(user);
+            return userFactory.createUserDto(newUser);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
@@ -106,10 +107,11 @@ public class UserService {
 
     public void deleteUser(Integer id, UnitOfWork unitOfWork) {
         try {
-            User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-            user.remove();
-            unitOfWorkService.registerChanged(user, unitOfWork);
-            unitOfWorkService.registerEvent(new UserDeletedEvent(user.getAggregateId()), unitOfWork);
+            User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            User newUser = userFactory.createUserFromExisting(oldUser);
+            newUser.remove();
+            unitOfWorkService.registerChanged(newUser, unitOfWork);
+            unitOfWorkService.registerEvent(new UserDeletedEvent(newUser.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
