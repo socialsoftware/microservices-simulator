@@ -18,7 +18,7 @@ data/figs/.DS_Store
 *.iws
 *.iml
 *.ipr
-.verification/
+./verification/
 
 ### NetBeans ###
 /nbproject/private/
