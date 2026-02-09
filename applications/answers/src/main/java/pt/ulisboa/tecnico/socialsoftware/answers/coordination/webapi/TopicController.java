@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.TopicFunctionalities;
+import org.springframework.http.HttpStatus;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTopicRequestDto;
@@ -13,6 +14,7 @@ public class TopicController {
     private TopicFunctionalities topicFunctionalities;
 
     @PostMapping("/topics/create")
+    @ResponseStatus(HttpStatus.CREATED)
     public TopicDto createTopic(@RequestBody CreateTopicRequestDto createRequest) {
         return topicFunctionalities.createTopic(createRequest);
     }
@@ -28,6 +30,7 @@ public class TopicController {
     }
 
     @DeleteMapping("/topics/{topicAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTopic(@PathVariable Integer topicAggregateId) {
         topicFunctionalities.deleteTopic(topicAggregateId);
     }

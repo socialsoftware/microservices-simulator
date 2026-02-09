@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.CourseFunctionalities;
+import org.springframework.http.HttpStatus;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateCourseRequestDto;
@@ -13,6 +14,7 @@ public class CourseController {
     private CourseFunctionalities courseFunctionalities;
 
     @PostMapping("/courses/create")
+    @ResponseStatus(HttpStatus.CREATED)
     public CourseDto createCourse(@RequestBody CreateCourseRequestDto createRequest) {
         return courseFunctionalities.createCourse(createRequest);
     }
@@ -28,6 +30,7 @@ public class CourseController {
     }
 
     @DeleteMapping("/courses/{courseAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCourse(@PathVariable Integer courseAggregateId) {
         courseFunctionalities.deleteCourse(courseAggregateId);
     }

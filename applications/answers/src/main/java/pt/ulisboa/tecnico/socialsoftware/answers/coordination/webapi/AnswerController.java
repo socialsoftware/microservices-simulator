@@ -15,6 +15,7 @@ public class AnswerController {
     private AnswerFunctionalities answerFunctionalities;
 
     @PostMapping("/answers/create")
+    @ResponseStatus(HttpStatus.CREATED)
     public AnswerDto createAnswer(@RequestBody CreateAnswerRequestDto createRequest) {
         return answerFunctionalities.createAnswer(createRequest);
     }
@@ -30,6 +31,7 @@ public class AnswerController {
     }
 
     @DeleteMapping("/answers/{answerAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAnswer(@PathVariable Integer answerAggregateId) {
         answerFunctionalities.deleteAnswer(answerAggregateId);
     }

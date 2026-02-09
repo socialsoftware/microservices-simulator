@@ -15,6 +15,7 @@ public class ExecutionController {
     private ExecutionFunctionalities executionFunctionalities;
 
     @PostMapping("/executions/create")
+    @ResponseStatus(HttpStatus.CREATED)
     public ExecutionDto createExecution(@RequestBody CreateExecutionRequestDto createRequest) {
         return executionFunctionalities.createExecution(createRequest);
     }
@@ -30,6 +31,7 @@ public class ExecutionController {
     }
 
     @DeleteMapping("/executions/{executionAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteExecution(@PathVariable Integer executionAggregateId) {
         executionFunctionalities.deleteExecution(executionAggregateId);
     }

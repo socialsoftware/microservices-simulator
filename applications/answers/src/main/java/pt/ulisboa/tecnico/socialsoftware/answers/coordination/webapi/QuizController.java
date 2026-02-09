@@ -15,6 +15,7 @@ public class QuizController {
     private QuizFunctionalities quizFunctionalities;
 
     @PostMapping("/quizs/create")
+    @ResponseStatus(HttpStatus.CREATED)
     public QuizDto createQuiz(@RequestBody CreateQuizRequestDto createRequest) {
         return quizFunctionalities.createQuiz(createRequest);
     }
@@ -30,6 +31,7 @@ public class QuizController {
     }
 
     @DeleteMapping("/quizs/{quizAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteQuiz(@PathVariable Integer quizAggregateId) {
         quizFunctionalities.deleteQuiz(quizAggregateId);
     }

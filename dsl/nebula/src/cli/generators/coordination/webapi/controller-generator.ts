@@ -99,7 +99,8 @@ export class ControllerGenerator extends WebApiBaseGenerator {
                 returnType: dtoType,
                 description: `Create a new ${aggregateName}`,
                 isCrud: true,
-                isCreate: true
+                isCreate: true,
+                responseStatus: '@ResponseStatus(HttpStatus.CREATED)'
             },
             {
                 method: 'Get',
@@ -140,7 +141,8 @@ export class ControllerGenerator extends WebApiBaseGenerator {
                 }],
                 returnType: null,
                 description: `Delete ${aggregateName}`,
-                isCrud: true
+                isCrud: true,
+                responseStatus: '@ResponseStatus(HttpStatus.NO_CONTENT)'
             }
         ];
 

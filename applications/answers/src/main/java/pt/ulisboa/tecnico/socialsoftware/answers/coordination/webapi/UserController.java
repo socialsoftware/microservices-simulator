@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.UserFunctionalities;
+import org.springframework.http.HttpStatus;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateUserRequestDto;
@@ -13,6 +14,7 @@ public class UserController {
     private UserFunctionalities userFunctionalities;
 
     @PostMapping("/users/create")
+    @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@RequestBody CreateUserRequestDto createRequest) {
         return userFunctionalities.createUser(createRequest);
     }
@@ -28,6 +30,7 @@ public class UserController {
     }
 
     @DeleteMapping("/users/{userAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Integer userAggregateId) {
         userFunctionalities.deleteUser(userAggregateId);
     }

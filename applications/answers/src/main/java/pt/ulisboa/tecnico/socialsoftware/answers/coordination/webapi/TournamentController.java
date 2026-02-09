@@ -16,6 +16,7 @@ public class TournamentController {
     private TournamentFunctionalities tournamentFunctionalities;
 
     @PostMapping("/tournaments/create")
+    @ResponseStatus(HttpStatus.CREATED)
     public TournamentDto createTournament(@RequestBody CreateTournamentRequestDto createRequest) {
         return tournamentFunctionalities.createTournament(createRequest);
     }
@@ -31,6 +32,7 @@ public class TournamentController {
     }
 
     @DeleteMapping("/tournaments/{tournamentAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTournament(@PathVariable Integer tournamentAggregateId) {
         tournamentFunctionalities.deleteTournament(tournamentAggregateId);
     }

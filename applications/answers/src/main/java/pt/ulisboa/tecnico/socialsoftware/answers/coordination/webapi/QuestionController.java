@@ -16,6 +16,7 @@ public class QuestionController {
     private QuestionFunctionalities questionFunctionalities;
 
     @PostMapping("/questions/create")
+    @ResponseStatus(HttpStatus.CREATED)
     public QuestionDto createQuestion(@RequestBody CreateQuestionRequestDto createRequest) {
         return questionFunctionalities.createQuestion(createRequest);
     }
@@ -31,6 +32,7 @@ public class QuestionController {
     }
 
     @DeleteMapping("/questions/{questionAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteQuestion(@PathVariable Integer questionAggregateId) {
         questionFunctionalities.deleteQuestion(questionAggregateId);
     }
