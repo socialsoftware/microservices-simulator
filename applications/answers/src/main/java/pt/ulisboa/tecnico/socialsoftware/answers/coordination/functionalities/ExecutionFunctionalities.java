@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.execution.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.service.ExecutionService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionUserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateExecutionRequestDto;
 import java.util.List;
 
@@ -110,6 +111,81 @@ public class ExecutionFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, executionService);
                 getAllExecutionsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getAllExecutionsFunctionalitySagas.getExecutions();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public ExecutionUserDto addExecutionUser(Integer executionId, Integer userAggregateId, ExecutionUserDto userDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AddExecutionUserFunctionalitySagas addExecutionUserFunctionalitySagas = new AddExecutionUserFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, executionService,
+                        executionId, userAggregateId, userDto);
+                addExecutionUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return addExecutionUserFunctionalitySagas.getAddedUserDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public List<ExecutionUserDto> addExecutionUsers(Integer executionId, List<ExecutionUserDto> userDtos) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AddExecutionUsersFunctionalitySagas addExecutionUsersFunctionalitySagas = new AddExecutionUsersFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, executionService,
+                        executionId, userDtos);
+                addExecutionUsersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return addExecutionUsersFunctionalitySagas.getAddedUserDtos();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public ExecutionUserDto getExecutionUser(Integer executionId, Integer userAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetExecutionUserFunctionalitySagas getExecutionUserFunctionalitySagas = new GetExecutionUserFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, executionService,
+                        executionId, userAggregateId);
+                getExecutionUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getExecutionUserFunctionalitySagas.getUserDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public ExecutionUserDto updateExecutionUser(Integer executionId, Integer userAggregateId, ExecutionUserDto userDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateExecutionUserFunctionalitySagas updateExecutionUserFunctionalitySagas = new UpdateExecutionUserFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, executionService,
+                        executionId, userAggregateId, userDto);
+                updateExecutionUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return updateExecutionUserFunctionalitySagas.getUpdatedUserDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void removeExecutionUser(Integer executionId, Integer userAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveExecutionUserFunctionalitySagas removeExecutionUserFunctionalitySagas = new RemoveExecutionUserFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, executionService,
+                        executionId, userAggregateId);
+                removeExecutionUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }

@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.answers.sagas.coordination.answer.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service.AnswerService;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateAnswerRequestDto;
 import java.util.List;
 
@@ -110,6 +111,81 @@ public class AnswerFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, answerService);
                 getAllAnswersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getAllAnswersFunctionalitySagas.getAnswers();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public AnswerQuestionDto addAnswerQuestion(Integer answerId, Integer questionAggregateId, AnswerQuestionDto questionDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AddAnswerQuestionFunctionalitySagas addAnswerQuestionFunctionalitySagas = new AddAnswerQuestionFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService,
+                        answerId, questionAggregateId, questionDto);
+                addAnswerQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return addAnswerQuestionFunctionalitySagas.getAddedQuestionDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public List<AnswerQuestionDto> addAnswerQuestions(Integer answerId, List<AnswerQuestionDto> questionDtos) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AddAnswerQuestionsFunctionalitySagas addAnswerQuestionsFunctionalitySagas = new AddAnswerQuestionsFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService,
+                        answerId, questionDtos);
+                addAnswerQuestionsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return addAnswerQuestionsFunctionalitySagas.getAddedQuestionDtos();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public AnswerQuestionDto getAnswerQuestion(Integer answerId, Integer questionAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetAnswerQuestionFunctionalitySagas getAnswerQuestionFunctionalitySagas = new GetAnswerQuestionFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService,
+                        answerId, questionAggregateId);
+                getAnswerQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getAnswerQuestionFunctionalitySagas.getQuestionDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public AnswerQuestionDto updateAnswerQuestion(Integer answerId, Integer questionAggregateId, AnswerQuestionDto questionDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateAnswerQuestionFunctionalitySagas updateAnswerQuestionFunctionalitySagas = new UpdateAnswerQuestionFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService,
+                        answerId, questionAggregateId, questionDto);
+                updateAnswerQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return updateAnswerQuestionFunctionalitySagas.getUpdatedQuestionDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void removeAnswerQuestion(Integer answerId, Integer questionAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveAnswerQuestionFunctionalitySagas removeAnswerQuestionFunctionalitySagas = new RemoveAnswerQuestionFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, answerService,
+                        answerId, questionAggregateId);
+                removeAnswerQuestionFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }

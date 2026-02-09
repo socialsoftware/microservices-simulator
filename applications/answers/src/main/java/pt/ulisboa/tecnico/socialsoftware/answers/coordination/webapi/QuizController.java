@@ -3,8 +3,10 @@ package pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.functionalities.QuizFunctionalities;
+import org.springframework.http.HttpStatus;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizQuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuizRequestDto;
 
 @RestController
@@ -35,5 +37,32 @@ public class QuizController {
     @GetMapping("/quizs")
     public List<QuizDto> getAllQuizs() {
         return quizFunctionalities.getAllQuizs();
+    }
+
+    @PostMapping("/quizs/{quizId}/questions")
+    @ResponseStatus(HttpStatus.CREATED)
+    public QuizQuestionDto addQuizQuestion(@PathVariable Integer quizId, @RequestParam Integer questionAggregateId, @RequestBody QuizQuestionDto questionDto) {
+        return quizFunctionalities.addQuizQuestion(quizId, questionAggregateId, questionDto);
+    }
+
+    @PostMapping("/quizs/{quizId}/questions/batch")
+    public List<QuizQuestionDto> addQuizQuestions(@PathVariable Integer quizId, @RequestBody List<QuizQuestionDto> questionDtos) {
+        return quizFunctionalities.addQuizQuestions(quizId, questionDtos);
+    }
+
+    @GetMapping("/quizs/{quizId}/questions/{questionAggregateId}")
+    public QuizQuestionDto getQuizQuestion(@PathVariable Integer quizId, @PathVariable Integer questionAggregateId) {
+        return quizFunctionalities.getQuizQuestion(quizId, questionAggregateId);
+    }
+
+    @PutMapping("/quizs/{quizId}/questions/{questionAggregateId}")
+    public QuizQuestionDto updateQuizQuestion(@PathVariable Integer quizId, @PathVariable Integer questionAggregateId, @RequestBody QuizQuestionDto questionDto) {
+        return quizFunctionalities.updateQuizQuestion(quizId, questionAggregateId, questionDto);
+    }
+
+    @DeleteMapping("/quizs/{quizId}/questions/{questionAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeQuizQuestion(@PathVariable Integer quizId, @PathVariable Integer questionAggregateId) {
+        quizFunctionalities.removeQuizQuestion(quizId, questionAggregateId);
     }
 }

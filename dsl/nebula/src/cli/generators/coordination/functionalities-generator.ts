@@ -3,6 +3,7 @@ import { CoordinationGenerationOptions } from '../microservices/types.js';
 import { EntityRegistry } from '../common/utils/entity-registry.js';
 import { OrchestrationBase } from '../common/orchestration-base.js';
 import { FunctionalitiesCrudGenerator } from './functionalities-crud-generator.js';
+import { FunctionalitiesCollectionGenerator } from './functionalities-collection-generator.js';
 import { FunctionalitiesImportsBuilder } from './functionalities-imports-builder.js';
 import { FunctionalitiesMethodGenerator } from './functionalities-method-generator.js';
 import { TypeResolver } from '../common/resolvers/type-resolver.js';
@@ -13,6 +14,7 @@ import { TypeResolver } from '../common/resolvers/type-resolver.js';
  */
 export class FunctionalitiesGenerator extends OrchestrationBase {
     private crudGenerator = new FunctionalitiesCrudGenerator();
+    private collectionGenerator = new FunctionalitiesCollectionGenerator();
     private importsBuilder = new FunctionalitiesImportsBuilder();
     private methodGenerator = new FunctionalitiesMethodGenerator();
 
@@ -120,6 +122,16 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
         if (aggregate.generateCrud) {
             const crudMethods = this.crudGenerator.generateCrudMethods(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates);
             crudMethods.forEach(method => {
+                const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
+                if (!addedMethods.has(methodSignature)) {
+                    methods.push(method);
+                    addedMethods.add(methodSignature);
+                }
+            });
+
+            // 1.5. Add collection methods if generateCrud is enabled
+            const collectionMethods = this.collectionGenerator.generateCollectionMethods(aggregateName, lowerAggregate, rootEntity, aggregate);
+            collectionMethods.forEach(method => {
                 const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
                 if (!addedMethods.has(methodSignature)) {
                     methods.push(method);

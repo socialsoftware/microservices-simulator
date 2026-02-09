@@ -3,8 +3,11 @@ import { WebApiGenerationOptions } from "./webapi-types.js";
 import { WebApiBaseGenerator } from "./webapi-base-generator.js";
 import { getGlobalConfig } from "../../common/config.js";
 import { TypeResolver } from "../../common/resolvers/type-resolver.js";
+import { ControllerCollectionGenerator } from "./controller-collection-generator.js";
 
 export class ControllerGenerator extends WebApiBaseGenerator {
+    private collectionGenerator = new ControllerCollectionGenerator();
+
     async generateController(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions, allAggregates?: Aggregate[]): Promise<string> {
         const context = this.buildControllerContext(aggregate, rootEntity, options, allAggregates);
         const template = this.getControllerTemplate();
@@ -40,6 +43,15 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         if (aggregate.generateCrud) {
             const crudEndpoints = this.generateCrudEndpoints(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates);
             endpoints.push(...crudEndpoints);
+
+            // Add collection endpoints
+            const collectionEndpoints = this.collectionGenerator.generateCollectionEndpoints(
+                aggregate,
+                rootEntity,
+                aggregateName,
+                lowerAggregate
+            );
+            endpoints.push(...collectionEndpoints);
         }
 
         if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints.length > 0) {
@@ -153,6 +165,12 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         imports.add('import org.springframework.beans.factory.annotation.Autowired;');
 
         imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'functionalities')}.${aggregate.name}Functionalities;`);
+
+        // Check if we need HttpStatus import for collection endpoints
+        const needsHttpStatus = endpoints.some(e => e.responseStatus !== undefined);
+        if (needsHttpStatus) {
+            imports.add('import org.springframework.http.HttpStatus;');
+        }
 
         // Only add collection imports when needed
         const hasListType = endpoints.some(e => e.returnType && e.returnType.includes('List<'));

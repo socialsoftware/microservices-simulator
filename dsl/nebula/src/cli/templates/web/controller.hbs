@@ -10,7 +10,8 @@ public class {{aggregateName}}Controller {
     private {{aggregateName}}Functionalities {{functionalitiesName}};
 {{#each endpoints}}
 
-    @{{method}}Mapping("{{path}}")
+    @{{method}}Mapping("{{path}}"){{#if responseStatus}}
+    {{responseStatus}}{{/if}}
     public {{#if returnType}}{{returnType}}{{else}}void{{/if}} {{methodName}}({{#each parameters}}{{annotation}} {{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}){{#if throwsException}} throws Exception{{/if}} {
 {{#if returnType}}        return {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});{{else}}        {{../functionalitiesName}}.{{methodName}}({{#each parameters}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});{{/if}}
     }

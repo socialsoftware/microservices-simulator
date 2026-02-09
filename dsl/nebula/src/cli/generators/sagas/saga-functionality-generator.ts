@@ -1,6 +1,7 @@
 import { OrchestrationBase } from '../common/orchestration-base.js';
 import { initializeAggregateProperties, getWorkflows } from '../../utils/aggregate-helpers.js';
 import { SagaCrudGenerator } from './saga-crud-generator.js';
+import { SagaCollectionGenerator } from './saga-collection-generator.js';
 import { SagaWorkflowGenerator } from './saga-workflow-generator.js';
 import { SagaEventProcessingGenerator } from './saga-event-processing-generator.js';
 import { SagaHelpers } from './saga-helpers.js';
@@ -12,6 +13,7 @@ import type { Aggregate } from '../../../language/generated/ast.js';
  */
 export class SagaFunctionalityGenerator extends OrchestrationBase {
     private crudGenerator = new SagaCrudGenerator();
+    private collectionGenerator = new SagaCollectionGenerator();
     private workflowGenerator = new SagaWorkflowGenerator();
     private eventProcessingGenerator = new SagaEventProcessingGenerator();
     private helpers = new SagaHelpers();
@@ -35,6 +37,18 @@ export class SagaFunctionalityGenerator extends OrchestrationBase {
             const aggregatesToUse = allAggregates || (aggregate.$container as any)?.aggregates || [];
             const crudSagas = this.crudGenerator.generateCrudSagaFunctionalities(aggregate, options, packageName, aggregatesToUse);
             Object.assign(outputs, crudSagas);
+
+            // 1.5. Generate collection saga functionalities if enabled
+            const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot);
+            if (rootEntity) {
+                const collectionSagas = this.collectionGenerator.generateCollectionSagaFunctionalities(
+                    aggregate,
+                    rootEntity,
+                    options,
+                    packageName
+                );
+                Object.assign(outputs, collectionSagas);
+            }
         }
 
         // 2. Generate saga functionalities from endpoint definitions
