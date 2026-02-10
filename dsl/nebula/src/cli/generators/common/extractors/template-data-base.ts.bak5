@@ -121,7 +121,7 @@ export abstract class TemplateDataBase {
         return {
             name: context.projectName,
             packageName: context.packageName,
-            architecture: context.architecture,
+            features: [], // Features removed - always generate everything
             javaPath: context.javaPath,
             version: '1.0.0',
             description: `${context.projectName} microservice`,
@@ -146,33 +146,33 @@ export abstract class TemplateDataBase {
                 generateDdl: true
             },
             events: {
-                enabled: this.hasFeature([], 'events'),
+                enabled: this.hasFeature(context.features, 'events'),
                 broker: 'kafka',
                 topics: this.generateEventTopics(context.projectName),
                 serialization: 'json',
                 compression: true
             },
             validation: {
-                enabled: this.hasFeature([], 'validation'),
+                enabled: this.hasFeature(context.features, 'validation'),
                 failFast: false,
                 customValidators: this.generateCustomValidators(context.projectName),
                 groups: ['Default', 'Create', 'Update']
             },
             webApi: {
-                enabled: this.hasFeature([], 'webapi'),
+                enabled: this.hasFeature(context.features, 'webapi'),
                 basePath: `/api/v1/${context.projectName.toLowerCase()}`,
                 version: '1.0',
                 cors: true,
                 swagger: true
             },
             coordination: {
-                enabled: this.hasFeature([], 'coordination'),
+                enabled: this.hasFeature(context.features, 'coordination'),
                 type: 'saga',
                 timeout: 30000,
                 retryAttempts: 3
             },
             saga: {
-                enabled: this.hasFeature([], 'saga'),
+                enabled: this.hasFeature(context.features, 'saga'),
                 type: 'orchestration',
                 compensationEnabled: true,
                 timeout: 60000
@@ -185,8 +185,8 @@ export abstract class TemplateDataBase {
 
         return {
             generatedAt: new Date().toISOString(),
-            version: '1.0.0',
             generator: 'Nebula DSL Generator',
+            features: [], // Features removed - always generate everything
             statistics: {
                 aggregates: 1,
                 entities: entities.length,
@@ -306,7 +306,7 @@ export abstract class TemplateDataBase {
             checksums[`${entity.name}Repository.java`] = this.generateChecksum(`${entity.name}Repository`);
         });
 
-        if (this.hasAnyFeature([], 'webapi')) {
+        if (this.hasAnyFeature(context.features, 'webapi')) {
             entities.forEach(entity => {
                 checksums[`${entity.name}Controller.java`] = this.generateChecksum(`${entity.name}Controller`);
             });

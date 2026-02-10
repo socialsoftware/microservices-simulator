@@ -4,6 +4,7 @@
 
 export interface BaseGenerationOptions {
     architecture?: string;
+    features?: string[];
     projectName: string;
 }
 

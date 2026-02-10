@@ -4,6 +4,7 @@ import { UnifiedTypeResolver } from '../common/unified-type-resolver.js';
 
 export interface SagaGenerationOptions {
     architecture?: string;
+    features?: string[];
     projectName: string;
 }
 

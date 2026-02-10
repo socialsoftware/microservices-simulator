@@ -2,6 +2,7 @@ import { Entity } from "../../../language/generated/ast.js";
 
 export interface ValidationGenerationOptions {
     architecture?: string;
+    features?: string[];
     projectName: string;
 }
 

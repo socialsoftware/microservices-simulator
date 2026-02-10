@@ -3,6 +3,7 @@ import { getGlobalConfig } from "../common/config.js";
 
 export interface CausalEntityGenerationOptions {
     architecture?: string;
+    features?: string[];
     projectName: string;
 }
 

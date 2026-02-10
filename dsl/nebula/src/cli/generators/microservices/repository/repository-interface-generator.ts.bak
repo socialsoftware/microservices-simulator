@@ -4,6 +4,7 @@ import { TemplateManager } from "../../../utils/template-manager.js";
 
 export interface RepositoryInterfaceGenerationOptions {
     architecture?: string;
+    features?: string[];
     projectName: string;
     repositoryType?: string;
 }

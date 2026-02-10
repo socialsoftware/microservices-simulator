@@ -4,6 +4,7 @@ export interface GenerationOptions {
     projectName: string;
     outputPath: string;
     architecture?: 'default' | 'external-dto-removal' | 'causal-saga';
+    features?: string[];
     consistencyModels?: string[];
     dtoSchemaRegistry?: DtoSchemaRegistry;
 }

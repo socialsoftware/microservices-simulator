@@ -3,6 +3,7 @@ import { TemplateManager } from "../../../utils/template-manager.js";
 
 export interface IntegrationGenerationOptions {
     architecture?: string;
+    features?: string[];
     projectName: string;
 }
 

@@ -6,6 +6,7 @@ import { CollectionMethodGenerator } from "./collection-method-generator.js";
 
 export interface ServiceGenerationOptions {
     architecture?: string;
+    features?: string[];
     projectName: string;
 }
 

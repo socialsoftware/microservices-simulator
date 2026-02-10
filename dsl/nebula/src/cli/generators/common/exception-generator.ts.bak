@@ -8,6 +8,7 @@ export interface ExceptionGenerationOptions {
     projectName: string;
     packageName: string;
     architecture?: string;
+    features?: string[];
 }
 
 export class ExceptionGenerator {

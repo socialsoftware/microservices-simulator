@@ -7,7 +7,6 @@ import { GeneratorCapabilities } from "../common/generator-capabilities.js";
 export interface GenerationOptions {
     projectName: string;
     architecture?: string;
-    features?: string[];
     outputDirectory?: string;
     transactionModel?: 'sagas' | 'tcc';
 }

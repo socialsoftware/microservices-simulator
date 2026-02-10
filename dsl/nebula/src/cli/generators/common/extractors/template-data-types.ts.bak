@@ -6,6 +6,7 @@ export interface GeneratorContext {
     projectName: string;
     packageName: string;
     architecture: string;
+    features: string[];
     javaPath: string;
     options: any;
 }
@@ -36,6 +37,7 @@ export interface ProjectData {
     name: string;
     packageName: string;
     architecture: string;
+    features: string[];
     javaPath: string;
     version: string;
     description?: string;
@@ -118,6 +120,7 @@ export interface MetadataData {
     generatedAt: string;
     version: string;
     generator: string;
+    features: string[];
     statistics: {
         aggregates: number;
         entities: number;

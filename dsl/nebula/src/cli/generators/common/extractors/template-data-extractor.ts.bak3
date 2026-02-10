@@ -99,9 +99,18 @@ export class TemplateDataExtractor extends TemplateDataBase {
     }
 
     getFeatureTemplateData(aggregate: Aggregate, feature: string, context: GeneratorContext): TemplateData | null {
-        // All features are always enabled - just use the existing context
+        // All features are always enabled
+        // if (!this.hasFeature(context.features, feature)) {
+        //     return null;
+        // }
+
+        const featureContext: GeneratorContext = {
+            ...context,
+            features: []  // Features deprecated
+        };
+
         const options = this.getFeatureExtractionOptions(feature);
-        return this.extractData(aggregate, context, options);
+        return this.extractData(aggregate, featureContext, options);
     }
 
     getMultiEntityTemplateData(aggregate: Aggregate, entityNames: string[], context: GeneratorContext): TemplateData | null {
