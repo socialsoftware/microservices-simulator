@@ -1,4 +1,3 @@
-import { OrchestrationBase } from '../common/orchestration-base.js';
 import { initializeAggregateProperties, getWorkflows } from '../../utils/aggregate-helpers.js';
 import { SagaHelpers } from './saga-helpers.js';
 import { SagaWorkflowGenerator } from './saga-workflow-generator.js';
@@ -6,7 +5,16 @@ import { SagaWorkflowGenerator } from './saga-workflow-generator.js';
 /**
  * Generates saga functionality classes for event processing workflows
  */
-export class SagaEventProcessingGenerator extends OrchestrationBase {
+export class SagaEventProcessingGenerator {
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private getBasePackage(): string {
+        return 'pt.ulisboa.tecnico.socialsoftware';
+    }
     private helpers = new SagaHelpers();
     private workflowGenerator = new SagaWorkflowGenerator();
 

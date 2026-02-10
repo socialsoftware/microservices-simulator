@@ -1,5 +1,4 @@
 import { Entity, Aggregate } from '../common/parsers/model-parser.js';
-import { OrchestrationBase } from '../common/orchestration-base.js';
 import { CollectionMetadata, CollectionMetadataBuilder } from '../common/utils/collection-metadata-builder.js';
 
 export interface CollectionFunctionalityMethod {
@@ -11,7 +10,12 @@ export interface CollectionFunctionalityMethod {
     operation: 'add' | 'addBatch' | 'get' | 'update' | 'remove';
 }
 
-export class FunctionalitiesCollectionGenerator extends OrchestrationBase {
+export class FunctionalitiesCollectionGenerator {
+    // Helper method migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
     /**
      * Generate collection operation methods for functionalities layer
      */

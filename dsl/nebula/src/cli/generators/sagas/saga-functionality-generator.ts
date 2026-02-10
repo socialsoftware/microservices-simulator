@@ -1,4 +1,3 @@
-import { OrchestrationBase } from '../common/orchestration-base.js';
 import { initializeAggregateProperties, getWorkflows } from '../../utils/aggregate-helpers.js';
 import { SagaCrudGenerator } from './saga-crud-generator.js';
 import { SagaCollectionGenerator } from './saga-collection-generator.js';
@@ -11,7 +10,28 @@ import type { Aggregate } from '../../../language/generated/ast.js';
  * Main orchestrator for saga functionality generation.
  * Delegates to specialized generators for different types of saga functionalities.
  */
-export class SagaFunctionalityGenerator extends OrchestrationBase {
+export class SagaFunctionalityGenerator {
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private getBasePackage(): string {
+        return 'pt.ulisboa.tecnico.socialsoftware';
+    }
+
+    private loadTemplate(templatePath: string): string {
+        const TemplateManager = require('../../utils/template-manager.js').TemplateManager;
+        const templateManager = TemplateManager.getInstance();
+        return templateManager.loadTemplateContent(templatePath);
+    }
+
+    private renderTemplate(template: string, context: any): string {
+        const Handlebars = require('handlebars');
+        const compiledTemplate = Handlebars.compile(template, { noEscape: true });
+        return compiledTemplate(context);
+    }
     private crudGenerator = new SagaCrudGenerator();
     private collectionGenerator = new SagaCollectionGenerator();
     private workflowGenerator = new SagaWorkflowGenerator();

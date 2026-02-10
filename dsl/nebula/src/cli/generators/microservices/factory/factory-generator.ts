@@ -1,9 +1,9 @@
-import { Aggregate } from "../../../../language/generated/ast.js";
+import { AggregateExt } from "../../../types/ast-extensions.js";
 import type { DtoSchemaRegistry } from "../../../services/dto-schema-service.js";
 import { BaseGenerator, GeneratorCapabilitiesFactory } from "../../common/generator-capabilities.js";
 import { ContextBuilderFactory } from "../../common/template-context-builder.js";
 
-export function generateFactoryCode(aggregate: Aggregate, projectName: string): string {
+export function generateFactoryCode(aggregate: AggregateExt, projectName: string): string {
     const generator = new FactoryGenerator();
     return generator.generateFactoryInterface(aggregate, { projectName });
 }
@@ -14,7 +14,7 @@ export class FactoryGenerator extends BaseGenerator {
         super(GeneratorCapabilitiesFactory.createEntityCapabilities());
     }
 
-    generateFactoryInterface(aggregate: Aggregate, options: { projectName: string, dtoSchemaRegistry?: DtoSchemaRegistry }): string {
+    generateFactoryInterface(aggregate: AggregateExt, options: { projectName: string, dtoSchemaRegistry?: DtoSchemaRegistry }): string {
         this.validateAggregate(aggregate);
         const rootEntity = this.findRootEntity(aggregate);
 
@@ -40,7 +40,7 @@ export class FactoryGenerator extends BaseGenerator {
         return this.render('entity/factory-interface.hbs', finalContext);
     }
 
-    async generateFactory(aggregate: Aggregate, options: { projectName: string, dtoSchemaRegistry?: DtoSchemaRegistry }): Promise<string> {
+    async generateFactory(aggregate: AggregateExt, options: { projectName: string, dtoSchemaRegistry?: DtoSchemaRegistry }): Promise<string> {
         return this.generateFactoryInterface(aggregate, options);
     }
 

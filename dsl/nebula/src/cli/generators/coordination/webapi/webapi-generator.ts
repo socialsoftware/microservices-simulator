@@ -1,4 +1,4 @@
-import { Aggregate } from "../../../../language/generated/ast.js";
+import { AggregateExt, TypeGuards } from "../../../types/ast-extensions.js";
 import { WebApiGenerationOptions } from "./webapi-types.js";
 import { ControllerGenerator } from "./controller-generator.js";
 import { WebApiDtoGenerator } from "./dto-generator.js";
@@ -13,8 +13,8 @@ export class WebApiGenerator {
     private globalControllerGenerator = new GlobalControllerGenerator();
     private utilityServiceGenerator = new UtilityServiceGenerator();
 
-    async generateWebApi(aggregate: Aggregate, options: WebApiGenerationOptions, allAggregates?: Aggregate[]): Promise<{ [key: string]: string | Record<string, string> }> {
-        const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+    async generateWebApi(aggregate: AggregateExt, options: WebApiGenerationOptions, allAggregates?: AggregateExt[]): Promise<{ [key: string]: string | Record<string, string> }> {
+        const rootEntity = aggregate.entities.find((e: any) => TypeGuards.isRootEntity(e));
         if (!rootEntity) {
             throw new Error(`No root entity found in aggregate ${aggregate.name}`);
         }
@@ -28,8 +28,8 @@ export class WebApiGenerator {
         return results;
     }
 
-    async generateEmptyController(aggregate: Aggregate, options: WebApiGenerationOptions): Promise<string> {
-        const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+    async generateEmptyController(aggregate: AggregateExt, options: WebApiGenerationOptions): Promise<string> {
+        const rootEntity = aggregate.entities.find((e: any) => TypeGuards.isRootEntity(e));
         if (!rootEntity) {
             throw new Error(`No root entity found in aggregate ${aggregate.name}`);
         }

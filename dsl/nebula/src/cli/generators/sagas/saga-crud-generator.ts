@@ -1,4 +1,3 @@
-import { OrchestrationBase } from '../common/orchestration-base.js';
 import type { Entity, Aggregate } from '../../../language/generated/ast.js';
 import { TypeResolver } from '../common/resolvers/type-resolver.js';
 
@@ -10,7 +9,16 @@ export interface CrossAggregateReference {
     isCollection: boolean;
 }
 
-export class SagaCrudGenerator extends OrchestrationBase {
+export class SagaCrudGenerator {
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private getBasePackage(): string {
+        return 'pt.ulisboa.tecnico.socialsoftware';
+    }
     generateCrudSagaFunctionalities(aggregate: any, options: { projectName: string }, packageName: string, allAggregates?: Aggregate[]): Record<string, string> {
         const outputs: Record<string, string> = {};
         const basePackage = this.getBasePackage();

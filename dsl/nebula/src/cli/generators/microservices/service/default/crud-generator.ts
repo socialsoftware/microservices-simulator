@@ -1,10 +1,11 @@
-import { Aggregate, Entity } from "../../../../../language/generated/ast.js";
+import { Entity } from "../../../../../language/generated/ast.js";
+import { EntityExt, AggregateExt, TypeGuards } from "../../../../types/ast-extensions.js";
 import { capitalize } from "../../../../utils/generator-utils.js";
 import { TypeResolver } from "../../../common/resolvers/type-resolver.js";
 import { getEntities, getEvents } from "../../../../utils/aggregate-helpers.js";
 
 export class ServiceCrudGenerator {
-    static generateCrudMethods(aggregateName: string, rootEntity: Entity, projectName: string, aggregate?: Aggregate): string {
+    static generateCrudMethods(aggregateName: string, rootEntity: EntityExt, projectName: string, aggregate?: AggregateExt): string {
         const capitalizedAggregate = capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
         const rootEntityName = rootEntity.name;
@@ -85,7 +86,7 @@ ${this.generateUpdateLogic(rootEntity, aggregateName, true)}
     }`;
     }
 
-    private static generateUpdateLogic(rootEntity: Entity, aggregateName: string, useNewVersion: boolean = false): string {
+    private static generateUpdateLogic(rootEntity: EntityExt, aggregateName: string, useNewVersion: boolean = false): string {
         if (!rootEntity.properties) return '';
 
         const lowerAggregate = aggregateName.toLowerCase();
@@ -137,7 +138,7 @@ ${this.generateUpdateLogic(rootEntity, aggregateName, true)}
      * Convention: first argument is aggregateId, followed by all primitive (non-relationship)
      * updatable properties of the root entity, in declaration order.
      */
-    private static generateUpdateEventArgs(rootEntity: Entity, aggregateName: string, useNewVersion: boolean = false): string {
+    private static generateUpdateEventArgs(rootEntity: EntityExt, aggregateName: string, useNewVersion: boolean = false): string {
         const lowerAggregate = aggregateName.toLowerCase();
         const capitalizedAggregate = capitalize(aggregateName);
         const targetVar = useNewVersion ? `new${capitalizedAggregate}` : lowerAggregate;
@@ -222,10 +223,10 @@ ${this.generateUpdateLogic(rootEntity, aggregateName, true)}
      * then uses factory to create entity with just (aggregateId, dto)
      */
     private static generateCreateMethodBody(
-        rootEntity: Entity,
+        rootEntity: EntityExt,
         aggregateName: string,
         projectName: string,
-        aggregate?: Aggregate
+        aggregate?: AggregateExt
     ): string {
         const lowerAggregate = aggregateName.toLowerCase();
         const rootEntityName = rootEntity.name;
@@ -301,8 +302,8 @@ ${allSetters}
      * Find entity relationships with full details including aggregateRef
      */
     private static findEntityRelationshipsWithDetails(
-        rootEntity: Entity, 
-        aggregate: Aggregate
+        rootEntity: EntityExt,
+        aggregate: AggregateExt
     ): Array<{ 
         paramName: string; 
         entityName: string;
@@ -365,7 +366,7 @@ ${allSetters}
      * Generate event handler methods for subscribed CRUD events.
      * These methods handle events by updating/marking as INACTIVE projections when events are received.
      */
-    static generateProjectionMethods(aggregateName: string, aggregate: Aggregate, projectName: string): string {
+    static generateProjectionMethods(aggregateName: string, aggregate: AggregateExt, projectName: string): string {
         const events = getEvents(aggregate);
         if (!events || !events.subscribedEvents) {
             return '';
@@ -385,7 +386,7 @@ ${allSetters}
 
         const capitalizedAggregate = capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
-        const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+        const rootEntity = aggregate.entities.find((e: Entity) => TypeGuards.isRootEntity(e as EntityExt));
         if (!rootEntity) {
             return '';
         }
@@ -448,7 +449,7 @@ ${allSetters}
      * Extract primitive field parameters needed for projection entity UpdatedEvent
      * Returns both method signature params and constructor call params
      */
-    private static extractPrimitiveFieldsForEvent(projectionEntities: Entity[], publisherAggregateName: string): {
+    private static extractPrimitiveFieldsForEvent(projectionEntities: EntityExt[], publisherAggregateName: string): {
         methodSignature: string;
         paramList: string[];
     } {
@@ -503,8 +504,8 @@ ${allSetters}
     private static generateEventHandlerMethod(
         capitalizedAggregate: string,
         lowerAggregate: string,
-        rootEntity: Entity,
-        projectionEntities: Entity[],
+        rootEntity: EntityExt,
+        projectionEntities: EntityExt[],
         publisherAggregateName: string,
         eventTypeName: string,
         action: 'delete' | 'update',

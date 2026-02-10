@@ -1,7 +1,27 @@
-import { OrchestrationBase } from "../../common/orchestration-base.js";
 import { UnifiedTypeResolver } from "../../common/unified-type-resolver.js";
+import { TemplateManager } from "../../../utils/template-manager.js";
+import Handlebars from "handlebars";
 
-export abstract class WebApiBaseGenerator extends OrchestrationBase {
+export abstract class WebApiBaseGenerator {
+    // Helper methods
+    protected capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    protected getBasePackage(): string {
+        return 'pt.ulisboa.tecnico.socialsoftware';
+    }
+
+    protected loadTemplate(templatePath: string): string {
+        const templateManager = TemplateManager.getInstance();
+        return templateManager.loadRawTemplate(templatePath);
+    }
+
+    protected renderTemplate(template: string, context: any): string {
+        const compiledTemplate = Handlebars.compile(template, { noEscape: true });
+        return compiledTemplate(context);
+    }
     protected resolveHttpMethod(method: string | any): string {
         if (!method || typeof method !== 'string') return 'Get';
         const upperMethod = method.toUpperCase();

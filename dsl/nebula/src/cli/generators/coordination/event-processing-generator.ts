@@ -1,10 +1,53 @@
-import { Aggregate, Entity } from '../common/parsers/model-parser.js';
+import { AggregateExt, EntityExt } from '../../types/ast-extensions.js';
 import { CoordinationGenerationOptions } from '../microservices/types.js';
-import { OrchestrationBase } from '../common/orchestration-base.js';
+import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../common/generator-capabilities.js';
 import { getEntities } from '../../utils/aggregate-helpers.js';
 
-export class EventProcessingGenerator extends OrchestrationBase {
-    async generate(aggregate: Aggregate, rootEntity: Entity, options: CoordinationGenerationOptions, allAggregates?: Aggregate[]): Promise<string> {
+export class EventProcessingGenerator {
+    private capabilities: GeneratorCapabilities;
+
+    constructor(capabilities?: GeneratorCapabilities) {
+        this.capabilities = capabilities || GeneratorCapabilitiesFactory.createWebApiCapabilities();
+    }
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private getBasePackage(): string {
+        return this.capabilities.packageBuilder.buildCustomPackage('').split('.').slice(0, -1).join('.');
+    }
+
+    private getTransactionModel(): string {
+        return 'SAGAS';
+    }
+
+    private renderSimpleTemplate(template: string, context: any): string {
+        let result = template;
+
+        result = result.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+            return context[key] || match;
+        });
+
+        result = result.replace(/\{\{#each (\w+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (match, arrayKey, content) => {
+            const array = context[arrayKey];
+            if (!Array.isArray(array)) return '';
+
+            return array.map(item => {
+                let itemContent = content;
+                Object.keys(item).forEach(key => {
+                    const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+                    itemContent = itemContent.replace(regex, item[key]);
+                });
+                return itemContent;
+            }).join('');
+        });
+
+        return result;
+    }
+
+    async generate(aggregate: AggregateExt, rootEntity: EntityExt, options: CoordinationGenerationOptions, allAggregates?: AggregateExt[]): Promise<string> {
         const context = this.buildContext(aggregate, rootEntity, options, allAggregates);
         // Check if there are methods before building template
         const hasMethods = context.eventProcessingMethods !== undefined && context.eventProcessingMethods.trim().length > 0;
@@ -12,7 +55,7 @@ export class EventProcessingGenerator extends OrchestrationBase {
         return this.renderSimpleTemplate(template, context);
     }
 
-    private buildContext(aggregate: Aggregate, rootEntity: Entity, options: CoordinationGenerationOptions, allAggregates?: Aggregate[]): any {
+    private buildContext(aggregate: AggregateExt, rootEntity: EntityExt, options: CoordinationGenerationOptions, allAggregates?: AggregateExt[]): any {
         const aggregateName = aggregate.name;
         const capitalizedAggregate = this.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
@@ -43,7 +86,7 @@ export class EventProcessingGenerator extends OrchestrationBase {
         };
     }
 
-    private buildEventProcessingMethods(aggregate: Aggregate, rootEntity: Entity, aggregateName: string): any[] {
+    private buildEventProcessingMethods(aggregate: AggregateExt, rootEntity: EntityExt, aggregateName: string): any[] {
         const methods: any[] = [];
 
         // Collect all subscribed events (direct + interInvariants)
@@ -83,7 +126,7 @@ export class EventProcessingGenerator extends OrchestrationBase {
      * Collect all subscribed events from direct subscriptions and interInvariants
      * Deduplicates events by event type name to avoid duplicate methods
      */
-    private collectSubscribedEvents(aggregate: Aggregate): any[] {
+    private collectSubscribedEvents(aggregate: AggregateExt): any[] {
         const aggregateEvents = (aggregate as any).events;
         if (!aggregateEvents) {
             return [];
@@ -111,7 +154,7 @@ export class EventProcessingGenerator extends OrchestrationBase {
      * Find which aggregate publishes a given event by checking all aggregates' published events.
      * Handles both custom published events and auto-generated CRUD events.
      */
-    private findEventPublisher(eventTypeName: string, allAggregates: Aggregate[]): string | null {
+    private findEventPublisher(eventTypeName: string, allAggregates: AggregateExt[]): string | null {
         for (const agg of allAggregates) {
             const aggName = agg.name;
 
@@ -153,7 +196,7 @@ export class EventProcessingGenerator extends OrchestrationBase {
         return null;  // Not found in any aggregate
     }
 
-    private buildImports(aggregate: Aggregate, options: CoordinationGenerationOptions, allAggregates?: Aggregate[]): string[] {
+    private buildImports(aggregate: AggregateExt, options: CoordinationGenerationOptions, allAggregates?: AggregateExt[]): string[] {
         const imports: string[] = [];
         const projectName = options.projectName.toLowerCase();
         const basePackage = this.getBasePackage();
@@ -229,7 +272,7 @@ public class {{aggregateName}}EventProcessing {
     }${methodsSection}}`;
     }
 
-    private renderMethod(method: any, context: any, aggregate: Aggregate): string {
+    private renderMethod(method: any, context: any, aggregate: AggregateExt): string {
         const params = method.parameters.map((p: any) => `${p.type} ${p.name}`).join(', ');
 
         // For event processing methods, generate simple UnitOfWork-based logic
@@ -259,12 +302,12 @@ public class {{aggregateName}}EventProcessing {
     }`;
     }
 
-    private deriveServiceMethodName(eventTypeName: string, aggregate: Aggregate): string {
+    private deriveServiceMethodName(eventTypeName: string, aggregate: AggregateExt): string {
         // Use handle{EventName} pattern (e.g., UserDeletedEvent -> handleUserDeletedEvent)
         return `handle${eventTypeName}`;
     }
 
-    private buildServiceMethodParams(eventTypeName: string, eventVarName: string, aggregateIdName: string, aggregate: Aggregate, subscribedEvent: any): string {
+    private buildServiceMethodParams(eventTypeName: string, eventVarName: string, aggregateIdName: string, aggregate: AggregateExt, subscribedEvent: any): string {
         const nameWithoutEvent = eventTypeName.replace(/Event$/, '');
         const isUpdate = nameWithoutEvent.endsWith('Updated');
         const isDelete = nameWithoutEvent.endsWith('Deleted');

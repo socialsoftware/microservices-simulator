@@ -1,5 +1,5 @@
-import { Aggregate, Entity } from "../../../language/generated/ast.js";
-import { OrchestrationBase } from '../common/orchestration-base.js';
+import { AggregateExt, EntityExt, TypeGuards } from "../../types/ast-extensions.js";
+import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../common/generator-capabilities.js';
 import { UnifiedTypeResolver } from '../common/unified-type-resolver.js';
 
 export interface SagaGenerationOptions {
@@ -8,9 +8,36 @@ export interface SagaGenerationOptions {
     projectName: string;
 }
 
-export class SagaGenerator extends OrchestrationBase {
-    async generateSaga(aggregate: Aggregate, options: SagaGenerationOptions): Promise<{ [key: string]: string }> {
-        const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+export class SagaGenerator {
+    private capabilities: GeneratorCapabilities;
+
+    constructor(capabilities?: GeneratorCapabilities) {
+        this.capabilities = capabilities || GeneratorCapabilitiesFactory.createSagaCapabilities();
+    }
+
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private getBasePackage(): string {
+        return this.capabilities.packageBuilder.buildCustomPackage('').split('.').slice(0, -1).join('.');
+    }
+
+    private loadTemplate(templatePath: string): string {
+        return templatePath;
+    }
+
+    private renderTemplate(templatePath: string, context: any): string {
+        return this.capabilities.templateRenderer.render(templatePath, context);
+    }
+
+    private resolveJavaType(type: any): string {
+        return UnifiedTypeResolver.resolve(type);
+    }
+    async generateSaga(aggregate: AggregateExt, options: SagaGenerationOptions): Promise<{ [key: string]: string }> {
+        const rootEntity = aggregate.entities.find((e: any) => TypeGuards.isRootEntity(e));
         if (!rootEntity) {
             throw new Error(`No root entity found in aggregate ${aggregate.name}`);
         }
@@ -25,31 +52,31 @@ export class SagaGenerator extends OrchestrationBase {
         return results;
     }
 
-    private async generateSagaAggregates(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): Promise<string> {
+    private async generateSagaAggregates(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): Promise<string> {
         const context = this.buildSagaAggregatesContext(aggregate, rootEntity, options);
         const template = this.loadTemplate('saga/saga-aggregate.hbs');
         return this.renderTemplate(template, context);
     }
 
-    private async generateSagaDtos(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): Promise<string> {
+    private async generateSagaDtos(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): Promise<string> {
         const context = this.buildSagaDtosContext(aggregate, rootEntity, options);
         const template = this.loadTemplate('saga/saga-dtos.hbs');
         return this.renderTemplate(template, context);
     }
 
-    private async generateSagaStates(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): Promise<string> {
+    private async generateSagaStates(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): Promise<string> {
         const context = this.buildSagaStatesContext(aggregate, rootEntity, options);
         const template = this.loadTemplate('saga/saga-state.hbs');
         return this.renderTemplate(template, context);
     }
 
-    private async generateSagaFactories(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): Promise<string> {
+    private async generateSagaFactories(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): Promise<string> {
         const context = this.buildSagaFactoriesContext(aggregate, rootEntity, options);
         const template = this.loadTemplate('saga/saga-factories.hbs');
         return this.renderTemplate(template, context);
     }
 
-    private async generateSagaRepositories(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): Promise<string> {
+    private async generateSagaRepositories(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): Promise<string> {
         const context = this.buildSagaRepositoriesContext(aggregate, rootEntity, options);
         const template = this.loadTemplate('saga/saga-repositories.hbs');
         return this.renderTemplate(template, context);
@@ -57,7 +84,7 @@ export class SagaGenerator extends OrchestrationBase {
 
 
 
-    private buildSagaAggregatesContext(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): any {
+    private buildSagaAggregatesContext(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): any {
         const aggregateName = aggregate.name;
         const capitalizedAggregate = this.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
@@ -80,7 +107,7 @@ export class SagaGenerator extends OrchestrationBase {
         };
     }
 
-    private extractEntityRelationships(aggregate: Aggregate, rootEntity: Entity): any[] {
+    private extractEntityRelationships(aggregate: AggregateExt, rootEntity: EntityExt): any[] {
         const relationships: any[] = [];
 
         if (!rootEntity || !rootEntity.properties) {
@@ -88,7 +115,7 @@ export class SagaGenerator extends OrchestrationBase {
         }
 
         // Build a set of entity names in this aggregate for reference
-        const aggregateEntityNames = new Set(aggregate.entities.map((e: Entity) => e.name));
+        const aggregateEntityNames = new Set(aggregate.entities.map((e: EntityExt) => e.name));
 
         for (const prop of rootEntity.properties) {
             const javaType = this.resolveJavaType(prop.type);
@@ -119,7 +146,7 @@ export class SagaGenerator extends OrchestrationBase {
         return relationships;
     }
 
-    private buildSagaConstructorParams(rootEntity: Entity, relationships: any[], options: SagaGenerationOptions): any {
+    private buildSagaConstructorParams(rootEntity: EntityExt, relationships: any[], options: SagaGenerationOptions): any {
         const rootEntityName = rootEntity ? rootEntity.name : '';
         const lowerAggregate = rootEntityName.toLowerCase();
         const dtoTypeName = `${rootEntityName}Dto`;
@@ -137,7 +164,7 @@ export class SagaGenerator extends OrchestrationBase {
         };
     }
 
-    private buildSagaDtosContext(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): any {
+    private buildSagaDtosContext(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): any {
         const aggregateName = aggregate.name;
         const capitalizedAggregate = this.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
@@ -155,7 +182,7 @@ export class SagaGenerator extends OrchestrationBase {
         };
     }
 
-    private buildSagaStatesContext(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): any {
+    private buildSagaStatesContext(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): any {
         const aggregateName = aggregate.name;
         const capitalizedAggregate = this.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
@@ -175,7 +202,7 @@ export class SagaGenerator extends OrchestrationBase {
         };
     }
 
-    private extractSagaStatesFromWorkflows(aggregate: Aggregate, capitalizedAggregate: string): string[] {
+    private extractSagaStatesFromWorkflows(aggregate: AggregateExt, capitalizedAggregate: string): string[] {
         const states = new Set<string>();
 
         // Scan functionalities for saga state registrations
@@ -235,7 +262,7 @@ export class SagaGenerator extends OrchestrationBase {
             .sort();
     }
 
-    private buildSagaFactoriesContext(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): any {
+    private buildSagaFactoriesContext(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): any {
         const aggregateName = aggregate.name;
         const capitalizedAggregate = this.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
@@ -263,7 +290,7 @@ export class SagaGenerator extends OrchestrationBase {
         };
     }
 
-    private buildSagaRepositoriesContext(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): any {
+    private buildSagaRepositoriesContext(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): any {
         const aggregateName = aggregate.name;
         const capitalizedAggregate = this.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
@@ -282,7 +309,7 @@ export class SagaGenerator extends OrchestrationBase {
 
 
 
-    private buildSagaAggregatesImports(aggregate: Aggregate, rootEntity: Entity, options: SagaGenerationOptions): string[] {
+    private buildSagaAggregatesImports(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): string[] {
         const imports: string[] = [];
 
         const rootEntityName = rootEntity ? rootEntity.name : aggregate.name;
@@ -317,7 +344,7 @@ export class SagaGenerator extends OrchestrationBase {
         return imports;
     }
 
-    private buildSagaDtosImports(aggregate: Aggregate, options: SagaGenerationOptions): string[] {
+    private buildSagaDtosImports(aggregate: AggregateExt, options: SagaGenerationOptions): string[] {
         const imports: string[] = [];
 
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
@@ -333,7 +360,7 @@ export class SagaGenerator extends OrchestrationBase {
         return imports;
     }
 
-    private buildSagaStatesImports(aggregate: Aggregate, options: SagaGenerationOptions): string[] {
+    private buildSagaStatesImports(aggregate: AggregateExt, options: SagaGenerationOptions): string[] {
         const imports: string[] = [];
         const basePackage = this.getBasePackage();
 
@@ -346,7 +373,7 @@ export class SagaGenerator extends OrchestrationBase {
      * SIMPLIFIED: Only need basic imports for saga factories
      * Entity relationships are no longer passed as parameters
      */
-    private buildSagaFactoriesImportsSimplified(aggregate: Aggregate, options: SagaGenerationOptions): string[] {
+    private buildSagaFactoriesImportsSimplified(aggregate: AggregateExt, options: SagaGenerationOptions): string[] {
         const imports: string[] = [];
 
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
@@ -366,7 +393,7 @@ export class SagaGenerator extends OrchestrationBase {
         return imports;
     }
 
-    private buildSagaRepositoriesImports(aggregate: Aggregate, options: SagaGenerationOptions): string[] {
+    private buildSagaRepositoriesImports(aggregate: AggregateExt, options: SagaGenerationOptions): string[] {
         const imports: string[] = [];
 
         imports.push('import org.springframework.data.jpa.repository.JpaRepository;');

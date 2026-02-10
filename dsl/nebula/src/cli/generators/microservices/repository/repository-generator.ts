@@ -1,8 +1,9 @@
-import { Aggregate, Repository, RepositoryMethod } from "../../../../language/generated/ast.js";
+import { Repository, RepositoryMethod } from "../../../../language/generated/ast.js";
+import { AggregateExt } from "../../../types/ast-extensions.js";
 import { capitalize } from "../../../utils/generator-utils.js";
 import { getGlobalConfig } from "../../common/config.js";
 
-export function generateRepositoryCode(aggregate: Aggregate, projectName: string): string {
+export function generateRepositoryCode(aggregate: AggregateExt, projectName: string): string {
     const aggregateName = aggregate.name;
     const capitalizedAggregate = capitalize(aggregateName);
     const packageName = `${getGlobalConfig().buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate')}`;
@@ -44,7 +45,7 @@ function generateInterfaceDeclaration(aggregateName: string): string {
     return `public interface ${aggregateName}CustomRepository {`;
 }
 
-function generateCustomRepositoryMethods(aggregate: Aggregate, capitalizedAggregate: string): string {
+function generateCustomRepositoryMethods(aggregate: AggregateExt, capitalizedAggregate: string): string {
     if (aggregate.repository && aggregate.repository.repositoryMethods.length > 0) {
         // Remove "For" suffix and deduplicate method names
         const uniqueMethods = new Map<string, any>();
@@ -139,7 +140,7 @@ function resolveParameterType(type: any): string {
 
 
 export class RepositoryGenerator {
-    async generateRepository(aggregate: Aggregate, options: { projectName: string }): Promise<string> {
+    async generateRepository(aggregate: AggregateExt, options: { projectName: string }): Promise<string> {
         return generateRepositoryCode(aggregate, options.projectName);
     }
 }

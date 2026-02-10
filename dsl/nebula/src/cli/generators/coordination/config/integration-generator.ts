@@ -1,5 +1,5 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
-import { OrchestrationBase } from "../../common/orchestration-base.js";
+import { TemplateManager } from "../../../utils/template-manager.js";
 
 export interface IntegrationGenerationOptions {
     architecture?: string;
@@ -7,7 +7,22 @@ export interface IntegrationGenerationOptions {
     projectName: string;
 }
 
-export class IntegrationGenerator extends OrchestrationBase {
+export class IntegrationGenerator {
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private getBasePackage(): string {
+        return 'pt.ulisboa.tecnico.socialsoftware';
+    }
+
+    private loadTemplate(templatePath: string): string {
+        const templateManager = TemplateManager.getInstance();
+        return templateManager.loadRawTemplate(templatePath);
+    }
+
     async generateIntegration(aggregate: Aggregate, options: IntegrationGenerationOptions): Promise<{ [key: string]: string }> {
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
         if (!rootEntity) {
@@ -279,7 +294,7 @@ export class IntegrationGenerator extends OrchestrationBase {
         return this.loadTemplate('config/profiles.hbs');
     }
 
-    protected override renderTemplate(template: string, context: any): string {
+    protected renderTemplate(template: string, context: any): string {
         let result = template;
 
         if (context.imports) {

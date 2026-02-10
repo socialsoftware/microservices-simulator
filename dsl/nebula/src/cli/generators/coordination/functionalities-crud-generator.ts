@@ -1,8 +1,12 @@
 import { Entity, Aggregate } from '../common/parsers/model-parser.js';
-import { OrchestrationBase } from '../common/orchestration-base.js';
 import { TypeResolver } from '../common/resolvers/type-resolver.js';
 
-export class FunctionalitiesCrudGenerator extends OrchestrationBase {
+export class FunctionalitiesCrudGenerator {
+    // Helper method migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
     generateCrudMethods(aggregateName: string, lowerAggregate: string, rootEntity: Entity, aggregate: Aggregate, allAggregates?: Aggregate[]): any[] {
         const dtoType = `${aggregateName}Dto`;
         const createRequestDtoType = `Create${aggregateName}RequestDto`;

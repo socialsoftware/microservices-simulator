@@ -1,9 +1,31 @@
-import { OrchestrationBase } from '../common/orchestration-base.js';
-
 /**
  * Helper utilities for saga generation - type conversion, argument handling, etc.
  */
-export class SagaHelpers extends OrchestrationBase {
+export class SagaHelpers {
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private isEntityType(type: any): boolean {
+        // Simplified entity type checking
+        if (typeof type === 'string') {
+            return type.charAt(0) === type.charAt(0).toUpperCase() && !['String', 'Integer', 'Long', 'Boolean', 'LocalDateTime'].includes(type);
+        }
+        return false;
+    }
+
+    private resolveJavaType(type: any): string {
+        // Simplified type resolution
+        if (typeof type === 'string') return type;
+        return 'Object';
+    }
+
+    private isPrimitiveType(type: string): boolean {
+        const primitives = ['String', 'Integer', 'Long', 'Float', 'Double', 'Boolean', 'LocalDateTime', 'int', 'long', 'float', 'double', 'boolean'];
+        return primitives.includes(type);
+    }
 
     /**
      * Get parameter type name, resolving entity references to DTOs

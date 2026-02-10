@@ -1,8 +1,16 @@
 import { Aggregate, Entity } from '../../../language/generated/ast.js';
-import { OrchestrationBase } from '../common/orchestration-base.js';
 import { CollectionMetadata, CollectionMetadataBuilder } from '../common/utils/collection-metadata-builder.js';
 
-export class SagaCollectionGenerator extends OrchestrationBase {
+export class SagaCollectionGenerator {
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private getBasePackage(): string {
+        return 'pt.ulisboa.tecnico.socialsoftware';
+    }
     /**
      * Generate all saga workflow classes for collection operations
      */

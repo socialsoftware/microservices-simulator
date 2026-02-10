@@ -1,10 +1,18 @@
-import { OrchestrationBase } from '../common/orchestration-base.js';
 import { SagaHelpers } from './saga-helpers.js';
 
 /**
  * Generates saga workflow functionalities from DSL definitions
  */
-export class SagaWorkflowGenerator extends OrchestrationBase {
+export class SagaWorkflowGenerator {
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private getBasePackage(): string {
+        return 'pt.ulisboa.tecnico.socialsoftware';
+    }
     private helpers = new SagaHelpers();
 
     /**

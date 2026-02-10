@@ -1,5 +1,5 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
-import { OrchestrationBase } from "../../common/orchestration-base.js";
+import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from "../../common/generator-capabilities.js";
 import { getGlobalConfig } from "../../common/config.js";
 import { CrudMethodGenerator } from "./crud-method-generator.js";
 import { CollectionMethodGenerator } from "./collection-method-generator.js";
@@ -10,14 +10,36 @@ export interface ServiceGenerationOptions {
     projectName: string;
 }
 
-export class ServiceDefinitionGenerator extends OrchestrationBase {
+export class ServiceDefinitionGenerator {
+    private capabilities: GeneratorCapabilities;
     private crudGenerator: CrudMethodGenerator;
     private collectionGenerator: CollectionMethodGenerator;
 
-    constructor() {
-        super();
+    constructor(capabilities?: GeneratorCapabilities) {
+        this.capabilities = capabilities || GeneratorCapabilitiesFactory.createServiceCapabilities();
         this.crudGenerator = new CrudMethodGenerator();
         this.collectionGenerator = new CollectionMethodGenerator();
+    }
+
+    // Helper methods migrated from OrchestrationBase
+    private getBasePackage(): string {
+        return this.capabilities.packageBuilder.buildCustomPackage('').split('.').slice(0, -1).join('.');
+    }
+
+    private getFrameworkAnnotations(): any {
+        return {
+            service: '@Service',
+            repository: '@Repository',
+            component: '@Component'
+        };
+    }
+
+    private loadTemplate(templatePath: string): string {
+        return templatePath;
+    }
+
+    private renderTemplate(templatePath: string, context: any): string {
+        return this.capabilities.templateRenderer.render(templatePath, context);
     }
     async generateServiceFromDefinition(aggregate: Aggregate, rootEntity: Entity, options: ServiceGenerationOptions): Promise<string> {
         const serviceDefinition = (aggregate as any).serviceDefinition;
@@ -214,7 +236,7 @@ export class ServiceDefinitionGenerator extends OrchestrationBase {
         return this.renderTemplate(template, context);
     }
 
-    protected override resolveJavaType(type: string | any): string {
+    private resolveJavaType(type: string | any): string {
         let typeStr: string;
 
         if (typeof type === 'string') {

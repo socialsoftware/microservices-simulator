@@ -1,6 +1,6 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { TypeResolver } from "../../common/resolvers/type-resolver.js";
-import { OrchestrationBase } from "../../common/orchestration-base.js";
+import { TemplateManager } from "../../../utils/template-manager.js";
 
 export interface RepositoryInterfaceGenerationOptions {
     architecture?: string;
@@ -9,7 +9,30 @@ export interface RepositoryInterfaceGenerationOptions {
     repositoryType?: string;
 }
 
-export class RepositoryInterfaceGenerator extends OrchestrationBase {
+export class RepositoryInterfaceGenerator {
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private getBasePackage(): string {
+        return 'pt.ulisboa.tecnico.socialsoftware';
+    }
+
+    private getFrameworkAnnotations(): any {
+        return {
+            repository: '@Repository',
+            transactional: '@Transactional',
+            service: '@Service',
+            autowired: '@Autowired'
+        };
+    }
+
+    private loadTemplate(templatePath: string): string {
+        const templateManager = TemplateManager.getInstance();
+        return templateManager.loadRawTemplate(templatePath);
+    }
     async generateRepositoryInterface(aggregate: Aggregate, options: RepositoryInterfaceGenerationOptions): Promise<string> {
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
         if (!rootEntity) {
@@ -215,7 +238,7 @@ export class RepositoryInterfaceGenerator extends OrchestrationBase {
         return this.loadTemplate('repository/repository-interface.hbs');
     }
 
-    protected override renderTemplate(template: string, context: any): string {
+    private renderTemplate(template: string, context: any): string {
         let result = template;
 
         result = result.replace(/\{\{packageName\}\}/g, context.packageName);

@@ -1,12 +1,20 @@
 import { Aggregate, Entity } from '../common/parsers/model-parser.js';
 import { CoordinationGenerationOptions } from '../microservices/types.js';
 import { EntityRegistry } from '../common/utils/entity-registry.js';
-import { OrchestrationBase } from '../common/orchestration-base.js';
 
 /**
  * Builds imports for functionalities classes
  */
-export class FunctionalitiesImportsBuilder extends OrchestrationBase {
+export class FunctionalitiesImportsBuilder {
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private getBasePackage(): string {
+        return 'pt.ulisboa.tecnico.socialsoftware';
+    }
 
     /**
      * Build all required imports for a functionalities class

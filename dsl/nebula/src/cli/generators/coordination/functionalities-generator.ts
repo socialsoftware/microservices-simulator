@@ -1,7 +1,7 @@
-import { Aggregate, Entity } from '../common/parsers/model-parser.js';
+import { AggregateExt, EntityExt } from '../../types/ast-extensions.js';
 import { CoordinationGenerationOptions } from '../microservices/types.js';
 import { EntityRegistry } from '../common/utils/entity-registry.js';
-import { OrchestrationBase } from '../common/orchestration-base.js';
+import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../common/generator-capabilities.js';
 import { FunctionalitiesCrudGenerator } from './functionalities-crud-generator.js';
 import { FunctionalitiesCollectionGenerator } from './functionalities-collection-generator.js';
 import { FunctionalitiesImportsBuilder } from './functionalities-imports-builder.js';
@@ -12,11 +12,52 @@ import { TypeResolver } from '../common/resolvers/type-resolver.js';
  * Main orchestrator for functionalities class generation.
  * Delegates to specialized generators for different concerns.
  */
-export class FunctionalitiesGenerator extends OrchestrationBase {
+export class FunctionalitiesGenerator {
+    private capabilities: GeneratorCapabilities;
     private crudGenerator = new FunctionalitiesCrudGenerator();
     private collectionGenerator = new FunctionalitiesCollectionGenerator();
     private importsBuilder = new FunctionalitiesImportsBuilder();
     private methodGenerator = new FunctionalitiesMethodGenerator();
+
+    constructor(capabilities?: GeneratorCapabilities) {
+        this.capabilities = capabilities || GeneratorCapabilitiesFactory.createWebApiCapabilities();
+    }
+
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private getBasePackage(): string {
+        return this.capabilities.packageBuilder.buildCustomPackage('').split('.').slice(0, -1).join('.');
+    }
+
+    private getFrameworkAnnotations(): any {
+        return {
+            service: '@Service',
+            repository: '@Repository',
+            component: '@Component',
+            transactional: '@Transactional',
+            autowired: '@Autowired',
+            inject: '@Inject',
+            controller: '@Controller',
+            restController: '@RestController'
+        };
+    }
+
+    private getTransactionModel(): string {
+        return 'SAGAS';
+    }
+
+    private loadTemplate(templatePath: string): string {
+        // Templates are loaded and rendered by capabilities.templateRenderer
+        return templatePath;
+    }
+
+    private renderTemplate(templatePath: string, context: any): string {
+        return this.capabilities.templateRenderer.render(templatePath, context);
+    }
 
     // Expose crudGenerator methods for use in buildBusinessMethods
     getCrudGenerator() {
@@ -26,7 +67,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     /**
      * Generate a functionalities class for an aggregate
      */
-    async generate(aggregate: Aggregate, rootEntity: Entity, options: CoordinationGenerationOptions, allAggregates?: Aggregate[]): Promise<string> {
+    async generate(aggregate: AggregateExt, rootEntity: EntityExt, options: CoordinationGenerationOptions, allAggregates?: AggregateExt[]): Promise<string> {
         const entityRegistry = allAggregates ?
             EntityRegistry.buildFromAggregates(allAggregates) :
             EntityRegistry.buildFromAggregates([aggregate]);
@@ -39,7 +80,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     /**
      * Build template context for rendering
      */
-    private buildContext(aggregate: Aggregate, rootEntity: Entity, options: CoordinationGenerationOptions, entityRegistry: EntityRegistry): any {
+    private buildContext(aggregate: AggregateExt, rootEntity: EntityExt, options: CoordinationGenerationOptions, entityRegistry: EntityRegistry): any {
         const aggregateName = aggregate.name;
         const capitalizedAggregate = this.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
@@ -77,7 +118,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     /**
      * Build dependencies for the functionalities class
      */
-    private buildDependencies(aggregate: Aggregate, options: CoordinationGenerationOptions, rootEntity: Entity, allAggregates?: Aggregate[]): any[] {
+    private buildDependencies(aggregate: AggregateExt, options: CoordinationGenerationOptions, rootEntity: EntityExt, allAggregates?: AggregateExt[]): any[] {
         const dependencies: any[] = [];
         const aggregateName = aggregate.name;
         const lowerAggregate = aggregateName.toLowerCase();
@@ -113,7 +154,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     /**
      * Build all business methods for the functionalities class
      */
-    private buildBusinessMethods(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, entityRegistry: EntityRegistry, consistencyModels: string[], allAggregates?: Aggregate[]): any[] {
+    private buildBusinessMethods(aggregate: AggregateExt, rootEntity: EntityExt, aggregateName: string, entityRegistry: EntityRegistry, consistencyModels: string[], allAggregates?: AggregateExt[]): any[] {
         const methods: any[] = [];
         const addedMethods = new Set<string>();
         const lowerAggregate = aggregateName.toLowerCase();
@@ -189,7 +230,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
     /**
      * Check if UserService is needed
      */
-    private checkUserServiceUsage(aggregate: Aggregate): boolean {
+    private checkUserServiceUsage(aggregate: AggregateExt): boolean {
         if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints) {
             return aggregate.webApiEndpoints.endpoints.some((endpoint: any) =>
                 endpoint.parameters && endpoint.parameters.some((param: any) =>
@@ -204,7 +245,7 @@ export class FunctionalitiesGenerator extends OrchestrationBase {
      * Build checkInput methods for validating DTOs
      * Generates two overloads: one for ExecutionDto (update) and one for CreateRequestDto (create)
      */
-    private buildCheckInputMethod(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, lowerAggregate: string, projectName: string): string | null {
+    private buildCheckInputMethod(aggregate: AggregateExt, rootEntity: EntityExt, aggregateName: string, lowerAggregate: string, projectName: string): string | null {
         // Check if CRUD is enabled (which means create/update operations will call checkInput)
         const hasCrud = aggregate.generateCrud;
         if (!hasCrud) {

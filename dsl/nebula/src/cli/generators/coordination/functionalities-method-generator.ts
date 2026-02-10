@@ -1,11 +1,15 @@
 import { TypeResolver } from '../common/resolvers/type-resolver.js';
 import { EntityRegistry } from '../common/utils/entity-registry.js';
-import { OrchestrationBase } from '../common/orchestration-base.js';
 
 /**
  * Generates method bodies for functionalities classes
  */
-export class FunctionalitiesMethodGenerator extends OrchestrationBase {
+export class FunctionalitiesMethodGenerator {
+    // Helper method migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
 
     /**
      * Generate web API method body

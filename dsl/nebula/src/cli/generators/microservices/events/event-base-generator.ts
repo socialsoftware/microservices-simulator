@@ -1,8 +1,79 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
-import { OrchestrationBase } from "../../common/orchestration-base.js";
 import { EventGenerationOptions, EventContext } from "./event-types.js";
+import { UnifiedTypeResolver } from "../../common/unified-type-resolver.js";
+import { TemplateManager } from "../../../utils/template-manager.js";
+import Handlebars from "handlebars";
 
-export abstract class EventBaseGenerator extends OrchestrationBase {
+export abstract class EventBaseGenerator {
+    // Helper methods migrated from OrchestrationBase
+    protected capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    protected createAggregateNaming(aggregateName: string) {
+        return {
+            original: aggregateName,
+            capitalized: this.capitalize(aggregateName),
+            lower: aggregateName.toLowerCase()
+        };
+    }
+
+    protected generatePackageName(projectName: string, aggregateName: string, ...subPackages: string[]): string {
+        const basePackage = 'pt.ulisboa.tecnico.socialsoftware';
+        const microservicePackage = `microservices.${aggregateName.toLowerCase()}`;
+        const subPackageString = subPackages.filter(p => p).join('.');
+        return `${basePackage}.${projectName.toLowerCase()}.${microservicePackage}.${subPackageString}`;
+    }
+
+    protected buildStandardImports(projectName: string, aggregateName: string): string[] {
+        return [];
+    }
+
+    protected buildPropertyInfo(entity: Entity): any[] {
+        if (!entity.properties) return [];
+
+        return entity.properties.map(prop => ({
+            name: prop.name,
+            capitalizedName: this.capitalize(prop.name),
+            type: this.resolveJavaType(prop.type),
+            required: !(prop as any).isOptional,
+            isCollection: this.isCollectionType(prop.type),
+            isEntity: this.isEntityType(prop.type)
+        }));
+    }
+
+    protected combineImports(...importArrays: string[][]): string[] {
+        const combined = new Set<string>();
+        importArrays.forEach(arr => arr.forEach(imp => combined.add(imp)));
+        return Array.from(combined).sort();
+    }
+
+    protected resolveJavaType(type: any): string {
+        return UnifiedTypeResolver.resolve(type);
+    }
+
+    protected isCollectionType(type: any): boolean {
+        return UnifiedTypeResolver.isCollectionType(type);
+    }
+
+    protected isEntityType(type: any): boolean {
+        return UnifiedTypeResolver.isEntityType(type);
+    }
+
+    protected getBasePackage(): string {
+        return 'pt.ulisboa.tecnico.socialsoftware';
+    }
+
+    protected loadTemplate(templatePath: string): string {
+        const templateManager = TemplateManager.getInstance();
+        return templateManager.loadRawTemplate(templatePath);
+    }
+
+    protected renderTemplate(template: string, context: any): string {
+        const compiledTemplate = Handlebars.compile(template, { noEscape: true });
+        return compiledTemplate(context);
+    }
     protected createBaseEventContext(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): EventContext {
         const naming = this.createAggregateNaming(aggregate.name);
         const projectName = options?.projectName || 'unknown';

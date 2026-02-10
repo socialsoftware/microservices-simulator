@@ -1,9 +1,57 @@
 import { Aggregate, Entity } from "../../../language/generated/ast.js";
-import { OrchestrationBase } from "../common/orchestration-base.js";
 import { ValidationGenerationOptions, ValidationContext } from "./validation-types.js";
 import { TypeResolver } from "../common/resolvers/type-resolver.js";
+import { UnifiedTypeResolver } from "../common/unified-type-resolver.js";
 
-export abstract class ValidationBaseGenerator extends OrchestrationBase {
+export abstract class ValidationBaseGenerator {
+    // Helper methods migrated from OrchestrationBase
+    protected capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    protected generatePackageName(projectName: string, aggregateName: string, subPackage: string, ...additionalSubPackages: string[]): string {
+        const basePackage = 'pt.ulisboa.tecnico.socialsoftware';
+        const microservicePackage = `microservices.${aggregateName.toLowerCase()}`;
+        const subPackages = [subPackage, ...additionalSubPackages].filter(p => p).join('.');
+        return `${basePackage}.${projectName.toLowerCase()}.${microservicePackage}.${subPackages}`;
+    }
+
+    protected createAggregateNaming(aggregateName: string) {
+        return {
+            original: aggregateName,
+            capitalized: this.capitalize(aggregateName),
+            lower: aggregateName.toLowerCase()
+        };
+    }
+
+    protected combineImports(...importArrays: string[][]): string[] {
+        const combined = new Set<string>();
+        importArrays.forEach(arr => arr.forEach(imp => combined.add(imp)));
+        return Array.from(combined).sort();
+    }
+
+    protected buildStandardImports(projectName: string, aggregateName: string): string[] {
+        return [];
+    }
+
+    protected isCollectionType(type: any): boolean {
+        return UnifiedTypeResolver.isCollectionType(type);
+    }
+
+    protected isEntityType(type: any): boolean {
+        return UnifiedTypeResolver.isEntityType(type);
+    }
+
+    protected resolveJavaType(type: any): string {
+        return TypeResolver.resolveJavaType(type);
+    }
+
+    protected renderTemplate(template: string, context: any): string {
+        const Handlebars = require('handlebars');
+        const compiledTemplate = Handlebars.compile(template, { noEscape: true });
+        return compiledTemplate(context);
+    }
     protected createValidationContext(aggregate: Aggregate, rootEntity: Entity, options: ValidationGenerationOptions, subPackage: string): ValidationContext {
         const naming = this.createAggregateNaming(aggregate.name);
         const projectName = options?.projectName || 'unknown';

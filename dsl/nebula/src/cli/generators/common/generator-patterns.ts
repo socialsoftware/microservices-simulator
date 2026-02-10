@@ -1,5 +1,5 @@
-import { Aggregate } from "../../../language/generated/ast.js";
-import { OrchestrationBase } from "./orchestration-base.js";
+import { Aggregate, Entity } from "../../../language/generated/ast.js";
+import { UnifiedTypeResolver } from "./unified-type-resolver.js";
 
 
 export interface BaseGenerationOptions {
@@ -38,7 +38,168 @@ export interface MultiFileGenerator extends Generator<BaseGenerationOptions, { [
     generateFiles(aggregate: Aggregate, options: BaseGenerationOptions): Promise<{ [key: string]: string }>;
 }
 
-export abstract class SingleFileGeneratorPattern extends OrchestrationBase implements FileGenerator {
+// Base class with helper methods migrated from OrchestrationBase
+abstract class GeneratorPatternBase {
+    protected capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    protected createAggregateNaming(aggregateName: string) {
+        return {
+            original: aggregateName,
+            capitalized: this.capitalize(aggregateName),
+            lower: aggregateName.toLowerCase()
+        };
+    }
+
+    protected generatePackageName(projectName: string, aggregateName: string, ...subPackages: string[]): string {
+        const basePackage = 'pt.ulisboa.tecnico.socialsoftware';
+        const microservicePackage = `microservices.${aggregateName.toLowerCase()}`;
+        const subPackageString = subPackages.filter(p => p).join('.');
+        return `${basePackage}.${projectName.toLowerCase()}.${microservicePackage}.${subPackageString}`;
+    }
+
+    protected buildStandardImports(projectName: string, aggregateName: string): string[] {
+        return [];
+    }
+
+    protected validateAggregate(aggregate: Aggregate): void {
+        if (!aggregate) {
+            throw new Error('Aggregate is required');
+        }
+        if (!aggregate.name) {
+            throw new Error('Aggregate name is required');
+        }
+    }
+
+    protected validateOptions(options: any, requiredFields: string[]): void {
+        if (!options) {
+            throw new Error('Options are required');
+        }
+        for (const field of requiredFields) {
+            if (!options[field]) {
+                throw new Error(`Required option '${field}' is missing`);
+            }
+        }
+    }
+
+    protected findRootEntity(aggregate: Aggregate): Entity {
+        const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+        if (!rootEntity) {
+            throw new Error(`No root entity found in aggregate ${aggregate.name}`);
+        }
+        return rootEntity;
+    }
+
+    protected buildPropertyInfo(entity: Entity): any[] {
+        if (!entity.properties) return [];
+
+        return entity.properties.map(prop => ({
+            name: prop.name,
+            capitalizedName: this.capitalize(prop.name),
+            type: UnifiedTypeResolver.resolve(prop.type),
+            required: !(prop as any).isOptional,
+            isCollection: UnifiedTypeResolver.isCollectionType(prop.type),
+            isEntity: UnifiedTypeResolver.isEntityType(prop.type)
+        }));
+    }
+
+    protected getDatabaseName(projectName: string): string {
+        return projectName ? projectName.toLowerCase() : 'defaultdb';
+    }
+
+    protected getDatabaseConfig(): any {
+        return {
+            type: 'postgresql',
+            port: 5432,
+            host: 'postgres',
+            name: 'defaultdb',
+            username: 'postgres',
+            password: 'password'
+        };
+    }
+
+    protected getDatabaseType(): string {
+        return this.getDatabaseConfig().type;
+    }
+
+    protected getDatabaseDriverClass(): string {
+        const dbType = this.getDatabaseType();
+        switch (dbType) {
+            case 'postgresql':
+                return 'org.postgresql.Driver';
+            case 'mysql':
+                return 'com.mysql.cj.jdbc.Driver';
+            case 'h2':
+                return 'org.h2.Driver';
+            case 'mongodb':
+                return 'mongodb.jdbc.MongoDriver';
+            default:
+                return 'org.postgresql.Driver';
+        }
+    }
+
+    protected getDatabaseDialect(): string {
+        const dbType = this.getDatabaseType();
+        switch (dbType) {
+            case 'postgresql':
+                return 'org.hibernate.dialect.PostgreSQLDialect';
+            case 'mysql':
+                return 'org.hibernate.dialect.MySQLDialect';
+            case 'h2':
+                return 'org.hibernate.dialect.H2Dialect';
+            case 'mongodb':
+                return 'org.hibernate.dialect.MongoDialect';
+            default:
+                return 'org.hibernate.dialect.PostgreSQLDialect';
+        }
+    }
+
+    protected getDatabaseUsername(): string {
+        return this.getDatabaseConfig().username;
+    }
+
+    protected getDatabasePassword(): string {
+        return this.getDatabaseConfig().password;
+    }
+
+    protected getJdbcUrl(projectName?: string): string {
+        const config = this.getDatabaseConfig();
+        const dbName = this.getDatabaseName(projectName || 'defaultdb');
+
+        switch (config.type) {
+            case 'postgresql':
+                return `jdbc:postgresql://${config.host}:${config.port}/${dbName}`;
+            case 'mysql':
+                return `jdbc:mysql://${config.host}:${config.port}/${dbName}`;
+            case 'h2':
+                return `jdbc:h2:mem:${dbName}`;
+            case 'mongodb':
+                return `mongodb://${config.host}:${config.port}/${dbName}`;
+            default:
+                return `jdbc:postgresql://${config.host}:${config.port}/${dbName}`;
+        }
+    }
+
+    protected hasFeature(features: string[], feature: string): boolean {
+        return features ? features.includes(feature) : false;
+    }
+
+    protected writeFile(filePath: string, content: string, description?: string): void {
+        // This method is typically handled by the file writer service
+        // Subclasses should override this if they need direct file writing
+        throw new Error('writeFile must be implemented by subclass or handled by FileWriter service');
+    }
+
+    protected ensureDirectory(dirPath: string): void {
+        // This method is typically handled by the file writer service
+        // Subclasses should override this if they need direct directory creation
+        throw new Error('ensureDirectory must be implemented by subclass or handled by FileWriter service');
+    }
+}
+
+export abstract class SingleFileGeneratorPattern extends GeneratorPatternBase implements FileGenerator {
     abstract generateFile(aggregate: Aggregate, options: BaseGenerationOptions): Promise<string>;
 
     async generate(aggregate: Aggregate, options: BaseGenerationOptions): Promise<string> {
@@ -62,7 +223,7 @@ export abstract class SingleFileGeneratorPattern extends OrchestrationBase imple
     }
 }
 
-export abstract class MultiFileGeneratorPattern extends OrchestrationBase implements MultiFileGenerator {
+export abstract class MultiFileGeneratorPattern extends GeneratorPatternBase implements MultiFileGenerator {
     abstract generateFiles(aggregate: Aggregate, options: BaseGenerationOptions): Promise<{ [key: string]: string }>;
 
     async generate(aggregate: Aggregate, options: BaseGenerationOptions): Promise<{ [key: string]: string }> {
@@ -99,7 +260,7 @@ export abstract class MultiFileGeneratorPattern extends OrchestrationBase implem
     }
 }
 
-export abstract class ConfigurationGeneratorPattern extends OrchestrationBase {
+export abstract class ConfigurationGeneratorPattern extends GeneratorPatternBase {
     protected buildPropertyLine(key: string, value: string | number | boolean): string {
         return `${key}=${value}`;
     }

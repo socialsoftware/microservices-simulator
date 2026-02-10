@@ -1,8 +1,120 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { GeneratorContext, ProjectData, ConfigurationData, MetadataData } from "./template-data-types.js";
-import { OrchestrationBase } from "../orchestration-base.js";
+import { UnifiedTypeResolver } from "../unified-type-resolver.js";
 
-export abstract class TemplateDataBase extends OrchestrationBase {
+export abstract class TemplateDataBase {
+    // Helper methods migrated from OrchestrationBase
+    protected getDatabaseConfig(): any {
+        return {
+            type: 'postgresql',
+            port: 5432,
+            host: 'postgres',
+            name: 'defaultdb',
+            username: 'postgres',
+            password: 'password'
+        };
+    }
+
+    protected getDatabaseType(): string {
+        return this.getDatabaseConfig().type;
+    }
+
+    protected getDatabaseName(projectName?: string): string {
+        return projectName ? projectName.toLowerCase() : this.getDatabaseConfig().name;
+    }
+
+    protected getDatabaseUsername(): string {
+        return this.getDatabaseConfig().username;
+    }
+
+    protected getDatabasePassword(): string {
+        return this.getDatabaseConfig().password;
+    }
+
+    protected getJdbcUrl(projectName?: string): string {
+        const config = this.getDatabaseConfig();
+        const dbName = this.getDatabaseName(projectName);
+
+        switch (config.type) {
+            case 'postgresql':
+                return `jdbc:postgresql://${config.host}:${config.port}/${dbName}`;
+            case 'mysql':
+                return `jdbc:mysql://${config.host}:${config.port}/${dbName}`;
+            case 'h2':
+                return `jdbc:h2:mem:${dbName}`;
+            case 'mongodb':
+                return `mongodb://${config.host}:${config.port}/${dbName}`;
+            default:
+                return `jdbc:postgresql://${config.host}:${config.port}/${dbName}`;
+        }
+    }
+
+    protected getDatabaseDriverClass(): string {
+        const dbType = this.getDatabaseType();
+
+        switch (dbType) {
+            case 'postgresql':
+                return 'org.postgresql.Driver';
+            case 'mysql':
+                return 'com.mysql.cj.jdbc.Driver';
+            case 'h2':
+                return 'org.h2.Driver';
+            case 'mongodb':
+                return 'mongodb.jdbc.MongoDriver';
+            default:
+                return 'org.postgresql.Driver';
+        }
+    }
+
+    protected getDatabaseDialect(): string {
+        const dbType = this.getDatabaseType();
+
+        switch (dbType) {
+            case 'postgresql':
+                return 'org.hibernate.dialect.PostgreSQLDialect';
+            case 'mysql':
+                return 'org.hibernate.dialect.MySQLDialect';
+            case 'h2':
+                return 'org.hibernate.dialect.H2Dialect';
+            case 'mongodb':
+                return 'org.hibernate.dialect.MongoDialect';
+            default:
+                return 'org.hibernate.dialect.PostgreSQLDialect';
+        }
+    }
+
+    protected hasFeature(features: string[], feature: string): boolean {
+        return features.includes(feature);
+    }
+
+    protected hasAnyFeature(features: string[], ...checkFeatures: string[]): boolean {
+        return checkFeatures.some(feature => this.hasFeature(features, feature));
+    }
+
+    protected capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    protected toKebabCase(str: string): string {
+        return str
+            .replace(/([a-z])([A-Z])/g, '$1-$2')
+            .replace(/[\s_]+/g, '-')
+            .toLowerCase();
+    }
+
+    protected resolveJavaType(type: any): string {
+        return UnifiedTypeResolver.resolve(type);
+    }
+
+    protected isCollectionType(type: any): boolean {
+        return UnifiedTypeResolver.isCollectionType(type);
+    }
+
+    protected isEntityType(type: any): boolean {
+        return UnifiedTypeResolver.isEntityType(type);
+    }
+
     protected buildProjectData(context: GeneratorContext): ProjectData {
         return {
             name: context.projectName,

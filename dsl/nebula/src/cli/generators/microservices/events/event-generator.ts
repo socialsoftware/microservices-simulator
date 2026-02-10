@@ -1,13 +1,37 @@
 import { Aggregate, PublishedEvent, SubscribedEvent, EventField } from "../../../../language/generated/ast.js";
-import { OrchestrationBase } from "../../common/orchestration-base.js";
+import { AggregateExt, TypeGuards } from "../../../types/ast-extensions.js";
+import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from "../../common/generator-capabilities.js";
 import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 
-export class EventGenerator extends OrchestrationBase {
+export class EventGenerator {
+    private capabilities: GeneratorCapabilities;
 
-    async generateEvents(aggregate: Aggregate, options: any): Promise<any> {
+    constructor(capabilities?: GeneratorCapabilities) {
+        this.capabilities = capabilities || GeneratorCapabilitiesFactory.createEventCapabilities();
+    }
+
+    // Helper methods migrated from OrchestrationBase
+    private capitalize(str: string): string {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    private getBasePackage(): string {
+        return this.capabilities.packageBuilder.buildCustomPackage('').split('.').slice(0, -1).join('.');
+    }
+
+    private loadTemplate(templatePath: string): string {
+        return templatePath;
+    }
+
+    private renderTemplate(templatePath: string, context: any): string {
+        return this.capabilities.templateRenderer.render(templatePath, context);
+    }
+
+    async generateEvents(aggregate: AggregateExt, options: any): Promise<any> {
         const result: any = {};
 
-        const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+        const rootEntity = aggregate.entities.find((e: any) => TypeGuards.isRootEntity(e as any));
         if (!rootEntity) {
             return result;
         }
@@ -25,13 +49,13 @@ export class EventGenerator extends OrchestrationBase {
         return result;
     }
 
-    generatePublishedEvent(event: PublishedEvent, aggregate: Aggregate, options: { projectName: string }): string {
+    generatePublishedEvent(event: PublishedEvent, aggregate: AggregateExt, options: { projectName: string }): string {
         const context = this.buildPublishedEventContext(event, aggregate, options);
         const template = this.loadTemplate('events/published-event.hbs');
         return this.renderTemplate(template, context);
     }
 
-    generateSubscribedEvent(event: SubscribedEvent, aggregate: Aggregate, options: { projectName: string }): string {
+    generateSubscribedEvent(event: SubscribedEvent, aggregate: AggregateExt, options: { projectName: string }): string {
         const isInterInvariant = (event as any).isInterInvariant;
 
         if (isInterInvariant) {
@@ -45,19 +69,19 @@ export class EventGenerator extends OrchestrationBase {
         }
     }
 
-    generateEventHandler(event: SubscribedEvent, aggregate: Aggregate, options: { projectName: string }): string {
+    generateEventHandler(event: SubscribedEvent, aggregate: AggregateExt, options: { projectName: string }): string {
         const context = this.buildEventHandlerContext(event, aggregate, options);
         const template = this.loadTemplate('events/event-handler.hbs');
         return this.renderTemplate(template, context);
     }
 
-    generateBaseEventHandler(aggregate: Aggregate, options: { projectName: string }): string {
+    generateBaseEventHandler(aggregate: AggregateExt, options: { projectName: string }): string {
         const context = this.buildBaseEventHandlerContext(aggregate, options);
         const template = this.loadTemplate('events/base-event-handler.hbs');
         return this.renderTemplate(template, context);
     }
 
-    private buildPublishedEventContext(event: PublishedEvent, aggregate: Aggregate, options: { projectName: string }): any {
+    private buildPublishedEventContext(event: PublishedEvent, aggregate: AggregateExt, options: { projectName: string }): any {
         const eventName = event.name;
         const aggregateName = aggregate.name.toLowerCase();
 
@@ -77,7 +101,7 @@ export class EventGenerator extends OrchestrationBase {
         };
     }
 
-    private buildSubscribedEventContext(event: SubscribedEvent, aggregate: Aggregate, options: any): any {
+    private buildSubscribedEventContext(event: SubscribedEvent, aggregate: AggregateExt, options: any): any {
         const aggregateName = aggregate.name.toLowerCase();
         const eventTypeName = (event as any).eventType || 'UnknownEvent';
 
@@ -169,7 +193,7 @@ export class EventGenerator extends OrchestrationBase {
         };
     }
 
-    private buildInterInvariantSubscriptionContext(event: SubscribedEvent, aggregate: Aggregate, options: any): any {
+    private buildInterInvariantSubscriptionContext(event: SubscribedEvent, aggregate: AggregateExt, options: any): any {
         const aggregateName = aggregate.name;
         const eventTypeName = (event as any).eventType || 'UnknownEvent';
         const eventBaseName = eventTypeName.replace(/Event$/, '');
@@ -247,7 +271,7 @@ export class EventGenerator extends OrchestrationBase {
         };
     }
 
-    private extractEntityReferenceFromCondition(event: SubscribedEvent, aggregate: Aggregate): { fieldName: string, entityTypeName: string } | null {
+    private extractEntityReferenceFromCondition(event: SubscribedEvent, aggregate: AggregateExt): { fieldName: string, entityTypeName: string } | null {
         const conditions = event.conditions || [];
         if (conditions.length === 0) {
             return null;
@@ -477,13 +501,13 @@ export class EventGenerator extends OrchestrationBase {
         return Array.from(imports).join('\n');
     }
 
-    generateCustomEventHandling(aggregate: Aggregate, options: { projectName: string }): string {
+    generateCustomEventHandling(aggregate: AggregateExt, options: { projectName: string }): string {
         const context = this.buildCustomEventHandlingContext(aggregate, options);
         const template = this.loadTemplate('events/event-handling.hbs');
         return this.renderTemplate(template, context);
     }
 
-    private buildCustomEventHandlingContext(aggregate: Aggregate, options: any): any {
+    private buildCustomEventHandlingContext(aggregate: AggregateExt, options: any): any {
         const aggregateName = aggregate.name;
         const lowerAggregateName = aggregateName.toLowerCase();
 
@@ -554,7 +578,7 @@ export class EventGenerator extends OrchestrationBase {
         };
     }
 
-    private buildEventHandlerContext(event: SubscribedEvent, aggregate: Aggregate, options: any): any {
+    private buildEventHandlerContext(event: SubscribedEvent, aggregate: AggregateExt, options: any): any {
         const aggregateName = aggregate.name;
         const lowerAggregateName = aggregateName.toLowerCase();
         const eventTypeName = (event as any).eventType || 'UnknownEvent';
@@ -605,7 +629,7 @@ export class EventGenerator extends OrchestrationBase {
         };
     }
 
-    private collectSubscribedEvents(aggregate: Aggregate): any[] {
+    private collectSubscribedEvents(aggregate: AggregateExt): any[] {
         const direct = aggregate.events?.subscribedEvents || [];
         const interInvariants = (aggregate.events as any)?.interInvariants || [];
         const interSubs = interInvariants.flatMap((ii: any) =>
@@ -629,7 +653,7 @@ export class EventGenerator extends OrchestrationBase {
      * Find which aggregate publishes a given event by checking all aggregates' published events.
      * Handles both custom published events and auto-generated CRUD events.
      */
-    private findEventPublisher(eventTypeName: string, allAggregates: Aggregate[]): string | null {
+    private findEventPublisher(eventTypeName: string, allAggregates: AggregateExt[]): string | null {
         for (const agg of allAggregates) {
             const aggName = agg.name;
 
@@ -671,7 +695,7 @@ export class EventGenerator extends OrchestrationBase {
         return null;  // Not found in any aggregate
     }
 
-    private buildBaseEventHandlerContext(aggregate: Aggregate, options: { projectName: string }): any {
+    private buildBaseEventHandlerContext(aggregate: AggregateExt, options: { projectName: string }): any {
         const aggregateName = aggregate.name;
         const lowerAggregateName = aggregateName.toLowerCase();
 
