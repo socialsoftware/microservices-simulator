@@ -1,5 +1,6 @@
 import type { Entity, Aggregate } from '../../../language/generated/ast.js';
 import { TypeResolver } from '../common/resolvers/type-resolver.js';
+import { SagaGenerationOptions } from './saga-generator.js';
 
 export interface CrossAggregateReference {
     entityType: string;
@@ -16,12 +17,15 @@ export class SagaCrudGenerator {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-    private getBasePackage(): string {
-        return 'pt.ulisboa.tecnico.socialsoftware';
+    private getBasePackage(options: SagaGenerationOptions): string {
+        if (!options.basePackage) {
+            throw new Error('basePackage is required in SagaGenerationOptions');
+        }
+        return options.basePackage;
     }
-    generateCrudSagaFunctionalities(aggregate: any, options: { projectName: string }, packageName: string, allAggregates?: Aggregate[]): Record<string, string> {
+    generateCrudSagaFunctionalities(aggregate: any, options: SagaGenerationOptions, packageName: string, allAggregates?: Aggregate[]): Record<string, string> {
         const outputs: Record<string, string> = {};
-        const basePackage = this.getBasePackage();
+        const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const capitalizedAggregate = this.capitalize(aggregate.name);
         const dtoType = `${capitalizedAggregate}Dto`;

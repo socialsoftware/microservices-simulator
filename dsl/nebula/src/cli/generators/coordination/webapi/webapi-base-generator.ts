@@ -1,5 +1,6 @@
 import { UnifiedTypeResolver } from "../../common/unified-type-resolver.js";
 import { TemplateManager } from "../../../utils/template-manager.js";
+import { WebApiGenerationOptions } from "../../microservices/types.js";
 import Handlebars from "handlebars";
 
 export abstract class WebApiBaseGenerator {
@@ -9,8 +10,11 @@ export abstract class WebApiBaseGenerator {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-    protected getBasePackage(): string {
-        return 'pt.ulisboa.tecnico.socialsoftware';
+    protected getBasePackage(options: WebApiGenerationOptions): string {
+        if (!options.basePackage) {
+            throw new Error('basePackage is required in WebApiGenerationOptions');
+        }
+        return options.basePackage;
     }
 
     protected loadTemplate(templatePath: string): string {

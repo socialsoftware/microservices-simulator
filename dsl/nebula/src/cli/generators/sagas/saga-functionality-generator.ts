@@ -5,6 +5,7 @@ import { SagaWorkflowGenerator } from './saga-workflow-generator.js';
 import { SagaEventProcessingGenerator } from './saga-event-processing-generator.js';
 import { SagaHelpers } from './saga-helpers.js';
 import type { Aggregate } from '../../../language/generated/ast.js';
+import { SagaGenerationOptions } from './saga-generator.js';
 
 /**
  * Main orchestrator for saga functionality generation.
@@ -17,8 +18,11 @@ export class SagaFunctionalityGenerator {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-    private getBasePackage(): string {
-        return 'pt.ulisboa.tecnico.socialsoftware';
+    private getBasePackage(options: SagaGenerationOptions): string {
+        if (!options.basePackage) {
+            throw new Error('basePackage is required in SagaGenerationOptions');
+        }
+        return options.basePackage;
     }
 
     private loadTemplate(templatePath: string): string {
@@ -41,9 +45,9 @@ export class SagaFunctionalityGenerator {
     /**
      * Generate saga functionalities for an aggregate
      */
-    generateForAggregate(aggregate: any, options: { projectName: string }, allAggregates?: Aggregate[]): Record<string, string> {
+    generateForAggregate(aggregate: any, options: SagaGenerationOptions, allAggregates?: Aggregate[]): Record<string, string> {
         const outputs: Record<string, string> = {};
-        const basePackage = this.getBasePackage();
+        const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const packageName = `${basePackage}.${options.projectName.toLowerCase()}.sagas.coordination.${lowerAggregate}`;
 
@@ -88,7 +92,7 @@ export class SagaFunctionalityGenerator {
      */
     private generateEndpointSagaFunctionalities(
         aggregate: any,
-        options: { projectName: string },
+        options: SagaGenerationOptions,
         packageName: string,
         allWorkflows: any[],
         outputs: Record<string, string>
@@ -125,10 +129,10 @@ export class SagaFunctionalityGenerator {
     private generateBasicEndpointSaga(
         aggregate: any,
         endpoint: any,
-        options: { projectName: string },
+        options: SagaGenerationOptions,
         packageName: string
     ): string {
-        const basePackage = this.getBasePackage();
+        const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const methodName = endpoint.methodName;
         const className = `${this.capitalize(methodName)}FunctionalitySagas`;
@@ -179,11 +183,11 @@ export class SagaFunctionalityGenerator {
      */
     private generateFunctionalityMethodSagas(
         aggregate: any,
-        options: { projectName: string },
+        options: SagaGenerationOptions,
         packageName: string,
         outputs: Record<string, string>
     ): void {
-        const basePackage = this.getBasePackage();
+        const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const functionalityBlock = (aggregate as any).functionalities;
         const functionalityMethods = functionalityBlock?.functionalityMethods || [];

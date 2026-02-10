@@ -19,8 +19,7 @@ export abstract class EventBaseGenerator {
         };
     }
 
-    protected generatePackageName(projectName: string, aggregateName: string, ...subPackages: string[]): string {
-        const basePackage = 'pt.ulisboa.tecnico.socialsoftware';
+    protected generatePackageName(basePackage: string, projectName: string, aggregateName: string, ...subPackages: string[]): string {
         const microservicePackage = `microservices.${aggregateName.toLowerCase()}`;
         const subPackageString = subPackages.filter(p => p).join('.');
         return `${basePackage}.${projectName.toLowerCase()}.${microservicePackage}.${subPackageString}`;
@@ -61,8 +60,11 @@ export abstract class EventBaseGenerator {
         return UnifiedTypeResolver.isEntityType(type);
     }
 
-    protected getBasePackage(): string {
-        return 'pt.ulisboa.tecnico.socialsoftware';
+    protected getBasePackage(options: EventGenerationOptions): string {
+        if (!options.basePackage) {
+            throw new Error('basePackage is required in EventGenerationOptions');
+        }
+        return options.basePackage;
     }
 
     protected loadTemplate(templatePath: string): string {
@@ -77,7 +79,8 @@ export abstract class EventBaseGenerator {
     protected createBaseEventContext(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): EventContext {
         const naming = this.createAggregateNaming(aggregate.name);
         const projectName = options?.projectName || 'unknown';
-        const packageName = this.generatePackageName(projectName, aggregate.name, 'events', 'publish');
+        const basePackage = this.getBasePackage(options);
+        const packageName = this.generatePackageName(basePackage, projectName, aggregate.name, 'events', 'publish');
 
         return {
             aggregateName: naming.original,
@@ -86,6 +89,7 @@ export abstract class EventBaseGenerator {
             packageName,
             rootEntity,
             projectName,
+            basePackage,
             imports: this.buildStandardImports(projectName, aggregate.name)
         };
     }

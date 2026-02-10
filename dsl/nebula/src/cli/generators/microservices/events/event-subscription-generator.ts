@@ -58,7 +58,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
         });
 
         const projectName = (this as any).projectName?.toLowerCase() || 'unknown';
-        const basePackage = (this as any).getBasePackage?.() || 'pt.ulisboa.tecnico.socialsoftware';
+        const basePackage = this.getBasePackage(options);
 
         return simpleSubscriptions.map((sub: any) => {
             const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
@@ -141,7 +141,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
         const baseImports = this.buildBaseImports(aggregate, options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const projectName = options?.projectName?.toLowerCase() || 'unknown';
-        const basePackage = (this as any).getBasePackage?.() || 'pt.ulisboa.tecnico.socialsoftware';
+        const basePackage = this.getBasePackage(options);
 
         const imports = [
             ...baseImports,
@@ -188,7 +188,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
         console.log(`DEBUG: Found ${events.interInvariants.length} inter-invariants for ${aggregateName}`);
 
         const projectName = (this as any).projectName?.toLowerCase() || 'unknown';
-        const basePackage = (this as any).getBasePackage?.() || 'pt.ulisboa.tecnico.socialsoftware';
+        const basePackage = this.getBasePackage(options);
         const entities = getEntities(aggregate);
 
         const subscriptions: any[] = [];
@@ -301,7 +301,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
 
     private buildInterInvariantSubscriptionsImports(aggregate: Aggregate, options: EventGenerationOptions, eventSubscriptions: any[]): string[] {
         const baseImports = this.buildBaseImports(aggregate, options);
-        const basePackage = (this as any).getBasePackage?.() || 'pt.ulisboa.tecnico.socialsoftware';
+        const basePackage = this.getBasePackage(options);
 
         const imports = [
             ...baseImports,

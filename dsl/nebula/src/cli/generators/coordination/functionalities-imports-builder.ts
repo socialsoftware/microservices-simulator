@@ -12,8 +12,11 @@ export class FunctionalitiesImportsBuilder {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-    private getBasePackage(): string {
-        return 'pt.ulisboa.tecnico.socialsoftware';
+    private getBasePackage(options: CoordinationGenerationOptions): string {
+        if (!options.basePackage) {
+            throw new Error('basePackage is required in CoordinationGenerationOptions');
+        }
+        return options.basePackage;
     }
 
     /**
@@ -29,7 +32,7 @@ export class FunctionalitiesImportsBuilder {
     ): string[] {
         const imports: string[] = [];
         const projectName = options.projectName.toLowerCase();
-        const basePackage = this.getBasePackage();
+        const basePackage = this.getBasePackage(options);
 
         // Base imports
         imports.push('import java.util.Arrays;');
@@ -52,7 +55,7 @@ export class FunctionalitiesImportsBuilder {
         });
 
         // DTO imports
-        this.addDtoImports(aggregate, imports, projectName, entityRegistry, businessMethods);
+        this.addDtoImports(aggregate, imports, projectName, entityRegistry, businessMethods, options);
 
         // List import if needed
         const hasListReturnType = businessMethods.some(method =>
@@ -105,7 +108,7 @@ export class FunctionalitiesImportsBuilder {
     private resolveEnumImportPath(enumType: string, options: CoordinationGenerationOptions): string | null {
         if (!enumType) return null;
 
-        const basePackage = this.getBasePackage();
+        const basePackage = this.getBasePackage(options);
         const projectName = options.projectName.toLowerCase();
         return `${basePackage}.${projectName}.shared.enums.${enumType}`;
     }
@@ -113,7 +116,7 @@ export class FunctionalitiesImportsBuilder {
     /**
      * Add DTO imports based on business methods
      */
-    private addDtoImports(aggregate: Aggregate, imports: string[], projectName: string, entityRegistry: EntityRegistry, businessMethods?: any[]): void {
+    private addDtoImports(aggregate: Aggregate, imports: string[], projectName: string, entityRegistry: EntityRegistry, businessMethods: any[] | undefined, options: CoordinationGenerationOptions): void {
         const usedDtoTypes = new Set<string>();
         const usedRequestDtoTypes = new Set<string>();
 
@@ -145,7 +148,7 @@ export class FunctionalitiesImportsBuilder {
             }
         }
 
-        const basePackage = this.getBasePackage();
+        const basePackage = this.getBasePackage(options);
         const dtoPackage = `${basePackage}.${projectName}.shared.dtos`;
         usedDtoTypes.forEach(dtoType => {
             imports.push(`import ${dtoPackage}.${dtoType};`);

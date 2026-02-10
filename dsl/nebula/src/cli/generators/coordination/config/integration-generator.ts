@@ -4,6 +4,7 @@ import { TemplateManager } from "../../../utils/template-manager.js";
 export interface IntegrationGenerationOptions {
     architecture?: string;
     projectName: string;
+    basePackage: string;
 }
 
 export class IntegrationGenerator {
@@ -13,8 +14,11 @@ export class IntegrationGenerator {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-    private getBasePackage(): string {
-        return 'pt.ulisboa.tecnico.socialsoftware';
+    private getBasePackage(options: IntegrationGenerationOptions): string {
+        if (!options.basePackage) {
+            throw new Error('basePackage is required in IntegrationGenerationOptions');
+        }
+        return options.basePackage;
     }
 
     private loadTemplate(templatePath: string): string {
@@ -77,8 +81,8 @@ export class IntegrationGenerator {
             lowerAggregate,
             projectName: options.projectName,
             lowerProjectName: options.projectName.toLowerCase(),
-            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}`,
-            basePackage: this.getBasePackage(),
+            packageName: `${this.getBasePackage(options)}.${options.projectName.toLowerCase()}`,
+            basePackage: this.getBasePackage(options),
             imports,
             // Event service is always needed for microservices simulator
             hasEventService: true,
@@ -105,8 +109,8 @@ export class IntegrationGenerator {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
             projectName: options.projectName,
-            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.configuration`,
-            basePackage: this.getBasePackage(),
+            packageName: `${this.getBasePackage(options)}.${options.projectName.toLowerCase()}.configuration`,
+            basePackage: this.getBasePackage(options),
             imports,
             beans,
             hasSagas: options.architecture === 'causal-saga',
@@ -143,8 +147,8 @@ export class IntegrationGenerator {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
             projectName: options.projectName,
-            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.configuration`,
-            basePackage: this.getBasePackage(),
+            packageName: `${this.getBasePackage(options)}.${options.projectName.toLowerCase()}.configuration`,
+            basePackage: this.getBasePackage(options),
             profiles,
             imports,
             hasSagas: options.architecture === 'causal-saga'
@@ -169,7 +173,7 @@ export class IntegrationGenerator {
         imports.push('import org.springframework.scheduling.annotation.EnableScheduling;');
 
         // Always include EventService for microservices simulator
-        imports.push(`import ${this.getBasePackage()}.ms.domain.event.EventService;`);
+        imports.push(`import ${this.getBasePackage(options)}.ms.domain.event.EventService;`);
 
         return imports;
     }
@@ -183,8 +187,8 @@ export class IntegrationGenerator {
         imports.push('import org.springframework.beans.factory.annotation.Autowired;');
 
         if (options.architecture === 'causal-saga') {
-            imports.push(`import ${this.getBasePackage()}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
-            imports.push(`import ${this.getBasePackage()}.ms.causal.unitOfWork.CausalUnitOfWorkService;`);
+            imports.push(`import ${this.getBasePackage(options)}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
+            imports.push(`import ${this.getBasePackage(options)}.ms.causal.unitOfWork.CausalUnitOfWorkService;`);
         }
 
         return imports;

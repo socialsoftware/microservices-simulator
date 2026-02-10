@@ -4,12 +4,12 @@ import { ConfigContext } from './config-types.js';
 
 export class LoggingConfigGenerator extends ConfigBaseGenerator {
     async generateLoggingProperties(context: ConfigContext): Promise<void> {
-        const content = this.getLoggingPropertiesTemplate();
+        const content = this.getLoggingPropertiesTemplate(context);
         const filePath = path.join(context.resourcesDir, 'logback-spring.xml');
         await this.writeFile(filePath, content, 'logback-spring.xml');
     }
 
-    private getLoggingPropertiesTemplate(): string {
+    private getLoggingPropertiesTemplate(context: ConfigContext): string {
         return `<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <!-- Console Appender -->
@@ -55,7 +55,7 @@ export class LoggingConfigGenerator extends ConfigBaseGenerator {
     <logger name="com.zaxxer.hikari" level="INFO"/>
 
     <!-- Application-specific Logging -->
-    <logger name="pt.ulisboa.tecnico.socialsoftware" level="DEBUG"/>
+    <logger name="${context.basePackage}" level="DEBUG"/>
 
     <!-- Saga and Event Processing Logging -->
     <logger name="saga" level="DEBUG"/>

@@ -72,6 +72,7 @@ export class UnifiedEventFeature {
                         rootEntity,
                         {
                             projectName: options.projectName || 'unknown',
+                            basePackage: options.basePackage,
                             allAggregates
                         }
                     );
@@ -325,6 +326,7 @@ export class UnifiedEventFeature {
             rootEntity,
             {
                 projectName: options.projectName || 'unknown',
+                basePackage: options.basePackage,
                 allAggregates
             }
         );

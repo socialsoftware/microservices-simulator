@@ -1,4 +1,5 @@
 import { SagaHelpers } from './saga-helpers.js';
+import { SagaGenerationOptions } from './saga-generator.js';
 
 /**
  * Generates saga workflow functionalities from DSL definitions
@@ -10,16 +11,19 @@ export class SagaWorkflowGenerator {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-    private getBasePackage(): string {
-        return 'pt.ulisboa.tecnico.socialsoftware';
+    private getBasePackage(options: SagaGenerationOptions): string {
+        if (!options.basePackage) {
+            throw new Error('basePackage is required in SagaGenerationOptions');
+        }
+        return options.basePackage;
     }
     private helpers = new SagaHelpers();
 
     /**
      * Generate a workflow functionality class from a workflow definition
      */
-    generateWorkflowFunctionality(aggregate: any, workflow: any, options: { projectName: string }, packageName: string): string {
-        const basePackage = this.getBasePackage();
+    generateWorkflowFunctionality(aggregate: any, workflow: any, options: SagaGenerationOptions, packageName: string): string {
+        const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const capitalizedAggregate = this.capitalize(aggregate.name);
         const className = `${this.capitalize(workflow.name)}FunctionalitySagas`;

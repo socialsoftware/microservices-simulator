@@ -28,7 +28,7 @@ export class CoordinationFeature {
             try {
                 const { SagaFunctionalityGenerator } = await import('../generators/sagas/saga-functionality-generator.js');
                 const sagaGen = new SagaFunctionalityGenerator();
-                const sagaFiles = sagaGen.generateForAggregate(aggregate, { projectName: options.projectName! });
+                const sagaFiles = sagaGen.generateForAggregate(aggregate, { projectName: options.projectName!, basePackage: options.basePackage });
                 const sagaDir = path.join(paths.javaPath, 'sagas', 'coordination', aggregate.name.toLowerCase());
                 await fs.mkdir(sagaDir, { recursive: true });
                 for (const [fileName, content] of Object.entries(sagaFiles)) {

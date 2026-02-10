@@ -9,6 +9,7 @@ export type TemplateGenerateOptions = {
 export type GenerationOptions = {
     projectName: string;
     outputPath: string;
+    basePackage: string;
     consistencyModels?: string[];
     allModels?: any[];
     dtoSchemaRegistry?: DtoSchemaRegistry;

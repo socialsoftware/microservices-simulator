@@ -97,6 +97,7 @@ export class CodeGenerator {
             const options: GenerationOptions = {
                 projectName: config.projectName,
                 outputPath: paths.projectPath,
+                basePackage: config.basePackage || getGlobalConfig().getBasePackage(),
                 consistencyModels: config.consistencyModels,
                 allModels: models,
                 dtoSchemaRegistry
@@ -143,7 +144,8 @@ export class CodeGenerator {
 
             const projectOptions: GenerationOptions = {
                 projectName: config.projectName,
-                outputPath: paths.projectPath
+                outputPath: paths.projectPath,
+                basePackage: options.basePackage
             };
 
             // Application integration and exception handling
@@ -184,6 +186,7 @@ export class CodeGenerator {
             try {
                 await generators.configurationGenerator.generate({
                     projectName: config.projectName,
+                    basePackage: config.basePackage || getGlobalConfig().getBasePackage(),
                     outputDirectory: paths.projectPath
                 }, {
                     projectName: config.projectName

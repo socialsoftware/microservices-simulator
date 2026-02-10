@@ -1,5 +1,6 @@
 import { Aggregate, Entity } from '../../../language/generated/ast.js';
 import { CollectionMetadata, CollectionMetadataBuilder } from '../common/utils/collection-metadata-builder.js';
+import { SagaGenerationOptions } from './saga-generator.js';
 
 export class SagaCollectionGenerator {
     // Helper methods migrated from OrchestrationBase
@@ -8,8 +9,11 @@ export class SagaCollectionGenerator {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-    private getBasePackage(): string {
-        return 'pt.ulisboa.tecnico.socialsoftware';
+    private getBasePackage(options: SagaGenerationOptions): string {
+        if (!options.basePackage) {
+            throw new Error('basePackage is required in SagaGenerationOptions');
+        }
+        return options.basePackage;
     }
     /**
      * Generate all saga workflow classes for collection operations
@@ -17,7 +21,7 @@ export class SagaCollectionGenerator {
     generateCollectionSagaFunctionalities(
         aggregate: Aggregate,
         rootEntity: Entity,
-        options: { projectName: string },
+        options: SagaGenerationOptions,
         packageName: string
     ): Record<string, string> {
         const outputs: Record<string, string> = {};
@@ -44,7 +48,7 @@ export class SagaCollectionGenerator {
         collection: CollectionMetadata,
         aggregate: Aggregate,
         rootEntity: Entity,
-        options: { projectName: string },
+        options: SagaGenerationOptions,
         packageName: string
     ): Record<string, string> {
         const outputs: Record<string, string> = {};
@@ -141,10 +145,10 @@ export class SagaCollectionGenerator {
         aggregateName: string,
         lowerAggregate: string,
         collection: CollectionMetadata,
-        options: { projectName: string },
+        options: SagaGenerationOptions,
         packageName: string
     ): string {
-        const basePackage = this.getBasePackage();
+        const basePackage = this.getBasePackage(options);
         const className = `${this.capitalize(spec.name)}FunctionalitySagas`;
         const capitalizedAggregate = this.capitalize(aggregateName);
 

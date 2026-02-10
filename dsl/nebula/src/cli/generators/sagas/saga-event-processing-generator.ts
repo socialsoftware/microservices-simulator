@@ -1,6 +1,7 @@
 import { initializeAggregateProperties, getWorkflows } from '../../utils/aggregate-helpers.js';
 import { SagaHelpers } from './saga-helpers.js';
 import { SagaWorkflowGenerator } from './saga-workflow-generator.js';
+import { SagaGenerationOptions } from './saga-generator.js';
 
 /**
  * Generates saga functionality classes for event processing workflows
@@ -12,8 +13,11 @@ export class SagaEventProcessingGenerator {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-    private getBasePackage(): string {
-        return 'pt.ulisboa.tecnico.socialsoftware';
+    private getBasePackage(options: SagaGenerationOptions): string {
+        if (!options.basePackage) {
+            throw new Error('basePackage is required in SagaGenerationOptions');
+        }
+        return options.basePackage;
     }
     private helpers = new SagaHelpers();
     private workflowGenerator = new SagaWorkflowGenerator();
@@ -21,11 +25,11 @@ export class SagaEventProcessingGenerator {
     /**
      * Generate saga functionalities for event processing
      */
-    generateEventProcessingSagaFunctionalities(aggregate: any, options: { projectName: string }, outputs: Record<string, string>): void {
+    generateEventProcessingSagaFunctionalities(aggregate: any, options: SagaGenerationOptions, outputs: Record<string, string>): void {
         // Ensure aggregate properties are initialized
         initializeAggregateProperties(aggregate);
 
-        const basePackage = this.getBasePackage();
+        const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const packageName = `${basePackage}.${options.projectName.toLowerCase()}.sagas.coordination.${lowerAggregate}`;
         const aggregateName = aggregate.name;
@@ -93,9 +97,9 @@ export class SagaEventProcessingGenerator {
         eventTypeName: string,
         className: string,
         packageName: string,
-        options: { projectName: string }
+        options: SagaGenerationOptions
     ): string {
-        const basePackage = this.getBasePackage();
+        const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const capitalizedAggregate = this.capitalize(aggregate.name);
 

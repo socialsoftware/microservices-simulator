@@ -3,6 +3,7 @@ import { Entity, Aggregate } from "../../../../language/generated/ast.js";
 export interface EventGenerationOptions {
     architecture?: string;
     projectName: string;
+    basePackage: string;
     allAggregates?: Aggregate[];
 }
 
@@ -13,6 +14,7 @@ export interface EventContext {
     packageName: string;
     rootEntity: Entity;
     projectName: string;
+    basePackage: string;
     imports: string[];
 }
 

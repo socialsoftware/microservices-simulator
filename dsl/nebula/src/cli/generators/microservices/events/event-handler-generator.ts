@@ -52,7 +52,7 @@ export class EventHandlerGenerator extends EventBaseGenerator {
         });
 
         const projectName = (this as any).projectName?.toLowerCase() || 'unknown';
-        const basePackage = (this as any).getBasePackage?.() || 'pt.ulisboa.tecnico.socialsoftware';
+        const basePackage = this.getBasePackage(options);
 
         return simpleSubscriptions.map((sub: any) => {
             const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
@@ -109,7 +109,7 @@ export class EventHandlerGenerator extends EventBaseGenerator {
         const baseImports = this.buildBaseImports(aggregate, options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const projectName = options?.projectName?.toLowerCase() || 'unknown';
-        const basePackage = (this as any).getBasePackage?.() || 'pt.ulisboa.tecnico.socialsoftware';
+        const basePackage = this.getBasePackage(options);
 
         const imports = [
             ...baseImports,

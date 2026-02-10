@@ -386,6 +386,7 @@ export class PublishedEventGenerator extends EventBaseGenerator {
             context.event.properties.forEach((prop: any) => {
                 if (prop.isEntity && prop.type) {
                     const entityPackage = this.generatePackageName(
+                        context.basePackage || 'unknown',
                         context.projectName || 'unknown',
                         prop.referencedAggregateName || context.aggregateName || 'unknown',
                         'shared',
@@ -397,7 +398,7 @@ export class PublishedEventGenerator extends EventBaseGenerator {
                         addedImports.add(importStmt);
                     }
                 } else if (prop.isEnum && prop.enumType) {
-                    const basePackage = this.getBasePackage();
+                    const basePackage = context.basePackage || 'unknown';
                     const enumPackage = `${basePackage}.${(context.projectName || 'unknown').toLowerCase()}.shared.enums`;
                     const importStmt = `import ${enumPackage}.${prop.enumType};`;
                     if (!addedImports.has(importStmt)) {

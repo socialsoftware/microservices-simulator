@@ -6,6 +6,7 @@ import { SpringDataQueryParser } from "./spring-data-query-parser.js";
 export interface RepositoryInterfaceGenerationOptions {
     architecture?: string;
     projectName: string;
+    basePackage: string;
     repositoryType?: string;
 }
 
@@ -16,8 +17,11 @@ export class RepositoryInterfaceGenerator {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-    private getBasePackage(): string {
-        return 'pt.ulisboa.tecnico.socialsoftware';
+    private getBasePackage(options: RepositoryInterfaceGenerationOptions): string {
+        if (!options.basePackage) {
+            throw new Error('basePackage is required in RepositoryInterfaceGenerationOptions');
+        }
+        return options.basePackage;
     }
 
     private getFrameworkAnnotations(): any {
@@ -59,7 +63,7 @@ export class RepositoryInterfaceGenerator {
         return {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
-            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate`,
+            packageName: `${this.getBasePackage(options)}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate`,
             annotations: this.getFrameworkAnnotations(),
             idType,
             repositoryType,
