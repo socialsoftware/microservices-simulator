@@ -99,13 +99,14 @@ export class TemplateDataExtractor extends TemplateDataBase {
     }
 
     getFeatureTemplateData(aggregate: Aggregate, feature: string, context: GeneratorContext): TemplateData | null {
-        if (!this.hasFeature(context.features, feature)) {
-            return null;
-        }
+        // All features are always enabled
+        // if (!this.hasFeature(context.features, feature)) {
+        //     return null;
+        // }
 
         const featureContext: GeneratorContext = {
             ...context,
-            features: [feature]
+            features: []  // Features deprecated
         };
 
         const options = this.getFeatureExtractionOptions(feature);

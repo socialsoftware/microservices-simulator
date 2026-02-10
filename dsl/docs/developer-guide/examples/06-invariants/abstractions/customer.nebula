@@ -1,0 +1,43 @@
+// Example 06 - Business Rules Invariants
+// Customer with validation rules enforced at aggregate level
+
+Aggregate Customer {
+    @GenerateCrud;
+
+    Root Entity Customer {
+        String name;
+        String email;
+        Boolean active;
+        Integer loyaltyPoints;
+        LocalDateTime memberSince;
+        LocalDateTime lastPurchase;
+
+        // Business rules enforced automatically
+        invariants {
+            // Name cannot be blank
+            check nameNotBlank {
+                name.length() > 0;
+            }
+
+            // Email cannot be blank
+            check emailNotBlank {
+                email.length() > 0;
+            }
+
+            // Loyalty points cannot be negative
+            check pointsNotNegative {
+                loyaltyPoints >= 0;
+            }
+
+            // Last purchase must be after member since date
+            check purchaseAfterMembership {
+                lastPurchase.isAfter(memberSince);
+            }
+
+            // Active customers must have email
+            check activeCustomerHasEmail {
+                !active || email.length() > 0;
+            }
+        }
+    }
+}

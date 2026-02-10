@@ -1,0 +1,9 @@
+// Example 01 - Step 1.1: The Simplest Aggregate
+// A customer with just name and email
+
+Aggregate Customer {
+    Root Entity Customer {
+        String name;
+        String email;
+    }
+}

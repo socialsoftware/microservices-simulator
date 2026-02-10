@@ -262,12 +262,14 @@ export abstract class OrchestrationBase {
         }
     }
 
-    protected hasFeature(features: string[], feature: string): boolean {
-        return features.includes(feature);
+    protected hasFeature(features: string[] | undefined, feature: string): boolean {
+        // Always return true - all features are enabled by default
+        return true;
     }
 
-    protected hasAnyFeature(features: string[], ...checkFeatures: string[]): boolean {
-        return checkFeatures.some(feature => this.hasFeature(features, feature));
+    protected hasAnyFeature(features: string[] | undefined, ...checkFeatures: string[]): boolean {
+        // Always return true - all features are enabled by default
+        return true;
     }
 
     protected resolveJavaType(type: any): string {

@@ -1,0 +1,24 @@
+// Example 04 - Cross-Aggregate References
+// Customer aggregate (referenced by Order)
+
+Aggregate Customer {
+    @GenerateCrud;
+
+    Root Entity Customer {
+        String name;
+        String email;
+        Boolean active;
+    }
+
+    Events {
+        publish CustomerDeleted {
+            Integer customerId;
+        }
+
+        publish CustomerUpdated {
+            Integer customerId;
+            String newName;
+            String newEmail;
+        }
+    }
+}

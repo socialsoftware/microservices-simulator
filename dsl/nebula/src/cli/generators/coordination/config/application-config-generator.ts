@@ -4,18 +4,18 @@ import { ConfigContext } from './config-types.js';
 
 export class ApplicationConfigGenerator extends ConfigBaseGenerator {
     async generateApplicationProperties(context: ConfigContext): Promise<void> {
-        const content = this.getApplicationPropertiesTemplate(context.projectName, context.architecture, context.features);
+        const content = this.getApplicationPropertiesTemplate(context.projectName, context.architecture);
         const filePath = path.join(context.resourcesDir, 'application.properties');
         await this.writeFile(filePath, content, 'application.properties');
     }
 
     async generateApplicationYml(context: ConfigContext): Promise<void> {
-        const content = this.getApplicationYmlTemplate(context.projectName, context.architecture, context.features);
+        const content = this.getApplicationYmlTemplate(context.projectName, context.architecture);
         const filePath = path.join(context.resourcesDir, 'application.yml');
         await this.writeFile(filePath, content, 'application.yml');
     }
 
-    private getApplicationPropertiesTemplate(projectName: string, architecture: string, features: string[]): string {
+    private getApplicationPropertiesTemplate(projectName: string, architecture: string): string {
         const port = this.getPort(projectName);
         const serviceName = this.getServiceName(projectName);
 
@@ -73,38 +73,35 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             );
         }
 
-        if (this.hasFeature(features, 'saga')) {
-            properties.push(
-                '',
-                '# Saga Pattern Configuration',
-                this.buildPropertyLine('saga.enabled', 'true'),
-                this.buildPropertyLine('saga.timeout', '30000'),
-                this.buildPropertyLine('saga.retry.max-attempts', '3')
-            );
-        }
+        // Saga Pattern Configuration (always enabled)
+        properties.push(
+            '',
+            '# Saga Pattern Configuration',
+            this.buildPropertyLine('saga.enabled', 'true'),
+            this.buildPropertyLine('saga.timeout', '30000'),
+            this.buildPropertyLine('saga.retry.max-attempts', '3')
+        );
 
-        if (this.hasFeature(features, 'events')) {
-            properties.push(
-                '',
-                '# Event Configuration',
-                this.buildPropertyLine('spring.events.async', 'true'),
-                this.buildPropertyLine('spring.events.thread-pool-size', '10')
-            );
-        }
+        // Event Configuration (always enabled)
+        properties.push(
+            '',
+            '# Event Configuration',
+            this.buildPropertyLine('spring.events.async', 'true'),
+            this.buildPropertyLine('spring.events.thread-pool-size', '10')
+        );
 
-        if (this.hasFeature(features, 'validation')) {
-            properties.push(
-                '',
-                '# Validation Configuration',
-                this.buildPropertyLine('validation.enabled', 'true'),
-                this.buildPropertyLine('validation.fail-fast', 'false')
-            );
-        }
+        // Validation Configuration (always enabled)
+        properties.push(
+            '',
+            '# Validation Configuration',
+            this.buildPropertyLine('validation.enabled', 'true'),
+            this.buildPropertyLine('validation.fail-fast', 'false')
+        );
 
         return properties.join('\n') + '\n';
     }
 
-    private getApplicationYmlTemplate(projectName: string, architecture: string, features: string[]): string {
+    private getApplicationYmlTemplate(projectName: string, architecture: string): string {
         const port = this.getPort(projectName);
         const serviceName = this.getServiceName(projectName);
 
@@ -159,27 +156,25 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             );
         }
 
-        if (this.hasFeature(features, 'saga')) {
-            sections.push(
-                '',
-                this.buildYamlSection('saga', [
-                    this.buildYamlProperty('enabled', 'true', 1),
-                    this.buildYamlProperty('timeout', '30000', 1),
-                    this.buildYamlProperty('retry', '', 1),
-                    this.buildYamlProperty('max-attempts', '3', 2)
-                ])
-            );
-        }
+        // Saga Configuration (always enabled)
+        sections.push(
+            '',
+            this.buildYamlSection('saga', [
+                this.buildYamlProperty('enabled', 'true', 1),
+                this.buildYamlProperty('timeout', '30000', 1),
+                this.buildYamlProperty('retry', '', 1),
+                this.buildYamlProperty('max-attempts', '3', 2)
+            ])
+        );
 
-        if (this.hasFeature(features, 'events')) {
-            sections.push(
-                '',
-                this.buildYamlSection('events', [
-                    this.buildYamlProperty('async', 'true', 1),
-                    this.buildYamlProperty('thread-pool-size', '10', 1)
-                ])
-            );
-        }
+        // Event Configuration (always enabled)
+        sections.push(
+            '',
+            this.buildYamlSection('events', [
+                this.buildYamlProperty('async', 'true', 1),
+                this.buildYamlProperty('thread-pool-size', '10', 1)
+            ])
+        );
 
         return sections.join('\n') + '\n';
     }

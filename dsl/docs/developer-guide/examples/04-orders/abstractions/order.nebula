@@ -1,0 +1,24 @@
+// Example 04 - Cross-Aggregate References
+// Order aggregate with projection of Customer
+
+Aggregate Order {
+    @GenerateCrud;
+
+    // Projection entity - stores a COPY of Customer data
+    Entity OrderCustomer uses Customer {
+        String customerName -> name;
+        String customerEmail -> email;
+    }
+
+    Root Entity Order {
+        String coffeeType;
+        Integer quantity;
+        Double totalPrice;
+        OrderCustomer customer;  // ← Projection, not foreign key
+    }
+
+    Events {
+        subscribe CustomerDeletedEvent;
+        subscribe CustomerUpdatedEvent;
+    }
+}

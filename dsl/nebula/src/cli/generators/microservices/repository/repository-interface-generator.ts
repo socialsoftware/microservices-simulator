@@ -65,7 +65,7 @@ export class RepositoryInterfaceGenerator {
             repositoryType,
             queryMethods,
             imports,
-            hasSagaSupport: options.architecture === 'causal-saga' || options.features?.includes('sagas')
+            hasSagaSupport: options.architecture === 'causal-saga'
         };
     }
 
@@ -85,10 +85,7 @@ export class RepositoryInterfaceGenerator {
             return options.repositoryType;
         }
 
-        if (options.features?.includes('mongo')) {
-            return 'MongoRepository';
-        }
-
+        // Always use JpaRepository (PostgreSQL)
         return 'JpaRepository';
     }
 

@@ -16,7 +16,6 @@ export interface GenerationConfig {
     basePackage: string; // New field for base package (e.g., com.company or pt.ulisboa.tecnico.socialsoftware)
 
     architecture: 'microservices' | 'causal-saga' | 'monolith';
-    features: GenerationFeature[];
     consistencyModels?: string[];
 
     templateEngine: 'simple' | 'handlebars';
@@ -47,23 +46,8 @@ export interface GenerationConfig {
     };
 }
 
-export type GenerationFeature =
-    | 'entities'
-    | 'dtos'
-    | 'services'
-    | 'factories'
-    | 'repositories'
-    | 'events'
-    | 'coordination'
-    | 'webapi'
-    | 'validation'
-    | 'saga'
-    | 'integration';
-
 export interface ArchitectureConfig {
     name: string;
-    requiredFeatures: GenerationFeature[];
-    optionalFeatures: GenerationFeature[];
     defaultTemplates: { [key: string]: string };
     validation: {
         requiresRootEntity: boolean;
@@ -117,19 +101,12 @@ export class ConfigManager {
         const archConfig = this.getArchitectureConfig(this.config.architecture);
         if (!archConfig) {
             errors.push(`Unknown architecture: ${this.config.architecture}`);
-        } else {
-            const missingFeatures = archConfig.requiredFeatures.filter(
-                feature => !this.config.features.includes(feature)
-            );
-            if (missingFeatures.length > 0) {
-                errors.push(`Missing required features for ${this.config.architecture}: ${missingFeatures.join(', ')}`);
-            }
         }
 
         return errors;
     }
 
-    getTemplatePath(feature: GenerationFeature): string {
+    getTemplatePath(feature: string): string {
         const archConfig = this.getArchitectureConfig(this.config.architecture);
         const templateName = archConfig?.defaultTemplates[feature] || `${feature}.template`;
         return `./templates/${this.config.architecture}/${templateName}`;
@@ -142,7 +119,6 @@ export class ConfigManager {
             packageName: 'com.generated.microservices',
             basePackage: 'com.generated', // Default base package
             architecture: 'causal-saga',
-            features: ['entities', 'dtos', 'services', 'factories', 'repositories'],
             templateEngine: 'simple',
             templateCaching: true,
             strictMode: false,
@@ -206,8 +182,6 @@ export class ConfigManager {
     private initializeArchitectures(): void {
         this.registerArchitecture({
             name: 'microservices',
-            requiredFeatures: ['entities', 'dtos', 'services', 'repositories'],
-            optionalFeatures: ['events', 'webapi', 'validation'],
             defaultTemplates: {
                 entities: 'microservice-entity.template',
                 dtos: 'microservice-dto.template',
@@ -224,8 +198,6 @@ export class ConfigManager {
 
         this.registerArchitecture({
             name: 'causal-saga',
-            requiredFeatures: ['entities', 'dtos', 'services', 'factories', 'repositories', 'saga'],
-            optionalFeatures: ['events', 'coordination', 'webapi', 'validation', 'integration'],
             defaultTemplates: {
                 entities: 'causal-entity.template',
                 dtos: 'causal-dto.template',
@@ -242,8 +214,6 @@ export class ConfigManager {
 
         this.registerArchitecture({
             name: 'monolith',
-            requiredFeatures: ['entities', 'services', 'repositories'],
-            optionalFeatures: ['dtos', 'webapi', 'validation'],
             defaultTemplates: {
                 entities: 'monolith-entity.template',
                 services: 'monolith-service.template',
@@ -262,7 +232,7 @@ export class ConfigManager {
         return this.config.packageName.split('.');
     }
 
-    getFeaturePackage(feature: GenerationFeature): string {
+    getFeaturePackage(feature: string): string {
         const basePackage = this.config.packageName;
         const projectName = this.config.projectName.toLowerCase();
 
@@ -309,7 +279,7 @@ export class ConfigManager {
         return this.config.basePackage;
     }
 
-    getFeatureOutputPath(feature: GenerationFeature): string {
+    getFeatureOutputPath(feature: string): string {
         const packageComponents = this.getFeaturePackage(feature).split('.');
         return packageComponents.join('/');
     }

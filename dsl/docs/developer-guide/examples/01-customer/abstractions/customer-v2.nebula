@@ -1,0 +1,16 @@
+// Example 01 - Step 1.2: Add a Supporting Entity
+// Customer now has an Address (one-to-one relationship)
+
+Aggregate Customer {
+    Root Entity Customer {
+        String name;
+        String email;
+        Address address;
+    }
+
+    Entity Address {
+        String street;
+        String city;
+        String zipCode;
+    }
+}

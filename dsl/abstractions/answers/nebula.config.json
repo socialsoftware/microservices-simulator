@@ -1,17 +1,6 @@
 {
     "projectName": "answers",
     "basePackage": "pt.ulisboa.tecnico.socialsoftware",
-    "features": [
-        "entities",
-        "dtos",
-        "services",
-        "factories",
-        "repositories",
-        "webapi",
-        "coordination",
-        "saga",
-        "shared"
-    ],
     "consistencyModels": [
         "sagas"
     ],

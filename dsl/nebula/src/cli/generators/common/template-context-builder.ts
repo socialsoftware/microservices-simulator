@@ -108,7 +108,8 @@ export class TemplateContextBuilder {
     }
 
     withFeatures(features: string[]): this {
-        this.context.features = [...features];
+        // Features are deprecated - always generate everything
+        // this.context.features = [...features];
         return this;
     }
 
@@ -497,9 +498,10 @@ export class ContextUtils {
             if (context.dependencies && merged.dependencies) {
                 merged.dependencies = [...merged.dependencies, ...context.dependencies];
             }
-            if (context.features && merged.features) {
-                merged.features = [...new Set([...merged.features, ...context.features])];
-            }
+            // Features are deprecated - skip merging
+            // if (context.features && merged.features) {
+            //     merged.features = [...new Set([...merged.features, ...context.features])];
+            // }
 
             // Merge custom data
             if (context.customData && merged.customData) {

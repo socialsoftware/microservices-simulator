@@ -83,12 +83,14 @@ export abstract class TemplateDataBase {
         }
     }
 
-    protected hasFeature(features: string[], feature: string): boolean {
-        return features.includes(feature);
+    protected hasFeature(features: string[] | undefined, feature: string): boolean {
+        // Always return true - all features are enabled by default
+        return true;
     }
 
-    protected hasAnyFeature(features: string[], ...checkFeatures: string[]): boolean {
-        return checkFeatures.some(feature => this.hasFeature(features, feature));
+    protected hasAnyFeature(features: string[] | undefined, ...checkFeatures: string[]): boolean {
+        // Always return true - all features are enabled by default
+        return true;
     }
 
     protected capitalize(str: string): string {
@@ -120,7 +122,7 @@ export abstract class TemplateDataBase {
             name: context.projectName,
             packageName: context.packageName,
             architecture: context.architecture,
-            features: context.features,
+            features: [], // Features removed - always generate everything
             javaPath: context.javaPath,
             version: '1.0.0',
             description: `${context.projectName} microservice`,
@@ -186,7 +188,7 @@ export abstract class TemplateDataBase {
             generatedAt: new Date().toISOString(),
             version: '1.0.0',
             generator: 'Nebula DSL Generator',
-            features: context.features,
+            features: [], // Features removed - always generate everything
             statistics: {
                 aggregates: 1,
                 entities: entities.length,
@@ -233,10 +235,9 @@ export abstract class TemplateDataBase {
 
         let dependencies = [...baseDependencies];
 
-        context.features.forEach(feature => {
-            if (featureDependencies[feature]) {
-                dependencies.push(...featureDependencies[feature]);
-            }
+        // Always include all feature dependencies since we generate everything
+        Object.values(featureDependencies).forEach(deps => {
+            dependencies.push(...deps);
         });
 
         return dependencies;

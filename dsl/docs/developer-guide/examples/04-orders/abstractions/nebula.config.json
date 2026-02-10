@@ -1,0 +1,11 @@
+{
+  "projectName": "coffeeshop",
+  "packageName": "pt.ulisboa.tecnico.socialsoftware",
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "coffeeshop_db",
+    "username": "postgres",
+    "password": "postgres"
+  }
+}

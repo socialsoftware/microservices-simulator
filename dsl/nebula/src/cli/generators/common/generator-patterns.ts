@@ -182,8 +182,9 @@ abstract class GeneratorPatternBase {
         }
     }
 
-    protected hasFeature(features: string[], feature: string): boolean {
-        return features ? features.includes(feature) : false;
+    protected hasFeature(features: string[] | undefined, feature: string): boolean {
+        // Always return true - all features are enabled by default
+        return true;
     }
 
     protected writeFile(filePath: string, content: string, description?: string): void {

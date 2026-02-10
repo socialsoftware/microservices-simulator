@@ -16,7 +16,6 @@ export interface ProjectConfig {
     projectName: string;
     basePackage: string;
     architecture: string;
-    features: string[];
     outputPath: string;
     javaVersion: string;
 }
@@ -107,7 +106,6 @@ export class ConfigurationFacade {
             projectName: rawConfig.projectName,
             basePackage: this.configManager.getBasePackage(),
             architecture: rawConfig.architecture,
-            features: rawConfig.features || [],
             outputPath: rawConfig.outputDirectory,
             javaVersion: rawConfig.javaVersion || '21'
         };
@@ -198,13 +196,12 @@ export class ConfigurationFacade {
             return this.cachedConfigs.get(cacheKey);
         }
 
-        const features = this.configManager.getConfig().features || [];
         const config: FrameworkConfig = {
             transactionModel: 'SAGAS',
             enableRetry: true,
-            enableSagas: features.includes('entities'), // Use actual GenerationFeature values
-            enableEvents: features.includes('services'),
-            enableValidation: features.includes('dtos')
+            enableSagas: true,
+            enableEvents: true,
+            enableValidation: true
         };
 
         this.cachedConfigs.set(cacheKey, config);
@@ -394,9 +391,6 @@ export class ConfigUtils {
         return this.facade.getProjectConfig().architecture;
     }
 
-    static getFeatures(): string[] {
-        return this.facade.getProjectConfig().features;
-    }
 
     static getOutputPath(): string {
         return this.facade.getProjectConfig().outputPath;
@@ -446,9 +440,6 @@ export class ConfigUtils {
         return this.facade.getFrameworkConfig().transactionModel;
     }
 
-    static hasFeature(feature: string): boolean {
-        return this.facade.getProjectConfig().features.includes(feature);
-    }
 
     /**
      * Validation utilities
