@@ -10,7 +10,6 @@ Import:
 
 Aggregate:
     (annotations+=Annotation)*
-    (metadata=AggregateMetadata)?
     'Aggregate' name=ID '{'
         (generateCrud?='@GenerateCrud' ';')?
         (aggregateElements+=AggregateElement)*
@@ -223,17 +222,12 @@ Multiplication:
     (op=("*"|"/"|"%") right=Prefixed)*;
 
 Prefixed:
-    NegationExpression | 
-    SignedExpression | 
+    NegationExpression |
     AtomicExpression;
 
 NegationExpression:
-    {infer NegationExpression} 
+    {infer NegationExpression}
     ("!" | "NOT") expression=AtomicExpression;
-
-SignedExpression:
-    {infer SignedExpression} 
-    '-' expression=AtomicExpression;
 
 AtomicExpression:
     LiteralExpression |
@@ -350,17 +344,9 @@ WebAPIEndpoints:
         (endpoints+=CustomEndpoint)*
     '}';
 
-// Two syntax options for endpoints:
-// 1. Verbose: Endpoint Name { httpMethod: POST, path: "...", ... }
-// 2. Compact: endpoint POST "/path" methodName(@Annotation param: Type): ReturnType
+// Endpoint syntax
 CustomEndpoint:
-    // Compact syntax: endpoint POST "/users/create" createUser(@RequestBody userDto: User): User
-    ('endpoint' method=HttpMethod path=STRING methodName=ID 
-        '(' (parameters+=CompactEndpointParameter (',' parameters+=CompactEndpointParameter)*)? ')'
-        (':' returnType=ParamType)? ';')
-    |
-    // Verbose syntax (existing)
-    ('Endpoint' name=ID '{'
+    'Endpoint' name=ID '{'
         ('httpMethod' ':' method=HttpMethod)?
         ('path' ':' path=STRING)?
         ('methodName' ':' methodName=ID)?
@@ -368,28 +354,13 @@ CustomEndpoint:
         ('returnType' ':' returnType=ParamType)?
         ('desc' ':' description=STRING)?
         ('throwsException' ':' throwsException=('true' | 'false'))?
-    '}');
+    '}';
 
 EndpointParameter:
     name=ID ':' type=ParamType ':' annotation=STRING;
 
-CompactEndpointParameter:
-    annotation=ParameterAnnotation name=ID ':' type=ParamType;
-
-ParameterAnnotation returns string:
-    '@RequestBody' | '@PathVariable' | '@RequestParam';
-
 HttpMethod:
     method=('GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH');
-
-AggregateMetadata:
-    '@Metadata' '{'
-        (requiresAggregateState?='requiresAggregateState' ';')?
-        (hasEventService?='hasEventService' ';')?
-        (hasSagas?='hasSagas' ';')?
-        (hasTransactions?='hasTransactions' ';')?
-        (hasJpa?='hasJpa' ';')?
-    '}';
 
 ServiceDefinition:
     'Service' name=ID '{'
