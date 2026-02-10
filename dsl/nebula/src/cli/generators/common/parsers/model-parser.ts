@@ -178,14 +178,13 @@ export class ModelParser {
     parseEntity(entity: Entity): EntityData {
         const properties = entity.properties?.map(prop => this.parseProperty(prop)) || [];
         const rules: any[] = []; // Business rules removed
-        const methods = entity.methods?.map(method => this.parseMethod(method)) || [];
 
         return {
             name: entity.name,
             isRoot: entity.isRoot || false,
             properties,
             rules,
-            methods,
+            methods: [], // Methods removed from grammar
             relationships: []
         };
     }

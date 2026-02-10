@@ -23,12 +23,8 @@ Entity:
     (
         '{'
             (properties+=Property | fieldMappings+=DtoFieldMapping)*
-            constructors+=Constructor*
             ('invariants' '{'
                 invariants+=Invariant*
-            '}')?
-            ('methods' '{'
-                methods+=Method*
             '}')?
         '}'
     )?;
@@ -40,12 +36,8 @@ DtoFieldMapping:
 
 Method:
     (annotations+=Annotation)*
-    'method' name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' 
-    (':' returnType=ReturnType)? 
-    ('{' body=STRING '}' | ';');
-
-Constructor:
-    'constructor' name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' 
+    'method' name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
+    (':' returnType=ReturnType)?
     ('{' body=STRING '}' | ';');
 
 Workflow:
@@ -231,21 +223,14 @@ NegationExpression:
 
 AtomicExpression:
     LiteralExpression |
-    TernaryExpression |
     ParenthesizedExpression |
     MethodExpression |
     PropertyChainExpression |
     CollectionExpression;
 
 LiteralExpression:
-    {infer LiteralExpression} 
+    {infer LiteralExpression}
     value=(LITERAL | 'true' | 'false' | 'null');
-
-TernaryExpression:
-    {infer TernaryExpression}
-    'if' condition=BooleanExpression
-    'then' trueValue=AtomicExpression
-    'else' falseValue=AtomicExpression;
 
 ParenthesizedExpression:
     {infer ParenthesizedExpression} 
@@ -291,7 +276,7 @@ QuantifierExpression:
 CollectionExpression:
     {infer CollectionExpression}
     collection=PropertyReference '.' collectionOperation=(
-        'allMatch' | 'anyMatch' | 'noneMatch' | 'filter' | 'map' | 'flatMap'
+        'allMatch' | 'anyMatch' | 'noneMatch'
     ) '(' variable=ID '->' body=Expression ')';
 
 Type:
@@ -431,54 +416,8 @@ StepExpression:
 
 ServiceMethod:
     (annotations+=Annotation)*
-    name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' 
-    (':' returnType=ReturnType)? ('{' 
-        implementation=MethodImplementation
-    '}' | ';');
-
-MethodImplementation:
-    (actions+=BusinessAction)*;
-
-BusinessAction:
-    LoadAggregateAction | ValidateAction | CreateEntityAction | DomainOperationAction | 
-    RegisterChangeAction | RegisterEventAction | PublishEventAction | CallServiceAction | 
-    ThrowExceptionAction | ReturnAction;
-
-LoadAggregateAction:
-    'load' aggregateVar=ID '=' 'aggregate' '(' aggregateId=ID ')' ';';
-
-ValidateAction:
-    'validate' condition=STRING ('throw' exception=ID '(' (exceptionParams+=ID (',' exceptionParams+=ID)*)? ')')? ';';
-
-CreateEntityAction:
-    'create' entityVar=ID '=' entityType=ID '(' (constructorParams+=ID (',' constructorParams+=ID)*)? ')' ';';
-
-DomainOperationAction:
-    'execute' targetVar=ID '.' operationChain=OperationChain ';';
-
-OperationChain:
-    operations+=ChainOperation ('.' operations+=ChainOperation)*;
-
-ChainOperation:
-    methodName=ID ('(' (params+=ID (',' params+=ID)*)? ')')?;
-
-RegisterChangeAction:
-    'register' aggregateVar=ID 'in' unitOfWorkVar=ID ';';
-
-RegisterEventAction:
-    'registerEvent' eventType=[PublishedEvent:ID] '(' (eventParams+=ID (',' eventParams+=ID)*)? ')' 'in' unitOfWorkVar=ID ';';
-
-PublishEventAction:
-    'publish' eventType=[PublishedEvent:ID] '(' (eventParams+=ID (',' eventParams+=ID)*)? ')' ';';
-
-CallServiceAction:
-    'call' serviceVar=ID '=' service=ID '.' methodName=ID '(' (callParams+=ID (',' callParams+=ID)*)? ')' ';';
-
-ThrowExceptionAction:
-    'throw' exception=ID '(' (exceptionParams+=ID (',' exceptionParams+=ID)*)? ')' ';';
-
-ReturnAction:
-    'return' (returnValue=ID | returnExpression=STRING)? ';';
+    name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
+    (':' returnType=ReturnType)? ';';
 
 // Enum Support
 EnumDefinition:
