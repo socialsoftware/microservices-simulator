@@ -11,6 +11,7 @@ export interface FrameworkAnnotations {
 
 export interface GenerationConfig {
     projectName: string;
+    version: string; // Project version (e.g., 1.0.0-SNAPSHOT)
     outputDirectory: string;
     packageName: string;
     basePackage: string; // New field for base package (e.g., com.company or pt.ulisboa.tecnico.socialsoftware)
@@ -43,6 +44,17 @@ export interface GenerationConfig {
         name: string;
         username: string;
         password: string;
+    };
+
+    simulatorFramework: {
+        groupId: string;
+        artifactId: string;
+        version: string;
+    };
+
+    portRange: {
+        min: number;
+        max: number;
     };
 }
 
@@ -115,6 +127,7 @@ export class ConfigManager {
     private createDefaultConfig(): GenerationConfig {
         return {
             projectName: 'project',
+            version: '1.0.0-SNAPSHOT',
             outputDirectory: '../../applications',
             packageName: 'com.generated.microservices',
             basePackage: 'com.generated', // Default base package
@@ -125,8 +138,8 @@ export class ConfigManager {
             validateArchitecture: true,
             generateDocumentation: false,
             generateTests: false,
-            javaVersion: '17',
-            springBootVersion: '3.0.0',
+            javaVersion: '21',
+            springBootVersion: '3.3.9',
             useJakarta: true,
             framework: 'spring',
             annotations: this.getSpringAnnotations(),
@@ -138,6 +151,15 @@ export class ConfigManager {
                 name: 'defaultdb',
                 username: 'postgres',
                 password: 'password'
+            },
+            simulatorFramework: {
+                groupId: 'pt.ulisboa.tecnico.socialsoftware',
+                artifactId: 'MicroservicesSimulator',
+                version: '2.1.0-SNAPSHOT'
+            },
+            portRange: {
+                min: 8080,
+                max: 9999
             }
         };
     }

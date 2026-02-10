@@ -1,5 +1,6 @@
 import { Aggregate, Entity } from "../../../language/generated/ast.js";
 import { UnifiedTypeResolver } from "./unified-type-resolver.js";
+import { getGlobalConfig } from "./config.js";
 
 
 export interface BaseGenerationOptions {
@@ -277,13 +278,18 @@ export abstract class ConfigurationGeneratorPattern extends GeneratorPatternBase
     }
 
     protected getPort(projectName: string): number {
+        const config = getGlobalConfig().getConfig();
+        const minPort = config.portRange.min;
+        const maxPort = config.portRange.max;
+        const range = maxPort - minPort;
+
         let hash = 0;
         for (let i = 0; i < projectName.length; i++) {
             const char = projectName.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
             hash = hash & hash;
         }
-        return Math.abs(hash % 1000) + 8080;
+        return minPort + (Math.abs(hash) % range);
     }
 
     protected override getDatabaseName(projectName: string): string {

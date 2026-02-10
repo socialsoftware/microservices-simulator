@@ -5,12 +5,12 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.9</version>
+    <version>{{springBootVersion}}</version>
     <relativePath/>
   </parent>
   <groupId>{{groupId}}</groupId>
   <artifactId>{{projectName}}</artifactId>
-  <version>2.1.0-SNAPSHOT</version>
+  <version>{{version}}</version>
   <name>{{projectName}}</name>
   <description>{{projectName}} - Generated with Nebula DSL</description>
   <properties>
@@ -20,9 +20,9 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <!-- MicroservicesSimulator Framework Dependency -->
     <!-- To install locally: cd ../../simulator && mvn clean install -DskipTests -->
     <dependency>
-      <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
-      <artifactId>MicroservicesSimulator</artifactId>
-      <version>2.1.0-SNAPSHOT</version>
+      <groupId>{{frameworkGroupId}}</groupId>
+      <artifactId>{{frameworkArtifactId}}</artifactId>
+      <version>{{frameworkVersion}}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

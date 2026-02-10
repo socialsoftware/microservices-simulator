@@ -47,12 +47,18 @@ export class TemplateGenerators extends OrchestrationBase {
   static generatePomXml(projectName: string): string {
     const generator = new TemplateGenerators();
     const config = getGlobalConfig();
+    const fullConfig = config.getConfig();
 
     const template = generator.loadTemplate('config/pom.hbs');
     return generator.renderTemplate(template, {
       projectName,
       groupId: config.getBasePackage(),
-      javaVersion: '21',
+      version: fullConfig.version,
+      javaVersion: fullConfig.javaVersion,
+      springBootVersion: fullConfig.springBootVersion,
+      frameworkGroupId: fullConfig.simulatorFramework.groupId,
+      frameworkArtifactId: fullConfig.simulatorFramework.artifactId,
+      frameworkVersion: fullConfig.simulatorFramework.version,
       includeRetry: true // Always include retry dependency
     });
   }

@@ -5,6 +5,7 @@ import { GenerationConfig, initializeConfig, getGlobalConfig } from '../generato
 export interface NebulaConfig {
     projectName?: string;
     basePackage?: string;
+    version?: string;
     outputDirectory?: string;
     consistencyModels?: string[];
     database?: {
@@ -18,6 +19,15 @@ export interface NebulaConfig {
     java?: {
         version?: string;
         springBootVersion?: string;
+    };
+    framework?: {
+        groupId?: string;
+        artifactId?: string;
+        version?: string;
+    };
+    portRange?: {
+        min?: number;
+        max?: number;
     };
 }
 
@@ -156,6 +166,10 @@ export class ConfigLoader {
             result.projectName = config.projectName;
         }
 
+        if (config.version) {
+            result.version = config.version;
+        }
+
         if (config.basePackage) {
             result.basePackage = config.basePackage;
             // Also set packageName for backward compatibility
@@ -194,6 +208,21 @@ export class ConfigLoader {
             }
         }
 
+        if (config.framework) {
+            result.simulatorFramework = {
+                groupId: config.framework.groupId || 'pt.ulisboa.tecnico.socialsoftware',
+                artifactId: config.framework.artifactId || 'MicroservicesSimulator',
+                version: config.framework.version || '2.1.0-SNAPSHOT'
+            };
+        }
+
+        if (config.portRange) {
+            result.portRange = {
+                min: config.portRange.min || 8080,
+                max: config.portRange.max || 9999
+            };
+        }
+
         return result;
     }
 
@@ -204,6 +233,7 @@ export class ConfigLoader {
         const defaultConfig: NebulaConfig = {
             projectName: projectName,
             basePackage: basePackage || 'com.example',
+            version: '1.0.0-SNAPSHOT',
             outputDirectory: '../../applications',
             database: {
                 type: 'postgresql',
@@ -214,8 +244,17 @@ export class ConfigLoader {
                 password: '${NEBULA_DB_PASSWORD}' // Environment variable placeholder
             },
             java: {
-                version: '17',
-                springBootVersion: '3.0.0'
+                version: '21',
+                springBootVersion: '3.3.9'
+            },
+            framework: {
+                groupId: 'pt.ulisboa.tecnico.socialsoftware',
+                artifactId: 'MicroservicesSimulator',
+                version: '2.1.0-SNAPSHOT'
+            },
+            portRange: {
+                min: 8080,
+                max: 9999
             }
         };
 

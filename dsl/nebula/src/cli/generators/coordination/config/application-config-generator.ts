@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { ConfigBaseGenerator } from './config-base-generator.js';
 import { ConfigContext } from './config-types.js';
+import { getGlobalConfig } from '../../common/config.js';
 
 export class ApplicationConfigGenerator extends ConfigBaseGenerator {
     async generateApplicationProperties(context: ConfigContext): Promise<void> {
@@ -184,12 +185,17 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
     }
 
     protected override getPort(projectName: string): number {
+        const config = getGlobalConfig().getConfig();
+        const minPort = config.portRange.min;
+        const maxPort = config.portRange.max;
+        const range = maxPort - minPort;
+
         let hash = 0;
         for (let i = 0; i < projectName.length; i++) {
             const char = projectName.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
             hash = hash & hash;
         }
-        return 8080 + (Math.abs(hash) % 1920);
+        return minPort + (Math.abs(hash) % range);
     }
 }
