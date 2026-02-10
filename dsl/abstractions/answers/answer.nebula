@@ -1,74 +1,101 @@
 Aggregate Answer {
-    @GenerateCrud;
-    Entity AnswerUser uses User {
-        Integer userAggregateId;
-        String userName -> name;
+    @GenerateCrud
+
+    Entity AnswerUser from User {
+        Integer userAggregateId
+        map name as userName
     }
 
-    Entity AnswerExecution uses Execution {
+    Entity AnswerExecution from Execution {
+        // Uses base aggregate fields only (aggregateId, version, state)
     }
 
-    Entity AnswerQuestion uses Question {
-        Integer sequence;
-        Integer key;
-        Integer timeTaken;
-        Boolean correct;
+    Entity AnswerQuestion from Question {
+        Integer sequence
+        Integer key
+        Integer timeTaken
+        Boolean correct
     }
 
-    Entity AnswerQuiz uses Quiz {
-        Integer quizAggregateId;
-        Integer quizVersion;
-        List<Integer> quizQuestionsAggregateIds -> questions extract aggregateId;
+    Entity AnswerQuiz from Quiz {
+        Integer quizAggregateId
+        Integer quizVersion
+        // TODO: Extract pattern not yet supported in new syntax
+        // List<Integer> quizQuestionsAggregateIds -> questions extract aggregateId
     }
 
     Root Entity Answer {
-        LocalDateTime creationDate;
-        LocalDateTime answerDate;
-        Boolean completed;
-        AnswerExecution execution;
-        AnswerUser user;
-        AnswerQuiz quiz;
-        List<AnswerQuestion> questions;
+        LocalDateTime creationDate
+        LocalDateTime answerDate
+        Boolean completed
+        AnswerExecution execution
+        AnswerUser user
+        AnswerQuiz quiz
+        List<AnswerQuestion> questions
 
         invariants {
-            check executionNotNull { execution != null; }
-            check userNotNull { user != null; }
-            check quizNotNull { quiz != null; }
-            check questionsNotNull { questions != null; }
+            check executionNotNull { execution != null }
+                error "Answer must be associated with an execution"
+
+            check userNotNull { user != null }
+                error "Answer must be associated with a user"
+
+            check quizNotNull { quiz != null }
+                error "Answer must be associated with a quiz"
+
+            check questionsNotNull { questions != null }
+                error "Answer must have a questions collection"
+        }
+    }
+
+    References {
+        execution -> Execution {
+            onDelete: prevent
+            message: "Cannot delete execution that has answers"
+        }
+
+        user -> User {
+            onDelete: prevent
+            message: "Cannot delete user that has answers"
+        }
+
+        quiz -> Quiz {
+            onDelete: prevent
+            message: "Cannot delete quiz that has answers"
         }
     }
 
     Events {
-        subscribe ExecutionUserUpdatedEvent;
-        subscribe QuestionUpdatedEvent;
+        subscribe ExecutionUserUpdatedEvent
+        subscribe QuestionUpdatedEvent
 
         interInvariant ANSWER_EXECUTION_EXISTS {
             subscribe ExecutionDeletedEvent from Execution {
-                execution.executionAggregateId == event.aggregateId;
+                execution.executionAggregateId == event.aggregateId
             }
         }
 
         interInvariant ANSWER_USER_EXISTS {
             subscribe UserDeletedEvent from User {
-                user.userAggregateId == event.aggregateId;
+                user.userAggregateId == event.aggregateId
             }
         }
 
         interInvariant ANSWER_QUIZ_EXISTS {
             subscribe QuizDeletedEvent from Quiz {
-                quiz.quizAggregateId == event.aggregateId;
+                quiz.quizAggregateId == event.aggregateId
             }
         }
 
         interInvariant ANSWER_QUESTIONS_EXIST {
             subscribe QuestionDeletedEvent from Question {
-                questions.questionAggregateId == event.aggregateId;
+                questions.questionAggregateId == event.aggregateId
             }
         }
     }
 
     Repository {
         @Query("select a.aggregateId from Answer a where a.quiz.quizAggregateId = :quizAggregateId AND a.user.userAggregateId = :userAggregateId AND a.sagaState = 'NOT_IN_SAGA'")
-        Optional<Integer> findAnswerIdByQuizAggregateIdAndUserAggregateIdForSaga(Integer quizAggregateId, Integer userAggregateId);
+        Optional<Integer> findAnswerIdByQuizAggregateIdAndUserAggregateIdForSaga(Integer quizAggregateId, Integer userAggregateId)
     }
 }

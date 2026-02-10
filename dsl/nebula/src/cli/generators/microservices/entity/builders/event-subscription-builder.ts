@@ -1,5 +1,5 @@
 import { AggregateExt } from "../../../../types/ast-extensions.js";
-import { getEvents } from "../../../../utils/aggregate-helpers.js";
+import { getEvents, getReferences } from "../../../../utils/aggregate-helpers.js";
 
 /**
  * Handles generation of the getEventSubscriptions() method for root entities.
@@ -32,6 +32,10 @@ export class EventSubscriptionBuilder {
         const subscribedEvents = events?.subscribedEvents || [];
         const interInvariants = (events as any)?.interInvariants || [];
 
+        // Get reference constraints
+        const references = getReferences(aggregate);
+        const referenceConstraints = references?.constraints || [];
+
         // Filter for simple subscriptions (no conditions, no routing)
         const simpleSubscriptions = subscribedEvents.filter((sub: any) => {
             // Simple subscription: no conditions block or empty conditions, no routing
@@ -42,8 +46,9 @@ export class EventSubscriptionBuilder {
         });
 
         const hasInterInvariants = interInvariants.length > 0;
+        const hasReferenceConstraints = referenceConstraints.length > 0;
 
-        if (simpleSubscriptions.length === 0 && !hasInterInvariants) {
+        if (simpleSubscriptions.length === 0 && !hasInterInvariants && !hasReferenceConstraints) {
             return `
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
@@ -57,7 +62,7 @@ export class EventSubscriptionBuilder {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();`;
 
         // All subscriptions should only be added for ACTIVE aggregates
-        const hasAnySubscriptions = hasInterInvariants || simpleSubscriptions.length > 0;
+        const hasAnySubscriptions = hasInterInvariants || simpleSubscriptions.length > 0 || hasReferenceConstraints;
 
         if (hasAnySubscriptions) {
             methodBody += `\n        if (this.getState() == AggregateState.ACTIVE) {`;
@@ -90,6 +95,16 @@ export class EventSubscriptionBuilder {
                     const eventNameWithoutPrefix = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
                     const subscriptionClassName = `${aggregate.name}Subscribes${eventNameWithoutPrefix}`;
                     methodBody += `\n            eventSubscriptions.add(new ${subscriptionClassName}());`;
+                }
+            }
+
+            // Add reference constraint subscriptions (inside ACTIVE guard)
+            if (hasReferenceConstraints) {
+                for (const constraint of referenceConstraints) {
+                    const targetAggregate = (constraint as any).targetAggregate;
+                    const subscriptionClassName = `${aggregate.name}Subscribes${targetAggregate}Deleted`;
+                    // Reference subscriptions need to pass 'this' to the constructor
+                    methodBody += `\n            eventSubscriptions.add(new ${subscriptionClassName}(this));`;
                 }
             }
 

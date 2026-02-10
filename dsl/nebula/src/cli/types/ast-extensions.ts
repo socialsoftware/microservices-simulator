@@ -89,7 +89,7 @@ export interface EventFieldExt {
 export interface InvariantExt extends Invariant {
     name: string;
     expression: string;
-    errorMessage?: string;
+    errorMessage: string;
 }
 
 /**

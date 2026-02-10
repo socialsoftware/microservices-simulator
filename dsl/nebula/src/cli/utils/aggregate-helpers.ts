@@ -1,4 +1,4 @@
-import { Aggregate, Entity, Method, Workflow, Repository, Events, WebAPIEndpoints, ServiceDefinition, Functionalities, isEntity, isMethod, isWorkflow, isRepository, isEvents, isWebAPIEndpoints, isServiceDefinition, isFunctionalities } from "../../language/generated/ast.js";
+import { Aggregate, Entity, Method, Workflow, Repository, Events, References, WebAPIEndpoints, ServiceDefinition, Functionalities, isEntity, isMethod, isWorkflow, isRepository, isEvents, isReferences, isWebAPIEndpoints, isServiceDefinition, isFunctionalities, Model } from "../../language/generated/ast.js";
 
 export function getEntities(aggregate: Aggregate): Entity[] {
     if (!aggregate.aggregateElements || !Array.isArray(aggregate.aggregateElements)) {
@@ -23,6 +23,10 @@ export function getEvents(aggregate: Aggregate): Events | undefined {
     return aggregate.aggregateElements.find((el): el is Events => isEvents(el));
 }
 
+export function getReferences(aggregate: Aggregate): References | undefined {
+    return aggregate.aggregateElements.find((el): el is References => isReferences(el));
+}
+
 export function getWebAPIEndpoints(aggregate: Aggregate): WebAPIEndpoints | undefined {
     return aggregate.aggregateElements.find((el): el is WebAPIEndpoints => isWebAPIEndpoints(el));
 }
@@ -42,6 +46,7 @@ declare module "../../language/generated/ast.js" {
         workflows: Workflow[];
         repository?: Repository;
         events?: Events;
+        references?: References;
         webApiEndpoints?: WebAPIEndpoints;
         serviceDefinition?: ServiceDefinition;
         functionalities?: Functionalities;
@@ -103,6 +108,12 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
         configurable: true
     });
 
+    Object.defineProperty(aggregate, 'references', {
+        get: () => getReferences(aggregate),
+        enumerable: true,
+        configurable: true
+    });
+
     Object.defineProperty(aggregate, 'webApiEndpoints', {
         get: () => getWebAPIEndpoints(aggregate),
         enumerable: true,
@@ -156,16 +167,18 @@ function getAggregateRefName(entity: Entity): string | undefined {
  */
 export function getEffectiveFieldMappings(entity: Entity): any[] {
     const anyEntity = entity as any;
-    const explicitMappings: any[] = Array.isArray(anyEntity.fieldMappings) ? anyEntity.fieldMappings : [];
+
+    // New syntax: map dtoField as entityField
+    const fieldMappings: any[] = Array.isArray(anyEntity.fieldMappings) ? anyEntity.fieldMappings : [];
 
     const aggregateRefName = getAggregateRefName(entity);
     if (!aggregateRefName) {
-        return explicitMappings;
+        return fieldMappings;
     }
 
     // Collect fields that exist on the entity (explicit properties + mapping-defined properties)
     const explicitProps = entity.properties || [];
-    const mappingDefinedProps = explicitMappings
+    const mappingDefinedProps = fieldMappings
         .filter((m: any) => m?.type && m?.entityField)
         .map((m: any) => m.entityField);
 
@@ -174,8 +187,8 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
         ...mappingDefinedProps.filter(Boolean),
     ]);
 
-    const existingDtoFields = new Set<string>(explicitMappings.map((m: any) => m?.dtoField).filter(Boolean));
-    const explicitlyMappedEntityFields = new Set<string>(explicitMappings.map((m: any) => m?.entityField).filter(Boolean));
+    const existingDtoFields = new Set<string>(fieldMappings.map((m: any) => m?.dtoField).filter(Boolean));
+    const explicitlyMappedEntityFields = new Set<string>(fieldMappings.map((m: any) => m?.entityField).filter(Boolean));
 
     const prefix = lowerFirst(aggregateRefName);
 
@@ -217,30 +230,88 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
         })
         .filter(Boolean) as any[];
 
-    return [...explicitMappings, ...implicitMappings];
+    return [...fieldMappings, ...implicitMappings];
+}
+
+/**
+ * Resolve the type of a field from a referenced aggregate's root entity.
+ * Used for type inference in the new cross-aggregate syntax.
+ *
+ * @param entity - The entity with the aggregateRef
+ * @param dtoField - The field name to look up in the referenced aggregate
+ * @returns The type of the field, or undefined if not found
+ */
+function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string): any | undefined {
+    const entityAny = entity as any;
+    const aggregateRefName = entityAny.aggregateRef;
+
+    if (!aggregateRefName) {
+        return undefined;
+    }
+
+    // Navigate up to get the model: entity -> aggregate -> model
+    const model = entity.$container?.$container as Model | undefined;
+    if (!model || !model.aggregates) {
+        return undefined;
+    }
+
+    // Find the referenced aggregate
+    const targetAggregate = model.aggregates.find(agg => agg.name === aggregateRefName);
+    if (!targetAggregate) {
+        return undefined;
+    }
+
+    // Get the root entity of the referenced aggregate
+    const entities = getEntities(targetAggregate);
+    const rootEntity = entities.find(e => e.isRoot);
+    if (!rootEntity) {
+        return undefined;
+    }
+
+    // Find the property with the matching name
+    const property = rootEntity.properties?.find(p => p.name === dtoField);
+    if (!property) {
+        return undefined;
+    }
+
+    return property.type;
 }
 
 /**
  * Get effective properties for an entity, including those defined in DTO mappings.
- * With the simplified mapping syntax, properties can be defined inline:
- *   Integer courseAggregateId -> aggregateId;
+ * Supports type inference for new cross-aggregate syntax (map dtoField as entityField).
  * This function combines explicit properties with mapping-defined properties.
  */
 export function getEffectiveProperties(entity: Entity): any[] {
     const explicitProps = entity.properties || [];
     const mappings = getEffectiveFieldMappings(entity);
 
-    // Get properties defined in mappings (new syntax with type)
+    // Get properties defined in mappings
     const mappingProps = mappings
-        .filter((m: any) => m.type && m.entityField)
-        .map((m: any) => ({
-            name: m.entityField,
-            type: m.type,
-            // Synthetic property from mapping
-            $fromMapping: true,
-            $dtoField: m.dtoField,
-            $extractField: m.extractField
-        }));
+        .filter((m: any) => m.entityField)
+        .map((m: any) => {
+            let propertyType = m.type;
+
+            // If no type specified (new syntax), infer from referenced aggregate
+            if (!propertyType) {
+                propertyType = resolveTypeFromReferencedAggregate(entity, m.dtoField);
+            }
+
+            // Skip if we couldn't resolve the type
+            if (!propertyType) {
+                return null;
+            }
+
+            return {
+                name: m.entityField,
+                type: propertyType,
+                // Synthetic property from mapping
+                $fromMapping: true,
+                $dtoField: m.dtoField,
+                $extractField: m.extractField
+            };
+        })
+        .filter(Boolean); // Remove null entries
 
     // Combine, avoiding duplicates (explicit props take precedence)
     const explicitNames = new Set(explicitProps.map(p => p.name));

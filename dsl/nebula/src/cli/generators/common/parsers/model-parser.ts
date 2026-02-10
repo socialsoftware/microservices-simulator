@@ -125,15 +125,7 @@ export interface EndpointData {
 
 export interface ModelData {
     aggregates: AggregateData[];
-    imports: ImportData[];
     exceptions?: ExceptionMessagesData;
-}
-
-export interface ImportData {
-    name: string;
-    path: string;
-    isRelative: boolean;
-    isExternal: boolean;
 }
 
 export interface ExceptionMessagesData {
@@ -153,7 +145,6 @@ export class ModelParser {
     parseModel(model: Model): ModelData {
         return {
             aggregates: model.aggregates.map(aggregate => this.parseAggregate(aggregate)),
-            imports: this.parseImports(model.imports || []),
             exceptions: model.exceptions ? this.parseExceptionMessages(model.exceptions) : undefined
         };
     }
@@ -318,15 +309,6 @@ export class ModelParser {
             isPublic: true,
             annotations: this.extractAnnotations(endpoint)
         };
-    }
-
-    parseImports(imports: any[]): ImportData[] {
-        return imports.map(imp => ({
-            name: imp.name,
-            path: imp.path,
-            isRelative: imp.isRelative || false,
-            isExternal: imp.isExternal || false
-        }));
     }
 
     parseExceptionMessages(exceptions: any): ExceptionMessagesData {

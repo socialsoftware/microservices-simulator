@@ -1,6 +1,7 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 import { TemplateManager } from "../../../utils/template-manager.js";
+import { SpringDataQueryParser } from "./spring-data-query-parser.js";
 
 export interface RepositoryInterfaceGenerationOptions {
     architecture?: string;
@@ -97,8 +98,34 @@ export class RepositoryInterfaceGenerator {
     }
 
 
+    /**
+     * Maps generated query parameter placeholders to actual method parameter names.
+     * Example: ":price" → ":prices" based on method signature
+     */
+    private mapQueryParameters(parseResult: any, methodParameters: any[]): string {
+        let query = parseResult.query;
+
+        // Map each placeholder to the actual parameter name
+        for (const mapping of parseResult.parameterMappings) {
+            if (mapping.paramIndex < methodParameters.length) {
+                const actualParam = methodParameters[mapping.paramIndex];
+                const actualParamName = actualParam.name;
+
+                // Replace the placeholder with the actual parameter name
+                query = query.replace(new RegExp(mapping.placeholder.replace(':', '\\:'), 'g'), `:${actualParamName}`);
+            }
+        }
+
+        return query;
+    }
+
     private addRepositoryMethods(aggregate: Aggregate, methods: any[]): void {
         if (aggregate.repository && aggregate.repository.repositoryMethods) {
+            const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
+            if (!rootEntity) {
+                throw new Error(`No root entity found in aggregate ${aggregate.name}`);
+            }
+
             aggregate.repository.repositoryMethods.forEach((method: any) => {
                 const returnType = this.resolveRepositoryReturnType(method.returnType);
                 const parameters = method.parameters || [];
@@ -108,7 +135,20 @@ export class RepositoryInterfaceGenerator {
 
                 let query = '';
                 if (method.query) {
+                    // Explicit @Query annotation provided
                     query = method.query;
+                } else {
+                    // Try to generate query from Spring Data method name conventions
+                    const parseResult = SpringDataQueryParser.parseMethodName(
+                        baseMethodName,
+                        aggregate.name,
+                        rootEntity
+                    );
+                    if (parseResult) {
+                        // Map generated parameter placeholders to actual method parameter names
+                        query = this.mapQueryParameters(parseResult, parameters);
+                        console.log(`    ✨ Auto-generated query for ${baseMethodName}: ${query}`);
+                    }
                 }
 
                 methods.push({

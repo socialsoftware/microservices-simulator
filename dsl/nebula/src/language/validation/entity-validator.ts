@@ -1,5 +1,6 @@
 import type { ValidationAcceptor } from "langium";
 import type { Entity, Model, Property } from "../generated/ast.js";
+import { isEntity } from "../generated/ast.js";
 import { NamingValidator } from "./naming-validator.js";
 
 export class EntityValidator {
@@ -88,12 +89,8 @@ export class EntityValidator {
     }
 
     private validateEntityDtoMapping(entity: Entity, fieldMappings: any[], accept: ValidationAcceptor): void {
-        // With the simplified syntax, entity fields can be defined either:
-        // 1. In the mapping block (new syntax: Type entityField -> dtoField)
-        // 2. In the properties block (old syntax)
-        const explicitEntityFields = entity.properties.map(p => p.name);
-        const mappingDefinedFields = fieldMappings.filter(m => m.type).map((m: any) => m.entityField);
-        const allEntityFields = [...explicitEntityFields, ...mappingDefinedFields];
+        // Mappings create entity fields automatically (map dtoField as entityField)
+        // We only need to validate that DTO fields exist on the target aggregate
 
         const entityAny = entity as any;
         const aggregateRef = entityAny.aggregateRef;
@@ -114,7 +111,11 @@ export class EntityValidator {
                 // Code generation will validate cross-file references
                 return;
             }
-            const rootEntity = targetAggregate.entities?.find((e: any) => e.isRoot);
+
+            // Get entities from aggregateElements (entities are mixed with other aggregate elements)
+            const entities = targetAggregate.aggregateElements?.filter(el => isEntity(el)) as Entity[] || [];
+            const rootEntity = entities.find((e: Entity) => e.isRoot);
+
             if (!rootEntity) {
                 accept("error", `Aggregate '${aggregateName}' does not have a root entity.`, {
                     node: entity,
@@ -126,15 +127,7 @@ export class EntityValidator {
         }
 
         for (const mapping of fieldMappings) {
-            // Only validate entity field existence for old-style mappings (without type)
-            // New-style mappings define their own fields
-            if (!mapping.type && !allEntityFields.includes(mapping.entityField)) {
-                accept("error", `Entity field '${mapping.entityField}' does not exist in entity '${entity.name}'. Available fields: ${allEntityFields.join(', ')}`, {
-                    node: mapping,
-                    property: "entityField",
-                });
-            }
-
+            // Validate that DTO field exists on the target aggregate's DTO
             if (targetDtoFields && !targetDtoFields.has(mapping.dtoField)) {
                 accept("error", `DTO field '${mapping.dtoField}' is not available on the target DTO. Available fields: ${Array.from(targetDtoFields).join(', ')}`, {
                     node: mapping,

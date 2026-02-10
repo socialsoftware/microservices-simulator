@@ -36,17 +36,20 @@ export function generateInvariants(entity: Entity): { code: string, imports?: Im
     }`;
     }).join('\n');
 
-    // Generate verifyInvariants method that calls all individual invariants
-    const invariantCalls = entity.invariants.map((invariant: any) =>
-        `invariant${capitalize(invariant.name)}()`
-    ).join('\n               && ');
+    // Generate individual checks with custom messages (error messages are now required)
+    const individualChecks = entity.invariants.map((invariant: any) => {
+        const methodName = `invariant${capitalize(invariant.name)}()`;
+        // Remove quotes from the error message string literal
+        const message = invariant.errorMessage.replace(/^["']|["']$/g, '');
+        return `        if (!${methodName}) {
+            throw new SimulatorException(INVARIANT_BREAK, "${message}");
+        }`;
+    }).join('\n');
 
     const verifyMethod = `
     @Override
     public void verifyInvariants() {
-        if (!(${invariantCalls})) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
-        }
+${individualChecks}
     }`;
 
     // Add necessary imports

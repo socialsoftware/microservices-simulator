@@ -1,23 +1,34 @@
 Aggregate Topic {
-    @GenerateCrud;
-    Entity TopicCourse uses Course {
-        
+    @GenerateCrud
+
+    Entity TopicCourse from Course {
+        // Uses base aggregate fields only (aggregateId, version, state)
     }
 
     Root Entity Topic {
-        String name;
-        TopicCourse course;
+        String name
+        TopicCourse course
 
         invariants {
-            check nameNotBlank { name.length() > 0; }
-            check courseNotNull { course != null; }
+            check nameNotBlank { name.length() > 0 }
+                error "Topic name cannot be blank"
+
+            check courseNotNull { course != null }
+                error "Topic must be associated with a course"
+        }
+    }
+
+    References {
+        course -> Course {
+            onDelete: prevent
+            message: "Cannot delete course that has topics"
         }
     }
 
     Events {
         interInvariant TOPIC_COURSE_EXISTS {
             subscribe CourseDeletedEvent from Course {
-                course.courseAggregateId == event.aggregateId;
+                course.courseAggregateId == event.aggregateId
             }
         }
     }

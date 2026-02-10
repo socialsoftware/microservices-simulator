@@ -1,6 +1,7 @@
 import { Aggregate } from "../../language/generated/ast.js";
 import { EventGenerator } from "../generators/microservices/events/event-generator.js";
 import { PublishedEventGenerator } from "../generators/microservices/events/published-event-generator.js";
+import { ReferencesGenerator } from "../generators/microservices/events/references-generator.js";
 import { GenerationOptions, GeneratorRegistry } from "../engine/types.js";
 import { FileWriter } from "../utils/file-writer.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../utils/error-handler.js";
@@ -16,10 +17,12 @@ interface EventGenerationConfig {
 export class UnifiedEventFeature {
     private eventGenerator: EventGenerator;
     private publishedEventGenerator: PublishedEventGenerator;
+    private referencesGenerator: ReferencesGenerator;
 
     constructor() {
         this.eventGenerator = new EventGenerator();
         this.publishedEventGenerator = new PublishedEventGenerator();
+        this.referencesGenerator = new ReferencesGenerator();
     }
 
     async generateEvents(
@@ -97,6 +100,11 @@ export class UnifiedEventFeature {
                         allAggregates
                     });
                     await this.generateIndividualEventHandlers(individualEventHandlers, aggregatePath);
+                }
+
+                // Generate reference constraint handlers
+                if ((aggregate as any).references && rootEntity) {
+                    await this.generateReferenceHandlers(aggregate, rootEntity, aggregatePath, options, allAggregates);
                 }
             },
             ErrorUtils.aggregateContext(
@@ -303,6 +311,49 @@ export class UnifiedEventFeature {
             generateEventHandlers: true,
             generateEventSubscriptions: true
         };
+    }
+
+    private async generateReferenceHandlers(
+        aggregate: Aggregate,
+        rootEntity: any,
+        aggregatePath: string,
+        options: GenerationOptions,
+        allAggregates: any[]
+    ): Promise<void> {
+        const referenceHandlers = await this.referencesGenerator.generateReferenceHandlers(
+            aggregate,
+            rootEntity,
+            {
+                projectName: options.projectName || 'unknown',
+                allAggregates
+            }
+        );
+
+        // Write subscription files
+        for (const [key, code] of Object.entries(referenceHandlers)) {
+            if (key.startsWith('ref-subscription-')) {
+                const targetAggregate = key.replace('ref-subscription-', '');
+                const className = `${aggregate.name}Subscribes${targetAggregate}Deleted`;
+                const subscriptionPath = path.join(
+                    aggregatePath,
+                    'events',
+                    'subscribe',
+                    `${className}.java`
+                );
+                await FileWriter.writeGeneratedFile(subscriptionPath, code, `reference subscription ${className}`);
+            } else if (key.startsWith('ref-handler-')) {
+                const targetAggregate = key.replace('ref-handler-', '');
+                const className = `${targetAggregate}DeletedEventHandler`;
+                const handlerPath = path.join(
+                    aggregatePath,
+                    'events',
+                    'handling',
+                    'handlers',
+                    `${className}.java`
+                );
+                await FileWriter.writeGeneratedFile(handlerPath, code, `reference handler ${className}`);
+            }
+        }
     }
 
     static async generateEvents(

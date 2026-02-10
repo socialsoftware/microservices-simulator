@@ -1,25 +1,22 @@
 grammar Nebula
 
 entry Model:
-    imports+=Import*
     (aggregates+=Aggregate | sharedEnums+=SharedEnums)*
     (exceptions=ExceptionMessages)?;
-
-Import:
-    'import' sharedEnums?='shared-enums' ';';
 
 Aggregate:
     (annotations+=Annotation)*
     'Aggregate' name=ID '{'
-        (generateCrud?='@GenerateCrud' ';')?
+        (generateCrud?='@GenerateCrud')?
         (aggregateElements+=AggregateElement)*
     '}';
 
 AggregateElement:
-    Entity | Method | Workflow | Repository | Events | WebAPIEndpoints | ServiceDefinition | Functionalities;
+    Entity | Method | Workflow | Repository | Events | References | WebAPIEndpoints | ServiceDefinition | Functionalities;
 
 Entity:
-    (isRoot?='Root')? (generateDto?='Dto')? 'Entity' name=ID ('uses' aggregateRef=ID)?
+    (isRoot?='Root')? (generateDto?='Dto')? 'Entity' name=ID
+    ('from' aggregateRef=ID)?
     (
         '{'
             (properties+=Property | fieldMappings+=DtoFieldMapping)*
@@ -29,23 +26,22 @@ Entity:
         '}'
     )?;
 
-// Simplified syntax: Type entityField -> dtoField;
-// Example: Integer courseAggregateId -> aggregateId;
+// New syntax: map dtoField as entityField
+// Example: map name as courseName
 DtoFieldMapping:
-    type=ParamType entityField=ID '->' dtoField=ID ('extract' extractField=ID)? ';';
+    'map' dtoField=ID 'as' entityField=ID;
 
 Method:
     (annotations+=Annotation)*
     'method' name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
     (':' returnType=ReturnType)?
-    ('{' body=STRING '}' | ';');
+    ('{' body=STRING '}')?;
 
 Workflow:
     (annotations+=Annotation)*
-    workflowType=WorkflowType 'workflow' name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' 
+    workflowType=WorkflowType 'workflow' name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
     (':' returnType=ReturnType)?
     (
-        ';' |
         '{'
             ('fields' '{'
                 workflowFields+=WorkflowField*
@@ -54,10 +50,10 @@ Workflow:
                 workflowSteps+=WorkflowStep*
             '}')?
         '}'
-    );
+    )?;
 
 WorkflowField:
-    type=ParamType name=ID ';';
+    type=ParamType name=ID;
 
 WorkflowStep:
     'step' stepName=ID 
@@ -76,18 +72,18 @@ WorkflowStepAction:
     WorkflowCallAction | WorkflowExtractAction | WorkflowRegisterStateAction | WorkflowSetFieldAction;
 
 WorkflowCallAction:
-    'call' serviceRef=ID '.' method=ID '(' (args+=WorkflowArg (',' args+=WorkflowArg)*)? ')' 
-    ('->' assignTo=ID)? ';';
+    'call' serviceRef=ID '.' method=ID '(' (args+=WorkflowArg (',' args+=WorkflowArg)*)? ')'
+    ('->' assignTo=ID)?;
 
 WorkflowExtractAction:
-    'extract' source=WorkflowArg '->' target=ID 
-    ('where' filterField=ID '==' filterValue=WorkflowArg)? ';';
+    'extract' source=WorkflowArg '->' target=ID
+    ('where' filterField=ID '==' filterValue=WorkflowArg)?;
 
 WorkflowRegisterStateAction:
-    'registerState' '(' aggregateId=WorkflowArg ',' sagaState=QualifiedName ')' ';';
+    'registerState' '(' aggregateId=WorkflowArg ',' sagaState=QualifiedName ')';
 
 WorkflowSetFieldAction:
-    'set' fieldName=ID '=' value=WorkflowArg ';';
+    'set' fieldName=ID '=' value=WorkflowArg;
 
 WorkflowArg:
     ref=ID ('.' chain+=ID)*;
@@ -123,22 +119,35 @@ SubscribedEvent:
         '{'
             conditions+=EventCondition*
         '}'
-      | ';'
-    );
+    )?;
 
 EventField:
-    type=Type name=ID ';';
+    type=Type name=ID;
 
 EventCondition:
-    condition=Expression? ';';
+    condition=Expression?;
 
 InterInvariant:
     'interInvariant' name=ID '{'
         (subscribedEvents+=SubscribedEvent)*
     '}';
 
+References:
+    'References' '{'
+        (constraints+=ReferenceConstraint)*
+    '}';
+
+ReferenceConstraint:
+    fieldName=ID '->' targetAggregate=ID '{'
+        'onDelete' ':' action=ReferenceAction
+        'message' ':' message=STRING
+    '}';
+
+ReferenceAction returns string:
+    'prevent' | 'cascade' | 'setNull';
+
 RepositoryMethod:
-    ('@Query' '(' query=STRING ')')? returnType=RepositoryReturnType name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' ';';
+    ('@Query' '(' query=STRING ')')? returnType=RepositoryReturnType name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')';
 
 RepositoryReturnType:
     ParamType;
@@ -173,13 +182,15 @@ OptionalType:
     'Optional' '<' elementType=(PrimitiveType | ID) '>';
 
 Property:
-    (isFinal?='final')? type=Type name=ID (',' names+=ID)* ('default' defaultValue=PropertyDefaultValue)? (dtoExclude?='dto-exclude')? ';';
+    (isFinal?='final')? type=Type name=ID (',' names+=ID)* ('=' defaultValue=PropertyDefaultValue)? (dtoExclude?='dto-exclude')?;
 
 PropertyDefaultValue returns string:
     LITERAL
   | STRING
   | QualifiedName
   | AggregateStateQualified
+  | 'true'
+  | 'false'
   | 'null'
   | '[]';
 
@@ -189,10 +200,11 @@ AggregateStateQualified returns string:
 Invariant:
     'check' name=ID '{'
         conditions+=InvariantCondition*
-    '}';
+    '}'
+    'error' errorMessage=STRING;
 
 InvariantCondition:
-    expression=Expression ';';
+    expression=Expression;
 
 Expression:
     BooleanExpression;
@@ -322,7 +334,7 @@ ExceptionMessages:
     '}';
 
 ExceptionMessage:
-    name=ID ':' message=STRING ';';
+    name=ID ':' message=STRING;
 
 WebAPIEndpoints:
     'WebAPIEndpoints' '{'
@@ -348,8 +360,8 @@ HttpMethod:
     method=('GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH');
 
 ServiceDefinition:
-    'Service' name=ID '{'
-        (transactional?='@Transactional' ';')?
+    'Service' (name=ID)? '{'
+        (transactional?='@Transactional')?
         ('methods' '{'
             serviceMethods+=ServiceMethod*
         '}')?
@@ -370,8 +382,7 @@ FunctionalityMethod:
         'steps' '{'
             functionalitySteps+=FunctionalityStep*
         '}'
-    )?
-    ';';
+    )?;
 
 FunctionalityStep:
     SyncStep;
@@ -396,17 +407,17 @@ StepAction:
     FuncCallServiceAction | FuncSetResultAction | FuncAssignVariableAction | FuncRegisterSagaStateAction;
 
 FuncCallServiceAction:
-    'call' serviceRef=ID '.' method=ID '(' (args+=StepArgument (',' args+=StepArgument)*)? ')' 
-    ('assign' 'to' assignTo=ID)? ';';
+    'call' serviceRef=ID '.' method=ID '(' (args+=StepArgument (',' args+=StepArgument)*)? ')'
+    ('assign' 'to' assignTo=ID)?;
 
 FuncSetResultAction:
-    'set' 'result' 'to' resultType=ID ('as' getterName=ID)? ';';
+    'set' 'result' 'to' resultType=ID ('as' getterName=ID)?;
 
 FuncAssignVariableAction:
-    'set' variableName=ID '=' expression=StepExpression ';';
+    'set' variableName=ID '=' expression=StepExpression;
 
 FuncRegisterSagaStateAction:
-    'register' 'sagaState' aggregateId=StepArgument 'as' sagaState=ID 'in' unitOfWork=ID ';';
+    'register' 'sagaState' aggregateId=StepArgument 'as' sagaState=ID 'in' unitOfWork=ID;
 
 StepArgument:
     {infer StepArgument} (STRING | ID);
@@ -417,7 +428,7 @@ StepExpression:
 ServiceMethod:
     (annotations+=Annotation)*
     name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
-    (':' returnType=ReturnType)? ';';
+    (':' returnType=ReturnType)?;
 
 // Enum Support
 EnumDefinition:

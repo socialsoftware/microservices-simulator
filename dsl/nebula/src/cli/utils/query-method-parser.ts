@@ -20,7 +20,7 @@ export class QueryMethodParser {
     private static readonly KEYWORDS: Record<string, { params: number; requiresProperty: boolean }> = {
         'And': { params: 0, requiresProperty: true },
         'Or': { params: 0, requiresProperty: true },
-        'Not': { params: 0, requiresProperty: true },
+        'Not': { params: 1, requiresProperty: true },
         'Is': { params: 1, requiresProperty: false },
         'Equals': { params: 1, requiresProperty: false },
         'Between': { params: 2, requiresProperty: false },
@@ -35,9 +35,13 @@ export class QueryMethodParser {
         'StartingWith': { params: 1, requiresProperty: false },
         'EndingWith': { params: 1, requiresProperty: false },
         'Containing': { params: 1, requiresProperty: false },
+        'Contains': { params: 1, requiresProperty: false },
+        'NotContains': { params: 1, requiresProperty: false },
         'IgnoreCase': { params: 0, requiresProperty: false },
         'IsNull': { params: 0, requiresProperty: false },
         'IsNotNull': { params: 0, requiresProperty: false },
+        'IsEmpty': { params: 0, requiresProperty: false },
+        'IsNotEmpty': { params: 0, requiresProperty: false },
         'Null': { params: 0, requiresProperty: false },
         'NotNull': { params: 0, requiresProperty: false },
         'In': { params: 1, requiresProperty: false },
@@ -323,18 +327,35 @@ export class QueryMethodParser {
             };
         }
 
-        for (let i = 0; i < parsed.properties.length; i++) {
-            const keywordAfter = i < parsed.keywords.length ? parsed.keywords[i] : undefined;
-            const keywordInfo = keywordAfter ? this.KEYWORDS[keywordAfter] as { params: number; requiresProperty: boolean } | undefined : undefined;
-            if (!keywordInfo || (keywordInfo.params > 0) || keywordAfter === 'And' || keywordAfter === 'Or') {
-                expectedCount++;
-            }
-        }
+        // Build a proper mapping of properties to their operators
+        // Keywords array contains both operators and logical connectors (And/Or)
+        // We need to skip And/Or when counting parameters
+        let keywordIndex = 0;
 
-        for (const keyword of parsed.keywords) {
-            const keywordInfo = this.KEYWORDS[keyword] as { params: number; requiresProperty: boolean } | undefined;
-            if (keywordInfo && keywordInfo.params > 0 && keyword === 'Between') {
-                expectedCount += 1;
+        for (let i = 0; i < parsed.properties.length; i++) {
+            // Find the next non-And/Or keyword
+            let operatorKeyword: string | undefined;
+            while (keywordIndex < parsed.keywords.length) {
+                const keyword = parsed.keywords[keywordIndex];
+                keywordIndex++;
+                if (keyword !== 'And' && keyword !== 'Or') {
+                    operatorKeyword = keyword;
+                    break;
+                }
+            }
+
+            if (!operatorKeyword) {
+                // No operator means equals comparison → 1 parameter
+                expectedCount++;
+            } else {
+                const keywordInfo = this.KEYWORDS[operatorKeyword] as { params: number; requiresProperty: boolean } | undefined;
+                if (keywordInfo) {
+                    // Use the keyword's param count
+                    expectedCount += keywordInfo.params;
+                } else {
+                    // Unknown keyword, assume 1 parameter
+                    expectedCount++;
+                }
             }
         }
 
