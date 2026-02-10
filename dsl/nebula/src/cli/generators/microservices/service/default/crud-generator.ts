@@ -414,7 +414,6 @@ ${allSetters}
 
             // Always generate handler methods, even if no projection entities exist
             // If no projections, generates a stub handler for custom business logic
-            // if (projectionEntities.length === 0) continue; // REMOVED: Now generate handlers for all subscribed events
 
             // Generate a single event handler method that handles all matching projections (or stub if none)
             if (isDelete) {

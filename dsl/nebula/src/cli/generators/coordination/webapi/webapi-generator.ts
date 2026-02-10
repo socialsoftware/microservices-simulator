@@ -2,16 +2,12 @@ import { AggregateExt, TypeGuards } from "../../../types/ast-extensions.js";
 import { WebApiGenerationOptions } from "./webapi-types.js";
 import { ControllerGenerator } from "./controller-generator.js";
 import { WebApiDtoGenerator } from "./dto-generator.js";
-import { GlobalControllerGenerator } from "./global-controller-generator.js";
-import { UtilityServiceGenerator } from "./utility-service-generator.js";
 
 export { WebApiGenerationOptions } from "./webapi-types.js";
 
 export class WebApiGenerator {
     private controllerGenerator = new ControllerGenerator();
     private dtoGenerator = new WebApiDtoGenerator();
-    private globalControllerGenerator = new GlobalControllerGenerator();
-    private utilityServiceGenerator = new UtilityServiceGenerator();
 
     async generateWebApi(aggregate: AggregateExt, options: WebApiGenerationOptions, allAggregates?: AggregateExt[]): Promise<{ [key: string]: string | Record<string, string> }> {
         const rootEntity = aggregate.entities.find((e: any) => TypeGuards.isRootEntity(e));
@@ -37,21 +33,4 @@ export class WebApiGenerator {
         return await this.controllerGenerator.generateEmptyController(aggregate, options);
     }
 
-    async generateGlobalControllers(options: WebApiGenerationOptions): Promise<{ [key: string]: string }> {
-        const results: { [key: string]: string } = {};
-
-        results['behaviour-controller'] = await this.globalControllerGenerator.generateBehaviourController(options);
-        results['traces-controller'] = await this.globalControllerGenerator.generateTracesController(options);
-
-        return results;
-    }
-
-    async generateUtilityServices(options: WebApiGenerationOptions): Promise<{ [key: string]: string }> {
-        const results: { [key: string]: string } = {};
-
-        results['behaviour-service'] = await this.utilityServiceGenerator.generateBehaviourService(options);
-        results['traces-service'] = await this.utilityServiceGenerator.generateTracesService(options);
-
-        return results;
-    }
 }

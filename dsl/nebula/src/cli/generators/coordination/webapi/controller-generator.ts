@@ -2,7 +2,6 @@ import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { WebApiGenerationOptions } from "./webapi-types.js";
 import { WebApiBaseGenerator } from "./webapi-base-generator.js";
 import { getGlobalConfig } from "../../common/config.js";
-import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 import { ControllerCollectionGenerator } from "./controller-collection-generator.js";
 
 export class ControllerGenerator extends WebApiBaseGenerator {
@@ -259,130 +258,6 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         if (!enumType) return null;
 
         return getGlobalConfig().buildPackageName(options.projectName, 'shared', 'enums') + '.' + enumType;
-    }
-
-    /**
-     * Find entity relationships (both single and collection entity fields) from root entity properties
-     * @deprecated No longer used after simplifying create operations
-     */
-    // @ts-ignore - deprecated method, kept for potential future use
-    private _findEntityRelationships(rootEntity: Entity, aggregate: Aggregate): Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> {
-        const relationships: Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> = [];
-
-        if (!rootEntity.properties) {
-            return relationships;
-        }
-
-        for (const prop of rootEntity.properties) {
-            const javaType = TypeResolver.resolveJavaType(prop.type);
-            const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
-
-            // Check if this is an entity type (not enum)
-            const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
-
-            if (isEntityType) {
-                // Resolve entity type
-                const entityRef = (prop.type as any).type?.ref;
-                let entityName: string;
-
-                if (isCollection) {
-                    // For collections, extract element type
-                    const elementType = TypeResolver.getElementType(prop.type);
-                    entityName = elementType || javaType.replace(/^(Set|List)<(.+)>$/, '$2');
-                } else {
-                    entityName = entityRef?.name || javaType;
-                }
-
-                // Only include if it's an entity within this aggregate
-                const relatedEntity = aggregate.entities?.find((e: any) => e.name === entityName);
-                const isEntityInAggregate = !!relatedEntity;
-
-                // Include all entity relationships
-                // Note: generateDto flag just means "generate a DTO class", not "exclude from signature"
-                if (isEntityInAggregate) {
-                    const paramName = prop.name;
-                    relationships.push({
-                        entityType: entityName,
-                        paramName,
-                        javaType: isCollection ? javaType : entityName,
-                        isCollection
-                    });
-                }
-            }
-        }
-
-        return relationships;
-    }
-
-    /**
-     * Get the related DTO type for an entity relationship
-     * @deprecated No longer used after simplifying create operations
-     */
-    // @ts-ignore - deprecated method, kept for potential future use
-    private _getRelatedDtoType(rel: { entityType: string; paramName: string; javaType: string; isCollection: boolean }, aggregate: Aggregate, allAggregates?: Aggregate[]): { dtoType: string | null; isFromAnotherAggregate: boolean; relatedAggregateName?: string } {
-        const relatedEntity = aggregate.entities?.find((e: any) => e.name === rel.entityType);
-        if (!relatedEntity) return { dtoType: null, isFromAnotherAggregate: false };
-
-        const entityAny = relatedEntity as any;
-
-        // Check if the entity uses an aggregate reference (from "uses Topic")
-        const aggregateRef = entityAny.aggregateRef;
-        let dtoTypeName: string | null = null;
-        let relatedAggregateName: string | undefined = undefined;
-
-        if (aggregateRef) {
-            // aggregateRef is the aggregate name (e.g., "Topic"), derive DTO name (e.g., "TopicDto")
-            if (typeof aggregateRef === 'string') {
-                relatedAggregateName = aggregateRef;
-                dtoTypeName = `${aggregateRef}Dto`;
-            } else if (aggregateRef.ref?.name) {
-                relatedAggregateName = aggregateRef.ref.name;
-                dtoTypeName = `${aggregateRef.ref.name}Dto`;
-            } else if (aggregateRef.$refText) {
-                relatedAggregateName = aggregateRef.$refText;
-                dtoTypeName = `${aggregateRef.$refText}Dto`;
-            }
-        }
-
-        // If entity has generateDto, return the entity name + Dto
-        if (!dtoTypeName && entityAny.generateDto) {
-            dtoTypeName = `${rel.entityType}Dto`;
-        }
-
-        // Check if the DTO is from another aggregate
-        if (relatedAggregateName && allAggregates) {
-            const targetAggregate = allAggregates.find(agg => agg.name === relatedAggregateName);
-            if (targetAggregate && targetAggregate.name !== aggregate.name) {
-                return {
-                    dtoType: dtoTypeName,
-                    isFromAnotherAggregate: true,
-                    relatedAggregateName: targetAggregate.name
-                };
-            }
-        }
-
-        return {
-            dtoType: dtoTypeName,
-            isFromAnotherAggregate: false
-        };
-    }
-
-    /**
-     * Check if a type is an enum
-     */
-    private isEnumType(type: any): boolean {
-        if (type && typeof type === 'object' &&
-            type.$type === 'EntityType' &&
-            type.type) {
-            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
-                return true;
-            }
-            const ref = type.type.ref;
-            if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
-                return true;
-            }
-        }
-        return false;
     }
 
     async generateEmptyController(aggregate: Aggregate, options: WebApiGenerationOptions): Promise<string> {
