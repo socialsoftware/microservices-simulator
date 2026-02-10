@@ -42,3 +42,5 @@
 - [ ] Check the need of a transactional Outbox Table
 - [ ] Create database persistence in docker compose and kubernetes for each microservice
 - [ ] Change ddl-auto from create to a persistent one
+- [ ] Update readme diagrams 
+- [ ] Check developer effort

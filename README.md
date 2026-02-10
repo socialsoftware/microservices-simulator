@@ -18,13 +18,13 @@ in [Transactional Causal Consistent Microservices Simulator](https://doi.org/10.
 The simulator supports multiple execution modes to test different aspects of system behavior, ranging from simple local
 execution to full distributed deployment.
 
-| Mode                  | Description                                                                                                        | Profiles                                      | Infrastructure                                                                                                               |
-|-----------------------|--------------------------------------------------------------------------------------------------------------------|-----------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
-| **Monolith (Local)**  | Runs as a single application. Service calls are internal.                                                          | `sagas,local` or `tcc,local`                  | PostgreSQL, Jaeger                                                                                                           |
-| **Monolith (Stream)** | Single application but uses RabbitMQ for remote communication between components. Simulates distributed messaging. | `sagas,stream` or `tcc,stream`                | PostgreSQL, Jaeger, RabbitMQ                                                                                                 |
-| **Monolith (gRPC)**   | Single application using gRPC for remote communication between components.                                         | `sagas,grpc` or `tcc,grpc`                    | PostgreSQL, Jaeger                                                                                                           |
+| Mode                  | Description                                                                                                        | Profiles                                       | Infrastructure                                                                                                               |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------|------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| **Monolith (Local)**  | Runs as a single application. Service calls are internal.                                                          | `sagas,local` or `tcc,local`                   | PostgreSQL, Jaeger                                                                                                           |
+| **Monolith (Stream)** | Single application but uses RabbitMQ for remote communication between components. Simulates distributed messaging. | `sagas,stream` or `tcc,stream`                 | PostgreSQL, Jaeger, RabbitMQ                                                                                                 |
+| **Monolith (gRPC)**   | Single application using gRPC for remote communication between components.                                         | `sagas,grpc` or `tcc,grpc`                     | PostgreSQL, Jaeger                                                                                                           |
 | **Microservices**     | Fully distributed. Each domain service runs independently. Uses Eureka for discovery and RabbitMQ for messaging.   | Service-specific (e.g., `answer,sagas,stream`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, RabbitMQ, Eureka |
-| **Kubernetes**        | Distributed microservices orchestrated by Kubernetes. Uses Spring Cloud Kubernetes for discovery.                  | `kubernetes`                                  | K8s Cluster, RabbitMQ, PostgreSQL                                                                                            |
+| **Kubernetes**        | Distributed microservices orchestrated by Kubernetes. Uses Spring Cloud Kubernetes for discovery.                  | `kubernetes`                                   | K8s Cluster, RabbitMQ, PostgreSQL                                                                                            |
 
 ## Run Using Docker
 
@@ -352,8 +352,8 @@ cd applications/quizzes
 
 **Sagas with Stream (RabbitMQ):**
 
-| Service                  | Command                                            |
-|--------------------------|-------------------------------------------------|
+| Service                  | Command                                               |
+|--------------------------|-------------------------------------------------------|
 | Answer Service           | `mvn spring-boot:run -Panswer,sagas,stream`           |
 | Course Service           | `mvn spring-boot:run -Pcourse,sagas,stream`           |
 | Course Execution Service | `mvn spring-boot:run -Pcourse-execution,sagas,stream` |
@@ -365,8 +365,8 @@ cd applications/quizzes
 
 **Sagas with gRPC:**
 
-| Service                  | Command                                          |
-|--------------------------|-----------------------------------------------|
+| Service                  | Command                                             |
+|--------------------------|-----------------------------------------------------|
 | Answer Service           | `mvn spring-boot:run -Panswer,sagas,grpc`           |
 | Course Service           | `mvn spring-boot:run -Pcourse,sagas,grpc`           |
 | Course Execution Service | `mvn spring-boot:run -Pcourse-execution,sagas,grpc` |
@@ -378,8 +378,8 @@ cd applications/quizzes
 
 **TCC with Stream:**
 
-| Service                  | Command                                        |
-|--------------------------|----------------------------------------------|
+| Service                  | Command                                             |
+|--------------------------|-----------------------------------------------------|
 | Answer Service           | `mvn spring-boot:run -Panswer,tcc,stream`           |
 | Course Service           | `mvn spring-boot:run -Pcourse,tcc,stream`           |
 | Course Execution Service | `mvn spring-boot:run -Pcourse-execution,tcc,stream` |
@@ -546,7 +546,6 @@ kubectl get svc gateway -n microservices-simulator
 kubectl port-forward -n microservices-simulator svc/gateway 8080:8080
 ```
 
-
 **Save costs by stopping the cluster when not in use:**
 
 ```bash
@@ -587,11 +586,14 @@ The application uses Spring Boot profiles and YAML configuration files to manage
 
 ### Jaeger Tracing
 
-The projects uses [Jaeger](https://www.jaegertracing.io/) for distributed tracing to monitor and visualize the flow of requests across microservices.
+The project uses [Jaeger](https://www.jaegertracing.io/) for distributed tracing to monitor and visualize the flow of
+requests across microservices.
 
-*   **Dashboard**: Access the Jaeger UI at [http://localhost:16686](http://localhost:16686).
-*   **Collector**: The application sends traces to the Jaeger collector on `http://localhost:4317` using the OTLP gRPC protocol.
-*   **Instrumentation**: Custom instrumentation is implemented in `TraceManager` using the OpenTelemetry SDK to trace functionalities and their steps.
+* **Dashboard**: Access the Jaeger UI at [http://localhost:16686](http://localhost:16686).
+* **Collector**: The application sends traces to the Jaeger collector on `http://localhost:4317` using the OTLP gRPC
+  protocol.
+* **Instrumentation**: Custom instrumentation is implemented in `TraceManager` using the OpenTelemetry SDK to trace
+  functionalities and their steps.
 
 ### Service Discovery
 
@@ -644,7 +646,7 @@ Each microservice runs on a dedicated port:
 | Gateway            | 8080 | [application.yaml](applications/gateway/src/main/resources/application.yaml)                                                   |
 | Version Service    | 8081 | -                                                                                                                              |
 | Answer Service     | 8082 | [application-answer-service.yaml](applications/quizzes/src/main/resources/application-answer-service.yaml)                     |
-| Course Execution   | 8083 | [application-course-execution-service.yaml](applications/quizzes/src/main/resources/application-course-execution-service.yaml) |
+| Course Execution   | 8083 | [application-course-execution-service.yaml](applications/quizzes/src/main/resources/application-execution-service.yaml)        |
 | Question Service   | 8084 | [application-question-service.yaml](applications/quizzes/src/main/resources/application-question-service.yaml)                 |
 | Quiz Service       | 8085 | [application-quiz-service.yaml](applications/quizzes/src/main/resources/application-quiz-service.yaml)                         |
 | Topic Service      | 8086 | [application-topic-service.yaml](applications/quizzes/src/main/resources/application-topic-service.yaml)                       |
@@ -739,7 +741,7 @@ For the transactional model independent part:
    functionality [processUpdateStudentNameEvent(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/eventProcessing/TournamentEventProcessing.java).
 7. **Define Aggregate Services**: Define the microservice API, whose implementation interact with the unit of work to
    register changes and publish events, like
-   service [updateExecutionStudentName(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/service/CourseExecutionService.java).
+   service [updateExecutionStudentName(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/service/ExecutionService.java).
 8. **Define Event Handling**: Define the aggregates event handling, that periodically polls the event table to process
    events,
    like [TournamentEventHandling](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/events/handling/TournamentEventHandling.java).
