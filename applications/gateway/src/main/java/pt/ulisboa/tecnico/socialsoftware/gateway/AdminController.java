@@ -8,6 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,7 +34,35 @@ public class AdminController {
 
     @GetMapping("/traces/start")
     public Mono<String> startTraces() {
-        return broadcastGet("/traces/start");
+        List<String> services = dynamicGatewayService.getAvailableServices();
+        if (services.isEmpty()) {
+            return Mono.just("No services available");
+        }
+
+        String firstService = services.getFirst();
+
+        return webClient.get()
+                .uri(firstService + "/traces/createRoot")
+                .retrieve()
+                .bodyToMono(String.class)
+                .flatMap(rootResponse -> {
+                    String[] parts = rootResponse.split(":");
+                    if (parts.length < 2) {
+                        return Mono.just("Failed to parse traceId:spanId from createRoot: " + rootResponse);
+                    }
+                    String traceId = parts[0];
+                    String spanId = parts[1];
+
+                    return Flux.fromIterable(services)
+                            .flatMap(serviceUrl -> webClient.get()
+                                    .uri(serviceUrl + "/traces/start?traceId=" + traceId + "&spanId=" + spanId)
+                                    .retrieve()
+                                    .bodyToMono(String.class)
+                                    .onErrorResume(e -> Mono.just("Error on " + serviceUrl + ": " + e.getMessage())))
+                            .collect(Collectors.joining("\n"))
+                            .map(responses -> "Root: " + rootResponse + "\n" + responses);
+                })
+                .onErrorResume(e -> Mono.just("Error creating root: " + e.getMessage()));
     }
 
     @GetMapping("/traces/end")

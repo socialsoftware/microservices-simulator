@@ -1,12 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.utils;
 
 import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
@@ -25,27 +27,33 @@ import java.util.stream.Collectors;
 public class TraceManager {
 
     // --- Static Fields ---
-    private static final TraceManager INSTANCE = new TraceManager();
+    private static volatile TraceManager INSTANCE;
+    private static Span masterRootSpan;
     private static Span rootSpan;
     private static int rootSpanId = 1;
 
     // --- Instance Fields ---
+    private final String serviceName;
     private final Tracer tracer;
     private final SdkTracerProvider tracerProvider;
+    private final Tracer masterRootTracer;
+    private final SdkTracerProvider masterRootTracerProvider;
     private final Map<String, Span> functionalitySpans = new ConcurrentHashMap<>();
     private final Map<String, Span> stepSpans = new ConcurrentHashMap<>();
     private final Map<String, AtomicInteger> functionalityCounters = new ConcurrentHashMap<>();
     private final Map<String, java.util.concurrent.ConcurrentLinkedQueue<String>> activeInvocationKeys = new ConcurrentHashMap<>();
 
     // --- Constructor ---
-    private TraceManager() {
+    private TraceManager(String serviceName) {
+        this.serviceName = serviceName;
+
         OtlpGrpcSpanExporter spanExporter = OtlpGrpcSpanExporter.builder()
             .setEndpoint("http://localhost:4317")
             .build();
 
         Resource serviceResource = Resource.getDefault().merge(
             Resource.create(
-                Attributes.of(AttributeKey.stringKey("service.name"), "my-app")
+                Attributes.of(AttributeKey.stringKey("service.name"), serviceName)
             )
         );
 
@@ -56,27 +64,94 @@ public class TraceManager {
 
         this.tracerProvider = tracerProvider;
 
-        OpenTelemetry openTelemetry = OpenTelemetrySdk.builder()
+        OpenTelemetrySdk.builder()
             .setTracerProvider(tracerProvider)
             .buildAndRegisterGlobal();
 
-        this.tracer = GlobalOpenTelemetry.getTracer("my-app");
+        this.tracer = GlobalOpenTelemetry.getTracer(serviceName);
+
+        // Separate TracerProvider for master root span with service.name = "root"
+        OtlpGrpcSpanExporter masterExporter = OtlpGrpcSpanExporter.builder()
+            .setEndpoint("http://localhost:4317")
+            .build();
+
+        Resource masterResource = Resource.getDefault().merge(
+            Resource.create(
+                Attributes.of(AttributeKey.stringKey("service.name"), "root")
+            )
+        );
+
+        this.masterRootTracerProvider = SdkTracerProvider.builder()
+            .setResource(masterResource)
+            .addSpanProcessor(BatchSpanProcessor.builder(masterExporter).build())
+            .build();
+
+        this.masterRootTracer = masterRootTracerProvider.get("root");
     }
 
     // --- Singleton Access ---
+    public static synchronized void init(String serviceName) {
+        if (INSTANCE == null) {
+            INSTANCE = new TraceManager(serviceName);
+        }
+    }
+
     public static TraceManager getInstance() {
+        if (INSTANCE == null) {
+            throw new IllegalStateException("TraceManager not initialized. Call TraceManager.init(serviceName) first.");
+        }
         return INSTANCE;
+    }
+
+    // --- Master Root Span ---
+    public void createMasterRoot() {
+        String rootSpanName = "root" + rootSpanId;
+        masterRootSpan = masterRootTracer.spanBuilder(rootSpanName)
+                        .setSpanKind(SpanKind.INTERNAL)
+                        .startSpan();
+    }
+
+    public String getMasterRootTraceId() {
+        return masterRootSpan != null ? masterRootSpan.getSpanContext().getTraceId() : null;
+    }
+
+    public String getMasterRootSpanId() {
+        return masterRootSpan != null ? masterRootSpan.getSpanContext().getSpanId() : null;
     }
 
     // --- Root Span Management ---
     public void startRootSpan() {
-        String rootSpanName = "root" + rootSpanId;
+        String rootSpanName = serviceName + "-root" + rootSpanId;
         Span span = tracer.spanBuilder(rootSpanName)
                         .setSpanKind(SpanKind.INTERNAL)
                         .startSpan();
         rootSpan = span;
         span.setAttribute("root", "root");
+        span.setAttribute("service", serviceName);
         rootSpanId++;
+    }
+
+    public void startRootSpan(String traceId, String spanId) {
+        SpanContext parentContext = SpanContext.createFromRemoteParent(
+                traceId, spanId, TraceFlags.getSampled(), TraceState.getDefault());
+        Context remoteContext = Context.current().with(Span.wrap(parentContext));
+        String rootSpanName = serviceName + "-root" + rootSpanId;
+        Span span = tracer.spanBuilder(rootSpanName)
+                        .setParent(remoteContext)
+                        .setSpanKind(SpanKind.INTERNAL)
+                        .startSpan();
+        rootSpan = span;
+        span.setAttribute("root", "root");
+        span.setAttribute("service", serviceName);
+        rootSpanId++;
+    }
+
+    public String getRootTraceId() {
+        return rootSpan != null ? rootSpan.getSpanContext().getTraceId() : null;
+    }
+
+    public String getRootSpanId() {
+        return rootSpan != null ? rootSpan.getSpanContext().getSpanId() : null;
     }
 
     public void endRootSpan() {
@@ -89,6 +164,13 @@ public class TraceManager {
             stepSpans.clear();
         } else {
             throw new IllegalStateException("Root span has not been started");
+        }
+    }
+
+    public void endMasterRootSpan() {
+        if (masterRootSpan != null) {
+            masterRootSpan.end();
+            masterRootSpan = null;
         }
     }
 
@@ -230,7 +312,7 @@ public class TraceManager {
                         .setParent(Context.current().with(parentSpan))
                         .setSpanKind(SpanKind.INTERNAL)
                         .startSpan();
-        
+
         span.setAttribute("functionality", func);
         span.setAttribute("step", step);
         span.setAttribute("value", Integer.toString(delay)+ " ms");
@@ -248,6 +330,7 @@ public class TraceManager {
     public void forceFlush() {
         try {
             tracerProvider.forceFlush().join(2, TimeUnit.SECONDS);
+            masterRootTracerProvider.forceFlush().join(2, TimeUnit.SECONDS);
         } catch (Exception e) {
             return;
         }
