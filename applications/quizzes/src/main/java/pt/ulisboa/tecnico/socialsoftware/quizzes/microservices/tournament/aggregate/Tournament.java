@@ -92,7 +92,7 @@ public abstract class Tournament extends Aggregate {
     }
 
     public Tournament(Integer aggregateId, TournamentDto tournamentDto, UserDto creatorDto,
-                      CourseExecutionDto courseExecutionDto, Set<TopicDto> topicDtos, QuizDto quizDto) {
+            CourseExecutionDto courseExecutionDto, Set<TopicDto> topicDtos, QuizDto quizDto) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setStartTime(DateHandler.toLocalDateTime(tournamentDto.getStartTime()));
@@ -100,7 +100,8 @@ public abstract class Tournament extends Aggregate {
         setNumberOfQuestions(tournamentDto.getNumberOfQuestions());
         setCancelled(tournamentDto.isCancelled());
 
-        setTournamentCreator(new TournamentCreator(creatorDto.getAggregateId(), creatorDto.getName(), creatorDto.getUsername(), creatorDto.getVersion()));
+        setTournamentCreator(new TournamentCreator(creatorDto.getAggregateId(), creatorDto.getName(),
+                creatorDto.getUsername(), creatorDto.getVersion()));
         setTournamentCourseExecution(new TournamentCourseExecution(courseExecutionDto));
 
         Set<TournamentTopic> tournamentTopics = topicDtos.stream()
@@ -204,9 +205,7 @@ public abstract class Tournament extends Aggregate {
 		p1, p2: this.participants | p1.id != p2.id
      */
     public boolean invariantUniqueParticipant() {
-        return this.tournamentParticipants.size()
-                ==
-                this.tournamentParticipants.stream()
+        return this.tournamentParticipants.size() == this.tournamentParticipants.stream()
                 .map(TournamentParticipant::getParticipantAggregateId)
                 .distinct()
                 .count();
@@ -259,24 +258,34 @@ public abstract class Tournament extends Aggregate {
         return this.tournamentParticipants.stream()
                 .noneMatch(p -> p.getParticipantAggregateId().equals(this.tournamentCreator.getCreatorAggregateId())
                         && (!p.getParticipantVersion().equals(this.tournamentCreator.getCreatorVersion())
-                        || !p.getParticipantName().equals(this.tournamentCreator.getCreatorName())
-                        || !p.getParticipantUsername().equals(this.tournamentCreator.getCreatorUsername())));
+                                || !p.getParticipantName().equals(this.tournamentCreator.getCreatorName())
+                                || !p.getParticipantUsername().equals(this.tournamentCreator.getCreatorUsername())));
     }
 
     private boolean invariantCreatorIsNotAnonymous() {
-        return !tournamentCreator.getCreatorName().equals("ANONYMOUS") && !tournamentCreator.getCreatorUsername().equals("ANONYMOUS");
+        return !tournamentCreator.getCreatorName().equals("ANONYMOUS")
+                && !tournamentCreator.getCreatorUsername().equals("ANONYMOUS");
     }
 
     @Override
     public void verifyInvariants() {
         if (!(invariantAnswerBeforeStart()
-               && invariantUniqueParticipant()
+                && invariantUniqueParticipant()
                 && invariantParticipantsEnrolledBeforeStarTime()
                 && invariantStartTimeBeforeEndTime()
                 && invariantDeleteWhenNoParticipants()
                 && invariantCreatorParticipantConsistency())
                 && invariantCreatorIsNotAnonymous()) {
             throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        }
+    }
+
+    private void checkCanModifyTournament() {
+        Tournament prev = (Tournament) getPrev();
+        if (prev != null) {
+            if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
+                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
+            }
         }
     }
 
@@ -295,12 +304,7 @@ public abstract class Tournament extends Aggregate {
         IS_CANCELED
 		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
          */
-        Tournament prev = (Tournament) getPrev();
-        if (prev != null) {
-            if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
-            }
-        }
+        checkCanModifyTournament();
         this.startTime = startTime;
     }
 
@@ -316,12 +320,7 @@ public abstract class Tournament extends Aggregate {
         IS_CANCELED
 		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
          */
-        Tournament prev = (Tournament) getPrev();
-        if (prev != null) {
-            if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
-            }
-        }
+        checkCanModifyTournament();
         this.endTime = endTime;
     }
 
@@ -336,12 +335,7 @@ public abstract class Tournament extends Aggregate {
         IS_CANCELED
 		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
          */
-        Tournament prev = (Tournament) getPrev();
-        if (prev != null) {
-            if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
-            }
-        }
+        checkCanModifyTournament();
         this.numberOfQuestions = numberOfQuestions;
     }
 
@@ -356,12 +350,7 @@ public abstract class Tournament extends Aggregate {
         IS_CANCELED
 		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
          */
-        Tournament prev = (Tournament) getPrev();
-        if (prev != null) {
-            if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
-            }
-        }
+        checkCanModifyTournament();
         this.cancelled = cancelled;
     }
 
@@ -379,14 +368,8 @@ public abstract class Tournament extends Aggregate {
     }
 
     public void setTournamentParticipants(Set<TournamentParticipant> tournamentParticipants) {
-        /*
-        IS_CANCELED
-		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
-         */
-        /*Tournament prev = (Tournament) getPrev();
-        if(prev != null && prev.isCancelled()) {
-            throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
-        }*/
+        // No checks: only called by constructors/merge, not business logic.
+        // Business operations use addParticipant().
         this.tournamentParticipants = tournamentParticipants;
         this.tournamentParticipants.forEach(tournamentParticipant -> tournamentParticipant.setTournament(this));
     }
@@ -428,12 +411,7 @@ public abstract class Tournament extends Aggregate {
         IS_CANCELED
 		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
          */
-        Tournament prev = (Tournament) getPrev();
-        if (prev != null) {
-            if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
-            }
-        }
+        checkCanModifyTournament();
 
         this.tournamentTopics = topics;
         this.tournamentTopics.forEach(tournamentTopic -> tournamentTopic.setTournament(this));
@@ -449,7 +427,8 @@ public abstract class Tournament extends Aggregate {
     }
 
     public TournamentParticipant findParticipant(Integer userAggregateId) {
-        return this.tournamentParticipants.stream().filter(p -> p.getParticipantAggregateId().equals(userAggregateId)).findFirst()
+        return this.tournamentParticipants.stream().filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
+                .findFirst()
                 .orElse(null);
     }
 
@@ -462,12 +441,7 @@ public abstract class Tournament extends Aggregate {
 		IS_CANCELED
 		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
          */
-        Tournament prev = (Tournament) getPrev();
-        if (prev != null) {
-            if ((prev.getStartTime() != null && DateHandler.now().isAfter(prev.getStartTime())) || prev.isCancelled()) {
-                throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
-            }
-        }
+        checkCanModifyTournament();
         return this.tournamentParticipants.remove(participant);
     }
 
