@@ -150,11 +150,10 @@ public abstract class Execution extends Aggregate {
         /*
             CANNOT_REMOVE_IF_STUDENTS
          */
-        if (getStudents().size() > 0) {
-            super.remove();
-        } else {
+        if (!getStudents().isEmpty()) {
             throw new QuizzesException(QuizzesErrorMessage.CANNOT_DELETE_COURSE_EXECUTION, getAggregateId());
         }
+        super.remove();
     }
 
 
