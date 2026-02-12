@@ -20,7 +20,6 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
 
 /*
     INTRA-INVARIANTS
-        DATE_ORDERING
         QUESTIONS_FINAL_AFTER_AVAILABLE_DATE
         COURSE_EXECUTION_FINAL
         CREATION_DATE_FINAL
@@ -30,7 +29,6 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
     INTER-INVARIANTS
         QUESTION_EXISTS
         COURSE_EXECUTION_EXISTS
-        QUESTION_COURSE_EXECUTION_SAME_AS_COURSE_EXECUTION
  */
 @Entity
 public abstract class Quiz extends Aggregate {
