@@ -28,9 +28,6 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
         QUIZ_EXISTS
         QUESTION_EXISTS
         COURSE_EXECUTION_EXISTS
-        QUESTION_ANSWERS_QUESTION_BELONGS_TO_QUIZ
-        QUIZ_COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
-        COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
         COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION (verified at the service and the quiz doesnt change execution)
 
  */
