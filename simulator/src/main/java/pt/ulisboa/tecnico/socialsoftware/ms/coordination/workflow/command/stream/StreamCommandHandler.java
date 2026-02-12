@@ -57,10 +57,6 @@ public abstract class StreamCommandHandler extends CommandHandler {
 
         try {
             Object result = handle(command);
-            if (result instanceof Exception) { // TODO check if result is better thrown
-                sendErrorResponse(correlationId, ((Exception) result).getMessage(), command.getUnitOfWork(), replyTo);
-                return;
-            }
             sendResponse(correlationId, result, command.getUnitOfWork(), replyTo);
         } catch (SimulatorException e) {
             logger.warning("Command handling error: " + e.getMessage());

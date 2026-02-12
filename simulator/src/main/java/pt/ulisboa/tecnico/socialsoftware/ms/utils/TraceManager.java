@@ -97,9 +97,6 @@ public class TraceManager {
     }
 
     public static TraceManager getInstance() {
-        if (INSTANCE == null) {
-            throw new IllegalStateException("TraceManager not initialized. Call TraceManager.init(serviceName) first.");
-        }
         return INSTANCE;
     }
 

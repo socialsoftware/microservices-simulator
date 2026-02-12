@@ -56,35 +56,20 @@ public abstract class CommandHandler {
 
     protected Object handleCommitCausal(CommitCausalCommand command) {
         logger.info("Committing causal for aggregate: " + command.getRootAggregateId());
-        try {
-            causalUnitOfWorkService.commitCausal(command.getAggregate());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to commit causal: " + e.getMessage());
-            return e;
-        }
+        causalUnitOfWorkService.commitCausal(command.getAggregate());
+        return null;
     }
 
     protected Object handlePrepareCausal(PrepareCausalCommand command) {
         logger.info("Preparing causal for aggregate: " + command.getRootAggregateId());
-        try {
-            causalUnitOfWorkService.prepareCausal(command.getAggregate());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to prepare causal: " + e.getMessage());
-            return e;
-        }
+        causalUnitOfWorkService.prepareCausal(command.getAggregate());
+        return null;
     }
 
     protected Object handleAbortCausal(AbortCausalCommand command) {
         logger.info("Aborting causal for aggregate: " + command.getRootAggregateId());
-        try {
-            causalUnitOfWorkService.abortCausal(command.getRootAggregateId());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to abort causal: " + e.getMessage());
-            return e;
-        }
+        causalUnitOfWorkService.abortCausal(command.getRootAggregateId());
+        return null;
     }
 
     protected Object handleGetConcurrentAggregate(GetConcurrentAggregateCommand command) {
@@ -94,23 +79,13 @@ public abstract class CommandHandler {
 
     protected Object handleCommitSaga(CommitSagaCommand command) {
         logger.info("Committing saga for aggregate: " + command.getAggregateId());
-        try {
-            sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to commit saga: " + e.getMessage());
-            return e;
-        }
+        sagaUnitOfWorkService.commitAggregate(command.getAggregateId());
+        return null;
     }
 
     protected Object handleAbortSaga(AbortSagaCommand command) {
         logger.info("Aborting saga for aggregate: " + command.getAggregateId());
-        try {
-            sagaUnitOfWorkService.abortAggregate(command.getAggregateId(), command.getPreviousState());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to abort saga: " + e.getMessage());
-            return e;
-        }
+        sagaUnitOfWorkService.abortAggregate(command.getAggregateId(), command.getPreviousState());
+        return null;
     }
 }

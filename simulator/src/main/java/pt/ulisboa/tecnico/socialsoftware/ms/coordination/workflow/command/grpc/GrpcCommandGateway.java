@@ -13,7 +13,6 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
-import org.springframework.dao.TransientDataAccessException;
 import org.springframework.stereotype.Component;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
@@ -108,15 +107,10 @@ public class GrpcCommandGateway extends CommandGateway {
 
         mergeUnitOfWork(command.getUnitOfWork(), response.unitOfWork());
 
-        Object result = response.result();
-        if (result instanceof SimulatorException) {
-            throw (SimulatorException) result;
-        } else if (result instanceof TransientDataAccessException) {
-            throw (TransientDataAccessException) result;
-        } else if (response.isError()) {
+        if (response.isError()) {
             throw new SimulatorException(response.errorMessage());
         }
-        return result;
+        return response.result();
     }
 
     private CommandReply callService(String service, CommandRequest request) {

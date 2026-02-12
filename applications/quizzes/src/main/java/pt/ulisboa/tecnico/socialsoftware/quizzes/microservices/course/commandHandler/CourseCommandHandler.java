@@ -6,7 +6,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetAndOrCreateCourseRemoteCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService;
 
 import java.util.logging.Logger;
@@ -37,24 +36,11 @@ public class CourseCommandHandler extends CommandHandler {
 
     private Object handleGetCourseById(GetCourseByIdCommand command) {
         logger.info("Getting course by ID: " + command.getAggregateId());
-        try {
-            CourseDto courseDto = courseService.getCourseById(
-                    command.getAggregateId(),
-                    command.getUnitOfWork());
-            return courseDto;
-        } catch (Exception e) {
-            logger.severe("Failed to get course by ID: " + e.getMessage());
-            return e;
-        }
+        return courseService.getCourseById(command.getAggregateId(), command.getUnitOfWork());
     }
 
     private Object handleGetAndOrCreateCourseRemote(GetAndOrCreateCourseRemoteCommand command) {
         logger.info("Getting or creating course by ID: " + command.getCourseExecutionDto().getAggregateId());
-        try {
-            return courseService.getAndOrCreateCourseRemote(command.getCourseExecutionDto(), command.getUnitOfWork());
-        } catch (Exception e) {
-            logger.severe("Failed to get or create course remote by ID: " + e.getMessage());
-            return e;
-        }
+        return courseService.getAndOrCreateCourseRemote(command.getCourseExecutionDto(), command.getUnitOfWork());
     }
 }

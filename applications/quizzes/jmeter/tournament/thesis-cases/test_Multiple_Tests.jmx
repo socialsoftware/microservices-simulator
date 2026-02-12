@@ -1223,7 +1223,7 @@ ${__setProperty(course_aggregate_id,${course_aggregate_id})}</stringProp>
           <hashTree/>
         </hashTree>
         <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="flush processing delay" enabled="true">
-          <stringProp name="ConstantTimer.delay">10000</stringProp>
+          <stringProp name="ConstantTimer.delay">20000</stringProp>
         </ConstantTimer>
         <hashTree/>
         <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Trace Requests" enabled="true">

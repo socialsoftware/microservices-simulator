@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
-import org.springframework.dao.TransientDataAccessException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
@@ -79,13 +78,12 @@ public class StreamCommandGateway extends CommandGateway {
             CommandResponse resp = responseFuture.get();
             logger.info("Received response for command " + command.getClass().getSimpleName());
             mergeUnitOfWork(command.getUnitOfWork(), resp.unitOfWork());
-            Object result = resp.result();
-            if (result instanceof SimulatorException) {
-                throw (SimulatorException) result;
-            } else if (result instanceof TransientDataAccessException) {
-                throw (TransientDataAccessException) result;
+            if (resp.isError()) {
+                throw new SimulatorException(resp.errorMessage());
             }
-            return result;
+            return resp.result();
+        } catch (SimulatorException e) {
+            throw e;
         } catch (Exception e) {
             logger.warning("Error while waiting for response: " + e.getMessage());
             throw new RuntimeException("Error processing command", e);

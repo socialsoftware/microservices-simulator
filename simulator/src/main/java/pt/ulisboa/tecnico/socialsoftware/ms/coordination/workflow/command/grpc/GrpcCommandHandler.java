@@ -43,10 +43,6 @@ public abstract class GrpcCommandHandler extends CommandHandler {
 
         try {
             Object result = handle(command);
-            if (result instanceof Exception e) {
-                sendErrorResponse(correlationId, e.getMessage(), command.getUnitOfWork(), responseObserver);
-                return;
-            }
             sendResponse(correlationId, result, command.getUnitOfWork(), responseObserver);
         } catch (SimulatorException e) {
             logger.warning("Command handling error: " + e.getMessage());

@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.*;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.ExecutionService;
 
 import java.util.logging.Logger;
@@ -45,154 +44,98 @@ public class ExecutionCommandHandler extends CommandHandler {
 
     private Object handleCreateCourseExecution(CreateCourseExecutionCommand command) {
         logger.info("Creating course execution: " + command.getCourseExecutionDto());
-        try {
-            CourseExecutionDto courseExecutionDto = executionService.createCourseExecution(
-                    command.getCourseExecutionDto(),
-                    command.getUnitOfWork());
-            return courseExecutionDto;
-        } catch (Exception e) {
-            logger.severe("Failed to create course execution: " + e.getMessage());
-            return e;
-        }
+        return executionService.createCourseExecution(
+                command.getCourseExecutionDto(),
+                command.getUnitOfWork());
     }
 
     private Object handleRemoveCourseExecution(RemoveCourseExecutionCommand command) {
         logger.info("Removing course execution: " + command.getExecutionAggregateId());
-        try {
-            executionService.removeCourseExecution(
-                    command.getExecutionAggregateId(),
-                    command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to remove course execution: " + e.getMessage());
-            return e;
-        }
+        executionService.removeCourseExecution(
+                command.getExecutionAggregateId(),
+                command.getUnitOfWork());
+        return null;
     }
 
     private Object handleRemoveStudentFromCourseExecution(RemoveStudentFromCourseExecutionCommand command) {
         logger.info("Removing student from course execution: " + command.getCourseExecutionAggregateId() + ", "
                 + command.getUserAggregateId());
-        try {
-            executionService.removeStudentFromCourseExecution(
-                    command.getCourseExecutionAggregateId(),
-                    command.getUserAggregateId(),
-                    command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to remove student from course execution: " + e.getMessage());
-            return e;
-        }
+        executionService.removeStudentFromCourseExecution(
+                command.getCourseExecutionAggregateId(),
+                command.getUserAggregateId(),
+                command.getUnitOfWork());
+        return null;
     }
 
     private Object handleUpdateExecutionStudentName(UpdateExecutionStudentNameCommand command) {
         logger.info("Updating execution student name: " + command.getExecutionAggregateId() + ", "
                 + command.getUserAggregateId() + ", "
                 + command.getName());
-        try {
-            executionService.updateExecutionStudentName(
-                    command.getExecutionAggregateId(),
-                    command.getUserAggregateId(),
-                    command.getName(),
-                    command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to update execution student name: " + e.getMessage());
-            return e;
-        }
+        executionService.updateExecutionStudentName(
+                command.getExecutionAggregateId(),
+                command.getUserAggregateId(),
+                command.getName(),
+                command.getUnitOfWork());
+        return null;
     }
 
     private Object handleGetStudentByExecutionIdAndUserId(GetStudentByExecutionIdAndUserIdCommand command) {
         logger.info("Getting student by execution id and user id: " + command.getExecutionAggregateId() + ", "
                 + command.getUserAggregateId());
-        try {
-            return executionService.getStudentByExecutionIdAndUserId(
-                    command.getExecutionAggregateId(),
-                    command.getUserAggregateId(),
-                    command.getUnitOfWork());
-        } catch (Exception e) {
-            logger.severe("Failed to get student by execution id and user id: " + e.getMessage());
-            return e;
-        }
+        return executionService.getStudentByExecutionIdAndUserId(
+                command.getExecutionAggregateId(),
+                command.getUserAggregateId(),
+                command.getUnitOfWork());
     }
 
     private Object handleGetCourseExecutionsByUserId(GetCourseExecutionsByUserIdCommand command) {
         logger.info("Getting course executions by user id: " + command.getUserAggregateId());
-        try {
-            return executionService.getCourseExecutionsByUserId(
-                    command.getUserAggregateId(),
-                    command.getUnitOfWork());
-        } catch (Exception e) {
-            logger.severe("Failed to get course executions by user id: " + e.getMessage());
-            return e;
-        }
+        return executionService.getCourseExecutionsByUserId(
+                command.getUserAggregateId(),
+                command.getUnitOfWork());
     }
 
     private Object handleGetCourseExecutionById(GetCourseExecutionByIdCommand command) {
         logger.info("Getting course execution by id: " + command.getExecutionAggregateId());
-        try {
-            return executionService.getCourseExecutionById(
-                    command.getExecutionAggregateId(),
-                    command.getUnitOfWork());
-        } catch (Exception e) {
-            logger.severe("Failed to get course execution by id: " + e.getMessage());
-            return e;
-        }
+        return executionService.getCourseExecutionById(
+                command.getExecutionAggregateId(),
+                command.getUnitOfWork());
     }
 
     private Object handleGetAllCourseExecutions(GetAllCourseExecutionsCommand command) {
         logger.info("Getting all course executions");
-        try {
-            return executionService.getAllCourseExecutions(command.getUnitOfWork());
-        } catch (Exception e) {
-            logger.severe("Failed to get all course executions: " + e.getMessage());
-            return e;
-        }
+        return executionService.getAllCourseExecutions(command.getUnitOfWork());
     }
 
     private Object handleEnrollStudent(EnrollStudentCommand command) {
         logger.info("Enrolling student: " + command.getUserDto().getAggregateId() + " in course execution: "
                 + command.getCourseExecutionAggregateId());
-        try {
-            executionService.enrollStudent(
-                    command.getCourseExecutionAggregateId(),
-                    command.getUserDto(),
-                    command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to enroll student: " + e.getMessage());
-            return e;
-        }
+        executionService.enrollStudent(
+                command.getCourseExecutionAggregateId(),
+                command.getUserDto(),
+                command.getUnitOfWork());
+        return null;
     }
 
     private Object handleAnonymizeStudent(AnonymizeStudentCommand command) {
         logger.info(
                 "Anonymizing student: " + command.getUserAggregateId() + " in course execution: "
                         + command.getExecutionAggregateId());
-        try {
-            executionService.anonymizeStudent(
-                    command.getExecutionAggregateId(),
-                    command.getUserAggregateId(),
-                    command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to anonymize student: " + e.getMessage());
-            return e;
-        }
+        executionService.anonymizeStudent(
+                command.getExecutionAggregateId(),
+                command.getUserAggregateId(),
+                command.getUnitOfWork());
+        return null;
     }
 
     private Object handleRemoveUser(RemoveUserCommand command) {
         logger.info(
                 "Removing user: " + command.getUserAggregateId() + " in course execution: "
                         + command.getCourseExecutionAggregateId());
-        try {
-            executionService.removeUser(
-                    command.getCourseExecutionAggregateId(),
-                    command.getUserAggregateId(),
-                    command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to anonymize student: " + e.getMessage());
-            return e;
-        }
+        executionService.removeUser(
+                command.getCourseExecutionAggregateId(),
+                command.getUserAggregateId(),
+                command.getUnitOfWork());
+        return null;
     }
 }

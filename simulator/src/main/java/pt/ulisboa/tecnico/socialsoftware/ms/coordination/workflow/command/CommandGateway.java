@@ -54,14 +54,25 @@ public abstract class CommandGateway {
     @SuppressWarnings("unused")
     public Object fallbackSend(Command command, Throwable t) {
         if (t instanceof SimulatorException) {
-            logger.severe("fallback: Command failed with business error: "
-                    + command.getClass().getSimpleName() + " - " + t.getMessage());
             throw (SimulatorException) t;
-        } else {
-            logger.severe("Retries exhausted for command: "
-                    + command.getClass().getSimpleName() + " - " + t.getMessage());
-            throw new RuntimeException("Service unavailable: " + command.getServiceName(), t);
         }
+
+        String serviceName = command.getServiceName() != null ? command.getServiceName() : "unknown";
+        String commandName = command.getClass().getSimpleName();
+
+        Throwable rootCause = t;
+        while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
+            rootCause = rootCause.getCause();
+        }
+
+        logger.severe(String.format(
+                "Retries exhausted for command %s on service '%s'. Cause: %s - %s",
+                commandName, serviceName,
+                rootCause.getClass().getSimpleName(), rootCause.getMessage()));
+
+        throw new SimulatorException(String.format(
+                "Service '%s' unavailable after retries exhausted for %s: %s",
+                serviceName, commandName, rootCause.getMessage()));
     }
 
     protected void mergeUnitOfWork(UnitOfWork target, UnitOfWork source) {
