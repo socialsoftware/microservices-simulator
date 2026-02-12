@@ -73,14 +73,7 @@ public class QuizAnswerService {
                     courseExecutionAggregateId);
         }
 
-        // QUIZ_COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
-        // COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
-        // UserDto userDto =
-        // courseExecutionService.getStudentByExecutionIdAndUserId(quizDto.getCourseExecutionAggregateId(),
-        // userAggregateId, unitOfWork);
-
-        // QUESTIONS_ANSWER_QUESTIONS_BELONG_TO_QUIZ because questions come from the
-        // quiz
+        // QUESTIONS_ANSWER_QUESTIONS_BELONG_TO_QUIZ because questions come from the quiz
         QuizAnswer quizAnswer = quizAnswerFactory.createQuizAnswer(aggregateId,
                 new AnswerCourseExecution(quizDto.getCourseExecutionAggregateId(), quizDto.getCourseExecutionVersion()),
                 new AnswerStudent(userDto), new AnsweredQuiz(quizDto));
