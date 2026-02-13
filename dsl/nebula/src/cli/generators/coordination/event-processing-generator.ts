@@ -1,8 +1,10 @@
 import { AggregateExt, EntityExt } from '../../types/ast-extensions.js';
 import { CoordinationGenerationOptions } from '../microservices/types.js';
 import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../common/generator-capabilities.js';
-import { getEntities } from '../../utils/aggregate-helpers.js';
+import { getEntities, getEffectiveFieldMappings, getAllModels, getAggregateRefName } from '../../utils/aggregate-helpers.js';
+import { Entity } from '../../../language/generated/ast.js';
 import { StringUtils } from '../../utils/string-utils.js';
+import { EventNameParser } from '../common/utils/event-name-parser.js';
 
 export class EventProcessingGenerator {
     private capabilities: GeneratorCapabilities;
@@ -230,7 +232,7 @@ export class EventProcessingGenerator {
                     console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
                     // Fallback to regex as last resort
                     sourceAggregateName = eventTypeName
-                        .replace(/(Updated|Deleted|Created)Event$/, '')
+                        .replace(/(Updated|Deleted|Created)Event$/, '')  // Note: Complex pattern, consider using EventNameParser
                         .toLowerCase();
                 }
             }
@@ -304,7 +306,7 @@ public class {{aggregateName}}EventProcessing {
     }
 
     private buildServiceMethodParams(eventTypeName: string, eventVarName: string, aggregateIdName: string, aggregate: AggregateExt, subscribedEvent: any): string {
-        const nameWithoutEvent = eventTypeName.replace(/Event$/, '');
+        const nameWithoutEvent = EventNameParser.removeEventSuffix(eventTypeName);
         const isUpdate = nameWithoutEvent.endsWith('Updated');
         const isDelete = nameWithoutEvent.endsWith('Deleted');
 
@@ -326,11 +328,43 @@ public class {{aggregateName}}EventProcessing {
             fieldParams.push(`${eventVarName}.getPublisherAggregateId()`);
             fieldParams.push(`${eventVarName}.getPublisherAggregateVersion()`);
 
+            // Determine if this is a projection entity event or a root aggregate CRUD event
+            // Projection entity events have compound names (e.g., ExecutionUserUpdatedEvent)
+            // Root aggregate CRUD events have simple names (e.g., TopicUpdatedEvent)
+            const isProjectionEntityEvent = /^([A-Z][a-z]+)([A-Z][a-z]+)UpdatedEvent$/.test(eventTypeName);
+
             // Extract primitive fields from the projection entity's field mappings (if exists)
+            // ONLY for projection entity events, NOT for root aggregate CRUD events
             // ONLY extract from fieldMappings (mapped properties from referenced aggregate)
             // DO NOT extract local properties - those don't exist in the incoming event!
-            if (matchingProjection) {
-                const fieldMappings = (matchingProjection as any).fieldMappings || [];
+            if (matchingProjection && isProjectionEntityEvent) {
+                // Get the source entity that publishes the event
+                // For projection chains (e.g., TournamentCreator from ExecutionUser from User),
+                // we need to extract fields from the immediate source (ExecutionUser), not the consuming entity
+                const sourceEntityName = getAggregateRefName(matchingProjection);
+
+                // Find the source entity in the model registry
+                let sourceEntity: Entity | null = null;
+                if (sourceEntityName) {
+                    const allModels = getAllModels();
+                    for (const model of allModels) {
+                        for (const aggregate of model.aggregates) {
+                            const entities = getEntities(aggregate);
+                            const found = entities.find((e: any) => e.name === sourceEntityName);
+                            if (found) {
+                                sourceEntity = found as Entity;
+                                break;
+                            }
+                        }
+                        if (sourceEntity) break;
+                    }
+                }
+
+                // Use the source entity if found, otherwise fall back to the projection entity
+                const entityToExtractFrom = sourceEntity || matchingProjection;
+
+                // Use getEffectiveFieldMappings to get field mappings with resolved types
+                const fieldMappings = getEffectiveFieldMappings(entityToExtractFrom);
                 const aggregateRef = (matchingProjection as any).aggregateRef;
 
                 // Determine the correct field names to use for event method calls
@@ -350,11 +384,26 @@ public class {{aggregateName}}EventProcessing {
                 }
 
                 for (const mapping of fieldMappings) {
-                    const dtoField = mapping.dtoField;
+                    let dtoField = mapping.dtoField;
 
-                    // Skip system fields
-                    if (dtoField.endsWith('AggregateId') || dtoField.endsWith('Version') || dtoField.endsWith('State')) {
+                    // Skip system fields (these are already passed as separate parameters or don't exist on events)
+                    // Check both capitalized and lowercase versions for case-insensitive matching
+                    const lowerDtoField = dtoField.toLowerCase();
+                    if (lowerDtoField.endsWith('aggregateid') || lowerDtoField.endsWith('version') || lowerDtoField.endsWith('state')) {
                         continue;
+                    }
+
+                    // For simple aggregate refs (non-compound names), strip any prefix from dtoField
+                    // because the event uses unprefixed field names from the source aggregate
+                    // Example: "topicName" from entity should map to event.getName(), not event.getTopicName()
+                    if (!fieldPrefix) {
+                        // Strip prefix if present (e.g., "topicName" -> "name")
+                        const lowerPublisher = publisherAggregateName.toLowerCase();
+                        if (dtoField.startsWith(lowerPublisher)) {
+                            dtoField = dtoField.substring(lowerPublisher.length);
+                            // Lowercase first character
+                            dtoField = dtoField.charAt(0).toLowerCase() + dtoField.substring(1);
+                        }
                     }
 
                     // Build field name: if prefix exists, use prefix + dtoField, otherwise just dtoField

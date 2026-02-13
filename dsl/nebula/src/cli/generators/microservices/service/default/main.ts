@@ -4,6 +4,7 @@ import { ServiceStructureGenerator } from "./structure-generator.js";
 import { ServiceCrudGenerator } from "./crud-generator.js";
 import { ServiceBusinessGenerator } from "./business-generator.js";
 import { ServiceCollectionGenerator } from "./collection-generator.js";
+import { ProjectionMethodGenerator } from "../crud/projection-method-generator.js";
 
 export function generateServiceCode(aggregate: Aggregate, projectName: string): string {
     const context = ServiceStructureGenerator.createServiceContext(aggregate, projectName);
@@ -15,7 +16,7 @@ export function generateServiceCode(aggregate: Aggregate, projectName: string): 
 
     const crudMethods = ServiceCrudGenerator.generateCrudMethods(context.capitalizedAggregate, context.rootEntity, projectName, aggregate);
     const collectionMethods = ServiceCollectionGenerator.generateCollectionMethods(context.capitalizedAggregate, context.rootEntity, projectName, aggregate);
-    const projectionMethods = ServiceCrudGenerator.generateProjectionMethods(context.capitalizedAggregate, aggregate, projectName);
+    const projectionMethods = ProjectionMethodGenerator.generateProjectionMethods(context.capitalizedAggregate, aggregate, projectName);
     const businessMethods = ServiceBusinessGenerator.generateBusinessMethods(
         context.capitalizedAggregate,
         aggregate,

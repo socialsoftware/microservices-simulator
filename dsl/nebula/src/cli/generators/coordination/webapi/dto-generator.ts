@@ -3,7 +3,7 @@ import { WebApiGenerationOptions } from "./webapi-types.js";
 import { WebApiBaseGenerator } from "./webapi-base-generator.js";
 import { getGlobalConfig } from "../../common/config.js";
 import type { DtoSchemaRegistry, DtoFieldSchema } from "../../../services/dto-schema-service.js";
-import { TypeResolver } from "../../common/resolvers/type-resolver.js";
+import { UnifiedTypeResolver as TypeResolver } from "../../common/unified-type-resolver.js";
 import { getEntities } from "../../../utils/aggregate-helpers.js";
 
 export interface CrossAggregateReference {

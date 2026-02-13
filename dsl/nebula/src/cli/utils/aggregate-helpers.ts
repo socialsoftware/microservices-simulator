@@ -180,7 +180,7 @@ function lowerFirst(s: string): string {
     return s.charAt(0).toLowerCase() + s.slice(1);
 }
 
-function getAggregateRefName(entity: Entity): string | undefined {
+export function getAggregateRefName(entity: Entity): string | undefined {
     const anyEntity = entity as any;
     const ref = anyEntity.aggregateRef;
     if (!ref) return undefined;
@@ -260,11 +260,36 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
     const implicitMappings = implicitBase
         .map(({ dtoField, suffix }) => {
             const entityField = pickBaseField(dtoField, suffix);
-            return entityField ? { entityField, dtoField } : null;
+            if (!entityField) return null;
+
+            // Add type for implicit base mappings
+            let type: any;
+            if (suffix === 'AggregateId' || suffix === 'Version') {
+                type = 'Integer';
+            } else if (suffix === 'State') {
+                type = 'AggregateState';
+            }
+
+            return { entityField, dtoField, type };
         })
         .filter(Boolean) as any[];
 
-    return [...fieldMappings, ...implicitMappings];
+    // Resolve types for explicit field mappings
+    const explicitMappingsWithTypes = fieldMappings.map((mapping: any) => {
+        if (mapping.type) {
+            // Already has a type (shouldn't happen from DSL, but handle it)
+            return mapping;
+        }
+
+        // Resolve type from referenced aggregate
+        const resolvedType = resolveTypeFromReferencedAggregate(entity, mapping.dtoField);
+        return {
+            ...mapping,
+            type: resolvedType
+        };
+    });
+
+    return [...explicitMappingsWithTypes, ...implicitMappings];
 }
 
 /**

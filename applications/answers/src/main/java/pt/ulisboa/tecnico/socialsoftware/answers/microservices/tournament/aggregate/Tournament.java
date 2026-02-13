@@ -39,7 +39,7 @@ public abstract class Tournament extends Aggregate {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Integer numberOfQuestions;
-    private boolean cancelled;
+    private Boolean cancelled;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournament")
     private TournamentCreator creator;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "tournament")
@@ -107,11 +107,11 @@ public abstract class Tournament extends Aggregate {
         this.numberOfQuestions = numberOfQuestions;
     }
 
-    public boolean getCancelled() {
+    public Boolean getCancelled() {
         return cancelled;
     }
 
-    public void setCancelled(boolean cancelled) {
+    public void setCancelled(Boolean cancelled) {
         this.cancelled = cancelled;
     }
 

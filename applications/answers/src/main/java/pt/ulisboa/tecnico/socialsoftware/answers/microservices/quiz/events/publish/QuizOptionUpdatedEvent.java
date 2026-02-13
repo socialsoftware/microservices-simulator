@@ -7,15 +7,17 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 public class QuizOptionUpdatedEvent extends Event {
     private Integer questionAggregateId;
     private Integer questionVersion;
+    private String optionContent;
 
     public QuizOptionUpdatedEvent() {
         super();
     }
 
-    public QuizOptionUpdatedEvent(Integer aggregateId, Integer questionAggregateId, Integer questionVersion) {
+    public QuizOptionUpdatedEvent(Integer aggregateId, Integer questionAggregateId, Integer questionVersion, String optionContent) {
         super(aggregateId);
         setQuestionAggregateId(questionAggregateId);
         setQuestionVersion(questionVersion);
+        setOptionContent(optionContent);
     }
 
     public Integer getQuestionAggregateId() {
@@ -32,6 +34,14 @@ public class QuizOptionUpdatedEvent extends Event {
 
     public void setQuestionVersion(Integer questionVersion) {
         this.questionVersion = questionVersion;
+    }
+
+    public String getOptionContent() {
+        return optionContent;
+    }
+
+    public void setOptionContent(String optionContent) {
+        this.optionContent = optionContent;
     }
 
 }

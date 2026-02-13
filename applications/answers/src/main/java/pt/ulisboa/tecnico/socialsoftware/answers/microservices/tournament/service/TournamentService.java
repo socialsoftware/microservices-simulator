@@ -352,7 +352,7 @@ public class TournamentService {
                 .orElseThrow(() -> new AnswersException("TournamentTopic not found"));
 
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
-            TournamentTopicUpdatedEvent event = new TournamentTopicUpdatedEvent(tournamentId, element.getTopicAggregateId(), element.getTopicVersion());
+            TournamentTopicUpdatedEvent event = new TournamentTopicUpdatedEvent(tournamentId, element.getTopicAggregateId(), element.getTopicVersion(), element.getTopicName());
             event.setPublisherAggregateVersion(newTournament.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
@@ -369,23 +369,10 @@ public class TournamentService {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
-        // Handle execution single reference
-        if (newTournament.getExecution() != null && 
-            newTournament.getExecution().getExecutionAggregateId() != null &&
-            newTournament.getExecution().getExecutionAggregateId().equals(executionAggregateId)) {
-            newTournament.getExecution().setExecutionVersion(executionVersion);
-        }
+
 
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
 
-        unitOfWorkService.registerEvent(
-            new TournamentExecutionUpdatedEvent(
-                    newTournament.getAggregateId(),
-                    executionAggregateId,
-                    executionVersion
-            ),
-            unitOfWork
-        );
 
             return newTournament;
         } catch (AnswersException e) {
@@ -395,36 +382,15 @@ public class TournamentService {
         }
     }
 
-    public Tournament handleExecutionUserUpdatedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, UnitOfWork unitOfWork) {
+    public Tournament handleExecutionUserUpdatedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, String userName, String userUsername, Boolean userActive, UnitOfWork unitOfWork) {
         try {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
-        // Handle creator single reference
-        if (newTournament.getCreator() != null && 
-            newTournament.getCreator().getCreatorAggregateId() != null &&
-            newTournament.getCreator().getCreatorAggregateId().equals(executionuserAggregateId)) {
-            newTournament.getCreator().setCreatorVersion(executionuserVersion);
-        }
 
-        // Handle participants collection
-        if (newTournament.getParticipants() != null) {
-            newTournament.getParticipants().stream()
-                .filter(item -> item.getParticipantAggregateId() != null && 
-                               item.getParticipantAggregateId().equals(executionuserAggregateId))
-                .forEach(item -> item.setParticipantVersion(executionuserVersion));
-        }
 
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
 
-        unitOfWorkService.registerEvent(
-            new TournamentCreatorUpdatedEvent(
-                    newTournament.getAggregateId(),
-                    executionuserAggregateId,
-                    executionuserVersion
-            ),
-            unitOfWork
-        );
 
             return newTournament;
         } catch (AnswersException e) {
@@ -449,14 +415,6 @@ public class TournamentService {
 
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
 
-        unitOfWorkService.registerEvent(
-            new TournamentTopicUpdatedEvent(
-                    newTournament.getAggregateId(),
-                    topicAggregateId,
-                    topicVersion
-            ),
-            unitOfWork
-        );
 
             return newTournament;
         } catch (AnswersException e) {
@@ -480,14 +438,6 @@ public class TournamentService {
 
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
 
-        unitOfWorkService.registerEvent(
-            new TournamentQuizUpdatedEvent(
-                    newTournament.getAggregateId(),
-                    quizAggregateId,
-                    quizVersion
-            ),
-            unitOfWork
-        );
 
             return newTournament;
         } catch (AnswersException e) {

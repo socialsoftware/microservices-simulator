@@ -17,7 +17,7 @@ public class ExecutionUser {
     private Long id;
     private String userName;
     private String userUsername;
-    private boolean userActive;
+    private Boolean userActive;
     private Integer userAggregateId;
     private Integer userVersion;
     private AggregateState userState;
@@ -79,11 +79,11 @@ public class ExecutionUser {
         this.userUsername = userUsername;
     }
 
-    public boolean getUserActive() {
+    public Boolean getUserActive() {
         return userActive;
     }
 
-    public void setUserActive(boolean userActive) {
+    public void setUserActive(Boolean userActive) {
         this.userActive = userActive;
     }
 

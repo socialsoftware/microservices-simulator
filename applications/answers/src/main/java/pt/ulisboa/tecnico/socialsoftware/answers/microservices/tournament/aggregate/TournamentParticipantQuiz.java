@@ -19,7 +19,7 @@ public class TournamentParticipantQuiz {
     private Long id;
     private Integer participantQuizAggregateId;
     private Integer participantQuizVersion;
-    private boolean participantQuizAnswered;
+    private Boolean participantQuizAnswered;
     private Integer participantQuizNumberOfAnswered;
     private Integer participantQuizNumberOfCorrect;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentparticipantquiz")
@@ -82,11 +82,11 @@ public class TournamentParticipantQuiz {
         this.participantQuizVersion = participantQuizVersion;
     }
 
-    public boolean getParticipantQuizAnswered() {
+    public Boolean getParticipantQuizAnswered() {
         return participantQuizAnswered;
     }
 
-    public void setParticipantQuizAnswered(boolean participantQuizAnswered) {
+    public void setParticipantQuizAnswered(Boolean participantQuizAnswered) {
         this.participantQuizAnswered = participantQuizAnswered;
     }
 

@@ -6,7 +6,7 @@ import { FunctionalitiesCrudGenerator } from './functionalities-crud-generator.j
 import { FunctionalitiesCollectionGenerator } from './functionalities-collection-generator.js';
 import { FunctionalitiesImportsBuilder } from './functionalities-imports-builder.js';
 import { FunctionalitiesMethodGenerator } from './functionalities-method-generator.js';
-import { TypeResolver } from '../../common/resolvers/type-resolver.js';
+import { UnifiedTypeResolver as TypeResolver } from '../../common/unified-type-resolver.js';
 import { StringUtils } from '../../../utils/string-utils.js';
 
 /**

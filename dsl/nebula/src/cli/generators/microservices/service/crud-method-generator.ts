@@ -1,6 +1,6 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { UnifiedTypeResolver } from "../../common/unified-type-resolver.js";
-import { TypeResolver } from "../../common/resolvers/type-resolver.js";
+import { UnifiedTypeResolver as TypeResolver } from "../../common/unified-type-resolver.js";
 
 export interface GeneratedMethod {
     name: string;

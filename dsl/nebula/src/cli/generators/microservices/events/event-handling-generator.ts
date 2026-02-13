@@ -1,6 +1,7 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { EventBaseGenerator } from "./event-base-generator.js";
 import { EventGenerationOptions, EventContext } from "./event-types.js";
+import { EventNameParser } from "../../common/utils/event-name-parser.js";
 
 export class EventHandlingGenerator extends EventBaseGenerator {
     async generateEventHandling(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): Promise<string> {
@@ -55,7 +56,7 @@ export class EventHandlingGenerator extends EventBaseGenerator {
             const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
 
             // Extract entity name from event (e.g., UserDeletedEvent -> User, TopicUpdatedEvent -> Topic)
-            const entityName = eventTypeName.replace(/(Updated|Deleted|Created)Event$/, '');
+            const entityName = EventNameParser.extractEntityName(eventTypeName);
 
             // Determine source aggregate from published event
             let sourceAggregateName = 'unknown';

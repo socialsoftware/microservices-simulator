@@ -254,15 +254,28 @@ public class AnswerService {
     }
 
 
-    public Answer handleExecutionUserUpdatedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, UnitOfWork unitOfWork) {
+    public Answer handleExecutionUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, UnitOfWork unitOfWork) {
         try {
             Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
 
-
+        // Handle user single reference
+        if (newAnswer.getUser() != null && 
+            newAnswer.getUser().getUserAggregateId() != null &&
+            newAnswer.getUser().getUserAggregateId().equals(userAggregateId)) {
+            newAnswer.getUser().setUserVersion(userVersion);
+        }
 
             unitOfWorkService.registerChanged(newAnswer, unitOfWork);
 
+        unitOfWorkService.registerEvent(
+            new AnswerExecutionUpdatedEvent(
+                    newAnswer.getAggregateId(),
+                    userAggregateId,
+                    userVersion
+            ),
+            unitOfWork
+        );
 
             return newAnswer;
         } catch (AnswersException e) {
@@ -277,13 +290,7 @@ public class AnswerService {
             Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
 
-        // Handle questions collection
-        if (newAnswer.getQuestions() != null) {
-            newAnswer.getQuestions().stream()
-                .filter(item -> item.getQuestionAggregateId() != null && 
-                               item.getQuestionAggregateId().equals(questionAggregateId))
-                .forEach(item -> item.setQuestionVersion(questionVersion));
-        }
+
 
             unitOfWorkService.registerChanged(newAnswer, unitOfWork);
 

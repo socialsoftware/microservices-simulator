@@ -224,7 +224,7 @@ public class ExecutionService {
                 .orElseThrow(() -> new AnswersException("ExecutionUser not found"));
 
             unitOfWorkService.registerChanged(newExecution, unitOfWork);
-            ExecutionUserUpdatedEvent event = new ExecutionUserUpdatedEvent(executionId, element.getUserAggregateId(), element.getUserVersion());
+            ExecutionUserUpdatedEvent event = new ExecutionUserUpdatedEvent(executionId, element.getUserAggregateId(), element.getUserVersion(), element.getUserName(), element.getUserUsername(), element.getUserActive());
             event.setPublisherAggregateVersion(newExecution.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();

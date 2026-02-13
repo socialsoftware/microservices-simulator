@@ -3,6 +3,7 @@ import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from "../../commo
 import { getGlobalConfig } from "../../common/config.js";
 import { CrudMethodGenerator } from "./crud-method-generator.js";
 import { CollectionMethodGenerator } from "./collection-method-generator.js";
+import { PRIMITIVE_TYPES } from "../../common/utils/type-constants.js";
 
 export interface ServiceGenerationOptions {
     architecture?: string;
@@ -141,7 +142,6 @@ export class ServiceDefinitionGenerator {
     private extractEnumTypes(type: string, enumSet: Set<string>, aggregateEntityNames: Set<string> = new Set()): void {
         if (!type) return;
 
-        const primitiveTypes = ['String', 'Integer', 'Long', 'Boolean', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal', 'void', 'UnitOfWork'];
         const typeName = type.replace(/List<|Set<|>/g, '').trim();
 
         // Exclude entity types from the same aggregate (they're covered by wildcard import)
@@ -150,7 +150,7 @@ export class ServiceDefinitionGenerator {
         }
 
         if (typeName &&
-            !primitiveTypes.includes(typeName) &&
+            !PRIMITIVE_TYPES.includes(typeName as any) &&
             !typeName.endsWith('Dto') &&
             !typeName.includes('<') &&
             typeName.charAt(0) === typeName.charAt(0).toUpperCase()) {

@@ -1,6 +1,8 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { EventBaseGenerator } from "./event-base-generator.js";
 import { EventGenerationOptions, PublishedEventContext } from "./event-types.js";
+import { EXTENDED_PRIMITIVE_TYPES } from "../../common/utils/type-constants.js";
+import { getEffectiveFieldMappings } from "../../../utils/aggregate-helpers.js";
 
 export class PublishedEventGenerator extends EventBaseGenerator {
     async generatePublishedEvents(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): Promise<{ [key: string]: string }> {
@@ -293,11 +295,11 @@ export class PublishedEventGenerator extends EventBaseGenerator {
     }
 
     private extractPrimitiveProjectionFields(entity: any, prefix: string): any[] {
-        const primitiveTypes = ['String', 'Integer', 'Long', 'Boolean', 'boolean', 'LocalDateTime', 'Double', 'Float', 'double', 'float', 'int', 'long'];
         const fields: any[] = [];
 
         // Check fieldMappings for projection entities (those with 'uses' clause)
-        const fieldMappings = entity.fieldMappings || [];
+        // Use getEffectiveFieldMappings to get field mappings with resolved types
+        const fieldMappings = getEffectiveFieldMappings(entity as Entity);
 
         for (const mapping of fieldMappings) {
             const fieldName = mapping.entityField;
@@ -318,7 +320,7 @@ export class PublishedEventGenerator extends EventBaseGenerator {
             }
 
             // Include primitive mapped fields
-            if (primitiveTypes.some(t => javaType.includes(t))) {
+            if (EXTENDED_PRIMITIVE_TYPES.some(t => javaType.includes(t))) {
                 fields.push({
                     name: fieldName,
                     type: javaType,
@@ -350,7 +352,7 @@ export class PublishedEventGenerator extends EventBaseGenerator {
             }
 
             // Include primitive fields
-            if (primitiveTypes.some(t => javaType.includes(t))) {
+            if (EXTENDED_PRIMITIVE_TYPES.some(t => javaType.includes(t))) {
                 fields.push({
                     name: propName,
                     type: javaType,

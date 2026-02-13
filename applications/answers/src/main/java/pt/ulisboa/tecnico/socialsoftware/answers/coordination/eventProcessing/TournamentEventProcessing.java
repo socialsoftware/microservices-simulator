@@ -29,7 +29,7 @@ public class TournamentEventProcessing {
 
     public void processExecutionUserUpdatedEvent(Integer aggregateId, ExecutionUserUpdatedEvent executionUserUpdatedEvent) {
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        tournamentService.handleExecutionUserUpdatedEvent(aggregateId, executionUserUpdatedEvent.getPublisherAggregateId(), executionUserUpdatedEvent.getPublisherAggregateVersion(), unitOfWork);
+        tournamentService.handleExecutionUserUpdatedEvent(aggregateId, executionUserUpdatedEvent.getPublisherAggregateId(), executionUserUpdatedEvent.getPublisherAggregateVersion(), executionUserUpdatedEvent.getUserName(), executionUserUpdatedEvent.getUserUsername(), executionUserUpdatedEvent.getUserActive(), unitOfWork);
         unitOfWorkService.commit(unitOfWork);
     }
 

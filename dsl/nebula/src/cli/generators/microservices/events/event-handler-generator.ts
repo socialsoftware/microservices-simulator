@@ -1,6 +1,7 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { EventBaseGenerator } from "./event-base-generator.js";
 import { EventGenerationOptions, EventHandlerContext } from "./event-types.js";
+import { EventNameParser } from "../../common/utils/event-name-parser.js";
 
 export class EventHandlerGenerator extends EventBaseGenerator {
     async generateEventHandlers(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): Promise<{ [key: string]: string }> {
@@ -77,7 +78,7 @@ export class EventHandlerGenerator extends EventBaseGenerator {
                 } else {
                     console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
                     // Fallback to simple name matching
-                    const entityName = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
+                    const entityName = EventNameParser.extractEntityName(eventTypeName);
                     sourceAggregateName = entityName.toLowerCase();
                 }
             }
@@ -93,14 +94,14 @@ export class EventHandlerGenerator extends EventBaseGenerator {
             const handlerName = `${entityName}EventHandler`;
             
             return {
-                eventType: eventTypeName.replace(/Event$/, ''),
+                eventType: EventNameParser.removeEventSuffix(eventTypeName),
                 eventTypeName: eventTypeName,
                 handlerName: handlerName,
                 capitalizedHandlerName: handlerName,
                 capitalizedEventName: eventTypeName,
                 fullEventName: eventTypeName,
                 eventTypePackage: `${basePackage}.${projectName}.microservices.${sourceAggregateName}.events.publish`,
-                properties: this.buildEventProperties(rootEntity, eventTypeName.replace(/Event$/, ''))
+                properties: this.buildEventProperties(rootEntity, EventNameParser.removeEventSuffix(eventTypeName))
             };
         });
     }

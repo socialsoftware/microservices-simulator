@@ -2,7 +2,7 @@ import { Aggregate } from "../../../../../language/generated/ast.js";
 import { capitalize } from "../../../../utils/generator-utils.js";
 import { getGlobalConfig } from "../../../common/config.js";
 import { ServiceContext } from "./types.js";
-import { TypeResolver } from "../../../common/resolvers/type-resolver.js";
+import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 
 export class ServiceStructureGenerator {
     static generateServiceImports(aggregate: Aggregate, projectName: string): string {

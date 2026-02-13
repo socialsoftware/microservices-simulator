@@ -7,16 +7,18 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 public class QuestionTopicUpdatedEvent extends Event {
     private Integer topicAggregateId;
     private Integer topicVersion;
+    private String topicName;
     private Integer topicId;
 
     public QuestionTopicUpdatedEvent() {
         super();
     }
 
-    public QuestionTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, Integer topicId) {
+    public QuestionTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, String topicName, Integer topicId) {
         super(aggregateId);
         setTopicAggregateId(topicAggregateId);
         setTopicVersion(topicVersion);
+        setTopicName(topicName);
         setTopicId(topicId);
     }
 
@@ -34,6 +36,14 @@ public class QuestionTopicUpdatedEvent extends Event {
 
     public void setTopicVersion(Integer topicVersion) {
         this.topicVersion = topicVersion;
+    }
+
+    public String getTopicName() {
+        return topicName;
+    }
+
+    public void setTopicName(String topicName) {
+        this.topicName = topicName;
     }
 
     public Integer getTopicId() {

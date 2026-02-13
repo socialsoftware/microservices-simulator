@@ -3,6 +3,7 @@ import { SagaHelpers } from './saga-helpers.js';
 import { SagaWorkflowGenerator } from './saga-workflow-generator.js';
 import { SagaGenerationOptions } from './saga-generator.js';
 import { StringUtils } from '../../utils/string-utils.js';
+import { EventNameParser } from '../common/utils/event-name-parser.js';
 
 /**
  * Generates saga functionality classes for event processing workflows
@@ -61,7 +62,7 @@ export class SagaEventProcessingGenerator {
             }
 
             // Use event name for class name, not workflow name
-            const eventNameWithoutEvent = eventTypeName.replace(/Event$/, '');
+            const eventNameWithoutEvent = EventNameParser.removeEventSuffix(eventTypeName);
             const className = `${StringUtils.capitalize(eventNameWithoutEvent)}${capitalizedAggregate}FunctionalitySagas`;
 
             // Skip if already generated as business workflow
@@ -131,7 +132,7 @@ export class SagaEventProcessingGenerator {
         }
 
         // Extract entity name from event (e.g., UserDeletedEvent -> User, TopicUpdatedEvent -> Topic)
-        const entityName = eventTypeName.replace(/(Updated|Deleted|Created)Event$/, '');
+        const entityName = EventNameParser.extractEntityName(eventTypeName);
 
         // Determine the actual source aggregate for the event
         let sourceAggregateName = 'unknown';

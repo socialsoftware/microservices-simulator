@@ -18,7 +18,7 @@ public class AnswerQuestion {
     private Integer sequence;
     private Integer key;
     private Integer timeTaken;
-    private boolean correct;
+    private Boolean correct;
     private Integer questionAggregateId;
     private Integer questionVersion;
     private AggregateState questionState;
@@ -87,11 +87,11 @@ public class AnswerQuestion {
         this.timeTaken = timeTaken;
     }
 
-    public boolean getCorrect() {
+    public Boolean getCorrect() {
         return correct;
     }
 
-    public void setCorrect(boolean correct) {
+    public void setCorrect(Boolean correct) {
         this.correct = correct;
     }
 

@@ -37,7 +37,7 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessa
 public abstract class Answer extends Aggregate {
     private LocalDateTime creationDate;
     private LocalDateTime answerDate;
-    private boolean completed;
+    private Boolean completed;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
     private AnswerExecution execution;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "answer")
@@ -91,11 +91,11 @@ public abstract class Answer extends Aggregate {
         this.answerDate = answerDate;
     }
 
-    public boolean getCompleted() {
+    public Boolean getCompleted() {
         return completed;
     }
 
-    public void setCompleted(boolean completed) {
+    public void setCompleted(Boolean completed) {
         this.completed = completed;
     }
 

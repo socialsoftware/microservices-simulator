@@ -1,5 +1,5 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
-import { TypeResolver } from "../../common/resolvers/type-resolver.js";
+import { UnifiedTypeResolver as TypeResolver } from "../../common/unified-type-resolver.js";
 import { TemplateManager } from "../../../utils/template-manager.js";
 import { SpringDataQueryParser } from "./spring-data-query-parser.js";
 import { StringUtils } from '../../../utils/string-utils.js';

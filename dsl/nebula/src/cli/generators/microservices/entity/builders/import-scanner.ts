@@ -1,10 +1,11 @@
 import { Entity } from "../../../../../language/generated/ast.js";
 import { EntityExt } from "../../../../types/ast-extensions.js";
-import { TypeResolver } from "../../../common/resolvers/type-resolver.js";
+import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 import { getGlobalConfig } from "../../../common/config.js";
 import { getEffectiveProperties, getEffectiveFieldMappings } from "../../../../utils/aggregate-helpers.js";
 import { ImportManager } from "../../../../utils/import-manager.js";
 import type { DtoSchemaRegistry, DtoFieldSchema } from "../../../../services/dto-schema-service.js";
+import { TypeExtractor } from "../../../common/utils/type-extractor.js";
 
 /**
  * Handles import detection and resolution for entity code generation.
@@ -196,20 +197,7 @@ export class ImportScanner {
         }
 
         // Enum imports from code patterns
-        const enumPattern = /\b([A-Z][a-zA-Z]*(?:Type|Role|State))\b/g;
-        let enumMatch;
-        const excludedEnums = ['EnumType', 'CascadeType', 'FetchType', 'AggregateState', 'LocalDateTime'];
-        const foundEnums = new Set<string>();
-
-        while ((enumMatch = enumPattern.exec(javaCode)) !== null) {
-            const enumType = enumMatch[1];
-            if (!excludedEnums.includes(enumType) &&
-                !enumType.endsWith('Dto') &&
-                !enumType.includes('List') &&
-                !enumType.includes('Set')) {
-                foundEnums.add(enumType);
-            }
-        }
+        const foundEnums = TypeExtractor.extractEnumsFromCode(javaCode);
 
         for (const enumType of foundEnums) {
             const enumImport = `import ${config.buildPackageName(projectName, 'shared', 'enums')}.${enumType};`;

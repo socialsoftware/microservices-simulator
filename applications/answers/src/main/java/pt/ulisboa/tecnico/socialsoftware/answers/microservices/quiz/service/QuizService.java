@@ -240,7 +240,7 @@ public class QuizService {
                 .orElseThrow(() -> new AnswersException("QuizQuestion not found"));
 
             unitOfWorkService.registerChanged(newQuiz, unitOfWork);
-            QuizQuestionUpdatedEvent event = new QuizQuestionUpdatedEvent(quizId, element.getQuestionAggregateId(), element.getQuestionVersion(), element.getQuestionSequence());
+            QuizQuestionUpdatedEvent event = new QuizQuestionUpdatedEvent(quizId, element.getQuestionAggregateId(), element.getQuestionVersion(), element.getQuestionTitle(), element.getQuestionContent(), element.getQuestionSequence());
             event.setPublisherAggregateVersion(newQuiz.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
@@ -257,12 +257,7 @@ public class QuizService {
             Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
 
-        // Handle execution single reference
-        if (newQuiz.getExecution() != null && 
-            newQuiz.getExecution().getExecutionAggregateId() != null &&
-            newQuiz.getExecution().getExecutionAggregateId().equals(executionAggregateId)) {
-            newQuiz.getExecution().setExecutionVersion(executionVersion);
-        }
+
 
             unitOfWorkService.registerChanged(newQuiz, unitOfWork);
 

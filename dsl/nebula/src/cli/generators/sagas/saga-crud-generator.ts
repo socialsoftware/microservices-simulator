@@ -2,6 +2,7 @@ import type { Entity, Aggregate } from '../../../language/generated/ast.js';
 import { SagaGenerationOptions } from './saga-generator.js';
 import { StringUtils } from '../../utils/string-utils.js';
 import { CrudHelpers } from '../common/crud-helpers.js';
+import { TypeExtractor } from '../common/utils/type-extractor.js';
 
 export interface CrossAggregateReference {
     entityType: string;
@@ -110,21 +111,10 @@ export class SagaCrudGenerator {
             imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
 
             const enumTypes = new Set<string>();
-            const primitiveTypes = ['String', 'Integer', 'Long', 'Boolean', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal', 'void', 'UnitOfWork'];
 
             const addEnumTypeIfNeeded = (type: string | undefined) => {
                 if (!type) return;
-                const typeName = type.replace(/List<|Set<|>/g, '').trim();
-                if (!typeName) return;
-
-                if (
-                    !primitiveTypes.includes(typeName) &&
-                    !typeName.endsWith('Dto') &&
-                    !typeName.includes('<') &&
-                    typeName.charAt(0) === typeName.charAt(0).toUpperCase()
-                ) {
-                    enumTypes.add(typeName);
-                }
+                TypeExtractor.extractEnumTypes(type, enumTypes);
             };
 
             if (op.params) {

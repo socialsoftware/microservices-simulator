@@ -14,25 +14,25 @@ export class EntityRegistry {
 
     private buildMappings(): void {
         this.aggregates.forEach(aggregate => {
-            const aggregateName = aggregate.name.toLowerCase();
+            const lowerAggregate = aggregate.name.toLowerCase();
             const entityNames: string[] = [];
 
             const rootEntity = aggregate.entities?.find((e: any) => e.isRoot);
             if (rootEntity) {
-                this.entityToAggregateMap.set(rootEntity.name, aggregateName);
+                this.entityToAggregateMap.set(rootEntity.name, lowerAggregate);
                 entityNames.push(rootEntity.name);
             }
 
             if (aggregate.entities) {
                 aggregate.entities.forEach((entity: Entity) => {
                     if (entity.name) {
-                        this.entityToAggregateMap.set(entity.name, aggregateName);
+                        this.entityToAggregateMap.set(entity.name, lowerAggregate);
                         entityNames.push(entity.name);
                     }
                 });
             }
 
-            this.aggregateEntitiesMap.set(aggregateName, entityNames);
+            this.aggregateEntitiesMap.set(lowerAggregate, entityNames);
         });
     }
 

@@ -2,6 +2,7 @@ import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { EventBaseGenerator } from "./event-base-generator.js";
 import { EventGenerationOptions, EventSubscriptionContext } from "./event-types.js";
 import { getEntities } from "../../../utils/aggregate-helpers.js";
+import { EventNameParser } from "../../common/utils/event-name-parser.js";
 
 export class EventSubscriptionGenerator extends EventBaseGenerator {
     async generateEventSubscriptions(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): Promise<{ [key: string]: string }> {
@@ -83,7 +84,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
                 } else {
                     console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
                     // Fallback to simple name matching
-                    const entityName = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
+                    const entityName = EventNameParser.extractEntityName(eventTypeName);
                     sourceAggregateName = entityName.toLowerCase();
                 }
             }
@@ -116,7 +117,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
             const capitalizedVersionField = versionField.charAt(0).toUpperCase() + versionField.slice(1);
             
             return {
-                eventType: eventTypeName.replace(/Event$/, ''),
+                eventType: EventNameParser.removeEventSuffix(eventTypeName),
                 eventTypeName: eventTypeName,
                 capitalizedEventName: eventTypeName,
                 fullEventName: eventTypeName,
@@ -215,7 +216,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
                 const entityParamName = entityRef.fieldName;
 
                 // Extract event base name
-                const eventBaseName = eventTypeName.replace(/Event$/, '');
+                const eventBaseName = EventNameParser.removeEventSuffix(eventTypeName);
                 const subscriptionClassName = `${aggregateName}Subscribes${eventBaseName}`;
 
                 // Build aggregateId and version field names from entity
@@ -295,7 +296,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
 
     private extractSourceAggregateFromEvent(eventTypeName: string): string {
         // Extract from event name: CourseDeletedEvent -> course
-        const baseName = eventTypeName.replace(/Event$/, '').replace(/^(Update|Delete|Create|Deleted|Updated|Created)/, '');
+        const baseName = EventNameParser.extractEntityName(eventTypeName);
         return baseName.toLowerCase();
     }
 

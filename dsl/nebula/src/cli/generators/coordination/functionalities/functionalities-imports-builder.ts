@@ -2,6 +2,7 @@ import { Aggregate, Entity } from '../../common/parsers/model-parser.js';
 import { CoordinationGenerationOptions } from '../../microservices/types.js';
 import { EntityRegistry } from '../../common/utils/entity-registry.js';
 import { StringUtils } from '../../../utils/string-utils.js';
+import { TypeExtractor } from '../../common/utils/type-extractor.js';
 
 /**
  * Builds imports for functionalities classes
@@ -84,18 +85,7 @@ export class FunctionalitiesImportsBuilder {
      * Extract enum types from a type string
      */
     private extractEnumTypes(type: string, enumSet: Set<string>): void {
-        if (!type) return;
-
-        const primitiveTypes = ['String', 'Integer', 'Long', 'Boolean', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal', 'void'];
-        const typeName = type.replace(/List<|Set<|>/g, '').trim();
-
-        if (typeName &&
-            !primitiveTypes.includes(typeName) &&
-            !typeName.endsWith('Dto') &&
-            !typeName.includes('<') &&
-            typeName.charAt(0) === typeName.charAt(0).toUpperCase()) {
-            enumSet.add(typeName);
-        }
+        TypeExtractor.extractEnumTypes(type, enumSet);
     }
 
     /**

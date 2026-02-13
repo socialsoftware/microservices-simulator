@@ -1,6 +1,6 @@
 import { Entity } from "../../../../language/generated/ast.js";
 import { capitalize } from "../../../utils/generator-utils.js";
-import { TypeResolver } from "../../common/resolvers/type-resolver.js";
+import { UnifiedTypeResolver as TypeResolver } from "../../common/unified-type-resolver.js";
 
 const resolveJavaType = (type: any, fieldName?: string) => {
     return TypeResolver.resolveJavaType(type);

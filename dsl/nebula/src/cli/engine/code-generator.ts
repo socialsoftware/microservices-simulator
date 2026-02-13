@@ -1,4 +1,4 @@
-import { Model } from "../../language/generated/ast.js";
+import { Model, Aggregate } from "../../language/generated/ast.js";
 import { createNebulaServices } from "../../language/nebula-module.js";
 import { extractAstNode } from "../utils/cli-util.js";
 import { collectNebulaFiles } from "../utils/file-utils.js";
@@ -327,21 +327,24 @@ export class CodeGenerator {
         console.log("Validating DSL files...");
         const generators = GeneratorRegistryFactory.createRegistry();
 
+        // Collect all aggregates from all models
+        const allAggregates: Aggregate[] = [];
         for (const model of allModels) {
-            for (const aggregate of model.aggregates) {
-                const validationResult = await generators.validationSystem.validateAggregate(aggregate, {
-                    projectName: config.projectName
-                });
-
-                if (!validationResult.isValid) {
-                    console.error(`Validation failed for aggregate ${aggregate.name}:`);
-                    console.error(generators.validationSystem.getValidationReport(validationResult));
-                    process.exit(1);
-                }
-            }
+            allAggregates.push(...model.aggregates);
         }
 
-        console.log("Validation passed!");
+        // Validate all aggregates at once (checks for duplicate names across files)
+        const validationResult = await generators.validationSystem.validateAggregates(allAggregates, {
+            projectName: config.projectName
+        });
+
+        if (!validationResult.isValid) {
+            console.error("Validation failed:");
+            console.error(generators.validationSystem.getValidationReport(validationResult));
+            process.exit(1);
+        }
+
+        console.log("✅ Validation passed!");
     }
 
 

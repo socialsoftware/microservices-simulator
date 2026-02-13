@@ -1,5 +1,5 @@
 import { StringUtils } from "../../utils/string-utils.js";
-import { TypeResolver } from "./resolvers/type-resolver.js";
+import { UnifiedTypeResolver as TypeResolver } from "./unified-type-resolver.js";
 
 /**
  * Shared CRUD generation helpers to avoid duplication across service, coordination, and saga generators

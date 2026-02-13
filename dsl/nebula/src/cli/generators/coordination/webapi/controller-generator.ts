@@ -3,6 +3,7 @@ import { WebApiGenerationOptions } from "./webapi-types.js";
 import { WebApiBaseGenerator } from "./webapi-base-generator.js";
 import { getGlobalConfig } from "../../common/config.js";
 import { ControllerCollectionGenerator } from "./controller-collection-generator.js";
+import { PRIMITIVE_TYPES } from "../../common/utils/type-constants.js";
 
 export class ControllerGenerator extends WebApiBaseGenerator {
     private collectionGenerator = new ControllerCollectionGenerator();
@@ -242,11 +243,10 @@ export class ControllerGenerator extends WebApiBaseGenerator {
     private extractEnumTypes(type: string, enumSet: Set<string>): void {
         if (!type) return;
 
-        const primitiveTypes = ['String', 'Integer', 'Long', 'Boolean', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal', 'void'];
         const typeName = type.replace(/List<|Set<|>/g, '').trim();
 
         if (typeName &&
-            !primitiveTypes.includes(typeName) &&
+            !PRIMITIVE_TYPES.includes(typeName as any) &&
             !typeName.endsWith('Dto') &&
             !typeName.includes('<') &&
             typeName.charAt(0) === typeName.charAt(0).toUpperCase()) {

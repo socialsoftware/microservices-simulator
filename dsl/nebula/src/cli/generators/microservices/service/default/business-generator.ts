@@ -1,6 +1,6 @@
 import { Aggregate, Entity, Method } from "../../../../../language/generated/ast.js";
 import { capitalize } from "../../../../utils/generator-utils.js";
-import { TypeResolver } from "../../../common/resolvers/type-resolver.js";
+import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 
 export class ServiceBusinessGenerator {
     static generateBusinessMethods(aggregateName: string, aggregate: Aggregate, rootEntity: Entity, projectName: string): string {

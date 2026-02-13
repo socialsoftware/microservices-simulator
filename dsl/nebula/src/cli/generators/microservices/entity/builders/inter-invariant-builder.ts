@@ -1,6 +1,6 @@
 import { Aggregate } from "../../../../../language/generated/ast.js";
 import { EntityExt, AggregateExt, TypeGuards } from "../../../../types/ast-extensions.js";
-import { TypeResolver } from "../../../common/resolvers/type-resolver.js";
+import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 import { getEvents, getEntities } from "../../../../utils/aggregate-helpers.js";
 import { StringUtils } from '../../../../utils/string-utils.js';
 

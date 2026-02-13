@@ -1,6 +1,6 @@
 import { Entity, Property } from "../../../../language/generated/ast.js";
 import { capitalize } from "../../../utils/generator-utils.js";
-import { TypeResolver } from "../../common/resolvers/type-resolver.js";
+import { UnifiedTypeResolver as TypeResolver } from "../../common/unified-type-resolver.js";
 import { getGlobalConfig } from "../../common/config.js";
 import type { DtoSchemaRegistry, DtoFieldSchema } from "../../../services/dto-schema-service.js";
 

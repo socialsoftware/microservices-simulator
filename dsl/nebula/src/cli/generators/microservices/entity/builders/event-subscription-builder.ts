@@ -1,5 +1,6 @@
 import { AggregateExt } from "../../../../types/ast-extensions.js";
 import { getEvents, getReferences } from "../../../../utils/aggregate-helpers.js";
+import { EventNameParser } from "../../../common/utils/event-name-parser.js";
 
 /**
  * Handles generation of the getEventSubscriptions() method for root entities.
@@ -91,16 +92,23 @@ export class EventSubscriptionBuilder {
                         eventTypeName = (sub as any).eventType;
                     }
 
-                    // Extract aggregate name from event name (e.g., UpdateTopicEvent -> Topic, UserDeletedEvent -> User)
-                    const eventNameWithoutPrefix = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
-                    const subscriptionClassName = `${aggregate.name}Subscribes${eventNameWithoutPrefix}`;
+                    // Extract event name without "Event" suffix (e.g., TopicUpdatedEvent -> TopicUpdated)
+                    // Keep the action suffix (Updated/Deleted) to match subscription class names
+                    const eventNameWithoutSuffix = EventNameParser.removeEventSuffix(eventTypeName);
+                    const subscriptionClassName = `${aggregate.name}Subscribes${eventNameWithoutSuffix}`;
                     methodBody += `\n            eventSubscriptions.add(new ${subscriptionClassName}());`;
                 }
             }
 
             // Add reference constraint subscriptions (inside ACTIVE guard)
+            // Only for constraints with onDelete: cascade or set_null (not prevent)
             if (hasReferenceConstraints) {
                 for (const constraint of referenceConstraints) {
+                    const action = (constraint as any).action;
+                    // Skip 'prevent' action - those are handled at the target aggregate level
+                    if (action === 'prevent') {
+                        continue;
+                    }
                     const targetAggregate = (constraint as any).targetAggregate;
                     const subscriptionClassName = `${aggregate.name}Subscribes${targetAggregate}Deleted`;
                     // Reference subscriptions need to pass 'this' to the constructor

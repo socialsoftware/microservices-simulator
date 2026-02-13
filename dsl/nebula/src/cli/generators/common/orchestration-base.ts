@@ -4,6 +4,7 @@ import { UnifiedTypeResolver } from "./unified-type-resolver.js";
 import Handlebars from "handlebars";
 import { getGlobalConfig } from "./config.js";
 import { TemplateManager } from "../../utils/template-manager.js";
+import { isPrimitiveType } from "./utils/type-constants.js";
 
 export abstract class OrchestrationBase {
     constructor() {
@@ -328,8 +329,7 @@ export abstract class OrchestrationBase {
     }
 
     protected isPrimitiveType(type: string): boolean {
-        const primitiveTypes = ['String', 'Integer', 'Long', 'Boolean', 'Double', 'Float', 'LocalDateTime', 'LocalDate', 'BigDecimal', 'void'];
-        return primitiveTypes.includes(type);
+        return isPrimitiveType(type);
     }
 
     protected buildStandardImports(projectName: string, aggregateName: string): string[] {

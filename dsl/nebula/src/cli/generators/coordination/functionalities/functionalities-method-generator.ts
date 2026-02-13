@@ -1,4 +1,4 @@
-import { TypeResolver } from '../../common/resolvers/type-resolver.js';
+import { UnifiedTypeResolver as TypeResolver } from '../../common/unified-type-resolver.js';
 import { EntityRegistry } from '../../common/utils/entity-registry.js';
 import { StringUtils } from '../../../utils/string-utils.js';
 
