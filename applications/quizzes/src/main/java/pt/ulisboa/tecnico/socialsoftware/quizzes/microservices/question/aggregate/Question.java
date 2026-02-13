@@ -73,7 +73,6 @@ public abstract class Question extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        //return Set.of(UPDATE_TOPIC, DELETE_TOPIC);
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (getState() == ACTIVE) {
             interInvariantTopicsExist(eventSubscriptions);

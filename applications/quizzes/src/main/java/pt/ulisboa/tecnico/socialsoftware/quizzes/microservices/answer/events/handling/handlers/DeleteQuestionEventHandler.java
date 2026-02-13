@@ -5,8 +5,10 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.eventProcessing.QuizAnswerEventProcessing;
 
+// TODO: this event is not subscribed -> missing QuizAnswerSubscribesDeleteQuestion
 public class DeleteQuestionEventHandler extends QuizAnswerEventHandler {
-    public DeleteQuestionEventHandler(QuizAnswerRepository quizAnswerRepository, QuizAnswerEventProcessing quizAnswerEventProcessing) {
+    public DeleteQuestionEventHandler(QuizAnswerRepository quizAnswerRepository,
+            QuizAnswerEventProcessing quizAnswerEventProcessing) {
         super(quizAnswerRepository, quizAnswerEventProcessing);
     }
 
