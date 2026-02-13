@@ -511,7 +511,7 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
     const imports: ImportRequirements = {};
     const effectiveProps = getEffectiveProperties(entity);
 
-    // Check if this is a projection entity (uses dto pattern)
+    // Check if this is a projection entity (cross-aggregate reference)
     const entityAny = entity as any;
     const isProjectionEntity = !!entityAny.aggregateRef;
 

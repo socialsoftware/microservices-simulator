@@ -1,14 +1,9 @@
 import { Aggregate, Entity } from '../../../language/generated/ast.js';
 import { CollectionMetadata, CollectionMetadataBuilder } from '../common/utils/collection-metadata-builder.js';
 import { SagaGenerationOptions } from './saga-generator.js';
+import { StringUtils } from '../../utils/string-utils.js';
 
 export class SagaCollectionGenerator {
-    // Helper methods migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
     private getBasePackage(options: SagaGenerationOptions): string {
         if (!options.basePackage) {
             throw new Error('basePackage is required in SagaGenerationOptions');
@@ -122,7 +117,7 @@ export class SagaCollectionGenerator {
         ];
 
         for (const spec of sagaSpecs) {
-            const className = `${this.capitalize(spec.name)}FunctionalitySagas`;
+            const className = `${StringUtils.capitalize(spec.name)}FunctionalitySagas`;
             const content = this.generateSagaClass(
                 spec,
                 aggregateName,
@@ -149,8 +144,8 @@ export class SagaCollectionGenerator {
         packageName: string
     ): string {
         const basePackage = this.getBasePackage(options);
-        const className = `${this.capitalize(spec.name)}FunctionalitySagas`;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const className = `${StringUtils.capitalize(spec.name)}FunctionalitySagas`;
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
 
         // Build imports
         const imports: string[] = [];
@@ -198,8 +193,8 @@ export class SagaCollectionGenerator {
         ];
 
         // Build workflow step - service method name includes aggregate name only for projection entities
-        // Projection entities (uses dto): "addExecutionUser", "addQuestionTopic", "addTournamentParticipant"
-        // Value entities (not uses dto): "addOption", "getOption"
+        // Projection entities (cross-aggregate references): "addExecutionUser", "addQuestionTopic", "addTournamentParticipant"
+        // Value entities (local entities): "addOption", "getOption"
         const includeAggregateName = collection.isProjection;
         const operationVerb = spec.operation === 'addBatch'
             ? (includeAggregateName ? `add${capitalizedAggregate}${collection.capitalizedSingular}s` : `add${collection.capitalizedSingular}s`)
@@ -209,7 +204,7 @@ export class SagaCollectionGenerator {
 
         let stepBody: string;
         if (spec.resultType) {
-            const setterName = `set${this.capitalize(spec.resultField)}`;
+            const setterName = `set${StringUtils.capitalize(spec.resultField)}`;
             stepBody = `            ${spec.resultType} ${spec.resultField} = ${lowerAggregate}Service.${serviceMethodName}(${serviceArgs.join(', ')});
             ${setterName}(${spec.resultField});`;
         } else {

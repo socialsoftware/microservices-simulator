@@ -1,9 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -13,7 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizQuestionDto;
 
 @Entity
 public class AnswerQuiz {
@@ -22,7 +17,6 @@ public class AnswerQuiz {
     private Long id;
     private Integer quizAggregateId;
     private Integer quizVersion;
-    private List<Integer> quizQuestionsAggregateIds = new ArrayList<>();
     private AggregateState quizState;
     @OneToOne
     private Answer answer;
@@ -35,20 +29,17 @@ public class AnswerQuiz {
         setQuizAggregateId(quizDto.getAggregateId());
         setQuizVersion(quizDto.getVersion());
         setQuizState(quizDto.getState());
-        setQuizQuestionsAggregateIds(quizDto.getQuestions() != null ? quizDto.getQuestions().stream().map((QuizQuestionDto dto) -> dto.getAggregateId()).collect(Collectors.toList()) : null);
     }
 
     public AnswerQuiz(AnswerQuizDto answerQuizDto) {
         setQuizAggregateId(answerQuizDto.getAggregateId());
         setQuizVersion(answerQuizDto.getVersion());
-        setQuizQuestionsAggregateIds(answerQuizDto.getQuestions() != null ? answerQuizDto.getQuestions().stream().map(Integer::new).collect(Collectors.toList()) : null);
         setQuizState(answerQuizDto.getState());
     }
 
     public AnswerQuiz(AnswerQuiz other) {
         setQuizAggregateId(other.getQuizAggregateId());
         setQuizVersion(other.getQuizVersion());
-        setQuizQuestionsAggregateIds(new ArrayList<>(other.getQuizQuestionsAggregateIds()));
         setQuizState(other.getQuizState());
     }
 
@@ -74,14 +65,6 @@ public class AnswerQuiz {
 
     public void setQuizVersion(Integer quizVersion) {
         this.quizVersion = quizVersion;
-    }
-
-    public List<Integer> getQuizQuestionsAggregateIds() {
-        return quizQuestionsAggregateIds;
-    }
-
-    public void setQuizQuestionsAggregateIds(List<Integer> quizQuestionsAggregateIds) {
-        this.quizQuestionsAggregateIds = quizQuestionsAggregateIds;
     }
 
     public AggregateState getQuizState() {

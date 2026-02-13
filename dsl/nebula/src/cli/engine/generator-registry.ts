@@ -16,7 +16,7 @@ import { ExceptionGenerator } from "../generators/common/exception-generator.js"
 import { EventHandlerGenerator } from "../generators/microservices/events/event-handler-generator.js";
 import { CausalEntityGenerator } from "../generators/sagas/causal-entity-generator.js";
 import { ConfigurationGenerator } from "../generators/coordination/config/configuration-generator.js";
-import { ValidationSystem } from "../generators/validation/validation-system.js";
+import { AggregateValidator } from "../generators/validation/validation-system.js";
 
 /**
  * Generator metadata for discovery and management
@@ -176,7 +176,7 @@ export interface GeneratorRegistry {
     exceptionGenerator: ExceptionGenerator;
     eventHandlerGenerator: EventHandlerGenerator;
 
-    validationSystem: ValidationSystem;
+    validationSystem: AggregateValidator;
 }
 
 export class GeneratorRegistryFactory {
@@ -301,7 +301,7 @@ export class GeneratorRegistryFactory {
             isRequired: false
         });
 
-        GeneratorDiscovery.register('validationSystem', new ValidationSystem(), {
+        GeneratorDiscovery.register('validationSystem', new AggregateValidator(), {
             name: 'Validation System',
             version: '1.0.0',
             description: 'Comprehensive validation system',

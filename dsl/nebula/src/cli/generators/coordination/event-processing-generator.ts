@@ -2,17 +2,13 @@ import { AggregateExt, EntityExt } from '../../types/ast-extensions.js';
 import { CoordinationGenerationOptions } from '../microservices/types.js';
 import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../common/generator-capabilities.js';
 import { getEntities } from '../../utils/aggregate-helpers.js';
+import { StringUtils } from '../../utils/string-utils.js';
 
 export class EventProcessingGenerator {
     private capabilities: GeneratorCapabilities;
 
     constructor(capabilities?: GeneratorCapabilities) {
         this.capabilities = capabilities || GeneratorCapabilitiesFactory.createWebApiCapabilities();
-    }
-    // Helper methods migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
     private getBasePackage(): string {
@@ -57,10 +53,10 @@ export class EventProcessingGenerator {
 
     private buildContext(aggregate: AggregateExt, rootEntity: EntityExt, options: CoordinationGenerationOptions, allAggregates?: AggregateExt[]): any {
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
         const projectName = options.projectName.toLowerCase();
-        const ProjectName = this.capitalize(options.projectName);
+        const ProjectName = StringUtils.capitalize(options.projectName);
 
         const eventProcessingMethodsArray = this.buildEventProcessingMethods(aggregate, rootEntity, capitalizedAggregate);
         const imports = this.buildImports(aggregate, options, allAggregates);
@@ -205,7 +201,7 @@ export class EventProcessingGenerator {
         imports.push('import org.springframework.stereotype.Service;');
         imports.push(`import ${basePackage}.ms.coordination.unitOfWork.UnitOfWork;`);
         imports.push(`import ${basePackage}.ms.coordination.unitOfWork.UnitOfWorkService;`);
-        imports.push(`import ${basePackage}.${projectName}.microservices.${aggregate.name.toLowerCase()}.service.${this.capitalize(aggregate.name)}Service;`);
+        imports.push(`import ${basePackage}.${projectName}.microservices.${aggregate.name.toLowerCase()}.service.${StringUtils.capitalize(aggregate.name)}Service;`);
 
         // Add imports for subscribed events (direct + interInvariants)
         const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
@@ -341,7 +337,7 @@ public class {{aggregateName}}EventProcessing {
                 // Pattern matching for projection entity names like "ExecutionUser", "AnswerQuestion", etc.
                 // If aggregateRef matches pattern [Aggregate][Entity] (e.g., "ExecutionUser"),
                 // the event uses entity field names with lowercase [Entity] prefix (e.g., "userName")
-                // Otherwise (simple names like "User"), the event uses DTO field names (e.g., "name")
+                // Otherwise (simple names like "User"), the event uses source aggregate field names (e.g., "name")
 
                 let fieldPrefix = '';
                 // Check if aggregateRef looks like a projection (multiple capital letters)
@@ -362,8 +358,8 @@ public class {{aggregateName}}EventProcessing {
                     }
 
                     // Build field name: if prefix exists, use prefix + dtoField, otherwise just dtoField
-                    const fieldName = fieldPrefix ? fieldPrefix + this.capitalize(dtoField) : dtoField;
-                    const capitalizedField = this.capitalize(fieldName);
+                    const fieldName = fieldPrefix ? fieldPrefix + StringUtils.capitalize(dtoField) : dtoField;
+                    const capitalizedField = StringUtils.capitalize(fieldName);
                     fieldParams.push(`${eventVarName}.get${capitalizedField}()`);
                 }
             }

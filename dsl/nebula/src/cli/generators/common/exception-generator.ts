@@ -2,6 +2,7 @@ import { Aggregate, Model } from "../../../language/generated/ast.js";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { fileURLToPath } from 'node:url';
+import { StringUtils } from '../../utils/string-utils.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export interface ExceptionGenerationOptions {
@@ -75,7 +76,7 @@ export class ExceptionGenerator {
                                 if (!addedMessages.has(exceptionName)) {
                                     errorMessages.push({
                                         name: exceptionName,
-                                        message: `${this.capitalize(aggregate.name)} requires a ${prop.name}.`
+                                        message: `${StringUtils.capitalize(aggregate.name)} requires a ${prop.name}.`
                                     });
                                     addedMessages.add(exceptionName);
                                 }
@@ -123,10 +124,6 @@ export class ExceptionGenerator {
             }
         }
         return false;
-    }
-
-    private capitalize(str: string): string {
-        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
     private async generateExceptionClass(projectName: string, packageName: string): Promise<string> {

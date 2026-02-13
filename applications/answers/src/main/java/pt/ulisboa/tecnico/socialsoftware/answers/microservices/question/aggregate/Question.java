@@ -240,12 +240,20 @@ public abstract class Question extends Aggregate {
     }
     @Override
     public void verifyInvariants() {
-        if (!(invariantTitleNotBlank()
-               && invariantContentNotBlank()
-               && invariantCourseNotNull()
-               && invariantTopicsNotNull()
-               && invariantOptionsNotNull())) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        if (!invariantTitleNotBlank()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Question title cannot be blank");
+        }
+        if (!invariantContentNotBlank()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Question content cannot be blank");
+        }
+        if (!invariantCourseNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Question must be associated with a course");
+        }
+        if (!invariantTopicsNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Question must have a topics collection");
+        }
+        if (!invariantOptionsNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Question must have an options collection");
         }
     }
 

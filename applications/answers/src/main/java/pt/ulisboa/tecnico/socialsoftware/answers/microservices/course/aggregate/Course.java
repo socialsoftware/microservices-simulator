@@ -85,9 +85,11 @@ public abstract class Course extends Aggregate {
     }
     @Override
     public void verifyInvariants() {
-        if (!(invariantNameNotBlank()
-               && invariantTypeNotNull())) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        if (!invariantNameNotBlank()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Course name cannot be blank");
+        }
+        if (!invariantTypeNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Course type is required");
         }
     }
 

@@ -404,7 +404,7 @@ export class ImportScanner {
     }
 
     /**
-     * Resolves DTO field mappings from entity's uses dto declarations
+     * Resolves DTO field mappings from entity's cross-aggregate field mappings
      */
     resolveDtoFieldMappings(entity: EntityExt): Map<string, { property: any; extractField?: string }> {
         const overrides = new Map<string, { property: any; extractField?: string }>();

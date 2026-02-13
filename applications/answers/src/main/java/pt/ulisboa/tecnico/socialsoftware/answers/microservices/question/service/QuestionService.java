@@ -226,11 +226,9 @@ public class QuestionService {
                                item.getTopicAggregateId().equals(topicAggregateId))
                 .findFirst()
                 .orElseThrow(() -> new AnswersException("QuestionTopic not found"));
-            if (QuestionTopicDto.getName() != null) {
-                element.setTopicName(QuestionTopicDto.getName());
-            }
+
             unitOfWorkService.registerChanged(newQuestion, unitOfWork);
-            QuestionTopicUpdatedEvent event = new QuestionTopicUpdatedEvent(questionId, element.getTopicAggregateId(), element.getTopicVersion(), element.getTopicName(), element.getTopicId());
+            QuestionTopicUpdatedEvent event = new QuestionTopicUpdatedEvent(questionId, element.getTopicAggregateId(), element.getTopicVersion(), element.getTopicId());
             event.setPublisherAggregateVersion(newQuestion.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
@@ -339,7 +337,7 @@ public class QuestionService {
     }
 
 
-    public Question handleTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, String name, UnitOfWork unitOfWork) {
+    public Question handleTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, UnitOfWork unitOfWork) {
         try {
             Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);

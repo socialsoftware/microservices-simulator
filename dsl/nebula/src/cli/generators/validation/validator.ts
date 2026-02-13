@@ -9,7 +9,7 @@ import {
 } from '../common/types.js';
 import { Utils } from '../../utils/generator-utils.js';
 
-export class Validator {
+export class TemplateValidator {
 
     constructor(options: { maxDepth?: number; maxIterations?: number; strictMode?: boolean } = {}) {
     }

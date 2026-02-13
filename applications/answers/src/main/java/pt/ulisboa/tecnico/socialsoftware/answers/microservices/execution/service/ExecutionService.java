@@ -222,17 +222,9 @@ public class ExecutionService {
                                item.getUserAggregateId().equals(userAggregateId))
                 .findFirst()
                 .orElseThrow(() -> new AnswersException("ExecutionUser not found"));
-            if (ExecutionUserDto.getName() != null) {
-                element.setUserName(ExecutionUserDto.getName());
-            }
-            if (ExecutionUserDto.getUsername() != null) {
-                element.setUserUsername(ExecutionUserDto.getUsername());
-            }
-            if (ExecutionUserDto.getActive() != null) {
-                element.setUserActive(ExecutionUserDto.getActive());
-            }
+
             unitOfWorkService.registerChanged(newExecution, unitOfWork);
-            ExecutionUserUpdatedEvent event = new ExecutionUserUpdatedEvent(executionId, element.getUserAggregateId(), element.getUserVersion(), element.getUserName(), element.getUserUsername(), element.getUserActive());
+            ExecutionUserUpdatedEvent event = new ExecutionUserUpdatedEvent(executionId, element.getUserAggregateId(), element.getUserVersion());
             event.setPublisherAggregateVersion(newExecution.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();

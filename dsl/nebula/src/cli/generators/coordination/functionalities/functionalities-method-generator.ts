@@ -1,22 +1,18 @@
-import { TypeResolver } from '../common/resolvers/type-resolver.js';
-import { EntityRegistry } from '../common/utils/entity-registry.js';
+import { TypeResolver } from '../../common/resolvers/type-resolver.js';
+import { EntityRegistry } from '../../common/utils/entity-registry.js';
+import { StringUtils } from '../../../utils/string-utils.js';
 
 /**
  * Generates method bodies for functionalities classes
  */
 export class FunctionalitiesMethodGenerator {
-    // Helper method migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
 
     /**
      * Generate web API method body
      */
     generateWebApiMethodBody(endpoint: any, returnType: string, aggregateName: string, consistencyModels: string[]): string {
         const methodName = endpoint.methodName;
-        const capitalizedMethodName = this.capitalize(methodName);
+        const capitalizedMethodName = StringUtils.capitalize(methodName);
         const lowerAggregateName = aggregateName.toLowerCase();
         const params = this.extractEndpointParameters(endpoint.parameters);
 
@@ -43,7 +39,7 @@ ${cases}
      */
     generateFunctionalityMethodBody(func: any, returnType: string, aggregateName: string): string {
         const methodName = func.name;
-        const capitalizedMethodName = this.capitalize(methodName);
+        const capitalizedMethodName = StringUtils.capitalize(methodName);
         const lowerAggregateName = aggregateName.toLowerCase();
         const params = this.extractFunctionalityParameters(func.parameters);
         const paramNames = params.map(p => p.name).join(', ');
@@ -187,14 +183,14 @@ ${cases}
         if (returnType === 'void') {
             return 'break;';
         } else if (returnType.startsWith('List<')) {
-            return `return ${methodName}FunctionalitySagas.get${this.capitalize(methodName.replace('get', ''))}();`;
+            return `return ${methodName}FunctionalitySagas.get${StringUtils.capitalize(methodName.replace('get', ''))}();`;
         } else if (returnType.startsWith('Set<')) {
-            return `return ${methodName}FunctionalitySagas.get${this.capitalize(methodName.replace('get', ''))}();`;
+            return `return ${methodName}FunctionalitySagas.get${StringUtils.capitalize(methodName.replace('get', ''))}();`;
         } else if (returnType.includes('Dto')) {
             if (methodName.startsWith('create')) {
-                return `return ${methodName}FunctionalitySagas.getCreated${this.capitalize(methodName.replace('create', ''))}();`;
+                return `return ${methodName}FunctionalitySagas.getCreated${StringUtils.capitalize(methodName.replace('create', ''))}();`;
             } else if (methodName.startsWith('get')) {
-                return `return ${methodName}FunctionalitySagas.get${this.capitalize(methodName.replace('get', ''))}();`;
+                return `return ${methodName}FunctionalitySagas.get${StringUtils.capitalize(methodName.replace('get', ''))}();`;
             } else {
                 return `return ${methodName}FunctionalitySagas.getResult();`;
             }

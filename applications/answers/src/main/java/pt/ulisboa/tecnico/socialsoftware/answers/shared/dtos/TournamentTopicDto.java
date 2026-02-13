@@ -9,7 +9,6 @@ public class TournamentTopicDto implements Serializable {
     private Integer version;
     private AggregateState state;
     private String name;
-    private Integer courseAggregateId;
 
     public TournamentTopicDto() {
     }
@@ -19,7 +18,6 @@ public class TournamentTopicDto implements Serializable {
         this.version = tournamentTopic.getTopicVersion();
         this.state = tournamentTopic.getTopicState();
         this.name = tournamentTopic.getTopicName();
-        this.courseAggregateId = tournamentTopic.getTopicCourseAggregateId();
     }
 
     public Integer getAggregateId() {
@@ -52,13 +50,5 @@ public class TournamentTopicDto implements Serializable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Integer getCourseAggregateId() {
-        return courseAggregateId;
-    }
-
-    public void setCourseAggregateId(Integer courseAggregateId) {
-        this.courseAggregateId = courseAggregateId;
     }
 }

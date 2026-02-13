@@ -1,13 +1,9 @@
+import { StringUtils } from '../../utils/string-utils.js';
+
 /**
  * Helper utilities for saga generation - type conversion, argument handling, etc.
  */
 export class SagaHelpers {
-    // Helper methods migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
     private isEntityType(type: any): boolean {
         // Simplified entity type checking
         if (typeof type === 'string') {
@@ -98,7 +94,7 @@ export class SagaHelpers {
             let result = ref;
             for (const part of chain) {
                 // Use getter for each part
-                result += `.get${this.capitalize(part)}()`;
+                result += `.get${StringUtils.capitalize(part)}()`;
             }
             return result;
         }

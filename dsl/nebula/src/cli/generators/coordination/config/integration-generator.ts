@@ -1,5 +1,6 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { TemplateManager } from "../../../utils/template-manager.js";
+import { StringUtils } from '../../../utils/string-utils.js';
 
 export interface IntegrationGenerationOptions {
     architecture?: string;
@@ -8,11 +9,6 @@ export interface IntegrationGenerationOptions {
 }
 
 export class IntegrationGenerator {
-    // Helper methods migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
 
     private getBasePackage(options: IntegrationGenerationOptions): string {
         if (!options.basePackage) {
@@ -71,7 +67,7 @@ export class IntegrationGenerator {
 
     private buildApplicationContext(aggregate: Aggregate, rootEntity: Entity, options: IntegrationGenerationOptions): any {
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
 
         const imports = this.buildApplicationImports(aggregate, options);
@@ -99,7 +95,7 @@ export class IntegrationGenerator {
 
     private buildConfigurationContext(aggregate: Aggregate, rootEntity: Entity, options: IntegrationGenerationOptions): any {
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
 
         const imports = this.buildConfigurationImports(aggregate, options);
@@ -120,7 +116,7 @@ export class IntegrationGenerator {
 
     private buildPropertiesContext(aggregate: Aggregate, rootEntity: Entity, options: IntegrationGenerationOptions): any {
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
 
         const properties = this.buildApplicationProperties(aggregate, options);
@@ -137,7 +133,7 @@ export class IntegrationGenerator {
 
     private buildProfilesContext(aggregate: Aggregate, rootEntity: Entity, options: IntegrationGenerationOptions): any {
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
 
         const profiles = this.buildProfileConfigurations(aggregate, options);
@@ -309,7 +305,7 @@ export class IntegrationGenerator {
         result = result.replace(/\{\{basePackage\}\}/g, context.basePackage);
         result = result.replace(/\{\{aggregateName\}\}/g, context.aggregateName);
         result = result.replace(/\{\{lowerAggregate\}\}/g, context.lowerAggregate);
-        result = result.replace(/\{\{projectName\}\}/g, this.capitalize(context.projectName));
+        result = result.replace(/\{\{projectName\}\}/g, StringUtils.capitalize(context.projectName));
         result = result.replace(/\{\{lowerProjectName\}\}/g, context.lowerProjectName);
 
         result = result.replace(/\{\{#if hasEventService\}\}([\s\S]*?)\{\{\/if\}\}/g, context.hasEventService ? '$1' : '');
@@ -336,7 +332,7 @@ export class IntegrationGenerator {
 
         if (context.profiles) {
             const profilesText = context.profiles.map((profile: any) =>
-                `@Configuration\n@Profile("${profile.name}")\npublic class ${this.capitalize(profile.name)}Configuration {\n    // ${profile.description}\n    \n${profile.beans.map((bean: any) => `    @Bean\n    public ${bean.type} ${bean.name}() {\n        return new ${bean.implementation}();\n    }`).join('\n\n')}\n}`
+                `@Configuration\n@Profile("${profile.name}")\npublic class ${StringUtils.capitalize(profile.name)}Configuration {\n    // ${profile.description}\n    \n${profile.beans.map((bean: any) => `    @Bean\n    public ${bean.type} ${bean.name}() {\n        return new ${bean.implementation}();\n    }`).join('\n\n')}\n}`
             ).join('\n\n');
             result = result.replace(/\{\{#each profiles\}\}[\s\S]*?\{\{\/each\}\}/g, profilesText);
         }

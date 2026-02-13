@@ -7,17 +7,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 public class TournamentExecutionUpdatedEvent extends Event {
     private Integer executionAggregateId;
     private Integer executionVersion;
-    private String executionAcronym;
 
     public TournamentExecutionUpdatedEvent() {
         super();
     }
 
-    public TournamentExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, String executionAcronym) {
+    public TournamentExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion) {
         super(aggregateId);
         setExecutionAggregateId(executionAggregateId);
         setExecutionVersion(executionVersion);
-        setExecutionAcronym(executionAcronym);
     }
 
     public Integer getExecutionAggregateId() {
@@ -34,14 +32,6 @@ public class TournamentExecutionUpdatedEvent extends Event {
 
     public void setExecutionVersion(Integer executionVersion) {
         this.executionVersion = executionVersion;
-    }
-
-    public String getExecutionAcronym() {
-        return executionAcronym;
-    }
-
-    public void setExecutionAcronym(String executionAcronym) {
-        this.executionAcronym = executionAcronym;
     }
 
 }

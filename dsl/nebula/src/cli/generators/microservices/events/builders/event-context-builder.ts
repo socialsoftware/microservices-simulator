@@ -2,6 +2,7 @@ import { Aggregate, PublishedEvent, SubscribedEvent, EventField } from "../../..
 import { AggregateExt } from "../../../../types/ast-extensions.js";
 import { GeneratorCapabilities } from "../../../common/generator-capabilities.js";
 import { TypeResolver } from "../../../common/resolvers/type-resolver.js";
+import { StringUtils } from '../../../../utils/string-utils.js';
 
 /**
  * Event Context Builder
@@ -24,7 +25,7 @@ export class EventContextBuilder {
         const fields = event.fields.map((field: EventField) => ({
             type: TypeResolver.resolveJavaType(field.type),
             name: field.name,
-            capitalizedName: this.capitalize(field.name)
+            capitalizedName: StringUtils.capitalize(field.name)
         }));
 
         const imports = this.generatePublishedEventImports(fields);
@@ -789,11 +790,6 @@ export class EventContextBuilder {
     // ============================================================================
     // UTILITY METHODS
     // ============================================================================
-
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
 
     private getBasePackage(): string {
         return this.capabilities.packageBuilder.buildCustomPackage('').split('.').slice(0, -1).join('.');

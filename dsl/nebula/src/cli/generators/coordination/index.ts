@@ -1,6 +1,6 @@
 import { Aggregate } from '../common/parsers/model-parser.js';
 import { CoordinationGenerationOptions } from '../microservices/types.js';
-import { FunctionalitiesGenerator } from './functionalities-generator.js';
+import { FunctionalitiesGenerator } from './functionalities/functionalities-generator.js';
 import { EventProcessingGenerator } from './event-processing-generator.js';
 
 export class CoordinationGenerator {

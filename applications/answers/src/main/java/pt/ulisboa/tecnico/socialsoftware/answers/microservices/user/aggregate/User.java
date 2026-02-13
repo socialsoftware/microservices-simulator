@@ -98,10 +98,14 @@ public abstract class User extends Aggregate {
     }
     @Override
     public void verifyInvariants() {
-        if (!(invariantNameNotBlank()
-               && invariantUsernameNotBlank()
-               && invariantRoleNotNull())) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        if (!invariantNameNotBlank()) {
+            throw new SimulatorException(INVARIANT_BREAK, "User name cannot be blank");
+        }
+        if (!invariantUsernameNotBlank()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Username cannot be blank");
+        }
+        if (!invariantRoleNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "User role is required");
         }
     }
 

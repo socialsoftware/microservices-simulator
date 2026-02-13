@@ -1,5 +1,6 @@
-import { Entity, Aggregate } from '../common/parsers/model-parser.js';
-import { CollectionMetadata, CollectionMetadataBuilder } from '../common/utils/collection-metadata-builder.js';
+import { Entity, Aggregate } from '../../common/parsers/model-parser.js';
+import { CollectionMetadata, CollectionMetadataBuilder } from '../../common/utils/collection-metadata-builder.js';
+import { StringUtils } from '../../../utils/string-utils.js';
 
 export interface CollectionFunctionalityMethod {
     name: string;
@@ -11,11 +12,6 @@ export interface CollectionFunctionalityMethod {
 }
 
 export class FunctionalitiesCollectionGenerator {
-    // Helper method migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
     /**
      * Generate collection operation methods for functionalities layer
      */
@@ -61,7 +57,7 @@ export class FunctionalitiesCollectionGenerator {
         lowerAggregate: string
     ): CollectionFunctionalityMethod {
         const methodName = `add${aggregateName}${collection.capitalizedSingular}`;
-        const sagaClassName = `${this.capitalize(methodName)}FunctionalitySagas`;
+        const sagaClassName = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
         const uncapitalizedMethod = methodName.charAt(0).toLowerCase() + methodName.slice(1);
 
         const parameters = [
@@ -102,7 +98,7 @@ export class FunctionalitiesCollectionGenerator {
         lowerAggregate: string
     ): CollectionFunctionalityMethod {
         const methodName = `add${aggregateName}${collection.capitalizedSingular}s`;
-        const sagaClassName = `${this.capitalize(methodName)}FunctionalitySagas`;
+        const sagaClassName = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
         const uncapitalizedMethod = methodName.charAt(0).toLowerCase() + methodName.slice(1);
 
         const parameters = [
@@ -142,7 +138,7 @@ export class FunctionalitiesCollectionGenerator {
         lowerAggregate: string
     ): CollectionFunctionalityMethod {
         const methodName = `get${aggregateName}${collection.capitalizedSingular}`;
-        const sagaClassName = `${this.capitalize(methodName)}FunctionalitySagas`;
+        const sagaClassName = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
         const uncapitalizedMethod = methodName.charAt(0).toLowerCase() + methodName.slice(1);
 
         const parameters = [
@@ -182,7 +178,7 @@ export class FunctionalitiesCollectionGenerator {
         lowerAggregate: string
     ): CollectionFunctionalityMethod {
         const methodName = `update${aggregateName}${collection.capitalizedSingular}`;
-        const sagaClassName = `${this.capitalize(methodName)}FunctionalitySagas`;
+        const sagaClassName = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
         const uncapitalizedMethod = methodName.charAt(0).toLowerCase() + methodName.slice(1);
 
         const parameters = [
@@ -223,7 +219,7 @@ export class FunctionalitiesCollectionGenerator {
         lowerAggregate: string
     ): CollectionFunctionalityMethod {
         const methodName = `remove${aggregateName}${collection.capitalizedSingular}`;
-        const sagaClassName = `${this.capitalize(methodName)}FunctionalitySagas`;
+        const sagaClassName = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
         const uncapitalizedMethod = methodName.charAt(0).toLowerCase() + methodName.slice(1);
 
         const parameters = [

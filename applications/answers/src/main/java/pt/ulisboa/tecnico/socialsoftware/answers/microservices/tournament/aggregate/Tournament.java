@@ -310,13 +310,23 @@ public abstract class Tournament extends Aggregate {
     }
     @Override
     public void verifyInvariants() {
-        if (!(invariantStartTimeBeforeEndTime()
-               && invariantParticipantsNotNull()
-               && invariantCreatorNotNull()
-               && invariantExecutionNotNull()
-               && invariantTopicsNotNull()
-               && invariantQuizNotNull())) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        if (!invariantStartTimeBeforeEndTime()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Tournament start time must be before end time");
+        }
+        if (!invariantParticipantsNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Tournament must have a participants collection");
+        }
+        if (!invariantCreatorNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Tournament must have a creator");
+        }
+        if (!invariantExecutionNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Tournament must be associated with an execution");
+        }
+        if (!invariantTopicsNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Tournament must have a topics collection");
+        }
+        if (!invariantQuizNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Tournament must have a quiz");
         }
     }
 

@@ -238,14 +238,9 @@ public class QuizService {
                                item.getQuestionAggregateId().equals(questionAggregateId))
                 .findFirst()
                 .orElseThrow(() -> new AnswersException("QuizQuestion not found"));
-            if (QuizQuestionDto.getTitle() != null) {
-                element.setQuestionTitle(QuizQuestionDto.getTitle());
-            }
-            if (QuizQuestionDto.getContent() != null) {
-                element.setQuestionContent(QuizQuestionDto.getContent());
-            }
+
             unitOfWorkService.registerChanged(newQuiz, unitOfWork);
-            QuizQuestionUpdatedEvent event = new QuizQuestionUpdatedEvent(quizId, element.getQuestionAggregateId(), element.getQuestionVersion(), element.getQuestionTitle(), element.getQuestionContent(), element.getQuestionSequence());
+            QuizQuestionUpdatedEvent event = new QuizQuestionUpdatedEvent(quizId, element.getQuestionAggregateId(), element.getQuestionVersion(), element.getQuestionSequence());
             event.setPublisherAggregateVersion(newQuiz.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
@@ -257,7 +252,7 @@ public class QuizService {
     }
 
 
-    public Quiz handleExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, String acronym, String academicTerm, UnitOfWork unitOfWork) {
+    public Quiz handleExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, UnitOfWork unitOfWork) {
         try {
             Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);

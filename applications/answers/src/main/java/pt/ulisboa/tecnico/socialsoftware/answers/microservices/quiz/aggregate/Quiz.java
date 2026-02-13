@@ -225,11 +225,17 @@ public abstract class Quiz extends Aggregate {
     }
     @Override
     public void verifyInvariants() {
-        if (!(invariantTitleNotBlank()
-               && invariantDateOrdering()
-               && invariantQuestionsNotNull()
-               && invariantExecutionNotNull())) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        if (!invariantTitleNotBlank()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Quiz title cannot be blank");
+        }
+        if (!invariantDateOrdering()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Quiz dates must be in order: available < conclusion < results");
+        }
+        if (!invariantQuestionsNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Quiz must have a questions collection");
+        }
+        if (!invariantExecutionNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Quiz must be associated with an execution");
         }
     }
 

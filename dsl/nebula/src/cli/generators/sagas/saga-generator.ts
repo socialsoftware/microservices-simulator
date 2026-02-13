@@ -1,6 +1,7 @@
 import { AggregateExt, EntityExt, TypeGuards } from "../../types/ast-extensions.js";
 import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../common/generator-capabilities.js';
 import { UnifiedTypeResolver } from '../common/unified-type-resolver.js';
+import { StringUtils } from '../../utils/string-utils.js';
 
 export interface SagaGenerationOptions {
     architecture?: string;
@@ -15,11 +16,6 @@ export class SagaGenerator {
         this.capabilities = capabilities || GeneratorCapabilitiesFactory.createSagaCapabilities();
     }
 
-    // Helper methods migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
 
     private getBasePackage(): string {
         return this.capabilities.packageBuilder.buildCustomPackage('').split('.').slice(0, -1).join('.');
@@ -86,7 +82,7 @@ export class SagaGenerator {
 
     private buildSagaAggregatesContext(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): any {
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
 
         const rootEntityName = rootEntity ? rootEntity.name : aggregateName;
@@ -166,7 +162,7 @@ export class SagaGenerator {
 
     private buildSagaDtosContext(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): any {
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
 
         const rootEntityName = rootEntity ? rootEntity.name : aggregateName;
@@ -184,7 +180,7 @@ export class SagaGenerator {
 
     private buildSagaStatesContext(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): any {
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
         const upperAggregateName = aggregateName.toUpperCase();
 
@@ -264,7 +260,7 @@ export class SagaGenerator {
 
     private buildSagaFactoriesContext(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): any {
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
 
         const rootEntityName = rootEntity ? rootEntity.name : aggregateName;
@@ -292,7 +288,7 @@ export class SagaGenerator {
 
     private buildSagaRepositoriesContext(aggregate: AggregateExt, rootEntity: EntityExt, options: SagaGenerationOptions): any {
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
 
         const imports = this.buildSagaRepositoriesImports(aggregate, options);
@@ -313,7 +309,7 @@ export class SagaGenerator {
         const imports: string[] = [];
 
         const rootEntityName = rootEntity ? rootEntity.name : aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregate.name);
+        const capitalizedAggregate = StringUtils.capitalize(aggregate.name);
         const basePackage = this.getBasePackage();
 
         imports.push('import jakarta.persistence.Entity;');
@@ -350,11 +346,11 @@ export class SagaGenerator {
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
         const rootEntityName = rootEntity ? rootEntity.name : aggregate.name;
 
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${this.capitalize(aggregate.name)};`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${StringUtils.capitalize(aggregate.name)};`);
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${rootEntityName};`);
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntityName}Dto;`);
 
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.Saga${this.capitalize(aggregate.name)};`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.Saga${StringUtils.capitalize(aggregate.name)};`);
         imports.push(`import ${this.getBasePackage()}.ms.sagas.aggregate.SagaAggregate.SagaState;`);
 
         return imports;
@@ -378,7 +374,7 @@ export class SagaGenerator {
 
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
         const rootEntityName = rootEntity ? rootEntity.name : aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregate.name);
+        const capitalizedAggregate = StringUtils.capitalize(aggregate.name);
 
         imports.push('import org.springframework.context.annotation.Profile;');
         imports.push('import org.springframework.stereotype.Service;');
@@ -399,7 +395,7 @@ export class SagaGenerator {
         imports.push('import org.springframework.data.jpa.repository.JpaRepository;');
         imports.push('import org.springframework.stereotype.Repository;');
 
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.Saga${this.capitalize(aggregate.name)};`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.Saga${StringUtils.capitalize(aggregate.name)};`);
 
         return imports;
     }

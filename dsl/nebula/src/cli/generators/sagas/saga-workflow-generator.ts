@@ -1,16 +1,11 @@
 import { SagaHelpers } from './saga-helpers.js';
 import { SagaGenerationOptions } from './saga-generator.js';
+import { StringUtils } from '../../utils/string-utils.js';
 
 /**
  * Generates saga workflow functionalities from DSL definitions
  */
 export class SagaWorkflowGenerator {
-    // Helper methods migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
     private getBasePackage(options: SagaGenerationOptions): string {
         if (!options.basePackage) {
             throw new Error('basePackage is required in SagaGenerationOptions');
@@ -25,8 +20,8 @@ export class SagaWorkflowGenerator {
     generateWorkflowFunctionality(aggregate: any, workflow: any, options: SagaGenerationOptions, packageName: string): string {
         const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
-        const capitalizedAggregate = this.capitalize(aggregate.name);
-        const className = `${this.capitalize(workflow.name)}FunctionalitySagas`;
+        const capitalizedAggregate = StringUtils.capitalize(aggregate.name);
+        const className = `${StringUtils.capitalize(workflow.name)}FunctionalitySagas`;
         const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
 
         const imports: string[] = [];
@@ -113,7 +108,7 @@ export class SagaWorkflowGenerator {
         // Generate getters and setters for workflow fields
         const gettersSetters = workflowFields.map((f: any) => {
             const fieldType = this.helpers.getParamTypeName(f.type, aggregate.name);
-            const capitalizedName = this.capitalize(f.name);
+            const capitalizedName = StringUtils.capitalize(f.name);
             return `
     public void set${capitalizedName}(${fieldType} ${f.name}) {
         this.${f.name} = ${f.name};
@@ -256,7 +251,7 @@ ${gettersSetters}
                 if (action.filterField && action.filterValue) {
                     const filterField = action.filterField;
                     const filterValue = this.helpers.convertWorkflowArg(action.filterValue);
-                    return `            this.${target} = ${source}.stream().filter(p -> p.get${this.capitalize(filterField)}().equals(${filterValue})).findFirst().orElse(null);\n`;
+                    return `            this.${target} = ${source}.stream().filter(p -> p.get${StringUtils.capitalize(filterField)}().equals(${filterValue})).findFirst().orElse(null);\n`;
                 } else {
                     return `            this.${target} = ${source};\n`;
                 }

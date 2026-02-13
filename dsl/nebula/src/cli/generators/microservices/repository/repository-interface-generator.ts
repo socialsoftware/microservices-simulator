@@ -2,6 +2,7 @@ import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { TypeResolver } from "../../common/resolvers/type-resolver.js";
 import { TemplateManager } from "../../../utils/template-manager.js";
 import { SpringDataQueryParser } from "./spring-data-query-parser.js";
+import { StringUtils } from '../../../utils/string-utils.js';
 
 export interface RepositoryInterfaceGenerationOptions {
     architecture?: string;
@@ -11,11 +12,6 @@ export interface RepositoryInterfaceGenerationOptions {
 }
 
 export class RepositoryInterfaceGenerator {
-    // Helper methods migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
 
     private getBasePackage(options: RepositoryInterfaceGenerationOptions): string {
         if (!options.basePackage) {
@@ -50,7 +46,7 @@ export class RepositoryInterfaceGenerator {
 
     private buildRepositoryInterfaceContext(aggregate: Aggregate, rootEntity: Entity, options: RepositoryInterfaceGenerationOptions): any {
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
 
         const queryMethods = this.buildQueryMethods(aggregate, rootEntity, capitalizedAggregate, options);

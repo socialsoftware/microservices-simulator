@@ -183,11 +183,17 @@ public abstract class Execution extends Aggregate {
     }
     @Override
     public void verifyInvariants() {
-        if (!(invariantAcronymNotBlank()
-               && invariantAcademicTermNotBlank()
-               && invariantCourseNotNull()
-               && invariantUsersNotNull())) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        if (!invariantAcronymNotBlank()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Execution acronym cannot be blank");
+        }
+        if (!invariantAcademicTermNotBlank()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Academic term cannot be blank");
+        }
+        if (!invariantCourseNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Execution must be associated with a course");
+        }
+        if (!invariantUsersNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Execution must have a users collection");
         }
     }
 

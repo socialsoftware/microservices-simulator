@@ -88,9 +88,11 @@ public abstract class Topic extends Aggregate {
     }
     @Override
     public void verifyInvariants() {
-        if (!(invariantNameNotBlank()
-               && invariantCourseNotNull())) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        if (!invariantNameNotBlank()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Topic name cannot be blank");
+        }
+        if (!invariantCourseNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Topic must be associated with a course");
         }
     }
 

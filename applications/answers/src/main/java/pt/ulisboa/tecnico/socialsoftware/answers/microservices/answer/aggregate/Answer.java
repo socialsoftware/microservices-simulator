@@ -231,11 +231,17 @@ public abstract class Answer extends Aggregate {
     }
     @Override
     public void verifyInvariants() {
-        if (!(invariantExecutionNotNull()
-               && invariantUserNotNull()
-               && invariantQuizNotNull()
-               && invariantQuestionsNotNull())) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+        if (!invariantExecutionNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Answer must be associated with an execution");
+        }
+        if (!invariantUserNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Answer must be associated with a user");
+        }
+        if (!invariantQuizNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Answer must be associated with a quiz");
+        }
+        if (!invariantQuestionsNotNull()) {
+            throw new SimulatorException(INVARIANT_BREAK, "Answer must have a questions collection");
         }
     }
 

@@ -10,6 +10,7 @@ import { Entity, Property } from "../../../language/generated/ast.js";
 import { UnifiedTypeResolver } from "./unified-type-resolver.js";
 import { ImportManager, ImportManagerFactory } from "../../utils/import-manager.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../../utils/error-handler.js";
+import { StringUtils } from '../../utils/string-utils.js';
 
 /**
  * DTO generation types
@@ -268,7 +269,7 @@ export class UnifiedDtoGenerator {
     private buildDtoFieldFromProperty(property: Property, options: DtoGenerationOptions): DtoField {
         const propertyName = property.name;
         const javaType = UnifiedTypeResolver.resolveForDto(property.type);
-        const capitalizedName = this.capitalize(propertyName);
+        const capitalizedName = StringUtils.capitalize(propertyName);
 
         const annotations: string[] = [];
 
@@ -438,14 +439,6 @@ export class UnifiedDtoGenerator {
             methods: [],
             annotations: []
         };
-    }
-
-    /**
-     * Utility methods
-     */
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
     /**

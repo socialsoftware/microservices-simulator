@@ -15,8 +15,6 @@ public class QuizOption {
     @Id
     @GeneratedValue
     private Long id;
-    private Integer optionSequence;
-    private boolean optionCorrect;
     private String optionContent;
     private Integer questionAggregateId;
     private Integer questionVersion;
@@ -36,8 +34,6 @@ public class QuizOption {
     }
 
     public QuizOption(QuizOptionDto quizOptionDto) {
-        setOptionSequence(quizOptionDto.getSequence());
-        setOptionCorrect(quizOptionDto.getCorrect());
         setOptionContent(quizOptionDto.getContent());
         setQuestionAggregateId(quizOptionDto.getAggregateId());
         setQuestionVersion(quizOptionDto.getVersion());
@@ -45,8 +41,6 @@ public class QuizOption {
     }
 
     public QuizOption(QuizOption other) {
-        setOptionSequence(other.getOptionSequence());
-        setOptionCorrect(other.getOptionCorrect());
         setOptionContent(other.getOptionContent());
         setQuestionAggregateId(other.getQuestionAggregateId());
         setQuestionVersion(other.getQuestionVersion());
@@ -59,22 +53,6 @@ public class QuizOption {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Integer getOptionSequence() {
-        return optionSequence;
-    }
-
-    public void setOptionSequence(Integer optionSequence) {
-        this.optionSequence = optionSequence;
-    }
-
-    public boolean getOptionCorrect() {
-        return optionCorrect;
-    }
-
-    public void setOptionCorrect(boolean optionCorrect) {
-        this.optionCorrect = optionCorrect;
     }
 
     public String getOptionContent() {
@@ -122,8 +100,6 @@ public class QuizOption {
 
     public QuizOptionDto buildDto() {
         QuizOptionDto dto = new QuizOptionDto();
-        dto.setSequence(getOptionSequence());
-        dto.setCorrect(getOptionCorrect());
         dto.setContent(getOptionContent());
         dto.setAggregateId(getQuestionAggregateId());
         dto.setVersion(getQuestionVersion());

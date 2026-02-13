@@ -1,12 +1,13 @@
-import { AggregateExt, EntityExt } from '../../types/ast-extensions.js';
-import { CoordinationGenerationOptions } from '../microservices/types.js';
-import { EntityRegistry } from '../common/utils/entity-registry.js';
-import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../common/generator-capabilities.js';
+import { AggregateExt, EntityExt } from '../../../types/ast-extensions.js';
+import { CoordinationGenerationOptions } from '../../microservices/types.js';
+import { EntityRegistry } from '../../common/utils/entity-registry.js';
+import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../../common/generator-capabilities.js';
 import { FunctionalitiesCrudGenerator } from './functionalities-crud-generator.js';
 import { FunctionalitiesCollectionGenerator } from './functionalities-collection-generator.js';
 import { FunctionalitiesImportsBuilder } from './functionalities-imports-builder.js';
 import { FunctionalitiesMethodGenerator } from './functionalities-method-generator.js';
-import { TypeResolver } from '../common/resolvers/type-resolver.js';
+import { TypeResolver } from '../../common/resolvers/type-resolver.js';
+import { StringUtils } from '../../../utils/string-utils.js';
 
 /**
  * Main orchestrator for functionalities class generation.
@@ -23,11 +24,6 @@ export class FunctionalitiesGenerator {
         this.capabilities = capabilities || GeneratorCapabilitiesFactory.createWebApiCapabilities();
     }
 
-    // Helper methods migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
 
     private getBasePackage(): string {
         return this.capabilities.packageBuilder.buildCustomPackage('').split('.').slice(0, -1).join('.');
@@ -82,10 +78,10 @@ export class FunctionalitiesGenerator {
      */
     private buildContext(aggregate: AggregateExt, rootEntity: EntityExt, options: CoordinationGenerationOptions, entityRegistry: EntityRegistry): any {
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
         const lowerAggregate = aggregateName.toLowerCase();
         const projectName = options.projectName.toLowerCase();
-        const ProjectName = this.capitalize(options.projectName);
+        const ProjectName = StringUtils.capitalize(options.projectName);
 
         const consistencyModels = options.consistencyModels || ['sagas'];
         const allAggregates = entityRegistry.getAllAggregates();
@@ -125,7 +121,7 @@ export class FunctionalitiesGenerator {
 
         dependencies.push({
             name: `${lowerAggregate}Service`,
-            type: `${this.capitalize(aggregateName)}Service`,
+            type: `${StringUtils.capitalize(aggregateName)}Service`,
             required: true
         });
 
@@ -255,7 +251,7 @@ export class FunctionalitiesGenerator {
         const dtoType = `${aggregateName}Dto`;
         const dtoParamName = `${lowerAggregate}Dto`;
         const createRequestDtoType = `Create${aggregateName}RequestDto`;
-        const ProjectName = this.capitalize(projectName);
+        const ProjectName = StringUtils.capitalize(projectName);
 
         if (!rootEntity || !rootEntity.properties) {
             // Generate empty methods if CRUD is enabled but no properties

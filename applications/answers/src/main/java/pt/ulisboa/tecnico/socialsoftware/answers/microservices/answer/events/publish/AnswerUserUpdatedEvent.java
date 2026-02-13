@@ -7,17 +7,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 public class AnswerUserUpdatedEvent extends Event {
     private Integer userAggregateId;
     private Integer userVersion;
-    private String userName;
 
     public AnswerUserUpdatedEvent() {
         super();
     }
 
-    public AnswerUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, String userName) {
+    public AnswerUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion) {
         super(aggregateId);
         setUserAggregateId(userAggregateId);
         setUserVersion(userVersion);
-        setUserName(userName);
     }
 
     public Integer getUserAggregateId() {
@@ -34,14 +32,6 @@ public class AnswerUserUpdatedEvent extends Event {
 
     public void setUserVersion(Integer userVersion) {
         this.userVersion = userVersion;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
     }
 
 }

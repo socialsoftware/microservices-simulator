@@ -52,7 +52,7 @@ export interface ValidationRule {
     check: (aggregate: Aggregate, options: ValidationOptions) => Promise<ValidationError[] | ValidationWarning[]>;
 }
 
-export class ValidationSystem {
+export class AggregateValidator {
     private customRules: ValidationRule[] = [];
 
     constructor() {

@@ -1,16 +1,12 @@
-import { Aggregate, Entity } from '../common/parsers/model-parser.js';
-import { CoordinationGenerationOptions } from '../microservices/types.js';
-import { EntityRegistry } from '../common/utils/entity-registry.js';
+import { Aggregate, Entity } from '../../common/parsers/model-parser.js';
+import { CoordinationGenerationOptions } from '../../microservices/types.js';
+import { EntityRegistry } from '../../common/utils/entity-registry.js';
+import { StringUtils } from '../../../utils/string-utils.js';
 
 /**
  * Builds imports for functionalities classes
  */
 export class FunctionalitiesImportsBuilder {
-    // Helper methods migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
 
     private getBasePackage(options: CoordinationGenerationOptions): string {
         if (!options.basePackage) {
@@ -36,7 +32,7 @@ export class FunctionalitiesImportsBuilder {
 
         // Base imports
         imports.push('import java.util.Arrays;');
-        imports.push(`import ${basePackage}.${projectName}.microservices.exception.${this.capitalize(options.projectName)}Exception;`);
+        imports.push(`import ${basePackage}.${projectName}.microservices.exception.${StringUtils.capitalize(options.projectName)}Exception;`);
         imports.push('import org.springframework.beans.factory.annotation.Autowired;');
         imports.push('import org.springframework.core.env.Environment;');
         imports.push('import org.springframework.stereotype.Service;');

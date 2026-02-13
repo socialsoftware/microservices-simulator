@@ -2,6 +2,7 @@ import { Aggregate } from "../../../../../language/generated/ast.js";
 import { EntityExt, AggregateExt, TypeGuards } from "../../../../types/ast-extensions.js";
 import { TypeResolver } from "../../../common/resolvers/type-resolver.js";
 import { getEvents, getEntities } from "../../../../utils/aggregate-helpers.js";
+import { StringUtils } from '../../../../utils/string-utils.js';
 
 /**
  * Type definitions for inter-invariant processing
@@ -81,7 +82,7 @@ export class InterInvariantBuilder {
             } else {
                 // Generate direct subscription for single reference
                 for (const sub of group.subscriptions) {
-                    methodBody += `\n        eventSubscriptions.add(new ${sub.subscriptionClass}(this.get${this.capitalize(group.fieldName)}()));`;
+                    methodBody += `\n        eventSubscriptions.add(new ${sub.subscriptionClass}(this.get${StringUtils.capitalize(group.fieldName)}()));`;
                 }
             }
         }
@@ -221,10 +222,4 @@ export class InterInvariantBuilder {
             .join('');
     }
 
-    /**
-     * Capitalizes first character of string
-     */
-    private capitalize(str: string): string {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
 }

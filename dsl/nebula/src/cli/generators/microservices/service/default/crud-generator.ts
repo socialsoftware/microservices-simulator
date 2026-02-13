@@ -3,6 +3,7 @@ import { EntityExt, AggregateExt, TypeGuards } from "../../../../types/ast-exten
 import { capitalize } from "../../../../utils/generator-utils.js";
 import { TypeResolver } from "../../../common/resolvers/type-resolver.js";
 import { getEntities, getEvents } from "../../../../utils/aggregate-helpers.js";
+import { CrudHelpers } from "../../../common/crud-helpers.js";
 
 export class ServiceCrudGenerator {
     static generateCrudMethods(aggregateName: string, rootEntity: EntityExt, projectName: string, aggregate?: AggregateExt): string {
@@ -104,7 +105,7 @@ ${this.generateUpdateLogic(rootEntity, aggregateName, true)}
                 // Skip entity relationships - they shouldn't be updated directly from DTO
                 const javaType = TypeResolver.resolveJavaType(prop.type);
                 const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
-                const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
+                const isEntityType = !CrudHelpers.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
                 if (isCollection || isEntityType) return false;
 
                 return true;
@@ -114,7 +115,7 @@ ${this.generateUpdateLogic(rootEntity, aggregateName, true)}
                 const getterName = this.getGetterMethodName(prop);
                 const isBoolean = this.isBooleanProperty(prop);
                 const javaType = TypeResolver.resolveJavaType(prop.type);
-                const isEnum = this.isEnumType(prop.type) || javaType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/);
+                const isEnum = CrudHelpers.isEnumType(prop.type) || javaType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/);
 
                 if (isBoolean) {
                     return `            ${targetVar}.${setterName}(${lowerAggregate}Dto.${getterName}());`;
@@ -160,13 +161,13 @@ ${this.generateUpdateLogic(rootEntity, aggregateName, true)}
             const javaType = TypeResolver.resolveJavaType((prop as any).type);
             const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
             const isEntityType =
-                !this.isEnumType((prop as any).type) && TypeResolver.isEntityType(javaType);
+                !CrudHelpers.isEnumType((prop as any).type) && TypeResolver.isEntityType(javaType);
             if (isCollection || isEntityType) continue;
 
             // Skip enum-like properties; current *UpdatedEvent classes usually
             // don't carry enum fields such as Role/Type/State
             const isEnum =
-                this.isEnumType((prop as any).type) ||
+                CrudHelpers.isEnumType((prop as any).type) ||
                 javaType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/);
             if (isEnum) continue;
 
@@ -200,22 +201,6 @@ ${this.generateUpdateLogic(rootEntity, aggregateName, true)}
         return false;
     }
 
-    /**
-     * Check if a type is an enum
-     */
-    private static isEnumType(type: any): boolean {
-        if (type && typeof type === 'object' &&
-            type.$type === 'EntityType' &&
-            type.type) {
-            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/)) {
-                return true;
-            }
-            if (type.type.ref && type.type.ref.$type === 'EnumDefinition') {
-                return true;
-            }
-        }
-        return false;
-    }
 
     /**
      * SIMPLIFIED: Generate body for create method
@@ -237,7 +222,7 @@ ${this.generateUpdateLogic(rootEntity, aggregateName, true)}
         const primitiveProps = rootEntity.properties?.filter(prop => {
             const javaType = TypeResolver.resolveJavaType(prop.type);
             const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
-            const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
+            const isEntityType = !CrudHelpers.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
             const isPrimitive = !isCollection && !isEntityType;
             return isPrimitive && prop.name.toLowerCase() !== 'id';
         }) || [];
@@ -245,8 +230,8 @@ ${this.generateUpdateLogic(rootEntity, aggregateName, true)}
         const primitiveSetters = primitiveProps.map(prop => {
             const capitalizedName = capitalize(prop.name);
             const javaType = TypeResolver.resolveJavaType(prop.type);
-            const isEnum = this.isEnumType(prop.type) || javaType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/);
-            
+            const isEnum = CrudHelpers.isEnumType(prop.type) || javaType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/);
+
             if (isEnum) {
                 return `            ${lowerAggregate}Dto.set${capitalizedName}(createRequest.get${capitalizedName}() != null ? createRequest.get${capitalizedName}().name() : null);`;
             }
@@ -329,7 +314,7 @@ ${allSetters}
             const collectionType = javaType.startsWith('Set<') ? 'Set' : 'List';
 
             // Check if this is an entity type (not enum)
-            const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
+            const isEntityType = !CrudHelpers.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
 
             if (isEntityType) {
                 // Get element type for collections

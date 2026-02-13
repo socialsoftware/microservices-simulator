@@ -6,17 +6,20 @@ import { SagaEventProcessingGenerator } from './saga-event-processing-generator.
 import { SagaHelpers } from './saga-helpers.js';
 import type { Aggregate } from '../../../language/generated/ast.js';
 import { SagaGenerationOptions } from './saga-generator.js';
+import { StringUtils } from '../../utils/string-utils.js';
+import { TemplateManager } from '../../utils/template-manager.js';
 
 /**
  * Main orchestrator for saga functionality generation.
  * Delegates to specialized generators for different types of saga functionalities.
  */
 export class SagaFunctionalityGenerator {
-    // Helper methods migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
+    private templateManager = TemplateManager.getInstance();
+    private crudGenerator = new SagaCrudGenerator();
+    private collectionGenerator = new SagaCollectionGenerator();
+    private workflowGenerator = new SagaWorkflowGenerator();
+    private eventProcessingGenerator = new SagaEventProcessingGenerator();
+    private helpers = new SagaHelpers();
 
     private getBasePackage(options: SagaGenerationOptions): string {
         if (!options.basePackage) {
@@ -24,23 +27,6 @@ export class SagaFunctionalityGenerator {
         }
         return options.basePackage;
     }
-
-    private loadTemplate(templatePath: string): string {
-        const TemplateManager = require('../../utils/template-manager.js').TemplateManager;
-        const templateManager = TemplateManager.getInstance();
-        return templateManager.loadTemplateContent(templatePath);
-    }
-
-    private renderTemplate(template: string, context: any): string {
-        const Handlebars = require('handlebars');
-        const compiledTemplate = Handlebars.compile(template, { noEscape: true });
-        return compiledTemplate(context);
-    }
-    private crudGenerator = new SagaCrudGenerator();
-    private collectionGenerator = new SagaCollectionGenerator();
-    private workflowGenerator = new SagaWorkflowGenerator();
-    private eventProcessingGenerator = new SagaEventProcessingGenerator();
-    private helpers = new SagaHelpers();
 
     /**
      * Generate saga functionalities for an aggregate
@@ -103,7 +89,7 @@ export class SagaFunctionalityGenerator {
             const methodName: string = endpoint.methodName;
             if (!methodName) continue;
 
-            const className = `${this.capitalize(methodName)}FunctionalitySagas`;
+            const className = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
 
             // Check if there's a workflow with step definitions for this endpoint
             const matchingWorkflow = allWorkflows.find((w: any) =>
@@ -135,15 +121,15 @@ export class SagaFunctionalityGenerator {
         const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const methodName = endpoint.methodName;
-        const className = `${this.capitalize(methodName)}FunctionalitySagas`;
+        const className = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
         const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
 
         const imports: string[] = [];
-        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${this.capitalize(aggregate.name)}Service;`);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${StringUtils.capitalize(aggregate.name)}Service;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
 
         const constructorDependencies = [
-            { type: `${this.capitalize(aggregate.name)}Service`, name: `${lowerAggregate}Service` },
+            { type: `${StringUtils.capitalize(aggregate.name)}Service`, name: `${lowerAggregate}Service` },
             { type: 'SagaUnitOfWorkService', name: 'sagaUnitOfWorkService' },
             { type: 'SagaUnitOfWork', name: 'unitOfWork' }
         ];
@@ -174,8 +160,7 @@ export class SagaFunctionalityGenerator {
             stepsBody: ''
         };
 
-        const template = this.loadTemplate('saga/functionality.hbs');
-        return this.renderTemplate(template, context);
+        return this.templateManager.renderTemplate('saga/functionality.hbs', context);
     }
 
     /**
@@ -196,15 +181,15 @@ export class SagaFunctionalityGenerator {
             const methodName: string = func.name;
             if (!methodName) continue;
 
-            const className = `${this.capitalize(methodName)}FunctionalitySagas`;
+            const className = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
             const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
 
             const imports: string[] = [];
-            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${this.capitalize(aggregate.name)}Service;`);
+            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${StringUtils.capitalize(aggregate.name)}Service;`);
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
 
             const constructorDependencies: Array<{ type: string; name: string }> = [
-                { type: `${this.capitalize(aggregate.name)}Service`, name: `${lowerAggregate}Service` },
+                { type: `${StringUtils.capitalize(aggregate.name)}Service`, name: `${lowerAggregate}Service` },
                 { type: 'SagaUnitOfWorkService', name: 'sagaUnitOfWorkService' },
                 { type: 'SagaUnitOfWork', name: 'unitOfWork' }
             ];
@@ -256,8 +241,7 @@ export class SagaFunctionalityGenerator {
                 variableDeclarations: variableDecls
             };
 
-            const template = this.loadTemplate('saga/functionality.hbs');
-            outputs[className + '.java'] = this.renderTemplate(template, context);
+            outputs[className + '.java'] = this.templateManager.renderTemplate('saga/functionality.hbs', context);
         }
     }
 

@@ -2,17 +2,12 @@ import { initializeAggregateProperties, getWorkflows } from '../../utils/aggrega
 import { SagaHelpers } from './saga-helpers.js';
 import { SagaWorkflowGenerator } from './saga-workflow-generator.js';
 import { SagaGenerationOptions } from './saga-generator.js';
+import { StringUtils } from '../../utils/string-utils.js';
 
 /**
  * Generates saga functionality classes for event processing workflows
  */
 export class SagaEventProcessingGenerator {
-    // Helper methods migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
     private getBasePackage(options: SagaGenerationOptions): string {
         if (!options.basePackage) {
             throw new Error('basePackage is required in SagaGenerationOptions');
@@ -33,7 +28,7 @@ export class SagaEventProcessingGenerator {
         const lowerAggregate = aggregate.name.toLowerCase();
         const packageName = `${basePackage}.${options.projectName.toLowerCase()}.sagas.coordination.${lowerAggregate}`;
         const aggregateName = aggregate.name;
-        const capitalizedAggregate = this.capitalize(aggregateName);
+        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
 
         // Get all subscribed events
         const aggregateEvents = (aggregate as any).events;
@@ -67,7 +62,7 @@ export class SagaEventProcessingGenerator {
 
             // Use event name for class name, not workflow name
             const eventNameWithoutEvent = eventTypeName.replace(/Event$/, '');
-            const className = `${this.capitalize(eventNameWithoutEvent)}${capitalizedAggregate}FunctionalitySagas`;
+            const className = `${StringUtils.capitalize(eventNameWithoutEvent)}${capitalizedAggregate}FunctionalitySagas`;
 
             // Skip if already generated as business workflow
             const existingFile = outputs[className + '.java'];
@@ -101,7 +96,7 @@ export class SagaEventProcessingGenerator {
     ): string {
         const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
-        const capitalizedAggregate = this.capitalize(aggregate.name);
+        const capitalizedAggregate = StringUtils.capitalize(aggregate.name);
 
         const imports: string[] = [];
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${capitalizedAggregate}Service;`);
@@ -266,7 +261,7 @@ export class SagaEventProcessingGenerator {
         // Generate getters and setters for workflow fields
         const gettersSetters = workflowFields.map((f: any) => {
             const fieldType = this.helpers.getParamTypeName(f.type, capitalizedAggregate);
-            const capitalizedName = this.capitalize(f.name);
+            const capitalizedName = StringUtils.capitalize(f.name);
             return `
     public void set${capitalizedName}(${fieldType} ${f.name}) {
         this.${f.name} = ${f.name};

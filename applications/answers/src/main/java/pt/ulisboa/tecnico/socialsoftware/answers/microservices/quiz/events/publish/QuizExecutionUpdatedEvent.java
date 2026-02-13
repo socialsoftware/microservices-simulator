@@ -7,20 +7,16 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 public class QuizExecutionUpdatedEvent extends Event {
     private Integer executionAggregateId;
     private Integer executionVersion;
-    private String executionAcronym;
-    private String executionAcademicTerm;
     private String executionName;
 
     public QuizExecutionUpdatedEvent() {
         super();
     }
 
-    public QuizExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, String executionAcronym, String executionAcademicTerm, String executionName) {
+    public QuizExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, String executionName) {
         super(aggregateId);
         setExecutionAggregateId(executionAggregateId);
         setExecutionVersion(executionVersion);
-        setExecutionAcronym(executionAcronym);
-        setExecutionAcademicTerm(executionAcademicTerm);
         setExecutionName(executionName);
     }
 
@@ -38,22 +34,6 @@ public class QuizExecutionUpdatedEvent extends Event {
 
     public void setExecutionVersion(Integer executionVersion) {
         this.executionVersion = executionVersion;
-    }
-
-    public String getExecutionAcronym() {
-        return executionAcronym;
-    }
-
-    public void setExecutionAcronym(String executionAcronym) {
-        this.executionAcronym = executionAcronym;
-    }
-
-    public String getExecutionAcademicTerm() {
-        return executionAcademicTerm;
-    }
-
-    public void setExecutionAcademicTerm(String executionAcademicTerm) {
-        this.executionAcademicTerm = executionAcademicTerm;
     }
 
     public String getExecutionName() {

@@ -11,6 +11,7 @@ import { UnifiedTypeResolver } from "./unified-type-resolver.js";
 import { PackageNameBuilder, PackageBuilderFactory } from "../../utils/package-name-builder.js";
 import { getGlobalConfig } from "./config.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../../utils/error-handler.js";
+import { StringUtils } from '../../utils/string-utils.js';
 
 /**
  * Standard template context interface
@@ -96,7 +97,7 @@ export class TemplateContextBuilder {
      */
     withProject(projectName: string): this {
         this.context.projectName = projectName;
-        this.context.ProjectName = this.capitalize(projectName);
+        this.context.ProjectName = StringUtils.capitalize(projectName);
         this.context.lowerProjectName = projectName.toLowerCase();
         this.context.basePackage = getGlobalConfig().getBasePackage();
         return this;
@@ -124,7 +125,7 @@ export class TemplateContextBuilder {
     withAggregate(aggregate: Aggregate): this {
         const aggregateName = aggregate.name;
         this.context.aggregateName = aggregateName;
-        this.context.capitalizedAggregate = this.capitalize(aggregateName);
+        this.context.capitalizedAggregate = StringUtils.capitalize(aggregateName);
         this.context.lowerAggregate = aggregateName.toLowerCase();
 
         // Add aggregate-specific data
@@ -137,7 +138,7 @@ export class TemplateContextBuilder {
     withEntity(entity: Entity): this {
         const entityName = entity.name;
         this.context.entityName = entityName;
-        this.context.capitalizedEntity = this.capitalize(entityName);
+        this.context.capitalizedEntity = StringUtils.capitalize(entityName);
         this.context.lowerEntity = entityName.toLowerCase();
 
         // Add entity-specific data
@@ -222,7 +223,7 @@ export class TemplateContextBuilder {
         this.context.properties = entity.properties.map((property: any) => {
             const propertyName = property.name;
             const propertyType = UnifiedTypeResolver.resolve(property.type);
-            const capitalizedName = this.capitalize(propertyName);
+            const capitalizedName = StringUtils.capitalize(propertyName);
 
             return {
                 name: propertyName,
@@ -392,11 +393,6 @@ export class TemplateContextBuilder {
         }
 
         return errors;
-    }
-
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 }
 

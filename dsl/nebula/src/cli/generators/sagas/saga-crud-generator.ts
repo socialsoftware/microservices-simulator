@@ -1,6 +1,7 @@
 import type { Entity, Aggregate } from '../../../language/generated/ast.js';
-import { TypeResolver } from '../common/resolvers/type-resolver.js';
 import { SagaGenerationOptions } from './saga-generator.js';
+import { StringUtils } from '../../utils/string-utils.js';
+import { CrudHelpers } from '../common/crud-helpers.js';
 
 export interface CrossAggregateReference {
     entityType: string;
@@ -11,12 +12,6 @@ export interface CrossAggregateReference {
 }
 
 export class SagaCrudGenerator {
-    // Helper methods migrated from OrchestrationBase
-    private capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
     private getBasePackage(options: SagaGenerationOptions): string {
         if (!options.basePackage) {
             throw new Error('basePackage is required in SagaGenerationOptions');
@@ -27,13 +22,13 @@ export class SagaCrudGenerator {
         const outputs: Record<string, string> = {};
         const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
-        const capitalizedAggregate = this.capitalize(aggregate.name);
+        const capitalizedAggregate = StringUtils.capitalize(aggregate.name);
         const dtoType = `${capitalizedAggregate}Dto`;
         const createRequestDtoType = `Create${capitalizedAggregate}RequestDto`;
         const rootEntity: Entity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name } as any;
 
         // Find cross-aggregate references for the create operation
-        const crossAggregateRefs = this.findCrossAggregateReferences(rootEntity, aggregate, allAggregates);
+        const crossAggregateRefs = CrudHelpers.findCrossAggregateReferences(rootEntity, aggregate, allAggregates);
 
         const crudOperations: any[] = [
             {
@@ -100,7 +95,7 @@ export class SagaCrudGenerator {
         });
 
         for (const op of crudOperations) {
-            const className = `${this.capitalize(op.name)}FunctionalitySagas`;
+            const className = `${StringUtils.capitalize(op.name)}FunctionalitySagas`;
 
             const imports: string[] = [];
             imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
@@ -269,7 +264,7 @@ ${stepBody}
 
             if (keepParamFields) {
                 for (const param of op.params) {
-                    const capitalizedParam = this.capitalize(param.name);
+                    const capitalizedParam = StringUtils.capitalize(param.name);
                     gettersSettersCode += `
     public ${param.type} get${capitalizedParam}() {
         return ${param.name};
@@ -325,150 +320,9 @@ ${gettersSettersCode}
         return outputs;
     }
 
-    /**
-     * Find entity relationships (both single and collection entity fields) from root entity properties
-     */
-    private findEntityRelationships(rootEntity: Entity, aggregate: Aggregate): Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> {
-        const relationships: Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> = [];
 
-        if (!rootEntity.properties) {
-            return relationships;
-        }
 
-        for (const prop of rootEntity.properties) {
-            const javaType = TypeResolver.resolveJavaType(prop.type);
-            const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
 
-            // Check if this is an entity type (not enum)
-            const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
-
-            if (isEntityType) {
-                // Resolve entity type
-                const entityRef = (prop.type as any).type?.ref;
-                let entityName: string;
-
-                if (isCollection) {
-                    // For collections, extract element type
-                    const elementType = TypeResolver.getElementType(prop.type);
-                    entityName = elementType || javaType.replace(/^(Set|List)<(.+)>$/, '$2');
-                } else {
-                    entityName = entityRef?.name || javaType;
-                }
-
-                // Only include if it's an entity within this aggregate
-                const relatedEntity = aggregate.entities?.find((e: any) => e.name === entityName);
-                const isEntityInAggregate = !!relatedEntity;
-
-                // Include all entity relationships
-                // Note: generateDto flag just means "generate a DTO class", not "exclude from signature"
-                if (isEntityInAggregate) {
-                    const paramName = prop.name;
-                    relationships.push({
-                        entityType: entityName,
-                        paramName,
-                        javaType: isCollection ? javaType : entityName,
-                        isCollection
-                    });
-                }
-            }
-        }
-
-        return relationships;
-    }
-
-    /**
-     * Find cross-aggregate references from the root entity's properties.
-     * These are non-root entities that have "uses AnotherAggregate" declarations.
-     */
-    findCrossAggregateReferences(rootEntity: Entity, aggregate: Aggregate, allAggregates?: Aggregate[]): CrossAggregateReference[] {
-        const references: CrossAggregateReference[] = [];
-        const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
-
-        for (const rel of entityRelationships) {
-            const relatedDtoInfo = this.getRelatedDtoType(rel, aggregate, { projectName: '' }, allAggregates);
-            
-            if (relatedDtoInfo.isFromAnotherAggregate && relatedDtoInfo.relatedAggregateName) {
-                references.push({
-                    entityType: rel.entityType,
-                    paramName: rel.paramName,
-                    relatedAggregate: relatedDtoInfo.relatedAggregateName,
-                    relatedDtoType: relatedDtoInfo.dtoType || `${relatedDtoInfo.relatedAggregateName}Dto`,
-                    isCollection: rel.isCollection
-                });
-            }
-        }
-
-        return references;
-    }
-
-    /**
-     * Get the related DTO type for an entity relationship
-     */
-    private getRelatedDtoType(rel: { entityType: string; paramName: string; javaType: string; isCollection: boolean }, aggregate: Aggregate, options: { projectName: string }, allAggregates?: Aggregate[]): { dtoType: string | null; isFromAnotherAggregate: boolean; relatedAggregateName?: string } {
-        const relatedEntity = aggregate.entities?.find((e: any) => e.name === rel.entityType);
-        if (!relatedEntity) return { dtoType: null, isFromAnotherAggregate: false };
-
-        const entityAny = relatedEntity as any;
-
-        // Check if the entity uses an aggregate reference (from "uses Topic")
-        const aggregateRef = entityAny.aggregateRef;
-        let dtoTypeName: string | null = null;
-        let relatedAggregateName: string | undefined = undefined;
-
-        if (aggregateRef) {
-            // aggregateRef is the aggregate name (e.g., "Topic"), derive DTO name (e.g., "TopicDto")
-            if (typeof aggregateRef === 'string') {
-                relatedAggregateName = aggregateRef;
-                dtoTypeName = `${aggregateRef}Dto`;
-            } else if (aggregateRef.ref?.name) {
-                relatedAggregateName = aggregateRef.ref.name;
-                dtoTypeName = `${aggregateRef.ref.name}Dto`;
-            } else if (aggregateRef.$refText) {
-                relatedAggregateName = aggregateRef.$refText;
-                dtoTypeName = `${aggregateRef.$refText}Dto`;
-            }
-        }
-
-        // If entity has generateDto, return the entity name + Dto
-        if (!dtoTypeName && entityAny.generateDto) {
-            dtoTypeName = `${rel.entityType}Dto`;
-        }
-
-        // Check if the DTO is from another aggregate
-        if (relatedAggregateName && allAggregates) {
-            const targetAggregate = allAggregates.find(agg => agg.name === relatedAggregateName);
-            if (targetAggregate && targetAggregate.name !== aggregate.name) {
-                return {
-                    dtoType: dtoTypeName,
-                    isFromAnotherAggregate: true,
-                    relatedAggregateName: targetAggregate.name
-                };
-            }
-        }
-
-        return {
-            dtoType: dtoTypeName,
-            isFromAnotherAggregate: false
-        };
-    }
-
-    /**
-     * Check if a type is an enum
-     */
-    private isEnumType(type: any): boolean {
-        if (type && typeof type === 'object' &&
-            type.$type === 'EntityType' &&
-            type.type) {
-            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
-                return true;
-            }
-            const ref = type.type.ref;
-            if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
-                return true;
-            }
-        }
-        return false;
-    }
 }
 
 

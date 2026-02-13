@@ -17,7 +17,6 @@ public class TournamentExecution {
     private Long id;
     private AggregateState executionState;
     private Integer executionVersion;
-    private Integer executionCourseAggregateId;
     private String executionAcronym;
     private Integer executionAggregateId;
     @OneToOne
@@ -37,7 +36,6 @@ public class TournamentExecution {
     public TournamentExecution(TournamentExecutionDto tournamentExecutionDto) {
         setExecutionState(tournamentExecutionDto.getState());
         setExecutionVersion(tournamentExecutionDto.getVersion());
-        setExecutionCourseAggregateId(tournamentExecutionDto.getCourseAggregateId());
         setExecutionAcronym(tournamentExecutionDto.getAcronym());
         setExecutionAggregateId(tournamentExecutionDto.getAggregateId());
     }
@@ -45,7 +43,6 @@ public class TournamentExecution {
     public TournamentExecution(TournamentExecution other) {
         setExecutionState(other.getExecutionState());
         setExecutionVersion(other.getExecutionVersion());
-        setExecutionCourseAggregateId(other.getExecutionCourseAggregateId());
         setExecutionAcronym(other.getExecutionAcronym());
         setExecutionAggregateId(other.getExecutionAggregateId());
     }
@@ -72,14 +69,6 @@ public class TournamentExecution {
 
     public void setExecutionVersion(Integer executionVersion) {
         this.executionVersion = executionVersion;
-    }
-
-    public Integer getExecutionCourseAggregateId() {
-        return executionCourseAggregateId;
-    }
-
-    public void setExecutionCourseAggregateId(Integer executionCourseAggregateId) {
-        this.executionCourseAggregateId = executionCourseAggregateId;
     }
 
     public String getExecutionAcronym() {
@@ -113,7 +102,6 @@ public class TournamentExecution {
         TournamentExecutionDto dto = new TournamentExecutionDto();
         dto.setState(getExecutionState());
         dto.setVersion(getExecutionVersion());
-        dto.setCourseAggregateId(getExecutionCourseAggregateId());
         dto.setAcronym(getExecutionAcronym());
         dto.setAggregateId(getExecutionAggregateId());
         return dto;
