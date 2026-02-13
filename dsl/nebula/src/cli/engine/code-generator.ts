@@ -6,7 +6,7 @@ import { NodeFileSystem } from "langium/node";
 import { URI, type LangiumDocument } from "langium";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { initializeAggregateProperties } from "../utils/aggregate-helpers.js";
+import { initializeAggregateProperties, registerAllModels } from "../utils/aggregate-helpers.js";
 
 import { TemplateGenerateOptions, GenerationOptions, DEFAULT_OUTPUT_DIR } from "./types.js";
 import { ProjectSetup } from "./project-setup.js";
@@ -63,6 +63,9 @@ export class CodeGenerator {
             const services = createNebulaServices(NodeFileSystem).nebulaServices;
             await this.loadLanguageDocuments(services, nebulaFiles);
             const models = await this.parseModels(nebulaFiles, services);
+
+            // Register all models for cross-file type resolution
+            registerAllModels(models);
 
             // ═══════════════════════════════════════════════════════════════
             // PHASE 2: CONFIGURATION & VALIDATION

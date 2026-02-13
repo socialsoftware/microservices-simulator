@@ -1,5 +1,39 @@
 import { Aggregate, Entity, Method, Workflow, Repository, Events, References, WebAPIEndpoints, ServiceDefinition, Functionalities, isEntity, isMethod, isWorkflow, isRepository, isEvents, isReferences, isWebAPIEndpoints, isServiceDefinition, isFunctionalities, Model } from "../../language/generated/ast.js";
 
+// ============================================================================
+// CROSS-FILE MODEL REGISTRY
+// ============================================================================
+// This registry stores all parsed models to enable cross-file type inference.
+// It must be initialized before code generation begins.
+
+let allModelsRegistry: Model[] = [];
+
+/**
+ * Register all parsed models for cross-file type resolution.
+ * Must be called before any code generation begins.
+ */
+export function registerAllModels(models: Model[]): void {
+    allModelsRegistry = models;
+}
+
+/**
+ * Get all registered models.
+ */
+export function getAllModels(): Model[] {
+    return allModelsRegistry;
+}
+
+/**
+ * Clear the models registry. Useful for testing.
+ */
+export function clearModelsRegistry(): void {
+    allModelsRegistry = [];
+}
+
+// ============================================================================
+// AGGREGATE ELEMENT ACCESSORS
+// ============================================================================
+
 export function getEntities(aggregate: Aggregate): Entity[] {
     if (!aggregate.aggregateElements || !Array.isArray(aggregate.aggregateElements)) {
         return [];
@@ -237,6 +271,9 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
  * Resolve the type of a field from a referenced aggregate's root entity.
  * Used for type inference in the new cross-aggregate syntax.
  *
+ * This function supports CROSS-FILE type resolution by searching through all
+ * registered models, not just the current file's model.
+ *
  * @param entity - The entity with the aggregateRef
  * @param dtoField - The field name to look up in the referenced aggregate
  * @returns The type of the field, or undefined if not found
@@ -249,13 +286,38 @@ function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string): a
         return undefined;
     }
 
+    // CROSS-FILE RESOLUTION:
+    // First, try to find the aggregate in ALL registered models (cross-file)
+    if (allModelsRegistry.length > 0) {
+        for (const model of allModelsRegistry) {
+            if (!model.aggregates) continue;
+
+            const targetAggregate = model.aggregates.find(agg => agg.name === aggregateRefName);
+            if (targetAggregate) {
+                // Get the root entity of the referenced aggregate
+                const entities = getEntities(targetAggregate);
+                const rootEntity = entities.find(e => e.isRoot);
+                if (!rootEntity) {
+                    continue;
+                }
+
+                // Find the property with the matching name
+                const property = rootEntity.properties?.find(p => p.name === dtoField);
+                if (property) {
+                    return property.type;
+                }
+            }
+        }
+    }
+
+    // FALLBACK: Try current file's model (for backwards compatibility)
     // Navigate up to get the model: entity -> aggregate -> model
     const model = entity.$container?.$container as Model | undefined;
     if (!model || !model.aggregates) {
         return undefined;
     }
 
-    // Find the referenced aggregate
+    // Find the referenced aggregate in current file
     const targetAggregate = model.aggregates.find(agg => agg.name === aggregateRefName);
     if (!targetAggregate) {
         return undefined;
