@@ -52,7 +52,8 @@ public abstract class QuizAnswer extends Aggregate {
         setQuiz(new AnsweredQuiz());
     }
 
-    public QuizAnswer(Integer aggregateId, AnswerCourseExecution answerCourseExecution, AnswerStudent answerStudent, AnsweredQuiz answeredQuiz) {
+    public QuizAnswer(Integer aggregateId, AnswerCourseExecution answerCourseExecution, AnswerStudent answerStudent,
+            AnsweredQuiz answeredQuiz) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setAnswerCourseExecution(answerCourseExecution);
@@ -82,7 +83,6 @@ public abstract class QuizAnswer extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        //return Set.of(REMOVE_USER, UNENROLL_STUDENT, INVALIDATE_QUIZ/*, REMOVE_QUIZ*/);
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (getState() == ACTIVE) {
             interInvariantCourseExecutionExists(eventSubscriptions);
@@ -99,6 +99,7 @@ public abstract class QuizAnswer extends Aggregate {
 
     private void interInvariantQuizExists(Set<EventSubscription> eventSubscriptions) {
         // also verifies QUESTION_EXISTS because if the question is DELETED the quiz sends this event
+        // TODO: DeleteQuestionEventHandler defined without any subscription to the event (missing QuizAnswerSubscribesDeleteQuestion?)
         // TODO: this event is not handled
         eventSubscriptions.add(new QuizAnswerSubscribesInvalidateQuiz(this));
     }
@@ -109,7 +110,6 @@ public abstract class QuizAnswer extends Aggregate {
         eventSubscriptions.add(new QuizAnswerSubscribesAnonymizeStudent(this));
         eventSubscriptions.add(new QuizAnswerSubscribesUpdateStudentName(this));
     }
-
 
     public LocalDateTime getCreationDate() {
         return creationDate;
@@ -177,7 +177,8 @@ public abstract class QuizAnswer extends Aggregate {
                 .map(QuestionAnswer::getQuestionAggregateId)
                 .collect(Collectors.toList());
         if (answeredQuestionIds.contains(questionAnswer.getQuestionAggregateId())) {
-            throw new QuizzesException(QUESTION_ALREADY_ANSWERED, questionAnswer.getQuestionAggregateId(), this.getQuiz().getQuizAggregateId());
+            throw new QuizzesException(QUESTION_ALREADY_ANSWERED, questionAnswer.getQuestionAggregateId(),
+                    this.getQuiz().getQuizAggregateId());
         }
         this.questionAnswers.add(questionAnswer);
         questionAnswer.setQuizAnswer(this);
