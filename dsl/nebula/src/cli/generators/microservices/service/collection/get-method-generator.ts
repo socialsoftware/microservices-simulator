@@ -1,6 +1,7 @@
 import { Entity } from "../../../../../language/generated/ast.js";
-import { capitalize } from "../../../../utils/generator-utils.js";
+import { GeneratorBase } from "../../../common/base/generator-base.js";
 import { CollectionProperty } from "./collection-metadata-extractor.js";
+import { ExceptionGenerator } from "../../../common/utils/exception-generator.js";
 
 /**
  * Get Method Generator
@@ -8,7 +9,7 @@ import { CollectionProperty } from "./collection-metadata-extractor.js";
  * Generates collection get methods for retrieving a single element from a collection.
  * Searches collection by identifier field and returns DTO.
  */
-export class GetMethodGenerator {
+export class GetMethodGenerator extends GeneratorBase {
     /**
      * Generate get method for a collection property.
      *
@@ -29,10 +30,10 @@ export class GetMethodGenerator {
      * @param projectName Project name for exception handling
      * @returns Java method code
      */
-    static generate(collection: CollectionProperty, aggregateName: string, rootEntity: Entity, projectName: string): string {
+    generate(collection: CollectionProperty, aggregateName: string, rootEntity: Entity, projectName: string): string {
         const entityName = rootEntity.name;
-        const lowerEntity = entityName.toLowerCase();
-        const capitalizedIdentifier = capitalize(collection.identifierField);
+        const lowerEntity = this.lowercase(entityName);
+        const capitalizedIdentifier = this.capitalize(collection.identifierField);
 
         return `    public ${collection.elementType}Dto get${collection.capitalizedSingular}(Integer ${lowerEntity}Id, Integer ${collection.identifierField}, UnitOfWork unitOfWork) {
         try {
@@ -41,13 +42,9 @@ export class GetMethodGenerator {
                 .filter(item -> item.get${capitalizedIdentifier}() != null &&
                                item.get${capitalizedIdentifier}().equals(${collection.identifierField}))
                 .findFirst()
-                .orElseThrow(() -> new ${capitalize(projectName)}Exception("${collection.elementType} not found"));
+                .orElseThrow(() -> new ${this.capitalize(projectName)}Exception("${collection.elementType} not found"));
             return element.buildDto();
-        } catch (${capitalize(projectName)}Exception e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ${capitalize(projectName)}Exception("Error retrieving ${collection.singularName}: " + e.getMessage());
-        }
+${ExceptionGenerator.generateCatchBlock(projectName, 'retrieving', collection.singularName)}
     }`;
     }
 }

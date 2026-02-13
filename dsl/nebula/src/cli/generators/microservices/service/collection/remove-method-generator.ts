@@ -1,6 +1,7 @@
 import { Entity } from "../../../../../language/generated/ast.js";
-import { capitalize } from "../../../../utils/generator-utils.js";
+import { GeneratorBase } from "../../../common/base/generator-base.js";
 import { CollectionProperty } from "./collection-metadata-extractor.js";
+import { ExceptionGenerator } from "../../../common/utils/exception-generator.js";
 
 /**
  * Remove Method Generator
@@ -8,7 +9,7 @@ import { CollectionProperty } from "./collection-metadata-extractor.js";
  * Generates collection remove methods for removing a single element from a collection.
  * Uses immutable aggregate pattern and publishes RemovedEvent.
  */
-export class RemoveMethodGenerator {
+export class RemoveMethodGenerator extends GeneratorBase {
     /**
      * Generate remove method for a collection property.
      *
@@ -30,11 +31,11 @@ export class RemoveMethodGenerator {
      * @param projectName Project name for exception handling
      * @returns Java method code
      */
-    static generate(collection: CollectionProperty, aggregateName: string, rootEntity: Entity, projectName: string): string {
+    generate(collection: CollectionProperty, aggregateName: string, rootEntity: Entity, projectName: string): string {
         const entityName = rootEntity.name;
-        const lowerEntity = entityName.toLowerCase();
-        const lowerAggregate = aggregateName.toLowerCase();
-        const capitalizedIdentifier = capitalize(collection.identifierField);
+        const lowerEntity = this.lowercase(entityName);
+        const lowerAggregate = this.lowercase(aggregateName);
+        const capitalizedIdentifier = this.capitalize(collection.identifierField);
 
         return `    public void remove${collection.capitalizedSingular}(Integer ${lowerEntity}Id, Integer ${collection.identifierField}, UnitOfWork unitOfWork) {
         try {
@@ -48,11 +49,7 @@ export class RemoveMethodGenerator {
             ${collection.elementType}RemovedEvent event = new ${collection.elementType}RemovedEvent(${lowerEntity}Id, ${collection.identifierField});
             event.setPublisherAggregateVersion(new${entityName}.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
-        } catch (${capitalize(projectName)}Exception e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ${capitalize(projectName)}Exception("Error removing ${collection.singularName}: " + e.getMessage());
-        }
+${ExceptionGenerator.generateCatchBlock(projectName, 'removing', collection.singularName)}
     }`;
     }
 }

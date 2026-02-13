@@ -69,11 +69,13 @@ public class ExecutionService {
                     return projDto;
                 }).collect(Collectors.toSet()));
             }
-            
+
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
             Execution execution = executionFactory.createExecution(aggregateId, executionDto);
             unitOfWorkService.registerChanged(execution, unitOfWork);
             return executionFactory.createExecutionDto(execution);
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
             throw new AnswersException("Error creating execution: " + e.getMessage());
         }
@@ -100,8 +102,10 @@ public class ExecutionService {
                 .map(id -> (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(executionFactory::createExecutionDto)
                 .collect(Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error retrieving all executions: " + e.getMessage());
+            throw new AnswersException("Error retrieving execution: " + e.getMessage());
         }
     }
 
@@ -120,8 +124,7 @@ public class ExecutionService {
                 newExecution.setEndDate(executionDto.getEndDate());
             }
 
-            unitOfWorkService.registerChanged(newExecution, unitOfWork);
-            ExecutionUpdatedEvent event = new ExecutionUpdatedEvent(newExecution.getAggregateId(), newExecution.getAcronym(), newExecution.getAcademicTerm(), newExecution.getEndDate());
+            unitOfWorkService.registerChanged(newExecution, unitOfWork);            ExecutionUpdatedEvent event = new ExecutionUpdatedEvent(newExecution.getAggregateId(), newExecution.getAcronym(), newExecution.getAcademicTerm(), newExecution.getEndDate());
             event.setPublisherAggregateVersion(newExecution.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return executionFactory.createExecutionDto(newExecution);
@@ -137,8 +140,7 @@ public class ExecutionService {
             Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
             newExecution.remove();
-            unitOfWorkService.registerChanged(newExecution, unitOfWork);
-            unitOfWorkService.registerEvent(new ExecutionDeletedEvent(newExecution.getAggregateId()), unitOfWork);
+            unitOfWorkService.registerChanged(newExecution, unitOfWork);            unitOfWorkService.registerEvent(new ExecutionDeletedEvent(newExecution.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

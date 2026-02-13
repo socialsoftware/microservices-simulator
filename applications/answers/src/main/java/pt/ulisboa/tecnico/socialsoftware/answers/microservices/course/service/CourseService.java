@@ -45,11 +45,13 @@ public class CourseService {
             courseDto.setName(createRequest.getName());
             courseDto.setType(createRequest.getType() != null ? createRequest.getType().name() : null);
             courseDto.setCreationDate(createRequest.getCreationDate());
-            
+
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
             Course course = courseFactory.createCourse(aggregateId, courseDto);
             unitOfWorkService.registerChanged(course, unitOfWork);
             return courseFactory.createCourseDto(course);
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
             throw new AnswersException("Error creating course: " + e.getMessage());
         }
@@ -76,8 +78,10 @@ public class CourseService {
                 .map(id -> (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(courseFactory::createCourseDto)
                 .collect(Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error retrieving all courses: " + e.getMessage());
+            throw new AnswersException("Error retrieving course: " + e.getMessage());
         }
     }
 
@@ -93,8 +97,7 @@ public class CourseService {
                 newCourse.setCreationDate(courseDto.getCreationDate());
             }
 
-            unitOfWorkService.registerChanged(newCourse, unitOfWork);
-            CourseUpdatedEvent event = new CourseUpdatedEvent(newCourse.getAggregateId(), newCourse.getName(), newCourse.getCreationDate());
+            unitOfWorkService.registerChanged(newCourse, unitOfWork);            CourseUpdatedEvent event = new CourseUpdatedEvent(newCourse.getAggregateId(), newCourse.getName(), newCourse.getCreationDate());
             event.setPublisherAggregateVersion(newCourse.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return courseFactory.createCourseDto(newCourse);
@@ -110,8 +113,7 @@ public class CourseService {
             Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Course newCourse = courseFactory.createCourseFromExisting(oldCourse);
             newCourse.remove();
-            unitOfWorkService.registerChanged(newCourse, unitOfWork);
-            unitOfWorkService.registerEvent(new CourseDeletedEvent(newCourse.getAggregateId()), unitOfWork);
+            unitOfWorkService.registerChanged(newCourse, unitOfWork);            unitOfWorkService.registerEvent(new CourseDeletedEvent(newCourse.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

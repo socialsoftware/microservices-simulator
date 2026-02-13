@@ -107,11 +107,13 @@ public class TournamentService {
                 quizDto.setState(createRequest.getQuiz().getState());
                 tournamentDto.setQuiz(quizDto);
             }
-            
+
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
             Tournament tournament = tournamentFactory.createTournament(aggregateId, tournamentDto);
             unitOfWorkService.registerChanged(tournament, unitOfWork);
             return tournamentFactory.createTournamentDto(tournament);
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
             throw new AnswersException("Error creating tournament: " + e.getMessage());
         }
@@ -138,8 +140,10 @@ public class TournamentService {
                 .map(id -> (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(tournamentFactory::createTournamentDto)
                 .collect(Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error retrieving all tournaments: " + e.getMessage());
+            throw new AnswersException("Error retrieving tournament: " + e.getMessage());
         }
     }
 
@@ -159,8 +163,7 @@ public class TournamentService {
             }
             newTournament.setCancelled(tournamentDto.getCancelled());
 
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
-            TournamentUpdatedEvent event = new TournamentUpdatedEvent(newTournament.getAggregateId(), newTournament.getStartTime(), newTournament.getEndTime(), newTournament.getNumberOfQuestions(), newTournament.getCancelled());
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);            TournamentUpdatedEvent event = new TournamentUpdatedEvent(newTournament.getAggregateId(), newTournament.getStartTime(), newTournament.getEndTime(), newTournament.getNumberOfQuestions(), newTournament.getCancelled());
             event.setPublisherAggregateVersion(newTournament.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return tournamentFactory.createTournamentDto(newTournament);
@@ -176,8 +179,7 @@ public class TournamentService {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
             newTournament.remove();
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
-            unitOfWorkService.registerEvent(new TournamentDeletedEvent(newTournament.getAggregateId()), unitOfWork);
+            unitOfWorkService.registerChanged(newTournament, unitOfWork);            unitOfWorkService.registerEvent(new TournamentDeletedEvent(newTournament.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

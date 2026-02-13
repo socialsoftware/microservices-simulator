@@ -48,13 +48,20 @@ export class ServiceCollectionGenerator {
         const methods: string[] = [];
         const collections = CollectionMetadataExtractor.findCollectionProperties(rootEntity, aggregate);
 
+        // Create generator instances (extends GeneratorBase)
+        const addGenerator = new AddMethodGenerator();
+        const addBatchGenerator = new AddBatchMethodGenerator();
+        const getGenerator = new GetMethodGenerator();
+        const removeGenerator = new RemoveMethodGenerator();
+        const updateGenerator = new UpdateMethodGenerator();
+
         for (const collection of collections) {
             // Generate 5 methods per collection using specialized generators
-            methods.push(AddMethodGenerator.generate(collection, aggregateName, rootEntity, projectName));
-            methods.push(AddBatchMethodGenerator.generate(collection, aggregateName, rootEntity, projectName));
-            methods.push(GetMethodGenerator.generate(collection, aggregateName, rootEntity, projectName));
-            methods.push(RemoveMethodGenerator.generate(collection, aggregateName, rootEntity, projectName));
-            methods.push(UpdateMethodGenerator.generate(collection, aggregateName, rootEntity, projectName, aggregate));
+            methods.push(addGenerator.generate(collection, aggregateName, rootEntity, projectName));
+            methods.push(addBatchGenerator.generate(collection, aggregateName, rootEntity, projectName));
+            methods.push(getGenerator.generate(collection, aggregateName, rootEntity, projectName));
+            methods.push(removeGenerator.generate(collection, aggregateName, rootEntity, projectName));
+            methods.push(updateGenerator.generate(collection, aggregateName, rootEntity, projectName, aggregate));
         }
 
         return methods.join('\n\n');

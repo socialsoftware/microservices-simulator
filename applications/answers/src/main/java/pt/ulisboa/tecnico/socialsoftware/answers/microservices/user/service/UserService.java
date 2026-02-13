@@ -44,11 +44,13 @@ public class UserService {
             userDto.setUsername(createRequest.getUsername());
             userDto.setRole(createRequest.getRole() != null ? createRequest.getRole().name() : null);
             userDto.setActive(createRequest.getActive());
-            
+
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
             User user = userFactory.createUser(aggregateId, userDto);
             unitOfWorkService.registerChanged(user, unitOfWork);
             return userFactory.createUserDto(user);
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
             throw new AnswersException("Error creating user: " + e.getMessage());
         }
@@ -75,8 +77,10 @@ public class UserService {
                 .map(id -> (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(userFactory::createUserDto)
                 .collect(Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error retrieving all users: " + e.getMessage());
+            throw new AnswersException("Error retrieving user: " + e.getMessage());
         }
     }
 
@@ -93,8 +97,7 @@ public class UserService {
             }
             newUser.setActive(userDto.getActive());
 
-            unitOfWorkService.registerChanged(newUser, unitOfWork);
-            UserUpdatedEvent event = new UserUpdatedEvent(newUser.getAggregateId(), newUser.getName(), newUser.getUsername(), newUser.getActive());
+            unitOfWorkService.registerChanged(newUser, unitOfWork);            UserUpdatedEvent event = new UserUpdatedEvent(newUser.getAggregateId(), newUser.getName(), newUser.getUsername(), newUser.getActive());
             event.setPublisherAggregateVersion(newUser.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return userFactory.createUserDto(newUser);
@@ -110,8 +113,7 @@ public class UserService {
             User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             User newUser = userFactory.createUserFromExisting(oldUser);
             newUser.remove();
-            unitOfWorkService.registerChanged(newUser, unitOfWork);
-            unitOfWorkService.registerEvent(new UserDeletedEvent(newUser.getAggregateId()), unitOfWork);
+            unitOfWorkService.registerChanged(newUser, unitOfWork);            unitOfWorkService.registerEvent(new UserDeletedEvent(newUser.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

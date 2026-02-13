@@ -51,11 +51,13 @@ public class TopicService {
                 courseDto.setState(createRequest.getCourse().getState());
                 topicDto.setCourse(courseDto);
             }
-            
+
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
             Topic topic = topicFactory.createTopic(aggregateId, topicDto);
             unitOfWorkService.registerChanged(topic, unitOfWork);
             return topicFactory.createTopicDto(topic);
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
             throw new AnswersException("Error creating topic: " + e.getMessage());
         }
@@ -82,8 +84,10 @@ public class TopicService {
                 .map(id -> (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(topicFactory::createTopicDto)
                 .collect(Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error retrieving all topics: " + e.getMessage());
+            throw new AnswersException("Error retrieving topic: " + e.getMessage());
         }
     }
 
@@ -96,8 +100,7 @@ public class TopicService {
                 newTopic.setName(topicDto.getName());
             }
 
-            unitOfWorkService.registerChanged(newTopic, unitOfWork);
-            TopicUpdatedEvent event = new TopicUpdatedEvent(newTopic.getAggregateId(), newTopic.getName());
+            unitOfWorkService.registerChanged(newTopic, unitOfWork);            TopicUpdatedEvent event = new TopicUpdatedEvent(newTopic.getAggregateId(), newTopic.getName());
             event.setPublisherAggregateVersion(newTopic.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return topicFactory.createTopicDto(newTopic);
@@ -113,8 +116,7 @@ public class TopicService {
             Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Topic newTopic = topicFactory.createTopicFromExisting(oldTopic);
             newTopic.remove();
-            unitOfWorkService.registerChanged(newTopic, unitOfWork);
-            unitOfWorkService.registerEvent(new TopicDeletedEvent(newTopic.getAggregateId()), unitOfWork);
+            unitOfWorkService.registerChanged(newTopic, unitOfWork);            unitOfWorkService.registerEvent(new TopicDeletedEvent(newTopic.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

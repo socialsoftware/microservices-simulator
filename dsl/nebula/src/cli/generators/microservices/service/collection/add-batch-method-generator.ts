@@ -1,6 +1,7 @@
 import { Entity } from "../../../../../language/generated/ast.js";
-import { capitalize } from "../../../../utils/generator-utils.js";
+import { GeneratorBase } from "../../../common/base/generator-base.js";
 import { CollectionProperty } from "./collection-metadata-extractor.js";
+import { ExceptionGenerator } from "../../../common/utils/exception-generator.js";
 
 /**
  * Add Batch Method Generator
@@ -8,7 +9,7 @@ import { CollectionProperty } from "./collection-metadata-extractor.js";
  * Generates collection add batch methods for adding multiple elements at once.
  * Uses immutable aggregate pattern with forEach to add each element.
  */
-export class AddBatchMethodGenerator {
+export class AddBatchMethodGenerator extends GeneratorBase {
     /**
      * Generate add batch method for a collection property.
      *
@@ -30,10 +31,10 @@ export class AddBatchMethodGenerator {
      * @param projectName Project name for exception handling
      * @returns Java method code
      */
-    static generate(collection: CollectionProperty, aggregateName: string, rootEntity: Entity, projectName: string): string {
+    generate(collection: CollectionProperty, aggregateName: string, rootEntity: Entity, projectName: string): string {
         const entityName = rootEntity.name;
-        const lowerEntity = entityName.toLowerCase();
-        const lowerAggregate = aggregateName.toLowerCase();
+        const lowerEntity = this.lowercase(entityName);
+        const lowerAggregate = this.lowercase(aggregateName);
 
         return `    public List<${collection.elementType}Dto> add${collection.capitalizedSingular}s(Integer ${lowerEntity}Id, List<${collection.elementType}Dto> ${collection.singularName}Dtos, UnitOfWork unitOfWork) {
         try {
@@ -45,11 +46,7 @@ export class AddBatchMethodGenerator {
             });
             unitOfWorkService.registerChanged(new${entityName}, unitOfWork);
             return ${collection.singularName}Dtos;
-        } catch (${capitalize(projectName)}Exception e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ${capitalize(projectName)}Exception("Error adding ${collection.singularName}s: " + e.getMessage());
-        }
+${ExceptionGenerator.generateCatchBlock(projectName, 'adding', `${collection.singularName}s`)}
     }`;
     }
 }

@@ -89,11 +89,13 @@ public class AnswerService {
                     return projDto;
                 }).collect(Collectors.toList()));
             }
-            
+
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
             Answer answer = answerFactory.createAnswer(aggregateId, answerDto);
             unitOfWorkService.registerChanged(answer, unitOfWork);
             return answerFactory.createAnswerDto(answer);
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
             throw new AnswersException("Error creating answer: " + e.getMessage());
         }
@@ -120,8 +122,10 @@ public class AnswerService {
                 .map(id -> (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(answerFactory::createAnswerDto)
                 .collect(Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error retrieving all answers: " + e.getMessage());
+            throw new AnswersException("Error retrieving answer: " + e.getMessage());
         }
     }
 
@@ -138,8 +142,7 @@ public class AnswerService {
             }
             newAnswer.setCompleted(answerDto.getCompleted());
 
-            unitOfWorkService.registerChanged(newAnswer, unitOfWork);
-            AnswerUpdatedEvent event = new AnswerUpdatedEvent(newAnswer.getAggregateId(), newAnswer.getCreationDate(), newAnswer.getAnswerDate(), newAnswer.getCompleted());
+            unitOfWorkService.registerChanged(newAnswer, unitOfWork);            AnswerUpdatedEvent event = new AnswerUpdatedEvent(newAnswer.getAggregateId(), newAnswer.getCreationDate(), newAnswer.getAnswerDate(), newAnswer.getCompleted());
             event.setPublisherAggregateVersion(newAnswer.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return answerFactory.createAnswerDto(newAnswer);
@@ -155,8 +158,7 @@ public class AnswerService {
             Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
             newAnswer.remove();
-            unitOfWorkService.registerChanged(newAnswer, unitOfWork);
-            unitOfWorkService.registerEvent(new AnswerDeletedEvent(newAnswer.getAggregateId()), unitOfWork);
+            unitOfWorkService.registerChanged(newAnswer, unitOfWork);            unitOfWorkService.registerEvent(new AnswerDeletedEvent(newAnswer.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

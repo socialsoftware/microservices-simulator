@@ -73,11 +73,13 @@ public class QuestionService {
                 }).collect(Collectors.toSet()));
             }
             questionDto.setOptions(createRequest.getOptions());
-            
+
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
             Question question = questionFactory.createQuestion(aggregateId, questionDto);
             unitOfWorkService.registerChanged(question, unitOfWork);
             return questionFactory.createQuestionDto(question);
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
             throw new AnswersException("Error creating question: " + e.getMessage());
         }
@@ -104,8 +106,10 @@ public class QuestionService {
                 .map(id -> (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(questionFactory::createQuestionDto)
                 .collect(Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error retrieving all questions: " + e.getMessage());
+            throw new AnswersException("Error retrieving question: " + e.getMessage());
         }
     }
 
@@ -124,8 +128,7 @@ public class QuestionService {
                 newQuestion.setCreationDate(questionDto.getCreationDate());
             }
 
-            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
-            QuestionUpdatedEvent event = new QuestionUpdatedEvent(newQuestion.getAggregateId(), newQuestion.getTitle(), newQuestion.getContent(), newQuestion.getCreationDate());
+            unitOfWorkService.registerChanged(newQuestion, unitOfWork);            QuestionUpdatedEvent event = new QuestionUpdatedEvent(newQuestion.getAggregateId(), newQuestion.getTitle(), newQuestion.getContent(), newQuestion.getCreationDate());
             event.setPublisherAggregateVersion(newQuestion.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return questionFactory.createQuestionDto(newQuestion);
@@ -141,8 +144,7 @@ public class QuestionService {
             Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
             newQuestion.remove();
-            unitOfWorkService.registerChanged(newQuestion, unitOfWork);
-            unitOfWorkService.registerEvent(new QuestionDeletedEvent(newQuestion.getAggregateId()), unitOfWork);
+            unitOfWorkService.registerChanged(newQuestion, unitOfWork);            unitOfWorkService.registerEvent(new QuestionDeletedEvent(newQuestion.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

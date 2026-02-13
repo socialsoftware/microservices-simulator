@@ -76,11 +76,13 @@ public class QuizService {
                     return projDto;
                 }).collect(Collectors.toSet()));
             }
-            
+
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
             Quiz quiz = quizFactory.createQuiz(aggregateId, quizDto);
             unitOfWorkService.registerChanged(quiz, unitOfWork);
             return quizFactory.createQuizDto(quiz);
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
             throw new AnswersException("Error creating quiz: " + e.getMessage());
         }
@@ -107,8 +109,10 @@ public class QuizService {
                 .map(id -> (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(quizFactory::createQuizDto)
                 .collect(Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error retrieving all quizs: " + e.getMessage());
+            throw new AnswersException("Error retrieving quiz: " + e.getMessage());
         }
     }
 
@@ -136,8 +140,7 @@ public class QuizService {
                 newQuiz.setResultsDate(quizDto.getResultsDate());
             }
 
-            unitOfWorkService.registerChanged(newQuiz, unitOfWork);
-            QuizUpdatedEvent event = new QuizUpdatedEvent(newQuiz.getAggregateId(), newQuiz.getTitle(), newQuiz.getCreationDate(), newQuiz.getAvailableDate(), newQuiz.getConclusionDate(), newQuiz.getResultsDate());
+            unitOfWorkService.registerChanged(newQuiz, unitOfWork);            QuizUpdatedEvent event = new QuizUpdatedEvent(newQuiz.getAggregateId(), newQuiz.getTitle(), newQuiz.getCreationDate(), newQuiz.getAvailableDate(), newQuiz.getConclusionDate(), newQuiz.getResultsDate());
             event.setPublisherAggregateVersion(newQuiz.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return quizFactory.createQuizDto(newQuiz);
@@ -153,8 +156,7 @@ public class QuizService {
             Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
             newQuiz.remove();
-            unitOfWorkService.registerChanged(newQuiz, unitOfWork);
-            unitOfWorkService.registerEvent(new QuizDeletedEvent(newQuiz.getAggregateId()), unitOfWork);
+            unitOfWorkService.registerChanged(newQuiz, unitOfWork);            unitOfWorkService.registerEvent(new QuizDeletedEvent(newQuiz.getAggregateId()), unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

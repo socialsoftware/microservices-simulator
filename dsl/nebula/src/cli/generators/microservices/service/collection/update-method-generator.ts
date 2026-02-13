@@ -1,9 +1,10 @@
 import { Aggregate, Entity } from "../../../../../language/generated/ast.js";
-import { capitalize } from "../../../../utils/generator-utils.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 import { EXTENDED_PRIMITIVE_TYPES } from "../../../common/utils/type-constants.js";
 import { getEffectiveFieldMappings } from "../../../../utils/aggregate-helpers.js";
 import { CollectionProperty } from "./collection-metadata-extractor.js";
+import { ExceptionGenerator } from "../../../common/utils/exception-generator.js";
+import { GeneratorBase } from "../../../common/base/generator-base.js";
 
 /**
  * Update Method Generator
@@ -11,7 +12,7 @@ import { CollectionProperty } from "./collection-metadata-extractor.js";
  * Generates collection update methods for updating a single element in a collection.
  * Uses immutable aggregate pattern and publishes UpdatedEvent with all primitive fields.
  */
-export class UpdateMethodGenerator {
+export class UpdateMethodGenerator extends GeneratorBase {
     /**
      * Generate update method for a collection property.
      *
@@ -36,11 +37,11 @@ export class UpdateMethodGenerator {
      * @param aggregate The full aggregate for entity lookup
      * @returns Java method code
      */
-    static generate(collection: CollectionProperty, aggregateName: string, rootEntity: Entity, projectName: string, aggregate: Aggregate): string {
+    generate(collection: CollectionProperty, aggregateName: string, rootEntity: Entity, projectName: string, aggregate: Aggregate): string {
         const entityName = rootEntity.name;
         const lowerEntity = entityName.toLowerCase();
         const lowerAggregate = aggregateName.toLowerCase();
-        const capitalizedIdentifier = capitalize(collection.identifierField);
+        const capitalizedIdentifier = this.capitalize(collection.identifierField);
 
         // Get updatable fields from the element entity
         const elementEntity = aggregate.entities?.find((e: any) => e.name === collection.elementType);
@@ -48,9 +49,9 @@ export class UpdateMethodGenerator {
 
         const updateFieldsCode = updatableFieldsWithMapping.map(field => {
             // Use DTO field name for getter (local name from mapping)
-            const dtoGetterField = capitalize(field.dtoFieldName);
+            const dtoGetterField = this.capitalize(field.dtoFieldName);
             // Use entity field name for setter (prefixed name in entity)
-            const entitySetterField = capitalize(field.entityFieldName);
+            const entitySetterField = this.capitalize(field.entityFieldName);
 
             return `            if (${collection.singularName}Dto.get${dtoGetterField}() != null) {
                 element.set${entitySetterField}(${collection.singularName}Dto.get${dtoGetterField}());
@@ -83,18 +84,14 @@ export class UpdateMethodGenerator {
                 .filter(item -> item.get${capitalizedIdentifier}() != null &&
                                item.get${capitalizedIdentifier}().equals(${collection.identifierField}))
                 .findFirst()
-                .orElseThrow(() -> new ${capitalize(projectName)}Exception("${collection.elementType} not found"));
+                .orElseThrow(() -> new ${this.capitalize(projectName)}Exception("${collection.elementType} not found"));
 ${updateFieldsCode}
             unitOfWorkService.registerChanged(new${entityName}, unitOfWork);
             ${collection.elementType}UpdatedEvent event = new ${collection.elementType}UpdatedEvent(${eventConstructorParams});
             event.setPublisherAggregateVersion(new${entityName}.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
-        } catch (${capitalize(projectName)}Exception e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ${capitalize(projectName)}Exception("Error updating ${collection.singularName}: " + e.getMessage());
-        }
+${ExceptionGenerator.generateCatchBlock(projectName, 'updating', collection.singularName)}
     }`;
     }
 
@@ -102,7 +99,7 @@ ${updateFieldsCode}
      * Extract updatable fields with both DTO and entity field names for projection entities.
      * This is necessary because DTOs use local names (from dtoField) while entities use prefixed names (entityField).
      */
-    private static extractUpdatableFieldsWithMapping(entity: any, isProjection: boolean, identifierField: string): Array<{
+    private extractUpdatableFieldsWithMapping(entity: any, isProjection: boolean, identifierField: string): Array<{
         entityFieldName: string;
         dtoFieldName: string;
         type: string;
@@ -197,7 +194,7 @@ ${updateFieldsCode}
      * @param elementVarName Variable name of the element object (e.g., "element")
      * @returns Comma-separated parameter list for event constructor
      */
-    private static buildProjectionEventParameters(
+    private buildProjectionEventParameters(
         entity: any,
         aggregateVarName: string,
         identifierField: string,
@@ -209,13 +206,13 @@ ${updateFieldsCode}
         params.push(`${aggregateVarName}Id`);
 
         // 2. {prefix}AggregateId (referenced aggregate ID - the identifier)
-        params.push(`${elementVarName}.get${capitalize(identifierField)}()`);
+        params.push(`${elementVarName}.get${this.capitalize(identifierField)}()`);
 
         // 3. {prefix}Version (referenced aggregate version)
         // Extract prefix from identifierField (e.g., "questionAggregateId" -> "question")
         const prefix = identifierField.replace(/AggregateId$/, '');
         const versionField = `${prefix}Version`;
-        params.push(`${elementVarName}.get${capitalize(versionField)}()`);
+        params.push(`${elementVarName}.get${this.capitalize(versionField)}()`);
 
         // 4. All other primitive mapped fields (in order from fieldMappings)
         // For projection entities, we need to use the projection entity's OWN field names,
@@ -265,7 +262,7 @@ ${updateFieldsCode}
 
             // Include primitive mapped fields
             if (EXTENDED_PRIMITIVE_TYPES.some(t => javaType.includes(t))) {
-                params.push(`${elementVarName}.get${capitalize(fieldName)}()`);
+                params.push(`${elementVarName}.get${this.capitalize(fieldName)}()`);
             }
         }
 
@@ -294,7 +291,7 @@ ${updateFieldsCode}
             // Include primitive fields (avoid duplicates from fieldsToProcess)
             const alreadyIncluded = fieldsToProcess.some((m: any) => m.fieldName === propName);
             if (!alreadyIncluded && EXTENDED_PRIMITIVE_TYPES.some(t => javaType.includes(t))) {
-                params.push(`${elementVarName}.get${capitalize(propName)}()`);
+                params.push(`${elementVarName}.get${this.capitalize(propName)}()`);
             }
         }
 
