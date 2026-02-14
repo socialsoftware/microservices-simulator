@@ -30,7 +30,6 @@ public class QuestionCourse {
         setCourseAggregateId(courseDto.getAggregateId());
         setCourseVersion(courseDto.getVersion());
         setCourseState(courseDto.getState());
-        setCourseName(courseDto.getName());
     }
 
     public QuestionCourse(QuestionCourseDto questionCourseDto) {

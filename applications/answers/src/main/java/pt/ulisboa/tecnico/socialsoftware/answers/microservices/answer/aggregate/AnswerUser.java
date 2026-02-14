@@ -30,7 +30,6 @@ public class AnswerUser {
         setUserAggregateId(userDto.getAggregateId());
         setUserVersion(userDto.getVersion());
         setUserState(userDto.getState());
-        setUserName(userDto.getName());
     }
 
     public AnswerUser(AnswerUserDto answerUserDto) {

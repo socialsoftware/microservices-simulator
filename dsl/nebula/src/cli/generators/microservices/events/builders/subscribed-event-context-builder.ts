@@ -430,7 +430,7 @@ export class SubscribedEventContextBuilder {
      * Extract entity type name from a property.
      *
      * Handles various AST patterns:
-     * - CollectionType (Set<T>, List<T>)
+     * - ListType/SetType (unified type system)
      * - EntityType
      * - Legacy patterns
      *
@@ -443,9 +443,20 @@ export class SubscribedEventContextBuilder {
             return null;
         }
 
-        // CollectionType pattern (Set<T>, List<T>)
-        if (typeObj.$type === 'CollectionType' && typeObj.elementType) {
+        // ListType/SetType pattern (unified type system)
+        if ((typeObj.$type === 'ListType' || typeObj.$type === 'SetType') && typeObj.elementType) {
             const elementType = typeObj.elementType;
+            // ElementType is now a BaseType (can be EntityType, PrimitiveType, or BuiltinType)
+            if (elementType.$type === 'EntityType') {
+                // EntityType has structure: { $type: 'EntityType', type: { ref: Entity, $refText: string } }
+                if (elementType.type?.ref?.name) {
+                    return elementType.type.ref.name;
+                }
+                if (elementType.type?.$refText) {
+                    return elementType.type.$refText;
+                }
+            }
+            // Legacy fallback patterns
             if (elementType.$refText) {
                 return elementType.$refText;
             }

@@ -1,5 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -17,6 +21,7 @@ public class AnswerQuiz {
     private Long id;
     private Integer quizAggregateId;
     private Integer quizVersion;
+    private Set<Integer> quizQuestionsAggregateIds = new HashSet<>();
     private AggregateState quizState;
     @OneToOne
     private Answer answer;
@@ -34,12 +39,14 @@ public class AnswerQuiz {
     public AnswerQuiz(AnswerQuizDto answerQuizDto) {
         setQuizAggregateId(answerQuizDto.getAggregateId());
         setQuizVersion(answerQuizDto.getVersion());
+        setQuizQuestionsAggregateIds(answerQuizDto.getQuizQuestionsAggregateIds() != null ? answerQuizDto.getQuizQuestionsAggregateIds().stream().map(Integer::new).collect(Collectors.toSet()) : null);
         setQuizState(answerQuizDto.getState());
     }
 
     public AnswerQuiz(AnswerQuiz other) {
         setQuizAggregateId(other.getQuizAggregateId());
         setQuizVersion(other.getQuizVersion());
+        setQuizQuestionsAggregateIds(new HashSet<>(other.getQuizQuestionsAggregateIds()));
         setQuizState(other.getQuizState());
     }
 
@@ -67,6 +74,14 @@ public class AnswerQuiz {
         this.quizVersion = quizVersion;
     }
 
+    public Set<Integer> getQuizQuestionsAggregateIds() {
+        return quizQuestionsAggregateIds;
+    }
+
+    public void setQuizQuestionsAggregateIds(Set<Integer> quizQuestionsAggregateIds) {
+        this.quizQuestionsAggregateIds = quizQuestionsAggregateIds;
+    }
+
     public AggregateState getQuizState() {
         return quizState;
     }
@@ -90,6 +105,7 @@ public class AnswerQuiz {
         AnswerQuizDto dto = new AnswerQuizDto();
         dto.setAggregateId(getQuizAggregateId());
         dto.setVersion(getQuizVersion());
+        dto.setQuizQuestionsAggregateIds(getQuizQuestionsAggregateIds());
         dto.setState(getQuizState());
         return dto;
     }

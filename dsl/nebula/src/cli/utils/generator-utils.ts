@@ -1,40 +1,28 @@
 /**
  * Utility functions for template processing
+ *
+ * NOTE: String manipulation methods have been moved to string-utils.ts
+ * This file now focuses on template-specific utilities.
  */
 
 import { ValidationError, ValidationWarning } from '../generators/common/types.js';
+import { StringUtils } from './string-utils.js';
 
 export class Utils {
     /**
      * Escape HTML characters in a string
+     * @deprecated Use StringUtils.escapeHtml() instead
      */
     static escapeHtml(str: string): string {
-        if (typeof str !== 'string') {
-            return String(str);
-        }
-
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
+        return StringUtils.escapeHtml(str);
     }
 
     /**
      * Unescape HTML characters in a string
+     * @deprecated Use StringUtils.unescapeHtml() instead
      */
     static unescapeHtml(str: string): string {
-        if (typeof str !== 'string') {
-            return String(str);
-        }
-
-        return str
-            .replace(/&amp;/g, '&')
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/&quot;/g, '"')
-            .replace(/&#39;/g, "'");
+        return StringUtils.unescapeHtml(str);
     }
 
     /**
@@ -114,24 +102,10 @@ export class Utils {
 
     /**
      * Convert a value to a string for template rendering
+     * @deprecated Use StringUtils.toString() instead
      */
     static toString(value: any): string {
-        if (value === null || value === undefined) {
-            return '';
-        }
-        if (typeof value === 'string') {
-            return value;
-        }
-        if (typeof value === 'number' || typeof value === 'boolean') {
-            return String(value);
-        }
-        if (Array.isArray(value)) {
-            return value.map(item => this.toString(item)).join('');
-        }
-        if (typeof value === 'object') {
-            return JSON.stringify(value);
-        }
-        return String(value);
+        return StringUtils.toString(value);
     }
 
     /**
@@ -235,66 +209,34 @@ export class Utils {
 
     /**
      * Check if a string is a valid identifier
+     * @deprecated Use StringUtils.isValidIdentifier() instead
      */
     static isValidIdentifier(str: string): boolean {
-        if (!str || str.length === 0) {
-            return false;
-        }
-
-        // Special identifiers like @index, @first, @last are valid
-        if (str.startsWith('@')) {
-            return /^@[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(str);
-        }
-
-        // Must start with letter, underscore, or dollar sign
-        if (!/^[a-zA-Z_$]/.test(str)) {
-            return false;
-        }
-
-        // Can contain letters, digits, underscores, and dollar signs
-        return /^[a-zA-Z0-9_$]+$/.test(str);
+        return StringUtils.isValidIdentifier(str);
     }
 
     /**
      * Normalize whitespace in a string
+     * @deprecated Use StringUtils.normalizeWhitespace() instead
      */
     static normalizeWhitespace(str: string): string {
-        return str.replace(/\s+/g, ' ').trim();
+        return StringUtils.normalizeWhitespace(str);
     }
 
     /**
      * Indent a string by a specified number of spaces
+     * @deprecated Use StringUtils.indent() instead
      */
     static indent(str: string, spaces: number): string {
-        const indentStr = ' '.repeat(spaces);
-        return str.split('\n').map(line => line ? indentStr + line : line).join('\n');
+        return StringUtils.indent(str, spaces);
     }
 
     /**
      * Dedent a string by removing common leading whitespace
+     * @deprecated Use StringUtils.dedent() instead
      */
     static dedent(str: string): string {
-        const lines = str.split('\n');
-        if (lines.length <= 1) {
-            return str;
-        }
-
-        // Find the minimum indentation (excluding empty lines)
-        let minIndent = Infinity;
-        for (const line of lines) {
-            if (line.trim().length > 0) {
-                const indent = line.match(/^(\s*)/)?.[1].length || 0;
-                minIndent = Math.min(minIndent, indent);
-            }
-        }
-
-        // Remove the common indentation
-        return lines.map(line => {
-            if (line.trim().length === 0) {
-                return line;
-            }
-            return line.substring(minIndent);
-        }).join('\n');
+        return StringUtils.dedent(str);
     }
 
     /**
@@ -308,12 +250,10 @@ export class Utils {
 
     /**
      * Capitalize first letter of a string
+     * @deprecated Use StringUtils.capitalize() instead
      */
     static capitalize(str: string): string {
-        if (!str || str.length === 0) {
-            return str;
-        }
-        return str.charAt(0).toUpperCase() + str.slice(1);
+        return StringUtils.capitalize(str);
     }
 
     /**
@@ -328,7 +268,8 @@ export class Utils {
 export const resolveJavaType = Utils.resolveJavaType;
 
 // Export capitalize function for backward compatibility
-export const capitalize = Utils.capitalize;
+// @deprecated Use StringUtils.capitalize() instead
+export const capitalize = StringUtils.capitalize;
 
 // Export resolveParamReturnType function for backward compatibility
 export const resolveParamReturnType = Utils.resolveParamReturnType;

@@ -597,6 +597,7 @@ export class ModelParser {
     private extractType(type: any): string {
         if (!type) return 'void';
         if (typeof type === 'string') return type;
+        if (type.typeName) return type.typeName;
         if (type.name) return type.name;
         if (type.type) return type.type;
         return 'void';
@@ -605,6 +606,7 @@ export class ModelParser {
     private extractReturnType(returnType: any): string {
         if (!returnType) return 'void';
         if (typeof returnType === 'string') return returnType;
+        if (returnType.typeName) return returnType.typeName;
         if (returnType.name) return returnType.name;
         if (returnType.type) return returnType.type;
         return 'void';

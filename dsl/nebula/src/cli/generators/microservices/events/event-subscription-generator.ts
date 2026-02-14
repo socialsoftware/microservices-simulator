@@ -266,18 +266,29 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
     }
 
     private extractEntityType(property: any, entities: Entity[]): string | null {
-        // For complex types, the type is stored differently
         const typeObj = property.type;
         if (!typeObj) return null;
 
-        // Check if it's a simple entity type
-        if (typeObj.type?.$refText) {
-            return typeObj.type.$refText;
+        // Handle new unified type system
+        // EntityType: has type.ref or type.$refText
+        if (typeObj.$type === 'EntityType') {
+            return typeObj.type?.ref?.name || typeObj.type?.$refText || null;
         }
 
-        // Check for collection types
-        if (typeObj.collection && typeObj.type?.type?.$refText) {
-            return typeObj.type.type.$refText;
+        // ListType/SetType: has elementType which can be EntityType
+        if (typeObj.$type === 'ListType' || typeObj.$type === 'SetType') {
+            const elementType = typeObj.elementType;
+            if (elementType?.$type === 'EntityType') {
+                return elementType.type?.ref?.name || elementType.type?.$refText || null;
+            }
+        }
+
+        // OptionalType: has elementType which can be EntityType
+        if (typeObj.$type === 'OptionalType') {
+            const elementType = typeObj.elementType;
+            if (elementType?.$type === 'EntityType') {
+                return elementType.type?.ref?.name || elementType.type?.$refText || null;
+            }
         }
 
         return null;

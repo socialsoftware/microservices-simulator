@@ -77,9 +77,9 @@ ${cases}
                 } else if (type.$type === 'EntityType' && type.type && type.type.ref) {
                     paramType = type.type.ref.name + 'Dto';
                 } else if (type.$type === 'BuiltinType') {
-                    paramType = type.name;
-                } else if (type.name) {
-                    paramType = type.name;
+                    paramType = type.typeName;
+                } else if (type.typeName || type.name) {
+                    paramType = type.typeName || type.name;
                 }
             }
 
@@ -111,7 +111,7 @@ ${cases}
                 } else if (type.$type === 'EntityType' && type.type && type.type.ref) {
                     paramType = type.type.ref.name + 'Dto';
                 } else if (type.$type === 'BuiltinType') {
-                    paramType = type.name;
+                    paramType = type.typeName;
                 } else if ((type as any).typeName || (type as any).name) {
                     paramType = (type as any).typeName || (type as any).name;
                 }
@@ -140,21 +140,19 @@ ${cases}
         } else if (type.$type === 'EntityType' && type.type && type.type.ref) {
             return type.type.ref.name + 'Dto';
         } else if (type.$type === 'BuiltinType') {
-            return type.name;
+            return type.typeName;
         } else if (type.$type === 'ListType' && type.elementType) {
             const elementType = this.extractReturnType(type.elementType, entityRegistry);
             return `List<${elementType}>`;
         } else if (type.$type === 'SetType' && type.elementType) {
             const elementType = this.extractReturnType(type.elementType, entityRegistry);
             return `Set<${elementType}>`;
-        } else if (type.$type === 'CollectionType') {
-            const elementType = this.extractReturnType(type.elementType, entityRegistry);
-            return `List<${elementType}>`;
-        } else if (type.name) {
-            if (entityRegistry.isEntityName(type.name)) {
-                return type.name + 'Dto';
+        } else if (type.typeName || type.name) {
+            const typeName = type.typeName || type.name;
+            if (entityRegistry.isEntityName(typeName)) {
+                return typeName + 'Dto';
             }
-            return type.name;
+            return typeName;
         }
 
         return 'void';

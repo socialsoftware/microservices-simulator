@@ -94,7 +94,7 @@ export class ExceptionGenerator {
         if (!type) return 'String';
         if (typeof type === 'string') return type;
         if (type.$type === 'PrimitiveType') {
-            return type.name || 'String';
+            return type.typeName || 'String';
         }
         if (type.$type === 'EntityType' && type.type) {
             const ref = type.type.ref;

@@ -30,7 +30,6 @@ public class QuizOption {
         setQuestionAggregateId(questionDto.getAggregateId());
         setQuestionVersion(questionDto.getVersion());
         setQuestionState(questionDto.getState());
-        setOptionContent(questionDto.getContent());
     }
 
     public QuizOption(QuizOptionDto quizOptionDto) {

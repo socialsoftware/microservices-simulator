@@ -1,5 +1,5 @@
 import type { Aggregate, Entity, Model, Property } from "../../language/generated/ast.js";
-import { getEntities, getEffectiveFieldMappings, getEffectiveProperties } from "../utils/aggregate-helpers.js";
+import { getEntities, getEffectiveFieldMappings, getEffectiveProperties, dtoFieldToString } from "../utils/aggregate-helpers.js";
 import { UnifiedTypeResolver, type ResolvedType } from "../generators/common/unified-type-resolver.js";
 
 export interface DtoFieldSchema {
@@ -108,9 +108,18 @@ export class DtoSchemaService {
                 continue;
             }
 
-            // For properties from mapping, use the $dtoField, otherwise use field mapping or property name
+            // For properties from mappings, determine the correct DTO field name:
+            // - If $dtoField is a dotted path (extract pattern), use property.name
+            // - Otherwise, use the original $dtoField for DTO field name
             const mappingInfo = fieldMappings.get(property.name);
-            const dtoFieldName = (property as any).$dtoField || mappingInfo?.dtoField || property.name;
+            const rawDtoField = (property as any).$dtoField || mappingInfo?.dtoField || property.name;
+            const dtoFieldStr = dtoFieldToString(rawDtoField);
+
+            // Check if this is an extract pattern (dotted path contains a dot)
+            const isExtractPattern = typeof dtoFieldStr === 'string' && dtoFieldStr.includes('.');
+
+            // For extract patterns, use the entity property name; otherwise use the dtoField
+            const dtoFieldName = isExtractPattern ? property.name : dtoFieldStr;
             const resolved = UnifiedTypeResolver.resolveDetailed(property.type, { targetContext: 'dto' });
 
             const fieldSchema = this.buildFieldSchemaFromProperty(
@@ -345,7 +354,7 @@ export class DtoSchemaService {
         for (const fieldMap of mapping) {
             if (!fieldMap?.entityField || !fieldMap.dtoField) continue;
             map.set(fieldMap.entityField, {
-                dtoField: fieldMap.dtoField,
+                dtoField: dtoFieldToString(fieldMap.dtoField),
                 extractField: fieldMap.extractField,
             });
         }

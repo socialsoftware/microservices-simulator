@@ -335,7 +335,7 @@ export abstract class TemplateDataBase {
         }
 
         if (type.$type === 'PrimitiveType') {
-            return this.mapPrimitiveType(type.name);
+            return this.mapPrimitiveType(type.typeName);
         }
 
         if (type.$type === 'EntityType') {

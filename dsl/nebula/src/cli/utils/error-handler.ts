@@ -104,10 +104,25 @@ export enum ErrorSeverity {
 
 /**
  * Centralized error handler with consistent logging and error management
+ *
+ * NOTE: This class uses static methods with internal counters for backwards compatibility.
+ * The counters are reset at the start of each generation run via resetStats().
+ * For concurrent operations, consider using instance-based error tracking.
  */
 export class ErrorHandler {
     private static errorCount = 0;
     private static warningCount = 0;
+
+    /**
+     * Get text indicator based on severity
+     */
+    private static getIcon(severity: ErrorSeverity): string {
+        return {
+            [ErrorSeverity.WARNING]: '⚠',
+            [ErrorSeverity.ERROR]: '✗',
+            [ErrorSeverity.FATAL]: '[FATAL]'
+        }[severity];
+    }
 
     /**
      * Handle an error with consistent logging and optional re-throwing
@@ -127,18 +142,19 @@ export class ErrorHandler {
         }
 
         // Log based on severity
+        const icon = this.getIcon(severity);
         switch (severity) {
             case ErrorSeverity.WARNING:
                 this.warningCount++;
-                console.warn(`⚠️  ${generationError.getFormattedMessage()}`);
+                console.warn(`${icon} ${generationError.getFormattedMessage()}`);
                 break;
             case ErrorSeverity.ERROR:
                 this.errorCount++;
-                console.error(`❌ ${generationError.getFormattedMessage()}`);
+                console.error(`${icon} ${generationError.getFormattedMessage()}`);
                 break;
             case ErrorSeverity.FATAL:
                 this.errorCount++;
-                console.error(`💥 FATAL: ${generationError.getDetailedInfo()}`);
+                console.error(`${icon} FATAL: ${generationError.getDetailedInfo()}`);
                 break;
         }
 
@@ -235,12 +251,12 @@ export class ErrorHandler {
     static printSummary(): void {
         const stats = this.getStats();
         if (stats.errors > 0 || stats.warnings > 0) {
-            console.log('\n📊 Generation Summary:');
+            console.log('\n[SUMMARY] Generation Summary:');
             if (stats.errors > 0) {
-                console.log(`   ❌ Errors: ${stats.errors}`);
+                console.log(`   ✗ Errors: ${stats.errors}`);
             }
             if (stats.warnings > 0) {
-                console.log(`   ⚠️  Warnings: ${stats.warnings}`);
+                console.log(`   ⚠ Warnings: ${stats.warnings}`);
             }
         }
     }

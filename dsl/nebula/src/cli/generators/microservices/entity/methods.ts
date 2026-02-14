@@ -54,7 +54,7 @@ function propertyTypeMatchesEntity(prop: any, entityName: string, allEntities?: 
             if (prop.type.type.$refText === entityName) {
                 return true;
             }
-        } else if ((prop.type.$type === 'ListType' || prop.type.$type === 'SetType' || prop.type.$type === 'CollectionType') && prop.type.elementType) {
+        } else if ((prop.type.$type === 'ListType' || prop.type.$type === 'SetType') && prop.type.elementType) {
             const elementRef: any = prop.type.elementType.ref;
             if (elementRef) {
                 if (elementRef.$type === 'Entity' && elementRef.name === entityName) {

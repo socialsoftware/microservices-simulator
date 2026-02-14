@@ -1,6 +1,7 @@
 import { Aggregate, Entity, Method } from "../../../../../language/generated/ast.js";
 import { capitalize } from "../../../../utils/generator-utils.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
+import { ExceptionGenerator } from "../../../common/utils/exception-generator.js";
 
 export class ServiceBusinessGenerator {
     static generateBusinessMethods(aggregateName: string, aggregate: Aggregate, rootEntity: Entity, projectName: string): string {
@@ -43,11 +44,7 @@ export class ServiceBusinessGenerator {
 
         return `    @Transactional
     public ${returnType} ${methodName}(${parameters}) {
-        try {
-${methodBody}
-        } catch (Exception e) {
-            throw new ${capitalize(projectName)}Exception("Error in ${methodName}: " + e.getMessage());
-        }
+${ExceptionGenerator.generateTryCatchWrapper(projectName, `in ${methodName}`, aggregateName, methodBody)}
     }`;
     }
 
@@ -70,14 +67,11 @@ ${methodBody}
             `            // TODO: Implement workflow logic for ${methodName}
             throw new UnsupportedOperationException("Workflow ${methodName} not implemented");`;
 
+        const methodBody = workflowSteps + (returnType !== 'void' ? '\n            return result;' : '');
+
         return `    @Transactional
     public ${returnType} ${methodName}(${parameters}) {
-        try {
-${workflowSteps}
-${returnType !== 'void' ? '            return result;' : ''}
-        } catch (Exception e) {
-            throw new ${capitalize(projectName)}Exception("Error in workflow ${methodName}: " + e.getMessage());
-        }
+${ExceptionGenerator.generateTryCatchWrapper(projectName, `in workflow ${methodName}`, aggregateName, methodBody)}
     }`;
     }
 

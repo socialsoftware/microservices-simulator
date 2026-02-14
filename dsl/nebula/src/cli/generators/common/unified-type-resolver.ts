@@ -147,23 +147,11 @@ export class UnifiedTypeResolver {
             );
         }
 
-        if (type.$type === 'CollectionType' && type.elementType) {
-            const elementType = this.extractElementTypeName(type.elementType);
-            const resolvedElementType = this.applyContextConversion(elementType, context);
-            const sourceText = type.$cstNode?.text || '';
-            const collectionTypeName = sourceText.startsWith('List<') ? 'List' : 'Set';
-            return this.createResolvedType(
-                `${collectionTypeName}<${resolvedElementType}>`,
-                true,
-                this.isPrimitiveType(elementType),
-                this.isEntityType(elementType),
-                this.isBuiltinType(elementType),
-                elementType
-            );
-        }
+        // CollectionType was removed in unified type system - ListType/SetType handle all collections now
 
-        if (type.$type === 'AggregateStateType') {
-            return this.createResolvedType('AggregateState', false, false, false, true);
+        // BuiltinType now handles AggregateState (merged from AggregateStateType)
+        if (type.$type === 'BuiltinType' && type.typeName) {
+            return this.createResolvedType(type.typeName, false, false, false, true);
         }
 
         if (type.$type === 'EntityType' && type.type) {
@@ -191,8 +179,8 @@ export class UnifiedTypeResolver {
             }
         }
 
-        if (type.$type === 'PrimitiveType' && type.name) {
-            const mappedType = this.mapPrimitiveType(type.name);
+        if (type.$type === 'PrimitiveType' && type.typeName) {
+            const mappedType = this.mapPrimitiveType(type.typeName);
             return this.createResolvedType(mappedType, false, true, false, false);
         }
 
@@ -287,7 +275,11 @@ export class UnifiedTypeResolver {
             }
 
             if (elementType.$type === 'PrimitiveType') {
-                return elementType.name || elementType.typeName || 'UnknownPrimitive';
+                return elementType.typeName || 'UnknownPrimitive';
+            }
+
+            if (elementType.$type === 'BuiltinType') {
+                return elementType.typeName || 'UnknownBuiltin';
             }
 
             if (elementType.$refText) {

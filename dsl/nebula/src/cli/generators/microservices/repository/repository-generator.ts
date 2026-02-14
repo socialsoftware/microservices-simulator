@@ -121,12 +121,20 @@ function resolveParameterType(type: any): string {
         return type;
     }
 
+    // Handle unified type system (typeName for PrimitiveType/BuiltinType)
+    if (type.typeName) {
+        return type.typeName;
+    }
+
     if (type.name) {
         return type.name;
     }
 
     if (type.$type) {
-        if (type.$type === 'PrimitiveType' || type.$type === 'BuiltinType' || type.$type === 'EntityType') {
+        if (type.$type === 'PrimitiveType' || type.$type === 'BuiltinType') {
+            if (type.typeName) return type.typeName;
+        }
+        if (type.$type === 'EntityType') {
             if (type.name) return type.name;
         }
     }

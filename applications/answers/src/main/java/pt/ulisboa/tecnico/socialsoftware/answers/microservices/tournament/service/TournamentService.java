@@ -380,7 +380,7 @@ public class TournamentService {
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error handling ExecutionUpdatedEvent: " + e.getMessage());
+            throw new AnswersException("Error handling ExecutionUpdatedEvent tournament: " + e.getMessage());
         }
     }
 
@@ -398,7 +398,7 @@ public class TournamentService {
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error handling ExecutionUserUpdatedEvent: " + e.getMessage());
+            throw new AnswersException("Error handling ExecutionUserUpdatedEvent tournament: " + e.getMessage());
         }
     }
 
@@ -422,7 +422,7 @@ public class TournamentService {
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error handling TopicUpdatedEvent: " + e.getMessage());
+            throw new AnswersException("Error handling TopicUpdatedEvent tournament: " + e.getMessage());
         }
     }
 
@@ -445,7 +445,7 @@ public class TournamentService {
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error handling QuizUpdatedEvent: " + e.getMessage());
+            throw new AnswersException("Error handling QuizUpdatedEvent tournament: " + e.getMessage());
         }
     }
 

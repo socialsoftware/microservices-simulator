@@ -353,7 +353,7 @@ public class QuestionService {
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error handling TopicUpdatedEvent: " + e.getMessage());
+            throw new AnswersException("Error handling TopicUpdatedEvent question: " + e.getMessage());
         }
     }
 

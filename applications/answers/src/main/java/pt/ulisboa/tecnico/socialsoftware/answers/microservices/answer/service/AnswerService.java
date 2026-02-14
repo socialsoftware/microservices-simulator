@@ -283,7 +283,7 @@ public class AnswerService {
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error handling ExecutionUserUpdatedEvent: " + e.getMessage());
+            throw new AnswersException("Error handling ExecutionUserUpdatedEvent answer: " + e.getMessage());
         }
     }
 
@@ -301,7 +301,7 @@ public class AnswerService {
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error handling QuestionUpdatedEvent: " + e.getMessage());
+            throw new AnswersException("Error handling QuestionUpdatedEvent answer: " + e.getMessage());
         }
     }
 

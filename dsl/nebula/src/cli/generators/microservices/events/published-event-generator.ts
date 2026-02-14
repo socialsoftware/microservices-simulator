@@ -58,7 +58,7 @@ export class PublishedEventGenerator extends EventBaseGenerator {
                         const t: any = typeNode;
                         if (t.$type === 'EntityType') {
                             isEntityRef = true;
-                        } else if (t.$type === 'CollectionType' || t.$type === 'ListType' || t.$type === 'SetType') {
+                        } else if (t.$type === 'ListType' || t.$type === 'SetType') {
                             isCollectionRef = true;
                         }
                     }
@@ -173,8 +173,8 @@ export class PublishedEventGenerator extends EventBaseGenerator {
         for (const prop of rootEntity.properties) {
             const propType = (prop as any).type;
 
-            // Check if this is a collection type (Set, List, or CollectionType)
-            if (propType && (propType.$type === 'SetType' || propType.$type === 'ListType' || propType.$type === 'CollectionType')) {
+            // Check if this is a collection type (Set or List)
+            if (propType && (propType.$type === 'SetType' || propType.$type === 'ListType')) {
                 const elementType = propType.elementType?.type?.ref?.name || propType.elementType?.type?.$refText;
 
                 if (!elementType) continue;

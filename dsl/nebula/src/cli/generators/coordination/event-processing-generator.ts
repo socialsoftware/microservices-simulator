@@ -1,7 +1,7 @@
 import { AggregateExt, EntityExt } from '../../types/ast-extensions.js';
 import { CoordinationGenerationOptions } from '../microservices/types.js';
 import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../common/generator-capabilities.js';
-import { getEntities, getEffectiveFieldMappings, getAllModels, getAggregateRefName } from '../../utils/aggregate-helpers.js';
+import { getEntities, getEffectiveFieldMappings, getAllModels, getAggregateRefName, dtoFieldToString } from '../../utils/aggregate-helpers.js';
 import { Entity } from '../../../language/generated/ast.js';
 import { StringUtils } from '../../utils/string-utils.js';
 import { EventNameParser } from '../common/utils/event-name-parser.js';
@@ -384,7 +384,7 @@ public class {{aggregateName}}EventProcessing {
                 }
 
                 for (const mapping of fieldMappings) {
-                    let dtoField = mapping.dtoField;
+                    let dtoField = dtoFieldToString(mapping.dtoField);
 
                     // Skip system fields (these are already passed as separate parameters or don't exist on events)
                     // Check both capitalized and lowercase versions for case-insensitive matching

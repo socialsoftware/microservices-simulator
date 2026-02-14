@@ -32,8 +32,6 @@ public class QuizQuestion {
         setQuestionAggregateId(questionDto.getAggregateId());
         setQuestionVersion(questionDto.getVersion());
         setQuestionState(questionDto.getState());
-        setQuestionTitle(questionDto.getTitle());
-        setQuestionContent(questionDto.getContent());
     }
 
     public QuizQuestion(QuizQuestionDto quizQuestionDto) {

@@ -30,7 +30,6 @@ public class TournamentTopic {
         setTopicAggregateId(topicDto.getAggregateId());
         setTopicVersion(topicDto.getVersion());
         setTopicState(topicDto.getState());
-        setTopicName(topicDto.getName());
     }
 
     public TournamentTopic(TournamentTopicDto tournamentTopicDto) {

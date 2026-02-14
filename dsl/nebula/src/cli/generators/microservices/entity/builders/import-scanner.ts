@@ -2,10 +2,13 @@ import { Entity } from "../../../../../language/generated/ast.js";
 import { EntityExt } from "../../../../types/ast-extensions.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 import { getGlobalConfig } from "../../../common/config.js";
-import { getEffectiveProperties, getEffectiveFieldMappings } from "../../../../utils/aggregate-helpers.js";
+import { getEffectiveProperties, getEffectiveFieldMappings, getAllModels } from "../../../../utils/aggregate-helpers.js";
 import { ImportManager } from "../../../../utils/import-manager.js";
 import type { DtoSchemaRegistry, DtoFieldSchema } from "../../../../services/dto-schema-service.js";
 import { TypeExtractor } from "../../../common/utils/type-extractor.js";
+import { DtoSetterBuilder } from "./dto-setter-strategies/dto-setter-builder.js";
+import type { StrategyContext } from "./dto-setter-strategies/dto-setter-strategy.js";
+import { EntityPatternDetector } from "../../../common/utils/entity-pattern-detector.js";
 
 /**
  * Handles import detection and resolution for entity code generation.
@@ -17,11 +20,15 @@ import { TypeExtractor } from "../../../common/utils/type-extractor.js";
  * - Manages JPA annotation imports
  * - Generates DTO setter code with proper type mappings
  */
-export class ImportScanner {
+export class ImportScanner implements StrategyContext {
+    private dtoSetterBuilder: DtoSetterBuilder;
+
     constructor(
         private importManager: ImportManager,
         private dtoRegistry: DtoSchemaRegistry
-    ) {}
+    ) {
+        this.dtoSetterBuilder = new DtoSetterBuilder(this);
+    }
 
     /**
      * Finalizes the Java code by scanning for imports and replacing the placeholder
@@ -133,8 +140,10 @@ export class ImportScanner {
             }
         }
 
-        // Entity imports
-        const entityPattern = /\b([A-Z][a-zA-Z]*(?:User|Course|Question|Quiz|Topic|Tournament|Answer|Execution|Option))\b/g;
+        // Entity imports - dynamically detect based on all aggregates
+        const allModels = getAllModels();
+        const allAggregates = allModels.flatMap(model => model.aggregates);
+        const entityPattern = EntityPatternDetector.buildEntityPattern(allAggregates);
         let entityMatch;
         const excludedEntityNames = ['String', 'Integer', 'Long', 'Double', 'Float', 'Boolean', 'LocalDateTime', 'BigDecimal'];
 
@@ -212,172 +221,49 @@ export class ImportScanner {
     /**
      * Builds a DTO setter statement from schema information
      */
+    /**
+     * Builds a DTO setter statement for a field.
+     *
+     * Refactored to use Strategy pattern for maintainability.
+     * Each case is handled by a dedicated strategy class.
+     */
     buildDtoSetterFromSchema(
         field: DtoFieldSchema,
         entity: EntityExt,
         dtoFieldOverrides?: Map<string, { property: any; extractField?: string }>
     ): string | null {
-        const capName = field.name.charAt(0).toUpperCase() + field.name.slice(1);
         const override = dtoFieldOverrides?.get(field.name);
         const isRootEntity = entity.isRoot || false;
 
-        // Handle aggregate fields
-        if (field.isAggregateField && !override) {
-            if (!isRootEntity) {
-                return null;
-            }
-            switch (field.name) {
-                case 'aggregateId':
-                    return '        dto.setAggregateId(getAggregateId());';
-                case 'version':
-                    return '        dto.setVersion(getVersion());';
-                case 'state':
-                    return '        dto.setState(getState());';
-                default:
-                    return null;
-            }
+        // Early return for non-root aggregate fields
+        if (field.isAggregateField && !override && !isRootEntity) {
+            return null;
         }
 
+        // Find the property for this field
         const effectiveProps = getEffectiveProperties(entity);
         const prop = override?.property || effectiveProps.find((p: any) => p.name === (field.sourceName || field.name));
-        if (!prop) {
-            return null;
-        }
-        const belongsToEntity = prop.$container?.name === entity.name || (prop as any).$fromMapping;
-        if (!belongsToEntity && !override) {
+        if (!prop && !field.isAggregateField) {
             return null;
         }
 
-        const getterCall = this.buildEntityGetterCall(prop);
-        if (!getterCall) {
+        // Check if property belongs to this entity
+        if (prop) {
+            const belongsToEntity = prop.$container?.name === entity.name || (prop as any).$fromMapping;
+            if (!belongsToEntity && !override) {
+                return null;
+            }
+        }
+
+        // Build getter call
+        const getterCall = prop ? this.buildEntityGetterCall(prop) : '';
+        if (!getterCall && !field.isAggregateField) {
             return null;
         }
 
-        const effectiveExtractField = override?.extractField || field.extractField;
-
-        // Handle field mapping overrides
-        if (override) {
-            if (this.isEnumProperty(prop)) {
-                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.name() : null);`;
-            }
-            if (effectiveExtractField) {
-                const extractMethod = `get${effectiveExtractField.charAt(0).toUpperCase() + effectiveExtractField.slice(1)}()`;
-                const javaType = TypeResolver.resolveJavaType(prop.type);
-                const isEntityCollection = javaType.startsWith('List<') || javaType.startsWith('Set<');
-                const isDtoCollection = field.isCollection;
-
-                if (isEntityCollection) {
-                    const elementTypeMatch = javaType.match(/<(.*)>/);
-                    if (elementTypeMatch) {
-                        const elementType = elementTypeMatch[1];
-                        if (TypeResolver.isPrimitiveType(elementType) ||
-                            elementType === 'Integer' ||
-                            elementType === 'String' ||
-                            elementType === 'Boolean' ||
-                            elementType === 'Long') {
-                            return null;
-                        }
-                    }
-                }
-
-                if (isEntityCollection && isDtoCollection) {
-                    const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
-                    let elementType = 'item';
-                    if (javaType) {
-                        const elementTypeMatch = javaType.match(/<(.*)>/);
-                        if (elementTypeMatch) {
-                            elementType = elementTypeMatch[1];
-                        }
-                    }
-                    return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map((${elementType} item) -> item.${extractMethod}).collect(${collector}) : null);`;
-                } else {
-                    return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${extractMethod} : null);`;
-                }
-            }
-            return `        dto.set${capName}(${getterCall});`;
-        }
-
-        // Handle derived aggregate ID fields
-        if (field.derivedAggregateId && field.sourceProperty) {
-            const accessor = field.derivedAccessor || 'getAggregateId';
-            if (field.isCollection) {
-                const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
-                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map(item -> item.${accessor}()).collect(${collector}) : null);`;
-            }
-            return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${accessor}() : null);`;
-        }
-
-        // Handle enum fields - convert to string using .name()
-        if (field.isEnum || (prop && this.isEnumProperty(prop))) {
-            if (field.isCollection) {
-                const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
-                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map(value -> value != null ? value.name() : null).collect(${collector}) : null);`;
-            }
-            return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.name() : null);`;
-        }
-
-        // Handle fields requiring DTO conversion
-        if (field.requiresConversion) {
-            if (field.isCollection && field.referencedEntityName) {
-                const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
-                if (field.referencedEntityIsRoot || !field.referencedEntityHasGenerateDto) {
-                    return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map(${field.referencedEntityName}::buildDto).collect(${collector}) : null);`;
-                } else {
-                    return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map(${field.referencedDtoName}::new).collect(${collector}) : null);`;
-                }
-            }
-            if (!field.isCollection) {
-                if (field.referencedEntityIsRoot || !field.referencedEntityHasGenerateDto) {
-                    return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.buildDto() : null);`;
-                } else {
-                    return `        dto.set${capName}(${getterCall} != null ? new ${field.referencedDtoName}(${getterCall}) : null);`;
-                }
-            }
-        }
-
-        // Legacy: Convert Type fields to string
-        if (prop.name.endsWith('Type')) {
-            return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.toString() : null);`;
-        }
-
-        // Handle extract field for other cases
-        if (effectiveExtractField) {
-            const extractMethod = `get${effectiveExtractField.charAt(0).toUpperCase() + effectiveExtractField.slice(1)}()`;
-            const javaType = TypeResolver.resolveJavaType(prop.type);
-            const isEntityCollection = javaType.startsWith('List<') || javaType.startsWith('Set<');
-            const isDtoCollection = field.isCollection;
-
-            if (isEntityCollection) {
-                const elementTypeMatch = javaType.match(/<(.*)>/);
-                if (elementTypeMatch) {
-                    const elementType = elementTypeMatch[1];
-                    if (TypeResolver.isPrimitiveType(elementType) ||
-                        elementType === 'Integer' ||
-                        elementType === 'String' ||
-                        elementType === 'Boolean' ||
-                        elementType === 'Long') {
-                        return null;
-                    }
-                }
-            }
-
-            if (isEntityCollection && isDtoCollection) {
-                const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
-                let elementType = 'item';
-                if (javaType) {
-                    const elementTypeMatch = javaType.match(/<(.*)>/);
-                    if (elementTypeMatch) {
-                        elementType = elementTypeMatch[1];
-                    }
-                }
-                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map((${elementType} item) -> item.${extractMethod}).collect(${collector}) : null);`;
-            } else {
-                return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${extractMethod} : null);`;
-            }
-        }
-
-        // Default: Simple setter
-        return `        dto.set${capName}(${getterCall});`;
+        // Use strategy pattern to build setter
+        // At this point, getterCall is guaranteed to be non-null or we have an aggregate field
+        return this.dtoSetterBuilder.buildSetter(field, entity, prop, override, getterCall || '');
     }
 
     /**

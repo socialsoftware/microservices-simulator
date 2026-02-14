@@ -32,8 +32,6 @@ public class QuizExecution {
         setExecutionAggregateId(executionDto.getAggregateId());
         setExecutionVersion(executionDto.getVersion());
         setExecutionState(executionDto.getState());
-        setExecutionAcronym(executionDto.getAcronym());
-        setExecutionAcademicTerm(executionDto.getAcademicTerm());
     }
 
     public QuizExecution(QuizExecutionDto quizExecutionDto) {

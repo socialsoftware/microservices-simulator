@@ -363,7 +363,7 @@ public class {{capitalizedAggregate}}Invariants {
         }
 
         if (type.$type === 'PrimitiveType') {
-            return type.name?.toLowerCase() === 'boolean';
+            return type.typeName?.toLowerCase() === 'boolean';
         }
 
         return false;

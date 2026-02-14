@@ -20,8 +20,7 @@ Aggregate Answer {
     Entity AnswerQuiz from Quiz {
         Integer quizAggregateId
         Integer quizVersion
-        // TODO: Extract pattern not yet supported in new syntax
-        // List<Integer> quizQuestionsAggregateIds -> questions extract aggregateId
+        map questions.aggregateId as quizQuestionsAggregateIds
     }
 
     Root Entity Answer {

@@ -268,7 +268,7 @@ public class QuizService {
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error handling ExecutionUpdatedEvent: " + e.getMessage());
+            throw new AnswersException("Error handling ExecutionUpdatedEvent quiz: " + e.getMessage());
         }
     }
 
@@ -286,7 +286,7 @@ public class QuizService {
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error handling TopicUpdatedEvent: " + e.getMessage());
+            throw new AnswersException("Error handling TopicUpdatedEvent quiz: " + e.getMessage());
         }
     }
 
@@ -304,7 +304,7 @@ public class QuizService {
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {
-            throw new AnswersException("Error handling TopicDeletedEvent: " + e.getMessage());
+            throw new AnswersException("Error handling TopicDeletedEvent quiz: " + e.getMessage());
         }
     }
 

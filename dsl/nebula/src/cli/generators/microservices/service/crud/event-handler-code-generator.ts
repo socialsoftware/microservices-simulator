@@ -4,6 +4,7 @@ import { capitalize } from "../../../../utils/generator-utils.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 import { getEntities, getAllModels, getAggregateRefName, getEffectiveFieldMappings } from "../../../../utils/aggregate-helpers.js";
 import { EXTENDED_PRIMITIVE_TYPES } from "../../../common/utils/type-constants.js";
+import { ExceptionGenerator } from "../../../common/utils/exception-generator.js";
 
 /**
  * Generates event handler method code for projection entity updates.
@@ -204,9 +205,7 @@ export class EventHandlerCodeGenerator {
             ? `Integer aggregateId, Integer ${publisherAggregateName.toLowerCase()}AggregateId, Integer ${publisherAggregateName.toLowerCase()}Version${primitiveFieldParams.methodSignature}`
             : `Integer aggregateId, Integer ${publisherAggregateName.toLowerCase()}AggregateId, Integer ${publisherAggregateName.toLowerCase()}Version`;
 
-        return `    public ${rootEntityName} ${methodName}(${methodParamList}, UnitOfWork unitOfWork) {
-        try {
-            ${rootEntityName} old${rootEntityName} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        const methodBody = `            ${rootEntityName} old${rootEntityName} = (${rootEntityName}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             ${rootEntityName} new${rootEntityName} = ${lowerAggregate}Factory.create${rootEntityName}FromExisting(old${rootEntityName});
 
 ${projectionUpdateCode}
@@ -214,12 +213,10 @@ ${projectionUpdateCode}
             unitOfWorkService.registerChanged(new${rootEntityName}, unitOfWork);
 ${eventRegistrationCode}
 
-            return new${rootEntityName};
-        } catch (${capitalize(projectName)}Exception e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ${capitalize(projectName)}Exception("Error handling ${eventTypeName}: " + e.getMessage());
-        }
+            return new${rootEntityName};`;
+
+        return `    public ${rootEntityName} ${methodName}(${methodParamList}, UnitOfWork unitOfWork) {
+${ExceptionGenerator.generateTryCatchWrapper(projectName, `handling ${eventTypeName}`, lowerAggregate, methodBody)}
     }`;
     }
 
