@@ -4,66 +4,46 @@ import { GeneratorCapabilities } from "../../../common/generator-capabilities.js
 import { EventNameParser } from "../../../common/utils/event-name-parser.js";
 import { EventPublisherDiscovery } from "./event-publisher-discovery.js";
 
-/**
- * Subscribed Event Context Builder
- *
- * Responsible for building context objects for subscribed event generation.
- * Handles:
- * - Simple subscribed events
- * - Inter-invariant subscriptions
- * - Event handlers
- * - Event subscriptions with routing/conditions
- */
+
+
 export class SubscribedEventContextBuilder {
     constructor(private capabilities: GeneratorCapabilities) {}
 
-    /**
-     * Build context for a subscribed event.
-     *
-     * Handles subscription context generation including:
-     * - Source aggregate detection (AST reference, allAggregates search, or fallback)
-     * - Projection entity discovery
-     * - Condition conversion to Java
-     * - Routing expression building
-     *
-     * @param event The subscribed event definition
-     * @param aggregate The subscribing aggregate
-     * @param options Generation options (projectName, allAggregates)
-     * @returns Context object for subscription template rendering
-     */
+    
+
     buildSubscribedEventContext(event: SubscribedEvent, aggregate: AggregateExt, options: any): any {
         const lowerAggregate = aggregate.name.toLowerCase();
         const eventTypeName = (event as any).eventType || 'UnknownEvent';
 
         const subscriptionName = EventNameParser.generateSubscriptionName(aggregate.name, eventTypeName);
 
-        // Infer source aggregate if not explicitly provided
+        
         let subscribingEntityName = event.sourceAggregate;
         if (!subscribingEntityName) {
-            // Extract entity name from event (e.g., TopicDeletedEvent -> Topic)
+            
             const inferredEntityName = EventNameParser.extractEntityName(eventTypeName);
 
-            // Try to find a projection entity that references this entity
+            
             const entities = (aggregate as any).entities || [];
             const projectionEntity = entities.find((e: any) => {
                 const aggregateRef = e.aggregateRef;
                 return aggregateRef && aggregateRef.toLowerCase() === inferredEntityName.toLowerCase();
             });
 
-            // Use projection entity if found, otherwise use root entity
+            
             subscribingEntityName = projectionEntity ? projectionEntity.name : aggregate.name;
         }
 
-        // use lower-camel case so multi-word entity names (e.g., AnswerQuiz) keep
-        // their internal capitalization and still match routing expressions
+        
+        
         const subscribingEntityVariable = subscribingEntityName
             ? subscribingEntityName.charAt(0).toLowerCase() + subscribingEntityName.slice(1)
             : '';
 
-        // Determine the publishing aggregate from the event
-        let eventSourceAggregate = lowerAggregate;  // default to current aggregate
+        
+        let eventSourceAggregate = lowerAggregate;  
 
-        // PRIORITY 1: Try AST reference (works for custom events with explicit references)
+        
         const publishedEvent = (event as any).eventType?.ref;
         const eventsContainer = publishedEvent?.$container;
         const sourceAggregate = eventsContainer?.$container;
@@ -72,23 +52,23 @@ export class SubscribedEventContextBuilder {
         } else if (event.sourceAggregate) {
             eventSourceAggregate = event.sourceAggregate.toLowerCase();
         }
-        // PRIORITY 2: Search all aggregates for event publisher (works for CRUD events)
+        
         else if (options?.allAggregates && options.allAggregates.length > 0) {
             const found = EventPublisherDiscovery.findEventPublisher(eventTypeName, options.allAggregates);
             if (found) {
                 eventSourceAggregate = found;
             } else {
                 console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
-                // Fallback to inferring from event name
+                
                 const inferredPublisher = EventNameParser.extractPublisherAggregate(eventTypeName);
                 eventSourceAggregate = inferredPublisher.toLowerCase();
             }
         }
-        // PRIORITY 3: Fallback (only when allAggregates not available)
+        
         else {
-            // Infer the publishing aggregate from the event name
-            // Extract entity name from event (e.g., UserDeletedEvent -> User, TopicUpdatedEvent -> Topic)
-            // Pattern is: {Entity}{Action}Event where Action is Deleted, Updated, or Created
+            
+            
+            
             const inferredPublisher = EventNameParser.extractPublisherAggregate(eventTypeName);
             eventSourceAggregate = inferredPublisher.toLowerCase();
         }
@@ -123,67 +103,58 @@ export class SubscribedEventContextBuilder {
         };
     }
 
-    /**
-     * Build context for an inter-invariant subscription.
-     *
-     * Inter-invariant subscriptions enforce referential integrity constraints.
-     * They include the field name in the subscription class name to avoid conflicts.
-     *
-     * @param event The subscribed event with inter-invariant metadata
-     * @param aggregate The subscribing aggregate
-     * @param options Generation options
-     * @returns Context object for inter-invariant subscription template
-     */
+    
+
     buildInterInvariantSubscriptionContext(event: SubscribedEvent, aggregate: AggregateExt, options: any): any {
         const aggregateName = aggregate.name;
         const eventTypeName = (event as any).eventType || 'UnknownEvent';
         const eventBaseName = EventNameParser.removeEventSuffix(eventTypeName);
 
-        // For inter-invariants, include the field name in the subscription class name to avoid conflicts
-        // when multiple inter-invariants subscribe to the same event
+        
+        
         const interInvariantName = (event as any).interInvariantName || '';
-        // Convert TOURNAMENT_CREATOR_EXISTS to TournamentCreatorExists
+        
         const fieldSuffix = interInvariantName
             ? interInvariantName.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join('')
             : '';
         const subscriptionName = `${aggregateName}Subscribes${eventBaseName}${fieldSuffix}`;
 
-        // Extract entity reference from condition
+        
         const entityRef = this.extractEntityReferenceFromCondition(event, aggregate);
         if (!entityRef) {
             console.warn(`Warning: Could not extract entity reference for inter-invariant subscription ${subscriptionName}`);
             return this.buildSubscribedEventContext(event, aggregate, options);
         }
 
-        // Determine source aggregate from event
-        // First check if it's explicitly specified in the DSL with "from Aggregate"
+        
+        
         let eventSourceAggregate = aggregateName.toLowerCase();
         if (event.sourceAggregate) {
             eventSourceAggregate = event.sourceAggregate.toLowerCase();
         } else {
-            // Check if the referenced entity is a projection entity
+            
             const entities = (aggregate as any).entities || [];
             const referencedEntity = entities.find((e: any) => e.name === entityRef.entityTypeName);
 
             if (referencedEntity && (referencedEntity as any).aggregateRef) {
-                // It's a projection entity - use the aggregate it projects from
+                
                 eventSourceAggregate = (referencedEntity as any).aggregateRef.toLowerCase();
             } else {
-                // Try AST reference
+                
                 const publishedEvent = (event as any).eventType?.ref;
                 const eventsContainer = publishedEvent?.$container;
                 const sourceAggregate = eventsContainer?.$container;
                 if (sourceAggregate?.name) {
                     eventSourceAggregate = sourceAggregate.name.toLowerCase();
                 } else {
-                    // Infer from event name
+                    
                     const inferredPublisher = EventNameParser.extractPublisherAggregate(eventTypeName);
                     eventSourceAggregate = inferredPublisher.toLowerCase();
                 }
             }
         }
 
-        // Build field names from entity type
+        
         const cleanEntityName = entityRef.entityTypeName.replace(new RegExp(`^${aggregateName}`, 'i'), '');
         const lowerEntityName = cleanEntityName.charAt(0).toLowerCase() + cleanEntityName.slice(1);
         const aggregateIdField = `${lowerEntityName}AggregateId`;
@@ -212,20 +183,15 @@ export class SubscribedEventContextBuilder {
         };
     }
 
-    /**
-     * Build context for custom event handling (main event routing class).
-     *
-     * @param aggregate The aggregate
-     * @param options Generation options
-     * @returns Context for EventHandling class template
-     */
+    
+
     buildCustomEventHandlingContext(aggregate: AggregateExt, options: any): any {
         const aggregateName = aggregate.name;
         const lowerAggregateName = aggregateName.toLowerCase();
 
         const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
 
-        // Filter out inter-invariant subscriptions as they don't have handlers
+        
         const eventsWithHandlers = allSubscribedEvents.filter((event: any) => !(event as any).isInterInvariant);
 
         const subscribedEvents = eventsWithHandlers.map(event => {
@@ -238,13 +204,13 @@ export class SubscribedEventContextBuilder {
             const eventTypeName = (event as any).eventType || 'UnknownEvent';
             const handlerName = `${eventTypeName}Handler`;
 
-            // Extract entity name from event (e.g., UserDeletedEvent -> User, TopicUpdatedEvent -> Topic)
+            
             const entityName = EventNameParser.extractEntityName(eventTypeName);
 
-            // Determine source aggregate from published event
+            
             let sourceAggregateName = lowerAggregateName;
 
-            // PRIORITY 1: Try AST reference (works for custom events with explicit references)
+            
             const publishedEvent = (event as any).eventType?.ref;
             const eventsContainer = publishedEvent?.$container;
             const sourceAggregate = eventsContainer?.$container;
@@ -253,21 +219,21 @@ export class SubscribedEventContextBuilder {
             } else if ((event as any).sourceAggregate) {
                 sourceAggregateName = ((event as any).sourceAggregate as string).toLowerCase();
             }
-            // PRIORITY 2: Search all aggregates for event publisher (works for CRUD events)
+            
             else if (options?.allAggregates && options.allAggregates.length > 0) {
                 const found = EventPublisherDiscovery.findEventPublisher(eventTypeName, options.allAggregates);
                 if (found) {
                     sourceAggregateName = found;
                 } else {
                     console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
-                    // Fallback to simple name matching
+                    
                     sourceAggregateName = entityName.toLowerCase();
                 }
             }
-            // PRIORITY 3: Fallback (only when allAggregates not available)
+            
             else {
-                // Fallback: infer source aggregate from event name
-                // UserDeletedEvent -> user, TopicUpdatedEvent -> topic
+                
+                
                 sourceAggregateName = entityName.toLowerCase();
             }
 
@@ -290,27 +256,21 @@ export class SubscribedEventContextBuilder {
         };
     }
 
-    /**
-     * Build context for a specific event handler.
-     *
-     * @param event The subscribed event
-     * @param aggregate The aggregate
-     * @param options Generation options
-     * @returns Context for event handler template
-     */
+    
+
     buildEventHandlerContext(event: SubscribedEvent, aggregate: AggregateExt, options: any): any {
         const aggregateName = aggregate.name;
         const lowerAggregateName = aggregateName.toLowerCase();
         const eventTypeName = (event as any).eventType || 'UnknownEvent';
         const handlerName = `${eventTypeName}Handler`;
 
-        // Extract entity name from event (e.g., UserDeletedEvent -> User, TopicUpdatedEvent -> Topic)
+        
         const entityName = EventNameParser.extractEntityName(eventTypeName);
 
-        // Determine source aggregate from published event
+        
         let sourceAggregateName = lowerAggregateName;
 
-        // PRIORITY 1: Try AST reference (works for custom events with explicit references)
+        
         const publishedEvent = (event as any).eventType?.ref;
         const eventsContainer = publishedEvent?.$container;
         const sourceAggregate = eventsContainer?.$container;
@@ -319,21 +279,21 @@ export class SubscribedEventContextBuilder {
         } else if ((event as any).sourceAggregate) {
             sourceAggregateName = ((event as any).sourceAggregate as string).toLowerCase();
         }
-        // PRIORITY 2: Search all aggregates for event publisher (works for CRUD events)
+        
         else if (options?.allAggregates && options.allAggregates.length > 0) {
             const found = EventPublisherDiscovery.findEventPublisher(eventTypeName, options.allAggregates);
             if (found) {
                 sourceAggregateName = found;
             } else {
                 console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
-                // Fallback to simple name matching
+                
                 sourceAggregateName = entityName.toLowerCase();
             }
         }
-        // PRIORITY 3: Fallback (only when allAggregates not available)
+        
         else {
-            // Fallback: infer source aggregate from event name
-            // UserDeletedEvent -> user, TopicUpdatedEvent -> topic
+            
+            
             sourceAggregateName = entityName.toLowerCase();
         }
 
@@ -349,13 +309,8 @@ export class SubscribedEventContextBuilder {
         };
     }
 
-    /**
-     * Build context for base event handler class.
-     *
-     * @param aggregate The aggregate
-     * @param options Generation options
-     * @returns Context for base handler template
-     */
+    
+
     buildBaseEventHandlerContext(aggregate: AggregateExt, options: { projectName: string }): any {
         const aggregateName = aggregate.name;
         const lowerAggregateName = aggregateName.toLowerCase();
@@ -369,20 +324,12 @@ export class SubscribedEventContextBuilder {
         };
     }
 
-    // ============================================================================
-    // ENTITY REFERENCE EXTRACTION
-    // ============================================================================
+    
+    
+    
 
-    /**
-     * Extract entity reference from inter-invariant condition.
-     *
-     * Parses conditions like "field.property == event.value" to extract
-     * the field name and entity type.
-     *
-     * @param event The subscribed event with conditions
-     * @param aggregate The aggregate
-     * @returns Field name and entity type, or null if extraction fails
-     */
+    
+
     private extractEntityReferenceFromCondition(event: SubscribedEvent, aggregate: AggregateExt): { fieldName: string, entityTypeName: string } | null {
         const conditions = event.conditions || [];
         if (conditions.length === 0) {
@@ -398,7 +345,7 @@ export class SubscribedEventContextBuilder {
             return null;
         }
 
-        // Extract field name from "fieldName.property == ..."
+        
         const match = conditionText.match(/^(\w+)\./);
         if (!match) {
             return null;
@@ -406,7 +353,7 @@ export class SubscribedEventContextBuilder {
 
         const fieldName = match[1];
 
-        // Find the property in the root entity
+        
         const rootEntity: any = (aggregate as any).entities?.find((e: any) => e.isRoot);
         if (!rootEntity) {
             return null;
@@ -417,7 +364,7 @@ export class SubscribedEventContextBuilder {
             return null;
         }
 
-        // Extract entity type name
+        
         const entityTypeName = this.extractEntityTypeName(property);
         if (!entityTypeName) {
             return null;
@@ -426,29 +373,20 @@ export class SubscribedEventContextBuilder {
         return { fieldName, entityTypeName };
     }
 
-    /**
-     * Extract entity type name from a property.
-     *
-     * Handles various AST patterns:
-     * - ListType/SetType (unified type system)
-     * - EntityType
-     * - Legacy patterns
-     *
-     * @param property The property AST node
-     * @returns Entity type name or null
-     */
+    
+
     private extractEntityTypeName(property: any): string | null {
         const typeObj = property.type;
         if (!typeObj) {
             return null;
         }
 
-        // ListType/SetType pattern (unified type system)
+        
         if ((typeObj.$type === 'ListType' || typeObj.$type === 'SetType') && typeObj.elementType) {
             const elementType = typeObj.elementType;
-            // ElementType is now a BaseType (can be EntityType, PrimitiveType, or BuiltinType)
+            
             if (elementType.$type === 'EntityType') {
-                // EntityType has structure: { $type: 'EntityType', type: { ref: Entity, $refText: string } }
+                
                 if (elementType.type?.ref?.name) {
                     return elementType.type.ref.name;
                 }
@@ -456,7 +394,7 @@ export class SubscribedEventContextBuilder {
                     return elementType.type.$refText;
                 }
             }
-            // Legacy fallback patterns
+            
             if (elementType.$refText) {
                 return elementType.$refText;
             }
@@ -465,17 +403,17 @@ export class SubscribedEventContextBuilder {
             }
         }
 
-        // EntityType pattern
+        
         if (typeObj.$type === 'EntityType' && typeObj.type?.$refText) {
             return typeObj.type.$refText;
         }
 
-        // Simple entity type (legacy pattern)
+        
         if (typeObj.type?.$refText) {
             return typeObj.type.$refText;
         }
 
-        // Collection type (legacy pattern)
+        
         if (typeObj.collection) {
             if (typeObj.type?.type?.$refText) {
                 return typeObj.type.type.$refText;
@@ -488,23 +426,12 @@ export class SubscribedEventContextBuilder {
         return null;
     }
 
-    // ============================================================================
-    // SUBSCRIPTION KEY BUILDERS
-    // ============================================================================
+    
+    
+    
 
-    /**
-     * Build subscription key expressions for routing.
-     *
-     * Determines which aggregate ID and version to use for subscription routing.
-     * Uses routing expressions if provided, otherwise attempts to infer from
-     * projection entity fields.
-     *
-     * @param event The subscribed event
-     * @param aggregate The aggregate
-     * @param aggregateVariable Variable name for the aggregate
-     * @param eventTypeName Event type name
-     * @returns Aggregate ID and version expressions
-     */
+    
+
     private buildSubscriptionKeyExpressions(
         event: SubscribedEvent,
         aggregate: Aggregate,
@@ -589,18 +516,8 @@ export class SubscribedEventContextBuilder {
         };
     }
 
-    /**
-     * Build getter chain from routing expression.
-     *
-     * Converts routing expressions like "event.userId" or "aggregate.user.id"
-     * into Java getter chains like "((UserEvent)event).getUserId()" or
-     * "aggregate.getUser().getId()".
-     *
-     * @param expr The routing expression AST node
-     * @param aggregateVariable Variable name for aggregate
-     * @param eventTypeName Event type name for casting
-     * @returns Java getter chain expression
-     */
+    
+
     private buildGetterChainFromRoutingExpression(
         expr: any,
         aggregateVariable: string,
@@ -644,16 +561,12 @@ export class SubscribedEventContextBuilder {
         return this.convertEventConditionToJava(expr, aggregateVariable, eventTypeName);
     }
 
-    // ============================================================================
-    // EVENT COLLECTION
-    // ============================================================================
+    
+    
+    
 
-    /**
-     * Collect all subscribed events (direct + inter-invariant).
-     *
-     * @param aggregate The aggregate
-     * @returns Array of all subscribed events
-     */
+    
+
     private collectSubscribedEvents(aggregate: AggregateExt): any[] {
         const direct = aggregate.events?.subscribedEvents || [];
         const interInvariants = (aggregate.events as any)?.interInvariants || [];
@@ -664,21 +577,12 @@ export class SubscribedEventContextBuilder {
         return allSubscribed;
     }
 
-    // ============================================================================
-    // EXPRESSION CONVERSION
-    // ============================================================================
+    
+    
+    
 
-    /**
-     * Convert event condition expression to Java.
-     *
-     * Converts DSL condition expressions (e.g., "course.courseAggregateId == event.aggregateId")
-     * into Java code with proper getter calls and type casting.
-     *
-     * @param expression The condition expression AST
-     * @param entityVariable Variable name for the entity
-     * @param eventTypeName Event type name for casting
-     * @returns Java condition expression
-     */
+    
+
     private convertEventConditionToJava(expression: any, entityVariable: string, eventTypeName: string): string {
         if (!expression) {
             return "true";
@@ -719,14 +623,8 @@ export class SubscribedEventContextBuilder {
         return rewritten;
     }
 
-    /**
-     * Convert expression AST to Java (fallback for complex expressions).
-     *
-     * @param expression The expression AST node
-     * @param entityVariable Variable name for entity
-     * @param eventTypeName Event type name
-     * @returns Java expression
-     */
+    
+
     private convertExpressionASTToJava(expression: any, entityVariable: string, eventTypeName: string): string {
         if (!expression) {
             return 'true';
@@ -781,14 +679,8 @@ export class SubscribedEventContextBuilder {
         return 'true';
     }
 
-    /**
-     * Convert property chain expression to Java.
-     *
-     * @param expression The property chain AST
-     * @param entityVariable Variable name for entity
-     * @param eventTypeName Event type name
-     * @returns Java property chain
-     */
+    
+
     private convertPropertyChainToJava(expression: any, entityVariable: string, eventTypeName: string): string {
         const head = expression.head;
         let result = '';
@@ -819,25 +711,18 @@ export class SubscribedEventContextBuilder {
         return result;
     }
 
-    /**
-     * Check if an expression is a property access.
-     *
-     * @param expression The expression AST
-     * @returns True if property access
-     */
+    
+
     private isPropertyAccess(expression: any): boolean {
         return expression?.$type === 'PropertyReference' || expression?.$type === 'PropertyChainExpression';
     }
 
-    // ============================================================================
-    // UTILITY METHODS
-    // ============================================================================
+    
+    
+    
 
-    /**
-     * Get base package name from capabilities.
-     *
-     * @returns Base package name
-     */
+    
+
     private getBasePackage(): string {
         return this.capabilities.packageBuilder.buildCustomPackage('').split('.').slice(0, -1).join('.');
     }

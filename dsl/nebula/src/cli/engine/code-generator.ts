@@ -27,32 +27,17 @@ import { SharedFeature } from "../generators/microservices/shared/index.js";
 import { DtoSchemaService } from "../services/dto-schema-service.js";
 
 export class CodeGenerator {
-    /**
-     * Main entry point for generating Java microservices code from Nebula DSL files.
-     * 
-     * This method orchestrates the entire code generation process:
-     * 1. Discovers and parses DSL files
-     * 2. Validates the domain models
-     * 3. Generates complete microservices architecture including:
-     *    - JPA entities and repositories
-     *    - Service layers and business logic
-     *    - REST APIs and DTOs
-     *    - Event handling and coordination
-     *    - Saga patterns and validation
-     *    - Project infrastructure (pom.xml, configuration, etc.)
-     * 
-     * @param inputPath Path to the abstractions folder containing .nebula files
-     * @param opts Generation options (destination, project name, validation)
-     */
+    
+
     static async generateCode(inputPath: string, opts: TemplateGenerateOptions): Promise<void> {
         try {
             console.log(`Starting generation for: ${inputPath}`);
 
-            // ═══════════════════════════════════════════════════════════════
-            // PHASE 1: DISCOVERY & PARSING
-            // ═══════════════════════════════════════════════════════════════
+            
+            
+            
 
-            // Discover all .nebula files in the input directory
+            
             const nebulaFiles = await collectNebulaFiles(inputPath);
             if (nebulaFiles.length === 0) {
                 console.error(`No Nebula files found at path: ${inputPath}`);
@@ -64,32 +49,32 @@ export class CodeGenerator {
             await this.loadLanguageDocuments(services, nebulaFiles);
             const models = await this.parseModels(nebulaFiles, services);
 
-            // Register all models for cross-file type resolution
+            
             registerAllModels(models);
 
-            // ═══════════════════════════════════════════════════════════════
-            // PHASE 2: CONFIGURATION & VALIDATION
-            // ═══════════════════════════════════════════════════════════════
+            
+            
+            
 
-            // Setup project configuration and output paths
+            
             const config = await this.setupConfiguration(opts, inputPath);
             const paths = await ProjectSetup.setupProjectPaths(config.baseOutputDir, inputPath, config.projectName);
 
-            // Clean previous generated project before writing new code
-            // This ensures removed components don't linger on disk between generations.
+            
+            
             try {
                 await fs.rm(paths.projectPath, { recursive: true, force: true });
                 console.log(`Cleaning existing project directory: ${paths.projectPath}`);
             } catch {
-                // Ignore cleanup failures; generation will recreate what's needed.
+                
             }
 
-            // Validate domain models for correctness
+            
             await this.validateModels(models, config);
 
-            // ═══════════════════════════════════════════════════════════════
-            // PHASE 3: CODE GENERATION
-            // ═══════════════════════════════════════════════════════════════
+            
+            
+            
 
             console.log("Generating code...");
             const generators = GeneratorRegistryFactory.createRegistry();
@@ -108,9 +93,9 @@ export class CodeGenerator {
 
             const aggregates = models.flatMap(model => model.aggregates);
 
-            // ───────────────────────────────────────────────────────────────
-            // 3A. Generate Aggregate-Specific Components
-            // ───────────────────────────────────────────────────────────────
+            
+            
+            
 
             for (const model of models) {
                 for (const aggregate of model.aggregates) {
@@ -120,30 +105,30 @@ export class CodeGenerator {
 
                     const aggregatePath = paths.javaPath + '/microservices/' + aggregate.name.toLowerCase();
 
-                    // Core microservice components (entities, services, repositories, factories)
+                    
                     await EntityFeature.generateCoreComponents(aggregate, aggregatePath, options, generators);
                     await ServiceFeature.generateService(aggregate, aggregatePath, options, generators);
 
-                    // Event-driven architecture components
+                    
                     await EventsFeature.generateEvents(aggregate, aggregatePath, options, generators);
 
-                    // Cross-aggregate coordination and communication
+                    
                     await CoordinationFeature.generateCoordination(aggregate, paths, options, generators, aggregates);
 
-                    // REST API endpoints and DTOs
+                    
                     await WebApiFeature.generateWebApi(aggregate, paths, options, generators, aggregates);
 
-                    // Business rule validation
+                    
                     await ValidationFeature.generateValidation(aggregate, paths, options, generators);
 
-                    // Distributed transaction patterns
+                    
                     await SagaFeature.generateSaga(aggregate, paths, options, generators, aggregates);
                 }
             }
 
-            // ───────────────────────────────────────────────────────────────
-            // 3B. Generate Project Infrastructure
-            // ───────────────────────────────────────────────────────────────
+            
+            
+            
 
             const projectOptions: GenerationOptions = {
                 projectName: config.projectName,
@@ -151,9 +136,9 @@ export class CodeGenerator {
                 basePackage: options.basePackage
             };
 
-            // Application integration and exception handling
+            
             if (models[0]?.aggregates?.length > 0) {
-                // Main application class for microservices simulator
+                
                 const integrationCode = await generators.integrationGenerator.generateIntegration(
                     models[0].aggregates[0],
                     projectOptions
@@ -163,7 +148,7 @@ export class CodeGenerator {
                 await fs.writeFile(integrationPath, integrationCode['application'], 'utf-8');
                 console.log(`\t- Generated integration ${config.projectName}Simulator`);
 
-                // Global exception handling
+                
                 const globalConfig = getGlobalConfig();
                 await generators.exceptionGenerator.generate(
                     models[0].aggregates[0],
@@ -202,11 +187,11 @@ export class CodeGenerator {
 
             console.log(`\t- Test generation skipped (disabled)`);
 
-            // ───────────────────────────────────────────────────────────────
-            // 3C. Generate Shared Components
-            // ───────────────────────────────────────────────────────────────
+            
+            
+            
 
-            // Shared enums and utilities used across all microservices
+            
             const sharedFeature = new SharedFeature();
             const sharedResults = await sharedFeature.generateSharedComponents({
                 projectName: options.projectName,
@@ -220,9 +205,9 @@ export class CodeGenerator {
                 console.log(`\t- Generated shared component ${filePath}`);
             }
 
-            // ═══════════════════════════════════════════════════════════════
-            // PHASE 4: COMPLETION
-            // ═══════════════════════════════════════════════════════════════
+            
+            
+            
 
             console.log(`\nCode generation completed successfully!`);
             console.log(`Output: ${paths.projectPath}`);
@@ -289,12 +274,12 @@ export class CodeGenerator {
     }
 
     private static async setupConfiguration(opts: TemplateGenerateOptions, inputPath: string) {
-        // Smart defaults - always generate everything
+        
         const baseOutputDir = opts.destination || DEFAULT_OUTPUT_DIR;
         const projectName = opts.name || ProjectSetup.deriveProjectName(inputPath);
         const validate = opts.validate || true;
 
-        // Load additional config from file if exists
+        
         const loadedConfig = await ConfigLoader.loadConfig(inputPath, {
             projectName,
             outputDirectory: baseOutputDir
@@ -327,13 +312,13 @@ export class CodeGenerator {
         console.log("Validating DSL files...");
         const generators = GeneratorRegistryFactory.createRegistry();
 
-        // Collect all aggregates from all models
+        
         const allAggregates: Aggregate[] = [];
         for (const model of allModels) {
             allAggregates.push(...model.aggregates);
         }
 
-        // Validate all aggregates at once (checks for duplicate names across files)
+        
         const validationResult = await generators.validationSystem.validateAggregates(allAggregates, {
             projectName: config.projectName
         });

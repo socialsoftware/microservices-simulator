@@ -1,6 +1,5 @@
-/**
- * Completion Service for Nebula DSL
- */
+
+
 
 import { CompletionItem, CompletionList, CompletionParams } from 'vscode-languageserver';
 import { LangiumCoreServices } from 'langium';
@@ -23,7 +22,7 @@ export class NebulaCompletionService {
     }
 
     async provideCompletionResolve(item: CompletionItem): Promise<CompletionItem> {
-        // Enhance completion item with additional information
+        
         if (item.detail && !item.documentation) {
             item.documentation = this.generateDocumentation(item);
         }
@@ -34,7 +33,7 @@ export class NebulaCompletionService {
     private generateDocumentation(item: CompletionItem): string {
         const label = item.label;
 
-        // Generate documentation based on completion type
+        
         if (typeof label === 'string') {
             switch (label) {
                 case 'aggregate':
@@ -45,7 +44,6 @@ Example:
 aggregate OrderManagement {
     entity Order {
         isRoot = true
-        // properties and methods
     }
 }
 \`\`\``;
@@ -192,40 +190,40 @@ workflows {
     }
 }
 
-// Completion context helpers
+
 export class CompletionContext {
     static isInAggregate(cstNode: any): boolean {
-        // Check if we're inside an aggregate definition
+        
         return this.findAncestor(cstNode, 'Aggregate') !== null;
     }
 
     static isInEntity(cstNode: any): boolean {
-        // Check if we're inside an entity definition
+        
         return this.findAncestor(cstNode, 'Entity') !== null;
     }
 
     static isInProperty(cstNode: any): boolean {
-        // Check if we're inside a property definition
+        
         return this.findAncestor(cstNode, 'Property') !== null;
     }
 
     static isInMethod(cstNode: any): boolean {
-        // Check if we're inside a method definition
+        
         return this.findAncestor(cstNode, 'Method') !== null;
     }
 
     static isInInvariant(cstNode: any): boolean {
-        // Check if we're inside an invariant definition
+        
         return this.findAncestor(cstNode, 'Invariant') !== null;
     }
 
     static isInBusinessRule(cstNode: any): boolean {
-        // Check if we're inside a business rule definition
+        
         return this.findAncestor(cstNode, 'BusinessRule') !== null;
     }
 
     static isInWorkflow(cstNode: any): boolean {
-        // Check if we're inside a workflow definition
+        
         return this.findAncestor(cstNode, 'Workflow') !== null;
     }
 
@@ -252,7 +250,7 @@ export class CompletionContext {
     }
 }
 
-// Completion utilities
+
 export class CompletionUtils {
     static createSnippetItem(
         label: string,
@@ -267,7 +265,7 @@ export class CompletionUtils {
             detail,
             documentation,
             insertText,
-            insertTextFormat: 2 // Snippet format
+            insertTextFormat: 2 
         };
     }
 

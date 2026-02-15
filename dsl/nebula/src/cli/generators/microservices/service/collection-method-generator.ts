@@ -4,15 +4,15 @@ import { capitalize } from "../../../utils/generator-utils.js";
 import { GeneratedMethod, MethodParameter } from "./crud-method-generator.js";
 
 export interface CollectionInfo {
-    propertyName: string;           // 'users', 'options'
-    elementType: string;            // 'ExecutionUser', 'Option'
-    isProjection: boolean;          // true if has aggregateRef
-    identifierField: string;        // 'userAggregateId' or 'key'
-    identifierType: string;         // 'Integer'
+    propertyName: string;           
+    elementType: string;            
+    isProjection: boolean;          
+    identifierField: string;        
+    identifierType: string;         
     collectionType: 'Set' | 'List';
-    singularName: string;           // 'user', 'option'
-    capitalizedSingular: string;    // 'User', 'Option'
-    capitalizedCollection: string;  // 'Users', 'Options'
+    singularName: string;           
+    capitalizedSingular: string;    
+    capitalizedCollection: string;  
 }
 
 export interface CollectionMethod extends GeneratedMethod {
@@ -22,9 +22,8 @@ export interface CollectionMethod extends GeneratedMethod {
 
 export class CollectionMethodGenerator {
 
-    /**
-     * Generate all collection manipulation methods for an aggregate
-     */
+    
+
     generateCollectionMethods(aggregate: Aggregate, rootEntity: Entity): CollectionMethod[] {
         const methods: CollectionMethod[] = [];
         const collections = this.findCollectionProperties(rootEntity);
@@ -32,7 +31,7 @@ export class CollectionMethodGenerator {
         for (const collection of collections) {
             const collectionInfo = this.buildCollectionInfo(collection, aggregate);
 
-            // Generate 5 methods per collection
+            
             methods.push(this.generateAddMethod(collectionInfo, aggregate, rootEntity));
             methods.push(this.generateAddBatchMethod(collectionInfo, aggregate, rootEntity));
             methods.push(this.generateGetMethod(collectionInfo, aggregate, rootEntity));
@@ -43,9 +42,8 @@ export class CollectionMethodGenerator {
         return methods;
     }
 
-    /**
-     * Find all collection properties in the root entity
-     */
+    
+
     private findCollectionProperties(entity: Entity): Array<{ name: string; elementType: string; type: 'Set' | 'List' }> {
         const collections: Array<{ name: string; elementType: string; type: 'Set' | 'List' }> = [];
 
@@ -73,9 +71,8 @@ export class CollectionMethodGenerator {
         return collections;
     }
 
-    /**
-     * Build complete collection information including identifier strategy
-     */
+    
+
     private buildCollectionInfo(
         collection: { name: string; elementType: string; type: 'Set' | 'List' },
         aggregate: Aggregate
@@ -83,7 +80,7 @@ export class CollectionMethodGenerator {
         const elementEntity = this.findEntityByName(aggregate, collection.elementType);
         const isProjection = this.hasAggregateRef(elementEntity);
 
-        // Determine identifier field
+        
         const identifierField = isProjection
             ? this.buildAggregateIdFieldName(collection.elementType)
             : this.determineBusinessKey(elementEntity);
@@ -103,45 +100,39 @@ export class CollectionMethodGenerator {
         };
     }
 
-    /**
-     * Check if entity has aggregate reference (is projection entity)
-     */
+    
+
     private hasAggregateRef(entity: Entity | null): boolean {
         if (!entity) return false;
         return (entity as any).aggregateRef !== undefined && (entity as any).aggregateRef !== null;
     }
 
-    /**
-     * Find entity by name in aggregate
-     */
+    
+
     private findEntityByName(aggregate: Aggregate, entityName: string): Entity | null {
         return aggregate.entities?.find((e: any) => e.name === entityName) || null;
     }
 
-    /**
-     * Build aggregateId field name for projection entity
-     * ExecutionUser -> userAggregateId
-     */
+    
+
     private buildAggregateIdFieldName(entityName: string): string {
-        // Extract the referenced aggregate name from entity name
-        // ExecutionUser -> user, AnswerQuestion -> question
+        
+        
         const referencedName = this.extractReferencedAggregateName(entityName);
         return `${referencedName.toLowerCase()}AggregateId`;
     }
 
-    /**
-     * Extract referenced aggregate name from projection entity name
-     * ExecutionUser -> User, AnswerQuestion -> Question
-     */
-    private extractReferencedAggregateName(entityName: string): string {
-        // Common patterns: ExecutionUser, AnswerQuestion, TournamentParticipant
-        // Strategy: Take the part after the first capital letter sequence
+    
 
-        // Find the last capital letter that starts a new word
+    private extractReferencedAggregateName(entityName: string): string {
+        
+        
+
+        
         for (let i = entityName.length - 1; i >= 0; i--) {
             if (entityName[i] === entityName[i].toUpperCase() && i > 0) {
                 const candidate = entityName.substring(i);
-                // Check if it's a valid word (not just a single letter)
+                
                 if (candidate.length > 1) {
                     return candidate;
                 }
@@ -151,15 +142,14 @@ export class CollectionMethodGenerator {
         return entityName;
     }
 
-    /**
-     * Determine business key field for dto entity
-     */
+    
+
     private determineBusinessKey(entity: Entity | null): string {
         if (!entity || !entity.properties) {
             return 'key';
         }
 
-        // Look for common business key field names
+        
         const commonKeys = ['key', 'code', 'id', 'sequence'];
 
         for (const keyName of commonKeys) {
@@ -169,7 +159,7 @@ export class CollectionMethodGenerator {
             }
         }
 
-        // Fallback: first Integer field that's not aggregateId/version
+        
         const firstIntField = entity.properties.find(p => {
             const javaType = TypeResolver.resolveJavaType(p.type);
             return javaType === 'Integer' &&
@@ -180,9 +170,8 @@ export class CollectionMethodGenerator {
         return firstIntField?.name || 'key';
     }
 
-    /**
-     * Simple singularization (removes trailing 's')
-     */
+    
+
     private singularize(word: string): string {
         if (word.endsWith('s')) {
             return word.slice(0, -1);
@@ -190,9 +179,8 @@ export class CollectionMethodGenerator {
         return word;
     }
 
-    /**
-     * Generate add single element method
-     */
+    
+
     private generateAddMethod(info: CollectionInfo, aggregate: Aggregate, rootEntity: Entity): CollectionMethod {
         const aggregateName = aggregate.name;
         const entityName = rootEntity.name;
@@ -218,9 +206,8 @@ export class CollectionMethodGenerator {
         } as any;
     }
 
-    /**
-     * Generate add multiple elements method
-     */
+    
+
     private generateAddBatchMethod(info: CollectionInfo, aggregate: Aggregate, rootEntity: Entity): CollectionMethod {
         const aggregateName = aggregate.name;
         const entityName = rootEntity.name;
@@ -245,9 +232,8 @@ export class CollectionMethodGenerator {
         } as any;
     }
 
-    /**
-     * Generate get single element method
-     */
+    
+
     private generateGetMethod(info: CollectionInfo, aggregate: Aggregate, rootEntity: Entity): CollectionMethod {
         const aggregateName = aggregate.name;
         const entityName = rootEntity.name;
@@ -272,9 +258,8 @@ export class CollectionMethodGenerator {
         } as any;
     }
 
-    /**
-     * Generate remove element method
-     */
+    
+
     private generateRemoveMethod(info: CollectionInfo, aggregate: Aggregate, rootEntity: Entity): CollectionMethod {
         const aggregateName = aggregate.name;
         const entityName = rootEntity.name;
@@ -299,9 +284,8 @@ export class CollectionMethodGenerator {
         } as any;
     }
 
-    /**
-     * Generate update element method
-     */
+    
+
     private generateUpdateMethod(info: CollectionInfo, aggregate: Aggregate, rootEntity: Entity): CollectionMethod {
         const aggregateName = aggregate.name;
         const entityName = rootEntity.name;
@@ -314,7 +298,7 @@ export class CollectionMethodGenerator {
             { type: 'UnitOfWork', name: 'unitOfWork' }
         ];
 
-        // Get updatable fields from the element entity
+        
         const elementEntity = this.findEntityByName(aggregate, info.elementType);
         const updatableFields = this.extractUpdatableFields(elementEntity, info.isProjection);
 
@@ -332,9 +316,8 @@ export class CollectionMethodGenerator {
         } as any;
     }
 
-    /**
-     * Extract updatable fields from entity (non-final, non-id fields)
-     */
+    
+
     private extractUpdatableFields(entity: Entity | null, isProjection: boolean): Array<{ name: string; capitalizedName: string; type: string }> {
         if (!entity || !entity.properties) {
             return [];
@@ -346,18 +329,18 @@ export class CollectionMethodGenerator {
         for (const prop of entity.properties) {
             const propName = prop.name;
 
-            // Skip excluded fields
+            
             if (excludedFields.includes(propName)) continue;
 
-            // Skip final fields
+            
             if ((prop as any).isFinal) continue;
 
-            // Skip aggregateId/version fields in projection entities
+            
             if (isProjection && (propName.endsWith('AggregateId') || propName.endsWith('Version') || propName.endsWith('State'))) {
                 continue;
             }
 
-            // Skip collection fields
+            
             const javaType = TypeResolver.resolveJavaType(prop.type);
             if (javaType.startsWith('Set<') || javaType.startsWith('List<')) {
                 continue;

@@ -2,11 +2,8 @@ import { EntityExt } from "../../../../../types/ast-extensions.js";
 import { DtoFieldSchema } from "../../../../../services/dto-schema-service.js";
 import { DtoSetterStrategy, StrategyContext } from "./dto-setter-strategy.js";
 
-/**
- * Strategy for handling enum fields.
- *
- * Converts enums to strings using .name() method.
- */
+
+
 export class EnumFieldStrategy implements DtoSetterStrategy {
     constructor(private context: StrategyContext) {}
 
@@ -16,7 +13,7 @@ export class EnumFieldStrategy implements DtoSetterStrategy {
         prop: any | null,
         override?: { property: any; extractField?: string }
     ): boolean {
-        // Don't handle if there's an extract field (that takes precedence)
+        
         const effectiveExtractField = override?.extractField || field.extractField;
         if (effectiveExtractField) {
             return false;

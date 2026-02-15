@@ -3,30 +3,14 @@ import { Entity } from "../../../../language/generated/ast.js";
 export interface QueryParseResult {
     query: string;
     parameterMappings: Array<{
-        placeholder: string;  // e.g., ":price", ":priceStart"
-        propertyName: string;  // e.g., "price"
-        paramIndex: number;    // Index in method parameters
+        placeholder: string;  
+        propertyName: string;  
+        paramIndex: number;    
     }>;
 }
 
-/**
- * Parses Spring Data method naming conventions and generates JPQL queries.
- *
- * Supported patterns:
- * - findBy<Property>
- * - findBy<Property1>And<Property2>
- * - findBy<Property1>Or<Property2>
- * - findBy<Property>OrderBy<Property>Asc/Desc
- * - existsBy<Property>
- * - countBy<Property>
- * - deleteBy<Property>
- * - findBy<Property><Operator> (e.g., GreaterThan, LessThan, Like, Contains)
- *
- * @example
- * findByName → SELECT e FROM Entity e WHERE e.name = :name
- * findByAgeGreaterThan → SELECT e FROM Entity e WHERE e.age > :age
- * existsByEmail → SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM Entity e WHERE e.email = :email
- */
+
+
 export class SpringDataQueryParser {
 
     private static readonly OPERATORS: { [key: string]: string } = {
@@ -37,10 +21,10 @@ export class SpringDataQueryParser {
         'Between': 'BETWEEN',
         'Like': 'LIKE',
         'NotLike': 'NOT LIKE',
-        'StartingWith': 'LIKE',  // Special handling: append %
-        'EndingWith': 'LIKE',     // Special handling: prepend %
-        'Containing': 'LIKE',     // Special handling: wrap with %%
-        'Contains': 'MEMBER OF',  // Collection: element MEMBER OF collection
+        'StartingWith': 'LIKE',  
+        'EndingWith': 'LIKE',     
+        'Containing': 'LIKE',     
+        'Contains': 'MEMBER OF',  
         'NotContains': 'NOT MEMBER OF',
         'In': 'IN',
         'NotIn': 'NOT IN',
@@ -53,12 +37,10 @@ export class SpringDataQueryParser {
         'False': '= false'
     };
 
-    /**
-     * Attempts to parse a method name using Spring Data conventions.
-     * Returns generated JPQL query with parameter mappings if pattern matches, null otherwise.
-     */
+    
+
     static parseMethodName(methodName: string, entityName: string, rootEntity: Entity): QueryParseResult | null {
-        // Extract operation prefix
+        
         if (methodName.startsWith('findBy')) {
             return this.parseFindByQuery(methodName, entityName, rootEntity);
         } else if (methodName.startsWith('existsBy')) {
@@ -71,14 +53,12 @@ export class SpringDataQueryParser {
             return this.parseFindAllQuery(methodName, entityName, rootEntity);
         }
 
-        // No matching pattern
+        
         return null;
     }
 
-    /**
-     * Legacy method for backwards compatibility.
-     * Returns only the query string without parameter mappings.
-     */
+    
+
     static parseMethodNameLegacy(methodName: string, entityName: string, rootEntity: Entity): string | null {
         const result = this.parseMethodName(methodName, entityName, rootEntity);
         return result ? result.query : null;
@@ -87,7 +67,7 @@ export class SpringDataQueryParser {
     private static parseFindByQuery(methodName: string, entityName: string, rootEntity: Entity): QueryParseResult {
         const afterFindBy = methodName.substring('findBy'.length);
 
-        // Check for findAll variants
+        
         if (afterFindBy === '') {
             return {
                 query: `SELECT e FROM ${entityName} e`,
@@ -95,7 +75,7 @@ export class SpringDataQueryParser {
             };
         }
 
-        // Parse conditions and ordering
+        
         const { conditions, orderBy } = this.parseConditionsAndOrdering(afterFindBy, rootEntity);
 
         const whereClause = conditions.map(cond => cond.jpql).join(' ');
@@ -103,7 +83,7 @@ export class SpringDataQueryParser {
 
         const query = orderBy ? `${queryBase} ${orderBy}` : queryBase;
 
-        // Build parameter mappings
+        
         const parameterMappings = this.buildParameterMappings(conditions);
 
         return { query, parameterMappings };
@@ -113,7 +93,7 @@ export class SpringDataQueryParser {
         const afterExistsBy = methodName.substring('existsBy'.length);
 
         if (afterExistsBy === '') {
-            // Generic exists check
+            
             return {
                 query: `SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM ${entityName} e`,
                 parameterMappings: []
@@ -171,7 +151,7 @@ export class SpringDataQueryParser {
             };
         }
 
-        // Handle findAllOrderBy...
+        
         if (afterFindAll.startsWith('OrderBy')) {
             const orderByPart = afterFindAll.substring('OrderBy'.length);
             const orderBy = this.parseOrderBy(orderByPart, rootEntity);
@@ -191,7 +171,7 @@ export class SpringDataQueryParser {
         conditions: Array<{ property: string; operator: string; jpql: string; paramName: string }>;
         orderBy?: string;
     } {
-        // Split by OrderBy to separate conditions from ordering
+        
         const orderByIndex = expression.indexOf('OrderBy');
         let conditionsStr = expression;
         let orderBy: string | undefined;
@@ -202,7 +182,7 @@ export class SpringDataQueryParser {
             orderBy = this.parseOrderBy(orderByStr, rootEntity);
         }
 
-        // Parse conditions (split by And/Or)
+        
         const conditions = this.parseConditions(conditionsStr, rootEntity);
 
         return { conditions, orderBy };
@@ -216,7 +196,7 @@ export class SpringDataQueryParser {
     }> {
         const results: Array<{ property: string; operator: string; jpql: string; paramName: string }> = [];
 
-        // Split by And/Or while preserving logical operators
+        
         const tokens = this.tokenizeConditions(conditionsStr);
 
         for (const token of tokens) {
@@ -239,7 +219,7 @@ export class SpringDataQueryParser {
         let i = 0;
 
         while (i < conditionsStr.length) {
-            // Check for 'And'
+            
             if (conditionsStr.substring(i, i + 3) === 'And') {
                 if (current.trim()) {
                     tokens.push({ type: 'CONDITION', value: current.trim() });
@@ -248,7 +228,7 @@ export class SpringDataQueryParser {
                 tokens.push({ type: 'AND', value: 'And' });
                 i += 3;
             }
-            // Check for 'Or'
+            
             else if (conditionsStr.substring(i, i + 2) === 'Or') {
                 if (current.trim()) {
                     tokens.push({ type: 'CONDITION', value: current.trim() });
@@ -276,9 +256,9 @@ export class SpringDataQueryParser {
         jpql: string;
         paramName: string;
     } {
-        // Try to match operator suffix
-        // Sort operators by length (longest first) to match "NotContains" before "Contains"
-        let operator = '=';  // default
+        
+        
+        let operator = '=';  
         let propertyName = conditionStr;
         let operatorKeyword = '';
 
@@ -293,11 +273,11 @@ export class SpringDataQueryParser {
             }
         }
 
-        // Lowercase first character of property name to match Java convention
+        
         propertyName = this.lowercaseFirst(propertyName);
         const paramName = propertyName;
 
-        // Handle special operators
+        
         if (operatorKeyword === 'IsNull' || operatorKeyword === 'IsNotNull') {
             return {
                 property: propertyName,
@@ -306,7 +286,7 @@ export class SpringDataQueryParser {
                 paramName: ''
             };
         } else if (operatorKeyword === 'IsEmpty' || operatorKeyword === 'IsNotEmpty') {
-            // Collection emptiness check
+            
             return {
                 property: propertyName,
                 operator: operatorKeyword,
@@ -328,7 +308,7 @@ export class SpringDataQueryParser {
                 paramName
             };
         } else if (operatorKeyword === 'Containing') {
-            // String LIKE with wildcards
+            
             return {
                 property: propertyName,
                 operator: operatorKeyword,
@@ -336,7 +316,7 @@ export class SpringDataQueryParser {
                 paramName
             };
         } else if (operatorKeyword === 'Contains') {
-            // Collection membership: :element MEMBER OF e.collection
+            
             return {
                 property: propertyName,
                 operator: operatorKeyword,
@@ -344,7 +324,7 @@ export class SpringDataQueryParser {
                 paramName
             };
         } else if (operatorKeyword === 'NotContains') {
-            // Collection membership negation
+            
             return {
                 property: propertyName,
                 operator: operatorKeyword,
@@ -352,7 +332,7 @@ export class SpringDataQueryParser {
                 paramName
             };
         } else if (operatorKeyword === 'Between') {
-            // Between needs two parameters
+            
             return {
                 property: propertyName,
                 operator: operatorKeyword,
@@ -360,7 +340,7 @@ export class SpringDataQueryParser {
                 paramName: `${paramName}Start, ${paramName}End`
             };
         } else if (operatorKeyword === 'In') {
-            // IN operator: e.property IN :values
+            
             return {
                 property: propertyName,
                 operator: operatorKeyword,
@@ -368,7 +348,7 @@ export class SpringDataQueryParser {
                 paramName
             };
         } else if (operatorKeyword === 'NotIn') {
-            // NOT IN operator
+            
             return {
                 property: propertyName,
                 operator: operatorKeyword,
@@ -383,7 +363,7 @@ export class SpringDataQueryParser {
                 paramName: ''
             };
         } else {
-            // Standard operator (including Not which becomes !=)
+            
             return {
                 property: propertyName,
                 operator: operatorKeyword || 'equals',
@@ -394,7 +374,7 @@ export class SpringDataQueryParser {
     }
 
     private static parseOrderBy(orderByStr: string, rootEntity: Entity): string {
-        // Split by And to handle multiple order clauses
+        
         const parts = orderByStr.split('And').map(p => p.trim());
         const orderClauses: string[] = [];
 
@@ -422,10 +402,8 @@ export class SpringDataQueryParser {
         return str.charAt(0).toLowerCase() + str.slice(1);
     }
 
-    /**
-     * Builds parameter mappings from parsed conditions.
-     * Extracts parameter placeholders and maps them to expected parameter indices.
-     */
+    
+
     private static buildParameterMappings(
         conditions: Array<{ property: string; operator: string; jpql: string; paramName: string }>
     ): Array<{ placeholder: string; propertyName: string; paramIndex: number }> {
@@ -433,17 +411,17 @@ export class SpringDataQueryParser {
         let paramIndex = 0;
 
         for (const condition of conditions) {
-            // Skip logical operators (AND/OR)
+            
             if (condition.operator === 'AND' || condition.operator === 'OR') {
                 continue;
             }
 
-            // Skip conditions without parameters (IsNull, IsNotNull, True, False, IsEmpty, IsNotEmpty)
+            
             if (!condition.paramName || condition.paramName === '') {
                 continue;
             }
 
-            // Handle Between which has two parameters (propertyStart, propertyEnd)
+            
             if (condition.paramName.includes(',')) {
                 const params = condition.paramName.split(',').map(p => p.trim());
                 for (const param of params) {
@@ -454,7 +432,7 @@ export class SpringDataQueryParser {
                     });
                 }
             } else {
-                // Standard single parameter
+                
                 mappings.push({
                     placeholder: `:${condition.paramName}`,
                     propertyName: condition.property,
@@ -466,10 +444,8 @@ export class SpringDataQueryParser {
         return mappings;
     }
 
-    /**
-     * Validates that the property exists in the entity.
-     * Returns true if valid, false otherwise.
-     */
+    
+
     static validateProperty(propertyName: string, rootEntity: Entity): boolean {
         if (!rootEntity.properties) {
             return false;

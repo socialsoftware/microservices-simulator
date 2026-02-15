@@ -1,24 +1,8 @@
 import { Aggregate, Entity } from "../../../../../language/generated/ast.js";
 import { MethodGeneratorTemplate, MethodMetadata, GenerationOptions } from "../../../common/base/method-generator-template.js";
 
-/**
- * CRUD Delete Method Generator
- *
- * Generates the delete{Aggregate}() method for service classes.
- * Uses Template Method pattern for consistent structure.
- *
- * Generated method signature:
- * ```java
- * public void deleteAggregate(Integer id, UnitOfWork unitOfWork)
- * ```
- *
- * Pattern:
- * 1. Load aggregate (old version)
- * 2. Create immutable copy (new version)
- * 3. Call remove() to mark as deleted
- * 4. Register changed aggregate
- * 5. Publish DeletedEvent
- */
+
+
 export class CrudDeleteGenerator extends MethodGeneratorTemplate {
 
     protected override extractMetadata(aggregate: Aggregate, options: GenerationOptions): MethodMetadata {
@@ -72,7 +56,7 @@ export class CrudDeleteGenerator extends MethodGeneratorTemplate {
         return `            unitOfWorkService.registerEvent(new ${capitalizedAggregate}DeletedEvent(new${capitalizedAggregate}.getAggregateId()), unitOfWork);`;
     }
 
-    // Use default error handling from MethodGeneratorTemplate (with ExceptionGenerator)
+    
 
 
     protected override assembleMethod(
@@ -82,7 +66,7 @@ export class CrudDeleteGenerator extends MethodGeneratorTemplate {
         errorHandling: string,
         metadata: MethodMetadata
     ): string {
-        // Delete method returns void, so no return statement needed after event
+        
         return `    ${signature} {
         try {
 ${body}${eventHandling}

@@ -12,8 +12,8 @@ export class TemplateGenerators extends OrchestrationBase {
     const config = getGlobalConfig();
     const packageName = config.buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate');
 
-    // For now, provide a basic template context
-    // Note: This generates a basic aggregate base class template
+    
+    
     const template = generator.loadTemplate('entity/aggregate-base.hbs');
     return generator.renderTemplate(template, {
       packageName,
@@ -26,11 +26,11 @@ export class TemplateGenerators extends OrchestrationBase {
         'import java.util.Set;',
         'import java.util.HashSet;'
       ],
-      fields: [], // Fields are handled by entity generation
-      hasInvariants: false, // Invariants are handled by validation generation
+      fields: [], 
+      hasInvariants: false, 
       invariantComments: [],
       invariantChecks: [],
-      hasDtoConstructor: false, // DTO constructors are handled by DTO generation
+      hasDtoConstructor: false, 
       hasCopyConstructor: true,
       dtoType: `${aggregateName}Dto`,
       dtoParamName: `${aggregateName.toLowerCase()}Dto`,
@@ -59,7 +59,7 @@ export class TemplateGenerators extends OrchestrationBase {
       frameworkGroupId: fullConfig.simulatorFramework.groupId,
       frameworkArtifactId: fullConfig.simulatorFramework.artifactId,
       frameworkVersion: fullConfig.simulatorFramework.version,
-      includeRetry: true // Always include retry dependency
+      includeRetry: true 
     });
   }
 

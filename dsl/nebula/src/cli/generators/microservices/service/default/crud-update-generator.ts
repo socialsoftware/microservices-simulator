@@ -3,25 +3,8 @@ import { MethodGeneratorTemplate, MethodMetadata, GenerationOptions } from "../.
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 import { CrudHelpers } from "../../../common/crud-helpers.js";
 
-/**
- * CRUD Update Method Generator
- *
- * Generates the update{Aggregate}() method for service classes.
- * Uses Template Method pattern for consistent structure.
- *
- * Generated method signature:
- * ```java
- * public EntityDto updateAggregate(EntityDto aggregateDto, UnitOfWork unitOfWork)
- * ```
- *
- * Pattern:
- * 1. Load aggregate (old version)
- * 2. Create immutable copy (new version)
- * 3. Update all mutable primitive fields
- * 4. Register changed aggregate
- * 5. Publish UpdatedEvent
- * 6. Return DTO
- */
+
+
 export class CrudUpdateGenerator extends MethodGeneratorTemplate {
 
     protected override extractMetadata(aggregate: Aggregate, options: GenerationOptions): MethodMetadata {
@@ -65,7 +48,7 @@ export class CrudUpdateGenerator extends MethodGeneratorTemplate {
         const lowerAggregate = this.lowercase(metadata.aggregateName);
         const capitalizedAggregate = this.capitalize(metadata.aggregateName);
 
-        // Generate field update logic
+        
         const updateLogic = this.generateUpdateLogic(rootEntity, metadata.aggregateName);
 
         return `            Integer id = ${lowerAggregate}Dto.getAggregateId();
@@ -81,7 +64,7 @@ ${updateLogic}
         const capitalizedAggregate = this.capitalize(metadata.aggregateName);
         const lowerAggregate = this.lowercase(metadata.aggregateName);
 
-        // Generate event constructor arguments
+        
         const eventArgs = this.generateUpdateEventArgs(rootEntity, metadata.aggregateName);
 
         return `            ${capitalizedAggregate}UpdatedEvent event = new ${capitalizedAggregate}UpdatedEvent(${eventArgs});
@@ -90,12 +73,11 @@ ${updateLogic}
             return ${lowerAggregate}Factory.create${metadata.entityName}Dto(new${capitalizedAggregate});`;
     }
 
-    // Use default error handling from MethodGeneratorTemplate (with ExceptionGenerator)
+    
 
 
-    /**
-     * Generate update logic for all mutable primitive fields.
-     */
+    
+
     private generateUpdateLogic(rootEntity: Entity, aggregateName: string): string {
         if (!rootEntity.properties) return '';
 
@@ -108,10 +90,10 @@ ${updateLogic}
                 const propName = prop.name.toLowerCase();
                 if (propName === 'id') return false;
 
-                // Skip final fields - they can't be updated
+                
                 if ((prop as any).isFinal) return false;
 
-                // Skip entity relationships - they shouldn't be updated directly from DTO
+                
                 const javaType = TypeResolver.resolveJavaType(prop.type);
                 const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
                 const isEntityType = !CrudHelpers.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
@@ -129,7 +111,7 @@ ${updateLogic}
                 if (isBoolean) {
                     return `            ${targetVar}.${setterName}(${lowerAggregate}Dto.${getterName}());`;
                 } else if (isEnum) {
-                    // For enum types, convert String from DTO to enum using valueOf
+                    
                     return `            if (${lowerAggregate}Dto.${getterName}() != null) {
                 ${targetVar}.${setterName}(${javaType}.valueOf(${lowerAggregate}Dto.${getterName}()));
             }`;
@@ -143,17 +125,14 @@ ${updateLogic}
         return updates.join('\n');
     }
 
-    /**
-     * Build argument list for <Aggregate>UpdatedEvent constructor.
-     * Convention: first argument is aggregateId, followed by all primitive (non-relationship)
-     * updatable properties of the root entity, in declaration order.
-     */
+    
+
     private generateUpdateEventArgs(rootEntity: Entity, aggregateName: string): string {
         const capitalizedAggregate = this.capitalize(aggregateName);
         const targetVar = `new${capitalizedAggregate}`;
 
         const args: string[] = [];
-        // Always pass aggregateId first
+        
         args.push(`${targetVar}.getAggregateId()`);
 
         if (!rootEntity.properties) {
@@ -172,8 +151,8 @@ ${updateLogic}
                 !CrudHelpers.isEnumType((prop as any).type) && TypeResolver.isEntityType(javaType);
             if (isCollection || isEntityType) continue;
 
-            // Skip enum-like properties; current *UpdatedEvent classes usually
-            // don't carry enum fields such as Role/Type/State
+            
+            
             const isEnum =
                 CrudHelpers.isEnumType((prop as any).type) ||
                 javaType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/);

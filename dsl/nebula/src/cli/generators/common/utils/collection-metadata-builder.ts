@@ -3,22 +3,21 @@ import { UnifiedTypeResolver as TypeResolver } from "../../common/unified-type-r
 import { capitalize } from "../../../utils/generator-utils.js";
 
 export interface CollectionMetadata {
-    propertyName: string;           // 'users', 'options'
-    elementType: string;            // 'ExecutionUser', 'Option'
-    elementDtoType: string;         // 'ExecutionUserDto', 'OptionDto'
-    identifierField: string;        // 'userAggregateId' or 'key'
-    identifierType: string;         // 'Integer'
-    isProjection: boolean;          // true if has aggregateRef
+    propertyName: string;           
+    elementType: string;            
+    elementDtoType: string;         
+    identifierField: string;        
+    identifierType: string;         
+    isProjection: boolean;          
     collectionType: 'Set' | 'List';
-    singularName: string;           // 'user', 'option'
-    capitalizedSingular: string;    // 'User', 'Option'
-    capitalizedCollection: string;  // 'Users', 'Options'
+    singularName: string;           
+    capitalizedSingular: string;    
+    capitalizedCollection: string;  
 }
 
 export class CollectionMetadataBuilder {
-    /**
-     * Extract all collection properties from root entity
-     */
+    
+
     static extractCollections(aggregate: Aggregate, rootEntity: Entity): CollectionMetadata[] {
         const metadata: CollectionMetadata[] = [];
 
@@ -48,9 +47,8 @@ export class CollectionMetadataBuilder {
         return metadata;
     }
 
-    /**
-     * Build complete metadata for a single collection
-     */
+    
+
     private static buildCollectionMetadata(
         propertyName: string,
         elementType: string,
@@ -60,7 +58,7 @@ export class CollectionMetadataBuilder {
         const elementEntity = this.findEntityByName(aggregate, elementType);
         const isProjection = this.hasAggregateRef(elementEntity);
 
-        // Determine identifier strategy
+        
         const identifierField = isProjection
             ? this.buildAggregateIdFieldName(elementType)
             : this.determineBusinessKey(elementEntity);
@@ -81,36 +79,30 @@ export class CollectionMetadataBuilder {
         };
     }
 
-    /**
-     * Check if entity has aggregate reference (is projection entity)
-     */
+    
+
     private static hasAggregateRef(entity: Entity | null): boolean {
         if (!entity) return false;
         return (entity as any).aggregateRef !== undefined && (entity as any).aggregateRef !== null;
     }
 
-    /**
-     * Find entity by name in aggregate
-     */
+    
+
     private static findEntityByName(aggregate: Aggregate, entityName: string): Entity | null {
         return aggregate.entities?.find((e: any) => e.name === entityName) || null;
     }
 
-    /**
-     * Build aggregateId field name for projection entity
-     * ExecutionUser -> userAggregateId
-     */
+    
+
     private static buildAggregateIdFieldName(entityName: string): string {
         const referencedName = this.extractReferencedAggregateName(entityName);
         return `${referencedName.toLowerCase()}AggregateId`;
     }
 
-    /**
-     * Extract referenced aggregate name from projection entity name
-     * ExecutionUser -> User, AnswerQuestion -> Question
-     */
+    
+
     private static extractReferencedAggregateName(entityName: string): string {
-        // Find the last capital letter that starts a new word
+        
         for (let i = entityName.length - 1; i >= 0; i--) {
             if (entityName[i] === entityName[i].toUpperCase() && i > 0) {
                 const candidate = entityName.substring(i);
@@ -122,15 +114,14 @@ export class CollectionMetadataBuilder {
         return entityName;
     }
 
-    /**
-     * Determine business key field for value entity
-     */
+    
+
     private static determineBusinessKey(entity: Entity | null): string {
         if (!entity || !entity.properties) {
             return 'key';
         }
 
-        // Look for common business key field names
+        
         const commonKeys = ['key', 'code', 'id', 'sequence'];
 
         for (const keyName of commonKeys) {
@@ -140,7 +131,7 @@ export class CollectionMetadataBuilder {
             }
         }
 
-        // Fallback: first Integer field that's not aggregateId/version
+        
         const firstIntField = entity.properties.find(p => {
             const javaType = TypeResolver.resolveJavaType(p.type);
             return javaType === 'Integer' &&
@@ -151,9 +142,8 @@ export class CollectionMetadataBuilder {
         return firstIntField?.name || 'key';
     }
 
-    /**
-     * Simple singularization (removes trailing 's')
-     */
+    
+
     private static singularize(word: string): string {
         if (word.endsWith('s')) {
             return word.slice(0, -1);

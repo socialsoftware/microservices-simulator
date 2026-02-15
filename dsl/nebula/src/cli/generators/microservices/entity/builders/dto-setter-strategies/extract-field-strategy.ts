@@ -3,13 +3,8 @@ import { DtoFieldSchema } from "../../../../../services/dto-schema-service.js";
 import { DtoSetterStrategy } from "./dto-setter-strategy.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../../common/unified-type-resolver.js";
 
-/**
- * Strategy for handling field extraction from nested objects.
- *
- * Examples:
- * - Extract aggregateId from collection: users.stream().map(item -> item.getAggregateId())
- * - Extract property from single object: course.getName()
- */
+
+
 export class ExtractFieldStrategy implements DtoSetterStrategy {
     canHandle(
         field: DtoFieldSchema,
@@ -40,7 +35,7 @@ export class ExtractFieldStrategy implements DtoSetterStrategy {
         const isEntityCollection = javaType.startsWith('List<') || javaType.startsWith('Set<');
         const isDtoCollection = field.isCollection;
 
-        // Skip primitive element collections
+        
         if (isEntityCollection) {
             const elementTypeMatch = javaType.match(/<(.*)>/);
             if (elementTypeMatch) {
@@ -55,7 +50,7 @@ export class ExtractFieldStrategy implements DtoSetterStrategy {
             }
         }
 
-        // Handle collection extraction
+        
         if (isEntityCollection && isDtoCollection) {
             const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
             let elementType = 'item';
@@ -68,7 +63,7 @@ export class ExtractFieldStrategy implements DtoSetterStrategy {
             return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.stream().map((${elementType} item) -> item.${extractMethod}).collect(${collector}) : null);`;
         }
 
-        // Handle single object extraction
+        
         return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.${extractMethod} : null);`;
     }
 }

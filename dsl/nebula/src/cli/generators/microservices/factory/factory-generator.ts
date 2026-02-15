@@ -24,15 +24,15 @@ export class FactoryGenerator extends BaseGenerator {
 
         const dtoParamName = baseContext.lowerAggregateName || aggregate.name.toLowerCase();
 
-        // SIMPLIFIED: Factory interface just takes (aggregateId, dto)
-        // The aggregate constructor handles DTO-to-entity conversion internally
+        
+        
         const createMethodParams = `Integer aggregateId, ${rootEntity.name}Dto ${dtoParamName}Dto`;
 
         const finalContext = {
             ...baseContext,
             dtoName: `${rootEntity.name}Dto`,
             lowerAggregateName: baseContext.lowerAggregate ?? aggregate.name.toLowerCase(),
-            entityRelationships: [], // No longer needed in factory interface
+            entityRelationships: [], 
             createMethodParams,
             imports: this.generateFactoryImportsSimplified(`${rootEntity.name}Dto`, options.projectName)
         };
@@ -44,14 +44,13 @@ export class FactoryGenerator extends BaseGenerator {
         return this.generateFactoryInterface(aggregate, options);
     }
 
-    /**
-     * SIMPLIFIED: Only need DTO import for factory interface
-     */
+    
+
     private generateFactoryImportsSimplified(dtoName: string, projectName: string): string {
         const importBuilder = this.capabilities.importBuilder;
         importBuilder.reset();
 
-        // Add DTO import (DTOs are in shared package)
+        
         const dtoPackage = this.capabilities.packageBuilder.buildSharedPackage(projectName, 'dtos');
         importBuilder.addCustomImport(`${dtoPackage}.${dtoName}`);
 

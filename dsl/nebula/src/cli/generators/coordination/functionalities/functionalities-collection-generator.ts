@@ -12,9 +12,8 @@ export interface CollectionFunctionalityMethod {
 }
 
 export class FunctionalitiesCollectionGenerator {
-    /**
-     * Generate collection operation methods for functionalities layer
-     */
+    
+
     generateCollectionMethods(
         aggregateName: string,
         lowerAggregate: string,
@@ -31,9 +30,8 @@ export class FunctionalitiesCollectionGenerator {
         return methods;
     }
 
-    /**
-     * Generate all 5 methods for a single collection
-     */
+    
+
     private generateMethodsForCollection(
         collection: CollectionMetadata,
         aggregateName: string,
@@ -48,9 +46,8 @@ export class FunctionalitiesCollectionGenerator {
         ];
     }
 
-    /**
-     * Generate add single element method
-     */
+    
+
     private generateAddMethod(
         collection: CollectionMetadata,
         aggregateName: string,
@@ -89,9 +86,8 @@ export class FunctionalitiesCollectionGenerator {
         };
     }
 
-    /**
-     * Generate add batch method
-     */
+    
+
     private generateAddBatchMethod(
         collection: CollectionMetadata,
         aggregateName: string,
@@ -129,9 +125,8 @@ export class FunctionalitiesCollectionGenerator {
         };
     }
 
-    /**
-     * Generate get single element method
-     */
+    
+
     private generateGetMethod(
         collection: CollectionMetadata,
         aggregateName: string,
@@ -169,9 +164,8 @@ export class FunctionalitiesCollectionGenerator {
         };
     }
 
-    /**
-     * Generate update element method
-     */
+    
+
     private generateUpdateMethod(
         collection: CollectionMetadata,
         aggregateName: string,
@@ -210,9 +204,8 @@ export class FunctionalitiesCollectionGenerator {
         };
     }
 
-    /**
-     * Generate remove element method
-     */
+    
+
     private generateRemoveMethod(
         collection: CollectionMetadata,
         aggregateName: string,

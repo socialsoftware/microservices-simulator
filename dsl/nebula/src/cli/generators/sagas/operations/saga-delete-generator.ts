@@ -3,9 +3,8 @@ import { SagaGenerationOptions } from '../saga-generator.js';
 import { StringUtils } from '../../../utils/string-utils.js';
 import { SagaFunctionalityGeneratorBase, SagaOperationMetadata } from '../base/saga-functionality-generator-base.js';
 
-/**
- * Generates saga functionality class for delete operations.
- */
+
+
 export class SagaDeleteGenerator extends SagaFunctionalityGeneratorBase {
     protected buildOperationMetadata(
         aggregate: any,
@@ -30,7 +29,7 @@ export class SagaDeleteGenerator extends SagaFunctionalityGeneratorBase {
     }
 
     protected override buildImports(metadata: SagaOperationMetadata, aggregate: any, options: SagaGenerationOptions): string[] {
-        // Delete operations don't need DTO imports
+        
         const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const capitalizedAggregate = StringUtils.capitalize(aggregate.name);

@@ -6,9 +6,8 @@ export class ValidationFeature extends FeatureBase {
         super('validation');
     }
 
-    /**
-     * Generate validation files for an aggregate
-     */
+    
+
     async generate(
         aggregate: any,
         paths: any,
@@ -30,11 +29,11 @@ export class ValidationFeature extends FeatureBase {
             let filesGenerated = 0;
             const warnings: string[] = [];
 
-            // Create validation directory
+            
             const validationDir = this.buildPackagePath(paths.javaPath, 'coordination', 'validation');
             await this.createDirectory(validationDir, 'validation directory');
 
-            // Generate main invariants file
+            
             if (validationCode['invariants']) {
                 const invariantsPath = this.buildJavaFilePath(
                     paths.javaPath,
@@ -51,7 +50,7 @@ export class ValidationFeature extends FeatureBase {
                 warnings.push('No invariants generated');
             }
 
-            // Generate validation annotations if available
+            
             if (validationCode['annotations']) {
                 const annotationsPath = this.buildJavaFilePath(
                     paths.javaPath,
@@ -66,7 +65,7 @@ export class ValidationFeature extends FeatureBase {
                 filesGenerated++;
             }
 
-            // Generate additional validators
+            
             for (const [key, content] of Object.entries(validationCode)) {
                 if (key !== 'invariants' && key !== 'annotations' && typeof content === 'string') {
                     const validatorPath = this.buildPackagePath(paths.javaPath, 'coordination', 'validation', key);
@@ -83,9 +82,8 @@ export class ValidationFeature extends FeatureBase {
         });
     }
 
-    /**
-     * Static method for backward compatibility
-     */
+    
+
     static async generateValidation(
         aggregate: any,
         paths: any,

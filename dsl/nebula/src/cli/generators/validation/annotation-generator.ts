@@ -78,20 +78,13 @@ export class AnnotationGenerator extends ValidationBaseGenerator {
 {{this}}
 {{/each}}
 
-/**
- * Validation annotations for {{capitalizedAggregate}} properties
- */
 public class {{capitalizedAggregate}}ValidationAnnotations {
 
 {{#each validationAnnotations}}
-    /**
-     * Validation annotations for {{{propertyName}}}
-     */
     public static class {{capitalizedProperty}}Validation {
         {{{annotationsString}}}
         private {{{propertyType}}} {{propertyName}};
         
-        // Getter and setter
         public {{{propertyType}}} get{{capitalizedProperty}}() {
             return {{propertyName}};
         }

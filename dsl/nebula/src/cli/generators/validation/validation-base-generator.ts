@@ -4,7 +4,7 @@ import { UnifiedTypeResolver as TypeResolver } from "../common/unified-type-reso
 import { UnifiedTypeResolver } from "../common/unified-type-resolver.js";
 
 export abstract class ValidationBaseGenerator {
-    // Helper methods migrated from OrchestrationBase
+    
     protected capitalize(str: string): string {
         if (!str) return '';
         return str.charAt(0).toUpperCase() + str.slice(1);
@@ -199,7 +199,6 @@ public @interface ${constraintName} {
     
     @Override
     public void initialize(${constraintName} constraintAnnotation) {
-        // Initialize validator if needed
     }
     
     @Override

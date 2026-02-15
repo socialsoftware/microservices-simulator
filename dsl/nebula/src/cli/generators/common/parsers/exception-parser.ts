@@ -47,7 +47,7 @@ export class ExceptionParser {
         return rawMessages.map((msg: any) => ({
             name: msg.name,
             message: msg.message,
-            code: msg.code, // optional in grammar; tolerate absence
+            code: msg.code, 
             severity: (msg.severity as ExceptionSeverity) || "error"
         }));
     }
@@ -57,7 +57,7 @@ export class ExceptionParser {
 
         for (const aggregate of model.aggregates as Aggregate[]) {
             for (const entity of aggregate.entities as Entity[]) {
-                const rules: any[] = []; // Business rules removed
+                const rules: any[] = []; 
                 for (const rule of rules) {
                     const exceptionLiteral = (rule as any).exception as string | undefined;
                     if (exceptionLiteral) {

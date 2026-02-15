@@ -14,9 +14,9 @@ import { EventSubscriptionBuilder } from "./builders/event-subscription-builder.
 import { ClassAssembler } from "./builders/class-assembler.js";
 import { DtoMethodBuilder } from "./builders/dto-method-builder.js";
 
-// ============================================================================
-// ENTITY GENERATION ORCHESTRATION
-// ============================================================================
+
+
+
 
 export class EntityOrchestrator {
     private importManager: ImportManager;
@@ -78,10 +78,10 @@ export class EntityOrchestrator {
     }
 
     private generateEntityComponents(entity: EntityExt, projectName: string, opts: EntityGenerationOptions, isRootEntity: boolean) {
-        // Get effective properties including those from mapping definitions
+        
         const effectiveProps = getEffectiveProperties(entity);
 
-        // For non-root entities with aggregateRef, also generate a projection DTO constructor
+        
         const projectionDtoResult = generateProjectionDtoConstructor(entity, projectName, this.dtoRegistry);
 
         return {
@@ -95,11 +95,11 @@ export class EntityOrchestrator {
                 ? generateBackReferenceGetterSetter(entity.$container.name)
                 : '',
             invariants: isRootEntity ? generateInvariants(entity).code : '',
-            // Root entities need getEventSubscriptions() for the Aggregate interface
+            
             eventSubscriptions: isRootEntity ? this.eventSubscriptionBuilder.generateEventSubscriptionsMethod(entity.$container as any) : '',
-            // Inter-invariant methods
+            
             interInvariantMethods: isRootEntity ? this.interInvariantBuilder.generateInterInvariantMethods(entity.$container as any) : '',
-            // All entities now get their own DTOs, so all need buildDto() method
+            
             buildDtoMethod: this.getDtoMethodBuilder().generateBuildDtoMethod(entity)
         };
     }
@@ -107,9 +107,8 @@ export class EntityOrchestrator {
 
 
 
-/**
- * Entity generator facade that uses the new orchestrator
- */
+
+
 export class EntityGenerator {
     private orchestrator: EntityOrchestrator;
 
@@ -117,9 +116,8 @@ export class EntityGenerator {
         this.orchestrator = new EntityOrchestrator(projectName);
     }
 
-    /**
-     * Main entry point for entity generation
-     */
+    
+
     async generateEntity(entity: EntityExt, options: EntityGenerationOptions): Promise<string> {
         return this.orchestrator.generateEntityCode(entity, options.projectName, options);
     }

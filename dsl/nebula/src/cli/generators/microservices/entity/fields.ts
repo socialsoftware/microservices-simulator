@@ -56,26 +56,26 @@ export function generateFields(properties: any[], entity: Entity, isRootEntity: 
         if (javaType.startsWith('Set<')) imports.usesSet = true;
         if (javaType.startsWith('List<')) imports.usesList = true;
 
-        // Check if this is an enum type
+        
         if (isEnumType(prop.type) || isEnumTypeByNaming(javaType)) {
             const enumImport = `import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'enums')}.${javaType};`;
             imports.customImports!.add(enumImport);
             imports.usesEnumerated = true;
         }
 
-        // Check if this is AggregateState type
+        
         if (javaType === 'AggregateState') {
             imports.usesAggregateState = true;
         }
 
-        // Add @Id annotation only for non-root entities (root entities inherit ID from Aggregate)
+        
         let idAnnotation = '';
         if (index === 0 && !isRootEntity) {
             idAnnotation = '    @Id\n    @GeneratedValue\n';
             imports.usesGeneratedValue = true;
         }
 
-        // Determine if this is an entity relationship
+        
         const isEntityType = TypeResolver.isEntityType(javaType) && !isEnumType(prop.type);
         const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
         const elementType = TypeResolver.getElementType(prop.type);
@@ -86,12 +86,12 @@ export function generateFields(properties: any[], entity: Entity, isRootEntity: 
         let initialization = '';
 
         if (isEntityType && !isCollection && !isEnumType(prop.type)) {
-            // Single entity relationship - @OneToOne
+            
             relationshipAnnotation = `    @OneToOne(cascade = CascadeType.ALL, mappedBy = "${entity.name.toLowerCase()}")\n`;
             imports.usesOneToOne = true;
             imports.usesCascadeType = true;
         } else if (isEntityCollection) {
-            // Collection of entities - @OneToMany
+            
             relationshipAnnotation = `    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "${entity.name.toLowerCase()}")\n`;
             if (javaType.startsWith('List<')) {
                 initialization = ' = new ArrayList<>()';
@@ -102,7 +102,7 @@ export function generateFields(properties: any[], entity: Entity, isRootEntity: 
             imports.usesCascadeType = true;
             imports.usesFetchType = true;
         } else if (isPrimitiveCollection) {
-            // Collection of primitives - no JPA annotations needed
+            
             if (javaType.startsWith('List<')) {
                 initialization = ' = new ArrayList<>()';
             } else if (javaType.startsWith('Set<')) {
@@ -110,7 +110,7 @@ export function generateFields(properties: any[], entity: Entity, isRootEntity: 
             }
         }
 
-        // Add @Enumerated annotation for enum types
+        
         let enumAnnotation = '';
         if (isEnumType(prop.type) || isEnumTypeByNaming(javaType)) {
             enumAnnotation = `    @Enumerated(EnumType.STRING)\n`;
@@ -122,7 +122,7 @@ export function generateFields(properties: any[], entity: Entity, isRootEntity: 
         return `${idAnnotation}${relationshipAnnotation}${enumAnnotation}    private ${finalModifier}${javaType} ${prop.name}${fieldInitialization};`;
     }).join('\n');
 
-    // Add back-reference field for non-root entities
+    
     if (!isRootEntity && entity.$container) {
         const parentEntityName = entity.$container.name;
         const backRefField = `    @OneToOne\n    private ${parentEntityName} ${parentEntityName.toLowerCase()};`;

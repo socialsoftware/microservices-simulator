@@ -89,7 +89,7 @@ export class SagaGenerator {
 
         const imports = this.buildSagaAggregatesImports(aggregate, rootEntity, options);
 
-        // Extract entity relationships for constructor parameters
+        
         const entityRelationships = this.extractEntityRelationships(aggregate, rootEntity);
         const constructorParams = this.buildSagaConstructorParams(rootEntity, entityRelationships, options);
 
@@ -110,7 +110,7 @@ export class SagaGenerator {
             return relationships;
         }
 
-        // Build a set of entity names in this aggregate for reference
+        
         const aggregateEntityNames = new Set(aggregate.entities.map((e: EntityExt) => e.name));
 
         for (const prop of rootEntity.properties) {
@@ -119,13 +119,13 @@ export class SagaGenerator {
             const isPrimitive = UnifiedTypeResolver.isPrimitiveType(javaType);
             const isEnum = javaType.endsWith('Type') && javaType !== 'AggregateState';
 
-            // Get the element type for collections
+            
             let entityType = javaType;
             if (isCollection) {
                 entityType = javaType.replace(/^(Set|List)<(.+)>$/, '$2');
             }
 
-            // Check if it's an entity within this aggregate
+            
             const isEntityInAggregate = aggregateEntityNames.has(entityType);
 
             if (isEntityInAggregate && !isPrimitive && !isEnum) {
@@ -147,16 +147,16 @@ export class SagaGenerator {
         const lowerAggregate = rootEntityName.toLowerCase();
         const dtoTypeName = `${rootEntityName}Dto`;
 
-        // SIMPLIFIED: Constructor just takes (aggregateId, dto)
-        // The base aggregate constructor handles DTO-to-entity conversion internally
+        
+        
         const paramString = `Integer aggregateId, ${dtoTypeName} ${lowerAggregate}Dto`;
         const superCallString = `aggregateId, ${lowerAggregate}Dto`;
 
         return {
             paramString,
             superCallString,
-            hasRelationships: false, // No longer passing relationships as params
-            relationshipParams: [] // Empty since we no longer pass relationships
+            hasRelationships: false, 
+            relationshipParams: [] 
         };
     }
 
@@ -201,19 +201,19 @@ export class SagaGenerator {
     private extractSagaStatesFromWorkflows(aggregate: AggregateExt, capitalizedAggregate: string): string[] {
         const states = new Set<string>();
 
-        // Scan functionalities for saga state registrations
+        
         const functionalities = (aggregate as any).functionalities;
         if (functionalities && functionalities.functionalityMethods) {
             for (const func of functionalities.functionalityMethods) {
                 const steps = (func as any).functionalitySteps || [];
                 for (const step of steps) {
-                    // Check step actions
+                    
                     const actions = step.stepActions || [];
                     for (const action of actions) {
                         if (action.$type === 'FuncRegisterSagaStateAction' && action.sagaState) {
                             const stateName = String(action.sagaState).trim();
                             const upperState = stateName.toUpperCase();
-                            // Only add if it's not a generic state
+                            
                             if (upperState !== 'NOT_IN_SAGA' &&
                                 upperState !== 'IN_SAGA' &&
                                 !stateName.includes('GenericSagaState') &&
@@ -223,14 +223,14 @@ export class SagaGenerator {
                         }
                     }
 
-                    // Check compensation actions (skip NOT_IN_SAGA from compensations)
+                    
                     const compensation = step.compensation;
                     if (compensation && compensation.compensationActions) {
                         for (const compAction of compensation.compensationActions) {
                             if (compAction.$type === 'FuncRegisterSagaStateAction' && compAction.sagaState) {
                                 const stateName = String(compAction.sagaState).trim();
                                 const upperState = stateName.toUpperCase();
-                                // Skip generic states from compensations - these are always GenericSagaState
+                                
                                 if (upperState !== 'NOT_IN_SAGA' &&
                                     upperState !== 'IN_SAGA' &&
                                     !stateName.includes('GenericSagaState') &&
@@ -249,7 +249,7 @@ export class SagaGenerator {
         states.add(`UPDATE_${upperName}`);
         states.add(`DELETE_${upperName}`);
 
-        // Convert to sorted array and ensure no generic states slipped through
+        
         return Array.from(states)
             .filter(state => {
                 const upper = state.toUpperCase();
@@ -265,12 +265,12 @@ export class SagaGenerator {
 
         const rootEntityName = rootEntity ? rootEntity.name : aggregateName;
 
-        // SIMPLIFIED: Factory interface just takes (aggregateId, dto)
+        
         const createMethodParams = `Integer aggregateId, ${rootEntityName}Dto ${lowerAggregate}Dto`;
 
         const imports = this.buildSagaFactoriesImportsSimplified(aggregate, options);
 
-        // SIMPLIFIED: Constructor call just passes (aggregateId, dto)
+        
         const constructorCallArgs = `aggregateId, ${lowerAggregate}Dto`;
 
         return {
@@ -321,13 +321,13 @@ export class SagaGenerator {
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${capitalizedAggregate};`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntityName}Dto;`);
 
-        // Add imports for entity relationships
+        
         const relationships = this.extractEntityRelationships(aggregate, rootEntity);
         for (const rel of relationships) {
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${rel.type};`);
         }
         
-        // Add collection imports if needed
+        
         const hasSet = relationships.some((r: any) => r.isCollection && r.javaType?.startsWith('Set<'));
         const hasList = relationships.some((r: any) => r.isCollection && r.javaType?.startsWith('List<'));
         if (hasSet) {
@@ -365,10 +365,8 @@ export class SagaGenerator {
         return imports;
     }
 
-    /**
-     * SIMPLIFIED: Only need basic imports for saga factories
-     * Entity relationships are no longer passed as parameters
-     */
+    
+
     private buildSagaFactoriesImportsSimplified(aggregate: AggregateExt, options: SagaGenerationOptions): string[] {
         const imports: string[] = [];
 

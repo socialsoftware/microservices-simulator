@@ -4,24 +4,8 @@ import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-typ
 import { CrudHelpers } from "../../../common/crud-helpers.js";
 import { EntityRelationshipExtractor } from "../crud/entity-relationship-extractor.js";
 
-/**
- * CRUD Create Method Generator
- *
- * Generates the create{Aggregate}() method for service classes.
- * Uses Template Method pattern for consistent structure.
- *
- * Generated method signature:
- * ```java
- * public EntityDto createAggregate(CreateAggregateRequestDto createRequest, UnitOfWork unitOfWork)
- * ```
- *
- * Pattern:
- * 1. Convert CreateRequestDto to regular EntityDto
- * 2. Generate new aggregate ID
- * 3. Use factory to create entity
- * 4. Register with UnitOfWork
- * 5. Return DTO
- */
+
+
 export class CrudCreateGenerator extends MethodGeneratorTemplate {
 
     protected override extractMetadata(aggregate: Aggregate, options: GenerationOptions): MethodMetadata {
@@ -68,10 +52,10 @@ export class CrudCreateGenerator extends MethodGeneratorTemplate {
         const lowerAggregate = this.lowercase(aggregateName);
         const capitalizedAggregate = this.capitalize(aggregateName);
 
-        // Extract entity relationships
+        
         const entityRelationships = EntityRelationshipExtractor.findEntityRelationshipsWithDetails(rootEntity, aggregate);
 
-        // Generate primitive field setters
+        
         const primitiveProps = rootEntity.properties?.filter(prop => {
             const javaType = TypeResolver.resolveJavaType(prop.type);
             const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
@@ -91,7 +75,7 @@ export class CrudCreateGenerator extends MethodGeneratorTemplate {
             return `            ${lowerAggregate}Dto.set${capitalizedName}(createRequest.get${capitalizedName}());`;
         }).join('\n');
 
-        // Generate entity relationship setters
+        
         const entitySetters = entityRelationships.map(rel => {
             const capitalizedName = this.capitalize(rel.paramName);
 
@@ -134,9 +118,9 @@ ${allSetters}
     }
 
     protected override buildEventHandling(metadata: MethodMetadata): string {
-        // Create operations don't publish events (aggregate creation is implicit)
+        
         return '';
     }
 
-    // Use default error handling from MethodGeneratorTemplate (with ExceptionGenerator)
+    
 }

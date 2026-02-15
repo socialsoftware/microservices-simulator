@@ -1,6 +1,5 @@
-/**
- * DSL Completion Provider for Nebula
- */
+
+
 
 import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams } from 'vscode-languageserver';
 import { LangiumCoreServices, URI } from 'langium';
@@ -18,7 +17,7 @@ export class NebulaCompletionProvider {
             return { items: [], isIncomplete: false };
         }
 
-        // For now, provide general completions regardless of position
+        
         const items: CompletionItem[] = [];
         items.push(...this.getAggregateCompletions());
         items.push(...this.getEntityCompletions());

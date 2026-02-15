@@ -1,15 +1,13 @@
 import type { Entity, Property } from "../../generated/ast.js";
 
-/**
- * Get effective properties for an entity, including those defined in DTO mappings.
- * This is a local copy for the validation layer.
- */
+
+
 function getEffectivePropertiesForValidation(entity: Entity): any[] {
     const explicitProps = entity.properties || [];
     const entityAny = entity as any;
     const mappings = entityAny.fieldMappings || [];
 
-    // Get properties defined in mappings (new syntax with type)
+    
     const mappingProps = mappings
         .filter((m: any) => m.type && m.entityField)
         .map((m: any) => ({
@@ -18,7 +16,7 @@ function getEffectivePropertiesForValidation(entity: Entity): any[] {
             $fromMapping: true
         }));
 
-    // Combine, avoiding duplicates
+    
     const explicitNames = new Set(explicitProps.map((p: any) => p.name));
     return [
         ...explicitProps,
@@ -42,7 +40,7 @@ export class PropertyValidatorUtils {
             }
         }
 
-        // Use effective properties which includes mapping-defined properties
+        
         const effectiveProps = getEffectivePropertiesForValidation(entity);
 
         const directMatch = effectiveProps.find((p: any) =>

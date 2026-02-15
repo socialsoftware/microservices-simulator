@@ -3,10 +3,8 @@ import { EventBaseGenerator } from "./event-base-generator.js";
 import { EventGenerationOptions } from "./event-types.js";
 import { capitalize } from "../../../utils/generator-utils.js";
 
-/**
- * Generates event handlers for referential integrity constraints.
- * Creates subscriptions to DeletedEvents that enforce reference constraints.
- */
+
+
 export class ReferencesGenerator extends EventBaseGenerator {
 
     async generateReferenceHandlers(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): Promise<{ [key: string]: string }> {
@@ -96,7 +94,6 @@ public class ${className} extends EventSubscription {
         const message = constraint.message.replace(/"/g, ''); // Remove quotes
         const fieldName = constraint.fieldName;
 
-        // Generate the handler logic based on the action
         const handlerLogic = this.generateHandlerLogic(
             aggregate,
             constraint,
@@ -152,7 +149,6 @@ ${handlerLogic}
         switch (action) {
             case 'prevent':
                 return `        // Reference constraint: prevent deletion if references exist
-        // Check if this ${aggregateName} references the deleted ${targetAggregate}
         if (${aggregateVar}.${fieldGetter}() != null) {
             Integer referenced${targetAggregate}Id = ${aggregateVar}.${fieldGetter}().get${targetAggregate}AggregateId();
             if (referenced${targetAggregate}Id != null && referenced${targetAggregate}Id.equals(event.getPublisherAggregateId())) {
@@ -162,7 +158,6 @@ ${handlerLogic}
 
             case 'cascade':
                 return `        // Reference constraint: cascade deletion
-        // If this ${aggregateName} references the deleted ${targetAggregate}, delete it too
         if (${aggregateVar}.${fieldGetter}() != null) {
             Integer referenced${targetAggregate}Id = ${aggregateVar}.${fieldGetter}().get${targetAggregate}AggregateId();
             if (referenced${targetAggregate}Id != null && referenced${targetAggregate}Id.equals(event.getPublisherAggregateId())) {
@@ -172,7 +167,6 @@ ${handlerLogic}
 
             case 'setNull':
                 return `        // Reference constraint: set reference to null
-        // If this ${aggregateName} references the deleted ${targetAggregate}, set reference to null
         if (${aggregateVar}.${fieldGetter}() != null) {
             Integer referenced${targetAggregate}Id = ${aggregateVar}.${fieldGetter}().get${targetAggregate}AggregateId();
             if (referenced${targetAggregate}Id != null && referenced${targetAggregate}Id.equals(event.getPublisherAggregateId())) {

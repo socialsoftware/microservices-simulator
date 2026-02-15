@@ -2,14 +2,12 @@ import { UnifiedTypeResolver as TypeResolver } from '../../common/unified-type-r
 import { EntityRegistry } from '../../common/utils/entity-registry.js';
 import { StringUtils } from '../../../utils/string-utils.js';
 
-/**
- * Generates method bodies for functionalities classes
- */
+
+
 export class FunctionalitiesMethodGenerator {
 
-    /**
-     * Generate web API method body
-     */
+    
+
     generateWebApiMethodBody(endpoint: any, returnType: string, aggregateName: string, consistencyModels: string[]): string {
         const methodName = endpoint.methodName;
         const capitalizedMethodName = StringUtils.capitalize(methodName);
@@ -34,9 +32,8 @@ ${cases}
         }`;
     }
 
-    /**
-     * Generate functionality method body
-     */
+    
+
     generateFunctionalityMethodBody(func: any, returnType: string, aggregateName: string): string {
         const methodName = func.name;
         const capitalizedMethodName = StringUtils.capitalize(methodName);
@@ -57,9 +54,8 @@ ${cases}
         }`;
     }
 
-    /**
-     * Extract parameters from endpoint definition
-     */
+    
+
     extractEndpointParameters(parameters: any): any[] {
         if (!parameters) return [];
 
@@ -87,9 +83,8 @@ ${cases}
         });
     }
 
-    /**
-     * Extract parameters from functionality definition
-     */
+    
+
     extractFunctionalityParameters(parameters: any): any[] {
         if (!parameters) return [];
         return parameters.map((param: any) => {
@@ -120,9 +115,8 @@ ${cases}
         });
     }
 
-    /**
-     * Extract return type from AST node
-     */
+    
+
     extractReturnType(returnType: any, entityRegistry: EntityRegistry): string {
         if (!returnType) return 'void';
 
@@ -158,9 +152,8 @@ ${cases}
         return 'void';
     }
 
-    /**
-     * Build saga constructor parameters string
-     */
+    
+
     private buildSagaParameters(params: any[], aggregateName: string): string {
         const baseParams = [`${aggregateName}Service`, 'sagaUnitOfWorkService'];
 
@@ -174,9 +167,8 @@ ${cases}
         return baseParams.join(', ');
     }
 
-    /**
-     * Build saga result retrieval call
-     */
+    
+
     private buildSagaCall(methodName: string, returnType: string): string {
         if (returnType === 'void') {
             return 'break;';

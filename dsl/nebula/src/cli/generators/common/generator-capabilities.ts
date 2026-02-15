@@ -1,10 +1,5 @@
-/**
- * Generator Capabilities System
- * 
- * This module implements a composition-based architecture to replace the complex
- * inheritance hierarchy of generator base classes, promoting better separation
- * of concerns and reducing code duplication.
- */
+
+
 
 import { Aggregate, Entity } from "../../../language/generated/ast.js";
 import { UnifiedTypeResolver } from "./unified-type-resolver.js";
@@ -16,9 +11,8 @@ import { TemplateContextBuilder } from "./template-context-builder.js";
 import { PackageNameBuilder, PackageBuilderFactory } from "../../utils/package-name-builder.js";
 import { getGlobalConfig } from "./config.js";
 
-/**
- * Core capabilities that generators need
- */
+
+
 export interface GeneratorCapabilities {
     templateRenderer: TemplateRenderer;
     typeResolver: TypeResolver;
@@ -29,18 +23,16 @@ export interface GeneratorCapabilities {
     validator: GeneratorValidator;
 }
 
-/**
- * Template rendering capability
- */
+
+
 export interface TemplateRenderer {
     render(templatePath: string, context: any): string;
     renderRaw(template: string, context: any): string;
     preloadTemplates(paths: string[]): Promise<void>;
 }
 
-/**
- * Type resolution capability
- */
+
+
 export interface TypeResolver {
     resolve(type: any, context?: string): string;
     resolveForEntity(type: any): string;
@@ -52,9 +44,8 @@ export interface TypeResolver {
     isPrimitiveType(type: string): boolean;
 }
 
-/**
- * Import building capability
- */
+
+
 export interface ImportBuilder {
     addJavaImport(className: string): void;
     addSpringImport(annotation: string): void;
@@ -64,9 +55,8 @@ export interface ImportBuilder {
     reset(): void;
 }
 
-/**
- * Context building capability
- */
+
+
 export interface ContextBuilder {
     withAggregate(aggregate: Aggregate): this;
     withEntity(entity: Entity): this;
@@ -77,9 +67,8 @@ export interface ContextBuilder {
     reset(): this;
 }
 
-/**
- * Package name building capability
- */
+
+
 export interface PackageBuilder {
     buildMicroservicePackage(projectName: string, aggregate: string, component: string): string;
     buildCoordinationPackage(projectName: string, component: string): string;
@@ -87,9 +76,8 @@ export interface PackageBuilder {
     buildCustomPackage(projectName: string, ...segments: string[]): string;
 }
 
-/**
- * Generator validation capability
- */
+
+
 export interface GeneratorValidator {
     validateAggregate(aggregate: Aggregate): void;
     validateEntity(entity: Entity): void;
@@ -97,9 +85,8 @@ export interface GeneratorValidator {
     findRootEntity(aggregate: Aggregate): Entity;
 }
 
-/**
- * Generator context for template rendering
- */
+
+
 export interface GeneratorContext {
     aggregate?: Aggregate;
     entity?: Entity;
@@ -108,9 +95,8 @@ export interface GeneratorContext {
     customData?: Record<string, any>;
 }
 
-/**
- * Base generator class using composition instead of inheritance
- */
+
+
 export abstract class BaseGenerator {
     protected capabilities: GeneratorCapabilities;
 
@@ -118,12 +104,11 @@ export abstract class BaseGenerator {
         this.capabilities = this.createCapabilities(capabilities);
     }
 
-    /**
-     * Create capabilities with defaults and overrides
-     */
+    
+
     private createCapabilities(overrides?: Partial<GeneratorCapabilities>): GeneratorCapabilities {
-        // We need a default project name for the import builder
-        const defaultProjectName = 'project'; // This should be overridden by specific generators
+        
+        const defaultProjectName = 'project'; 
 
         const defaults: GeneratorCapabilities = {
             templateRenderer: new DefaultTemplateRenderer(),
@@ -138,9 +123,8 @@ export abstract class BaseGenerator {
         return { ...defaults, ...overrides };
     }
 
-    /**
-     * Convenience methods for common operations
-     */
+    
+
     protected render(templatePath: string, context: any): string {
         return this.capabilities.templateRenderer.render(templatePath, context);
     }
@@ -162,9 +146,8 @@ export abstract class BaseGenerator {
     }
 }
 
-/**
- * Default implementations of capabilities
- */
+
+
 export class DefaultTemplateRenderer implements TemplateRenderer {
     private templateManager = TemplateManager.getInstance();
 
@@ -173,7 +156,7 @@ export class DefaultTemplateRenderer implements TemplateRenderer {
     }
 
     renderRaw(template: string, context: any): string {
-        // For backward compatibility with existing raw template rendering
+        
         const Handlebars = require('handlebars');
         const compiledTemplate = Handlebars.compile(template, { noEscape: true });
         return compiledTemplate(context);
@@ -256,7 +239,7 @@ export class DefaultImportBuilder implements ImportBuilder {
         this.importManager.clear();
     }
 
-    // Expose the underlying ImportManager for advanced usage
+    
     getImportManager(): ImportManager {
         return this.importManager;
     }
@@ -297,7 +280,7 @@ export class DefaultContextBuilder implements ContextBuilder {
     build(): GeneratorContext {
         const templateContext = this.templateContextBuilder.buildPartial();
 
-        // Convert to legacy GeneratorContext format for backward compatibility
+        
         return {
             aggregate: templateContext.customData?.aggregate,
             entity: templateContext.customData?.entity,
@@ -312,7 +295,7 @@ export class DefaultContextBuilder implements ContextBuilder {
         return this;
     }
 
-    // Expose the underlying TemplateContextBuilder for advanced usage
+    
     getTemplateContextBuilder(): TemplateContextBuilder {
         return this.templateContextBuilder;
     }
@@ -341,7 +324,7 @@ export class DefaultPackageBuilder implements PackageBuilder {
         return this.packageBuilder.buildCustomPackage(projectName, ...segments);
     }
 
-    // Expose the underlying PackageNameBuilder for advanced usage
+    
     getPackageBuilder(): PackageNameBuilder {
         return this.packageBuilder;
     }
@@ -412,16 +395,15 @@ export class DefaultGeneratorValidator implements GeneratorValidator {
                 ErrorUtils.aggregateContext('find root entity', aggregate.name, 'validator'),
                 ErrorSeverity.FATAL
             );
-            throw new Error('This will never be reached'); // For TypeScript
+            throw new Error('This will never be reached'); 
         }
         return rootEntity;
     }
 }
 
 
-/**
- * Factory for creating specialized generator capabilities
- */
+
+
 export class GeneratorCapabilitiesFactory {
     private static createCapabilitiesForProject(projectName: string, type: 'microservice' | 'coordination' | 'sagas' = 'microservice'): GeneratorCapabilities {
         let importManager: ImportManager;
@@ -439,7 +421,7 @@ export class GeneratorCapabilitiesFactory {
         }
 
         const importBuilder = new DefaultImportBuilder(projectName);
-        // Replace the internal import manager with the specialized one
+        
         (importBuilder as any).importManager = importManager;
 
         return {
@@ -453,44 +435,38 @@ export class GeneratorCapabilitiesFactory {
         };
     }
 
-    /**
-     * Create capabilities for WebAPI generators
-     */
+    
+
     static createWebApiCapabilities(projectName: string = 'project'): GeneratorCapabilities {
         return this.createCapabilitiesForProject(projectName, 'coordination');
     }
 
-    /**
-     * Create capabilities for entity generators
-     */
+    
+
     static createEntityCapabilities(projectName: string = 'project'): GeneratorCapabilities {
         return this.createCapabilitiesForProject(projectName, 'microservice');
     }
 
-    /**
-     * Create capabilities for service generators
-     */
+    
+
     static createServiceCapabilities(projectName: string = 'project'): GeneratorCapabilities {
         return this.createCapabilitiesForProject(projectName, 'microservice');
     }
 
-    /**
-     * Create capabilities for validation generators
-     */
+    
+
     static createValidationCapabilities(projectName: string = 'project'): GeneratorCapabilities {
         return this.createCapabilitiesForProject(projectName, 'microservice');
     }
 
-    /**
-     * Create capabilities for event generators
-     */
+    
+
     static createEventCapabilities(projectName: string = 'project'): GeneratorCapabilities {
         return this.createCapabilitiesForProject(projectName, 'microservice');
     }
 
-    /**
-     * Create capabilities for saga generators
-     */
+    
+
     static createSagaCapabilities(projectName: string = 'project'): GeneratorCapabilities {
         return this.createCapabilitiesForProject(projectName, 'sagas');
     }

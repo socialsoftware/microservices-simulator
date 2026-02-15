@@ -1,8 +1,7 @@
 import { Generator } from "../generators/base/generator-interface.js";
 
-/**
- * Service definition for dependency injection
- */
+
+
 export interface ServiceDefinition<T = any> {
     name: string;
     factory: () => T;
@@ -10,30 +9,20 @@ export interface ServiceDefinition<T = any> {
     dependencies?: string[];
 }
 
-/**
- * Generator factory function type
- */
+
+
 export type GeneratorFactory<T extends Generator = Generator> = (dependencies: any[]) => T;
 
-/**
- * Validation result for dependency resolution
- */
+
+
 export interface ValidationResult {
     valid: boolean;
     errors: string[];
     warnings?: string[];
 }
 
-/**
- * Dependency Injection container for generators and services
- *
- * Provides:
- * - Service registration (singletons and transients)
- * - Generator factory registration
- * - Circular dependency detection
- * - Lazy initialization
- * - Dependency graph visualization
- */
+
+
 export class DependencyInjector {
     private services = new Map<string, any>();
     private serviceDefinitions = new Map<string, ServiceDefinition>();
@@ -41,22 +30,20 @@ export class DependencyInjector {
     private generatorInstances = new Map<string, Generator>();
     private generatorMetadata = new Map<string, { dependencies: string[] }>();
 
-    /**
-     * Register a service (singleton or transient)
-     */
+    
+
     registerService<T>(definition: ServiceDefinition<T>): void {
         this.serviceDefinitions.set(definition.name, definition);
 
-        // If singleton, create instance immediately if no dependencies
+        
         if (definition.singleton && (!definition.dependencies || definition.dependencies.length === 0)) {
             const instance = definition.factory();
             this.services.set(definition.name, instance);
         }
     }
 
-    /**
-     * Register a generator factory
-     */
+    
+
     registerGenerator<T extends Generator>(
         name: string,
         factory: GeneratorFactory<T>,
@@ -66,29 +53,27 @@ export class DependencyInjector {
         this.generatorMetadata.set(name, { dependencies });
     }
 
-    /**
-     * Register a pre-created service instance
-     */
+    
+
     registerInstance<T>(name: string, instance: T): void {
         this.services.set(name, instance);
     }
 
-    /**
-     * Resolve a service by name
-     */
+    
+
     resolveService<T>(name: string): T {
-        // Check if already instantiated
+        
         if (this.services.has(name)) {
             return this.services.get(name) as T;
         }
 
-        // Get service definition
+        
         const definition = this.serviceDefinitions.get(name);
         if (!definition) {
             throw new Error(`Service '${name}' not registered`);
         }
 
-        // Resolve dependencies first
+        
         const dependencies: any[] = [];
         if (definition.dependencies) {
             for (const dep of definition.dependencies) {
@@ -96,10 +81,10 @@ export class DependencyInjector {
             }
         }
 
-        // Create instance
+        
         const instance = definition.factory();
 
-        // Cache if singleton
+        
         if (definition.singleton) {
             this.services.set(name, instance);
         }
@@ -107,31 +92,30 @@ export class DependencyInjector {
         return instance as T;
     }
 
-    /**
-     * Resolve a generator by name
-     */
+    
+
     resolveGenerator<T extends Generator>(name: string): T {
-        // Check if already instantiated
+        
         if (this.generatorInstances.has(name)) {
             return this.generatorInstances.get(name) as T;
         }
 
-        // Get generator factory
+        
         const factory = this.generatorFactories.get(name);
         if (!factory) {
             throw new Error(`Generator '${name}' not registered`);
         }
 
-        // Get metadata
+        
         const metadata = this.generatorMetadata.get(name);
         if (!metadata) {
             throw new Error(`Generator metadata for '${name}' not found`);
         }
 
-        // Resolve dependencies recursively
+        
         const dependencies: any[] = [];
         for (const dep of metadata.dependencies) {
-            // Check if it's a service or generator
+            
             if (this.serviceDefinitions.has(dep) || this.services.has(dep)) {
                 dependencies.push(this.resolveService(dep));
             } else if (this.generatorFactories.has(dep)) {
@@ -141,28 +125,27 @@ export class DependencyInjector {
             }
         }
 
-        // Create generator instance
+        
         const generator = factory(dependencies);
 
-        // Cache generator
+        
         this.generatorInstances.set(name, generator);
 
         return generator as T;
     }
 
-    /**
-     * Validate all dependencies (detect circular dependencies and missing dependencies)
-     */
+    
+
     validateDependencies(): ValidationResult {
         const errors: string[] = [];
         const warnings: string[] = [];
         const visited = new Set<string>();
         const stack = new Set<string>();
 
-        // Helper function for DFS
+        
         const validateNode = (name: string, isService: boolean): void => {
             if (stack.has(name)) {
-                // Circular dependency detected
+                
                 const cycle = Array.from(stack);
                 cycle.push(name);
                 errors.push(`Circular dependency: ${cycle.join(' -> ')}`);
@@ -176,7 +159,7 @@ export class DependencyInjector {
             visited.add(name);
             stack.add(name);
 
-            // Get dependencies
+            
             let dependencies: string[] = [];
             if (isService) {
                 const def = this.serviceDefinitions.get(name);
@@ -186,9 +169,9 @@ export class DependencyInjector {
                 dependencies = meta?.dependencies || [];
             }
 
-            // Validate each dependency
+            
             for (const dep of dependencies) {
-                // Check if dependency exists
+                
                 const depExists = this.serviceDefinitions.has(dep) ||
                                  this.services.has(dep) ||
                                  this.generatorFactories.has(dep);
@@ -198,7 +181,7 @@ export class DependencyInjector {
                     continue;
                 }
 
-                // Recursively validate
+                
                 const depIsService = this.serviceDefinitions.has(dep) || this.services.has(dep);
                 validateNode(dep, depIsService);
             }
@@ -206,12 +189,12 @@ export class DependencyInjector {
             stack.delete(name);
         };
 
-        // Validate all services
+        
         for (const name of this.serviceDefinitions.keys()) {
             validateNode(name, true);
         }
 
-        // Validate all generators
+        
         for (const name of this.generatorFactories.keys()) {
             validateNode(name, false);
         }
@@ -223,9 +206,8 @@ export class DependencyInjector {
         };
     }
 
-    /**
-     * Get topological order for generator execution
-     */
+    
+
     getGenerationOrder(): string[] {
         const visited = new Set<string>();
         const order: string[] = [];
@@ -238,7 +220,7 @@ export class DependencyInjector {
 
             visited.add(name);
 
-            // Visit dependencies first
+            
             for (const dep of metadata.dependencies) {
                 if (this.generatorFactories.has(dep)) {
                     visit(dep);
@@ -248,7 +230,7 @@ export class DependencyInjector {
             order.push(name);
         };
 
-        // Visit all generators
+        
         for (const name of this.generatorFactories.keys()) {
             visit(name);
         }
@@ -256,14 +238,13 @@ export class DependencyInjector {
         return order;
     }
 
-    /**
-     * Get dependency graph for visualization
-     */
+    
+
     getDependencyGraph(): { nodes: string[]; edges: [string, string][] } {
         const nodes: string[] = [];
         const edges: [string, string][] = [];
 
-        // Add all services
+        
         for (const name of this.serviceDefinitions.keys()) {
             nodes.push(`service:${name}`);
         }
@@ -273,12 +254,12 @@ export class DependencyInjector {
             }
         }
 
-        // Add all generators
+        
         for (const name of this.generatorFactories.keys()) {
             nodes.push(`generator:${name}`);
         }
 
-        // Add edges for service dependencies
+        
         for (const [name, def] of this.serviceDefinitions) {
             if (def.dependencies) {
                 for (const dep of def.dependencies) {
@@ -287,7 +268,7 @@ export class DependencyInjector {
             }
         }
 
-        // Add edges for generator dependencies
+        
         for (const [name, meta] of this.generatorMetadata) {
             for (const dep of meta.dependencies) {
                 const depType = this.generatorFactories.has(dep) ? 'generator' : 'service';
@@ -298,18 +279,16 @@ export class DependencyInjector {
         return { nodes, edges };
     }
 
-    /**
-     * Clear all cached instances (useful for testing)
-     */
+    
+
     clear(): void {
         this.services.clear();
         this.generatorInstances.clear();
-        // Don't clear definitions/factories - those are configuration
+        
     }
 
-    /**
-     * Get statistics about registered services and generators
-     */
+    
+
     getStatistics(): {
         services: number;
         generators: number;
@@ -331,7 +310,6 @@ export class DependencyInjector {
     }
 }
 
-/**
- * Global DI container instance
- */
+
+
 export const globalInjector = new DependencyInjector();

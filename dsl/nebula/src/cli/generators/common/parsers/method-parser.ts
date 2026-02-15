@@ -212,7 +212,7 @@ export class MethodParser {
         if (this.hasModifier(method, 'private')) return 'private';
         if (this.hasModifier(method, 'protected')) return 'protected';
         if (this.hasModifier(method, 'public')) return 'public';
-        return 'public'; // Default to public
+        return 'public'; 
     }
 
     private isConstructor(method: Method): boolean {

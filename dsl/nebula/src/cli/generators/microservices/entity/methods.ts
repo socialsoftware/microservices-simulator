@@ -83,7 +83,7 @@ export function generateGettersSetters(properties: any[], entity?: Entity, proje
     const entityName = entity?.name || 'Unknown';
     const isRootEntity = entity?.isRoot || false;
 
-    // For non-root entities, ensure id field is included for getter/setter generation
+    
     const processedProperties = [...properties];
     if (!isRootEntity) {
         const hasIdField = processedProperties.some(prop => prop?.name === 'id');

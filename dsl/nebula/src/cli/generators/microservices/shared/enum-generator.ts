@@ -39,20 +39,20 @@ ${enumValues}
         return results;
     }
 
-    // Helper method to extract enums from entity properties
+    
     static extractEnumsFromEntities(entities: any[]): EnumDefinition[] {
         const enums: EnumDefinition[] = [];
 
-        // This is a placeholder - in a real implementation, we would parse
-        // enum definitions from the DSL or detect enum-like string properties
+        
+        
 
-        // Example: if we find properties with specific naming patterns or annotations
-        // we could automatically generate enums
+        
+        
 
         return enums;
     }
 
-    // Method to create common enums that might be needed
+    
     static createCommonEnums(): EnumDefinition[] {
         return [
             {

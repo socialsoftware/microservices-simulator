@@ -234,7 +234,7 @@ export class InvariantGenerator extends ValidationBaseGenerator {
             name: `invariant${aggregateName}Valid`,
             property: 'aggregate',
             propertyType: aggregateName,
-            condition: 'true', // Aggregate-level validation
+            condition: 'true', 
             message: `${aggregateName} aggregate must be in a valid state`,
             logic: this.buildAggregateInvariantLogic(rootEntity, aggregateName),
             severity: 'error'

@@ -327,13 +327,13 @@ export class QueryMethodParser {
             };
         }
 
-        // Build a proper mapping of properties to their operators
-        // Keywords array contains both operators and logical connectors (And/Or)
-        // We need to skip And/Or when counting parameters
+        
+        
+        
         let keywordIndex = 0;
 
         for (let i = 0; i < parsed.properties.length; i++) {
-            // Find the next non-And/Or keyword
+            
             let operatorKeyword: string | undefined;
             while (keywordIndex < parsed.keywords.length) {
                 const keyword = parsed.keywords[keywordIndex];
@@ -345,15 +345,15 @@ export class QueryMethodParser {
             }
 
             if (!operatorKeyword) {
-                // No operator means equals comparison → 1 parameter
+                
                 expectedCount++;
             } else {
                 const keywordInfo = this.KEYWORDS[operatorKeyword] as { params: number; requiresProperty: boolean } | undefined;
                 if (keywordInfo) {
-                    // Use the keyword's param count
+                    
                     expectedCount += keywordInfo.params;
                 } else {
-                    // Unknown keyword, assume 1 parameter
+                    
                     expectedCount++;
                 }
             }

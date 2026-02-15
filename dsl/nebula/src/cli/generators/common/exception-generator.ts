@@ -41,7 +41,7 @@ export class ExceptionGenerator {
         const errorMessages: Array<{ name: string, message: string }> = [];
         const addedMessages = new Set<string>();
 
-        // Extract messages from DSL exceptions block
+        
         for (const model of allModels) {
             if (model.exceptions && model.exceptions.messages) {
                 for (const message of model.exceptions.messages) {
@@ -56,7 +56,7 @@ export class ExceptionGenerator {
             }
         }
 
-        // Auto-generate exception messages for required String fields in root entities
+        
         for (const model of allModels) {
             if (model.aggregates) {
                 for (const aggregate of model.aggregates) {
@@ -70,7 +70,7 @@ export class ExceptionGenerator {
                             const isEntity = this.isEntityType(javaType);
                             const isEnum = this.isEnumType(prop.type);
 
-                            // Generate exception message for required String fields
+                            
                             if (isString && !isCollection && !isEntity && !isEnum) {
                                 const exceptionName = `${aggregateName}_MISSING_${prop.name.toUpperCase()}`;
                                 if (!addedMessages.has(exceptionName)) {
@@ -106,7 +106,7 @@ export class ExceptionGenerator {
     }
 
     private isEntityType(javaType: string): boolean {
-        // Simple check - if it's not a primitive or collection, it might be an entity
+        
         const primitives = ['String', 'Integer', 'Long', 'Double', 'Float', 'Boolean', 'boolean', 'LocalDateTime', 'BigDecimal'];
         return !primitives.includes(javaType) && !javaType.startsWith('List<') && !javaType.startsWith('Set<');
     }

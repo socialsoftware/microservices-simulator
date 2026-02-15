@@ -1,23 +1,8 @@
 import { Aggregate, Entity } from "../../../../../language/generated/ast.js";
 import { MethodGeneratorTemplate, MethodMetadata, GenerationOptions } from "../../../common/base/method-generator-template.js";
 
-/**
- * CRUD ReadAll Method Generator
- *
- * Generates the getAll{Aggregate}s() method for service classes.
- * Uses Template Method pattern for consistent structure.
- *
- * Generated method signature:
- * ```java
- * public List<EntityDto> getAllAggregates(UnitOfWork unitOfWork)
- * ```
- *
- * Pattern:
- * 1. Query repository for all aggregate IDs
- * 2. Load each aggregate via UnitOfWork (read-only)
- * 3. Convert to DTOs
- * 4. Return list of DTOs
- */
+
+
 export class CrudReadAllGenerator extends MethodGeneratorTemplate {
 
     protected override extractMetadata(aggregate: Aggregate, options: GenerationOptions): MethodMetadata {
@@ -65,9 +50,9 @@ export class CrudReadAllGenerator extends MethodGeneratorTemplate {
     }
 
     protected override buildEventHandling(metadata: MethodMetadata): string {
-        // Read operations don't publish events
+        
         return '';
     }
 
-    // Use default error handling from MethodGeneratorTemplate (with ExceptionGenerator)
+    
 }

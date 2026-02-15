@@ -23,7 +23,7 @@ export class WebApiFeature {
                 controllerCode = webApiCode['controller'] as string;
                 requestDtos = webApiCode['request-dtos'] as Record<string, string>;
             } else {
-                // Generate empty controller
+                
                 controllerCode = await generators.webApiGenerator.generateEmptyController(aggregate, options);
             }
 
@@ -31,7 +31,7 @@ export class WebApiFeature {
             await fs.mkdir(path.dirname(webApiPath), { recursive: true });
             await fs.writeFile(webApiPath, controllerCode, 'utf-8');
 
-            // Write request DTOs if generated (each DTO to a separate file)
+            
             if (requestDtos && typeof requestDtos === 'object') {
                 const dtoKeys = Object.keys(requestDtos);
                 if (dtoKeys.length > 0) {

@@ -1,16 +1,10 @@
-/**
- * Centralized Package Name Building System
- * 
- * This module provides comprehensive package name generation with consistent
- * patterns across all generators, eliminating the 99+ instances of duplicate
- * package building logic found throughout the codebase.
- */
+
+
 
 import { getGlobalConfig } from "../generators/common/config.js";
 
-/**
- * Package types for different components of the system
- */
+
+
 export enum PackageType {
     MICROSERVICES = 'microservices',
     COORDINATION = 'coordination',
@@ -21,11 +15,10 @@ export enum PackageType {
     CONFIG = 'config'
 }
 
-/**
- * Component types within each package type
- */
+
+
 export enum ComponentType {
-    // Microservice components
+    
     AGGREGATE = 'aggregate',
     SERVICE = 'service',
     REPOSITORY = 'repository',
@@ -34,13 +27,13 @@ export enum ComponentType {
     EVENTS_HANDLING = 'events.handling',
     EVENTS_HANDLERS = 'events.handling.handlers',
 
-    // Coordination components
+    
     FUNCTIONALITIES = 'functionalities',
     EVENT_PROCESSING = 'eventProcessing',
     WEBAPI = 'webapi',
     WEBAPI_DTOS = 'webapi.dtos',
 
-    // Saga components
+    
     AGGREGATES = 'aggregates',
     STATES = 'aggregates.states',
     DTOS = 'aggregates.dtos',
@@ -48,21 +41,20 @@ export enum ComponentType {
     REPOSITORIES = 'aggregates.repositories',
     COORDINATION_SAGA = 'coordination',
 
-    // Shared components
+    
     DTOS_SHARED = 'dtos',
     ENUMS = 'enums',
     EXCEPTIONS = 'exceptions',
     UTILS = 'utils',
 
-    // Validation components
+    
     INVARIANTS = 'invariants',
     ANNOTATIONS = 'annotations',
     VALIDATORS = 'validators'
 }
 
-/**
- * Package building options
- */
+
+
 export interface PackageBuildingOptions {
     projectName: string;
     basePackage?: string;
@@ -71,9 +63,8 @@ export interface PackageBuildingOptions {
     lowercase?: boolean;
 }
 
-/**
- * Centralized package name builder with consistent patterns
- */
+
+
 export class PackageNameBuilder {
     private basePackage: string;
 
@@ -81,9 +72,8 @@ export class PackageNameBuilder {
         this.basePackage = basePackage || getGlobalConfig().getBasePackage();
     }
 
-    /**
-     * Build a microservice package name
-     */
+    
+
     buildMicroservicePackage(
         projectName: string,
         aggregateName: string,
@@ -100,9 +90,8 @@ export class PackageNameBuilder {
         return segments.join('.');
     }
 
-    /**
-     * Build a coordination package name
-     */
+    
+
     buildCoordinationPackage(
         projectName: string,
         component: ComponentType | string
@@ -117,9 +106,8 @@ export class PackageNameBuilder {
         return segments.join('.');
     }
 
-    /**
-     * Build a saga package name
-     */
+    
+
     buildSagaPackage(
         projectName: string,
         component: ComponentType | string,
@@ -140,9 +128,8 @@ export class PackageNameBuilder {
         return segments.join('.');
     }
 
-    /**
-     * Build a shared package name
-     */
+    
+
     buildSharedPackage(
         projectName: string,
         component: ComponentType | string
@@ -157,9 +144,8 @@ export class PackageNameBuilder {
         return segments.join('.');
     }
 
-    /**
-     * Build a validation package name
-     */
+    
+
     buildValidationPackage(
         projectName: string,
         aggregateName: string,
@@ -176,9 +162,8 @@ export class PackageNameBuilder {
         return segments.join('.');
     }
 
-    /**
-     * Build a custom package name with arbitrary segments
-     */
+    
+
     buildCustomPackage(projectName: string, ...segments: string[]): string {
         const allSegments = [
             this.basePackage,
@@ -189,25 +174,22 @@ export class PackageNameBuilder {
         return allSegments.join('.');
     }
 
-    /**
-     * Build framework/base package names (for framework imports)
-     */
+    
+
     buildFrameworkPackage(...segments: string[]): string {
         return [this.basePackage, ...segments].join('.');
     }
 
-    /**
-     * Get the base package
-     */
+    
+
     getBasePackage(): string {
         return this.basePackage;
     }
 
-    /**
-     * Specialized builders for common patterns
-     */
+    
 
-    // Entity-related packages
+
+    
     buildEntityPackage(projectName: string, aggregateName: string): string {
         return this.buildMicroservicePackage(projectName, aggregateName, ComponentType.AGGREGATE);
     }
@@ -220,7 +202,7 @@ export class PackageNameBuilder {
         return this.buildMicroservicePackage(projectName, aggregateName, ComponentType.REPOSITORY);
     }
 
-    // Event-related packages
+    
     buildPublishedEventPackage(projectName: string, aggregateName: string): string {
         return this.buildMicroservicePackage(projectName, aggregateName, ComponentType.EVENTS_PUBLISH);
     }
@@ -237,7 +219,7 @@ export class PackageNameBuilder {
         return this.buildMicroservicePackage(projectName, aggregateName, ComponentType.EVENTS_HANDLERS);
     }
 
-    // Coordination-related packages
+    
     buildFunctionalitiesPackage(projectName: string): string {
         return this.buildCoordinationPackage(projectName, ComponentType.FUNCTIONALITIES);
     }
@@ -254,7 +236,7 @@ export class PackageNameBuilder {
         return this.buildCoordinationPackage(projectName, ComponentType.WEBAPI_DTOS);
     }
 
-    // Saga-related packages
+    
     buildSagaAggregatesPackage(projectName: string): string {
         return this.buildSagaPackage(projectName, ComponentType.AGGREGATES);
     }
@@ -279,7 +261,7 @@ export class PackageNameBuilder {
         return this.buildSagaPackage(projectName, ComponentType.COORDINATION_SAGA, aggregateName);
     }
 
-    // Shared packages
+    
     buildSharedDtosPackage(projectName: string): string {
         return this.buildSharedPackage(projectName, ComponentType.DTOS_SHARED);
     }
@@ -292,7 +274,7 @@ export class PackageNameBuilder {
         return this.buildSharedPackage(projectName, ComponentType.EXCEPTIONS);
     }
 
-    // Validation packages
+    
     buildInvariantsPackage(projectName: string, aggregateName: string): string {
         return this.buildValidationPackage(projectName, aggregateName, ComponentType.INVARIANTS);
     }
@@ -305,7 +287,7 @@ export class PackageNameBuilder {
         return this.buildValidationPackage(projectName, aggregateName, ComponentType.VALIDATORS);
     }
 
-    // Framework packages (for imports)
+    
     buildTransactionModelPackage(): string {
         return this.buildFrameworkPackage('ms', 'TransactionalModel');
     }
@@ -323,39 +305,33 @@ export class PackageNameBuilder {
     }
 }
 
-/**
- * Factory for creating package builders with different configurations
- */
+
+
 export class PackageBuilderFactory {
-    /**
-     * Create a standard package builder using global config
-     */
+    
+
     static createStandard(): PackageNameBuilder {
         return new PackageNameBuilder();
     }
 
-    /**
-     * Create a package builder with custom base package
-     */
+    
+
     static createWithBasePackage(basePackage: string): PackageNameBuilder {
         return new PackageNameBuilder(basePackage);
     }
 
-    /**
-     * Create a package builder for testing (with test base package)
-     */
+    
+
     static createForTesting(): PackageNameBuilder {
         return new PackageNameBuilder('com.test.example');
     }
 }
 
-/**
- * Utility functions for package name operations
- */
+
+
 export class PackageUtils {
-    /**
-     * Extract project name from a full package name
-     */
+    
+
     static extractProjectName(packageName: string): string | null {
         const parts = packageName.split('.');
         const basePackage = getGlobalConfig().getBasePackage();
@@ -368,9 +344,8 @@ export class PackageUtils {
         return null;
     }
 
-    /**
-     * Extract aggregate name from a microservice package name
-     */
+    
+
     static extractAggregateName(packageName: string): string | null {
         const parts = packageName.split('.');
         const microservicesIndex = parts.indexOf('microservices');
@@ -382,16 +357,14 @@ export class PackageUtils {
         return null;
     }
 
-    /**
-     * Check if a package name belongs to a specific type
-     */
+    
+
     static isPackageType(packageName: string, type: PackageType): boolean {
         return packageName.includes(`.${type}.`);
     }
 
-    /**
-     * Convert a class name to its likely package component
-     */
+    
+
     static classNameToComponent(className: string): string {
         if (className.endsWith('Service')) return ComponentType.SERVICE;
         if (className.endsWith('Repository')) return ComponentType.REPOSITORY;
@@ -402,12 +375,11 @@ export class PackageUtils {
         if (className.endsWith('Factory')) return ComponentType.FACTORIES;
         if (className.endsWith('Exception')) return ComponentType.EXCEPTIONS;
 
-        return ComponentType.AGGREGATE; // Default
+        return ComponentType.AGGREGATE; 
     }
 
-    /**
-     * Validate package name format
-     */
+    
+
     static validatePackageName(packageName: string): string[] {
         const errors: string[] = [];
 

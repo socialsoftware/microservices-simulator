@@ -16,16 +16,13 @@ export interface SagaOperationMetadata {
     serviceArgs: string[];
 }
 
-/**
- * Base class for saga functionality generators.
- * Provides common functionality for generating saga workflow classes.
- */
+
+
 export abstract class SagaFunctionalityGeneratorBase {
     constructor() {}
 
-    /**
-     * Generate a saga functionality class for a specific CRUD operation.
-     */
+    
+
     generate(
         aggregate: any,
         options: SagaGenerationOptions,
@@ -55,19 +52,16 @@ export abstract class SagaFunctionalityGeneratorBase {
         };
     }
 
-    /**
-     * Build operation-specific metadata.
-     * Must be implemented by each operation-specific generator.
-     */
+    
+
     protected abstract buildOperationMetadata(
         aggregate: any,
         options: SagaGenerationOptions,
         allAggregates?: Aggregate[]
     ): SagaOperationMetadata;
 
-    /**
-     * Build imports for the saga functionality class.
-     */
+    
+
     protected buildImports(metadata: SagaOperationMetadata, aggregate: any, options: SagaGenerationOptions): string[] {
         const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
@@ -87,7 +81,7 @@ export abstract class SagaFunctionalityGeneratorBase {
         imports.push(`import ${basePackage}.ms.sagas.workflow.SagaSyncStep;`);
         imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
 
-        // Add enum imports
+        
         const enumTypes = new Set<string>();
         metadata.params.forEach(p => TypeExtractor.extractEnumTypes(p.type, enumTypes));
         if (metadata.resultType) {
@@ -97,49 +91,46 @@ export abstract class SagaFunctionalityGeneratorBase {
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.enums.${enumType};`);
         });
 
-        // Add List import if needed
+        
         if (metadata.resultType && metadata.resultType.includes('List<')) {
             imports.push('import java.util.List;');
         }
 
-        // Add operation-specific imports
+        
         const additionalImports = this.buildAdditionalImports(metadata, aggregate, options);
         imports.push(...additionalImports);
 
         return imports;
     }
 
-    /**
-     * Override this to add operation-specific imports.
-     */
+    
+
     protected buildAdditionalImports(metadata: SagaOperationMetadata, aggregate: any, options: SagaGenerationOptions): string[] {
         return [];
     }
 
-    /**
-     * Build field declarations for the saga functionality class.
-     */
+    
+
     protected buildFields(metadata: SagaOperationMetadata, aggregate: any): string {
         const capitalizedAggregate = StringUtils.capitalize(aggregate.name);
         const lowerAggregate = aggregate.name.toLowerCase();
 
         let fields = '';
 
-        // Add result field if operation has a result
+        
         if (metadata.resultField && metadata.resultType) {
             fields += `    private ${metadata.resultType} ${metadata.resultField};\n`;
         }
 
-        // Add service fields
+        
         fields += `    private final ${capitalizedAggregate}Service ${lowerAggregate}Service;\n`;
         fields += `    private final SagaUnitOfWorkService unitOfWorkService;\n`;
 
         return fields;
     }
 
-    /**
-     * Build the constructor for the saga functionality class.
-     */
+    
+
     protected buildConstructor(metadata: SagaOperationMetadata, aggregate: any, options: SagaGenerationOptions): string {
         const lowerAggregate = aggregate.name.toLowerCase();
 
@@ -155,10 +146,8 @@ ${constructorBody}
     }`;
     }
 
-    /**
-     * Build constructor parameters.
-     * Standard order: SagaUnitOfWork, SagaUnitOfWorkService, Service, operation-specific params
-     */
+    
+
     protected buildConstructorParams(metadata: SagaOperationMetadata, aggregate: any): string[] {
         const capitalizedAggregate = StringUtils.capitalize(aggregate.name);
         const lowerAggregate = aggregate.name.toLowerCase();
@@ -169,29 +158,25 @@ ${constructorBody}
             `${capitalizedAggregate}Service ${lowerAggregate}Service`
         ];
 
-        // Add operation-specific parameters
+        
         params.push(...metadata.params.map(p => `${p.type} ${p.name}`));
 
         return params;
     }
 
-    /**
-     * Build arguments for buildWorkflow method call.
-     */
+    
+
     protected buildWorkflowCallArgs(metadata: SagaOperationMetadata): string[] {
         const args = [...metadata.params.map(p => p.name), 'unitOfWork'];
         return args;
     }
 
-    /**
-     * Build the buildWorkflow method.
-     * Must be implemented by each operation-specific generator.
-     */
+    
+
     protected abstract buildWorkflowMethod(metadata: SagaOperationMetadata, aggregate: any, options: SagaGenerationOptions): string;
 
-    /**
-     * Build getters and setters for the saga functionality class.
-     */
+    
+
     protected buildGettersSetters(metadata: SagaOperationMetadata, aggregate: any): string {
         if (!metadata.resultField || !metadata.resultType) {
             return '';
@@ -207,9 +192,8 @@ ${constructorBody}
     }`;
     }
 
-    /**
-     * Assemble the complete class.
-     */
+    
+
     protected assembleClass(
         packageName: string,
         className: string,

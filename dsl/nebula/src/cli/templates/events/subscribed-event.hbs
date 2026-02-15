@@ -11,8 +11,6 @@ public class {{subscriptionName}} extends EventSubscription {
     {{#if (length conditions)}}private final {{sourceAggregate}} {{sourceAggregateVariable}};{{/if}}
 
     public {{subscriptionName}}() {
-        // Parameterless constructor for simple subscriptions
-        // Event matching is handled by the framework
     }
 
     public boolean subscribesEvent(Event event) {

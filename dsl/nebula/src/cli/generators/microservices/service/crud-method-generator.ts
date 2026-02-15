@@ -88,28 +88,28 @@ export class CrudMethodGenerator {
     }
 
     private generateCreateMethod(aggregate: Aggregate, rootEntity: Entity, entityName: string, lowerEntity: string, options: CrudGenerationOptions, properties: { name: string; capitalizedName: string }[]): GeneratedMethod {
-        // Find entity relationships (both single and collections)
+        
         const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
         const singleEntityRels = entityRelationships.filter(rel => !rel.isCollection);
         const collectionEntityRels = entityRelationships.filter(rel => rel.isCollection);
 
-        // Build parameters: single entities, CreateRequestDto, collections, UnitOfWork
+        
         const parameters: MethodParameter[] = [];
 
-        // Add single entity relationships first (projection entities created by saga)
+        
         for (const rel of singleEntityRels) {
             parameters.push({ type: rel.entityType, name: rel.paramName });
         }
 
-        // Add CreateRequestDto (contains primitive fields + cross-aggregate DTOs)
+        
         parameters.push({ type: `Create${entityName}RequestDto`, name: 'createRequest' });
 
-        // Add collection entity relationships (projection entities created by saga)
+        
         for (const rel of collectionEntityRels) {
             parameters.push({ type: rel.javaType, name: rel.paramName });
         }
 
-        // Add UnitOfWork last
+        
         parameters.push({ type: 'UnitOfWork', name: 'unitOfWork' });
 
         return {
@@ -129,9 +129,8 @@ export class CrudMethodGenerator {
         } as any;
     }
 
-    /**
-     * Find entity relationships (both single and collection entity fields) from root entity properties
-     */
+    
+
     private findEntityRelationships(rootEntity: Entity, aggregate: Aggregate): Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> {
         const relationships: Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> = [];
 
@@ -143,28 +142,28 @@ export class CrudMethodGenerator {
             const javaType = TypeResolver.resolveJavaType(prop.type);
             const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
 
-            // Check if this is an entity type (not enum)
+            
             const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
 
             if (isEntityType) {
-                // Resolve entity type
+                
                 const entityRef = (prop.type as any).type?.ref;
                 let entityName: string;
 
                 if (isCollection) {
-                    // For collections, extract element type
+                    
                     const elementType = TypeResolver.getElementType(prop.type);
                     entityName = elementType || javaType.replace(/^(Set|List)<(.+)>$/, '$2');
                 } else {
                     entityName = entityRef?.name || javaType;
                 }
 
-                // Only include if it's an entity within this aggregate
+                
                 const relatedEntity = aggregate.entities?.find((e: any) => e.name === entityName);
                 const isEntityInAggregate = !!relatedEntity;
 
-                // Include all entity relationships
-                // Note: generateDto flag just means "generate a DTO class", not "exclude from signature"
+                
+                
                 if (isEntityInAggregate) {
                     const paramName = prop.name;
                     relationships.push({
@@ -180,9 +179,8 @@ export class CrudMethodGenerator {
         return relationships;
     }
 
-    /**
-     * Check if a type is an enum
-     */
+    
+
     private isEnumType(type: any): boolean {
         if (type && typeof type === 'object' &&
             type.$type === 'EntityType' &&

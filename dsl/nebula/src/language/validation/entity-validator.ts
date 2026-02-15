@@ -31,7 +31,7 @@ export class EntityValidator {
         }
 
         if (entity.isRoot) {
-            // Root entities inherit 'id' from Aggregate base class, so they shouldn't define it explicitly
+            
             for (const property of entity.properties) {
                 if (property.name && property.name.toLowerCase() === 'id') {
                     accept("error", "Root entities inherit 'id' from Aggregate base class and should not define it explicitly.", {
@@ -89,8 +89,8 @@ export class EntityValidator {
     }
 
     private validateEntityDtoMapping(entity: Entity, fieldMappings: any[], accept: ValidationAcceptor): void {
-        // Mappings create entity fields automatically (map dtoField as entityField)
-        // We only need to validate that DTO fields exist on the target aggregate
+        
+        
 
         const entityAny = entity as any;
         const aggregateRef = entityAny.aggregateRef;
@@ -98,21 +98,21 @@ export class EntityValidator {
 
         let targetDtoFields: Set<string> | undefined;
         if (model && aggregateRef) {
-            // aggregateRef is the aggregate name (e.g., "Topic"), derive DTO name (e.g., "TopicDto")
+            
             const aggregateName = typeof aggregateRef === 'string' ? aggregateRef : (aggregateRef.ref?.name || aggregateRef.$refText || '');
             if (!aggregateName) {
-                return; // Skip validation if aggregate name can't be determined
+                return; 
             }
-            // Find the root entity of the referenced aggregate
-            // Note: Only check in current model - cross-file aggregates will be validated during code generation
+            
+            
             const targetAggregate = model.aggregates?.find(agg => agg.name === aggregateName);
             if (!targetAggregate) {
-                // Aggregate not found in current model - skip validation (may be in another file)
-                // Code generation will validate cross-file references
+                
+                
                 return;
             }
 
-            // Get entities from aggregateElements (entities are mixed with other aggregate elements)
+            
             const entities = targetAggregate.aggregateElements?.filter(el => isEntity(el)) as Entity[] || [];
             const rootEntity = entities.find((e: Entity) => e.isRoot);
 
@@ -127,7 +127,7 @@ export class EntityValidator {
         }
 
         for (const mapping of fieldMappings) {
-            // Validate that DTO field exists on the target aggregate's DTO
+            
             if (targetDtoFields && !targetDtoFields.has(mapping.dtoField)) {
                 accept("error", `DTO field '${mapping.dtoField}' is not available on the target DTO. Available fields: ${Array.from(targetDtoFields).join(', ')}`, {
                     node: mapping,

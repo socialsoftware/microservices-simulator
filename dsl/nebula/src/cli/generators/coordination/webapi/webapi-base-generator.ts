@@ -4,7 +4,7 @@ import { WebApiGenerationOptions } from "../../microservices/types.js";
 import Handlebars from "handlebars";
 
 export abstract class WebApiBaseGenerator extends GeneratorBase {
-    // Note: capitalize inherited from GeneratorBase
+    
 
     protected getWebApiBasePackage(options: WebApiGenerationOptions): string {
         if (!options.basePackage) {

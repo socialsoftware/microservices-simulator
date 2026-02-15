@@ -1,10 +1,5 @@
-/**
- * Unified DTO Generation System
- * 
- * This module consolidates all DTO generation logic from WebApiDtoGenerator,
- * DtoGenerator, and SharedDtoGenerator into a single, comprehensive system
- * that handles all DTO generation scenarios.
- */
+
+
 
 import { Entity, Property } from "../../../language/generated/ast.js";
 import { UnifiedTypeResolver } from "./unified-type-resolver.js";
@@ -12,21 +7,19 @@ import { ImportManager, ImportManagerFactory } from "../../utils/import-manager.
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../../utils/error-handler.js";
 import { StringUtils } from '../../utils/string-utils.js';
 
-/**
- * DTO generation types
- */
+
+
 export enum DtoType {
-    ENTITY_DTO = 'entity',           // Standard entity DTO
-    REQUEST_DTO = 'request',         // WebAPI request DTO
-    RESPONSE_DTO = 'response',       // WebAPI response DTO
-    CREATE_REQUEST = 'create-request', // Create operation DTO
-    UPDATE_REQUEST = 'update-request', // Update operation DTO
-    SHARED_DTO = 'shared'            // Shared DTO across microservices
+    ENTITY_DTO = 'entity',           
+    REQUEST_DTO = 'request',         
+    RESPONSE_DTO = 'response',       
+    CREATE_REQUEST = 'create-request', 
+    UPDATE_REQUEST = 'update-request', 
+    SHARED_DTO = 'shared'            
 }
 
-/**
- * DTO generation options
- */
+
+
 export interface DtoGenerationOptions {
     projectName: string;
     dtoType: DtoType;
@@ -38,9 +31,8 @@ export interface DtoGenerationOptions {
     packageOverride?: string;
 }
 
-/**
- * DTO field definition
- */
+
+
 export interface DtoField {
     name: string;
     type: string;
@@ -50,9 +42,8 @@ export interface DtoField {
     isRequired?: boolean;
 }
 
-/**
- * Generated DTO structure
- */
+
+
 export interface GeneratedDto {
     className: string;
     packageName: string;
@@ -63,9 +54,8 @@ export interface GeneratedDto {
     annotations: string[];
 }
 
-/**
- * Unified DTO generator that handles all DTO generation scenarios
- */
+
+
 export class UnifiedDtoGenerator {
     private importManager: ImportManager;
 
@@ -73,9 +63,8 @@ export class UnifiedDtoGenerator {
         this.importManager = ImportManagerFactory.createForMicroservice(projectName);
     }
 
-    /**
-     * Generate DTO for an entity
-     */
+    
+
     generateDto(entity: Entity, options: DtoGenerationOptions): GeneratedDto {
         return ErrorHandler.wrap(
             () => this.generateDtoInternal(entity, options),
@@ -90,9 +79,8 @@ export class UnifiedDtoGenerator {
         ) || this.createEmptyDto(entity.name, options);
     }
 
-    /**
-     * Generate multiple DTOs (request/response pairs)
-     */
+    
+
     generateDtoPair(entity: Entity, baseOptions: Omit<DtoGenerationOptions, 'dtoType'>): {
         request: GeneratedDto;
         response: GeneratedDto;
@@ -100,7 +88,7 @@ export class UnifiedDtoGenerator {
         const requestOptions: DtoGenerationOptions = {
             ...baseOptions,
             dtoType: DtoType.REQUEST_DTO,
-            excludeFields: ['id'] // Typically exclude ID from request DTOs
+            excludeFields: ['id'] 
         };
 
         const responseOptions: DtoGenerationOptions = {
@@ -115,9 +103,8 @@ export class UnifiedDtoGenerator {
         };
     }
 
-    /**
-     * Generate CRUD DTOs (create, update, response)
-     */
+    
+
     generateCrudDtos(entity: Entity, baseOptions: Omit<DtoGenerationOptions, 'dtoType'>): {
         create: GeneratedDto;
         response: GeneratedDto;
@@ -128,14 +115,13 @@ export class UnifiedDtoGenerator {
         };
     }
 
-    /**
-     * Internal DTO generation logic
-     */
+    
+
     private generateDtoInternal(entity: Entity, options: DtoGenerationOptions): GeneratedDto {
-        // Reset import manager for this DTO
+        
         this.importManager.clear();
 
-        // Generate DTO components
+        
         const className = this.buildDtoClassName(entity, options);
         const packageName = this.buildDtoPackageName(entity, options);
         const fields = this.buildDtoFields(entity, options);
@@ -143,7 +129,7 @@ export class UnifiedDtoGenerator {
         const methods = this.buildDtoMethods(fields, options);
         const annotations = this.buildDtoAnnotations(options);
 
-        // Add required imports based on fields and options
+        
         this.addRequiredImports(fields, options);
 
         return {
@@ -157,9 +143,8 @@ export class UnifiedDtoGenerator {
         };
     }
 
-    /**
-     * Build DTO class name based on type and entity
-     */
+    
+
     private buildDtoClassName(entity: Entity, options: DtoGenerationOptions): string {
         const entityName = entity.name;
 
@@ -178,9 +163,8 @@ export class UnifiedDtoGenerator {
         }
     }
 
-    /**
-     * Build DTO package name
-     */
+    
+
     private buildDtoPackageName(entity: Entity, options: DtoGenerationOptions): string {
         if (options.packageOverride) {
             return options.packageOverride;
@@ -193,25 +177,24 @@ export class UnifiedDtoGenerator {
             case DtoType.RESPONSE_DTO:
             case DtoType.CREATE_REQUEST:
             case DtoType.UPDATE_REQUEST:
-                // WebAPI request DTOs go in coordination requestDtos package
+                
                 return `pt.ulisboa.tecnico.socialsoftware.ms.${options.projectName.toLowerCase()}.coordination.webapi.requestDtos`;
             case DtoType.SHARED_DTO:
-                // Shared DTOs go in shared package
+                
                 return `pt.ulisboa.tecnico.socialsoftware.ms.${options.projectName.toLowerCase()}.shared.dtos`;
             case DtoType.ENTITY_DTO:
             default:
-                // Entity DTOs go in microservice aggregate package
+                
                 return `pt.ulisboa.tecnico.socialsoftware.ms.${options.projectName.toLowerCase()}.microservices.${aggregateName.toLowerCase()}.aggregate`;
         }
     }
 
-    /**
-     * Build DTO fields from entity properties
-     */
+    
+
     private buildDtoFields(entity: Entity, options: DtoGenerationOptions): DtoField[] {
         const fields: DtoField[] = [];
 
-        // Add aggregate fields for root entities (if requested)
+        
         if (entity.isRoot && options.includeAggregateFields) {
             fields.push({
                 name: 'aggregateId',
@@ -222,10 +205,10 @@ export class UnifiedDtoGenerator {
             });
         }
 
-        // Add entity properties
+        
         if (entity.properties) {
             for (const property of entity.properties) {
-                // Skip excluded fields
+                
                 if (options.excludeFields?.includes(property.name)) {
                     continue;
                 }
@@ -235,7 +218,7 @@ export class UnifiedDtoGenerator {
             }
         }
 
-        // Add aggregate metadata for root entities
+        
         if (entity.isRoot && options.includeAggregateFields) {
             fields.push(
                 {
@@ -255,7 +238,7 @@ export class UnifiedDtoGenerator {
             );
         }
 
-        // Add custom fields
+        
         if (options.customFields) {
             fields.push(...options.customFields);
         }
@@ -263,9 +246,8 @@ export class UnifiedDtoGenerator {
         return fields;
     }
 
-    /**
-     * Build DTO field from entity property
-     */
+    
+
     private buildDtoFieldFromProperty(property: Property, options: DtoGenerationOptions): DtoField {
         const propertyName = property.name;
         const javaType = UnifiedTypeResolver.resolveForDto(property.type);
@@ -273,7 +255,7 @@ export class UnifiedDtoGenerator {
 
         const annotations: string[] = [];
 
-        // Add validation annotations if requested
+        
         if (options.includeValidationAnnotations) {
             if (javaType === 'String') {
                 annotations.push('@NotBlank');
@@ -282,7 +264,7 @@ export class UnifiedDtoGenerator {
             }
         }
 
-        // Handle boolean getters
+        
         const getter = (javaType === 'Boolean' || javaType === 'boolean')
             ? `is${capitalizedName}`
             : `get${capitalizedName}`;
@@ -297,16 +279,15 @@ export class UnifiedDtoGenerator {
         };
     }
 
-    /**
-     * Build DTO constructors
-     */
+    
+
     private buildDtoConstructors(entity: Entity, className: string, fields: DtoField[], options: DtoGenerationOptions): string[] {
         const constructors: string[] = [];
 
-        // Default constructor
+        
         constructors.push(`public ${className}() {}`);
 
-        // Entity constructor (for entity DTOs)
+        
         if (options.dtoType === DtoType.ENTITY_DTO || options.dtoType === DtoType.SHARED_DTO) {
             constructors.push(this.buildEntityConstructor(entity, className, fields));
         }
@@ -314,9 +295,8 @@ export class UnifiedDtoGenerator {
         return constructors;
     }
 
-    /**
-     * Build constructor that takes entity as parameter
-     */
+    
+
     private buildEntityConstructor(entity: Entity, className: string, fields: DtoField[]): string {
         const entityName = entity.name;
         const entityVar = entityName.toLowerCase();
@@ -332,7 +312,7 @@ export class UnifiedDtoGenerator {
             } else if (field.name === 'state') {
                 lines.push(`\tthis.state = ${entityVar}.getState();`);
             } else {
-                // Handle enum fields (convert to string)
+                
                 if (field.name.endsWith('Type')) {
                     lines.push(`\tthis.${field.name} = ${entityVar}.${field.getter}() != null ? ${entityVar}.${field.getter}().toString() : null;`);
                 } else {
@@ -345,20 +325,19 @@ export class UnifiedDtoGenerator {
         return lines.join('\n');
     }
 
-    /**
-     * Build DTO getter/setter methods
-     */
+    
+
     private buildDtoMethods(fields: DtoField[], options: DtoGenerationOptions): string[] {
         const methods: string[] = [];
 
         for (const field of fields) {
-            // Getter method
+            
             const getterAnnotations = field.annotations?.length ? field.annotations.join('\n\t') + '\n\t' : '';
             methods.push(`${getterAnnotations}public ${field.type} ${field.getter}() {
 \t\treturn ${field.name};
 \t}`);
 
-            // Setter method
+            
             methods.push(`public void ${field.setter}(${field.type} ${field.name}) {
 \t\tthis.${field.name} = ${field.name};
 \t}`);
@@ -367,29 +346,27 @@ export class UnifiedDtoGenerator {
         return methods;
     }
 
-    /**
-     * Build DTO class annotations
-     */
+    
+
     private buildDtoAnnotations(options: DtoGenerationOptions): string[] {
         const annotations: string[] = [];
 
         if (options.includeValidationAnnotations) {
-            // Add validation annotations at class level if needed
+            
         }
 
         return annotations;
     }
 
-    /**
-     * Add required imports based on fields and options
-     */
+    
+
     private addRequiredImports(fields: DtoField[], options: DtoGenerationOptions): void {
-        // Always add Serializable for DTOs
+        
         if (options.includeSerializable !== false) {
             this.importManager.addJavaImport('io.Serializable');
         }
 
-        // Add validation imports if needed
+        
         if (options.includeValidationAnnotations) {
             const hasValidation = fields.some(f => f.annotations?.some(a => a.startsWith('@')));
             if (hasValidation) {
@@ -397,21 +374,20 @@ export class UnifiedDtoGenerator {
             }
         }
 
-        // Add imports based on field types
+        
         fields.forEach(field => {
             this.addImportForType(field.type);
         });
 
-        // Add aggregate state import if needed
+        
         const hasAggregateState = fields.some(f => f.type === 'AggregateState');
         if (hasAggregateState) {
             this.importManager.addBaseFrameworkImport('ms.domain.aggregate.Aggregate.AggregateState');
         }
     }
 
-    /**
-     * Add import for a specific type
-     */
+    
+
     private addImportForType(type: string): void {
         if (type === 'LocalDateTime') {
             this.importManager.addJavaTimeImport('LocalDateTime');
@@ -426,9 +402,8 @@ export class UnifiedDtoGenerator {
         }
     }
 
-    /**
-     * Create empty DTO (fallback for errors)
-     */
+    
+
     private createEmptyDto(entityName: string, options: DtoGenerationOptions): GeneratedDto {
         return {
             className: this.buildDtoClassName({ name: entityName } as Entity, options),
@@ -441,9 +416,8 @@ export class UnifiedDtoGenerator {
         };
     }
 
-    /**
-     * Static factory methods for common DTO types
-     */
+    
+
     static forEntity(entity: Entity, projectName: string): GeneratedDto {
         const generator = new UnifiedDtoGenerator(projectName);
         return generator.generateDto(entity, {
@@ -484,36 +458,34 @@ export class UnifiedDtoGenerator {
     }
 }
 
-/**
- * DTO rendering utility that converts GeneratedDto to Java code
- */
+
+
 export class DtoRenderer {
-    /**
-     * Render a GeneratedDto to Java code string
-     */
+    
+
     static renderToJavaCode(dto: GeneratedDto): string {
         const parts: string[] = [];
 
-        // Package declaration
+        
         parts.push(`package ${dto.packageName};`);
         parts.push('');
 
-        // Imports
+        
         if (dto.imports.length > 0) {
             parts.push(...dto.imports);
             parts.push('');
         }
 
-        // Class annotations
+        
         if (dto.annotations.length > 0) {
             parts.push(...dto.annotations);
         }
 
-        // Class declaration
+        
         const implementsClause = dto.imports.some(imp => imp.includes('Serializable')) ? ' implements Serializable' : '';
         parts.push(`public class ${dto.className}${implementsClause} {`);
 
-        // Fields
+        
         if (dto.fields.length > 0) {
             dto.fields.forEach(field => {
                 if (field.annotations && field.annotations.length > 0) {
@@ -524,7 +496,7 @@ export class DtoRenderer {
             parts.push('');
         }
 
-        // Constructors
+        
         if (dto.constructors.length > 0) {
             dto.constructors.forEach(constructor => {
                 parts.push(`\t${constructor}`);
@@ -532,7 +504,7 @@ export class DtoRenderer {
             });
         }
 
-        // Methods
+        
         if (dto.methods.length > 0) {
             dto.methods.forEach(method => {
                 parts.push(`\t${method.replace(/\n/g, '\n\t')}`);

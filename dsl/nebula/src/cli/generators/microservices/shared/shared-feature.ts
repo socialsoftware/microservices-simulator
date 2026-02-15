@@ -13,7 +13,7 @@ export class SharedFeature {
     async generateSharedComponents(options: SharedGenerationOptions): Promise<{ [key: string]: string }> {
         const results: { [key: string]: string } = {};
 
-        // Generate enums
+        
         const enums = this.getEnumsToGenerate(options);
         const enumResults = this.enumGenerator.generateAllEnums(enums, options);
         Object.assign(results, enumResults);
@@ -24,7 +24,7 @@ export class SharedFeature {
     private getEnumsToGenerate(options: SharedGenerationOptions): EnumDefinition[] {
         const enums: EnumDefinition[] = [];
 
-        // Extract enums from DSL models (from SharedEnums)
+        
         if (options.models) {
             for (const model of options.models) {
                 if (model.sharedEnums) {
@@ -42,7 +42,7 @@ export class SharedFeature {
             }
         }
 
-        // Fallback to common enums if no DSL enums found
+        
         if (enums.length === 0) {
             return EnumGenerator.createCommonEnums();
         }
@@ -56,6 +56,6 @@ export class SharedFeature {
     }
 
     isEnabled(): boolean {
-        return true; // Always enabled
+        return true; 
     }
 }

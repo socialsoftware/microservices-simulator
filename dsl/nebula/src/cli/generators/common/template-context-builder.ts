@@ -1,10 +1,5 @@
-/**
- * Unified Template Context Building System
- * 
- * This module provides a comprehensive, fluent API for building template contexts
- * across all generators, eliminating duplicate context building patterns and
- * ensuring consistency in template data structure.
- */
+
+
 
 import { Aggregate, Entity } from "../../../language/generated/ast.js";
 import { UnifiedTypeResolver } from "./unified-type-resolver.js";
@@ -13,55 +8,53 @@ import { getGlobalConfig } from "./config.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../../utils/error-handler.js";
 import { StringUtils } from '../../utils/string-utils.js';
 
-/**
- * Standard template context interface
- */
+
+
 export interface TemplateContext {
-    // Project information
+    
     projectName?: string;
-    ProjectName?: string; // Capitalized
+    ProjectName?: string; 
     lowerProjectName?: string;
 
-    // Package information
+    
     packageName?: string;
     basePackage?: string;
 
-    // Aggregate information
+    
     aggregateName?: string;
     capitalizedAggregate?: string;
     lowerAggregate?: string;
 
-    // Entity information
+    
     entityName?: string;
     rootEntityName?: string;
     capitalizedEntity?: string;
     lowerEntity?: string;
 
-    // Architecture and features
+    
     architecture?: string;
     features?: string[];
     transactionModel?: string;
 
-    // Generation metadata
+    
     imports?: string[];
     dependencies?: any[];
     methods?: any[];
     fields?: any[];
     properties?: any[];
 
-    // Custom data
+    
     customData?: Record<string, any>;
 
-    // Validation
+    
     requiredFields?: string[];
 
-    // Template-specific data
+    
     [key: string]: any;
 }
 
-/**
- * Options for context building
- */
+
+
 export interface ContextBuildingOptions {
     projectName: string;
     architecture?: string;
@@ -73,9 +66,8 @@ export interface ContextBuildingOptions {
     customValidation?: (context: TemplateContext) => string[];
 }
 
-/**
- * Fluent template context builder with comprehensive functionality
- */
+
+
 export class TemplateContextBuilder {
     private context: TemplateContext = {};
     private validationRules: Array<(context: TemplateContext) => string[]> = [];
@@ -85,16 +77,14 @@ export class TemplateContextBuilder {
         this.packageBuilder = PackageBuilderFactory.createStandard();
     }
 
-    /**
-     * Start building a new context
-     */
+    
+
     static create(): TemplateContextBuilder {
         return new TemplateContextBuilder();
     }
 
-    /**
-     * Project-related methods
-     */
+    
+
     withProject(projectName: string): this {
         this.context.projectName = projectName;
         this.context.ProjectName = StringUtils.capitalize(projectName);
@@ -109,8 +99,8 @@ export class TemplateContextBuilder {
     }
 
     withFeatures(features: string[]): this {
-        // Features are deprecated - always generate everything
-        // this.context.features = [...features];
+        
+        
         return this;
     }
 
@@ -119,16 +109,15 @@ export class TemplateContextBuilder {
         return this;
     }
 
-    /**
-     * Aggregate-related methods
-     */
+    
+
     withAggregate(aggregate: Aggregate): this {
         const aggregateName = aggregate.name;
         this.context.aggregateName = aggregateName;
         this.context.capitalizedAggregate = StringUtils.capitalize(aggregateName);
         this.context.lowerAggregate = aggregateName.toLowerCase();
 
-        // Add aggregate-specific data
+        
         this.context.customData = this.context.customData || {};
         this.context.customData.aggregate = aggregate;
 
@@ -141,7 +130,7 @@ export class TemplateContextBuilder {
         this.context.capitalizedEntity = StringUtils.capitalize(entityName);
         this.context.lowerEntity = entityName.toLowerCase();
 
-        // Add entity-specific data
+        
         this.context.customData = this.context.customData || {};
         this.context.customData.entity = entity;
 
@@ -156,16 +145,15 @@ export class TemplateContextBuilder {
                 ErrorUtils.aggregateContext('find root entity', aggregate.name, 'context-builder'),
                 ErrorSeverity.FATAL
             );
-            return this; // Never reached due to FATAL
+            return this; 
         }
 
         this.context.rootEntityName = rootEntity.name;
         return this.withEntity(rootEntity);
     }
 
-    /**
-     * Package-related methods
-     */
+    
+
     withPackage(packageName: string): this {
         this.context.packageName = packageName;
         return this;
@@ -191,9 +179,8 @@ export class TemplateContextBuilder {
         return this.withPackage(packageName);
     }
 
-    /**
-     * Data collection methods
-     */
+    
+
     withImports(imports: string[]): this {
         this.context.imports = [...imports];
         return this;
@@ -242,9 +229,8 @@ export class TemplateContextBuilder {
         return this;
     }
 
-    /**
-     * Custom data methods
-     */
+    
+
     withCustomData(key: string, value: any): this {
         if (!this.context.customData) {
             this.context.customData = {};
@@ -261,9 +247,8 @@ export class TemplateContextBuilder {
         return this;
     }
 
-    /**
-     * Validation methods
-     */
+    
+
     requireFields(...fields: string[]): this {
         if (!this.context.requiredFields) {
             this.context.requiredFields = [];
@@ -277,9 +262,8 @@ export class TemplateContextBuilder {
         return this;
     }
 
-    /**
-     * Specialized context builders for common patterns
-     */
+    
+
     forMicroservice(projectName: string, aggregate: Aggregate, component: string): this {
         return this
             .withProject(projectName)
@@ -321,13 +305,12 @@ export class TemplateContextBuilder {
             .withCoordinationPackage(projectName, `validation.${validationType}`);
     }
 
-    /**
-     * Build and validate the context
-     */
+    
+
     build(): TemplateContext {
         const context = { ...this.context };
 
-        // Run validation
+        
         const errors = this.validate(context);
         if (errors.length > 0) {
             ErrorHandler.handle(
@@ -345,25 +328,22 @@ export class TemplateContextBuilder {
         return context;
     }
 
-    /**
-     * Build without validation (for partial contexts)
-     */
+    
+
     buildPartial(): TemplateContext {
         return { ...this.context };
     }
 
-    /**
-     * Reset the builder for reuse
-     */
+    
+
     reset(): this {
         this.context = {};
         this.validationRules = [];
         return this;
     }
 
-    /**
-     * Clone the current builder
-     */
+    
+
     clone(): TemplateContextBuilder {
         const clone = new TemplateContextBuilder();
         clone.context = { ...this.context };
@@ -371,13 +351,12 @@ export class TemplateContextBuilder {
         return clone;
     }
 
-    /**
-     * Private helper methods
-     */
+    
+
     private validate(context: TemplateContext): string[] {
         const errors: string[] = [];
 
-        // Check required fields
+        
         if (context.requiredFields) {
             for (const field of context.requiredFields) {
                 if (!context[field]) {
@@ -386,7 +365,7 @@ export class TemplateContextBuilder {
             }
         }
 
-        // Run custom validation rules
+        
         for (const validator of this.validationRules) {
             const validationErrors = validator(context);
             errors.push(...validationErrors);
@@ -396,76 +375,67 @@ export class TemplateContextBuilder {
     }
 }
 
-/**
- * Factory for creating context builders with common configurations
- */
+
+
 export class ContextBuilderFactory {
-    /**
-     * Create a context builder for entity generation
-     */
+    
+
     static forEntity(projectName: string, aggregate: Aggregate): TemplateContextBuilder {
         return TemplateContextBuilder.create()
             .forMicroservice(projectName, aggregate, 'aggregate')
             .requireFields('projectName', 'aggregateName', 'packageName', 'rootEntityName');
     }
 
-    /**
-     * Create a context builder for service generation
-     */
+    
+
     static forService(projectName: string, aggregate: Aggregate): TemplateContextBuilder {
         return TemplateContextBuilder.create()
             .forMicroservice(projectName, aggregate, 'service')
             .requireFields('projectName', 'aggregateName', 'packageName', 'rootEntityName');
     }
 
-    /**
-     * Create a context builder for repository generation
-     */
+    
+
     static forRepository(projectName: string, aggregate: Aggregate): TemplateContextBuilder {
         return TemplateContextBuilder.create()
             .forMicroservice(projectName, aggregate, 'repository')
             .requireFields('projectName', 'aggregateName', 'packageName', 'rootEntityName');
     }
 
-    /**
-     * Create a context builder for controller generation
-     */
+    
+
     static forController(projectName: string, aggregate: Aggregate): TemplateContextBuilder {
         return TemplateContextBuilder.create()
             .forWebApi(projectName, aggregate)
             .requireFields('projectName', 'aggregateName', 'packageName', 'rootEntityName');
     }
 
-    /**
-     * Create a context builder for event generation
-     */
+    
+
     static forEvent(projectName: string, aggregate: Aggregate): TemplateContextBuilder {
         return TemplateContextBuilder.create()
             .forMicroservice(projectName, aggregate, 'events')
             .requireFields('projectName', 'aggregateName', 'packageName');
     }
 
-    /**
-     * Create a context builder for saga generation
-     */
+    
+
     static forSaga(projectName: string, aggregate: Aggregate): TemplateContextBuilder {
         return TemplateContextBuilder.create()
             .forSaga(projectName, aggregate, 'aggregates')
             .requireFields('projectName', 'aggregateName', 'packageName', 'rootEntityName');
     }
 
-    /**
-     * Create a context builder for validation generation
-     */
+    
+
     static forValidation(projectName: string, aggregate: Aggregate, validationType: string): TemplateContextBuilder {
         return TemplateContextBuilder.create()
             .forValidation(projectName, aggregate, validationType)
             .requireFields('projectName', 'aggregateName', 'packageName', 'rootEntityName');
     }
 
-    /**
-     * Create a context builder for configuration generation
-     */
+    
+
     static forConfiguration(projectName: string, architecture: string = 'default'): TemplateContextBuilder {
         return TemplateContextBuilder.create()
             .withProject(projectName)
@@ -474,32 +444,30 @@ export class ContextBuilderFactory {
     }
 }
 
-/**
- * Utility functions for common context operations
- */
+
+
 export class ContextUtils {
-    /**
-     * Merge multiple contexts
-     */
+    
+
     static merge(...contexts: TemplateContext[]): TemplateContext {
         const merged: TemplateContext = {};
 
         for (const context of contexts) {
             Object.assign(merged, context);
 
-            // Merge arrays
+            
             if (context.imports && merged.imports) {
                 merged.imports = [...new Set([...merged.imports, ...context.imports])];
             }
             if (context.dependencies && merged.dependencies) {
                 merged.dependencies = [...merged.dependencies, ...context.dependencies];
             }
-            // Features are deprecated - skip merging
-            // if (context.features && merged.features) {
-            //     merged.features = [...new Set([...merged.features, ...context.features])];
-            // }
+            
+            
+            
+            
 
-            // Merge custom data
+            
             if (context.customData && merged.customData) {
                 merged.customData = { ...merged.customData, ...context.customData };
             }
@@ -508,9 +476,8 @@ export class ContextUtils {
         return merged;
     }
 
-    /**
-     * Extract common naming patterns from context
-     */
+    
+
     static extractNaming(context: TemplateContext): Record<string, string> {
         return {
             projectName: context.projectName || '',
@@ -526,9 +493,8 @@ export class ContextUtils {
         };
     }
 
-    /**
-     * Validate context has required fields for specific generator type
-     */
+    
+
     static validateForGenerator(context: TemplateContext, generatorType: string): string[] {
         const errors: string[] = [];
 

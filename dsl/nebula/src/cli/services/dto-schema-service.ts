@@ -46,7 +46,7 @@ export class DtoSchemaService {
         const entityLookup = this.collectAllEntities(models);
         const dtoEnabledEntities = this.collectAllDtoEnabledEntities(models);
 
-        // Collect all aggregates for cross-aggregate relationship detection
+        
         const allAggregates: Aggregate[] = [];
         for (const model of models) {
             for (const aggregate of model.aggregates || []) {
@@ -57,10 +57,10 @@ export class DtoSchemaService {
         for (const model of models) {
             for (const aggregate of model.aggregates || []) {
                 for (const entity of getEntities(aggregate)) {
-                    // Generate DTOs for ALL entities in an aggregate:
-                    // - Root entities always get a DTO
-                    // - Non-root entities get their own DTO (with their own fields)
-                    // This ensures we don't lose fields when non-root entities reference other aggregates
+                    
+                    
+                    
+                    
 
                     const dtoSchema = this.buildDtoSchemaForEntity(
                         entity,
@@ -100,7 +100,7 @@ export class DtoSchemaService {
             );
         }
 
-        // Use effective properties which includes those from mapping definitions
+        
         const effectiveProps = getEffectiveProperties(entity);
         for (const property of effectiveProps || []) {
             if (!property?.name) continue;
@@ -108,17 +108,17 @@ export class DtoSchemaService {
                 continue;
             }
 
-            // For properties from mappings, determine the correct DTO field name:
-            // - If $dtoField is a dotted path (extract pattern), use property.name
-            // - Otherwise, use the original $dtoField for DTO field name
+            
+            
+            
             const mappingInfo = fieldMappings.get(property.name);
             const rawDtoField = (property as any).$dtoField || mappingInfo?.dtoField || property.name;
             const dtoFieldStr = dtoFieldToString(rawDtoField);
 
-            // Check if this is an extract pattern (dotted path contains a dot)
+            
             const isExtractPattern = typeof dtoFieldStr === 'string' && dtoFieldStr.includes('.');
 
-            // For extract patterns, use the entity property name; otherwise use the dtoField
+            
             const dtoFieldName = isExtractPattern ? property.name : dtoFieldStr;
             const resolved = UnifiedTypeResolver.resolveDetailed(property.type, { targetContext: 'dto' });
 
@@ -199,24 +199,24 @@ export class DtoSchemaService {
                 referencedEntityName = elementEntity.name;
                 referencedAggregateName = elementEntity.$container?.name;
 
-                // All entities within the same aggregate get their own DTOs now
-                // So we always use the entity's own DTO (e.g., ExecutionUser -> ExecutionUserDto)
+                
+                
                 const isSameAggregate = currentAggregate && referencedAggregateName === currentAggregate.name;
 
                 if (isSameAggregate) {
-                    // Same-aggregate: use the entity's own DTO
+                    
                     referencedDtoName = `${elementEntity.name}Dto`;
                     const elementTypeName = elementEntity.name;
                     javaType = javaType.replace(new RegExp(`\\b${elementTypeName}\\b`, 'g'), referencedDtoName);
                     elementType = referencedDtoName;
                     requiresConversion = true;
                 } else {
-                    // Cross-aggregate: use aggregateIds to avoid cyclic dependencies
+                    
                     const isSet = javaType.startsWith('Set<');
                     const collectionType = isSet ? 'Set' : 'List';
                     const aggregateIdFieldName = `${dtoFieldName}AggregateIds`;
 
-                    // Determine the correct accessor from the element entity's fieldMappings
+                    
                     let derivedAccessor = 'getAggregateId';
                     const aggIdMapping = getEffectiveFieldMappings(elementEntity).find((fm: any) =>
                         fm.dtoField === 'aggregateId'
@@ -248,11 +248,11 @@ export class DtoSchemaService {
                 referencedAggregateName = targetEntity.$container?.name;
             }
 
-            // Check if this is same aggregate or cross-aggregate
+            
             const isSameAggregate = currentAggregate && referencedAggregateName === currentAggregate.name;
 
             if (isSameAggregate && targetEntity) {
-                // Same-aggregate: all entities get their own DTOs now
+                
                 referencedDtoName = `${targetEntity.name}Dto`;
                 return {
                     name: dtoFieldName,
@@ -264,19 +264,19 @@ export class DtoSchemaService {
                     referencedAggregateName,
                     referencedDtoName,
                     referencedEntityIsRoot: targetEntity.isRoot || false,
-                    referencedEntityHasGenerateDto: true, // All entities now get DTOs
+                    referencedEntityHasGenerateDto: true, 
                     requiresConversion: true,
                     isMappingOverride
                 };
             }
 
-            // Cross-aggregate: use aggregateId to maintain microservice boundaries
-            // Determine the aggregateId field name based on the entity mapping
+            
+            
             let aggregateFieldName = `${dtoFieldName}AggregateId`;
             let derivedAccessor = 'getAggregateId';
 
             if (targetEntity && !targetEntity.isRoot) {
-                // For non-root entities (like TopicCourse), check if they have a mapping that defines the aggregateId field
+                
                 const aggIdMapping = getEffectiveFieldMappings(targetEntity).find((fm: any) =>
                     fm.dtoField === 'aggregateId'
                 );
@@ -381,7 +381,7 @@ export class DtoSchemaService {
     private collectAllDtoEnabledEntities(models: Model[]): Map<string, Entity> {
         const map = new Map<string, Entity>();
 
-        // All entities now get DTOs
+        
         for (const model of models) {
             for (const aggregate of model.aggregates || []) {
                 for (const entity of getEntities(aggregate)) {

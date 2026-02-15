@@ -1,28 +1,21 @@
-/**
- * Method Implementation Processing System
- * 
- * This module extracts the complex method implementation processing logic
- * from service-definition-generator.ts into a focused, reusable component.
- */
+
+
 
 import { Aggregate } from "../../../../language/generated/ast.js";
 
-/**
- * Processed method implementation action
- */
+
+
 export interface ProcessedAction {
     action: string;
     [key: string]: any;
 }
 
-/**
- * Method implementation processor that handles DSL business logic transformation
- */
+
+
 export class MethodImplementationProcessor {
 
-    /**
-     * Process method implementation from DSL into template-friendly format
-     */
+    
+
     processMethodImplementation(implementation: any, aggregate: Aggregate): ProcessedAction[] {
         if (!implementation?.actions) {
             return [];
@@ -31,9 +24,8 @@ export class MethodImplementationProcessor {
         return implementation.actions.map((action: any) => this.processAction(action, aggregate));
     }
 
-    /**
-     * Process a single action from the DSL
-     */
+    
+
     private processAction(action: any, aggregate: Aggregate): ProcessedAction {
         switch (action.$type) {
             case 'LoadAggregateAction':
@@ -141,9 +133,8 @@ export class MethodImplementationProcessor {
         };
     }
 
-    /**
-     * Process operation chain for domain operations
-     */
+    
+
     private processOperationChain(operationChain: any): string {
         if (!operationChain?.operations) {
             return '';
@@ -152,7 +143,7 @@ export class MethodImplementationProcessor {
         return operationChain.operations.map((operation: any) => {
             const methodName = operation.methodName;
             const params = operation.params?.map((param: any) => {
-                // Handle special constants
+                
                 if (param === 'INACTIVE') {
                     return 'Aggregate.AggregateState.INACTIVE';
                 }

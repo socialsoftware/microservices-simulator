@@ -10,16 +10,8 @@ import { DtoSetterBuilder } from "./dto-setter-strategies/dto-setter-builder.js"
 import type { StrategyContext } from "./dto-setter-strategies/dto-setter-strategy.js";
 import { EntityPatternDetector } from "../../../common/utils/entity-pattern-detector.js";
 
-/**
- * Handles import detection and resolution for entity code generation.
- *
- * Responsibilities:
- * - Scans generated Java code for required imports
- * - Resolves DTO import paths
- * - Handles enum type imports
- * - Manages JPA annotation imports
- * - Generates DTO setter code with proper type mappings
- */
+
+
 export class ImportScanner implements StrategyContext {
     private dtoSetterBuilder: DtoSetterBuilder;
 
@@ -30,9 +22,8 @@ export class ImportScanner implements StrategyContext {
         this.dtoSetterBuilder = new DtoSetterBuilder(this);
     }
 
-    /**
-     * Finalizes the Java code by scanning for imports and replacing the placeholder
-     */
+    
+
     finalizeWithImports(
         javaCode: string,
         projectName: string,
@@ -56,9 +47,8 @@ export class ImportScanner implements StrategyContext {
         return javaCode.replace('IMPORTS_PLACEHOLDER', importsString);
     }
 
-    /**
-     * Scans generated code for imports needed based on annotations, types, and references
-     */
+    
+
     scanCodeForImports(
         javaCode: string,
         projectName: string,
@@ -70,7 +60,7 @@ export class ImportScanner implements StrategyContext {
         const imports: string[] = [];
         const dtoRegistry = this.dtoRegistry;
 
-        // JPA annotations
+        
         if (javaCode.includes('@Entity')) imports.push('import jakarta.persistence.Entity;');
         if (javaCode.includes('@Id')) imports.push('import jakarta.persistence.Id;');
         if (javaCode.includes('@GeneratedValue')) imports.push('import jakarta.persistence.GeneratedValue;');
@@ -81,7 +71,7 @@ export class ImportScanner implements StrategyContext {
         if (javaCode.includes('@Enumerated')) imports.push('import jakarta.persistence.Enumerated;');
         if (javaCode.includes('EnumType')) imports.push('import jakarta.persistence.EnumType;');
 
-        // Java standard library
+        
         if (javaCode.includes('LocalDateTime')) imports.push('import java.time.LocalDateTime;');
         if (javaCode.includes('BigDecimal')) imports.push('import java.math.BigDecimal;');
         if (javaCode.includes('Set<') || javaCode.includes('HashSet')) {
@@ -96,7 +86,7 @@ export class ImportScanner implements StrategyContext {
 
         const config = getGlobalConfig();
 
-        // Framework imports
+        
         if (javaCode.includes('AggregateState')) {
             const aggregateStateImport = `import ${config.getBasePackage()}.ms.domain.aggregate.Aggregate.AggregateState;`;
             imports.push(aggregateStateImport);
@@ -105,11 +95,11 @@ export class ImportScanner implements StrategyContext {
         if (isRoot) {
             const aggregateImport = `import ${config.getBasePackage()}.ms.domain.aggregate.Aggregate;`;
             imports.push(aggregateImport);
-            // Root entities need EventSubscription for getEventSubscriptions() method
+            
             const eventSubscriptionImport = `import ${config.getBasePackage()}.ms.domain.event.EventSubscription;`;
             imports.push(eventSubscriptionImport);
 
-            // Add imports for subscription classes used in getEventSubscriptions()
+            
             const subscriptionPattern = /new\s+([A-Z][a-zA-Z]*Subscribes[A-Z][a-zA-Z]*)\(/g;
             let subscriptionMatch;
             while ((subscriptionMatch = subscriptionPattern.exec(javaCode)) !== null) {
@@ -120,7 +110,7 @@ export class ImportScanner implements StrategyContext {
                 }
             }
 
-            // Add imports for invariants if SimulatorException is used
+            
             if (javaCode.includes('SimulatorException')) {
                 imports.push(`import ${config.getBasePackage()}.ms.exception.SimulatorException;`);
             }
@@ -129,7 +119,7 @@ export class ImportScanner implements StrategyContext {
             }
         }
 
-        // DTO imports
+        
         const dtoPattern = /\b([A-Z][a-zA-Z]*Dto)\b/g;
         let dtoMatch;
         while ((dtoMatch = dtoPattern.exec(javaCode)) !== null) {
@@ -140,7 +130,7 @@ export class ImportScanner implements StrategyContext {
             }
         }
 
-        // Entity imports - dynamically detect based on all aggregates
+        
         const allModels = getAllModels();
         const allAggregates = allModels.flatMap(model => model.aggregates);
         const entityPattern = EntityPatternDetector.buildEntityPattern(allAggregates);
@@ -169,7 +159,7 @@ export class ImportScanner implements StrategyContext {
             }
         }
 
-        // Enum imports from entity properties
+        
         if (entity) {
             const enumTypes = new Set<string>();
 
@@ -205,7 +195,7 @@ export class ImportScanner implements StrategyContext {
             }
         }
 
-        // Enum imports from code patterns
+        
         const foundEnums = TypeExtractor.extractEnumsFromCode(javaCode);
 
         for (const enumType of foundEnums) {
@@ -218,15 +208,10 @@ export class ImportScanner implements StrategyContext {
         return imports.flat();
     }
 
-    /**
-     * Builds a DTO setter statement from schema information
-     */
-    /**
-     * Builds a DTO setter statement for a field.
-     *
-     * Refactored to use Strategy pattern for maintainability.
-     * Each case is handled by a dedicated strategy class.
-     */
+    
+
+    
+
     buildDtoSetterFromSchema(
         field: DtoFieldSchema,
         entity: EntityExt,
@@ -235,19 +220,19 @@ export class ImportScanner implements StrategyContext {
         const override = dtoFieldOverrides?.get(field.name);
         const isRootEntity = entity.isRoot || false;
 
-        // Early return for non-root aggregate fields
+        
         if (field.isAggregateField && !override && !isRootEntity) {
             return null;
         }
 
-        // Find the property for this field
+        
         const effectiveProps = getEffectiveProperties(entity);
         const prop = override?.property || effectiveProps.find((p: any) => p.name === (field.sourceName || field.name));
         if (!prop && !field.isAggregateField) {
             return null;
         }
 
-        // Check if property belongs to this entity
+        
         if (prop) {
             const belongsToEntity = prop.$container?.name === entity.name || (prop as any).$fromMapping;
             if (!belongsToEntity && !override) {
@@ -255,20 +240,19 @@ export class ImportScanner implements StrategyContext {
             }
         }
 
-        // Build getter call
+        
         const getterCall = prop ? this.buildEntityGetterCall(prop) : '';
         if (!getterCall && !field.isAggregateField) {
             return null;
         }
 
-        // Use strategy pattern to build setter
-        // At this point, getterCall is guaranteed to be non-null or we have an aggregate field
+        
+        
         return this.dtoSetterBuilder.buildSetter(field, entity, prop, override, getterCall || '');
     }
 
-    /**
-     * Builds a getter call for an entity property
-     */
+    
+
     buildEntityGetterCall(prop: any): string | null {
         if (!prop?.name) {
             return null;
@@ -277,9 +261,8 @@ export class ImportScanner implements StrategyContext {
         return `get${capName}()`;
     }
 
-    /**
-     * Resolves DTO field mappings from entity's cross-aggregate field mappings
-     */
+    
+
     resolveDtoFieldMappings(entity: EntityExt): Map<string, { property: any; extractField?: string }> {
         const overrides = new Map<string, { property: any; extractField?: string }>();
         const fieldMappings = getEffectiveFieldMappings(entity);
@@ -300,9 +283,8 @@ export class ImportScanner implements StrategyContext {
         return overrides;
     }
 
-    /**
-     * Checks if a property is an enum type
-     */
+    
+
     isEnumProperty(prop: any): boolean {
         if (!prop?.type) {
             return false;
@@ -311,9 +293,8 @@ export class ImportScanner implements StrategyContext {
         return TypeResolver.isEnumType(javaType);
     }
 
-    /**
-     * Resolves the import path for a DTO type
-     */
+    
+
     resolveDtoImportPath(dtoType: string, projectName: string, owningAggregate?: string, dtoRegistry?: DtoSchemaRegistry): string | null {
         const dtoInfo = dtoRegistry?.dtoByName?.[dtoType];
         let targetAggregate = dtoInfo?.aggregateName;
@@ -332,9 +313,8 @@ export class ImportScanner implements StrategyContext {
         return `import ${importPath};`;
     }
 
-    /**
-     * Adds required imports for all entities
-     */
+    
+
     addRequiredImports(isRootEntity: boolean, aggregateName: string): void {
         this.importManager.addJakartaImport('persistence.Entity');
 

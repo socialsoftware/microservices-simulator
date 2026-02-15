@@ -34,17 +34,16 @@ export interface NebulaConfig {
 export class ConfigLoader {
     private static readonly CONFIG_FILE_NAMES = ['nebula.config.json', 'nebula.json', '.nebularc.json'];
 
-    /**
-     * Resolve environment variable placeholders in configuration values
-     */
+    
+
     private static resolveEnvironmentVariables(config: any): any {
         if (typeof config === 'string') {
-            // Replace ${VAR_NAME} with environment variable value
+            
             return config.replace(/\$\{([^}]+)\}/g, (match, varName) => {
                 const envValue = process.env[varName];
                 if (envValue === undefined) {
                     console.warn(`Environment variable ${varName} is not set, using placeholder`);
-                    return match; // Keep placeholder if env var not found
+                    return match; 
                 }
                 return envValue;
             });
@@ -60,38 +59,36 @@ export class ConfigLoader {
         return config;
     }
 
-    /**
-     * Validate sensitive configuration values
-     */
+    
+
     private static validateSensitiveConfig(config: GenerationConfig): void {
-        // Check for insecure passwords
+        
         if (config.database?.password) {
             const password = config.database.password;
 
-            // Check if password is still a placeholder
+            
             if (password.includes('${') && password.includes('}')) {
                 console.warn('⚠️  Database password contains unresolved environment variable placeholder');
             }
 
-            // Check for weak passwords
+            
             const weakPasswords = ['password', '123456', 'admin', 'root', 'test', ''];
             if (weakPasswords.includes(password.toLowerCase())) {
                 console.warn('⚠️  Database password appears to be weak or default. Consider using a stronger password.');
             }
 
-            // Don't log the actual password
+            
             console.log('Database password configured (not displayed for security)');
         }
 
-        // Validate other security-sensitive settings
+        
         if (config.database?.host && config.database.host !== 'localhost' && config.database.host !== '127.0.0.1') {
             console.log(`Database host configured: ${config.database.host}`);
         }
     }
 
-    /**
-     * Load configuration from file and merge with CLI options
-     */
+    
+
     static async loadConfig(searchPath?: string, cliOptions?: Partial<GenerationConfig>): Promise<GenerationConfig> {
         const configFile = this.findConfigFile(searchPath);
         let fileConfig: NebulaConfig = {};
@@ -102,38 +99,37 @@ export class ConfigLoader {
                 const configContent = fs.readFileSync(configFile, 'utf-8');
                 fileConfig = JSON.parse(configContent);
 
-                // Resolve environment variables in the loaded config
+                
                 fileConfig = this.resolveEnvironmentVariables(fileConfig);
             } catch (error) {
                 console.warn(`Warning: Failed to parse config file: ${error instanceof Error ? error.message : String(error)}`);
             }
         }
 
-        // Convert NebulaConfig to GenerationConfig format
+        
         const generationConfig = this.convertToGenerationConfig(fileConfig);
 
-        // Merge configurations: CLI options override file config
+        
         const mergedConfig = {
             ...generationConfig,
             ...cliOptions
         };
 
-        // Validate sensitive configuration
+        
         this.validateSensitiveConfig(mergedConfig as GenerationConfig);
 
-        // Initialize global config with merged values
+        
         initializeConfig(mergedConfig);
 
         return getGlobalConfig().getConfig();
     }
 
-    /**
-     * Find config file in project hierarchy
-     */
+    
+
     private static findConfigFile(startPath?: string): string | null {
         const searchDir = startPath || process.cwd();
 
-        // Check current directory first
+        
         for (const fileName of this.CONFIG_FILE_NAMES) {
             const configPath = path.join(searchDir, fileName);
             if (fs.existsSync(configPath)) {
@@ -141,7 +137,7 @@ export class ConfigLoader {
             }
         }
 
-        // Search up the directory tree
+        
         let currentDir = searchDir;
         while (currentDir !== path.dirname(currentDir)) {
             currentDir = path.dirname(currentDir);
@@ -156,9 +152,8 @@ export class ConfigLoader {
         return null;
     }
 
-    /**
-     * Convert NebulaConfig to GenerationConfig format
-     */
+    
+
     private static convertToGenerationConfig(config: NebulaConfig): Partial<GenerationConfig> {
         const result: Partial<GenerationConfig> = {};
 
@@ -172,7 +167,7 @@ export class ConfigLoader {
 
         if (config.basePackage) {
             result.basePackage = config.basePackage;
-            // Also set packageName for backward compatibility
+            
             if (config.projectName) {
                 result.packageName = `${config.basePackage}.${config.projectName.toLowerCase()}`;
             }
@@ -182,7 +177,7 @@ export class ConfigLoader {
             result.outputDirectory = config.outputDirectory;
         }
 
-        // Architecture and features removed - always generate everything
+        
 
         if (config.consistencyModels) {
             result.consistencyModels = config.consistencyModels;
@@ -226,9 +221,8 @@ export class ConfigLoader {
         return result;
     }
 
-    /**
-     * Create a default config file in the current directory
-     */
+    
+
     static async createDefaultConfig(projectName: string, basePackage?: string): Promise<void> {
         const defaultConfig: NebulaConfig = {
             projectName: projectName,
@@ -241,7 +235,7 @@ export class ConfigLoader {
                 port: 5432,
                 name: `${projectName}db`,
                 username: 'postgres',
-                password: '${NEBULA_DB_PASSWORD}' // Environment variable placeholder
+                password: '${NEBULA_DB_PASSWORD}' 
             },
             java: {
                 version: '21',

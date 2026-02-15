@@ -156,7 +156,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
     let dtoTypeName: string;
 
     if (aggregateRef) {
-        // aggregateRef is the aggregate name (e.g., "Topic"), derive DTO name (e.g., "TopicDto")
+        
         dtoName = `${aggregateRef}Dto`;
         dtoTypeName = dtoName;
     } else {
@@ -177,7 +177,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         ? `${aggregateRef.charAt(0).toLowerCase() + aggregateRef.slice(1)}Dto`
         : `${entityName.charAt(0).toLowerCase() + entityName.slice(1)}Dto`;
 
-    // Find entity relationships (both single and collections) for internal DTO-to-entity conversion
+    
     const singleEntityRels: Array<{ javaType: string; name: string; dtoType: string }> = [];
     const collectionEntityRels: Array<{ javaType: string; name: string; elementType: string; dtoElementType: string; collectionType: string }> = [];
     
@@ -208,7 +208,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         }
     }
 
-    // SIMPLIFIED: Build parameter string - just (aggregateId, dto) for root entities
+    
     const paramsParts: string[] = [];
     if (isRootEntity) {
         paramsParts.push('Integer aggregateId');
@@ -349,15 +349,15 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         }
     }
 
-    // SIMPLIFIED: Convert nested DTOs to entities (single entities first, then collections)
+    
     if (isRootEntity) {
-        // Convert single entity DTOs to entities
+        
         for (const rel of singleEntityRels) {
             const prop = effectiveProps.find((p: any) => p.name === rel.name);
             if (prop) {
                 const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
                 const isFinalProp = (prop as any).isFinal || false;
-                // Convert from DTO: new EntityType(dto.getEntityDto())
+                
                 if (isFinalProp) {
                     setterCalls.push(`        this.${prop.name} = ${dtoParamName}.get${capitalizedName}() != null ? new ${rel.javaType}(${dtoParamName}.get${capitalizedName}()) : null;`);
                 } else {
@@ -366,14 +366,14 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
             }
         }
         
-        // Convert collection entity DTOs to entities
+        
         for (const rel of collectionEntityRels) {
             const prop = effectiveProps.find((p: any) => p.name === rel.name);
             if (prop) {
                 const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
                 const isFinalProp = (prop as any).isFinal || false;
                 const collector = rel.collectionType === 'Set' ? 'Collectors.toSet()' : 'Collectors.toList()';
-                // Convert from DTO collection: dto.getEntities().stream().map(EntityType::new).collect(...)
+                
                 if (isFinalProp) {
                     setterCalls.push(`        this.${prop.name} = ${dtoParamName}.get${capitalizedName}() != null ? ${dtoParamName}.get${capitalizedName}().stream().map(${rel.elementType}::new).collect(${collector}) : null;`);
                 } else {
@@ -431,20 +431,16 @@ function addDtoImport(
     imports.customImports.add(`import ${dtoPackage}.${dtoTypeName};`);
 }
 
-/**
- * Generate a constructor that accepts the entity's own projection DTO.
- * This is needed for non-root entities with aggregateRef, which already have a constructor
- * for the referenced aggregate's DTO (e.g., CourseDto), but also need one for their own DTO
- * (e.g., ExecutionCourseDto) so the root aggregate can create them from nested DTOs.
- */
+
+
 export function generateProjectionDtoConstructor(entity: Entity, projectName: string, dtoSchemaRegistry?: DtoSchemaRegistry): { code: string, imports: ImportRequirements } | null {
     const entityName = entity.name;
     const isRootEntity = entity.isRoot || false;
     const entityAny = entity as any;
     const aggregateRef = entityAny.aggregateRef as string | undefined;
 
-    // Only needed for non-root entities that have an aggregateRef
-    // (these entities have a constructor for the referenced aggregate DTO, but need another for their own DTO)
+    
+    
     if (isRootEntity || !aggregateRef) {
         return null;
     }
@@ -461,16 +457,16 @@ export function generateProjectionDtoConstructor(entity: Entity, projectName: st
     const setterCalls: string[] = [];
 
     for (const field of dtoSchema.fields) {
-        // Find the entity property that maps to this DTO field
-        // The mapping is: dtoField.sourceName -> entity property name
+        
+        
         const entityProp = effectiveProps.find((p: any) => p.name === field.sourceName || p.name === field.name);
         if (!entityProp) continue;
 
-        // Use entity property name for setter, but DTO field name for getter
+        
         const entityPropName = entityProp.name;
         const capitalizedEntityPropName = entityPropName.charAt(0).toUpperCase() + entityPropName.slice(1);
         
-        // DTO getter uses the DTO field name
+        
         const dtoFieldName = field.name;
         const capitalizedDtoFieldName = dtoFieldName.charAt(0).toUpperCase() + dtoFieldName.slice(1);
         
@@ -481,10 +477,10 @@ export function generateProjectionDtoConstructor(entity: Entity, projectName: st
         if (isEnumType(entityProp.type)) {
             setterCalls.push(`        set${capitalizedEntityPropName}(${projectionDtoParamName}.get${capitalizedDtoFieldName}() != null ? ${javaType}.valueOf(${projectionDtoParamName}.get${capitalizedDtoFieldName}()) : null);`);
         } else if (isEntityType && !isCollection) {
-            // For single entity relationships, convert DTO to entity
+            
             setterCalls.push(`        set${capitalizedEntityPropName}(${projectionDtoParamName}.get${capitalizedDtoFieldName}() != null ? new ${javaType}(${projectionDtoParamName}.get${capitalizedDtoFieldName}()) : null);`);
         } else if (isEntityType && isCollection) {
-            // For collection entity relationships, convert each DTO to entity
+            
             const collectionType = javaType.startsWith('Set<') ? 'Set' : 'List';
             const elementType = TypeResolver.getElementType(entityProp.type) || javaType.replace(/^(Set|List)<(.+)>$/, '$2');
             setterCalls.push(`        set${capitalizedEntityPropName}(${projectionDtoParamName}.get${capitalizedDtoFieldName}() != null ? ${projectionDtoParamName}.get${capitalizedDtoFieldName}().stream().map(${elementType}::new).collect(Collectors.to${collectionType}()) : null);`);
@@ -511,14 +507,14 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
     const imports: ImportRequirements = {};
     const effectiveProps = getEffectiveProperties(entity);
 
-    // Check if this is a projection entity (cross-aggregate reference)
+    
     const entityAny = entity as any;
     const isProjectionEntity = !!entityAny.aggregateRef;
 
     const setterCalls = effectiveProps.map((prop: any, index: number) => {
-        // Skip first property only for regular nested entities (not projection entities)
-        // Regular nested entities have a back-reference as first property
-        // Projection entities (with aggregateRef) have all real properties from mapping
+        
+        
+        
         if (!isRootEntity && !isProjectionEntity && index === 0) {
             return '';
         }

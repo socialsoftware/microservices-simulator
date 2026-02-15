@@ -3,7 +3,7 @@ import { GeneratorContext, ProjectData, ConfigurationData, MetadataData } from "
 import { UnifiedTypeResolver } from "../unified-type-resolver.js";
 
 export abstract class TemplateDataBase {
-    // Helper methods migrated from OrchestrationBase
+    
     protected getDatabaseConfig(): any {
         return {
             type: 'postgresql',
@@ -84,12 +84,12 @@ export abstract class TemplateDataBase {
     }
 
     protected hasFeature(features: string[] | undefined, feature: string): boolean {
-        // Always return true - all features are enabled by default
+        
         return true;
     }
 
     protected hasAnyFeature(features: string[] | undefined, ...checkFeatures: string[]): boolean {
-        // Always return true - all features are enabled by default
+        
         return true;
     }
 
@@ -233,7 +233,7 @@ export abstract class TemplateDataBase {
 
         let dependencies = [...baseDependencies];
 
-        // Always include all feature dependencies since we generate everything
+        
         Object.values(featureDependencies).forEach(deps => {
             dependencies.push(...deps);
         });

@@ -11,10 +11,10 @@ export interface FrameworkAnnotations {
 
 export interface GenerationConfig {
     projectName: string;
-    version: string; // Project version (e.g., 1.0.0-SNAPSHOT)
+    version: string; 
     outputDirectory: string;
     packageName: string;
-    basePackage: string; // New field for base package (e.g., com.company or pt.ulisboa.tecnico.socialsoftware)
+    basePackage: string; 
 
     architecture: 'microservices' | 'causal-saga' | 'monolith';
     consistencyModels?: string[];
@@ -130,7 +130,7 @@ export class ConfigManager {
             version: '1.0.0-SNAPSHOT',
             outputDirectory: '../../applications',
             packageName: 'com.generated.microservices',
-            basePackage: 'com.generated', // Default base package
+            basePackage: 'com.generated', 
             architecture: 'causal-saga',
             templateEngine: 'simple',
             templateCaching: true,

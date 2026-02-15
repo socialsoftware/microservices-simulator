@@ -54,7 +54,7 @@ export class UnifiedEventFeature {
     ): Promise<void> {
         await ErrorHandler.wrapAsync(
             async () => {
-                // Extract all aggregates from models if available
+                
                 const allAggregates = options.allModels?.flatMap((model: any) => model.aggregates) || [];
 
                 const eventCode = await generators.eventGenerator.generateEvents(aggregate, {
@@ -62,7 +62,7 @@ export class UnifiedEventFeature {
                     allAggregates
                 });
 
-                // Generate CRUD events if @GenerateCrud is used
+                
                 const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
                 const hasGenerateCrud = aggregate.generateCrud;
 
@@ -103,7 +103,7 @@ export class UnifiedEventFeature {
                     await this.generateIndividualEventHandlers(individualEventHandlers, aggregatePath);
                 }
 
-                // Generate reference constraint handlers
+                
                 if ((aggregate as any).references && rootEntity) {
                     await this.generateReferenceHandlers(aggregate, rootEntity, aggregatePath, options, allAggregates);
                 }
@@ -184,7 +184,7 @@ export class UnifiedEventFeature {
         aggregatePath: string,
         options: GenerationOptions
     ): Promise<void> {
-        // Extract all aggregates from models if available
+        
         const allAggregates = options.allModels?.flatMap((model: any) => model.aggregates) || [];
         const enhancedOptions = { ...options, allAggregates };
 
@@ -197,8 +197,8 @@ export class UnifiedEventFeature {
         const eventMap = new Map<string, any>();
         allSubscribed.forEach((event: any) => {
             const eventTypeName = event.eventType || 'UnknownEvent';
-            // For inter-invariants, make the key unique by including the inter-invariant name
-            // This prevents deduplication when multiple inter-invariants subscribe to the same event
+            
+            
             const mapKey = event.isInterInvariant
                 ? `${eventTypeName}:${event.interInvariantName}`
                 : eventTypeName;
@@ -214,10 +214,10 @@ export class UnifiedEventFeature {
                     const subscriptionCode = this.eventGenerator.generateSubscribedEvent(subscribedEvent, aggregate, enhancedOptions);
                     const eventTypeName = (subscribedEvent as any).eventType || 'UnknownEvent';
 
-                    // For inter-invariants, include the inter-invariant name in the file name
+                    
                     let subscriptionName = `${aggregate.name}Subscribes${eventTypeName.replace('Event', '')}`;
                     if ((subscribedEvent as any).isInterInvariant && (subscribedEvent as any).interInvariantName) {
-                        // Convert TOURNAMENT_CREATOR_EXISTS to TournamentCreatorExists
+                        
                         const interInvariantName = (subscribedEvent as any).interInvariantName;
                         const interInvariantSuffix = interInvariantName
                             .split('_')
@@ -229,8 +229,8 @@ export class UnifiedEventFeature {
                     const subscriptionPath = path.join(aggregatePath, 'events', 'subscribe', `${subscriptionName}.java`);
                     await FileWriter.writeGeneratedFile(subscriptionPath, subscriptionCode, `subscribed event ${subscriptionName}`);
 
-                    // Only generate event handlers for non-inter-invariant subscriptions
-                    // Inter-invariant subscriptions rely on framework invariant checking
+                    
+                    
                     const isInterInvariant = (subscribedEvent as any).isInterInvariant;
                     if (!isInterInvariant) {
                         const handlerCode = this.eventGenerator.generateEventHandler(subscribedEvent, aggregate, enhancedOptions);
@@ -331,7 +331,7 @@ export class UnifiedEventFeature {
             }
         );
 
-        // Write subscription files
+        
         for (const [key, code] of Object.entries(referenceHandlers)) {
             if (key.startsWith('ref-subscription-')) {
                 const targetAggregate = key.replace('ref-subscription-', '');

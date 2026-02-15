@@ -1,13 +1,8 @@
-/**
- * Standardized Error Handling System
- * 
- * This module provides consistent error handling across the DSL system,
- * replacing scattered error handling patterns with a unified approach.
- */
 
-/**
- * Context information for better error debugging and reporting
- */
+
+
+
+
 export interface ErrorContext {
     operation: string;
     aggregateName?: string;
@@ -18,9 +13,8 @@ export interface ErrorContext {
     additionalInfo?: Record<string, any>;
 }
 
-/**
- * Enhanced error class with context information for generation errors
- */
+
+
 export class GenerationError extends Error {
     public readonly context: ErrorContext;
     public readonly timestamp: Date;
@@ -33,15 +27,14 @@ export class GenerationError extends Error {
         this.timestamp = new Date();
         this.originalError = originalError;
 
-        // Maintain proper stack trace
+        
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, GenerationError);
         }
     }
 
-    /**
-     * Get a formatted error message with context
-     */
+    
+
     getFormattedMessage(): string {
         const parts = [this.message];
 
@@ -64,9 +57,8 @@ export class GenerationError extends Error {
         return parts.join(' ');
     }
 
-    /**
-     * Get detailed error information for debugging
-     */
+    
+
     getDetailedInfo(): string {
         const info = [
             `Error: ${this.getFormattedMessage()}`,
@@ -93,29 +85,22 @@ export class GenerationError extends Error {
     }
 }
 
-/**
- * Error severity levels for different types of issues
- */
+
+
 export enum ErrorSeverity {
     WARNING = 'warning',
     ERROR = 'error',
     FATAL = 'fatal'
 }
 
-/**
- * Centralized error handler with consistent logging and error management
- *
- * NOTE: This class uses static methods with internal counters for backwards compatibility.
- * The counters are reset at the start of each generation run via resetStats().
- * For concurrent operations, consider using instance-based error tracking.
- */
+
+
 export class ErrorHandler {
     private static errorCount = 0;
     private static warningCount = 0;
 
-    /**
-     * Get text indicator based on severity
-     */
+    
+
     private static getIcon(severity: ErrorSeverity): string {
         return {
             [ErrorSeverity.WARNING]: '⚠',
@@ -124,9 +109,8 @@ export class ErrorHandler {
         }[severity];
     }
 
-    /**
-     * Handle an error with consistent logging and optional re-throwing
-     */
+    
+
     static handle(
         error: Error | GenerationError,
         context: ErrorContext,
@@ -141,7 +125,7 @@ export class ErrorHandler {
             generationError = new GenerationError(error.message, context, error);
         }
 
-        // Log based on severity
+        
         const icon = this.getIcon(severity);
         switch (severity) {
             case ErrorSeverity.WARNING:
@@ -158,15 +142,14 @@ export class ErrorHandler {
                 break;
         }
 
-        // Re-throw if requested
+        
         if (shouldThrow && severity !== ErrorSeverity.WARNING) {
             throw generationError;
         }
     }
 
-    /**
-     * Wrap an async function with consistent error handling
-     */
+    
+
     static async wrapAsync<T>(
         operation: () => Promise<T>,
         context: ErrorContext,
@@ -185,9 +168,8 @@ export class ErrorHandler {
         }
     }
 
-    /**
-     * Wrap a synchronous function with consistent error handling
-     */
+    
+
     static wrap<T>(
         operation: () => T,
         context: ErrorContext,
@@ -206,9 +188,8 @@ export class ErrorHandler {
         }
     }
 
-    /**
-     * Create a context-aware error thrower for specific operations
-     */
+    
+
     static createErrorThrower(baseContext: Partial<ErrorContext>) {
         return (message: string, additionalContext?: Partial<ErrorContext>, originalError?: Error) => {
             const fullContext: ErrorContext = {
@@ -220,9 +201,8 @@ export class ErrorHandler {
         };
     }
 
-    /**
-     * Get error statistics
-     */
+    
+
     static getStats(): { errors: number; warnings: number } {
         return {
             errors: this.errorCount,
@@ -230,24 +210,21 @@ export class ErrorHandler {
         };
     }
 
-    /**
-     * Reset error counters
-     */
+    
+
     static resetStats(): void {
         this.errorCount = 0;
         this.warningCount = 0;
     }
 
-    /**
-     * Check if there were any errors during generation
-     */
+    
+
     static hasErrors(): boolean {
         return this.errorCount > 0;
     }
 
-    /**
-     * Print final error summary
-     */
+    
+
     static printSummary(): void {
         const stats = this.getStats();
         if (stats.errors > 0 || stats.warnings > 0) {
@@ -262,13 +239,11 @@ export class ErrorHandler {
     }
 }
 
-/**
- * Utility functions for common error scenarios
- */
+
+
 export class ErrorUtils {
-    /**
-     * Create error context for file operations
-     */
+    
+
     static fileContext(operation: string, fileName: string, additionalInfo?: Record<string, any>): ErrorContext {
         return {
             operation,
@@ -278,9 +253,8 @@ export class ErrorUtils {
         };
     }
 
-    /**
-     * Create error context for aggregate operations
-     */
+    
+
     static aggregateContext(
         operation: string,
         aggregateName: string,
@@ -295,9 +269,8 @@ export class ErrorUtils {
         };
     }
 
-    /**
-     * Create error context for entity operations
-     */
+    
+
     static entityContext(
         operation: string,
         aggregateName: string,
@@ -314,9 +287,8 @@ export class ErrorUtils {
         };
     }
 
-    /**
-     * Create error context for template operations
-     */
+    
+
     static templateContext(
         operation: string,
         templateName: string,
@@ -330,9 +302,8 @@ export class ErrorUtils {
         };
     }
 
-    /**
-     * Extract meaningful error message from any error type
-     */
+    
+
     static extractMessage(error: unknown): string {
         if (error instanceof Error) {
             return error.message;
@@ -343,16 +314,14 @@ export class ErrorUtils {
         return String(error);
     }
 
-    /**
-     * Check if error is a specific type
-     */
+    
+
     static isGenerationError(error: unknown): error is GenerationError {
         return error instanceof GenerationError;
     }
 
-    /**
-     * Safe error logging that handles any error type
-     */
+    
+
     static safeLog(error: unknown, prefix: string = 'Error'): void {
         const message = this.extractMessage(error);
         console.error(`${prefix}: ${message}`);

@@ -1,28 +1,18 @@
-/**
- * Simplified Validation System
- *
- * This validation system checks only for duplicate aggregate names across the project.
- * All other validation (syntax, semantics, types) is handled by Langium's LSP automatically.
- *
- * Rationale: Langium provides comprehensive validation through its language server.
- * Runtime validation during code generation should be minimal and focus only on
- * cross-file concerns that Langium cannot detect (like duplicate names across files).
- */
+
+
 
 import { Aggregate } from "../../../language/generated/ast.js";
 
-/**
- * Validation result
- */
+
+
 export interface ValidationResult {
     isValid: boolean;
     errors: ValidationError[];
     warnings: ValidationWarning[];
 }
 
-/**
- * Validation error
- */
+
+
 export interface ValidationError {
     code: string;
     message: string;
@@ -30,9 +20,8 @@ export interface ValidationError {
     severity: 'error' | 'warning';
 }
 
-/**
- * Validation warning
- */
+
+
 export interface ValidationWarning {
     code: string;
     message: string;
@@ -40,30 +29,21 @@ export interface ValidationWarning {
     severity: 'error' | 'warning';
 }
 
-/**
- * Validation options
- */
+
+
 export interface ValidationOptions {
     projectName: string;
 }
 
-/**
- * Minimal Aggregate Validator
- *
- * Validates only cross-file concerns that Langium cannot detect.
- * Currently checks: duplicate aggregate names across all files.
- */
+
+
 export class AggregateValidator {
 
-    /**
-     * Validate a single aggregate (kept for backwards compatibility)
-     *
-     * Note: This method cannot detect duplicate names across files.
-     * Use validateAggregates() for complete validation.
-     */
+    
+
     async validateAggregate(aggregate: Aggregate, options: ValidationOptions): Promise<ValidationResult> {
-        // Single aggregate validation - no cross-file checks possible
-        // Return valid result (Langium handles syntax/semantic validation)
+        
+        
         return {
             isValid: true,
             errors: [],
@@ -71,17 +51,13 @@ export class AggregateValidator {
         };
     }
 
-    /**
-     * Validate multiple aggregates (checks for duplicate names)
-     *
-     * This is the primary validation method that should be used.
-     * Checks for duplicate aggregate names across all files.
-     */
+    
+
     async validateAggregates(aggregates: Aggregate[], options: ValidationOptions): Promise<ValidationResult> {
         const errors: ValidationError[] = [];
         const warnings: ValidationWarning[] = [];
 
-        // Check for duplicate aggregate names
+        
         const aggregateNames = new Map<string, number>();
 
         for (const aggregate of aggregates) {
@@ -90,7 +66,7 @@ export class AggregateValidator {
             aggregateNames.set(name, count + 1);
         }
 
-        // Report duplicates
+        
         for (const [name, count] of aggregateNames.entries()) {
             if (count > 1) {
                 errors.push({
@@ -109,9 +85,8 @@ export class AggregateValidator {
         };
     }
 
-    /**
-     * Generate validation report for display
-     */
+    
+
     getValidationReport(result: ValidationResult): string {
         let report = `\n=== VALIDATION REPORT ===\n`;
         report += `Status: ${result.isValid ? '✅ PASSED' : '❌ FAILED'}\n`;

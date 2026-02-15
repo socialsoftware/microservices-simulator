@@ -1,14 +1,13 @@
-/**
- * Base types for generators
- */
+
+
 
 export interface BaseGenerationOptions {
     architecture?: string;
     projectName: string;
 }
 
-// ===== Template Engine Types =====
-// (Moved from template-engine/types.ts)
+
+
 
 export interface TemplateContext {
     [key: string]: any;

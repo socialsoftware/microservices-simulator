@@ -2,11 +2,8 @@ import { EntityExt } from "../../../../../types/ast-extensions.js";
 import { DtoFieldSchema } from "../../../../../services/dto-schema-service.js";
 import { DtoSetterStrategy } from "./dto-setter-strategy.js";
 
-/**
- * Default strategy for simple DTO setters.
- *
- * Handles primitive types and other simple cases that don't require special conversion.
- */
+
+
 export class DefaultSetterStrategy implements DtoSetterStrategy {
     canHandle(
         field: DtoFieldSchema,
@@ -14,7 +11,7 @@ export class DefaultSetterStrategy implements DtoSetterStrategy {
         prop: any | null,
         override?: { property: any; extractField?: string }
     ): boolean {
-        // This is the fallback strategy, it always returns true
+        
         return true;
     }
 

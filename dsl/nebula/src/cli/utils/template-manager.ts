@@ -1,18 +1,13 @@
-/**
- * Template Management System with Caching
- * 
- * This module provides efficient template loading and compilation with caching,
- * replacing the current pattern of loading and compiling templates on every use.
- */
+
+
 
 import * as fs from 'fs';
 import * as path from 'path';
 import Handlebars from 'handlebars';
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from './error-handler.js';
 
-/**
- * Template cache entry containing both raw content and compiled template
- */
+
+
 interface TemplateCacheEntry {
     rawContent: string;
     compiledTemplate: HandlebarsTemplateDelegate<any>;
@@ -20,18 +15,16 @@ interface TemplateCacheEntry {
     filePath: string;
 }
 
-/**
- * Template manager configuration
- */
+
+
 interface TemplateManagerConfig {
     enableCache: boolean;
-    enableDevMode: boolean; // In dev mode, check file modification times
+    enableDevMode: boolean; 
     templateRoot?: string;
 }
 
-/**
- * Centralized template manager with caching and performance optimization
- */
+
+
 export class TemplateManager {
     private static instance: TemplateManager;
     private templateCache = new Map<string, TemplateCacheEntry>();
@@ -46,9 +39,8 @@ export class TemplateManager {
         this.registerPartials();
     }
 
-    /**
-     * Get singleton instance of template manager
-     */
+    
+
     static getInstance(config?: TemplateManagerConfig): TemplateManager {
         if (!TemplateManager.instance) {
             TemplateManager.instance = new TemplateManager(config);
@@ -56,17 +48,16 @@ export class TemplateManager {
         return TemplateManager.instance;
     }
 
-    /**
-     * Load and compile a template with caching
-     */
+    
+
     loadTemplate(templatePath: string): HandlebarsTemplateDelegate<any> {
         const normalizedPath = this.normalizePath(templatePath);
 
-        // Check cache first
+        
         if (this.config.enableCache && this.templateCache.has(normalizedPath)) {
             const cached = this.templateCache.get(normalizedPath)!;
 
-            // In dev mode, check if file has been modified
+            
             if (this.config.enableDevMode && this.isFileModified(cached)) {
                 this.invalidateTemplate(normalizedPath);
             } else {
@@ -74,13 +65,12 @@ export class TemplateManager {
             }
         }
 
-        // Load and compile template
+        
         return this.loadAndCacheTemplate(normalizedPath);
     }
 
-    /**
-     * Load raw template content without compilation
-     */
+    
+
     loadRawTemplate(templatePath: string): string {
         const normalizedPath = this.normalizePath(templatePath);
 
@@ -98,17 +88,15 @@ export class TemplateManager {
         return this.templateCache.get(normalizedPath)!.rawContent;
     }
 
-    /**
-     * Render a template with context
-     */
+    
+
     renderTemplate(templatePath: string, context: any): string {
         const compiledTemplate = this.loadTemplate(templatePath);
         return compiledTemplate(context);
     }
 
-    /**
-     * Preload multiple templates for better performance
-     */
+    
+
     async preloadTemplates(templatePaths: string[]): Promise<void> {
         const loadPromises = templatePaths.map(async (templatePath) => {
             return ErrorHandler.wrap(
@@ -122,33 +110,29 @@ export class TemplateManager {
         console.log(`📦 Preloaded ${templatePaths.length} templates`);
     }
 
-    /**
-     * Preload all templates in a directory
-     */
+    
+
     async preloadTemplatesFromDirectory(directoryPath: string): Promise<void> {
         const templatePaths = this.discoverTemplates(directoryPath);
         await this.preloadTemplates(templatePaths);
     }
 
-    /**
-     * Clear template cache (useful for development)
-     */
+    
+
     clearCache(): void {
         this.templateCache.clear();
         console.log('🗑️  Template cache cleared');
     }
 
-    /**
-     * Invalidate a specific template
-     */
+    
+
     invalidateTemplate(templatePath: string): void {
         const normalizedPath = this.normalizePath(templatePath);
         this.templateCache.delete(normalizedPath);
     }
 
-    /**
-     * Get cache statistics
-     */
+    
+
     getCacheStats(): { size: number; hitRate: number; templates: string[] } {
         return {
             size: this.templateCache.size,
@@ -157,9 +141,8 @@ export class TemplateManager {
         };
     }
 
-    /**
-     * Enable or disable development mode
-     */
+    
+
     setDevMode(enabled: boolean): void {
         this.config.enableDevMode = enabled;
         if (enabled) {
@@ -167,9 +150,8 @@ export class TemplateManager {
         }
     }
 
-    /**
-     * Private methods
-     */
+    
+
     private loadAndCacheTemplate(normalizedPath: string): HandlebarsTemplateDelegate<any> {
         const fullPath = path.join(this.templateRoot, normalizedPath);
 
@@ -196,7 +178,7 @@ export class TemplateManager {
                 ErrorUtils.templateContext('load template', normalizedPath, { fullPath }),
                 ErrorSeverity.FATAL
             );
-            throw error; // This will never be reached due to FATAL, but satisfies TypeScript
+            throw error; 
         }
     }
 
@@ -205,7 +187,7 @@ export class TemplateManager {
             const stats = fs.statSync(cached.filePath);
             return stats.mtime > cached.lastModified;
         } catch {
-            // File might have been deleted, invalidate cache
+            
             return true;
         }
     }
@@ -219,11 +201,11 @@ export class TemplateManager {
             return path.resolve(customRoot);
         }
 
-        // Default: resolve relative to this file
+        
         const currentFileUrl = import.meta.url;
         const currentFilePath = new URL(currentFileUrl).pathname;
         const currentDir = path.dirname(currentFilePath);
-        // Templates are in out/cli/templates, and this file is in out/cli/utils
+        
         return path.join(currentDir, '../templates');
     }
 
@@ -261,15 +243,15 @@ export class TemplateManager {
     }
 
     private calculateHitRate(): number {
-        // This is a simplified hit rate calculation
-        // In a real implementation, you'd track hits vs misses
-        return this.templateCache.size > 0 ? 0.85 : 0; // Placeholder
+        
+        
+        return this.templateCache.size > 0 ? 0.85 : 0; 
     }
 
     private registerHandlebarsHelpers(): void {
         if (this.helpersRegistered) return;
 
-        // Register common helpers used across templates
+        
         Handlebars.registerHelper('eq', function (a: any, b: any): boolean {
             return a === b;
         });
@@ -334,7 +316,7 @@ export class TemplateManager {
         const partialsDir = path.join(this.templateRoot, '_partials');
 
         if (!fs.existsSync(partialsDir)) {
-            return; // No partials directory
+            return; 
         }
 
         try {
@@ -362,45 +344,39 @@ export class TemplateManager {
     }
 }
 
-/**
- * Convenience functions for common template operations
- */
+
+
 export class TemplateUtils {
     private static manager = TemplateManager.getInstance();
 
-    /**
-     * Quick template rendering
-     */
+    
+
     static render(templatePath: string, context: any): string {
         return this.manager.renderTemplate(templatePath, context);
     }
 
-    /**
-     * Load template for manual rendering
-     */
+    
+
     static load(templatePath: string): HandlebarsTemplateDelegate<any> {
         return this.manager.loadTemplate(templatePath);
     }
 
-    /**
-     * Initialize template system with preloading
-     */
+    
+
     static async initialize(preloadPaths?: string[]): Promise<void> {
         if (preloadPaths && preloadPaths.length > 0) {
             await this.manager.preloadTemplates(preloadPaths);
         }
     }
 
-    /**
-     * Enable development mode for template hot-reloading
-     */
+    
+
     static enableDevMode(): void {
         this.manager.setDevMode(true);
     }
 
-    /**
-     * Get cache statistics
-     */
+    
+
     static getStats(): { size: number; hitRate: number; templates: string[] } {
         return this.manager.getCacheStats();
     }

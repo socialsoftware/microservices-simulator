@@ -19,9 +19,8 @@ export interface CollectionEndpoint {
 }
 
 export class CollectionEndpointBuilder {
-    /**
-     * Build all REST endpoints for a collection
-     */
+    
+
     static buildEndpoints(
         collection: CollectionMetadata,
         aggregateName: string,
@@ -36,9 +35,8 @@ export class CollectionEndpointBuilder {
         ];
     }
 
-    /**
-     * Build POST endpoint for adding single element
-     */
+    
+
     private static buildAddEndpoint(
         collection: CollectionMetadata,
         aggregateName: string,
@@ -73,9 +71,8 @@ export class CollectionEndpointBuilder {
         };
     }
 
-    /**
-     * Build POST endpoint for adding multiple elements (batch)
-     */
+    
+
     private static buildAddBatchEndpoint(
         collection: CollectionMetadata,
         aggregateName: string,
@@ -104,9 +101,8 @@ export class CollectionEndpointBuilder {
         };
     }
 
-    /**
-     * Build GET endpoint for retrieving single element
-     */
+    
+
     private static buildGetEndpoint(
         collection: CollectionMetadata,
         aggregateName: string,
@@ -135,9 +131,8 @@ export class CollectionEndpointBuilder {
         };
     }
 
-    /**
-     * Build PUT endpoint for updating element
-     */
+    
+
     private static buildUpdateEndpoint(
         collection: CollectionMetadata,
         aggregateName: string,
@@ -171,9 +166,8 @@ export class CollectionEndpointBuilder {
         };
     }
 
-    /**
-     * Build DELETE endpoint for removing element
-     */
+    
+
     private static buildRemoveEndpoint(
         collection: CollectionMetadata,
         aggregateName: string,

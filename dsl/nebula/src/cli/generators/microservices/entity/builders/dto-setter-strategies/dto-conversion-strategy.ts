@@ -2,13 +2,8 @@ import { EntityExt } from "../../../../../types/ast-extensions.js";
 import { DtoFieldSchema } from "../../../../../services/dto-schema-service.js";
 import { DtoSetterStrategy } from "./dto-setter-strategy.js";
 
-/**
- * Strategy for handling fields that require DTO conversion.
- *
- * Converts entity objects to DTOs using:
- * - buildDto() for root entities
- * - new DtoName(entity) for non-root entities
- */
+
+
 export class DtoConversionStrategy implements DtoSetterStrategy {
     canHandle(
         field: DtoFieldSchema,
@@ -16,7 +11,7 @@ export class DtoConversionStrategy implements DtoSetterStrategy {
         prop: any | null,
         override?: { property: any; extractField?: string }
     ): boolean {
-        // Don't handle if there's an extract field (that takes precedence)
+        
         const effectiveExtractField = override?.extractField || field.extractField;
         if (effectiveExtractField) {
             return false;
@@ -34,7 +29,7 @@ export class DtoConversionStrategy implements DtoSetterStrategy {
     ): string | null {
         const capName = field.name.charAt(0).toUpperCase() + field.name.slice(1);
 
-        // Handle collection conversion
+        
         if (field.isCollection && field.referencedEntityName) {
             const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
             if (field.referencedEntityIsRoot || !field.referencedEntityHasGenerateDto) {
@@ -44,7 +39,7 @@ export class DtoConversionStrategy implements DtoSetterStrategy {
             }
         }
 
-        // Handle single object conversion
+        
         if (!field.isCollection) {
             if (field.referencedEntityIsRoot || !field.referencedEntityHasGenerateDto) {
                 return `        dto.set${capName}(${getterCall} != null ? ${getterCall}.buildDto() : null);`;

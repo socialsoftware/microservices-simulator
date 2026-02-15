@@ -3,9 +3,8 @@ import { SagaGenerationOptions } from '../saga-generator.js';
 import { StringUtils } from '../../../utils/string-utils.js';
 import { SagaFunctionalityGeneratorBase, SagaOperationMetadata } from '../base/saga-functionality-generator-base.js';
 
-/**
- * Generates saga functionality class for create operations.
- */
+
+
 export class SagaCreateGenerator extends SagaFunctionalityGeneratorBase {
     protected buildOperationMetadata(
         aggregate: any,

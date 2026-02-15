@@ -24,7 +24,7 @@ ${methods}
 function generateRepositoryImports(repository: Repository | undefined): string {
     const imports = new Set<string>();
 
-    // Add imports based on what's actually used in methods
+    
     if (repository && repository.repositoryMethods) {
         const hasOptional = repository.repositoryMethods.some(method =>
             resolveRepositoryReturnType(method.returnType).includes('Optional<'));
@@ -47,14 +47,14 @@ function generateInterfaceDeclaration(aggregateName: string): string {
 
 function generateCustomRepositoryMethods(aggregate: AggregateExt, capitalizedAggregate: string): string {
     if (aggregate.repository && aggregate.repository.repositoryMethods.length > 0) {
-        // Remove "For" suffix and deduplicate method names
+        
         const uniqueMethods = new Map<string, any>();
 
         aggregate.repository.repositoryMethods.forEach(method => {
-            // Remove everything after "For" to get the base method name
+            
             const baseMethodName = method.name.split('For')[0];
 
-            // Only keep the first occurrence of each base method name
+            
             if (!uniqueMethods.has(baseMethodName)) {
                 uniqueMethods.set(baseMethodName, {
                     ...method,
@@ -121,7 +121,7 @@ function resolveParameterType(type: any): string {
         return type;
     }
 
-    // Handle unified type system (typeName for PrimitiveType/BuiltinType)
+    
     if (type.typeName) {
         return type.typeName;
     }

@@ -304,7 +304,6 @@ export class JpqlParser {
             this.consume('(');
             const nextToken = this.peek()?.toUpperCase();
             if (nextToken === 'SELECT') {
-                // Capture the subquery tokens until the matching closing parenthesis
                 const subqueryTokens: string[] = [];
                 let parenCount = 1;
                 while (parenCount > 0 && this.current < this.tokens.length) {

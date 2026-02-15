@@ -210,8 +210,6 @@ export class CustomValidatorGenerator extends ValidationBaseGenerator {
 
     private buildBusinessRuleValidationLogic(aggregateName: string): string {
         return `// Implement business rule validation logic for ${aggregateName}
-        // Example: Check business hours, validate against external systems, etc.
-        // TODO: Implement specific business rules
         return true;`;
     }
 
@@ -235,10 +233,8 @@ export class CustomValidatorGenerator extends ValidationBaseGenerator {
         return `// Validate phone number format
         if (value.isEmpty()) return true;
         
-        // Remove all non-digits
         String digitsOnly = value.replaceAll("\\\\D", "");
         
-        // Check if it's a valid length (10-15 digits)
         return digitsOnly.length() >= 10 && digitsOnly.length() <= 15;`;
     }
 
@@ -258,7 +254,6 @@ export class CustomValidatorGenerator extends ValidationBaseGenerator {
         return `// Validate code format
         if (value.isEmpty()) return true;
         
-        // Example: Code should be alphanumeric with dashes, 6-12 characters
         return value.matches("^[A-Za-z0-9-]{6,12}$");`;
     }
 
@@ -284,7 +279,6 @@ export class CustomValidatorGenerator extends ValidationBaseGenerator {
                 return ((java.time.LocalDateTime) startValue).isBefore((java.time.LocalDateTime) endValue);
             }
             
-            // Add more date type comparisons as needed
             return true;
             
         } catch (Exception e) {

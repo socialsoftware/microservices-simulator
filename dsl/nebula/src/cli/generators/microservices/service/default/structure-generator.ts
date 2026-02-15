@@ -21,19 +21,19 @@ export class ServiceStructureGenerator {
             ''
         ];
 
-        // Always import List/Set and Collectors, since getAll* now uses Set<Integer> aggregateIds
+        
         imports.push('import java.util.List;');
         imports.push('import java.util.Set;');
         imports.push('import java.util.stream.Collectors;');
         
-        // Import the root entity's DTO (e.g., AnswerDto, CourseDto)
+        
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
         if (rootEntity) {
             imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.${rootEntity.name}Dto;`);
         }
         
-        // Import projection DTOs for non-root entities (e.g., AnswerExecutionDto, AnswerUserDto)
-        // These are needed for converting cross-aggregate DTOs to projection DTOs in create method
+        
+        
         aggregate.entities.forEach(entity => {
             if (!entity.isRoot) {
                 imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.${entity.name}Dto;`);
@@ -58,28 +58,28 @@ export class ServiceStructureGenerator {
             imports.push('');
         }
 
-        // Import enum types that are actually used in update methods
+        
         if (rootEntity && rootEntity.properties) {
             for (const prop of rootEntity.properties) {
                 const propName = (prop as any).name?.toLowerCase?.() ?? '';
-                // Skip id fields
+                
                 if (propName === 'id') {
                     continue;
                 }
-                // Skip final fields (not updatable)
+                
                 if ((prop as any).isFinal) {
                     continue;
                 }
 
                 const javaType = TypeResolver.resolveJavaType((prop as any).type);
                 const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
-                // Entity relationships are handled via DTOs, not primitive setters
+                
                 const isEntityType = TypeResolver.isEntityType(javaType);
                 if (isCollection || isEntityType) {
                     continue;
                 }
 
-                // Only import enum-like types that follow our naming convention
+                
                 const propType = (prop as any).type;
                 if (propType && propType.$type === 'EntityType' && propType.type) {
                     const typeName = propType.type.$refText || propType.type.ref?.name;
@@ -105,12 +105,12 @@ export class ServiceStructureGenerator {
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;');
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;');
 
-        // Import published events for delete/update so services can register them in UnitOfWork
+        
         const eventsPackage = getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'events', 'publish');
         imports.push(`import ${eventsPackage}.${aggregateName}DeletedEvent;`);
         imports.push(`import ${eventsPackage}.${aggregateName}UpdatedEvent;`);
 
-        // Import projection entity events
+        
         const projectionEntities = (aggregate.entities || []).filter((e: any) =>
             !e.isRoot && e.aggregateRef
         );
@@ -121,17 +121,17 @@ export class ServiceStructureGenerator {
             imports.push(`import ${eventsPackage}.${projEntityName}UpdatedEvent;`);
         });
 
-        // Import collection element events (RemovedEvent and UpdatedEvent for all non-root entities in collections)
+        
         const rootEntityForCollections = aggregate.entities?.find((e: any) => e.isRoot);
         if (rootEntityForCollections && rootEntityForCollections.properties) {
             for (const prop of rootEntityForCollections.properties) {
                 const propType = (prop as any).type;
-                // Check if this is a collection type
+                
                 const javaType = TypeResolver.resolveJavaType(propType);
                 if (javaType && (javaType.startsWith('Set<') || javaType.startsWith('List<'))) {
                     const elementType = TypeResolver.getElementType(propType);
                     if (elementType && TypeResolver.isEntityType(javaType)) {
-                        // Import RemovedEvent and UpdatedEvent for collection elements
+                        
                         imports.push(`import ${eventsPackage}.${elementType}RemovedEvent;`);
                         imports.push(`import ${eventsPackage}.${elementType}UpdatedEvent;`);
                     }
@@ -141,7 +141,7 @@ export class ServiceStructureGenerator {
 
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', 'exception')}.${capitalize(projectName)}Exception;`);
         
-        // Add CreateRequestDto import for create operations
+        
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'coordination', 'webapi', 'requestDtos')}.Create${capitalize(aggregateName)}RequestDto;`);
         imports.push('');
 

@@ -80,15 +80,15 @@ export class IntegrationGenerator {
             packageName: `${this.getBasePackage(options)}.${options.projectName.toLowerCase()}`,
             basePackage: this.getBasePackage(options),
             imports,
-            // Event service is always needed for microservices simulator
+            
             hasEventService: true,
-            // Scheduling is always needed for event processing
+            
             hasScheduling: true,
-            // Retry is always needed for database operations
+            
             hasRetry: true,
-            // JPA is always used
+            
             hasJpa: true,
-            // Transactions are always needed
+            
             hasTransactions: true
         };
     }
@@ -163,12 +163,12 @@ export class IntegrationGenerator {
         imports.push('import org.springframework.data.jpa.repository.config.EnableJpaAuditing;');
         imports.push('import org.springframework.data.jpa.repository.config.EnableJpaRepositories;');
         imports.push('import org.springframework.transaction.annotation.EnableTransactionManagement;');
-        // Always enable retry for database operations
+        
         imports.push('import org.springframework.retry.annotation.EnableRetry;');
-        // Always enable scheduling for event processing
+        
         imports.push('import org.springframework.scheduling.annotation.EnableScheduling;');
 
-        // Always include EventService for microservices simulator
+        
         imports.push(`import ${this.getBasePackage(options)}.ms.domain.event.EventService;`);
 
         return imports;

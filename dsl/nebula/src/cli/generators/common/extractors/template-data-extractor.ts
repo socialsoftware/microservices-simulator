@@ -99,7 +99,7 @@ export class TemplateDataExtractor extends TemplateDataBase {
     }
 
     getFeatureTemplateData(aggregate: Aggregate, feature: string, context: GeneratorContext): TemplateData | null {
-        // All features are always enabled - just use the existing context
+        
         const options = this.getFeatureExtractionOptions(feature);
         return this.extractData(aggregate, context, options);
     }

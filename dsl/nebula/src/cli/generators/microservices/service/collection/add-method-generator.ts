@@ -3,37 +3,11 @@ import { GeneratorBase } from "../../../common/base/generator-base.js";
 import { CollectionProperty } from "./collection-metadata-extractor.js";
 import { ExceptionGenerator } from "../../../common/utils/exception-generator.js";
 
-/**
- * Add Method Generator
- *
- * Generates collection add methods for adding a single element to a collection.
- * Uses immutable aggregate pattern (create from existing, modify, register changed).
- *
- * Extends GeneratorBase for common utilities (capitalize, etc.)
- */
+
+
 export class AddMethodGenerator extends GeneratorBase {
-    /**
-     * Generate add method for a collection property.
-     *
-     * Generated method signature:
-     * ```java
-     * public ElementDto addElement(Integer entityId, Integer identifierField, ElementDto elementDto, UnitOfWork unitOfWork)
-     * ```
-     *
-     * Pattern:
-     * 1. Load aggregate (old version)
-     * 2. Create immutable copy (new version)
-     * 3. Create element from DTO
-     * 4. Add to collection
-     * 5. Register changed aggregate
-     * 6. Return DTO
-     *
-     * @param collection Collection metadata
-     * @param aggregateName Aggregate name
-     * @param rootEntity Root entity
-     * @param projectName Project name for exception handling
-     * @returns Java method code
-     */
+    
+
     generate(collection: CollectionProperty, aggregateName: string, rootEntity: Entity, projectName: string): string {
         const entityName = rootEntity.name;
         const lowerEntity = this.lowercase(entityName);

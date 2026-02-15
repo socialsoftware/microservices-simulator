@@ -21,7 +21,7 @@ export class ServiceDefinitionGenerator {
         this.collectionGenerator = new CollectionMethodGenerator();
     }
 
-    // Helper methods migrated from OrchestrationBase
+    
     private getBasePackage(): string {
         return this.capabilities.packageBuilder.buildCustomPackage('').split('.').slice(0, -1).join('.');
     }
@@ -110,12 +110,12 @@ export class ServiceDefinitionGenerator {
             const eventPackage = getGlobalConfig().buildPackageName(options.projectName, 'microservices', lowerAggregate, 'events', 'publish');
             imports.push(`import ${eventPackage}.${aggregateName}UpdatedEvent;`);
             imports.push(`import ${eventPackage}.${aggregateName}DeletedEvent;`);
-            // Import CreateRequestDto for create operations
+            
             const requestDtoPackage = getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'webapi', 'requestDtos');
             imports.push(`import ${requestDtoPackage}.Create${aggregateName}RequestDto;`);
         }
 
-        // Build set of entity names in this aggregate (to exclude from enum detection)
+        
         const aggregateEntityNames = new Set<string>();
         aggregate.entities?.forEach((entity: Entity) => {
             aggregateEntityNames.add(entity.name);
@@ -144,7 +144,7 @@ export class ServiceDefinitionGenerator {
 
         const typeName = type.replace(/List<|Set<|>/g, '').trim();
 
-        // Exclude entity types from the same aggregate (they're covered by wildcard import)
+        
         if (aggregateEntityNames.has(typeName)) {
             return;
         }
@@ -175,7 +175,7 @@ export class ServiceDefinitionGenerator {
             });
             methods.push(...this.crudGenerator.generateCrudMethods(aggregate, rootEntity, crudOptions));
 
-            // Generate collection manipulation methods
+            
             methods.push(...this.collectionGenerator.generateCollectionMethods(aggregate, rootEntity));
         }
 
@@ -284,7 +284,7 @@ export class ServiceDefinitionGenerator {
             }
         ];
 
-        // Check if any method uses business logic that requires additional dependencies
+        
         const hasBusinessLogic = serviceDefinition.serviceMethods?.some((method: any) =>
             method.implementation?.actions?.length > 0
         );

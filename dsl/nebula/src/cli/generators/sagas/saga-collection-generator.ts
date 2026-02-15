@@ -10,9 +10,8 @@ export class SagaCollectionGenerator {
         }
         return options.basePackage;
     }
-    /**
-     * Generate all saga workflow classes for collection operations
-     */
+    
+
     generateCollectionSagaFunctionalities(
         aggregate: Aggregate,
         rootEntity: Entity,
@@ -36,9 +35,8 @@ export class SagaCollectionGenerator {
         return outputs;
     }
 
-    /**
-     * Generate all 5 saga classes for a single collection
-     */
+    
+
     private generateSagasForCollection(
         collection: CollectionMetadata,
         aggregate: Aggregate,
@@ -50,7 +48,7 @@ export class SagaCollectionGenerator {
         const aggregateName = aggregate.name;
         const lowerAggregate = aggregateName.toLowerCase();
 
-        // Generate 5 sagas per collection
+        
         const sagaSpecs = [
             {
                 operation: 'add',
@@ -132,9 +130,8 @@ export class SagaCollectionGenerator {
         return outputs;
     }
 
-    /**
-     * Generate a single saga class
-     */
+    
+
     private generateSagaClass(
         spec: any,
         aggregateName: string,
@@ -147,7 +144,7 @@ export class SagaCollectionGenerator {
         const className = `${StringUtils.capitalize(spec.name)}FunctionalitySagas`;
         const capitalizedAggregate = StringUtils.capitalize(aggregateName);
 
-        // Build imports
+        
         const imports: string[] = [];
         imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${capitalizedAggregate}Service;`);
@@ -165,7 +162,7 @@ export class SagaCollectionGenerator {
             imports.push('import java.util.List;');
         }
 
-        // Build fields
+        
         const fields: string[] = [];
         if (spec.resultType) {
             fields.push(`    private ${spec.resultType} ${spec.resultField};`);
@@ -173,7 +170,7 @@ export class SagaCollectionGenerator {
         fields.push(`    private final ${capitalizedAggregate}Service ${lowerAggregate}Service;`);
         fields.push(`    private final SagaUnitOfWorkService unitOfWorkService;`);
 
-        // Build constructor params
+        
         const constructorParams = [
             'SagaUnitOfWork unitOfWork',
             'SagaUnitOfWorkService unitOfWorkService',
@@ -181,7 +178,7 @@ export class SagaCollectionGenerator {
             ...spec.params.map((p: any) => `${p.type} ${p.name}`)
         ];
 
-        // Build buildWorkflow params
+        
         const buildWorkflowParams = [
             ...spec.params.map((p: any) => `${p.type} ${p.name}`),
             'SagaUnitOfWork unitOfWork'
@@ -192,9 +189,9 @@ export class SagaCollectionGenerator {
             'unitOfWork'
         ];
 
-        // Build workflow step - service method name includes aggregate name only for projection entities
-        // Projection entities (cross-aggregate references): "addExecutionUser", "addQuestionTopic", "addTournamentParticipant"
-        // Value entities (local entities): "addOption", "getOption"
+        
+        
+        
         const includeAggregateName = collection.isProjection;
         const operationVerb = spec.operation === 'addBatch'
             ? (includeAggregateName ? `add${capitalizedAggregate}${collection.capitalizedSingular}s` : `add${collection.capitalizedSingular}s`)
@@ -218,7 +215,7 @@ ${stepBody}
 
         workflow.addStep(${spec.stepName});`;
 
-        // Build getter/setter
+        
         let getterSetter = '';
         if (spec.resultField && spec.resultGetter) {
             getterSetter = `
@@ -231,7 +228,7 @@ ${stepBody}
     }`;
         }
 
-        // Generate class content
+        
         return `package ${packageName};
 
 ${imports.join('\n')}

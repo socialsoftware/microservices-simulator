@@ -1,22 +1,8 @@
 import { Aggregate, Entity } from "../../../../../language/generated/ast.js";
 import { MethodGeneratorTemplate, MethodMetadata, GenerationOptions } from "../../../common/base/method-generator-template.js";
 
-/**
- * CRUD Read Method Generator
- *
- * Generates the get{Aggregate}ById() method for service classes.
- * Uses Template Method pattern for consistent structure.
- *
- * Generated method signature:
- * ```java
- * public EntityDto getAggregateById(Integer id, UnitOfWork unitOfWork)
- * ```
- *
- * Pattern:
- * 1. Load aggregate via UnitOfWork (read-only)
- * 2. Convert to DTO
- * 3. Return DTO
- */
+
+
 export class CrudReadGenerator extends MethodGeneratorTemplate {
 
     protected override extractMetadata(aggregate: Aggregate, options: GenerationOptions): MethodMetadata {
@@ -62,9 +48,9 @@ export class CrudReadGenerator extends MethodGeneratorTemplate {
     }
 
     protected override buildEventHandling(metadata: MethodMetadata): string {
-        // Read operations don't publish events
+        
         return '';
     }
 
-    // Use default error handling from MethodGeneratorTemplate (with ExceptionGenerator)
+    
 }

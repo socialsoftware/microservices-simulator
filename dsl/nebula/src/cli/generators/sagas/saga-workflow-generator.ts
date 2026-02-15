@@ -2,9 +2,8 @@ import { SagaHelpers } from './saga-helpers.js';
 import { SagaGenerationOptions } from './saga-generator.js';
 import { StringUtils } from '../../utils/string-utils.js';
 
-/**
- * Generates saga workflow functionalities from DSL definitions
- */
+
+
 export class SagaWorkflowGenerator {
     private getBasePackage(options: SagaGenerationOptions): string {
         if (!options.basePackage) {
@@ -14,9 +13,8 @@ export class SagaWorkflowGenerator {
     }
     private helpers = new SagaHelpers();
 
-    /**
-     * Generate a workflow functionality class from a workflow definition
-     */
+    
+
     generateWorkflowFunctionality(aggregate: any, workflow: any, options: SagaGenerationOptions, packageName: string): string {
         const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
@@ -33,7 +31,7 @@ export class SagaWorkflowGenerator {
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${capitalizedAggregate}Service;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
 
-        // Check for step dependencies
+        
         const workflowSteps = workflow.workflowSteps || [];
         const hasStepDependencies = workflowSteps.some((s: any) => s.dependsOn?.dependencies?.length > 0);
         if (hasStepDependencies) {
@@ -41,7 +39,7 @@ export class SagaWorkflowGenerator {
             imports.push('import java.util.Arrays;');
         }
 
-        // Check for saga state registration
+        
         const usesRegisterState = workflowSteps.some((s: any) =>
             (s.stepActions || []).some((a: any) => a.$type === 'WorkflowRegisterStateAction') ||
             (s.compensation?.compensationActions || []).some((a: any) => a.$type === 'WorkflowRegisterStateAction')
@@ -51,41 +49,41 @@ export class SagaWorkflowGenerator {
             imports.push(`import ${basePackage}.ms.sagas.aggregate.GenericSagaState;`);
         }
 
-        // Build constructor parameters from workflow parameters
+        
         const workflowParams = workflow.parameters || [];
         const constructorParams: Array<{ type: string; name: string }> = [
             { type: `${capitalizedAggregate}Service`, name: `${lowerAggregate}Service` },
             { type: 'SagaUnitOfWorkService', name: 'sagaUnitOfWorkService' }
         ];
 
-        // Add workflow parameters (excluding UnitOfWork which goes last)
+        
         const buildParams: Array<{ type: string; name: string }> = [];
         for (const param of workflowParams) {
             const paramName = param.name;
             const paramType = this.helpers.getParamTypeName(param.type, aggregate.name);
 
             if (paramType === 'SagaUnitOfWork' || paramType === 'UnitOfWork') {
-                continue; // Skip unitOfWork, will add at end
+                continue; 
             }
 
             constructorParams.push({ type: paramType, name: paramName });
             buildParams.push({ type: paramType, name: paramName });
         }
 
-        // Add unitOfWork at the end
+        
         constructorParams.push({ type: 'SagaUnitOfWork', name: 'unitOfWork' });
         buildParams.push({ type: 'SagaUnitOfWork', name: 'unitOfWork' });
 
-        // Get workflow fields
+        
         const workflowFields = workflow.workflowFields || [];
 
-        // Build fields string - service dependencies
+        
         const serviceFields = [
             `    private ${capitalizedAggregate}Service ${lowerAggregate}Service;`,
             `    private SagaUnitOfWorkService sagaUnitOfWorkService;`
         ];
 
-        // Add workflow fields
+        
         const extraFields = workflowFields.map((f: any) => {
             const fieldType = this.helpers.getParamTypeName(f.type, aggregate.name);
             return `    private ${fieldType} ${f.name};`;
@@ -93,19 +91,19 @@ export class SagaWorkflowGenerator {
 
         const allFields = [...serviceFields, ...extraFields].join('\n');
 
-        // Build constructor body
+        
         const constructorAssignments = [
             `        this.${lowerAggregate}Service = ${lowerAggregate}Service;`,
             `        this.sagaUnitOfWorkService = sagaUnitOfWorkService;`
         ];
 
-        // Build the buildWorkflow call arguments
+        
         const buildWorkflowArgs = buildParams.map(p => p.name).join(', ');
 
-        // Generate step body from DSL
+        
         const stepsBody = this.generateWorkflowStepsFromDSL(workflowSteps, aggregate.name, lowerAggregate);
 
-        // Generate getters and setters for workflow fields
+        
         const gettersSetters = workflowFields.map((f: any) => {
             const fieldType = this.helpers.getParamTypeName(f.type, aggregate.name);
             const capitalizedName = StringUtils.capitalize(f.name);
@@ -141,18 +139,17 @@ ${gettersSetters}
 }`;
     }
 
-    /**
-     * Generate workflow steps for event processing
-     */
+    
+
     generateEventProcessingWorkflowSteps(workflowName: string, aggregateName: string, lowerAggregate: string, workflowParams: any[], sagaWorkflow?: any): string {
-        // Check if workflow has step definitions
+        
         const workflowSteps = sagaWorkflow?.workflowSteps || [];
 
         if (workflowSteps.length > 0) {
             return this.generateWorkflowStepsFromDSL(workflowSteps, aggregateName, lowerAggregate);
         }
 
-        // Generate a basic placeholder workflow structure
+        
         return `        this.workflow = new SagaWorkflow(this, sagaUnitOfWorkService, unitOfWork);
 
         // No workflow steps defined in DSL - implement via workflowSteps block
@@ -163,9 +160,8 @@ ${gettersSetters}
         // this.workflow.addStep(step1);`;
     }
 
-    /**
-     * Generate workflow steps from DSL definitions
-     */
+    
+
     generateWorkflowStepsFromDSL(workflowSteps: any[], aggregateName: string, lowerAggregate: string): string {
         const lines: string[] = [];
         lines.push('        this.workflow = new SagaWorkflow(this, sagaUnitOfWorkService, unitOfWork);');
@@ -173,15 +169,15 @@ ${gettersSetters}
 
         const stepVarNames: Map<string, string> = new Map();
 
-        // First pass: create step variable names
+        
         for (const step of workflowSteps) {
             const stepName = step.stepName;
-            // Avoid double "Step" suffix
+            
             const varName = stepName.endsWith('Step') ? stepName : `${stepName}Step`;
             stepVarNames.set(stepName, varName);
         }
 
-        // Second pass: generate step code
+        
         for (const step of workflowSteps) {
             const stepName = step.stepName;
             const stepVar = stepVarNames.get(stepName)!;
@@ -189,13 +185,13 @@ ${gettersSetters}
             const dependencies = step.dependsOn?.dependencies || [];
             const compensation = step.compensation;
 
-            // Generate step body actions
+            
             let stepBody = '';
             for (const action of actions) {
                 stepBody += this.generateWorkflowAction(action, aggregateName, lowerAggregate);
             }
 
-            // Generate step with dependencies
+            
             let stepDependencies = '';
             if (dependencies.length > 0) {
                 const depVars = dependencies.map((dep: string) => stepVarNames.get(dep) || `${dep}Step`).join(', ');
@@ -207,7 +203,7 @@ ${gettersSetters}
             lines.push(`        }${stepDependencies});`);
             lines.push('');
 
-            // Add compensation if present
+            
             if (compensation && compensation.compensationActions && compensation.compensationActions.length > 0) {
                 lines.push(`        ${stepVar}.registerCompensation(() -> {`);
                 for (const compAction of compensation.compensationActions) {
@@ -218,7 +214,7 @@ ${gettersSetters}
             }
         }
 
-        // Add all steps to workflow
+        
         for (const step of workflowSteps) {
             const stepVar = stepVarNames.get(step.stepName)!;
             lines.push(`        this.workflow.addStep(${stepVar});`);
@@ -227,9 +223,8 @@ ${gettersSetters}
         return lines.join('\n');
     }
 
-    /**
-     * Generate code for a single workflow action
-     */
+    
+
     private generateWorkflowAction(action: any, aggregateName: string, lowerAggregate: string): string {
         switch (action.$type) {
             case 'WorkflowCallAction': {

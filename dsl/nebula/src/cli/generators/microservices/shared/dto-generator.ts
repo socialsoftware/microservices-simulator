@@ -13,7 +13,7 @@ export function generateDtoCode(entity: Entity, projectName: string, dtoSchemaRe
     const fields = generateDtoFieldDeclarations(dtoFields);
     const constructors = generateDtoConstructors(entity, dtoFields);
     const gettersSetters = generateDtoGettersSetters(dtoFields);
-    // All DTOs are now regular classes (no @Embeddable) since each entity gets its own DTO file
+    
 
     return `package ${packageName};
 
@@ -119,7 +119,7 @@ function generateDtoImports(entity: Entity, projectName: string, aggregateName: 
         imports.add('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
     }
 
-    // DTOs are now regular Serializable classes (no @Embeddable needed)
+    
 
     const config = getGlobalConfig();
     const entityPackage = config.buildPackageName(projectName, 'microservices', aggregateName.toLowerCase(), 'aggregate');
@@ -208,7 +208,7 @@ function buildFieldAssignment(field: DtoFieldSchema, entity: Entity, entityVar: 
     if (field.derivedAggregateId) {
         const accessor = field.derivedAccessor || 'getAggregateId';
         if (field.isCollection) {
-            // For collections, stream and map to extract aggregateIds
+            
             const collector = field.javaType.startsWith('Set<') ? 'Collectors.toSet()' : 'Collectors.toList()';
             return `        this.${field.name} = ${getterCall} != null ? ${getterCall}.stream().map(item -> item.${accessor}()).collect(${collector}) : null;`;
         }
@@ -272,7 +272,7 @@ function generateDtoGettersSetters(fields: DtoFieldSchema[]): string {
         methods.push('');
     }
 
-    // Remove trailing empty line if present
+    
     if (methods.length > 0 && methods[methods.length - 1] === '') {
         methods.pop();
     }

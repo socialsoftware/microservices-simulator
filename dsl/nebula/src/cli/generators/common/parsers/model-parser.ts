@@ -3,14 +3,13 @@ import { ALL_PRIMITIVE_TYPES } from "../utils/type-constants.js";
 
 export { Aggregate, Entity, Method, Workflow, Model };
 
-/**
- * Parse error with location and context information
- */
+
+
 export interface ParseError {
     code: string;
     message: string;
-    context: string;  // e.g., "property 'email' in entity 'User'"
-    location?: string;  // e.g., "user.nebula:5:10"
+    context: string;  
+    location?: string;  
     originalError?: string;
 }
 
@@ -21,7 +20,7 @@ export interface EntityData {
     rules: RuleData[];
     methods: MethodData[];
     relationships: RelationshipData[];
-    parseErrors?: ParseError[];  // Errors encountered during parsing
+    parseErrors?: ParseError[];  
 }
 
 export interface PropertyData {
@@ -110,7 +109,7 @@ export interface AggregateData {
     repository?: RepositoryData;
     webApiEndpoints?: WebAPIEndpointsData;
     relationships: RelationshipData[];
-    parseErrors?: ParseError[];  // Errors encountered during parsing
+    parseErrors?: ParseError[];  
 }
 
 export interface RepositoryData {
@@ -140,7 +139,7 @@ export interface EndpointData {
 export interface ModelData {
     aggregates: AggregateData[];
     exceptions?: ExceptionMessagesData;
-    parseErrors?: ParseError[];  // Errors encountered during parsing
+    parseErrors?: ParseError[];  
 }
 
 export interface ExceptionMessagesData {
@@ -155,16 +154,12 @@ export interface ExceptionMessageData {
 }
 
 export class ModelParser {
-    /**
-     * Type resolution cache for performance optimization.
-     * Caches resolved Java types to avoid repeated type map lookups and recursive calls.
-     */
+    
+
     private static readonly TYPE_CACHE = new Map<string, string>();
 
-    /**
-     * Static type mapping from DSL types to Java types.
-     * Created once and reused across all type resolutions.
-     */
+    
+
     private static readonly TYPE_MAP = new Map<string, string>([
         ['String', 'String'],
         ['Integer', 'Integer'],
@@ -182,9 +177,8 @@ export class ModelParser {
         ['AggregateState', 'AggregateState']
     ]);
 
-    /**
-     * Generate a formatted error report from parse errors
-     */
+    
+
     static generateErrorReport(parseErrors: ParseError[]): string {
         if (!parseErrors || parseErrors.length === 0) {
             return '';
@@ -207,9 +201,8 @@ export class ModelParser {
         return report;
     }
 
-    /**
-     * Check if ModelData has any parse errors
-     */
+    
+
     static hasParseErrors(modelData: ModelData): boolean {
         if (modelData.parseErrors && modelData.parseErrors.length > 0) {
             return true;
@@ -230,9 +223,8 @@ export class ModelParser {
         return false;
     }
 
-    /**
-     * Collect all parse errors from ModelData
-     */
+    
+
     static collectAllErrors(modelData: ModelData): ParseError[] {
         const allErrors: ParseError[] = [];
 
@@ -255,25 +247,14 @@ export class ModelParser {
         return allErrors;
     }
 
-    /**
-     * Clear the type resolution cache.
-     *
-     * Useful for:
-     * - Testing scenarios where cache needs to be reset
-     * - Hot-reloading during development
-     * - Memory cleanup after processing large projects
-     *
-     * Note: Cache is automatically managed and rarely needs manual clearing.
-     */
+    
+
     static clearTypeCache(): void {
         ModelParser.TYPE_CACHE.clear();
     }
 
-    /**
-     * Get cache statistics for monitoring and debugging.
-     *
-     * @returns Object with cache size and hit rate information
-     */
+    
+
     static getTypeCacheStats(): { size: number; entries: string[] } {
         return {
             size: ModelParser.TYPE_CACHE.size,
@@ -285,13 +266,13 @@ export class ModelParser {
         const aggregates: AggregateData[] = [];
         const parseErrors: ParseError[] = [];
 
-        // Parse aggregates with error recovery
+        
         for (const aggregate of model.aggregates) {
             try {
                 const aggregateData = this.parseAggregate(aggregate);
                 aggregates.push(aggregateData);
 
-                // Collect aggregate-level parse errors
+                
                 if (aggregateData.parseErrors) {
                     parseErrors.push(...aggregateData.parseErrors);
                 }
@@ -302,7 +283,7 @@ export class ModelParser {
                     context: `aggregate '${aggregate.name || 'unknown'}'`,
                     originalError: error instanceof Error ? error.message : String(error)
                 });
-                // Continue parsing remaining aggregates
+                
             }
         }
 
@@ -319,13 +300,13 @@ export class ModelParser {
         const workflows: WorkflowData[] = [];
         const parseErrors: ParseError[] = [];
 
-        // Parse entities with error recovery
+        
         for (const entity of aggregate.entities) {
             try {
                 const entityData = this.parseEntity(entity);
                 entities.push(entityData);
 
-                // Collect entity-level parse errors
+                
                 if (entityData.parseErrors) {
                     parseErrors.push(...entityData.parseErrors);
                 }
@@ -336,11 +317,11 @@ export class ModelParser {
                     context: `entity '${entity.name || 'unknown'}' in aggregate '${aggregate.name}'`,
                     originalError: error instanceof Error ? error.message : String(error)
                 });
-                // Continue parsing remaining entities
+                
             }
         }
 
-        // Parse methods with error recovery
+        
         for (const method of aggregate.methods) {
             try {
                 methods.push(this.parseMethod(method));
@@ -351,11 +332,11 @@ export class ModelParser {
                     context: `method '${method.name || 'unknown'}' in aggregate '${aggregate.name}'`,
                     originalError: error instanceof Error ? error.message : String(error)
                 });
-                // Continue parsing remaining methods
+                
             }
         }
 
-        // Parse workflows with error recovery
+        
         for (const workflow of aggregate.workflows) {
             try {
                 workflows.push(this.parseWorkflow(workflow));
@@ -366,7 +347,7 @@ export class ModelParser {
                     context: `workflow '${workflow.name || 'unknown'}' in aggregate '${aggregate.name}'`,
                     originalError: error instanceof Error ? error.message : String(error)
                 });
-                // Continue parsing remaining workflows
+                
             }
         }
 
@@ -387,9 +368,9 @@ export class ModelParser {
     parseEntity(entity: Entity): EntityData {
         const properties: PropertyData[] = [];
         const parseErrors: ParseError[] = [];
-        const rules: any[] = []; // Business rules removed
+        const rules: any[] = []; 
 
-        // Parse properties with error recovery
+        
         if (entity.properties) {
             for (const prop of entity.properties) {
                 try {
@@ -401,7 +382,7 @@ export class ModelParser {
                         context: `property '${prop.name || 'unknown'}' in entity '${entity.name}'`,
                         originalError: error instanceof Error ? error.message : String(error)
                     });
-                    // Continue parsing remaining properties
+                    
                 }
             }
         }
@@ -411,7 +392,7 @@ export class ModelParser {
             isRoot: entity.isRoot || false,
             properties,
             rules,
-            methods: [], // Methods removed from grammar
+            methods: [], 
             relationships: [],
             parseErrors: parseErrors.length > 0 ? parseErrors : undefined
         };
@@ -448,8 +429,8 @@ export class ModelParser {
             returnType,
             javaReturnType,
             body: method.body,
-            isPublic: true, // Default to public
-            isStatic: false, // Default to instance
+            isPublic: true, 
+            isStatic: false, 
             annotations: this.extractAnnotations(method)
         };
     }
@@ -565,7 +546,7 @@ export class ModelParser {
         for (const entity of entities) {
             for (const property of entity.properties) {
                 if (property.isEntity && !property.isCollection) {
-                    // OneToOne or ManyToOne
+                    
                     relationships.push({
                         name: `${entity.name}_${property.name}`,
                         type: 'ManyToOne',
@@ -612,73 +593,53 @@ export class ModelParser {
         return 'void';
     }
 
-    /**
-     * Resolve DSL type to Java type with caching.
-     *
-     * This method checks the cache first before performing type resolution.
-     * Caching significantly improves performance for large files with many properties.
-     *
-     * Performance:
-     * - Cache hit: O(1) - instant lookup
-     * - Cache miss: O(1) for simple types, O(n) for nested collections (where n = nesting depth)
-     *
-     * @param type DSL type string (e.g., "String", "List<User>", "Set<Optional<Product>>")
-     * @returns Resolved Java type string
-     */
+    
+
     private resolveJavaType(type: string): string {
-        // Quick validation
+        
         if (typeof type !== 'string') {
             return 'Object';
         }
 
-        // Check cache first (O(1) lookup)
+        
         const cached = ModelParser.TYPE_CACHE.get(type);
         if (cached !== undefined) {
             return cached;
         }
 
-        // Cache miss - resolve type
+        
         const resolved = this.resolveTypeInternal(type);
 
-        // Store in cache for future calls
+        
         ModelParser.TYPE_CACHE.set(type, resolved);
 
         return resolved;
     }
 
-    /**
-     * Internal type resolution logic (called only on cache miss).
-     *
-     * Handles:
-     * - Simple primitive types (String, Integer, etc.)
-     * - Collection types (List<T>, Set<T>)
-     * - Custom types (entities, DTOs, enums)
-     *
-     * @param type DSL type string
-     * @returns Resolved Java type string
-     */
+    
+
     private resolveTypeInternal(type: string): string {
-        // Check static type map for primitives and built-in types
+        
         const mapped = ModelParser.TYPE_MAP.get(type);
         if (mapped !== undefined) {
             return mapped;
         }
 
-        // Handle collection types (List<T>, Set<T>)
+        
         if (type.startsWith('List<') || type.startsWith('Set<')) {
             const innerType = type.substring(type.indexOf('<') + 1, type.lastIndexOf('>'));
-            const javaInnerType = this.resolveJavaType(innerType);  // Recursive - benefits from cache
+            const javaInnerType = this.resolveJavaType(innerType);  
             return type.startsWith('List<') ? `List<${javaInnerType}>` : `Set<${javaInnerType}>`;
         }
 
-        // Handle Optional<T>
+        
         if (type.startsWith('Optional<')) {
             const innerType = type.substring(type.indexOf('<') + 1, type.lastIndexOf('>'));
-            const javaInnerType = this.resolveJavaType(innerType);  // Recursive - benefits from cache
+            const javaInnerType = this.resolveJavaType(innerType);  
             return `Optional<${javaInnerType}>`;
         }
 
-        // Unknown type - pass through as-is (could be custom entity, DTO, or enum)
+        
         return type;
     }
 

@@ -75,9 +75,8 @@ export abstract class OrchestrationBase {
         return compiledTemplate(context);
     }
 
-    /**
-     * Render template using the cached template manager (preferred method)
-     */
+    
+
     protected renderCachedTemplate(templatePath: string, context: any): string {
         const templateManager = TemplateManager.getInstance();
         return templateManager.renderTemplate(templatePath, context);
@@ -264,12 +263,12 @@ export abstract class OrchestrationBase {
     }
 
     protected hasFeature(features: string[] | undefined, feature: string): boolean {
-        // Always return true - all features are enabled by default
+        
         return true;
     }
 
     protected hasAnyFeature(features: string[] | undefined, ...checkFeatures: string[]): boolean {
-        // Always return true - all features are enabled by default
+        
         return true;
     }
 
@@ -406,9 +405,8 @@ export abstract class OrchestrationBase {
         return templateManager.loadRawTemplate(templatePath);
     }
 
-    /**
-     * Load and compile template using the cached template manager (preferred method)
-     */
+    
+
     protected loadCompiledTemplate(templatePath: string): HandlebarsTemplateDelegate<any> {
         const templateManager = TemplateManager.getInstance();
         return templateManager.loadTemplate(templatePath);

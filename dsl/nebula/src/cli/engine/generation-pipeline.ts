@@ -1,19 +1,13 @@
-/**
- * Generation Pipeline Architecture
- * 
- * This module implements a pipeline-based architecture that separates code generation
- * from file I/O operations, enabling better composition, testing, and optimization
- * of the generation process.
- */
+
+
 
 import { Aggregate } from "../../language/generated/ast.js";
 import { GenerationOptions, GeneratorRegistry } from "./types.js";
 import { FileWriter } from "../utils/file-writer.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../utils/error-handler.js";
 
-/**
- * Generated content with metadata
- */
+
+
 export interface GeneratedContent {
     content: string;
     filePath: string;
@@ -21,9 +15,8 @@ export interface GeneratedContent {
     metadata?: Record<string, any>;
 }
 
-/**
- * Generation result from a pipeline stage
- */
+
+
 export interface GenerationResult {
     success: boolean;
     generatedFiles: GeneratedContent[];
@@ -32,43 +25,36 @@ export interface GenerationResult {
     metadata?: Record<string, any>;
 }
 
-/**
- * Validation result for generated content
- */
+
+
 export interface ValidationResult {
     isValid: boolean;
     errors: string[];
     warnings: string[];
 }
 
-/**
- * Core generation pipeline interface
- */
+
+
 export interface GenerationPipeline {
-    /**
-     * Generate content without writing files
-     */
+    
+
     generate(aggregate: Aggregate, options: GenerationOptions): Promise<GenerationResult>;
 
-    /**
-     * Validate generated content
-     */
+    
+
     validate(result: GenerationResult): Promise<ValidationResult>;
 
-    /**
-     * Write generated content to files
-     */
+    
+
     write(result: GenerationResult): Promise<void>;
 
-    /**
-     * Get pipeline name for logging
-     */
+    
+
     getName(): string;
 }
 
-/**
- * Base implementation of generation pipeline
- */
+
+
 export abstract class BaseGenerationPipeline implements GenerationPipeline {
     protected name: string;
 
@@ -79,7 +65,7 @@ export abstract class BaseGenerationPipeline implements GenerationPipeline {
     abstract generate(aggregate: Aggregate, options: GenerationOptions): Promise<GenerationResult>;
 
     async validate(result: GenerationResult): Promise<ValidationResult> {
-        // Default validation - can be overridden
+        
         return {
             isValid: result.success && result.errors.length === 0,
             errors: result.errors,
@@ -92,7 +78,7 @@ export abstract class BaseGenerationPipeline implements GenerationPipeline {
             throw new Error(`Cannot write failed generation result for ${this.name}`);
         }
 
-        // Write all generated files in parallel
+        
         const writePromises = result.generatedFiles.map(file =>
             FileWriter.writeGeneratedFile(file.filePath, file.content, file.description)
         );
@@ -104,9 +90,8 @@ export abstract class BaseGenerationPipeline implements GenerationPipeline {
         return this.name;
     }
 
-    /**
-     * Helper method to create successful result
-     */
+    
+
     protected createSuccessResult(files: GeneratedContent[], metadata?: Record<string, any>): GenerationResult {
         return {
             success: true,
@@ -117,9 +102,8 @@ export abstract class BaseGenerationPipeline implements GenerationPipeline {
         };
     }
 
-    /**
-     * Helper method to create error result
-     */
+    
+
     protected createErrorResult(errors: string[], warnings: string[] = []): GenerationResult {
         return {
             success: false,
@@ -130,9 +114,8 @@ export abstract class BaseGenerationPipeline implements GenerationPipeline {
     }
 }
 
-/**
- * Feature orchestrator that manages multiple pipelines
- */
+
+
 export class FeatureOrchestrator {
     private pipelines: GenerationPipeline[] = [];
     private parallelExecution: boolean;
@@ -141,25 +124,22 @@ export class FeatureOrchestrator {
         this.parallelExecution = parallelExecution;
     }
 
-    /**
-     * Add a pipeline to the orchestrator
-     */
+    
+
     addPipeline(pipeline: GenerationPipeline): this {
         this.pipelines.push(pipeline);
         return this;
     }
 
-    /**
-     * Add multiple pipelines
-     */
+    
+
     addPipelines(pipelines: GenerationPipeline[]): this {
         this.pipelines.push(...pipelines);
         return this;
     }
 
-    /**
-     * Execute all pipelines for an aggregate
-     */
+    
+
     async execute(aggregate: Aggregate, options: GenerationOptions): Promise<OrchestrationResult> {
         console.log(`\n🔄 Executing ${this.pipelines.length} pipelines for ${aggregate.name}`);
 
@@ -174,9 +154,8 @@ export class FeatureOrchestrator {
         return this.summarizeResults(results, aggregate.name);
     }
 
-    /**
-     * Execute pipelines in parallel
-     */
+    
+
     private async executeInParallel(aggregate: Aggregate, options: GenerationOptions): Promise<PipelineResult[]> {
         const pipelinePromises = this.pipelines.map(pipeline =>
             this.executeSinglePipeline(pipeline, aggregate, options)
@@ -185,9 +164,8 @@ export class FeatureOrchestrator {
         return Promise.all(pipelinePromises);
     }
 
-    /**
-     * Execute pipelines sequentially
-     */
+    
+
     private async executeSequentially(aggregate: Aggregate, options: GenerationOptions): Promise<PipelineResult[]> {
         const results: PipelineResult[] = [];
 
@@ -195,7 +173,7 @@ export class FeatureOrchestrator {
             const result = await this.executeSinglePipeline(pipeline, aggregate, options);
             results.push(result);
 
-            // Stop on first failure if needed
+            
             if (!result.generationResult.success) {
                 console.warn(`⚠️  Pipeline ${pipeline.getName()} failed, continuing with remaining pipelines`);
             }
@@ -204,9 +182,8 @@ export class FeatureOrchestrator {
         return results;
     }
 
-    /**
-     * Execute a single pipeline with full lifecycle
-     */
+    
+
     private async executeSinglePipeline(
         pipeline: GenerationPipeline,
         aggregate: Aggregate,
@@ -218,7 +195,7 @@ export class FeatureOrchestrator {
             async () => {
                 console.log(`  📦 Running ${pipelineName} pipeline...`);
 
-                // Generation phase
+                
                 const generationResult = await pipeline.generate(aggregate, options);
 
                 if (!generationResult.success) {
@@ -230,7 +207,7 @@ export class FeatureOrchestrator {
                     };
                 }
 
-                // Validation phase
+                
                 const validationResult = await pipeline.validate(generationResult);
 
                 if (!validationResult.isValid) {
@@ -242,7 +219,7 @@ export class FeatureOrchestrator {
                     };
                 }
 
-                // Write phase
+                
                 await pipeline.write(generationResult);
 
                 console.log(`  ✅ ${pipelineName} completed (${generationResult.generatedFiles.length} files)`);
@@ -271,9 +248,8 @@ export class FeatureOrchestrator {
         };
     }
 
-    /**
-     * Summarize results from all pipelines
-     */
+    
+
     private summarizeResults(results: PipelineResult[], aggregateName: string): OrchestrationResult {
         const successful = results.filter(r => r.writeSuccess);
         const failed = results.filter(r => !r.writeSuccess);
@@ -303,25 +279,22 @@ export class FeatureOrchestrator {
         };
     }
 
-    /**
-     * Clear all pipelines
-     */
+    
+
     clear(): this {
         this.pipelines = [];
         return this;
     }
 
-    /**
-     * Get pipeline count
-     */
+    
+
     getPipelineCount(): number {
         return this.pipelines.length;
     }
 }
 
-/**
- * Result from a single pipeline execution
- */
+
+
 export interface PipelineResult {
     pipelineName: string;
     generationResult: GenerationResult;
@@ -329,9 +302,8 @@ export interface PipelineResult {
     writeSuccess: boolean;
 }
 
-/**
- * Overall orchestration result
- */
+
+
 export interface OrchestrationResult {
     aggregateName: string;
     totalPipelines: number;
@@ -343,13 +315,11 @@ export interface OrchestrationResult {
     pipelineResults: PipelineResult[];
 }
 
-/**
- * Concrete pipeline implementations for existing features
- */
 
-/**
- * Entity generation pipeline
- */
+
+
+
+
 export class EntityPipeline extends BaseGenerationPipeline {
     constructor(private generators: GeneratorRegistry) {
         super('Entity');
@@ -359,7 +329,7 @@ export class EntityPipeline extends BaseGenerationPipeline {
         try {
             const files: GeneratedContent[] = [];
 
-            // Generate entities
+            
             for (const entity of aggregate.entities) {
                 const entityOptions = {
                     projectName: options.projectName,
@@ -375,8 +345,8 @@ export class EntityPipeline extends BaseGenerationPipeline {
                     metadata: { entityName: entity.name, isRoot: (entity as any).isRoot }
                 });
 
-                // Generate DTOs for ALL entities in the aggregate
-                // Non-root entities get their own DTOs to preserve all their fields
+                
+                
                 const dtoCode = await this.generators.dtoGenerator.generateDto(entity, options);
                 files.push({
                     content: dtoCode,
@@ -386,7 +356,7 @@ export class EntityPipeline extends BaseGenerationPipeline {
                 });
             }
 
-            // Generate factory
+            
             const factoryCode = await this.generators.factoryGenerator.generateFactory(aggregate, {
                 ...options,
                 dtoSchemaRegistry: options.dtoSchemaRegistry
@@ -398,7 +368,7 @@ export class EntityPipeline extends BaseGenerationPipeline {
                 metadata: { type: 'factory' }
             });
 
-            // Generate repositories
+            
             const repositoryCode = await this.generators.repositoryGenerator.generateRepository(aggregate, options);
             files.push({
                 content: repositoryCode,
@@ -448,9 +418,8 @@ export class EntityPipeline extends BaseGenerationPipeline {
 
 }
 
-/**
- * Service generation pipeline
- */
+
+
 export class ServicePipeline extends BaseGenerationPipeline {
     constructor(private generators: GeneratorRegistry) {
         super('Service');
@@ -467,7 +436,7 @@ export class ServicePipeline extends BaseGenerationPipeline {
 
             const serviceDefinition = (aggregate as any).serviceDefinition;
             if (serviceDefinition) {
-                // Generate service from DSL definition
+                
                 const serviceCode = await this.generators.serviceDefinitionGenerator.generateServiceFromDefinition(
                     aggregate,
                     rootEntity,
@@ -481,7 +450,7 @@ export class ServicePipeline extends BaseGenerationPipeline {
                     metadata: { type: 'service', hasDefinition: true }
                 });
             } else {
-                // Generate default service
+                
                 const serviceCode = await this.generators.serviceGenerator.generateService(aggregate, options);
                 files.push({
                     content: serviceCode,
@@ -508,9 +477,8 @@ export class ServicePipeline extends BaseGenerationPipeline {
     }
 }
 
-/**
- * Event generation pipeline
- */
+
+
 export class EventPipeline extends BaseGenerationPipeline {
     constructor(private generators: GeneratorRegistry) {
         super('Event');
@@ -526,7 +494,7 @@ export class EventPipeline extends BaseGenerationPipeline {
 
             const eventCode = await this.generators.eventGenerator.generateEvents(aggregate, options);
 
-            // Process event code results
+            
             for (const [key, content] of Object.entries(eventCode)) {
                 if (typeof content === 'string') {
                     files.push({
@@ -576,34 +544,29 @@ export class EventPipeline extends BaseGenerationPipeline {
     }
 }
 
-/**
- * Pipeline factory for creating standard pipelines
- */
+
+
 export class PipelineFactory {
-    /**
-     * Create entity generation pipeline
-     */
+    
+
     static createEntityPipeline(generators: GeneratorRegistry): EntityPipeline {
         return new EntityPipeline(generators);
     }
 
-    /**
-     * Create service generation pipeline
-     */
+    
+
     static createServicePipeline(generators: GeneratorRegistry): ServicePipeline {
         return new ServicePipeline(generators);
     }
 
-    /**
-     * Create event generation pipeline
-     */
+    
+
     static createEventPipeline(generators: GeneratorRegistry): EventPipeline {
         return new EventPipeline(generators);
     }
 
-    /**
-     * Create standard orchestrator with all pipelines
-     */
+    
+
     static createStandardOrchestrator(generators: GeneratorRegistry, parallel: boolean = true): FeatureOrchestrator {
         return new FeatureOrchestrator(parallel)
             .addPipeline(this.createEntityPipeline(generators))
@@ -611,9 +574,8 @@ export class PipelineFactory {
             .addPipeline(this.createEventPipeline(generators));
     }
 
-    /**
-     * Create custom orchestrator with selected pipelines
-     */
+    
+
     static createCustomOrchestrator(
         generators: GeneratorRegistry,
         pipelineTypes: ('entity' | 'service' | 'event')[],

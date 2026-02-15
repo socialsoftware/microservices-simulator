@@ -1,6 +1,5 @@
-/**
- * Enhanced error messages for Nebula DSL
- */
+
+
 
 export interface ErrorMessage {
     code: string;
@@ -19,7 +18,7 @@ export class ErrorMessageProvider {
     }
 
     private static initializeMessages() {
-        // Validation errors
+        
         this.addMessage({
             code: 'DUPLICATE_AGGREGATE_NAME',
             severity: 'error',
@@ -68,7 +67,7 @@ export class ErrorMessageProvider {
             ]
         });
 
-        // Naming convention errors
+        
         this.addMessage({
             code: 'INVALID_AGGREGATE_NAME',
             severity: 'error',
@@ -117,7 +116,7 @@ export class ErrorMessageProvider {
             ]
         });
 
-        // Reserved word errors
+        
         this.addMessage({
             code: 'RESERVED_WORD_USED',
             severity: 'error',
@@ -130,7 +129,7 @@ export class ErrorMessageProvider {
             ]
         });
 
-        // Type errors
+        
         this.addMessage({
             code: 'INVALID_PROPERTY_TYPE',
             severity: 'error',
@@ -170,7 +169,7 @@ export class ErrorMessageProvider {
             ]
         });
 
-        // Structure errors
+        
         this.addMessage({
             code: 'MISSING_ROOT_ENTITY',
             severity: 'warning',
@@ -216,7 +215,7 @@ export class ErrorMessageProvider {
             ]
         });
 
-        // Invariant errors
+        
         this.addMessage({
             code: 'EMPTY_INVARIANT_CONDITION',
             severity: 'error',
@@ -244,7 +243,7 @@ export class ErrorMessageProvider {
             ]
         });
 
-        // Business rule errors
+        
         this.addMessage({
             code: 'EMPTY_BUSINESS_RULE_CONDITIONS',
             severity: 'error',
@@ -290,7 +289,7 @@ export class ErrorMessageProvider {
             ]
         });
 
-        // Collection type errors
+        
         this.addMessage({
             code: 'MISSING_COLLECTION_ELEMENT_TYPE',
             severity: 'error',
@@ -304,7 +303,7 @@ export class ErrorMessageProvider {
             ]
         });
 
-        // Architecture errors
+        
         this.addMessage({
             code: 'ARCHITECTURE_MISSING_REQUIRED_FEATURES',
             severity: 'error',
@@ -327,7 +326,7 @@ export class ErrorMessageProvider {
             ]
         });
 
-        // Template errors
+        
         this.addMessage({
             code: 'TEMPLATE_NOT_FOUND',
             severity: 'error',
@@ -352,7 +351,7 @@ export class ErrorMessageProvider {
             ]
         });
 
-        // File system errors
+        
         this.addMessage({
             code: 'FILE_NOT_FOUND',
             severity: 'error',
@@ -393,7 +392,7 @@ export class ErrorMessageProvider {
             };
         }
 
-        // Replace placeholders in message
+        
         let formattedMessage = message.message;
         if (context) {
             for (const [key, value] of Object.entries(context)) {

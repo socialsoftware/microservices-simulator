@@ -10,17 +10,13 @@ import { DtoConversionStrategy } from "./dto-conversion-strategy.js";
 import { LegacyTypeStrategy } from "./legacy-type-strategy.js";
 import { DefaultSetterStrategy } from "./default-setter-strategy.js";
 
-/**
- * Builder for DTO setter statements using the Strategy pattern.
- *
- * Replaces the complex buildDtoSetterFromSchema method with a clean,
- * extensible architecture where each case is handled by a dedicated strategy.
- */
+
+
 export class DtoSetterBuilder {
     private strategies: DtoSetterStrategy[];
 
     constructor(context: StrategyContext) {
-        // Order matters! More specific strategies should come before general ones.
+        
         this.strategies = [
             new AggregateFieldStrategy(),
             new OverrideFieldStrategy(context),
@@ -29,15 +25,12 @@ export class DtoSetterBuilder {
             new EnumFieldStrategy(context),
             new DtoConversionStrategy(),
             new LegacyTypeStrategy(),
-            new DefaultSetterStrategy(), // Fallback - always last
+            new DefaultSetterStrategy(), 
         ];
     }
 
-    /**
-     * Build a DTO setter statement for the given field.
-     *
-     * Iterates through strategies until one can handle the field.
-     */
+    
+
     buildSetter(
         field: DtoFieldSchema,
         entity: EntityExt,
@@ -51,7 +44,7 @@ export class DtoSetterBuilder {
             }
         }
 
-        // Should never reach here because DefaultSetterStrategy always returns true
+        
         return null;
     }
 }

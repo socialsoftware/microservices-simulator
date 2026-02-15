@@ -6,7 +6,7 @@ import { URI } from 'langium';
 import { InputValidator } from './input-validator.js';
 
 export async function extractDocument(fileName: string, services: LangiumCoreServices): Promise<LangiumDocument> {
-    // Validate file path for security
+    
     try {
         const pathValidation = InputValidator.validateFilePath(fileName);
         if (!pathValidation.isValid) {
@@ -19,7 +19,7 @@ export async function extractDocument(fileName: string, services: LangiumCoreSer
         process.exit(1);
     }
 
-    // Validate file extension
+    
     const extensions = services.LanguageMetaData.fileExtensions;
     const extensionValidation = InputValidator.validateFileExtension(fileName, [...extensions]);
     if (!extensionValidation.isValid) {
@@ -27,21 +27,21 @@ export async function extractDocument(fileName: string, services: LangiumCoreSer
         process.exit(1);
     }
 
-    // Check if file exists
+    
     if (!fs.existsSync(fileName)) {
         console.error(chalk.red(`File ${fileName} does not exist.`));
         process.exit(1);
     }
 
-    // Check file size (prevent processing extremely large files)
+    
     const stats = fs.statSync(fileName);
-    const maxFileSize = 10 * 1024 * 1024; // 10MB limit
+    const maxFileSize = 10 * 1024 * 1024; 
     if (stats.size > maxFileSize) {
         console.error(chalk.red(`File ${fileName} is too large (${Math.round(stats.size / 1024 / 1024)}MB). Maximum allowed size is ${maxFileSize / 1024 / 1024}MB.`));
         process.exit(1);
     }
 
-    // Check if file is readable
+    
     try {
         fs.accessSync(fileName, fs.constants.R_OK);
     } catch (error) {
@@ -50,8 +50,8 @@ export async function extractDocument(fileName: string, services: LangiumCoreSer
     }
 
     const document = await services.shared.workspace.LangiumDocuments.getOrCreateDocument(URI.file(path.resolve(fileName)));
-    // Don't rebuild - documents are already built in main.ts
-    // await services.shared.workspace.DocumentBuilder.build(Array.from(services.shared.workspace.LangiumDocuments.all), { validation: true });
+    
+    
 
     const validationErrors = (document.diagnostics ?? []).filter((e: any) => e.severity === 1);
     if (validationErrors.length > 0) {

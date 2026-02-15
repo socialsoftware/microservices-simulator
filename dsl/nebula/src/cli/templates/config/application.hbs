@@ -37,7 +37,6 @@ SpringApplication.run({{projectName}}Simulator.class, args);
 
 @Override
 public void afterPropertiesSet() {
-// Run on startup
 {{#if hasEventService}}
 eventService.clearEventsAtApplicationStartUp();
 {{/if}}

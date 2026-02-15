@@ -1,22 +1,16 @@
-/**
- * Template Context Types
- *
- * Typed template contexts for Handlebars rendering.
- * Provides IntelliSense support and compile-time type checking for all templates.
- */
 
-/**
- * Base context shared across all templates
- */
+
+
+
+
 export interface BaseTemplateContext {
     packageName: string;
     className: string;
     imports: string[];
 }
 
-/**
- * Entity template context
- */
+
+
 export interface EntityTemplateContext extends BaseTemplateContext {
     fields: FieldContext[];
     constructors: ConstructorContext[];
@@ -28,9 +22,8 @@ export interface EntityTemplateContext extends BaseTemplateContext {
     superClass?: string;
 }
 
-/**
- * Field context for entity properties
- */
+
+
 export interface FieldContext {
     type: string;
     name: string;
@@ -45,9 +38,8 @@ export interface FieldContext {
     comment?: string;
 }
 
-/**
- * Constructor context
- */
+
+
 export interface ConstructorContext {
     parameters: ParameterContext[];
     body: string;
@@ -56,18 +48,16 @@ export interface ConstructorContext {
     annotations?: string[];
 }
 
-/**
- * Parameter context
- */
+
+
 export interface ParameterContext {
     type: string;
     name: string;
     annotations?: string[];
 }
 
-/**
- * Method context
- */
+
+
 export interface MethodContext {
     returnType: string;
     name: string;
@@ -80,27 +70,24 @@ export interface MethodContext {
     comment?: string;
 }
 
-/**
- * Invariant context
- */
+
+
 export interface InvariantContext {
     methodName: string;
     condition: string;
     description?: string;
 }
 
-/**
- * Event subscription context
- */
+
+
 export interface EventSubscriptionContext {
     eventName: string;
     subscriptionClassName: string;
     handlerMethod: string;
 }
 
-/**
- * Service template context
- */
+
+
 export interface ServiceTemplateContext extends BaseTemplateContext {
     aggregateName: string;
     entityName: string;
@@ -113,9 +100,8 @@ export interface ServiceTemplateContext extends BaseTemplateContext {
     hasCollectionMethods: boolean;
 }
 
-/**
- * CRUD method context
- */
+
+
 export interface CrudMethodContext {
     name: string;
     returnType: string;
@@ -125,9 +111,8 @@ export interface CrudMethodContext {
     operation: 'create' | 'read' | 'update' | 'delete' | 'list';
 }
 
-/**
- * Collection method context
- */
+
+
 export interface CollectionMethodContext {
     name: string;
     returnType: string;
@@ -138,9 +123,8 @@ export interface CollectionMethodContext {
     elementType: string;
 }
 
-/**
- * Repository template context
- */
+
+
 export interface RepositoryTemplateContext extends BaseTemplateContext {
     entityName: string;
     aggregateIdType: string;
@@ -148,9 +132,8 @@ export interface RepositoryTemplateContext extends BaseTemplateContext {
     hasCustomQueries: boolean;
 }
 
-/**
- * Custom query context
- */
+
+
 export interface CustomQueryContext {
     name: string;
     query: string;
@@ -159,18 +142,16 @@ export interface CustomQueryContext {
     annotations: string[];
 }
 
-/**
- * Query parameter context
- */
+
+
 export interface QueryParameterContext {
     name: string;
     type: string;
     annotation: string;
 }
 
-/**
- * Factory template context
- */
+
+
 export interface FactoryTemplateContext extends BaseTemplateContext {
     entityName: string;
     dtoName: string;
@@ -180,9 +161,8 @@ export interface FactoryTemplateContext extends BaseTemplateContext {
     hasCreateFromExistingMethod: boolean;
 }
 
-/**
- * Controller template context
- */
+
+
 export interface ControllerTemplateContext extends BaseTemplateContext {
     basePath: string;
     functionalitiesName: string;
@@ -191,9 +171,8 @@ export interface ControllerTemplateContext extends BaseTemplateContext {
     hasCustomEndpoints: boolean;
 }
 
-/**
- * Endpoint context
- */
+
+
 export interface EndpointContext {
     httpMethod: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
     path: string;
@@ -204,18 +183,16 @@ export interface EndpointContext {
     annotations: string[];
 }
 
-/**
- * Endpoint parameter context
- */
+
+
 export interface EndpointParameterContext {
     annotation: string;
     type: string;
     name: string;
 }
 
-/**
- * DTO template context
- */
+
+
 export interface DtoTemplateContext extends BaseTemplateContext {
     fields: DtoFieldContext[];
     isRequest: boolean;
@@ -223,9 +200,8 @@ export interface DtoTemplateContext extends BaseTemplateContext {
     hasValidations: boolean;
 }
 
-/**
- * DTO field context
- */
+
+
 export interface DtoFieldContext {
     type: string;
     name: string;
@@ -234,9 +210,8 @@ export interface DtoFieldContext {
     defaultValue?: string;
 }
 
-/**
- * Event template context
- */
+
+
 export interface EventTemplateContext extends BaseTemplateContext {
     fields: EventFieldContext[];
     isPublished: boolean;
@@ -244,18 +219,16 @@ export interface EventTemplateContext extends BaseTemplateContext {
     eventType: 'domain' | 'integration';
 }
 
-/**
- * Event field context
- */
+
+
 export interface EventFieldContext {
     type: string;
     name: string;
     capitalizedName: string;
 }
 
-/**
- * Event handler template context
- */
+
+
 export interface EventHandlerTemplateContext extends BaseTemplateContext {
     eventName: string;
     handlerMethodName: string;
@@ -263,9 +236,8 @@ export interface EventHandlerTemplateContext extends BaseTemplateContext {
     handlerBody: string;
 }
 
-/**
- * Functionalities template context
- */
+
+
 export interface FunctionalitiesTemplateContext extends BaseTemplateContext {
     aggregateName: string;
     serviceName: string;
@@ -274,9 +246,8 @@ export interface FunctionalitiesTemplateContext extends BaseTemplateContext {
     hasCrudMethods: boolean;
 }
 
-/**
- * Functionality method context
- */
+
+
 export interface FunctionalityMethodContext {
     name: string;
     returnType: string;
@@ -286,9 +257,8 @@ export interface FunctionalityMethodContext {
     operation?: 'create' | 'read' | 'update' | 'delete' | 'list';
 }
 
-/**
- * Saga template context
- */
+
+
 export interface SagaTemplateContext extends BaseTemplateContext {
     workflowName: string;
     steps: SagaStepContext[];
@@ -296,9 +266,8 @@ export interface SagaTemplateContext extends BaseTemplateContext {
     operation: string;
 }
 
-/**
- * Saga step context
- */
+
+
 export interface SagaStepContext {
     stepName: string;
     stepType: 'sync' | 'async';
@@ -307,9 +276,8 @@ export interface SagaStepContext {
     dependencies: string[];
 }
 
-/**
- * Configuration template context (pom.xml, application.properties)
- */
+
+
 export interface ConfigTemplateContext {
     projectName: string;
     basePackage: string;
@@ -317,9 +285,8 @@ export interface ConfigTemplateContext {
     properties: PropertyContext[];
 }
 
-/**
- * Maven dependency context
- */
+
+
 export interface DependencyContext {
     groupId: string;
     artifactId: string;
@@ -327,25 +294,22 @@ export interface DependencyContext {
     scope?: string;
 }
 
-/**
- * Configuration property context
- */
+
+
 export interface PropertyContext {
     key: string;
     value: string;
     comment?: string;
 }
 
-/**
- * Enum template context
- */
+
+
 export interface EnumTemplateContext extends BaseTemplateContext {
     values: EnumValueContext[];
 }
 
-/**
- * Enum value context
- */
+
+
 export interface EnumValueContext {
     name: string;
     ordinal?: number;

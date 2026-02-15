@@ -3,34 +3,11 @@ import { GeneratorBase } from "../../../common/base/generator-base.js";
 import { CollectionProperty } from "./collection-metadata-extractor.js";
 import { ExceptionGenerator } from "../../../common/utils/exception-generator.js";
 
-/**
- * Add Batch Method Generator
- *
- * Generates collection add batch methods for adding multiple elements at once.
- * Uses immutable aggregate pattern with forEach to add each element.
- */
+
+
 export class AddBatchMethodGenerator extends GeneratorBase {
-    /**
-     * Generate add batch method for a collection property.
-     *
-     * Generated method signature:
-     * ```java
-     * public List<ElementDto> addElements(Integer entityId, List<ElementDto> elementDtos, UnitOfWork unitOfWork)
-     * ```
-     *
-     * Pattern:
-     * 1. Load aggregate (old version)
-     * 2. Create immutable copy (new version)
-     * 3. For each DTO: create element and add to collection
-     * 4. Register changed aggregate
-     * 5. Return DTOs
-     *
-     * @param collection Collection metadata
-     * @param aggregateName Aggregate name
-     * @param rootEntity Root entity
-     * @param projectName Project name for exception handling
-     * @returns Java method code
-     */
+    
+
     generate(collection: CollectionProperty, aggregateName: string, rootEntity: Entity, projectName: string): string {
         const entityName = rootEntity.name;
         const lowerEntity = this.lowercase(entityName);

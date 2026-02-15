@@ -1,38 +1,34 @@
 import { Aggregate, Entity, Method, Workflow, Repository, Events, References, WebAPIEndpoints, ServiceDefinition, Functionalities, isEntity, isMethod, isWorkflow, isRepository, isEvents, isReferences, isWebAPIEndpoints, isServiceDefinition, isFunctionalities, Model } from "../../language/generated/ast.js";
 
-// ============================================================================
-// CROSS-FILE MODEL REGISTRY
-// ============================================================================
-// This registry stores all parsed models to enable cross-file type inference.
-// It must be initialized before code generation begins.
+
+
+
+
+
 
 let allModelsRegistry: Model[] = [];
 
-/**
- * Register all parsed models for cross-file type resolution.
- * Must be called before any code generation begins.
- */
+
+
 export function registerAllModels(models: Model[]): void {
     allModelsRegistry = models;
 }
 
-/**
- * Get all registered models.
- */
+
+
 export function getAllModels(): Model[] {
     return allModelsRegistry;
 }
 
-/**
- * Clear the models registry. Useful for testing.
- */
+
+
 export function clearModelsRegistry(): void {
     allModelsRegistry = [];
 }
 
-// ============================================================================
-// AGGREGATE ELEMENT ACCESSORS
-// ============================================================================
+
+
+
 
 export function getEntities(aggregate: Aggregate): Entity[] {
     if (!aggregate.aggregateElements || !Array.isArray(aggregate.aggregateElements)) {
@@ -89,7 +85,7 @@ declare module "../../language/generated/ast.js" {
 
 const initializedAggregates = new WeakSet<Aggregate>();
 
-// Helper to ensure properties are initialized before access
+
 function ensureInitialized(aggregate: Aggregate): void {
     if (!initializedAggregates.has(aggregate)) {
         initializeAggregateProperties(aggregate);
@@ -101,12 +97,12 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
         return;
     }
 
-    // Ensure aggregateElements exists
+    
     if (!aggregate.aggregateElements) {
         (aggregate as any).aggregateElements = [];
     }
 
-    // Always set up getters, even if properties already exist
+    
     try {
         Object.defineProperty(aggregate, 'entities', {
             get: () => getEntities(aggregate),
@@ -114,7 +110,7 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
             configurable: true
         });
     } catch (e) {
-        // If property already exists and is not configurable, try to overwrite it
+        
         (aggregate as any).entities = getEntities(aggregate);
     }
 
@@ -169,7 +165,7 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
     initializedAggregates.add(aggregate);
 }
 
-// Export a function that can be used to safely access entities
+
 export function getAggregateEntities(aggregate: Aggregate): Entity[] {
     ensureInitialized(aggregate);
     return aggregate.entities;
@@ -188,21 +184,12 @@ export function getAggregateRefName(entity: Entity): string | undefined {
     return ref.ref?.name || ref.$refText;
 }
 
-/**
- * Returns the entity's explicit fieldMappings plus implicit base mappings (if applicable).
- *
- * Implicit base mappings are only added when the corresponding projection fields exist on the entity:
- *   <lower(aggregateRef)>AggregateId  -> aggregateId
- *   <lower(aggregateRef)>Version      -> version
- *   <lower(aggregateRef)>State        -> state
- *
- * This lets users declare the fields as plain properties without having to write boilerplate mappings
- * for fields inherited from the Aggregate base class.
- */
+
+
 export function getEffectiveFieldMappings(entity: Entity): any[] {
     const anyEntity = entity as any;
 
-    // New syntax: map dtoField as entityField
+    
     const fieldMappings: any[] = Array.isArray(anyEntity.fieldMappings) ? anyEntity.fieldMappings : [];
 
     const aggregateRefName = getAggregateRefName(entity);
@@ -210,7 +197,7 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
         return fieldMappings;
     }
 
-    // Collect fields that exist on the entity (explicit properties + mapping-defined properties)
+    
     const explicitProps = entity.properties || [];
     const mappingDefinedProps = fieldMappings
         .filter((m: any) => m?.type && m?.entityField)
@@ -233,14 +220,14 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
     const pickBaseField = (dtoField: 'aggregateId' | 'version' | 'state', suffix: 'AggregateId' | 'Version' | 'State'): string | undefined => {
         if (existingDtoFields.has(dtoField)) return undefined;
 
-        // 1) Prefer conventional name based on aggregateRef (e.g., userAggregateId)
+        
         const conventional = `${prefix}${suffix}`;
         if (existingEntityFields.has(conventional) && !explicitlyMappedEntityFields.has(conventional)) {
             return conventional;
         }
 
-        // 2) If there is exactly one remaining *<suffix>* field that isn't already mapped to something else,
-        // use it. This supports names like "creatorAggregateId" or "executionAggregateId".
+        
+        
         const candidates = Array.from(existingEntityFields)
             .filter(name => typeof name === 'string' && name.endsWith(suffix))
             .filter(name => !explicitlyMappedEntityFields.has(name));
@@ -249,9 +236,9 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
             return candidates[0];
         }
 
-        // 3) If there is no unambiguous existing candidate, fall back to the conventional name.
-        //    This allows us to synthesize both the mapping and the corresponding property
-        //    (e.g., quizAggregateId) when the user doesn't declare it explicitly.
+        
+        
+        
         return conventional;
     };
 
@@ -266,7 +253,7 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
             const entityField = pickBaseField(dtoField, suffix);
             if (!entityField) return null;
 
-            // Add type for implicit base mappings
+            
             let type: any;
             if (suffix === 'AggregateId' || suffix === 'Version') {
                 type = 'Integer';
@@ -278,14 +265,14 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
         })
         .filter(Boolean) as any[];
 
-    // Resolve types for explicit field mappings
+    
     const explicitMappingsWithTypes = fieldMappings.map((mapping: any) => {
         if (mapping.type) {
-            // Already has a type (shouldn't happen from DSL, but handle it)
+            
             return mapping;
         }
 
-        // Resolve type from referenced aggregate
+        
         const resolvedType = resolveTypeFromReferencedAggregate(entity, mapping.dtoField);
         return {
             ...mapping,
@@ -296,12 +283,8 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
     return [...explicitMappingsWithTypes, ...implicitMappings];
 }
 
-/**
- * Helper: Convert DtoFieldPath to string representation
- * Examples:
- *   - "name" → "name"
- *   - { parts: ["questions", "aggregateId"] } → "questions.aggregateId"
- */
+
+
 export function dtoFieldToString(dtoField: string | any): string {
     if (typeof dtoField === 'string') {
         return dtoField;
@@ -312,14 +295,12 @@ export function dtoFieldToString(dtoField: string | any): string {
     return String(dtoField);
 }
 
-/**
- * Helper: Extract element type from collection type (List<T>, Set<T>)
- * Returns { wrapper: 'List'|'Set', elementType: T } or undefined
- */
+
+
 function extractCollectionElementType(collectionType: any): { wrapper: string; elementType: any } | undefined {
     if (!collectionType) return undefined;
 
-    // Check for List<T> or Set<T> structure (unified type system)
+    
     if (collectionType.$type === 'ListType') {
         return {
             wrapper: 'List',
@@ -337,11 +318,10 @@ function extractCollectionElementType(collectionType: any): { wrapper: string; e
     return undefined;
 }
 
-/**
- * Helper: Find an entity type by name in all registered models
- */
+
+
 function findEntityByName(entityTypeName: string): Entity | undefined {
-    // Try cross-file resolution first
+    
     if (allModelsRegistry.length > 0) {
         for (const model of allModelsRegistry) {
             if (!model.aggregates) continue;
@@ -356,24 +336,8 @@ function findEntityByName(entityTypeName: string): Entity | undefined {
     return undefined;
 }
 
-/**
- * Resolve the type of a field from a referenced aggregate's root entity.
- * Used for type inference in the new cross-aggregate syntax.
- *
- * This function supports CROSS-FILE type resolution by searching through all
- * registered models, not just the current file's model.
- *
- * Supports EXTRACT PATTERN: If dtoField is a dotted path (e.g., "questions.aggregateId"),
- * this function will:
- * 1. Find the collection property (questions) in the root entity
- * 2. Extract the element type (Question)
- * 3. Find the field (aggregateId) in the element type
- * 4. Wrap the result in the same collection type (List<Integer>)
- *
- * @param entity - The entity with the aggregateRef
- * @param dtoField - The field name to look up (can be dotted path for extraction)
- * @returns The type of the field, or undefined if not found
- */
+
+
 function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string | any): any | undefined {
     const entityAny = entity as any;
     const aggregateRefName = entityAny.aggregateRef;
@@ -382,20 +346,20 @@ function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string | a
         return undefined;
     }
 
-    // Handle dotted path (extract pattern: collection.field)
-    // dtoField can be either a string or a DtoFieldPath object with parts array
+    
+    
     let fieldPath: string[];
     if (typeof dtoField === 'string') {
         fieldPath = [dtoField];
     } else if (dtoField && Array.isArray(dtoField.parts)) {
-        // DtoFieldPath object from grammar: { parts: ['questions', 'aggregateId'] }
+        
         fieldPath = dtoField.parts;
     } else {
         return undefined;
     }
 
-    // CROSS-FILE RESOLUTION:
-    // First, try to find the aggregate in ALL registered models (cross-file)
+    
+    
     let rootEntity: Entity | undefined;
 
     if (allModelsRegistry.length > 0) {
@@ -411,7 +375,7 @@ function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string | a
         }
     }
 
-    // FALLBACK: Try current file's model (for backwards compatibility)
+    
     if (!rootEntity) {
         const model = entity.$container?.$container as Model | undefined;
         if (!model || !model.aggregates) {
@@ -431,29 +395,29 @@ function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string | a
         return undefined;
     }
 
-    // Simple case: direct property lookup (e.g., "name")
+    
     if (fieldPath.length === 1) {
         const property = rootEntity.properties?.find(p => p.name === fieldPath[0]);
         return property?.type;
     }
 
-    // EXTRACT PATTERN: dotted path (e.g., "questions.aggregateId")
-    // Step 1: Find the collection property
+    
+    
     const collectionProp = rootEntity.properties?.find(p => p.name === fieldPath[0]);
     if (!collectionProp || !collectionProp.type) {
         return undefined;
     }
 
-    // Step 2: Extract element type from collection
+    
     const collectionInfo = extractCollectionElementType(collectionProp.type);
     if (!collectionInfo) {
-        return undefined; // Not a collection type
+        return undefined; 
     }
 
-    // Step 3: Resolve the element type to an entity
+    
     let elementEntity: Entity | undefined;
 
-    // Handle EntityType (reference to another entity)
+    
     if (collectionInfo.elementType.$type === 'EntityType') {
         const entityTypeName = collectionInfo.elementType.type?.ref?.name || collectionInfo.elementType.type?.$refText;
         if (entityTypeName) {
@@ -465,16 +429,16 @@ function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string | a
         return undefined;
     }
 
-    // Step 4: Find the target field in the element entity
-    // Need to search in effective properties which includes mappings
-    // The fieldPath[1] is a DTO field name (e.g., "aggregateId"), not an entity property name
+    
+    
+    
     const effectiveProps = getEffectiveProperties(elementEntity);
     const targetProp = effectiveProps.find((p: any) => {
-        // Check if this property's DTO field matches what we're looking for
+        
         if (p.$dtoField && dtoFieldToString(p.$dtoField) === fieldPath[1]) {
             return true;
         }
-        // Also check if the property name itself matches (for non-mapped fields)
+        
         return p.name === fieldPath[1];
     });
 
@@ -482,34 +446,31 @@ function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string | a
         return undefined;
     }
 
-    // Step 5: Wrap the result in the same collection type (unified type system)
+    
     return {
         $type: collectionInfo.wrapper === 'List' ? 'ListType' : 'SetType',
         elementType: targetProp.type
     };
 }
 
-/**
- * Get effective properties for an entity, including those defined in DTO mappings.
- * Supports type inference for new cross-aggregate syntax (map dtoField as entityField).
- * This function combines explicit properties with mapping-defined properties.
- */
+
+
 export function getEffectiveProperties(entity: Entity): any[] {
     const explicitProps = entity.properties || [];
     const mappings = getEffectiveFieldMappings(entity);
 
-    // Get properties defined in mappings
+    
     const mappingProps = mappings
         .filter((m: any) => m.entityField)
         .map((m: any) => {
             let propertyType = m.type;
 
-            // If no type specified (new syntax), infer from referenced aggregate
+            
             if (!propertyType) {
                 propertyType = resolveTypeFromReferencedAggregate(entity, m.dtoField);
             }
 
-            // Skip if we couldn't resolve the type
+            
             if (!propertyType) {
                 return null;
             }
@@ -517,15 +478,15 @@ export function getEffectiveProperties(entity: Entity): any[] {
             return {
                 name: m.entityField,
                 type: propertyType,
-                // Synthetic property from mapping
+                
                 $fromMapping: true,
                 $dtoField: dtoFieldToString(m.dtoField),
                 $extractField: m.extractField
             };
         })
-        .filter(Boolean); // Remove null entries
+        .filter(Boolean); 
 
-    // Combine, avoiding duplicates (explicit props take precedence)
+    
     const explicitNames = new Set(explicitProps.map(p => p.name));
     const combinedProps: any[] = [
         ...explicitProps,
@@ -534,8 +495,8 @@ export function getEffectiveProperties(entity: Entity): any[] {
 
     const combinedNames = new Set(combinedProps.map(p => p.name));
 
-    // Ensure base aggregate fields exist as synthetic properties when we created implicit mappings for them.
-    // This drives validation and DTO generation even when the user doesn't declare these properties explicitly.
+    
+    
     for (const m of mappings) {
         if (!m?.entityField || !m?.dtoField) continue;
         if (combinedNames.has(m.entityField)) continue;

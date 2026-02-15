@@ -9,7 +9,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
         const results: { [key: string]: string } = {};
         const context = this.buildEventSubscriptionsContext(aggregate, rootEntity, options);
 
-        // Generate simple subscriptions
+        
         for (const subscription of context.eventSubscriptions) {
             const subscriptionContext = {
                 ...context,
@@ -18,7 +18,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
             results[`event-subscription-${subscription.eventType}`] = await this.generateIndividualEventSubscription(subscriptionContext);
         }
 
-        // Generate inter-invariant subscriptions
+        
         const interInvariantContext = this.buildInterInvariantSubscriptionsContext(aggregate, rootEntity, options);
         for (const subscription of interInvariantContext.eventSubscriptions) {
             const subscriptionContext = {
@@ -44,13 +44,13 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
     }
 
     private buildEventSubscriptions(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, options: EventGenerationOptions): any[] {
-        // Get actual subscribed events from DSL
+        
         const events = (aggregate as any).events;
         if (!events || !events.subscribedEvents) {
             return [];
         }
 
-        // Filter for simple subscriptions (no conditions, no routing)
+        
         const simpleSubscriptions = events.subscribedEvents.filter((sub: any) => {
             const hasConditions = sub.conditions && sub.conditions.length > 0 &&
                 sub.conditions.some((c: any) => c.condition);
@@ -64,10 +64,10 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
         return simpleSubscriptions.map((sub: any) => {
             const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
 
-            // Determine source aggregate from published event
+            
             let sourceAggregateName = 'unknown';
 
-            // PRIORITY 1: Try AST reference (works for custom events with explicit references)
+            
             const publishedEvent = sub.eventType?.ref as any;
             const eventsContainer = publishedEvent?.$container as any;
             const sourceAggregate = eventsContainer?.$container as Aggregate | undefined;
@@ -76,30 +76,30 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
             } else if (sub.sourceAggregate) {
                 sourceAggregateName = sub.sourceAggregate.toLowerCase();
             }
-            // PRIORITY 2: Search all aggregates for event publisher (works for CRUD events)
+            
             else if (options?.allAggregates && options.allAggregates.length > 0) {
                 const found = this.findEventPublisher(eventTypeName, options.allAggregates);
                 if (found) {
                     sourceAggregateName = found;
                 } else {
                     console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
-                    // Fallback to simple name matching
+                    
                     const entityName = EventNameParser.extractEntityName(eventTypeName);
                     sourceAggregateName = entityName.toLowerCase();
                 }
             }
-            // PRIORITY 3: Fallback (only when allAggregates not available)
+            
             else {
                 console.warn(`Warning: allAggregates not available for event ${eventTypeName}`);
                 const entityName = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
                 sourceAggregateName = entityName.toLowerCase();
             }
 
-            // Extract entity name from event (e.g., UpdateTopicEvent -> Topic)
+            
             const entityName = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
             const subscriptionClassName = `${aggregateName}Subscribes${entityName}`;
             
-            // Find projection entity
+            
             const entities = getEntities(aggregate);
             const projectionEntities = entities.filter((e: any) => {
                 const aggregateRef = e.aggregateRef;
@@ -110,7 +110,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
             const projectionEntityName = projectionEntity ? projectionEntity.name : null;
             const projectionPart = projectionEntityName ? projectionEntityName.replace(new RegExp(`^${aggregateName}`, 'i'), '') : entityName;
             
-            // Build aggregateId and version field names
+            
             const aggregateIdField = `${projectionPart.charAt(0).toLowerCase() + projectionPart.slice(1)}AggregateId`;
             const versionField = `${projectionPart.charAt(0).toLowerCase() + projectionPart.slice(1)}Version`;
             const capitalizedAggregateIdField = aggregateIdField.charAt(0).toUpperCase() + aggregateIdField.slice(1);
@@ -150,7 +150,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
             `import ${basePackage}.ms.domain.event.EventSubscription;`
         ];
 
-        // Add imports for projection entities and events
+        
         eventSubscriptions.forEach((sub: any) => {
             if (sub.projectionEntityName) {
                 imports.push(`import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${sub.projectionEntityName};`);
@@ -202,11 +202,11 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
                 const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
                 const sourceAggregateName = sub.sourceAggregate?.toLowerCase() || this.extractSourceAggregateFromEvent(eventTypeName);
 
-                // Extract entity reference from condition
+                
                 const entityRef = this.extractEntityReferenceFromSubscription(sub, rootEntity);
                 if (!entityRef) continue;
 
-                // Find the entity type for this field
+                
                 const property = rootEntity.properties.find((p: any) => p.name === entityRef.fieldName);
                 if (!property) continue;
 
@@ -215,11 +215,11 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
 
                 const entityParamName = entityRef.fieldName;
 
-                // Extract event base name
+                
                 const eventBaseName = EventNameParser.removeEventSuffix(eventTypeName);
                 const subscriptionClassName = `${aggregateName}Subscribes${eventBaseName}`;
 
-                // Build aggregateId and version field names from entity
+                
                 const { aggregateIdField, versionField } = this.buildFieldNamesFromEntity(entityTypeName, aggregateName);
 
                 console.log(`DEBUG: Built subscription for ${subscriptionClassName}: entityType=${entityTypeName}, param=${entityParamName}, aggIdField=${aggregateIdField}`);
@@ -258,7 +258,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
             return null;
         }
 
-        // Extract field name from "fieldName.property == ..."
+        
         const match = conditionText.match(/^(\w+)\./);
         if (!match) return null;
 
@@ -269,13 +269,13 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
         const typeObj = property.type;
         if (!typeObj) return null;
 
-        // Handle new unified type system
-        // EntityType: has type.ref or type.$refText
+        
+        
         if (typeObj.$type === 'EntityType') {
             return typeObj.type?.ref?.name || typeObj.type?.$refText || null;
         }
 
-        // ListType/SetType: has elementType which can be EntityType
+        
         if (typeObj.$type === 'ListType' || typeObj.$type === 'SetType') {
             const elementType = typeObj.elementType;
             if (elementType?.$type === 'EntityType') {
@@ -283,7 +283,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
             }
         }
 
-        // OptionalType: has elementType which can be EntityType
+        
         if (typeObj.$type === 'OptionalType') {
             const elementType = typeObj.elementType;
             if (elementType?.$type === 'EntityType') {
@@ -295,7 +295,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
     }
 
     private buildFieldNamesFromEntity(entityTypeName: string, aggregateName: string): { aggregateIdField: string, versionField: string } {
-        // Remove aggregate prefix if present (e.g., ExecutionCourse -> Course)
+        
         const cleanEntityName = entityTypeName.replace(new RegExp(`^${aggregateName}`, 'i'), '');
         const lowerEntityName = cleanEntityName.charAt(0).toLowerCase() + cleanEntityName.slice(1);
 
@@ -306,7 +306,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
     }
 
     private extractSourceAggregateFromEvent(eventTypeName: string): string {
-        // Extract from event name: CourseDeletedEvent -> course
+        
         const baseName = EventNameParser.extractEntityName(eventTypeName);
         return baseName.toLowerCase();
     }
@@ -321,7 +321,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
             `import ${basePackage}.ms.domain.event.EventSubscription;`
         ];
 
-        // Add imports for entity types and events
+        
         eventSubscriptions.forEach((sub: any) => {
             imports.push(`import ${sub.entityTypePackage}.${sub.entityTypeName};`);
             imports.push(`import ${sub.eventTypePackage}.${sub.eventTypeName};`);

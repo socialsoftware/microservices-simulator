@@ -2,11 +2,8 @@ import { EntityExt } from "../../../../../types/ast-extensions.js";
 import { DtoFieldSchema } from "../../../../../services/dto-schema-service.js";
 import { DtoSetterStrategy } from "./dto-setter-strategy.js";
 
-/**
- * Strategy for handling derived aggregate ID fields.
- *
- * Example: Extract aggregateId from a referenced entity or collection.
- */
+
+
 export class DerivedAggregateIdStrategy implements DtoSetterStrategy {
     canHandle(
         field: DtoFieldSchema,

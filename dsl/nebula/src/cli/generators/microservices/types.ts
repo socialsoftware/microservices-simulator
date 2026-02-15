@@ -3,7 +3,7 @@ import type { DtoSchemaRegistry } from "../../services/dto-schema-service.js";
 export interface GenerationOptions {
     projectName: string;
     outputPath: string;
-    basePackage: string;  // Base package for generated code (e.g., 'pt.ulisboa.tecnico.socialsoftware')
+    basePackage: string;  
     architecture?: 'default' | 'external-dto-removal' | 'causal-saga';
     consistencyModels?: string[];
     dtoSchemaRegistry?: DtoSchemaRegistry;

@@ -4,9 +4,8 @@ import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-typ
 import { getEvents, getEntities } from "../../../../utils/aggregate-helpers.js";
 import { StringUtils } from '../../../../utils/string-utils.js';
 
-/**
- * Type definitions for inter-invariant processing
- */
+
+
 interface EntityReference {
     fieldName: string;
     fieldType: string;
@@ -25,23 +24,11 @@ interface SubscriptionInfo {
     eventType: string;
 }
 
-/**
- * Handles generation of inter-aggregate invariant methods.
- *
- * Inter-invariants are constraints that span multiple aggregates and require
- * event subscriptions to maintain consistency. This builder generates the
- * subscription registration methods for these cross-aggregate constraints.
- *
- * Responsibilities:
- * - Generate inter-invariant methods for root entities
- * - Group event subscriptions by entity reference
- * - Build subscription class names following naming conventions
- * - Extract entity references from invariant conditions
- */
+
+
 export class InterInvariantBuilder {
-    /**
-     * Generates all inter-invariant methods for an aggregate
-     */
+    
+
     generateInterInvariantMethods(aggregate: AggregateExt | undefined): string {
         if (!aggregate) return '';
 
@@ -58,21 +45,20 @@ export class InterInvariantBuilder {
         ).join('\n\n');
     }
 
-    /**
-     * Generates a single inter-invariant method
-     */
+    
+
     private generateInterInvariantMethod(invariant: any, aggregate: AggregateExt, rootEntity: EntityExt): string {
         const methodName = `interInvariant${this.toCamelCase(invariant.name)}`;
         const subscribedEvents = invariant.subscribedEvents || [];
 
-        // Group subscriptions by entity field, passing invariant name for proper class naming
+        
         const groupedSubs = this.groupSubscriptionsByEntity(subscribedEvents, rootEntity, invariant.name);
 
         let methodBody = `    private void ${methodName}(Set<EventSubscription> eventSubscriptions) {`;
 
         for (const group of groupedSubs) {
             if (group.isCollection) {
-                // Generate for-loop for collections
+                
                 const elementType = this.extractElementType(group.fieldType);
                 methodBody += `\n        for (${elementType} item : this.${group.fieldName}) {`;
                 for (const sub of group.subscriptions) {
@@ -80,7 +66,7 @@ export class InterInvariantBuilder {
                 }
                 methodBody += `\n        }`;
             } else {
-                // Generate direct subscription for single reference
+                
                 for (const sub of group.subscriptions) {
                     methodBody += `\n        eventSubscriptions.add(new ${sub.subscriptionClass}(this.get${StringUtils.capitalize(group.fieldName)}()));`;
                 }
@@ -91,9 +77,8 @@ export class InterInvariantBuilder {
         return methodBody;
     }
 
-    /**
-     * Groups event subscriptions by entity field reference
-     */
+    
+
     private groupSubscriptionsByEntity(subscriptions: any[], rootEntity: EntityExt, invariantName: string): EntitySubscriptionGroup[] {
         const groups = new Map<string, EntitySubscriptionGroup>();
 
@@ -122,18 +107,17 @@ export class InterInvariantBuilder {
         return Array.from(groups.values());
     }
 
-    /**
-     * Extracts entity reference information from subscription condition
-     */
+    
+
     private extractEntityReference(subscription: any, rootEntity: EntityExt): EntityReference | null {
-        // Parse condition: "course.courseAggregateId == event.aggregateId"
-        // Extract: "course" as the field name
+        
+        
         const conditions = subscription.conditions || [];
         if (conditions.length === 0) return null;
 
         const condition = conditions[0];
 
-        // Extract text from CST node
+        
         let conditionText = '';
         if (condition.condition?.$cstNode?.text) {
             conditionText = condition.condition.$cstNode.text.trim();
@@ -145,7 +129,7 @@ export class InterInvariantBuilder {
             return null;
         }
 
-        // Simple regex to extract field name from "fieldName.property == ..."
+        
         const match = conditionText.match(/^(\w+)\./);
         if (!match) {
             return null;
@@ -153,7 +137,7 @@ export class InterInvariantBuilder {
 
         const fieldName = match[1];
 
-        // Find property in root entity
+        
         const property = rootEntity.properties.find(p => p.name === fieldName);
         if (!property) {
             return null;
@@ -169,9 +153,8 @@ export class InterInvariantBuilder {
         };
     }
 
-    /**
-     * Extracts the event type name from subscription
-     */
+    
+
     private extractEventTypeName(subscription: any): string {
         if (typeof subscription.eventType === 'string') {
             return subscription.eventType;
@@ -183,19 +166,18 @@ export class InterInvariantBuilder {
         return 'UnknownEvent';
     }
 
-    /**
-     * Builds the subscription class name following naming conventions
-     */
+    
+
     private buildSubscriptionClassName(subscription: any, rootEntity: EntityExt, invariantName: string): string {
         const eventTypeName = this.extractEventTypeName(subscription);
-        // Remove "Event" suffix and common prefixes to get base name
+        
         const baseEventName = eventTypeName
             .replace(/Event$/, '')
             .replace(/^(Update|Delete|Create|Disenroll|Anonymize|Invalidate|Answer)/, '');
 
         const aggregate = rootEntity.$container as Aggregate;
 
-        // Convert invariant name from ANSWER_EXECUTION_EXISTS to AnswerExecutionExists
+        
         const interInvariantSuffix = invariantName
             .split('_')
             .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -204,17 +186,15 @@ export class InterInvariantBuilder {
         return `${aggregate.name}Subscribes${baseEventName}${interInvariantSuffix}`;
     }
 
-    /**
-     * Extracts element type from collection type (e.g., "Set<User>" -> "User")
-     */
+    
+
     private extractElementType(javaType: string): string {
         const match = javaType.match(/<(.+)>/);
         return match ? match[1] : 'Object';
     }
 
-    /**
-     * Converts snake_case_upper to PascalCase (e.g., COURSE_EXISTS -> CourseExists)
-     */
+    
+
     private toCamelCase(snakeCaseUpper: string): string {
         return snakeCaseUpper
             .split('_')

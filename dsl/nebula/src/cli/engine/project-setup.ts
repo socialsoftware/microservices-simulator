@@ -9,21 +9,21 @@ export class ProjectSetup {
         inputPath: string,
         projectName: string
     ): Promise<ProjectPaths> {
-        // Check if baseOutputDir already ends with the project name to avoid duplication
+        
         const outputDirName = path.basename(baseOutputDir);
         const projectPath = outputDirName.toLowerCase() === projectName.toLowerCase()
             ? baseOutputDir
             : path.join(baseOutputDir, projectName);
 
-        // Use configuration for all paths instead of hardcoded values
+        
         const config = getGlobalConfig();
         const basePackage = config.getBasePackage();
         const fullPackage = `${basePackage}.${projectName.toLowerCase()}`;
 
-        // Standard Maven directory structure (could be made configurable if needed)
+        
         const javaSrcPath = path.join(...JAVA_SRC_PATH);
 
-        // Convert package name to directory path (e.g., "pt.ulisboa.tecnico" → "pt/ulisboa/tecnico")
+        
         const packagePath = fullPackage.split('.').join(path.sep);
         const javaPath = path.join(projectPath, javaSrcPath, packagePath);
 
@@ -45,7 +45,7 @@ export class ProjectSetup {
             const isSingleFile = inputPath.endsWith('.nebula');
 
             if (isSingleFile) {
-                // Use configurable package path instead of hardcoded
+                
                 const config = getGlobalConfig();
                 const basePackage = config.getBasePackage();
                 const packageParts = basePackage.split('.');

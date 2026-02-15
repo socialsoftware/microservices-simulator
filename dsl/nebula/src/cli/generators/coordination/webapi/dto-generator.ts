@@ -7,22 +7,21 @@ import { UnifiedTypeResolver as TypeResolver } from "../../common/unified-type-r
 import { getEntities } from "../../../utils/aggregate-helpers.js";
 
 export interface CrossAggregateReference {
-    entityType: string;      // The projection entity name (e.g., "ExecutionUser")
-    paramName: string;       // The property name (e.g., "users")
-    relatedAggregate: string; // The referenced aggregate name (e.g., "User")
-    relatedDtoType: string;  // The DTO type to use (e.g., "UserDto")
-    isCollection: boolean;   // Whether it's a collection
+    entityType: string;      
+    paramName: string;       
+    relatedAggregate: string; 
+    relatedDtoType: string;  
+    isCollection: boolean;   
 }
 
 export class WebApiDtoGenerator extends WebApiBaseGenerator {
-    /**
-     * Generate request DTOs as a map of className -> content
-     */
+    
+
     async generateRequestDtos(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions, allAggregates?: Aggregate[]): Promise<Record<string, string>> {
         const context = this.buildRequestDtosContext(aggregate, rootEntity, options, allAggregates);
         const results: Record<string, string> = {};
         
-        // Generate each DTO as a separate file
+        
         for (const dto of context.requestDtos) {
             const dtoContext = {
                 packageName: context.packageName,
@@ -41,7 +40,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         
         let content = `package ${packageName};\n\n`;
         
-        // Add imports
+        
         for (const imp of imports) {
             content += `${imp}\n`;
         }
@@ -51,7 +50,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         
         content += `public class ${dto.name} {\n`;
         
-        // Add fields
+        
         for (const field of dto.fields) {
             if (field.required) {
                 content += `    @NotNull\n`;
@@ -60,10 +59,10 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         }
         content += '\n';
         
-        // No-args constructor
+        
         content += `    public ${dto.name}() {}\n\n`;
 
-        // All-args constructor
+        
         if (dto.fields.length > 0) {
             const params = dto.fields.map((field: any) => `${field.type} ${field.name}`).join(', ');
             content += `    public ${dto.name}(${params}) {\n`;
@@ -73,7 +72,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
             content += `    }\n\n`;
         }
         
-        // Getters and setters
+        
         for (const field of dto.fields) {
             const capitalizedName = field.name.charAt(0).toUpperCase() + field.name.slice(1);
             content += `    public ${field.type} get${capitalizedName}() {\n`;
@@ -133,7 +132,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
     private buildRequestDtos(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, dtoRegistry?: DtoSchemaRegistry, allAggregates?: Aggregate[]): any[] {
         const dtos: any[] = [];
 
-        // Only generate Create<Request> DTOs; Update<Request> DTOs are no longer used
+        
         const crossAggregateRefs = this.findCrossAggregateReferences(rootEntity, aggregate, allAggregates);
 
         dtos.push({
@@ -156,11 +155,8 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         return dtos;
     }
 
-    /**
-     * Find cross-aggregate references from the root entity's properties.
-     * These are non-root entities that have "uses AnotherAggregate" declarations.
-     * Also handles transitive references (e.g., TournamentCreator uses ExecutionUser uses User)
-     */
+    
+
     findCrossAggregateReferences(rootEntity: Entity, aggregate: Aggregate, allAggregates?: Aggregate[]): CrossAggregateReference[] {
         const references: CrossAggregateReference[] = [];
 
@@ -174,11 +170,11 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
             const javaType = TypeResolver.resolveJavaType(prop.type);
             const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
 
-            // Check if this is an entity type
+            
             const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
 
             if (isEntityType) {
-                // Resolve entity type
+                
                 const entityRef = (prop.type as any).type?.ref;
                 let entityName: string;
 
@@ -189,16 +185,16 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                     entityName = entityRef?.name || javaType;
                 }
 
-                // Find the entity in this aggregate
+                
                 const relatedEntity = entities.find(e => e.name === entityName);
                 if (!relatedEntity) continue;
 
-                // Check if the entity has aggregateRef (uses another aggregate)
+                
                 const entityAny = relatedEntity as any;
                 const aggregateRef = entityAny.aggregateRef;
 
                 if (aggregateRef) {
-                    // Get the referenced name (could be aggregate or entity)
+                    
                     let referencedName: string | undefined;
                     if (typeof aggregateRef === 'string') {
                         referencedName = aggregateRef;
@@ -209,13 +205,13 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                     }
 
                     if (referencedName) {
-                        // First, try to find it as a direct aggregate
+                        
                         const directAggregate = allAggregates?.find(
                             agg => agg.name === referencedName && agg.name !== aggregate.name
                         );
 
                         if (directAggregate) {
-                            // Direct aggregate reference
+                            
                             references.push({
                                 entityType: entityName,
                                 paramName: prop.name,
@@ -224,8 +220,8 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                                 isCollection
                             });
                         } else {
-                            // Not a direct aggregate - try to resolve transitive references
-                            // (e.g., "uses ExecutionUser" where ExecutionUser is an entity that "uses User")
+                            
+                            
                             const ultimateAggregate = this.resolveTransitiveAggregateRef(referencedName, allAggregates);
                             if (ultimateAggregate) {
                                 references.push({
@@ -245,15 +241,12 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         return references;
     }
 
-    /**
-     * Resolve transitive aggregate references.
-     * E.g., if TournamentCreator uses ExecutionUser, and ExecutionUser uses User,
-     * this returns "User".
-     */
+    
+
     private resolveTransitiveAggregateRef(entityName: string, allAggregates?: Aggregate[]): string | undefined {
         if (!allAggregates) return undefined;
 
-        // Search all aggregates for an entity with this name
+        
         for (const agg of allAggregates) {
             const entities = getEntities(agg);
             const entity = entities.find(e => e.name === entityName);
@@ -273,18 +266,18 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                     }
 
                     if (refName) {
-                        // Check if this is a direct aggregate
+                        
                         const directAgg = allAggregates.find(a => a.name === refName);
                         if (directAgg) {
                             return refName;
                         }
-                        // Otherwise, recurse (but limit depth to prevent infinite loops)
+                        
                         return this.resolveTransitiveAggregateRef(refName, allAggregates);
                     }
                 }
                 
-                // Entity found but no aggregateRef - might be a root entity
-                // Check if it's the root entity of its aggregate
+                
+                
                 if (entityAny.isRoot) {
                     return agg.name;
                 }
@@ -294,18 +287,14 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         return undefined;
     }
 
-    /**
-     * Extract fields for the Create request DTO.
-     * For cross-aggregate references, include the full DTO type instead of aggregate IDs.
-     * For same-aggregate entity references, skip them (they'll be created internally).
-     * For primitive fields, include them directly.
-     */
+    
+
     private extractCreateDtoFields(entity: Entity, aggregate: Aggregate, dtoRegistry?: DtoSchemaRegistry, crossAggregateRefs?: CrossAggregateReference[]): any[] {
         const fields: any[] = [];
         const crossRefParamNames = new Set(crossAggregateRefs?.map(r => r.paramName) || []);
         const entities = getEntities(aggregate);
 
-        // Add cross-aggregate DTO references
+        
         for (const ref of crossAggregateRefs || []) {
             if (ref.isCollection) {
                 const collectionType = ref.paramName.endsWith('s') ? 'Set' : 'List';
@@ -327,23 +316,23 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
             }
         }
 
-        // Add primitive/non-entity fields from root entity
+        
         if (entity.properties) {
             for (const prop of entity.properties) {
                 if ((prop as any).dtoExclude) continue;
                 if (prop.name.toLowerCase() === 'id') continue;
 
-                // Skip cross-aggregate references (already handled above)
+                
                 if (crossRefParamNames.has(prop.name)) continue;
 
                 const javaType = this.resolveParameterType(prop.type);
                 const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
 
-                // Check if this is an entity type within the same aggregate
+                
                 const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
                 
                 if (isEntityType) {
-                    // For same-aggregate entities, check if they have DTOs
+                    
                     const entityRef = (prop.type as any).type?.ref;
                     let entityName: string;
 
@@ -354,26 +343,26 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                         entityName = entityRef?.name || javaType;
                     }
 
-                    // Check if this is an entity in the same aggregate
+                    
                     const relatedEntity = entities.find(e => e.name === entityName);
                     if (relatedEntity) {
                         const entityAny = relatedEntity as any;
-                        // If the entity has generateDto, include the DTO collection in CreateRequestDto
+                        
                         if (entityAny.generateDto && isCollection) {
                             const collectionPrefix = javaType.startsWith('Set<') ? 'Set' : 'List';
                             fields.push({
                                 name: prop.name,
                                 type: `${collectionPrefix}<${entityName}Dto>`,
-                                required: false,  // Collections are typically optional
+                                required: false,  
                                 isProjectionDtoCollection: true
                             });
                         }
-                        // Skip single same-aggregate entities (they're created internally)
+                        
                         continue;
                     }
                 }
 
-                // Include primitive/enum fields
+                
                 fields.push({
                     name: prop.name,
                     type: javaType,
@@ -444,7 +433,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
             imports.add('import jakarta.validation.constraints.*;');
         }
 
-        // Add imports for cross-aggregate DTOs
+        
         for (const dto of requestDtos) {
             const crossAggregateRefs = dto.crossAggregateRefs as CrossAggregateReference[] | undefined;
             if (crossAggregateRefs) {
@@ -454,12 +443,12 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                 }
             }
 
-            // Check each field for imports needed
+            
             for (const field of dto.fields) {
                 const fieldType = field.type as string;
                 if (!fieldType) continue;
 
-                // Check for collection types
+                
                 if (fieldType.includes('List<')) {
                     imports.add('import java.util.List;');
                 }
@@ -467,24 +456,24 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                     imports.add('import java.util.Set;');
                 }
 
-                // Check for LocalDateTime type
+                
                 if (fieldType === 'LocalDateTime' || fieldType.includes('LocalDateTime')) {
                     imports.add('import java.time.LocalDateTime;');
                 }
 
-                // Check for enum types (types ending with "Type", "State", or "Role" but not AggregateState)
+                
                 if (fieldType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/) && fieldType !== 'AggregateState') {
                     const enumImportPath = getGlobalConfig().buildPackageName(options.projectName, 'shared', 'enums') + '.' + fieldType;
                     imports.add(`import ${enumImportPath};`);
                 }
 
-                // Check for DTO types (types ending with "Dto")
+                
                 if (fieldType.match(/^[A-Z][a-zA-Z]*Dto$/)) {
                     const dtoImportPath = getGlobalConfig().buildPackageName(options.projectName, 'shared', 'dtos') + '.' + fieldType;
                     imports.add(`import ${dtoImportPath};`);
                 }
 
-                // Check for DTO types inside collections (Set<XxxDto> or List<XxxDto>)
+                
                 const collectionDtoMatch = fieldType.match(/(?:Set|List)<([A-Z][a-zA-Z]*Dto)>/);
                 if (collectionDtoMatch) {
                     const dtoType = collectionDtoMatch[1];
@@ -505,9 +494,8 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         return Array.from(imports);
     }
 
-    /**
-     * Check if a type is an enum
-     */
+    
+
     private isEnumType(type: any): boolean {
         if (type && typeof type === 'object' &&
             type.$type === 'EntityType' &&

@@ -5,9 +5,8 @@ import { SagaGenerationOptions } from './saga-generator.js';
 import { StringUtils } from '../../utils/string-utils.js';
 import { EventNameParser } from '../common/utils/event-name-parser.js';
 
-/**
- * Generates saga functionality classes for event processing workflows
- */
+
+
 export class SagaEventProcessingGenerator {
     private getBasePackage(options: SagaGenerationOptions): string {
         if (!options.basePackage) {
@@ -18,11 +17,10 @@ export class SagaEventProcessingGenerator {
     private helpers = new SagaHelpers();
     private workflowGenerator = new SagaWorkflowGenerator();
 
-    /**
-     * Generate saga functionalities for event processing
-     */
+    
+
     generateEventProcessingSagaFunctionalities(aggregate: any, options: SagaGenerationOptions, outputs: Record<string, string>): void {
-        // Ensure aggregate properties are initialized
+        
         initializeAggregateProperties(aggregate);
 
         const basePackage = this.getBasePackage(options);
@@ -31,7 +29,7 @@ export class SagaEventProcessingGenerator {
         const aggregateName = aggregate.name;
         const capitalizedAggregate = StringUtils.capitalize(aggregateName);
 
-        // Get all subscribed events
+        
         const aggregateEvents = (aggregate as any).events;
         if (!aggregateEvents) {
             return;
@@ -45,7 +43,7 @@ export class SagaEventProcessingGenerator {
             return;
         }
 
-        // Deduplicate events by event type name
+        
         const eventMap = new Map<string, any>();
         allSubscribedEvents.forEach((event: any) => {
             const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
@@ -54,18 +52,18 @@ export class SagaEventProcessingGenerator {
             }
         });
 
-        // Match events to saga workflows and generate classes
+        
         for (const [eventTypeName, subscribedEvent] of eventMap.entries()) {
             const sagaWorkflow = this.findSagaWorkflowForEvent(aggregate, eventTypeName);
             if (!sagaWorkflow) {
                 continue;
             }
 
-            // Use event name for class name, not workflow name
+            
             const eventNameWithoutEvent = EventNameParser.removeEventSuffix(eventTypeName);
             const className = `${StringUtils.capitalize(eventNameWithoutEvent)}${capitalizedAggregate}FunctionalitySagas`;
 
-            // Skip if already generated as business workflow
+            
             const existingFile = outputs[className + '.java'];
             if (existingFile) {
                 const hasParamsInBuildWorkflow = existingFile.match(/buildWorkflow\s*\([^)]+\)/);
@@ -83,9 +81,8 @@ export class SagaEventProcessingGenerator {
         }
     }
 
-    /**
-     * Generate a single event processing saga class
-     */
+    
+
     private generateEventProcessingSagaClass(
         aggregate: any,
         subscribedEvent: any,
@@ -107,7 +104,7 @@ export class SagaEventProcessingGenerator {
         imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
         imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
 
-        // Add imports for workflow steps with dependencies
+        
         const workflowSteps = sagaWorkflow.workflowSteps || [];
         const hasStepDependencies = workflowSteps.some((s: any) => s.dependsOn?.dependencies?.length > 0);
         if (hasStepDependencies) {
@@ -115,7 +112,7 @@ export class SagaEventProcessingGenerator {
             imports.push('import java.util.Arrays;');
         }
 
-        // Add saga state imports if workflow uses registerState
+        
         const usesRegisterState = workflowSteps.some((s: any) =>
             (s.stepActions || []).some((a: any) => a.$type === 'WorkflowRegisterStateAction') ||
             (s.compensation?.compensationActions || []).some((a: any) => a.$type === 'WorkflowRegisterStateAction')
@@ -125,16 +122,16 @@ export class SagaEventProcessingGenerator {
             imports.push(`import ${basePackage}.ms.sagas.aggregate.GenericSagaState;`);
         }
 
-        // Add DTO import if workflow uses fields with DTOs
+        
         const workflowFields = sagaWorkflow.workflowFields || [];
         if (workflowFields.length > 0) {
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.dtos.Saga${capitalizedAggregate}Dto;`);
         }
 
-        // Extract entity name from event (e.g., UserDeletedEvent -> User, TopicUpdatedEvent -> Topic)
+        
         const entityName = EventNameParser.extractEntityName(eventTypeName);
 
-        // Determine the actual source aggregate for the event
+        
         let sourceAggregateName = 'unknown';
         const publishedEvent = subscribedEvent.eventType?.ref as any;
         const eventsContainer = publishedEvent?.$container as any;
@@ -144,51 +141,51 @@ export class SagaEventProcessingGenerator {
         } else if (subscribedEvent.sourceAggregate) {
             sourceAggregateName = subscribedEvent.sourceAggregate.toLowerCase();
         } else {
-            // Fallback: infer source aggregate from event name
-            // UserDeletedEvent -> user, TopicUpdatedEvent -> topic
+            
+            
             sourceAggregateName = entityName.toLowerCase();
         }
 
-        // Add event import
+        
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${sourceAggregateName}.events.publish.${eventTypeName};`);
 
-        // Build constructor parameters
+        
         const workflowParams = sagaWorkflow.parameters || [];
         const constructorParams: Array<{ type: string; name: string }> = [
             { type: `${capitalizedAggregate}Service`, name: `${lowerAggregate}Service` },
             { type: 'SagaUnitOfWorkService', name: 'sagaUnitOfWorkService' },
-            { type: 'Integer', name: 'aggregateId' } // Subscriber aggregate ID
+            { type: 'Integer', name: 'aggregateId' } 
         ];
 
-        // Extract event fields from the PublishedEvent
+        
         const eventRef = subscribedEvent.eventType?.ref as any;
         const eventFields = eventRef?.fields || [];
 
-        // Add standard event fields first (always present in Event base class)
+        
         constructorParams.push({ type: 'Integer', name: 'publisherAggregateId' });
 
-        // Add custom event fields, mapping them correctly
+        
         eventFields.forEach((field: any) => {
             const fieldName = field.name || String(field);
             const fieldType = typeof field.type === 'string' ? field.type : (field.type?.typeName || field.type?.name || 'Object');
 
-            // Map field names to match getter methods used in EventProcessing
+            
             let paramName = fieldName;
             if (eventTypeName.includes('Anonymize') && fieldName === 'userAggregateId') {
                 paramName = 'studentAggregateId';
             } else if (eventTypeName.includes('UpdateStudentName') && fieldName === 'newName') {
                 paramName = 'updatedName';
             } else if (eventTypeName.includes('UpdateStudentName') && fieldName === 'oldName') {
-                return; // Skip oldName - not used in constructor
+                return; 
             }
             constructorParams.push({ type: fieldType, name: paramName });
         });
 
-        // Add publisher version (standard Event field)
+        
         constructorParams.push({ type: 'Integer', name: 'publisherAggregateVersion' });
         constructorParams.push({ type: 'SagaUnitOfWork', name: 'unitOfWork' });
 
-        // Build buildWorkflow parameters
+        
         const buildParams: Array<{ type: string; name: string }> = [];
         const buildWorkflowCallParams: string[] = [];
 
@@ -202,7 +199,7 @@ export class SagaEventProcessingGenerator {
                 continue;
             }
 
-            // Map workflow parameter to constructor parameter
+            
             let constructorParamName = '';
             if (workflowParamName.includes('aggregateid') && workflowParamName !== 'aggregateid') {
                 constructorParamName = 'aggregateId';
@@ -227,7 +224,7 @@ export class SagaEventProcessingGenerator {
             buildWorkflowCallParams.push(constructorParamName);
         }
 
-        // Add unitOfWork to buildWorkflow call if workflow needs it
+        
         if (workflowParams.some((p: any) => {
             const pType = typeof p.type === 'string' ? p.type : (p.type?.typeName || p.type?.name || '');
             return pType === 'UnitOfWork';
@@ -235,12 +232,12 @@ export class SagaEventProcessingGenerator {
             buildParams.push({ type: 'SagaUnitOfWork', name: 'unitOfWork' });
         }
 
-        // Generate workflow steps
+        
         const stepsBody = this.workflowGenerator.generateEventProcessingWorkflowSteps(
             sagaWorkflow.name, aggregate.name, lowerAggregate, workflowParams, sagaWorkflow
         );
 
-        // Build constructor body
+        
         const fieldsToStore = constructorParams.filter(p => p.name !== 'unitOfWork');
         const constructorBody = fieldsToStore.map(p => `        this.${p.name} = ${p.name};`).join('\n');
         const constructorBodyWithBuildWorkflow = constructorBody + `\n        this.buildWorkflow(${buildWorkflowCallParams.join(', ')});`;
@@ -248,10 +245,10 @@ export class SagaEventProcessingGenerator {
         const buildParamsString = buildParams.map(p => `${p.type} ${p.name}`).join(', ');
         const constructorParamsString = constructorParams.map(p => `${p.type} ${p.name}`).join(', ');
 
-        // Generate field declarations
+        
         const fieldsString = fieldsToStore.map((p: { type: string; name: string }) => `    private ${p.type} ${p.name};`).join('\n');
 
-        // Generate workflow field declarations
+        
         const workflowFieldsString = workflowFields.map((f: any) => {
             const fieldType = this.helpers.getParamTypeName(f.type, capitalizedAggregate);
             return `    private ${fieldType} ${f.name};`;
@@ -259,7 +256,7 @@ export class SagaEventProcessingGenerator {
 
         const allFieldsString = [fieldsString, workflowFieldsString].filter(Boolean).join('\n');
 
-        // Generate getters and setters for workflow fields
+        
         const gettersSetters = workflowFields.map((f: any) => {
             const fieldType = this.helpers.getParamTypeName(f.type, capitalizedAggregate);
             const capitalizedName = StringUtils.capitalize(f.name);
@@ -291,14 +288,13 @@ ${gettersSetters}
 }`;
     }
 
-    /**
-     * Find a saga workflow that matches a given event type
-     */
+    
+
     findSagaWorkflowForEvent(aggregate: any, eventTypeName: string): any {
-        // Ensure aggregate properties are initialized
+        
         initializeAggregateProperties(aggregate);
 
-        // Access workflows using the helper function - filter for saga workflows only
+        
         const allWorkflows = getWorkflows(aggregate);
 
         const workflows = allWorkflows.filter((w: any) => {
@@ -312,11 +308,11 @@ ${gettersSetters}
         const eventNameWithoutEvent = eventTypeName.replace(/Event$/, '');
         const lowerEventName = eventNameWithoutEvent.toLowerCase();
 
-        // Try to find workflow by name pattern
+        
         return workflows.find((w: any) => {
             const workflowName = (w.name || String(w)).toLowerCase();
 
-            // Normalize the event name
+            
             const normalizedEventName = lowerEventName
                 .replace('delete', 'remove')
                 .replace('disenroll', 'unenroll');

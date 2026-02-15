@@ -2,11 +2,8 @@ import { EntityExt } from "../../../../../types/ast-extensions.js";
 import { DtoFieldSchema } from "../../../../../services/dto-schema-service.js";
 import { DtoSetterStrategy } from "./dto-setter-strategy.js";
 
-/**
- * Strategy for handling aggregate system fields (aggregateId, version, state).
- *
- * Only applies to root entities.
- */
+
+
 export class AggregateFieldStrategy implements DtoSetterStrategy {
     canHandle(
         field: DtoFieldSchema,

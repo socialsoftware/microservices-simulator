@@ -1,16 +1,11 @@
-/**
- * WebAPI Endpoint Building System
- * 
- * This module extracts endpoint building logic from controller generators
- * into a focused, reusable component that handles all endpoint generation scenarios.
- */
+
+
 
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { UnifiedTypeResolver } from "../../common/unified-type-resolver.js";
 
-/**
- * HTTP methods supported by endpoints
- */
+
+
 export enum HttpMethod {
     GET = 'GET',
     POST = 'POST',
@@ -19,19 +14,17 @@ export enum HttpMethod {
     PATCH = 'PATCH'
 }
 
-/**
- * Endpoint parameter definition
- */
+
+
 export interface EndpointParameter {
     name: string;
     type: string;
-    annotation: string; // @PathVariable, @RequestBody, @RequestParam, etc.
+    annotation: string; 
     required?: boolean;
 }
 
-/**
- * Generated endpoint definition
- */
+
+
 export interface GeneratedEndpoint {
     method: HttpMethod;
     path: string;
@@ -43,9 +36,8 @@ export interface GeneratedEndpoint {
     annotations: string[];
 }
 
-/**
- * Endpoint building options
- */
+
+
 export interface EndpointBuildingOptions {
     includeValidation: boolean;
     includeCrudEndpoints: boolean;
@@ -54,14 +46,12 @@ export interface EndpointBuildingOptions {
     throwsExceptions: boolean;
 }
 
-/**
- * Endpoint builder that creates REST API endpoints from aggregates and DSL definitions
- */
+
+
 export class EndpointBuilder {
 
-    /**
-     * Build endpoints for an aggregate
-     */
+    
+
     buildEndpoints(
         aggregate: Aggregate,
         rootEntity: Entity,
@@ -69,12 +59,12 @@ export class EndpointBuilder {
     ): GeneratedEndpoint[] {
         const endpoints: GeneratedEndpoint[] = [];
 
-        // Generate CRUD endpoints if requested
+        
         if (options.includeCrudEndpoints) {
             endpoints.push(...this.buildCrudEndpoints(aggregate, rootEntity, options));
         }
 
-        // Generate custom endpoints from DSL
+        
         if (options.includeCustomEndpoints && aggregate.webApiEndpoints) {
             endpoints.push(...this.buildCustomEndpoints(aggregate, options));
         }
@@ -82,9 +72,8 @@ export class EndpointBuilder {
         return endpoints;
     }
 
-    /**
-     * Build standard CRUD endpoints
-     */
+    
+
     private buildCrudEndpoints(aggregate: Aggregate, rootEntity: Entity, options: EndpointBuildingOptions): GeneratedEndpoint[] {
         const aggregateName = aggregate.name;
         const entityName = rootEntity.name;
@@ -93,7 +82,7 @@ export class EndpointBuilder {
         const baseUrl = options.baseUrl || `/${lowerAggregate}`;
 
         return [
-            // CREATE - POST /aggregate
+            
             {
                 method: HttpMethod.POST,
                 path: baseUrl,
@@ -112,7 +101,7 @@ export class EndpointBuilder {
                 annotations: ['@PostMapping']
             },
 
-            // READ - GET /aggregate/{id}
+            
             {
                 method: HttpMethod.GET,
                 path: `${baseUrl}/{id}`,
@@ -131,7 +120,7 @@ export class EndpointBuilder {
                 annotations: ['@GetMapping("/{id}")']
             },
 
-            // UPDATE - PUT /aggregate/{id}
+            
             {
                 method: HttpMethod.PUT,
                 path: `${baseUrl}/{id}`,
@@ -156,7 +145,7 @@ export class EndpointBuilder {
                 annotations: ['@PutMapping("/{id}")']
             },
 
-            // DELETE - DELETE /aggregate/{id}
+            
             {
                 method: HttpMethod.DELETE,
                 path: `${baseUrl}/{id}`,
@@ -175,7 +164,7 @@ export class EndpointBuilder {
                 annotations: ['@DeleteMapping("/{id}")']
             },
 
-            // LIST - GET /aggregate
+            
             {
                 method: HttpMethod.GET,
                 path: baseUrl,
@@ -189,9 +178,8 @@ export class EndpointBuilder {
         ];
     }
 
-    /**
-     * Build custom endpoints from DSL definitions
-     */
+    
+
     private buildCustomEndpoints(aggregate: Aggregate, options: EndpointBuildingOptions): GeneratedEndpoint[] {
         const endpoints: GeneratedEndpoint[] = [];
 
@@ -205,9 +193,8 @@ export class EndpointBuilder {
         return endpoints;
     }
 
-    /**
-     * Build a single custom endpoint from DSL
-     */
+    
+
     private buildCustomEndpoint(endpoint: any, options: EndpointBuildingOptions): GeneratedEndpoint {
         const method = this.resolveHttpMethod(endpoint.method?.method || endpoint.httpMethod?.method);
         const returnType = endpoint.returnType
@@ -235,9 +222,8 @@ export class EndpointBuilder {
         };
     }
 
-    /**
-     * Build Spring annotations for endpoint
-     */
+    
+
     private buildEndpointAnnotations(method: HttpMethod, path: string): string[] {
         const annotations: string[] = [];
 
@@ -262,9 +248,8 @@ export class EndpointBuilder {
         return annotations;
     }
 
-    /**
-     * Resolve HTTP method from string
-     */
+    
+
     private resolveHttpMethod(method: string | any): HttpMethod {
         if (!method || typeof method !== 'string') return HttpMethod.GET;
 
@@ -279,9 +264,8 @@ export class EndpointBuilder {
         }
     }
 
-    /**
-     * Get default endpoint building options
-     */
+    
+
     private getDefaultOptions(): EndpointBuildingOptions {
         return {
             includeValidation: true,
@@ -291,9 +275,8 @@ export class EndpointBuilder {
         };
     }
 
-    /**
-     * Create endpoint building options with overrides
-     */
+    
+
     static createOptions(overrides: Partial<EndpointBuildingOptions> = {}): EndpointBuildingOptions {
         const defaults: EndpointBuildingOptions = {
             includeValidation: true,

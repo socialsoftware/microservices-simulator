@@ -1,9 +1,5 @@
-/**
- * Unified Type Resolution System
- * 
- * This module consolidates all type resolution logic from across the codebase,
- * providing consistent type handling for different contexts (entities, DTOs, WebAPI, etc.)
- */
+
+
 
 export interface ResolvedType {
     javaType: string;
@@ -147,9 +143,9 @@ export class UnifiedTypeResolver {
             );
         }
 
-        // CollectionType was removed in unified type system - ListType/SetType handle all collections now
+        
 
-        // BuiltinType now handles AggregateState (merged from AggregateStateType)
+        
         if (type.$type === 'BuiltinType' && type.typeName) {
             return this.createResolvedType(type.typeName, false, false, false, true);
         }

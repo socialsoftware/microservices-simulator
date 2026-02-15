@@ -39,7 +39,7 @@ export interface MultiFileGenerator extends Generator<BaseGenerationOptions, { [
     generateFiles(aggregate: Aggregate, options: BaseGenerationOptions): Promise<{ [key: string]: string }>;
 }
 
-// Base class with helper methods migrated from OrchestrationBase
+
 abstract class GeneratorPatternBase {
     protected capitalize(str: string): string {
         if (!str) return '';
@@ -184,19 +184,19 @@ abstract class GeneratorPatternBase {
     }
 
     protected hasFeature(features: string[] | undefined, feature: string): boolean {
-        // Always return true - all features are enabled by default
+        
         return true;
     }
 
     protected writeFile(filePath: string, content: string, description?: string): void {
-        // This method is typically handled by the file writer service
-        // Subclasses should override this if they need direct file writing
+        
+        
         throw new Error('writeFile must be implemented by subclass or handled by FileWriter service');
     }
 
     protected ensureDirectory(dirPath: string): void {
-        // This method is typically handled by the file writer service
-        // Subclasses should override this if they need direct directory creation
+        
+        
         throw new Error('ensureDirectory must be implemented by subclass or handled by FileWriter service');
     }
 }

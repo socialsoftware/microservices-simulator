@@ -9,10 +9,8 @@ import { FunctionalitiesMethodGenerator } from './functionalities-method-generat
 import { UnifiedTypeResolver as TypeResolver } from '../../common/unified-type-resolver.js';
 import { StringUtils } from '../../../utils/string-utils.js';
 
-/**
- * Main orchestrator for functionalities class generation.
- * Delegates to specialized generators for different concerns.
- */
+
+
 export class FunctionalitiesGenerator {
     private capabilities: GeneratorCapabilities;
     private crudGenerator = new FunctionalitiesCrudGenerator();
@@ -47,7 +45,7 @@ export class FunctionalitiesGenerator {
     }
 
     private loadTemplate(templatePath: string): string {
-        // Templates are loaded and rendered by capabilities.templateRenderer
+        
         return templatePath;
     }
 
@@ -55,14 +53,13 @@ export class FunctionalitiesGenerator {
         return this.capabilities.templateRenderer.render(templatePath, context);
     }
 
-    // Expose crudGenerator methods for use in buildBusinessMethods
+    
     getCrudGenerator() {
         return this.crudGenerator;
     }
 
-    /**
-     * Generate a functionalities class for an aggregate
-     */
+    
+
     async generate(aggregate: AggregateExt, rootEntity: EntityExt, options: CoordinationGenerationOptions, allAggregates?: AggregateExt[]): Promise<string> {
         const entityRegistry = allAggregates ?
             EntityRegistry.buildFromAggregates(allAggregates) :
@@ -73,9 +70,8 @@ export class FunctionalitiesGenerator {
         return this.renderTemplate(template, context);
     }
 
-    /**
-     * Build template context for rendering
-     */
+    
+
     private buildContext(aggregate: AggregateExt, rootEntity: EntityExt, options: CoordinationGenerationOptions, entityRegistry: EntityRegistry): any {
         const aggregateName = aggregate.name;
         const capitalizedAggregate = StringUtils.capitalize(aggregateName);
@@ -111,9 +107,8 @@ export class FunctionalitiesGenerator {
         };
     }
 
-    /**
-     * Build dependencies for the functionalities class
-     */
+    
+
     private buildDependencies(aggregate: AggregateExt, options: CoordinationGenerationOptions, rootEntity: EntityExt, allAggregates?: AggregateExt[]): any[] {
         const dependencies: any[] = [];
         const aggregateName = aggregate.name;
@@ -134,9 +129,9 @@ export class FunctionalitiesGenerator {
             });
         }
 
-        // Note: With the new approach, cross-aggregate DTOs are passed directly in the CreateRequestDto,
-        // so we no longer need to inject cross-aggregate services for create operations.
-        // The saga will receive the full DTOs and create projection entities directly from them.
+        
+        
+        
 
         dependencies.push({
             name: 'sagaUnitOfWorkService',
@@ -147,15 +142,14 @@ export class FunctionalitiesGenerator {
         return dependencies;
     }
 
-    /**
-     * Build all business methods for the functionalities class
-     */
+    
+
     private buildBusinessMethods(aggregate: AggregateExt, rootEntity: EntityExt, aggregateName: string, entityRegistry: EntityRegistry, consistencyModels: string[], allAggregates?: AggregateExt[]): any[] {
         const methods: any[] = [];
         const addedMethods = new Set<string>();
         const lowerAggregate = aggregateName.toLowerCase();
 
-        // 1. Add CRUD methods if generateCrud is enabled
+        
         if (aggregate.generateCrud) {
             const crudMethods = this.crudGenerator.generateCrudMethods(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates);
             crudMethods.forEach(method => {
@@ -166,7 +160,7 @@ export class FunctionalitiesGenerator {
                 }
             });
 
-            // 1.5. Add collection methods if generateCrud is enabled
+            
             const collectionMethods = this.collectionGenerator.generateCollectionMethods(aggregateName, lowerAggregate, rootEntity, aggregate);
             collectionMethods.forEach(method => {
                 const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
@@ -176,12 +170,12 @@ export class FunctionalitiesGenerator {
                 }
             });
 
-            // Add cross-aggregate service dependencies for create method
-            // Note: We need to call findEntityRelationships and getRelatedDtoType which are private
-            // So we'll handle this in buildDependencies instead
+            
+            
+            
         }
 
-        // 2. Add methods from endpoint definitions
+        
         if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints) {
             aggregate.webApiEndpoints.endpoints.forEach((endpoint: any) => {
                 const params = this.methodGenerator.extractEndpointParameters(endpoint.parameters);
@@ -200,7 +194,7 @@ export class FunctionalitiesGenerator {
             });
         }
 
-        // 3. Add methods from functionality definitions
+        
         const functionalities = (aggregate as any).functionalities;
         if (functionalities && functionalities.functionalityMethods) {
             functionalities.functionalityMethods.forEach((func: any) => {
@@ -223,9 +217,8 @@ export class FunctionalitiesGenerator {
         return methods;
     }
 
-    /**
-     * Check if UserService is needed
-     */
+    
+
     private checkUserServiceUsage(aggregate: AggregateExt): boolean {
         if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints) {
             return aggregate.webApiEndpoints.endpoints.some((endpoint: any) =>
@@ -237,12 +230,10 @@ export class FunctionalitiesGenerator {
         return false;
     }
 
-    /**
-     * Build checkInput methods for validating DTOs
-     * Generates two overloads: one for ExecutionDto (update) and one for CreateRequestDto (create)
-     */
+    
+
     private buildCheckInputMethod(aggregate: AggregateExt, rootEntity: EntityExt, aggregateName: string, lowerAggregate: string, projectName: string): string | null {
-        // Check if CRUD is enabled (which means create/update operations will call checkInput)
+        
         const hasCrud = aggregate.generateCrud;
         if (!hasCrud) {
             return null;
@@ -254,7 +245,7 @@ export class FunctionalitiesGenerator {
         const ProjectName = StringUtils.capitalize(projectName);
 
         if (!rootEntity || !rootEntity.properties) {
-            // Generate empty methods if CRUD is enabled but no properties
+            
             return `private void checkInput(${dtoType} ${dtoParamName}) {
 }
 
@@ -265,7 +256,7 @@ export class FunctionalitiesGenerator {
         const validationChecks: string[] = [];
         const createValidationChecks: string[] = [];
 
-        // Find required String fields
+        
         for (const prop of rootEntity.properties) {
             const javaType = TypeResolver.resolveJavaType(prop.type);
             const isString = javaType === 'String';
@@ -273,24 +264,24 @@ export class FunctionalitiesGenerator {
             const isEntity = TypeResolver.isEntityType(javaType);
             const isEnum = this.isEnumType(prop.type);
 
-            // Check if it's a required String field (not nullable, not optional, not a collection, not an entity, not an enum)
+            
             if (isString && !isCollection && !isEntity && !isEnum) {
                 const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
                 const exceptionConstant = `${aggregateName.toUpperCase()}_MISSING_${prop.name.toUpperCase()}`;
                 
-                // For ExecutionDto (update operations)
+                
                 validationChecks.push(`        if (${dtoParamName}.get${capitalizedName}() == null) {
             throw new ${ProjectName}Exception(${exceptionConstant});
         }`);
                 
-                // For CreateRequestDto (create operations)
+                
                 createValidationChecks.push(`        if (createRequest.get${capitalizedName}() == null) {
             throw new ${ProjectName}Exception(${exceptionConstant});
         }`);
             }
         }
 
-        // Generate both methods
+        
         let dtoMethod: string;
         if (validationChecks.length === 0) {
             dtoMethod = `private void checkInput(${dtoType} ${dtoParamName}) {
@@ -316,9 +307,8 @@ ${createValidationChecks.join('\n')}
     ${createMethod}`;
     }
 
-    /**
-     * Check if a type is an enum
-     */
+    
+
     private isEnumType(type: any): boolean {
         if (type && typeof type === 'object' &&
             type.$type === 'EntityType' &&

@@ -9,10 +9,8 @@ import { SagaGenerationOptions } from './saga-generator.js';
 import { StringUtils } from '../../utils/string-utils.js';
 import { TemplateManager } from '../../utils/template-manager.js';
 
-/**
- * Main orchestrator for saga functionality generation.
- * Delegates to specialized generators for different types of saga functionalities.
- */
+
+
 export class SagaFunctionalityGenerator {
     private templateManager = TemplateManager.getInstance();
     private crudGenerator = new SagaCrudGenerator();
@@ -28,27 +26,26 @@ export class SagaFunctionalityGenerator {
         return options.basePackage;
     }
 
-    /**
-     * Generate saga functionalities for an aggregate
-     */
+    
+
     generateForAggregate(aggregate: any, options: SagaGenerationOptions, allAggregates?: Aggregate[]): Record<string, string> {
         const outputs: Record<string, string> = {};
         const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const packageName = `${basePackage}.${options.projectName.toLowerCase()}.sagas.coordination.${lowerAggregate}`;
 
-        // Initialize aggregate properties
+        
         initializeAggregateProperties(aggregate);
         const allWorkflows = getWorkflows(aggregate);
 
-        // 1. Generate CRUD saga functionalities if enabled
+        
         if (aggregate.generateCrud) {
-            // Use provided allAggregates or try to get from model
+            
             const aggregatesToUse = allAggregates || (aggregate.$container as any)?.aggregates || [];
             const crudSagas = this.crudGenerator.generateCrudSagaFunctionalities(aggregate, options, packageName, aggregatesToUse);
             Object.assign(outputs, crudSagas);
 
-            // 1.5. Generate collection saga functionalities if enabled
+            
             const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot);
             if (rootEntity) {
                 const collectionSagas = this.collectionGenerator.generateCollectionSagaFunctionalities(
@@ -61,21 +58,20 @@ export class SagaFunctionalityGenerator {
             }
         }
 
-        // 2. Generate saga functionalities from endpoint definitions
+        
         this.generateEndpointSagaFunctionalities(aggregate, options, packageName, allWorkflows, outputs);
 
-        // 3. Generate saga functionalities from explicit functionality definitions
+        
         this.generateFunctionalityMethodSagas(aggregate, options, packageName, outputs);
 
-        // 4. Generate saga functionality classes for event processing workflows
+        
         this.eventProcessingGenerator.generateEventProcessingSagaFunctionalities(aggregate, options, outputs);
 
         return outputs;
     }
 
-    /**
-     * Generate saga functionalities from web API endpoint definitions
-     */
+    
+
     private generateEndpointSagaFunctionalities(
         aggregate: any,
         options: SagaGenerationOptions,
@@ -91,27 +87,26 @@ export class SagaFunctionalityGenerator {
 
             const className = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
 
-            // Check if there's a workflow with step definitions for this endpoint
+            
             const matchingWorkflow = allWorkflows.find((w: any) =>
                 w.name === methodName && w.workflowSteps && w.workflowSteps.length > 0
             );
 
             if (matchingWorkflow) {
-                // Generate using the workflow definition with steps
+                
                 const content = this.workflowGenerator.generateWorkflowFunctionality(aggregate, matchingWorkflow, options, packageName);
                 outputs[className + '.java'] = content;
                 continue;
             }
 
-            // Otherwise, generate basic functionality from endpoint
+            
             const content = this.generateBasicEndpointSaga(aggregate, endpoint, options, packageName);
             outputs[className + '.java'] = content;
         }
     }
 
-    /**
-     * Generate a basic saga functionality for an endpoint without workflow steps
-     */
+    
+
     private generateBasicEndpointSaga(
         aggregate: any,
         endpoint: any,
@@ -163,9 +158,8 @@ export class SagaFunctionalityGenerator {
         return this.templateManager.renderTemplate('saga/functionality.hbs', context);
     }
 
-    /**
-     * Generate saga functionalities from explicit functionality method definitions
-     */
+    
+
     private generateFunctionalityMethodSagas(
         aggregate: any,
         options: SagaGenerationOptions,
@@ -227,7 +221,7 @@ export class SagaFunctionalityGenerator {
                 }
             }
 
-            // Generate steps body from functionality steps
+            
             const { stepsBody, variableDecls } = this.generateFunctionalityStepsBody(func, resultType, imports);
 
             const context = {
@@ -245,9 +239,8 @@ export class SagaFunctionalityGenerator {
         }
     }
 
-    /**
-     * Generate steps body from functionality step definitions
-     */
+    
+
     private generateFunctionalityStepsBody(func: any, resultType: string | undefined, imports: string[]): { stepsBody: string; variableDecls: string } {
         const stepMap = new Map<string, string>();
         const steps = (func as any).functionalitySteps || [];
@@ -259,13 +252,13 @@ export class SagaFunctionalityGenerator {
 
         let stepsBody = '';
 
-        // First pass: collect all step names
+        
         for (const s of steps) {
             const stepName = s.stepName || 'step';
             stepMap.set(stepName, `${stepName}Step`);
         }
 
-        // Second pass: generate step code
+        
         for (const s of steps) {
             const stepName = s.stepName || 'step';
             const stepVar = stepMap.get(stepName)!;
@@ -273,7 +266,7 @@ export class SagaFunctionalityGenerator {
             const dependencies = s.dependsOn?.dependencies || [];
             const compensation = s.compensation;
 
-            // Generate step body actions
+            
             let stepBody = '';
 
             for (const action of actions) {
@@ -317,7 +310,7 @@ export class SagaFunctionalityGenerator {
                 }
             }
 
-            // Generate step with dependencies
+            
             let stepDependencies = '';
             if (dependencies.length > 0) {
                 const depVars = dependencies.map((dep: string) => stepMap.get(dep) || `${dep}Step`).join(', ');
@@ -326,7 +319,7 @@ export class SagaFunctionalityGenerator {
 
             let stepCode = `        SagaSyncStep ${stepVar} = new SagaSyncStep("${stepName}", () -> {\n${stepBody}        }${stepDependencies});\n`;
 
-            // Add compensation if present
+            
             if (compensation && compensation.compensationActions) {
                 let compensationBody = '';
                 for (const compAction of compensation.compensationActions) {
@@ -348,7 +341,7 @@ export class SagaFunctionalityGenerator {
             stepsBody += stepCode + '\n';
         }
 
-        // Add necessary imports for ArrayList and Arrays if dependencies are used
+        
         if (steps.some((s: any) => s.dependsOn?.dependencies?.length > 0)) {
             imports.push('import java.util.ArrayList;');
             imports.push('import java.util.Arrays;');

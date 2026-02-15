@@ -18,9 +18,8 @@ import { CausalEntityGenerator } from "../generators/sagas/causal-entity-generat
 import { ConfigurationGenerator } from "../generators/coordination/config/configuration-generator.js";
 import { AggregateValidator } from "../generators/validation/validation-system.js";
 
-/**
- * Generator metadata for discovery and management
- */
+
+
 export interface GeneratorMetadata {
     name: string;
     version: string;
@@ -31,24 +30,21 @@ export interface GeneratorMetadata {
     isRequired: boolean;
 }
 
-/**
- * Enhanced generator interface with metadata
- */
+
+
 export interface GeneratorInfo {
     instance: any;
     metadata: GeneratorMetadata;
     isEnabled: boolean;
 }
 
-/**
- * Generator discovery and registration system
- */
+
+
 export class GeneratorDiscovery {
     private static generators = new Map<string, GeneratorInfo>();
 
-    /**
-     * Register a generator with metadata
-     */
+    
+
     static register(name: string, instance: any, metadata: GeneratorMetadata): void {
         this.generators.set(name, {
             instance,
@@ -57,39 +53,34 @@ export class GeneratorDiscovery {
         });
     }
 
-    /**
-     * Get all registered generators
-     */
+    
+
     static getAll(): Map<string, GeneratorInfo> {
         return new Map(this.generators);
     }
 
-    /**
-     * Get generators by category
-     */
+    
+
     static getByCategory(category: GeneratorMetadata['category']): GeneratorInfo[] {
         return Array.from(this.generators.values())
             .filter(info => info.metadata.category === category);
     }
 
-    /**
-     * Get generator by name
-     */
+    
+
     static get(name: string): GeneratorInfo | undefined {
         return this.generators.get(name);
     }
 
-    /**
-     * Check if generator exists and is enabled
-     */
+    
+
     static isAvailable(name: string): boolean {
         const info = this.generators.get(name);
         return info !== undefined && info.isEnabled;
     }
 
-    /**
-     * Enable/disable a generator
-     */
+    
+
     static setEnabled(name: string, enabled: boolean): void {
         const info = this.generators.get(name);
         if (info) {
@@ -97,9 +88,8 @@ export class GeneratorDiscovery {
         }
     }
 
-    /**
-     * Validate generator dependencies
-     */
+    
+
     static validateDependencies(): { valid: boolean; errors: string[] } {
         const errors: string[] = [];
 
@@ -116,9 +106,8 @@ export class GeneratorDiscovery {
         return { valid: errors.length === 0, errors };
     }
 
-    /**
-     * Get generation order based on dependencies
-     */
+    
+
     static getGenerationOrder(): string[] {
         const visited = new Set<string>();
         const visiting = new Set<string>();
@@ -182,13 +171,12 @@ export interface GeneratorRegistry {
 export class GeneratorRegistryFactory {
     private static initialized = false;
 
-    /**
-     * Initialize all generators with metadata
-     */
+    
+
     private static initializeGenerators(): void {
         if (this.initialized) return;
 
-        // Microservices generators
+        
         GeneratorDiscovery.register('entityGenerator', new EntityGenerator(), {
             name: 'Entity Generator',
             version: '1.0.0',
@@ -269,7 +257,7 @@ export class GeneratorRegistryFactory {
             isRequired: false
         });
 
-        // Coordination generators
+        
         GeneratorDiscovery.register('coordinationGenerator', new CoordinationGenerator(), {
             name: 'Coordination Generator',
             version: '1.0.0',
@@ -290,7 +278,7 @@ export class GeneratorRegistryFactory {
             isRequired: false
         });
 
-        // Validation generators
+        
         GeneratorDiscovery.register('validationGenerator', new ValidationGenerator(), {
             name: 'Validation Generator',
             version: '1.0.0',
@@ -311,7 +299,7 @@ export class GeneratorRegistryFactory {
             isRequired: false
         });
 
-        // Configuration generators
+        
         GeneratorDiscovery.register('integrationGenerator', new IntegrationGenerator(), {
             name: 'Integration Generator',
             version: '1.0.0',
@@ -332,7 +320,7 @@ export class GeneratorRegistryFactory {
             isRequired: false
         });
 
-        // Saga generators
+        
         GeneratorDiscovery.register('sagaGenerator', new SagaGenerator(), {
             name: 'Saga Generator',
             version: '1.0.0',
@@ -363,7 +351,7 @@ export class GeneratorRegistryFactory {
             isRequired: false
         });
 
-        // Utility generators
+        
         GeneratorDiscovery.register('exceptionGenerator', new ExceptionGenerator(), {
             name: 'Exception Generator',
             version: '1.0.0',
@@ -387,20 +375,19 @@ export class GeneratorRegistryFactory {
         this.initialized = true;
     }
 
-    /**
-     * Create registry using discovery system
-     */
+    
+
     static createRegistry(): GeneratorRegistry {
         this.initializeGenerators();
 
-        // Validate dependencies
+        
         const validation = GeneratorDiscovery.validateDependencies();
         if (!validation.valid) {
             console.warn('Generator dependency validation failed:');
             validation.errors.forEach(error => console.warn(`  - ${error}`));
         }
 
-        // Create registry from discovered generators
+        
         const registry: any = {};
 
         for (const [name, info] of GeneratorDiscovery.getAll()) {
@@ -412,9 +399,8 @@ export class GeneratorRegistryFactory {
         return registry as GeneratorRegistry;
     }
 
-    /**
-     * Create registry with only required generators
-     */
+    
+
     static createMinimalRegistry(): Partial<GeneratorRegistry> {
         this.initializeGenerators();
 
@@ -429,17 +415,15 @@ export class GeneratorRegistryFactory {
         return registry;
     }
 
-    /**
-     * Get generators in dependency order
-     */
+    
+
     static getGenerationOrder(): string[] {
         this.initializeGenerators();
         return GeneratorDiscovery.getGenerationOrder();
     }
 
-    /**
-     * Enable/disable generators by category
-     */
+    
+
     static configureByCategory(category: GeneratorMetadata['category'], enabled: boolean): void {
         this.initializeGenerators();
 
@@ -449,9 +433,8 @@ export class GeneratorRegistryFactory {
         });
     }
 
-    /**
-     * Get registry statistics
-     */
+    
+
     static getStatistics(): {
         total: number;
         enabled: number;

@@ -4,7 +4,7 @@ import { GeneratorBase } from "../../common/base/generator-base.js";
 import Handlebars from "handlebars";
 
 export abstract class EventBaseGenerator extends GeneratorBase {
-    // Event-specific package name generation (preserves original signature for compatibility)
+    
     protected generateEventPackageName(basePackage: string, projectName: string, aggregateName: string, ...subPackages: string[]): string {
         const microservicePackage = `microservices.${aggregateName.toLowerCase()}`;
         const subPackageString = subPackages.filter(p => p).join('.');
@@ -28,7 +28,7 @@ export abstract class EventBaseGenerator extends GeneratorBase {
         }));
     }
 
-    // Note: combineImports, resolveJavaType, isCollectionType, isEntityType inherited from GeneratorBase
+    
 
     protected getEventBasePackage(options: EventGenerationOptions): string {
         if (!options.basePackage) {
@@ -96,23 +96,20 @@ export abstract class EventBaseGenerator extends GeneratorBase {
         };
     }
 
-    /**
-     * Find which aggregate publishes a given event by checking all aggregates' published events.
-     * Handles both custom published events and auto-generated CRUD events.
-     * This is a shared helper used by multiple event generators.
-     */
+    
+
     protected findEventPublisher(eventTypeName: string, allAggregates: Aggregate[]): string | null {
         for (const agg of allAggregates) {
             const aggName = agg.name;
 
-            // 1. Check custom published events (explicitly defined in DSL)
+            
             const aggregateEvents = (agg as any).events;
             const customEvents = aggregateEvents?.publishedEvents || [];
             if (customEvents.some((e: any) => e.name === eventTypeName)) {
                 return aggName.toLowerCase();
             }
 
-            // 2. Check root entity CRUD events (auto-generated for @GenerateCrud)
+            
             if (agg.generateCrud) {
                 const rootCrudEvents = [
                     `${aggName}UpdatedEvent`,
@@ -123,7 +120,7 @@ export abstract class EventBaseGenerator extends GeneratorBase {
                 }
             }
 
-            // 3. Check projection entity CRUD events
+            
             const projectionEntities = (agg.entities || []).filter((e: any) =>
                 !e.isRoot && e.aggregateRef
             );
@@ -132,14 +129,14 @@ export abstract class EventBaseGenerator extends GeneratorBase {
                 const projCrudEvents = [
                     `${projName}UpdatedEvent`,
                     `${projName}DeletedEvent`,
-                    `${projName}RemovedEvent`  // For collection manipulation
+                    `${projName}RemovedEvent`  
                 ];
                 if (projCrudEvents.includes(eventTypeName)) {
-                    return aggName.toLowerCase();  // Return AGGREGATE name, not projection name
+                    return aggName.toLowerCase();  
                 }
             }
         }
 
-        return null;  // Not found in any aggregate
+        return null;  
     }
 }

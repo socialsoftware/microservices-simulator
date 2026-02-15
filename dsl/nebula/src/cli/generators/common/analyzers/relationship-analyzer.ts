@@ -212,7 +212,7 @@ export class RelationshipAnalyzer {
     }
 
     private findEntityByType(typeName: string, entities: Entity[]): Entity | null {
-        // Clean the type name (remove generics, arrays, etc.)
+        
         const cleanTypeName = this.cleanTypeName(typeName);
 
         return entities.find(entity => entity.name === cleanTypeName) || null;
@@ -220,9 +220,9 @@ export class RelationshipAnalyzer {
 
     private cleanTypeName(typeName: string): string {
         return typeName
-            .replace(/<.*>/, '') // Remove generics
-            .replace(/\[\]$/, '') // Remove array brackets
-            .replace(/Optional<|>/, '') // Remove Optional wrapper
+            .replace(/<.*>/, '') 
+            .replace(/\[\]$/, '') 
+            .replace(/Optional<|>/, '') 
             .trim();
     }
 

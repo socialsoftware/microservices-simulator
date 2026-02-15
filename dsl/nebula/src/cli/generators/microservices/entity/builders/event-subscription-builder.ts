@@ -2,24 +2,11 @@ import { AggregateExt } from "../../../../types/ast-extensions.js";
 import { getEvents, getReferences } from "../../../../utils/aggregate-helpers.js";
 import { EventNameParser } from "../../../common/utils/event-name-parser.js";
 
-/**
- * Handles generation of the getEventSubscriptions() method for root entities.
- *
- * Event subscriptions are the mechanism by which aggregates register interest
- * in events from other aggregates. This builder generates the getEventSubscriptions()
- * override method that returns the set of event subscriptions for an aggregate.
- *
- * Responsibilities:
- * - Generate getEventSubscriptions() method for root entities
- * - Filter simple subscriptions (no conditions, no routing)
- * - Add ACTIVE state guard for subscriptions
- * - Generate calls to inter-invariant methods
- * - Generate simple subscription registrations
- */
+
+
 export class EventSubscriptionBuilder {
-    /**
-     * Generates the getEventSubscriptions() method for a root entity
-     */
+    
+
     generateEventSubscriptionsMethod(aggregate: AggregateExt | undefined): string {
         if (!aggregate) {
             return `
@@ -33,13 +20,13 @@ export class EventSubscriptionBuilder {
         const subscribedEvents = events?.subscribedEvents || [];
         const interInvariants = (events as any)?.interInvariants || [];
 
-        // Get reference constraints
+        
         const references = getReferences(aggregate);
         const referenceConstraints = references?.constraints || [];
 
-        // Filter for simple subscriptions (no conditions, no routing)
+        
         const simpleSubscriptions = subscribedEvents.filter((sub: any) => {
-            // Simple subscription: no conditions block or empty conditions, no routing
+            
             const hasConditions = sub.conditions && sub.conditions.length > 0 &&
                 sub.conditions.some((c: any) => c.condition);
             const hasRouting = (sub as any).routingIdExpr;
@@ -62,13 +49,13 @@ export class EventSubscriptionBuilder {
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();`;
 
-        // All subscriptions should only be added for ACTIVE aggregates
+        
         const hasAnySubscriptions = hasInterInvariants || simpleSubscriptions.length > 0 || hasReferenceConstraints;
 
         if (hasAnySubscriptions) {
             methodBody += `\n        if (this.getState() == AggregateState.ACTIVE) {`;
 
-            // Add inter-invariant method calls
+            
             if (hasInterInvariants) {
                 for (const invariant of interInvariants) {
                     const methodName = `interInvariant${this.toCamelCase(invariant.name)}`;
@@ -76,10 +63,10 @@ export class EventSubscriptionBuilder {
                 }
             }
 
-            // Add simple subscriptions (inside ACTIVE guard)
+            
             if (simpleSubscriptions.length > 0) {
                 for (const sub of simpleSubscriptions) {
-                    // Handle different AST structures for event types
+                    
                     let eventTypeName = 'UnknownEvent';
                     if (typeof sub.eventType === 'string') {
                         eventTypeName = sub.eventType;
@@ -88,30 +75,30 @@ export class EventSubscriptionBuilder {
                     } else if ((sub.eventType as any)?.$refText) {
                         eventTypeName = (sub.eventType as any).$refText;
                     } else if ((sub as any).eventType) {
-                        // Fallback: try to extract from the raw eventType
+                        
                         eventTypeName = (sub as any).eventType;
                     }
 
-                    // Extract event name without "Event" suffix (e.g., TopicUpdatedEvent -> TopicUpdated)
-                    // Keep the action suffix (Updated/Deleted) to match subscription class names
+                    
+                    
                     const eventNameWithoutSuffix = EventNameParser.removeEventSuffix(eventTypeName);
                     const subscriptionClassName = `${aggregate.name}Subscribes${eventNameWithoutSuffix}`;
                     methodBody += `\n            eventSubscriptions.add(new ${subscriptionClassName}());`;
                 }
             }
 
-            // Add reference constraint subscriptions (inside ACTIVE guard)
-            // Only for constraints with onDelete: cascade or set_null (not prevent)
+            
+            
             if (hasReferenceConstraints) {
                 for (const constraint of referenceConstraints) {
                     const action = (constraint as any).action;
-                    // Skip 'prevent' action - those are handled at the target aggregate level
+                    
                     if (action === 'prevent') {
                         continue;
                     }
                     const targetAggregate = (constraint as any).targetAggregate;
                     const subscriptionClassName = `${aggregate.name}Subscribes${targetAggregate}Deleted`;
-                    // Reference subscriptions need to pass 'this' to the constructor
+                    
                     methodBody += `\n            eventSubscriptions.add(new ${subscriptionClassName}(this));`;
                 }
             }
@@ -124,9 +111,8 @@ export class EventSubscriptionBuilder {
         return methodBody;
     }
 
-    /**
-     * Converts snake_case_upper to PascalCase (e.g., COURSE_EXISTS -> CourseExists)
-     */
+    
+
     private toCamelCase(snakeCaseUpper: string): string {
         return snakeCaseUpper
             .split('_')

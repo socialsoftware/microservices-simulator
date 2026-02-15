@@ -1,17 +1,11 @@
-/**
- * Configuration Facade System
- * 
- * This module provides a unified interface for accessing all configuration
- * across the DSL system, eliminating direct config access and providing
- * a consistent, validated configuration API.
- */
+
+
 
 import { getGlobalConfig, ConfigManager } from "../generators/common/config.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "./error-handler.js";
 
-/**
- * Project configuration interface
- */
+
+
 export interface ProjectConfig {
     projectName: string;
     basePackage: string;
@@ -20,9 +14,8 @@ export interface ProjectConfig {
     javaVersion: string;
 }
 
-/**
- * Database configuration interface
- */
+
+
 export interface DatabaseConfig {
     type: string;
     host: string;
@@ -35,9 +28,8 @@ export interface DatabaseConfig {
     dialect: string;
 }
 
-/**
- * Generation configuration interface
- */
+
+
 export interface GenerationConfig {
     enableValidation: boolean;
     enableCaching: boolean;
@@ -47,9 +39,8 @@ export interface GenerationConfig {
     outputFormat: string;
 }
 
-/**
- * Package configuration interface
- */
+
+
 export interface PackageConfig {
     basePackage: string;
     microservicesPackage: string;
@@ -58,9 +49,8 @@ export interface PackageConfig {
     sharedPackage: string;
 }
 
-/**
- * Framework configuration interface
- */
+
+
 export interface FrameworkConfig {
     transactionModel: string;
     enableRetry: boolean;
@@ -69,9 +59,8 @@ export interface FrameworkConfig {
     enableValidation: boolean;
 }
 
-/**
- * Unified configuration facade that provides consistent access to all configuration
- */
+
+
 export class ConfigurationFacade {
     private static instance: ConfigurationFacade;
     private configManager: ConfigManager;
@@ -81,9 +70,8 @@ export class ConfigurationFacade {
         this.configManager = getGlobalConfig();
     }
 
-    /**
-     * Get singleton instance
-     */
+    
+
     static getInstance(): ConfigurationFacade {
         if (!ConfigurationFacade.instance) {
             ConfigurationFacade.instance = new ConfigurationFacade();
@@ -91,9 +79,8 @@ export class ConfigurationFacade {
         return ConfigurationFacade.instance;
     }
 
-    /**
-     * Get project configuration
-     */
+    
+
     getProjectConfig(): ProjectConfig {
         const cacheKey = 'project-config';
 
@@ -114,9 +101,8 @@ export class ConfigurationFacade {
         return config;
     }
 
-    /**
-     * Get database configuration
-     */
+    
+
     getDatabaseConfig(projectName?: string): DatabaseConfig {
         const cacheKey = `database-config-${projectName || 'default'}`;
 
@@ -140,9 +126,8 @@ export class ConfigurationFacade {
         return config;
     }
 
-    /**
-     * Get generation configuration
-     */
+    
+
     getGenerationConfig(): GenerationConfig {
         const cacheKey = 'generation-config';
 
@@ -163,9 +148,8 @@ export class ConfigurationFacade {
         return config;
     }
 
-    /**
-     * Get package configuration
-     */
+    
+
     getPackageConfig(): PackageConfig {
         const cacheKey = 'package-config';
 
@@ -186,9 +170,8 @@ export class ConfigurationFacade {
         return config;
     }
 
-    /**
-     * Get framework configuration
-     */
+    
+
     getFrameworkConfig(): FrameworkConfig {
         const cacheKey = 'framework-config';
 
@@ -208,9 +191,8 @@ export class ConfigurationFacade {
         return config;
     }
 
-    /**
-     * Package building methods (delegated to ConfigManager)
-     */
+    
+
     buildPackageName(projectName: string, ...subPackages: string[]): string {
         return this.configManager.buildPackageName(projectName, ...subPackages);
     }
@@ -231,15 +213,14 @@ export class ConfigurationFacade {
         return this.buildPackageName(projectName, 'shared', component);
     }
 
-    /**
-     * Configuration validation
-     */
+    
+
     validateConfiguration(): ValidationResult {
         const errors: string[] = [];
         const warnings: string[] = [];
 
         try {
-            // Validate project config
+            
             const projectConfig = this.getProjectConfig();
             if (!projectConfig.projectName) {
                 errors.push('Project name is required');
@@ -251,7 +232,7 @@ export class ConfigurationFacade {
                 errors.push('Output path is required');
             }
 
-            // Validate database config
+            
             const dbConfig = this.getDatabaseConfig();
             if (!dbConfig.type) {
                 errors.push('Database type is required');
@@ -260,7 +241,7 @@ export class ConfigurationFacade {
                 warnings.push('Database host not specified, using default');
             }
 
-            // Validate generation config
+            
             const genConfig = this.getGenerationConfig();
             if (!genConfig.templateRoot) {
                 warnings.push('Template root not specified, using default');
@@ -277,9 +258,8 @@ export class ConfigurationFacade {
         };
     }
 
-    /**
-     * Override configuration values (for testing or customization)
-     */
+    
+
     override(overrides: Partial<{
         project: Partial<ProjectConfig>;
         database: Partial<DatabaseConfig>;
@@ -287,7 +267,7 @@ export class ConfigurationFacade {
         package: Partial<PackageConfig>;
         framework: Partial<FrameworkConfig>;
     }>): void {
-        // Clear relevant caches
+        
         if (overrides.project) {
             this.cachedConfigs.delete('project-config');
         }
@@ -304,21 +284,19 @@ export class ConfigurationFacade {
             this.cachedConfigs.delete('framework-config');
         }
 
-        // Store overrides (would need to implement override storage)
+        
         console.log('⚙️  Configuration overrides applied');
     }
 
-    /**
-     * Reset configuration cache
-     */
+    
+
     resetCache(): void {
         this.cachedConfigs.clear();
         console.log('🗑️  Configuration cache cleared');
     }
 
-    /**
-     * Get configuration summary
-     */
+    
+
     getConfigurationSummary(): Record<string, any> {
         return {
             project: this.getProjectConfig(),
@@ -329,9 +307,8 @@ export class ConfigurationFacade {
         };
     }
 
-    /**
-     * Private helper methods
-     */
+    
+
     private buildJdbcUrl(projectName?: string): string {
         const dbName = projectName ? projectName.toLowerCase() : 'defaultdb';
         return `jdbc:postgresql://postgres:5432/${dbName}`;
@@ -356,29 +333,26 @@ export class ConfigurationFacade {
     }
 
     private resolveTemplateRoot(): string {
-        // Default template root resolution
+        
         return './src/cli/templates';
     }
 }
 
-/**
- * Validation result interface (reused from other modules)
- */
+
+
 interface ValidationResult {
     isValid: boolean;
     errors: string[];
     warnings: string[];
 }
 
-/**
- * Utility functions for configuration access
- */
+
+
 export class ConfigUtils {
     private static facade = ConfigurationFacade.getInstance();
 
-    /**
-     * Quick access to project configuration
-     */
+    
+
     static getProjectName(): string {
         return this.facade.getProjectConfig().projectName;
     }
@@ -396,9 +370,8 @@ export class ConfigUtils {
         return this.facade.getProjectConfig().outputPath;
     }
 
-    /**
-     * Quick access to database configuration
-     */
+    
+
     static getDatabaseUrl(projectName?: string): string {
         return this.facade.getDatabaseConfig(projectName).jdbcUrl;
     }
@@ -407,9 +380,8 @@ export class ConfigUtils {
         return this.facade.getDatabaseConfig().type;
     }
 
-    /**
-     * Quick access to generation configuration
-     */
+    
+
     static isDevMode(): boolean {
         return this.facade.getGenerationConfig().enableDevMode;
     }
@@ -422,9 +394,8 @@ export class ConfigUtils {
         return this.facade.getGenerationConfig().enableParallelGeneration;
     }
 
-    /**
-     * Package building utilities
-     */
+    
+
     static buildPackage(projectName: string, ...segments: string[]): string {
         return this.facade.buildPackageName(projectName, ...segments);
     }
@@ -433,17 +404,15 @@ export class ConfigUtils {
         return this.facade.buildMicroservicePackage(projectName, aggregate, component);
     }
 
-    /**
-     * Framework utilities
-     */
+    
+
     static getTransactionModel(): string {
         return this.facade.getFrameworkConfig().transactionModel;
     }
 
 
-    /**
-     * Validation utilities
-     */
+    
+
     static validateConfig(): ValidationResult {
         return this.facade.validateConfiguration();
     }

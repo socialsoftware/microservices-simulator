@@ -74,7 +74,7 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             );
         }
 
-        // Saga Pattern Configuration (always enabled)
+        
         properties.push(
             '',
             '# Saga Pattern Configuration',
@@ -83,7 +83,7 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             this.buildPropertyLine('saga.retry.max-attempts', '3')
         );
 
-        // Event Configuration (always enabled)
+        
         properties.push(
             '',
             '# Event Configuration',
@@ -91,7 +91,7 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             this.buildPropertyLine('spring.events.thread-pool-size', '10')
         );
 
-        // Validation Configuration (always enabled)
+        
         properties.push(
             '',
             '# Validation Configuration',
@@ -157,7 +157,7 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             );
         }
 
-        // Saga Configuration (always enabled)
+        
         sections.push(
             '',
             this.buildYamlSection('saga', [
@@ -168,7 +168,7 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             ])
         );
 
-        // Event Configuration (always enabled)
+        
         sections.push(
             '',
             this.buildYamlSection('events', [

@@ -4,9 +4,8 @@ import { EntityRegistry } from '../../common/utils/entity-registry.js';
 import { StringUtils } from '../../../utils/string-utils.js';
 import { TypeExtractor } from '../../common/utils/type-extractor.js';
 
-/**
- * Builds imports for functionalities classes
- */
+
+
 export class FunctionalitiesImportsBuilder {
 
     private getBasePackage(options: CoordinationGenerationOptions): string {
@@ -16,9 +15,8 @@ export class FunctionalitiesImportsBuilder {
         return options.basePackage;
     }
 
-    /**
-     * Build all required imports for a functionalities class
-     */
+    
+
     buildImports(
         aggregate: Aggregate,
         rootEntity: Entity | undefined,
@@ -31,7 +29,7 @@ export class FunctionalitiesImportsBuilder {
         const projectName = options.projectName.toLowerCase();
         const basePackage = this.getBasePackage(options);
 
-        // Base imports
+        
         imports.push('import java.util.Arrays;');
         imports.push(`import ${basePackage}.${projectName}.microservices.exception.${StringUtils.capitalize(options.projectName)}Exception;`);
         imports.push('import org.springframework.beans.factory.annotation.Autowired;');
@@ -43,7 +41,7 @@ export class FunctionalitiesImportsBuilder {
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
         imports.push(`import ${basePackage}.${projectName}.sagas.coordination.${aggregate.name.toLowerCase()}.*;`);
 
-        // Service imports
+        
         dependencies.forEach(dep => {
             if (dep.required && !dep.name.includes('UnitOfWorkService')) {
                 const serviceName = dep.name.toLowerCase().replace('service', '');
@@ -51,10 +49,10 @@ export class FunctionalitiesImportsBuilder {
             }
         });
 
-        // DTO imports
+        
         this.addDtoImports(aggregate, imports, projectName, entityRegistry, businessMethods, options);
 
-        // List import if needed
+        
         const hasListReturnType = businessMethods.some(method =>
             method.returnType && method.returnType.includes('List<')
         );
@@ -62,7 +60,7 @@ export class FunctionalitiesImportsBuilder {
             imports.push('import java.util.List;');
         }
 
-        // Enum imports
+        
         const enumTypes = new Set<string>();
         businessMethods.forEach(method => {
             this.extractEnumTypes(method.returnType, enumTypes);
@@ -81,16 +79,14 @@ export class FunctionalitiesImportsBuilder {
         return Array.from(new Set(imports));
     }
 
-    /**
-     * Extract enum types from a type string
-     */
+    
+
     private extractEnumTypes(type: string, enumSet: Set<string>): void {
         TypeExtractor.extractEnumTypes(type, enumSet);
     }
 
-    /**
-     * Resolve import path for an enum type
-     */
+    
+
     private resolveEnumImportPath(enumType: string, options: CoordinationGenerationOptions): string | null {
         if (!enumType) return null;
 
@@ -99,9 +95,8 @@ export class FunctionalitiesImportsBuilder {
         return `${basePackage}.${projectName}.shared.enums.${enumType}`;
     }
 
-    /**
-     * Add DTO imports based on business methods
-     */
+    
+
     private addDtoImports(aggregate: Aggregate, imports: string[], projectName: string, entityRegistry: EntityRegistry, businessMethods: any[] | undefined, options: CoordinationGenerationOptions): void {
         const usedDtoTypes = new Set<string>();
         const usedRequestDtoTypes = new Set<string>();
@@ -110,7 +105,7 @@ export class FunctionalitiesImportsBuilder {
             businessMethods.forEach(method => {
                 this.collectDtoTypesFromReturnType(method.returnType, usedDtoTypes);
                 method.parameters?.forEach((param: any) => {
-                    // Check if this is a request DTO (Create/Update RequestDto)
+                    
                     if (param.type && param.type.includes('RequestDto')) {
                         usedRequestDtoTypes.add(param.type);
                     } else {
@@ -140,16 +135,15 @@ export class FunctionalitiesImportsBuilder {
             imports.push(`import ${dtoPackage}.${dtoType};`);
         });
 
-        // Import request DTOs from webapi.requestDtos package
+        
         const requestDtoPackage = `${basePackage}.${projectName}.coordination.webapi.requestDtos`;
         usedRequestDtoTypes.forEach(requestDtoType => {
             imports.push(`import ${requestDtoPackage}.${requestDtoType};`);
         });
     }
 
-    /**
-     * Collect DTO types from a return type string
-     */
+    
+
     private collectDtoTypesFromReturnType(returnType: string, usedDtoTypes: Set<string>): void {
         if (returnType && returnType.includes('Dto')) {
             const match = returnType.match(/(\w+Dto)/g);
@@ -159,9 +153,8 @@ export class FunctionalitiesImportsBuilder {
         }
     }
 
-    /**
-     * Extract return type from AST node
-     */
+    
+
     private extractReturnType(returnType: any, entityRegistry: EntityRegistry): string {
         if (!returnType) return 'void';
 

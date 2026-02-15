@@ -21,8 +21,8 @@ export class EntityFeature {
             const entityPath = path.join(aggregatePath, 'aggregate', `${entity.name}.java`);
             await FileWriter.writeGeneratedFile(entityPath, entityCode, `entity ${entity.name}`);
 
-            // Generate DTOs for ALL entities in the aggregate
-            // Non-root entities get their own DTOs to preserve all their fields
+            
+            
             const sharedDtoDir = path.join(aggregatePath, '..', '..', 'shared', 'dtos');
             const dtoCode = await generators.dtoGenerator.generateDto(entity, options);
             const dtoPath = path.join(sharedDtoDir, `${entity.name}Dto.java`);

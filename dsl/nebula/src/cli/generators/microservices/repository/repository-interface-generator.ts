@@ -85,7 +85,7 @@ export class RepositoryInterfaceGenerator {
             return options.repositoryType;
         }
 
-        // Always use JpaRepository (PostgreSQL)
+        
         return 'JpaRepository';
     }
 
@@ -98,20 +98,18 @@ export class RepositoryInterfaceGenerator {
     }
 
 
-    /**
-     * Maps generated query parameter placeholders to actual method parameter names.
-     * Example: ":price" → ":prices" based on method signature
-     */
+    
+
     private mapQueryParameters(parseResult: any, methodParameters: any[]): string {
         let query = parseResult.query;
 
-        // Map each placeholder to the actual parameter name
+        
         for (const mapping of parseResult.parameterMappings) {
             if (mapping.paramIndex < methodParameters.length) {
                 const actualParam = methodParameters[mapping.paramIndex];
                 const actualParamName = actualParam.name;
 
-                // Replace the placeholder with the actual parameter name
+                
                 query = query.replace(new RegExp(mapping.placeholder.replace(':', '\\:'), 'g'), `:${actualParamName}`);
             }
         }
@@ -135,17 +133,17 @@ export class RepositoryInterfaceGenerator {
 
                 let query = '';
                 if (method.query) {
-                    // Explicit @Query annotation provided
+                    
                     query = method.query;
                 } else {
-                    // Try to generate query from Spring Data method name conventions
+                    
                     const parseResult = SpringDataQueryParser.parseMethodName(
                         baseMethodName,
                         aggregate.name,
                         rootEntity
                     );
                     if (parseResult) {
-                        // Map generated parameter placeholders to actual method parameter names
+                        
                         query = this.mapQueryParameters(parseResult, parameters);
                         console.log(`    ✨ Auto-generated query for ${baseMethodName}: ${query}`);
                     }
@@ -202,7 +200,7 @@ export class RepositoryInterfaceGenerator {
             return type;
         }
 
-        // Handle unified type system (typeName for PrimitiveType/BuiltinType)
+        
         if (type.typeName) {
             return type.typeName;
         }
