@@ -59,7 +59,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
         });
 
         const projectName = (this as any).projectName?.toLowerCase() || 'unknown';
-        const basePackage = this.getBasePackage(options);
+        const basePackage = this.getEventBasePackage(options);
 
         return simpleSubscriptions.map((sub: any) => {
             const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
@@ -142,7 +142,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
         const baseImports = this.buildBaseImports(aggregate, options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const projectName = options?.projectName?.toLowerCase() || 'unknown';
-        const basePackage = this.getBasePackage(options);
+        const basePackage = this.getEventBasePackage(options);
 
         const imports = [
             ...baseImports,
@@ -163,8 +163,8 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
     }
 
     private async generateIndividualEventSubscription(context: any): Promise<string> {
-        const template = this.loadTemplate('events/event-subscription.hbs');
-        return this.renderTemplate(template, context);
+        const template = this.loadRawTemplate('events/event-subscription.hbs');
+        return this.renderTemplateFromString(template, context);
     }
 
     private buildInterInvariantSubscriptionsContext(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): EventSubscriptionContext {
@@ -189,7 +189,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
         console.log(`DEBUG: Found ${events.interInvariants.length} inter-invariants for ${aggregateName}`);
 
         const projectName = (this as any).projectName?.toLowerCase() || 'unknown';
-        const basePackage = this.getBasePackage(options);
+        const basePackage = this.getEventBasePackage(options);
         const entities = getEntities(aggregate);
 
         const subscriptions: any[] = [];
@@ -313,7 +313,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
 
     private buildInterInvariantSubscriptionsImports(aggregate: Aggregate, options: EventGenerationOptions, eventSubscriptions: any[]): string[] {
         const baseImports = this.buildBaseImports(aggregate, options);
-        const basePackage = this.getBasePackage(options);
+        const basePackage = this.getEventBasePackage(options);
 
         const imports = [
             ...baseImports,
@@ -332,7 +332,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
     }
 
     private async generateInterInvariantEventSubscription(context: any): Promise<string> {
-        const template = this.loadTemplate('events/inter-invariant-subscription.hbs');
-        return this.renderTemplate(template, context);
+        const template = this.loadRawTemplate('events/inter-invariant-subscription.hbs');
+        return this.renderTemplateFromString(template, context);
     }
 }

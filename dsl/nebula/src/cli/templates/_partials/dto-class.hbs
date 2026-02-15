@@ -1,0 +1,29 @@
+{{!--
+  Shared DTO Class Template
+
+  Parameters:
+  - name: Class name (e.g., "CreateUserRequestDto")
+  - fields: Array of field objects {name, type, required}
+  - includeNotNull: Boolean - whether to add @NotNull annotations
+
+  Usage:
+  {{> dto-class name=name fields=fields includeNotNull=true}}
+--}}
+public class {{name}} {
+    {{#each fields}}
+    {{#if ../includeNotNull}}{{#if required}}@NotNull{{/if}}{{/if}}
+    private {{type}} {{name}};
+    {{/each}}
+
+    public {{name}}() {}
+
+    {{#each fields}}
+    public {{type}} get{{capitalize name}}() {
+        return {{name}};
+    }
+
+    public void set{{capitalize name}}({{type}} {{name}}) {
+        this.{{name}} = {{name}};
+    }
+    {{/each}}
+}

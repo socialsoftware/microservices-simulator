@@ -19,7 +19,7 @@ export class ReferencesGenerator extends EventBaseGenerator {
 
         const baseContext = this.createBaseEventContext(aggregate, rootEntity, options);
         const projectName = options.projectName.toLowerCase();
-        const basePackage = this.getBasePackage(options);
+        const basePackage = this.getEventBasePackage(options);
 
         for (const constraint of references.constraints) {
             const refConstraint = constraint as ReferenceConstraint;

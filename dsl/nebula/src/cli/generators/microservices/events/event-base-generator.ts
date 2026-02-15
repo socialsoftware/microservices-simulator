@@ -1,25 +1,11 @@
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { EventGenerationOptions, EventContext } from "./event-types.js";
-import { UnifiedTypeResolver } from "../../common/unified-type-resolver.js";
-import { TemplateManager } from "../../../utils/template-manager.js";
+import { GeneratorBase } from "../../common/base/generator-base.js";
 import Handlebars from "handlebars";
 
-export abstract class EventBaseGenerator {
-    // Helper methods migrated from OrchestrationBase
-    protected capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
-    protected createAggregateNaming(aggregateName: string) {
-        return {
-            original: aggregateName,
-            capitalized: this.capitalize(aggregateName),
-            lower: aggregateName.toLowerCase()
-        };
-    }
-
-    protected generatePackageName(basePackage: string, projectName: string, aggregateName: string, ...subPackages: string[]): string {
+export abstract class EventBaseGenerator extends GeneratorBase {
+    // Event-specific package name generation (preserves original signature for compatibility)
+    protected generateEventPackageName(basePackage: string, projectName: string, aggregateName: string, ...subPackages: string[]): string {
         const microservicePackage = `microservices.${aggregateName.toLowerCase()}`;
         const subPackageString = subPackages.filter(p => p).join('.');
         return `${basePackage}.${projectName.toLowerCase()}.${microservicePackage}.${subPackageString}`;
@@ -42,45 +28,28 @@ export abstract class EventBaseGenerator {
         }));
     }
 
-    protected combineImports(...importArrays: string[][]): string[] {
-        const combined = new Set<string>();
-        importArrays.forEach(arr => arr.forEach(imp => combined.add(imp)));
-        return Array.from(combined).sort();
-    }
+    // Note: combineImports, resolveJavaType, isCollectionType, isEntityType inherited from GeneratorBase
 
-    protected resolveJavaType(type: any): string {
-        return UnifiedTypeResolver.resolve(type);
-    }
-
-    protected isCollectionType(type: any): boolean {
-        return UnifiedTypeResolver.isCollectionType(type);
-    }
-
-    protected isEntityType(type: any): boolean {
-        return UnifiedTypeResolver.isEntityType(type);
-    }
-
-    protected getBasePackage(options: EventGenerationOptions): string {
+    protected getEventBasePackage(options: EventGenerationOptions): string {
         if (!options.basePackage) {
             throw new Error('basePackage is required in EventGenerationOptions');
         }
         return options.basePackage;
     }
 
-    protected loadTemplate(templatePath: string): string {
-        const templateManager = TemplateManager.getInstance();
-        return templateManager.loadRawTemplate(templatePath);
+    protected loadRawTemplate(templatePath: string): string {
+        return this.templateManager.loadRawTemplate(templatePath);
     }
 
-    protected renderTemplate(template: string, context: any): string {
+    protected renderTemplateFromString(template: string, context: any): string {
         const compiledTemplate = Handlebars.compile(template, { noEscape: true });
         return compiledTemplate(context);
     }
     protected createBaseEventContext(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): EventContext {
         const naming = this.createAggregateNaming(aggregate.name);
         const projectName = options?.projectName || 'unknown';
-        const basePackage = this.getBasePackage(options);
-        const packageName = this.generatePackageName(basePackage, projectName, aggregate.name, 'events', 'publish');
+        const basePackage = this.getEventBasePackage(options);
+        const packageName = this.generateEventPackageName(basePackage, projectName, aggregate.name, 'events', 'publish');
 
         return {
             aggregateName: naming.original,

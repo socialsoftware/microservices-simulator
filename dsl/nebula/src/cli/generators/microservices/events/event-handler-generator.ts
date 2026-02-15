@@ -53,7 +53,7 @@ export class EventHandlerGenerator extends EventBaseGenerator {
         });
 
         const projectName = (this as any).projectName?.toLowerCase() || 'unknown';
-        const basePackage = this.getBasePackage(options);
+        const basePackage = this.getEventBasePackage(options);
 
         return simpleSubscriptions.map((sub: any) => {
             const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
@@ -110,7 +110,7 @@ export class EventHandlerGenerator extends EventBaseGenerator {
         const baseImports = this.buildBaseImports(aggregate, options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const projectName = options?.projectName?.toLowerCase() || 'unknown';
-        const basePackage = this.getBasePackage(options);
+        const basePackage = this.getEventBasePackage(options);
 
         const imports = [
             ...baseImports,
@@ -130,12 +130,12 @@ export class EventHandlerGenerator extends EventBaseGenerator {
     }
 
     private async generateEventHandlerBase(context: EventHandlerContext): Promise<string> {
-        const template = this.loadTemplate('events/event-handler-base.hbs');
-        return this.renderTemplate(template, context);
+        const template = this.loadRawTemplate('events/event-handler-base.hbs');
+        return this.renderTemplateFromString(template, context);
     }
 
     private async generateIndividualEventHandler(context: any): Promise<string> {
-        const template = this.loadTemplate('events/individual-event-handler.hbs');
-        return this.renderTemplate(template, context);
+        const template = this.loadRawTemplate('events/individual-event-handler.hbs');
+        return this.renderTemplateFromString(template, context);
     }
 }

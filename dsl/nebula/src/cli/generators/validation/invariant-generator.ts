@@ -308,7 +308,7 @@ export class InvariantGenerator extends ValidationBaseGenerator {
         return `// Aggregate-level validation logic
         // Validate business rules that span multiple properties
         // Example: startDate must be before endDate
-        // TODO: Implement aggregate-specific business rules`;
+        // Note: Aggregate-specific invariants should be defined in DSL invariants block`;
     }
 
     private buildInvariantsImports(aggregate: Aggregate, options: ValidationGenerationOptions, invariants: any[]): string[] {

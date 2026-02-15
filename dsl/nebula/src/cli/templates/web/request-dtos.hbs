@@ -5,23 +5,6 @@ package {{packageName}};
 {{/each}}
 
 {{#each requestDtos}}
-public class {{name}} {
-    {{#each fields}}
-    {{#if required}}@NotNull{{/if}}
-    private {{type}} {{name}};
-    {{/each}}
-
-    public {{name}}() {}
-
-    {{#each fields}}
-    public {{type}} get{{capitalize name}}() {
-        return {{name}};
-    }
-
-    public void set{{capitalize name}}({{type}} {{name}}) {
-        this.{{name}} = {{name}};
-    }
-    {{/each}}
-}
+{{> dto-class name=name fields=fields includeNotNull=true}}
 
 {{/each}}

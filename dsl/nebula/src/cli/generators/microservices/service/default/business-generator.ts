@@ -64,7 +64,7 @@ ${ExceptionGenerator.generateTryCatchWrapper(projectName, `in ${methodName}`, ag
                 `            // Step ${index + 1}: ${step.name}
             ${this.generateWorkflowStep(step, aggregateName)}`
             ).join('\n') :
-            `            // TODO: Implement workflow logic for ${methodName}
+            `            // Workflow logic not yet defined in DSL
             throw new UnsupportedOperationException("Workflow ${methodName} not implemented");`;
 
         const methodBody = workflowSteps + (returnType !== 'void' ? '\n            return result;' : '');

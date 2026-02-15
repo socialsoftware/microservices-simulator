@@ -43,6 +43,7 @@ export class TemplateManager {
         this.config = config;
         this.templateRoot = this.resolveTemplateRoot(config.templateRoot);
         this.registerHandlebarsHelpers();
+        this.registerPartials();
     }
 
     /**
@@ -327,6 +328,37 @@ export class TemplateManager {
         });
 
         this.helpersRegistered = true;
+    }
+
+    private registerPartials(): void {
+        const partialsDir = path.join(this.templateRoot, '_partials');
+
+        if (!fs.existsSync(partialsDir)) {
+            return; // No partials directory
+        }
+
+        try {
+            const partialFiles = fs.readdirSync(partialsDir)
+                .filter(file => file.endsWith('.hbs'));
+
+            partialFiles.forEach(file => {
+                const partialName = file.replace('.hbs', '');
+                const partialPath = path.join(partialsDir, file);
+                const partialTemplate = fs.readFileSync(partialPath, 'utf-8');
+                Handlebars.registerPartial(partialName, partialTemplate);
+            });
+
+            if (partialFiles.length > 0) {
+                console.log(`📦 Registered ${partialFiles.length} Handlebars partial(s)`);
+            }
+        } catch (error) {
+            ErrorHandler.handle(
+                error instanceof Error ? error : new Error(String(error)),
+                ErrorUtils.templateContext('register partials', partialsDir),
+                ErrorSeverity.WARNING,
+                false
+            );
+        }
     }
 }
 

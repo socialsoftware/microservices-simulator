@@ -1,28 +1,23 @@
 import { UnifiedTypeResolver } from "../../common/unified-type-resolver.js";
-import { TemplateManager } from "../../../utils/template-manager.js";
+import { GeneratorBase } from "../../common/base/generator-base.js";
 import { WebApiGenerationOptions } from "../../microservices/types.js";
 import Handlebars from "handlebars";
 
-export abstract class WebApiBaseGenerator {
-    // Helper methods
-    protected capitalize(str: string): string {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
+export abstract class WebApiBaseGenerator extends GeneratorBase {
+    // Note: capitalize inherited from GeneratorBase
 
-    protected getBasePackage(options: WebApiGenerationOptions): string {
+    protected getWebApiBasePackage(options: WebApiGenerationOptions): string {
         if (!options.basePackage) {
             throw new Error('basePackage is required in WebApiGenerationOptions');
         }
         return options.basePackage;
     }
 
-    protected loadTemplate(templatePath: string): string {
-        const templateManager = TemplateManager.getInstance();
-        return templateManager.loadRawTemplate(templatePath);
+    protected loadRawTemplate(templatePath: string): string {
+        return this.templateManager.loadRawTemplate(templatePath);
     }
 
-    protected renderTemplate(template: string, context: any): string {
+    protected renderTemplateFromString(template: string, context: any): string {
         const compiledTemplate = Handlebars.compile(template, { noEscape: true });
         return compiledTemplate(context);
     }

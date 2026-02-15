@@ -130,7 +130,7 @@ export class SagaHelpers {
         }
         // Fallback - try to get a meaningful string
         if (typeof arg === 'object' && arg !== null) {
-            return 'null /* TODO: fix argument */';
+            return 'null /* Unable to resolve argument type */';
         }
         return String(arg);
     }

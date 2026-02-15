@@ -11,7 +11,7 @@ export class ControllerGenerator extends WebApiBaseGenerator {
     async generateController(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions, allAggregates?: Aggregate[]): Promise<string> {
         const context = this.buildControllerContext(aggregate, rootEntity, options, allAggregates);
         const template = this.getControllerTemplate();
-        return this.renderTemplate(template, context);
+        return this.renderTemplateFromString(template, context);
     }
 
     private buildControllerContext(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions, allAggregates?: Aggregate[]): any {
@@ -269,15 +269,15 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         };
 
         const template = this.getEmptyControllerTemplate();
-        return this.renderTemplate(template, context);
+        return this.renderTemplateFromString(template, context);
     }
 
     private getControllerTemplate(): string {
-        return this.loadTemplate('web/controller.hbs');
+        return this.loadRawTemplate('web/controller.hbs');
     }
 
     private getEmptyControllerTemplate(): string {
-        return this.loadTemplate('web/empty-controller.hbs');
+        return this.loadRawTemplate('web/empty-controller.hbs');
     }
 
     private resolveDtoImportPath(dtoType: string, options: WebApiGenerationOptions): string | null {

@@ -93,7 +93,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
     async generateResponseDtos(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions): Promise<string> {
         const context = this.buildResponseDtosContext(aggregate, rootEntity, options);
         const template = this.getResponseDtosTemplate();
-        return this.renderTemplate(template, context);
+        return this.renderTemplateFromString(template, context);
     }
 
     private buildRequestDtosContext(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions, allAggregates?: Aggregate[]): any {
@@ -524,6 +524,6 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
     }
 
     private getResponseDtosTemplate(): string {
-        return this.loadTemplate('web/response-dtos.hbs');
+        return this.loadRawTemplate('web/response-dtos.hbs');
     }
 }

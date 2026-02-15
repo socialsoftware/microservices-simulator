@@ -380,14 +380,14 @@ export class PublishedEventGenerator extends EventBaseGenerator {
     }
 
     private async generateIndividualPublishedEvent(context: any): Promise<string> {
-        const template = this.loadTemplate('events/published-event.hbs');
+        const template = this.loadRawTemplate('events/published-event.hbs');
         const propertyImports: string[] = [];
         const addedImports = new Set<string>();
 
         if (context.event.properties && context.event.properties.length > 0) {
             context.event.properties.forEach((prop: any) => {
                 if (prop.isEntity && prop.type) {
-                    const entityPackage = this.generatePackageName(
+                    const entityPackage = this.generateEventPackageName(
                         context.basePackage || 'unknown',
                         context.projectName || 'unknown',
                         prop.referencedAggregateName || context.aggregateName || 'unknown',
@@ -445,6 +445,6 @@ export class PublishedEventGenerator extends EventBaseGenerator {
             fields: context.event.properties || [],
             imports: propertyImports.length > 0 ? propertyImports.join('\n') : undefined
         };
-        return this.renderTemplate(template, templateContext);
+        return this.renderTemplateFromString(template, templateContext);
     }
 }

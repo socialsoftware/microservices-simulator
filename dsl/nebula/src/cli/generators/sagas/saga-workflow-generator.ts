@@ -155,7 +155,7 @@ ${gettersSetters}
         // Generate a basic placeholder workflow structure
         return `        this.workflow = new SagaWorkflow(this, sagaUnitOfWorkService, unitOfWork);
 
-        // TODO: Implement workflow steps for ${workflowName}
+        // No workflow steps defined in DSL - implement via workflowSteps block
         // Example structure:
         // SagaSyncStep step1 = new SagaSyncStep("step1", () -> {
         //     // Step implementation

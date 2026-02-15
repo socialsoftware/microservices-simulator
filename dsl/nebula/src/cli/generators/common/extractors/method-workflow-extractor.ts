@@ -174,7 +174,7 @@ export class MethodWorkflowExtractor extends TemplateDataBase {
 
     generateGenericMethodBody(method: any, contextName: string): string {
         return `// Implementation for ${method.name}
-        // TODO: Implement method logic
+        // Method logic not defined in DSL
         throw new UnsupportedOperationException("Method not implemented");`;
     }
 

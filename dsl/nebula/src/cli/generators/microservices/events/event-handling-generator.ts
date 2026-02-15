@@ -7,7 +7,7 @@ export class EventHandlingGenerator extends EventBaseGenerator {
     async generateEventHandling(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): Promise<string> {
         const context = this.buildEventHandlingContext(aggregate, rootEntity, options);
         const template = this.getEventHandlingTemplate();
-        return this.renderTemplate(template, context);
+        return this.renderTemplateFromString(template, context);
     }
 
     private buildEventHandlingContext(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): EventContext {
@@ -15,7 +15,7 @@ export class EventHandlingGenerator extends EventBaseGenerator {
         const eventSubscriptions = this.buildEventSubscriptions(aggregate, rootEntity, baseContext.aggregateName, options);
         const imports = this.buildEventHandlingImports(aggregate, options, eventSubscriptions);
         const projectName = options?.projectName?.toLowerCase() || 'unknown';
-        const basePackage = this.getBasePackage(options);
+        const basePackage = this.getEventBasePackage(options);
 
         return {
             ...baseContext,
@@ -50,7 +50,7 @@ export class EventHandlingGenerator extends EventBaseGenerator {
         });
 
         const projectName = (this as any).projectName?.toLowerCase() || 'unknown';
-        const basePackage = this.getBasePackage(options);
+        const basePackage = this.getEventBasePackage(options);
 
         return simpleSubscriptions.map((sub: any) => {
             const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
@@ -105,7 +105,7 @@ export class EventHandlingGenerator extends EventBaseGenerator {
         const baseImports = this.buildBaseImports(aggregate, options);
         const lowerAggregate = aggregate.name.toLowerCase();
         const projectName = options?.projectName?.toLowerCase() || 'unknown';
-        const basePackage = this.getBasePackage(options);
+        const basePackage = this.getEventBasePackage(options);
 
         const imports = [
             ...baseImports,
@@ -124,6 +124,6 @@ export class EventHandlingGenerator extends EventBaseGenerator {
     }
 
     private getEventHandlingTemplate(): string {
-        return this.loadTemplate('events/event-handling.hbs');
+        return this.loadRawTemplate('events/event-handling.hbs');
     }
 }
