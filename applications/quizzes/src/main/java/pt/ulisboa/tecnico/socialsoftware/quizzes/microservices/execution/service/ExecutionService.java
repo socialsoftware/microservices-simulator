@@ -53,7 +53,6 @@ public class ExecutionService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public CourseExecutionDto createCourseExecution(CourseExecutionDto courseExecutionDto, UnitOfWork unitOfWork) {
-//        CourseExecutionCourse courseExecutionCourse = new CourseExecutionCourse(courseService.getAndOrCreateCourseRemote(courseExecutionDto, unitOfWork));
         CourseExecutionCourse courseExecutionCourse = new CourseExecutionCourse(courseExecutionDto);
 
         Execution execution = courseExecutionFactory.createCourseExecution(aggregateIdGeneratorService.getNewAggregateId(), courseExecutionDto, courseExecutionCourse);
