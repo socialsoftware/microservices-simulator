@@ -264,6 +264,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      jaeger:
+        condition: service_started
       answer-service:
         condition: service_healthy
       course-service:
