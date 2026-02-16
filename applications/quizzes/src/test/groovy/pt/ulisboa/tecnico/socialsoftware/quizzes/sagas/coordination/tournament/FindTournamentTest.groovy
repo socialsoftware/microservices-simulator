@@ -1,9 +1,10 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
@@ -13,17 +14,14 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.T
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.functionalities.UserFunctionalities
 
 @DataJpaTest
-class LeaveTournamentTest extends QuizzesSpockTest {
+class FindTournamentTest extends QuizzesSpockTest {
     @Autowired
     private SagaUnitOfWorkService unitOfWorkService
 
     @Autowired
     private ExecutionFunctionalities courseExecutionFunctionalities
-    @Autowired
-    private UserFunctionalities userFunctionalities
     @Autowired
     private TournamentFunctionalities tournamentFunctionalities
 
@@ -63,23 +61,14 @@ class LeaveTournamentTest extends QuizzesSpockTest {
 
     }
 
-    def "leave tournament successfully"() {
-        given:
-        def userToLeaveDto = new UserDto()
-        userToLeaveDto.setName('TestUser')
-        userToLeaveDto.setUsername('TestUsername')
-        userToLeaveDto.setRole('STUDENT')
-        userToLeaveDto = userFunctionalities.createUser(userToLeaveDto)
-        userFunctionalities.activateUser(userToLeaveDto.aggregateId)
-        courseExecutionFunctionalities.addStudent(courseExecutionDto.aggregateId, userToLeaveDto.aggregateId)
-        tournamentFunctionalities.addParticipant(tournamentDto.aggregateId, courseExecutionDto.getAggregateId(), userToLeaveDto.aggregateId)
-
+    def "find tournament successfully"() {
         when:
-        tournamentFunctionalities.leaveTournament(tournamentDto.aggregateId, userToLeaveDto.aggregateId)
+        def foundTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
 
         then:
-        def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
-        !updatedTournament.participants.any { it.aggregateId == userToLeaveDto.aggregateId }
+        foundTournament.getStartTime() == DateHandler.toISOString(TIME_1)
+        foundTournament.getEndTime() == DateHandler.toISOString(TIME_3)
+        foundTournament.getNumberOfQuestions() == 2
     }
 
     @TestConfiguration

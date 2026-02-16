@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
@@ -13,14 +13,17 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.T
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.functionalities.UserFunctionalities
 
 @DataJpaTest
-class CancelTournamentTest extends QuizzesSpockTest {
+class LeaveTournamentTest extends QuizzesSpockTest {
     @Autowired
     private SagaUnitOfWorkService unitOfWorkService
 
     @Autowired
     private ExecutionFunctionalities courseExecutionFunctionalities
+    @Autowired
+    private UserFunctionalities userFunctionalities
     @Autowired
     private TournamentFunctionalities tournamentFunctionalities
 
@@ -59,14 +62,24 @@ class CancelTournamentTest extends QuizzesSpockTest {
     def cleanup() {
 
     }
-    
-    def "cancel tournament successfully"() {
+
+    def "leave tournament successfully"() {
+        given:
+        def userToLeaveDto = new UserDto()
+        userToLeaveDto.setName('TestUser')
+        userToLeaveDto.setUsername('TestUsername')
+        userToLeaveDto.setRole('STUDENT')
+        userToLeaveDto = userFunctionalities.createUser(userToLeaveDto)
+        userFunctionalities.activateUser(userToLeaveDto.aggregateId)
+        courseExecutionFunctionalities.addStudent(courseExecutionDto.aggregateId, userToLeaveDto.aggregateId)
+        tournamentFunctionalities.addParticipant(tournamentDto.aggregateId, courseExecutionDto.getAggregateId(), userToLeaveDto.aggregateId)
+
         when:
-        tournamentFunctionalities.cancelTournament(tournamentDto.aggregateId)
+        tournamentFunctionalities.leaveTournament(tournamentDto.aggregateId, userToLeaveDto.aggregateId)
 
         then:
-        def canceledTournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
-        canceledTournament.isCancelled() == true
+        def updatedTournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        !updatedTournament.participants.any { it.aggregateId == userToLeaveDto.aggregateId }
     }
 
     @TestConfiguration
