@@ -1,24 +1,21 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 
 @DataJpaTest
-class RemoveTournamentTest extends QuizzesSpockTest {
+class CancelTournamentTest extends QuizzesSpockTest {
     @Autowired
     private SagaUnitOfWorkService unitOfWorkService
 
@@ -26,8 +23,6 @@ class RemoveTournamentTest extends QuizzesSpockTest {
     private ExecutionFunctionalities courseExecutionFunctionalities
     @Autowired
     private TournamentFunctionalities tournamentFunctionalities
-    @Autowired
-    private QuizFunctionalities quizFunctionalities
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
@@ -61,23 +56,17 @@ class RemoveTournamentTest extends QuizzesSpockTest {
         tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(),  courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(),topicDto2.getAggregateId()])
     }
 
-    def cleanup() {}
+    def cleanup() {
 
-    def "remove tournament successfully"() {
-        given: 'tournament is deleted'
-        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
+    }
+    
+    def "cancel tournament successfully"() {
+        when:
+        tournamentFunctionalities.cancelTournament(tournamentDto.aggregateId)
 
-        when: 'find the tournament'
-        tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
-        then: 'the tournament is removed, not found'
-        def error = thrown(SimulatorException)
-        error.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
-
-        when: 'find quiz'
-        quizFunctionalities.findQuiz(tournamentDto.getQuiz().aggregateId)
-        then: 'the quiz is removed, not found'
-        def error1 = thrown(SimulatorException)
-        error1.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
+        then:
+        def canceledTournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        canceledTournament.isCancelled() == true
     }
 
     @TestConfiguration

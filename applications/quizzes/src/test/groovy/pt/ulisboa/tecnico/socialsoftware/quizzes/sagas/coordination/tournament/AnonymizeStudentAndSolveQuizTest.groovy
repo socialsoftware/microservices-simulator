@@ -1,29 +1,36 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 
 @DataJpaTest
-class FindTournamentTest extends QuizzesSpockTest {
+class AnonymizeStudentAndSolveQuizTest extends QuizzesSpockTest {
     @Autowired
     private SagaUnitOfWorkService unitOfWorkService
+
+    @Autowired
+    private QuizAnswerService quizAnswerService
 
     @Autowired
     private ExecutionFunctionalities courseExecutionFunctionalities
     @Autowired
     private TournamentFunctionalities tournamentFunctionalities
+
+    @Autowired
+    private TournamentEventHandling tournamentEventHandling
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
@@ -61,14 +68,24 @@ class FindTournamentTest extends QuizzesSpockTest {
 
     }
 
-    def "find tournament successfully"() {
-        when:
-        def foundTournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+    def 'sequential solve quiz and anonymize user'() {
+        
+        given: 'a quiz is solved for a user'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
+        tournamentFunctionalities.solveQuiz(tournamentDto.aggregateId, userDto.getAggregateId())
 
-        then:
-        foundTournament.getStartTime() == DateHandler.toISOString(TIME_1)
-        foundTournament.getEndTime() == DateHandler.toISOString(TIME_3)
-        foundTournament.getNumberOfQuestions() == 2
+        when: 'the user is anonymized after starting the quiz'
+        courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.getAggregateId(), userDto.getAggregateId())
+        tournamentEventHandling.handleAnonymizeStudentEvents()
+
+        then: 'the user is anonymized in the course execution'
+        def courseExecutionResult = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        courseExecutionResult.getStudents().find{ it.aggregateId == userDto.getAggregateId() }.name == ANONYMOUS
+
+        and: 'the quiz is still started for the anonymized user'
+        def unitOfWork = unitOfWorkService.createUnitOfWork("getQuizAnswerDtoByQuizIdAndUserId")
+        def quizAnswerResult = quizAnswerService.getQuizAnswerDtoByQuizIdAndUserId(tournamentDto.quiz.aggregateId, userDto.getAggregateId(), unitOfWork)
+        quizAnswerResult.getStudentName() == userDto.getName()
     }
 
     @TestConfiguration
