@@ -45,7 +45,6 @@ public class CourseCommandHandler extends CommandHandler {
         return courseService.getCourseById(command.getAggregateId(), command.getUnitOfWork());
     }
 
-    // TODO: cleanup
     private Object handleGetAndOrCreateCourseRemote(GetAndOrCreateCourseRemoteCommand command) {
         logger.info("Getting or creating course by ID: " + command.getCourseExecutionDto().getAggregateId());
         return courseService.getAndOrCreateCourseRemote(command.getCourseExecutionDto(), command.getUnitOfWork());
