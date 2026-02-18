@@ -3,12 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.SagaCourseExecution
@@ -25,17 +27,20 @@ class CreateCourseExecutionTest extends QuizzesSpockTest {
     @Autowired
     private CourseExecutionFunctionalities courseExecutionFunctionalities
 
+    @Autowired
+    private CourseRepository courseRepository
+
     private CourseExecutionDto courseExecutionDto
 
     def setup() {
-        given: 'a course execution'
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
     }
 
     def cleanup() {
-
+        behaviourService.cleanUpCounter()
+        behaviourService.cleanDirectory()
     }
-    
+
     def "create course execution successfully"() {
         when:
         def result = courseExecutionFunctionalities.createCourseExecution(new CourseExecutionDto(
@@ -53,10 +58,10 @@ class CreateCourseExecutionTest extends QuizzesSpockTest {
         result.acronym == 'NEW_' + COURSE_EXECUTION_ACRONYM
         result.academicTerm == COURSE_EXECUTION_ACADEMIC_TERM
         LocalDateTime.parse(result.endDate, DateTimeFormatter.ISO_DATE_TIME) == TIME_4
-        
-        def unitOfWork = unitOfWorkService.createUnitOfWork("TEST");
+
+        def unitOfWork = unitOfWorkService.createUnitOfWork("TEST")
         def courseExecution = (SagaCourseExecution) unitOfWorkService.aggregateLoadAndRegisterRead(result.getAggregateId(), unitOfWork)
-        courseExecution.sagaState == GenericSagaState.NOT_IN_SAGA;
+        courseExecution.sagaState == GenericSagaState.NOT_IN_SAGA
     }
 
     def "create course execution with invalid input"() {
@@ -73,32 +78,56 @@ class CreateCourseExecutionTest extends QuizzesSpockTest {
         thrown(QuizzesException)
     }
 
-    def "saga compensations"() {
-        given: 'behavior to make course execution creation fail'
+    def "saga compensation deletes newly created course when createCourseExecutionStep fails"() {
+        given: 'load behavior to inject a fault on createCourseExecutionStep'
         loadBehaviorScripts()
-        
-        and: 'a course execution dto'
+
+        and: 'a dto with a brand-new course name (course does not exist yet)'
         def newCourseExecutionDto = new CourseExecutionDto(
-            name: 'SAGA_TEST_NAME',
+            name: 'BRAND_NEW_COURSE',
             type: COURSE_EXECUTION_TYPE,
-            acronym: 'SAGA_TEST',
+            acronym: 'NEW_SAGA_TEST',
             academicTerm: COURSE_EXECUTION_ACADEMIC_TERM,
             endDate: DateHandler.toISOString(TIME_4)
         )
 
-        when: 'creating course execution that will fail in the second step'
-        def result = courseExecutionFunctionalities.createCourseExecution(newCourseExecutionDto)
+        when: 'creating course execution that will fail in step 3'
+        courseExecutionFunctionalities.createCourseExecution(newCourseExecutionDto)
 
         then: 'the injected fault is thrown'
-        def error = thrown(SimulatorException)
-        error.errorMessage.contains("Fault on createCourseExecutionStep")
-        
-        and: 'the course execution was never created'
-        when:
-        courseExecutionFunctionalities.getCourseExecutionByAggregateId(result?.getAggregateId() ?: 999)
-        
-        then: 'it should not be found'
         thrown(SimulatorException)
+
+        and: 'the newly created course was compensated (deleted or not persisted)'
+        def createdCourse = courseRepository.findAll().find { it.getName() == 'BRAND_NEW_COURSE' }
+        createdCourse == null || createdCourse.getState() == Aggregate.AggregateState.DELETED
+    }
+
+    def "saga compensation preserves pre-existing course when createCourseExecutionStep fails"() {
+        given: 'load behavior to inject a fault on createCourseExecutionStep'
+        loadBehaviorScripts()
+
+        and: 'find the existing course before the saga'
+        def existingCourse = courseRepository.findAll().find { it.getName() == COURSE_EXECUTION_NAME }
+
+        and: 'a dto reusing the existing course name'
+        def newCourseExecutionDto = new CourseExecutionDto(
+            name: COURSE_EXECUTION_NAME,
+            type: COURSE_EXECUTION_TYPE,
+            acronym: 'REUSE_SAGA_TEST',
+            academicTerm: COURSE_EXECUTION_ACADEMIC_TERM,
+            endDate: DateHandler.toISOString(TIME_4)
+        )
+
+        when: 'creating course execution that will fail in step 3'
+        courseExecutionFunctionalities.createCourseExecution(newCourseExecutionDto)
+
+        then: 'the injected fault is thrown'
+        thrown(SimulatorException)
+
+        and: 'the pre-existing course is untouched (not deleted)'
+        def courseAfterSaga = courseRepository.findAll().find { it.getName() == COURSE_EXECUTION_NAME && it.getId() == existingCourse.getId() }
+        courseAfterSaga != null
+        courseAfterSaga.getState() == Aggregate.AggregateState.ACTIVE
     }
 
     @TestConfiguration

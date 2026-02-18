@@ -1,3 +1,4 @@
 run
-getAndOrCreateCourseRemote,0,0,0
+getCourseStep,0,0,0
+createCourseStep,0,0,0
 createCourseExecutionStep,1,0,0
