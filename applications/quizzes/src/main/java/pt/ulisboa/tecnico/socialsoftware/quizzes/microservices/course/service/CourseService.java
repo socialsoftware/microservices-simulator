@@ -36,7 +36,6 @@ public class CourseService {
                 (Course) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWorkWorkService));
     }
 
-    // TODO: remove this method and its branches
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public CourseExecutionDto getAndOrCreateCourseRemote(CourseExecutionDto courseExecutionDto, UnitOfWork unitOfWork) {
         Course course = getCourseByName(courseExecutionDto.getName(), unitOfWork);
