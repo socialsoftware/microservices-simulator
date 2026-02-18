@@ -1,4 +1,8 @@
 run
 getCourseStep,0,0,0
 createCourseStep,0,0,0
+createCourseExecutionStep,0,0,0
+run
+getCourseStep,0,0,0
+createCourseStep,0,0,0
 createCourseExecutionStep,1,0,0
