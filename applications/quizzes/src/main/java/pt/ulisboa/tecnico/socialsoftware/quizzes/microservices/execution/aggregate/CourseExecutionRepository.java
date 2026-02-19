@@ -23,4 +23,7 @@ public interface CourseExecutionRepository extends JpaRepository<Execution, Inte
     default Optional<Execution> findLatestCourseExecution() {
         return findTopByOrderByVersionDesc();
     }
+
+    @Query("SELECT e.aggregateId FROM Execution e")
+    Set<Integer> findAllAggregateIds();
 }

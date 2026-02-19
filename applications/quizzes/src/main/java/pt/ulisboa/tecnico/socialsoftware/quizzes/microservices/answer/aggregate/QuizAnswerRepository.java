@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 @Transactional
@@ -22,4 +23,7 @@ public interface QuizAnswerRepository extends JpaRepository<QuizAnswer, Integer>
     default Optional<QuizAnswer> findLatestQuizAnswer() {
         return findTopByOrderByVersionDesc();
     }
+
+    @Query("SELECT a.aggregateId FROM QuizAnswer a")
+    Set<Integer> findAllAggregateIds();
 }

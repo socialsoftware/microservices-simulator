@@ -18,7 +18,7 @@ public abstract class TournamentEventHandler extends EventHandler {
     }
 
     public Set<Integer> getAggregateIds() {
-        return tournamentRepository.findAll().stream().map(Tournament::getAggregateId).collect(Collectors.toSet());
+        return tournamentRepository.findAllAggregateIds();
     }
 
 }

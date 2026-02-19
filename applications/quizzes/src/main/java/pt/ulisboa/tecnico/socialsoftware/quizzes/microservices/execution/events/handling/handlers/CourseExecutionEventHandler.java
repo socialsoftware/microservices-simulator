@@ -18,7 +18,7 @@ public abstract class CourseExecutionEventHandler extends EventHandler {
     }
 
     public Set<Integer> getAggregateIds() {
-        return courseExecutionRepository.findAll().stream().map(Execution::getAggregateId).collect(Collectors.toSet());
+        return courseExecutionRepository.findAllAggregateIds();
     }
 
 }
