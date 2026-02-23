@@ -83,7 +83,7 @@ export class FunctionalitiesGenerator {
         const allAggregates = entityRegistry.getAllAggregates();
 
         const dependencies = this.buildDependencies(aggregate, options, rootEntity, allAggregates);
-        const businessMethods = this.buildBusinessMethods(aggregate, rootEntity, capitalizedAggregate, entityRegistry, consistencyModels, allAggregates);
+        const businessMethods = this.buildBusinessMethods(aggregate, rootEntity, capitalizedAggregate, entityRegistry, consistencyModels, allAggregates, options.projectName);
         const checkInputMethod = this.buildCheckInputMethod(aggregate, rootEntity, capitalizedAggregate, lowerAggregate, options.projectName);
         const imports = this.importsBuilder.buildImports(aggregate, rootEntity, options, dependencies, entityRegistry, businessMethods);
 
@@ -144,14 +144,14 @@ export class FunctionalitiesGenerator {
 
     
 
-    private buildBusinessMethods(aggregate: AggregateExt, rootEntity: EntityExt, aggregateName: string, entityRegistry: EntityRegistry, consistencyModels: string[], allAggregates?: AggregateExt[]): any[] {
+    private buildBusinessMethods(aggregate: AggregateExt, rootEntity: EntityExt, aggregateName: string, entityRegistry: EntityRegistry, consistencyModels: string[], allAggregates?: AggregateExt[], projectName?: string): any[] {
         const methods: any[] = [];
         const addedMethods = new Set<string>();
         const lowerAggregate = aggregateName.toLowerCase();
 
         
         if (aggregate.generateCrud) {
-            const crudMethods = this.crudGenerator.generateCrudMethods(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates);
+            const crudMethods = this.crudGenerator.generateCrudMethods(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates, projectName);
             crudMethods.forEach(method => {
                 const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
                 if (!addedMethods.has(methodSignature)) {
@@ -161,7 +161,7 @@ export class FunctionalitiesGenerator {
             });
 
             
-            const collectionMethods = this.collectionGenerator.generateCollectionMethods(aggregateName, lowerAggregate, rootEntity, aggregate);
+            const collectionMethods = this.collectionGenerator.generateCollectionMethods(aggregateName, lowerAggregate, rootEntity, aggregate, projectName);
             collectionMethods.forEach(method => {
                 const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
                 if (!addedMethods.has(methodSignature)) {
@@ -186,7 +186,7 @@ export class FunctionalitiesGenerator {
                         name: endpoint.methodName,
                         returnType: returnType,
                         parameters: params,
-                        body: this.methodGenerator.generateWebApiMethodBody(endpoint, returnType, aggregateName, consistencyModels),
+                        body: this.methodGenerator.generateWebApiMethodBody(endpoint, returnType, aggregateName, consistencyModels, projectName),
                         throwsException: endpoint.throwsException === 'true'
                     });
                     addedMethods.add(methodSignature);
@@ -206,7 +206,7 @@ export class FunctionalitiesGenerator {
                         name: func.name,
                         returnType,
                         parameters: params,
-                        body: this.methodGenerator.generateFunctionalityMethodBody(func, returnType, aggregateName),
+                        body: this.methodGenerator.generateFunctionalityMethodBody(func, returnType, aggregateName, projectName),
                         throwsException: false
                     });
                     addedMethods.add(methodSignature);

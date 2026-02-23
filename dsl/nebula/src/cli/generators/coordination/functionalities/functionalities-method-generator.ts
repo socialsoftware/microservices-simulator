@@ -8,7 +8,7 @@ export class FunctionalitiesMethodGenerator {
 
     
 
-    generateWebApiMethodBody(endpoint: any, returnType: string, aggregateName: string, consistencyModels: string[]): string {
+    generateWebApiMethodBody(endpoint: any, returnType: string, aggregateName: string, consistencyModels: string[], projectName?: string): string {
         const methodName = endpoint.methodName;
         const capitalizedMethodName = StringUtils.capitalize(methodName);
         const lowerAggregateName = aggregateName.toLowerCase();
@@ -24,17 +24,18 @@ export class FunctionalitiesMethodGenerator {
                 ${methodName}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 ${sagaCall}`;
 
+        const exceptionClass = `${StringUtils.capitalize(projectName || 'answers')}Exception`;
         return `String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
 ${cases}
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new ${exceptionClass}(UNDEFINED_TRANSACTIONAL_MODEL);
         }`;
     }
 
     
 
-    generateFunctionalityMethodBody(func: any, returnType: string, aggregateName: string): string {
+    generateFunctionalityMethodBody(func: any, returnType: string, aggregateName: string, projectName?: string): string {
         const methodName = func.name;
         const capitalizedMethodName = StringUtils.capitalize(methodName);
         const lowerAggregateName = aggregateName.toLowerCase();
@@ -50,7 +51,7 @@ ${cases}
                 ${methodName}FunctionalitySagas.buildWorkflow(${paramNames});
                 ${methodName}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 ${returnType !== 'void' ? `return ${methodName}FunctionalitySagas.getResult();` : ''}
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new ${StringUtils.capitalize(projectName || 'answers')}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
         }`;
     }
 

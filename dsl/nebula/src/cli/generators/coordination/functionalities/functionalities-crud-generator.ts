@@ -3,7 +3,7 @@ import { StringUtils } from '../../../utils/string-utils.js';
 import { CrudHelpers } from '../../common/crud-helpers.js';
 
 export class FunctionalitiesCrudGenerator {
-    generateCrudMethods(aggregateName: string, lowerAggregate: string, rootEntity: Entity, aggregate: Aggregate, allAggregates?: Aggregate[]): any[] {
+    generateCrudMethods(aggregateName: string, lowerAggregate: string, rootEntity: Entity, aggregate: Aggregate, allAggregates?: Aggregate[], projectName?: string): any[] {
         const dtoType = `${aggregateName}Dto`;
         const createRequestDtoType = `Create${aggregateName}RequestDto`;
         const methods: any[] = [];
@@ -24,7 +24,7 @@ export class FunctionalitiesCrudGenerator {
             name: `create${aggregateName}`,
             returnType: dtoType,
             parameters: createParameters,
-            body: this.generateCrudMethodBody('create', aggregateName, lowerAggregate, dtoType, createParamNames, [], crossAggregateRefs),
+            body: this.generateCrudMethodBody('create', aggregateName, lowerAggregate, dtoType, createParamNames, [], crossAggregateRefs, projectName),
             throwsException: false
         });
 
@@ -32,7 +32,7 @@ export class FunctionalitiesCrudGenerator {
             name: `get${aggregateName}ById`,
             returnType: dtoType,
             parameters: [{ type: 'Integer', name: `${lowerAggregate}AggregateId` }],
-            body: this.generateCrudMethodBody('getById', aggregateName, lowerAggregate, dtoType, [`${lowerAggregate}AggregateId`]),
+            body: this.generateCrudMethodBody('getById', aggregateName, lowerAggregate, dtoType, [`${lowerAggregate}AggregateId`], [], undefined, projectName),
             throwsException: false
         });
 
@@ -42,7 +42,7 @@ export class FunctionalitiesCrudGenerator {
             parameters: [
                 { type: dtoType, name: `${lowerAggregate}Dto` }
             ],
-            body: this.generateCrudMethodBody('update', aggregateName, lowerAggregate, dtoType, [`${lowerAggregate}Dto`]),
+            body: this.generateCrudMethodBody('update', aggregateName, lowerAggregate, dtoType, [`${lowerAggregate}Dto`], [], undefined, projectName),
             throwsException: false
         });
 
@@ -50,7 +50,7 @@ export class FunctionalitiesCrudGenerator {
             name: `delete${aggregateName}`,
             returnType: 'void',
             parameters: [{ type: 'Integer', name: `${lowerAggregate}AggregateId` }],
-            body: this.generateCrudMethodBody('delete', aggregateName, lowerAggregate, 'void', [`${lowerAggregate}AggregateId`]),
+            body: this.generateCrudMethodBody('delete', aggregateName, lowerAggregate, 'void', [`${lowerAggregate}AggregateId`], [], undefined, projectName),
             throwsException: false
         });
 
@@ -59,7 +59,7 @@ export class FunctionalitiesCrudGenerator {
             name: `getAll${aggregateName}s`,
             returnType: `List<${dtoType}>`,
             parameters: [],
-            body: this.generateCrudMethodBody('getAll', aggregateName, lowerAggregate, `List<${dtoType}>`, []),
+            body: this.generateCrudMethodBody('getAll', aggregateName, lowerAggregate, `List<${dtoType}>`, [], [], undefined, projectName),
             throwsException: false
         });
 
@@ -119,7 +119,7 @@ export class FunctionalitiesCrudGenerator {
 
 
 
-    private generateCrudMethodBody(operation: string, aggregateName: string, lowerAggregate: string, returnType: string, paramNames: string[], crossAggregateServices: Array<{ serviceName: string; aggregateName: string }> = [], crossAggregateRefs?: Array<{ entityType: string; paramName: string; relatedAggregate: string; relatedDtoType: string; isCollection: boolean }>): string {
+    private generateCrudMethodBody(operation: string, aggregateName: string, lowerAggregate: string, returnType: string, paramNames: string[], crossAggregateServices: Array<{ serviceName: string; aggregateName: string }> = [], crossAggregateRefs?: Array<{ entityType: string; paramName: string; relatedAggregate: string; relatedDtoType: string; isCollection: boolean }>, projectName?: string): string {
         const capitalizedMethodName = StringUtils.capitalize(operation === 'getById' ? `get${aggregateName}ById` : operation === 'getAll' ? `getAll${aggregateName}s` : `${operation}${aggregateName}`);
         const methodName = operation === 'getById' ? `get${aggregateName}ById` : operation === 'getAll' ? `getAll${aggregateName}s` : `${operation}${aggregateName}`;
         const uncapitalizedMethodName = methodName.charAt(0).toLowerCase() + methodName.slice(1);
@@ -170,7 +170,7 @@ export class FunctionalitiesCrudGenerator {
                         ${sagaParamsString});
                 ${uncapitalizedMethodName}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 ${sagaReturn}
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new ${StringUtils.capitalize(projectName || 'answers')}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
         }`;
     }
 }

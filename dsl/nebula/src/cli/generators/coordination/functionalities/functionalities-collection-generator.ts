@@ -18,13 +18,14 @@ export class FunctionalitiesCollectionGenerator {
         aggregateName: string,
         lowerAggregate: string,
         rootEntity: Entity,
-        aggregate: Aggregate
+        aggregate: Aggregate,
+        projectName?: string
     ): CollectionFunctionalityMethod[] {
         const methods: CollectionFunctionalityMethod[] = [];
         const collections = CollectionMetadataBuilder.extractCollections(aggregate, rootEntity);
 
         for (const collection of collections) {
-            methods.push(...this.generateMethodsForCollection(collection, aggregateName, lowerAggregate));
+            methods.push(...this.generateMethodsForCollection(collection, aggregateName, lowerAggregate, projectName));
         }
 
         return methods;
@@ -35,14 +36,15 @@ export class FunctionalitiesCollectionGenerator {
     private generateMethodsForCollection(
         collection: CollectionMetadata,
         aggregateName: string,
-        lowerAggregate: string
+        lowerAggregate: string,
+        projectName?: string
     ): CollectionFunctionalityMethod[] {
         return [
-            this.generateAddMethod(collection, aggregateName, lowerAggregate),
-            this.generateAddBatchMethod(collection, aggregateName, lowerAggregate),
-            this.generateGetMethod(collection, aggregateName, lowerAggregate),
-            this.generateUpdateMethod(collection, aggregateName, lowerAggregate),
-            this.generateRemoveMethod(collection, aggregateName, lowerAggregate)
+            this.generateAddMethod(collection, aggregateName, lowerAggregate, projectName),
+            this.generateAddBatchMethod(collection, aggregateName, lowerAggregate, projectName),
+            this.generateGetMethod(collection, aggregateName, lowerAggregate, projectName),
+            this.generateUpdateMethod(collection, aggregateName, lowerAggregate, projectName),
+            this.generateRemoveMethod(collection, aggregateName, lowerAggregate, projectName)
         ];
     }
 
@@ -51,7 +53,8 @@ export class FunctionalitiesCollectionGenerator {
     private generateAddMethod(
         collection: CollectionMetadata,
         aggregateName: string,
-        lowerAggregate: string
+        lowerAggregate: string,
+        projectName?: string
     ): CollectionFunctionalityMethod {
         const methodName = `add${aggregateName}${collection.capitalizedSingular}`;
         const sagaClassName = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
@@ -73,7 +76,7 @@ export class FunctionalitiesCollectionGenerator {
                         ${lowerAggregate}Id, ${collection.identifierField}, ${collection.singularName}Dto);
                 ${uncapitalizedMethod}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return ${uncapitalizedMethod}FunctionalitySagas.getAdded${collection.capitalizedSingular}Dto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new ${StringUtils.capitalize(projectName || 'answers')}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
         }`;
 
         return {
@@ -86,12 +89,13 @@ export class FunctionalitiesCollectionGenerator {
         };
     }
 
-    
+
 
     private generateAddBatchMethod(
         collection: CollectionMetadata,
         aggregateName: string,
-        lowerAggregate: string
+        lowerAggregate: string,
+        projectName?: string
     ): CollectionFunctionalityMethod {
         const methodName = `add${aggregateName}${collection.capitalizedSingular}s`;
         const sagaClassName = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
@@ -112,7 +116,7 @@ export class FunctionalitiesCollectionGenerator {
                         ${lowerAggregate}Id, ${collection.singularName}Dtos);
                 ${uncapitalizedMethod}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return ${uncapitalizedMethod}FunctionalitySagas.getAdded${collection.capitalizedSingular}Dtos();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new ${StringUtils.capitalize(projectName || 'answers')}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
         }`;
 
         return {
@@ -125,12 +129,13 @@ export class FunctionalitiesCollectionGenerator {
         };
     }
 
-    
+
 
     private generateGetMethod(
         collection: CollectionMetadata,
         aggregateName: string,
-        lowerAggregate: string
+        lowerAggregate: string,
+        projectName?: string
     ): CollectionFunctionalityMethod {
         const methodName = `get${aggregateName}${collection.capitalizedSingular}`;
         const sagaClassName = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
@@ -151,7 +156,7 @@ export class FunctionalitiesCollectionGenerator {
                         ${lowerAggregate}Id, ${collection.identifierField});
                 ${uncapitalizedMethod}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return ${uncapitalizedMethod}FunctionalitySagas.get${collection.capitalizedSingular}Dto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new ${StringUtils.capitalize(projectName || 'answers')}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
         }`;
 
         return {
@@ -164,12 +169,13 @@ export class FunctionalitiesCollectionGenerator {
         };
     }
 
-    
+
 
     private generateUpdateMethod(
         collection: CollectionMetadata,
         aggregateName: string,
-        lowerAggregate: string
+        lowerAggregate: string,
+        projectName?: string
     ): CollectionFunctionalityMethod {
         const methodName = `update${aggregateName}${collection.capitalizedSingular}`;
         const sagaClassName = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
@@ -191,7 +197,7 @@ export class FunctionalitiesCollectionGenerator {
                         ${lowerAggregate}Id, ${collection.identifierField}, ${collection.singularName}Dto);
                 ${uncapitalizedMethod}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return ${uncapitalizedMethod}FunctionalitySagas.getUpdated${collection.capitalizedSingular}Dto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new ${StringUtils.capitalize(projectName || 'answers')}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
         }`;
 
         return {
@@ -204,12 +210,13 @@ export class FunctionalitiesCollectionGenerator {
         };
     }
 
-    
+
 
     private generateRemoveMethod(
         collection: CollectionMetadata,
         aggregateName: string,
-        lowerAggregate: string
+        lowerAggregate: string,
+        projectName?: string
     ): CollectionFunctionalityMethod {
         const methodName = `remove${aggregateName}${collection.capitalizedSingular}`;
         const sagaClassName = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
@@ -230,7 +237,7 @@ export class FunctionalitiesCollectionGenerator {
                         ${lowerAggregate}Id, ${collection.identifierField});
                 ${uncapitalizedMethod}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new ${StringUtils.capitalize(projectName || 'answers')}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
         }`;
 
         return {

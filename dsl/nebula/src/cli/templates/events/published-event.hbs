@@ -16,12 +16,18 @@ public class {{eventName}} extends Event {
         super();
     }
 
-    public {{eventName}}(Integer aggregateId{{#if fields}}, {{#each fields}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}) {
+    public {{eventName}}(Integer aggregateId) {
+        super(aggregateId);
+    }
+
+{{#if fields}}
+    public {{eventName}}(Integer aggregateId, {{#each fields}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
         super(aggregateId);
 {{#each fields}}
         set{{capitalizedName}}({{name}});
 {{/each}}
     }
+{{/if}}
 
 {{#each fields}}
     public {{type}} get{{capitalizedName}}() {
