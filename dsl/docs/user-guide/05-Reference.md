@@ -18,13 +18,13 @@ Complete grammar syntax reference and CLI reference for the Nebula DSL.
 | `-v, --verbose` | Enable verbose logging |
 | `--no-validate` | Skip validation during generation |
 
-The project name is automatically derived from the abstractions folder name (e.g., `../docs/examples/abstractions/tutorial/` produces project name `tutorial`).
+The project name is automatically derived from the abstractions folder name (e.g., `../docs/examples/abstractions/06-tutorial/` produces project name `tutorial`).
 
 ### Examples
 
 ```bash
-./bin/cli.js generate ../docs/examples/abstractions/tutorial/ -o ../docs/examples/generated
-./bin/cli.js generate ../docs/examples/abstractions/tutorial/ -o ./output
+./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ../docs/examples/generated
+./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ./output
 ./bin/cli.js generate ../abstractions/answers/ -o ../../applications/answers
 ./bin/cli.js generate ../abstractions/answers/ --debug --verbose
 ```

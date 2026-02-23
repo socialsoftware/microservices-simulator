@@ -50,7 +50,7 @@ Nebula reads `.nebula` files from an abstractions directory. Each file typically
 
 ```
 dsl/docs/examples/abstractions/
-└── tutorial/             # Tutorial project (3 aggregates) -- start here
+└── 06-tutorial/          # Tutorial project (3 aggregates) -- start here
     ├── shared-enums.nebula
     ├── member.nebula
     ├── book.nebula
@@ -83,12 +83,12 @@ Generate Spring Boot code from an abstractions directory. Let's start with the t
 
 ```bash
 cd dsl/nebula
-./bin/cli.js generate ../docs/examples/abstractions/tutorial/ -o ../docs/examples/generated
+./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ../docs/examples/generated
 ```
 
 Expected output:
 ```
-Starting generation for: ../docs/examples/abstractions/tutorial/
+Starting generation for: ../docs/examples/abstractions/06-tutorial/
 Found 4 Nebula files
 Validating DSL files... OK
 
@@ -100,17 +100,17 @@ Generating code...
 Generated project files (integration, pom.xml, .gitignore, 1 shared enum)
 
 Code generation completed successfully!
-Output: ../docs/examples/generated/tutorial
+Output: ../docs/examples/generated/06-tutorial
 ```
 
 ### CLI Options
 
 ```bash
 # Generate tutorial to examples directory
-./bin/cli.js generate ../docs/examples/abstractions/tutorial/ -o ../docs/examples/generated
+./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ../docs/examples/generated
 
 # Generate to custom output directory
-./bin/cli.js generate ../docs/examples/abstractions/tutorial/ -o ./output
+./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ./output
 
 # Generate a larger project
 ./bin/cli.js generate ../abstractions/answers/ -o ../../applications/answers
@@ -130,7 +130,7 @@ mvn clean install -DskipTests
 ### Compile Generated Code
 
 ```bash
-cd dsl/docs/examples/generated/tutorial
+cd dsl/docs/examples/generated/06-tutorial
 mvn clean compile
 ```
 
@@ -162,7 +162,7 @@ The application runs on `http://localhost:8080`.
 
 ### Modify a `.nebula` file
 
-Edit `dsl/docs/examples/abstractions/tutorial/member.nebula` and add a property:
+Edit `dsl/docs/examples/abstractions/06-tutorial/member.nebula` and add a property:
 
 ```nebula
 Aggregate Member {
@@ -181,7 +181,7 @@ Aggregate Member {
 
 ```bash
 cd dsl/nebula
-./bin/cli.js generate ../docs/examples/abstractions/tutorial/ -o ../docs/examples/generated
+./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ../docs/examples/generated
 ```
 
 The `phone` field is now part of the entity, DTO, and all CRUD operations.
@@ -222,7 +222,7 @@ npm run watch               # Watch mode (auto-rebuild on changes)
 ### Generated Application
 
 ```bash
-cd dsl/docs/examples/generated/tutorial   # or applications/answers, etc.
+cd dsl/docs/examples/generated/06-tutorial   # or applications/answers, etc.
 mvn clean compile                   # Compile generated code
 mvn clean -Ptest-sagas test         # Run Saga tests
 mvn clean -Ptest-tcc test           # Run TCC tests

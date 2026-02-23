@@ -7,7 +7,7 @@ This chapter explains what Nebula generates, how the generated code is structure
 For each project, Nebula generates a complete Spring Boot application:
 
 ```
-dsl/docs/examples/generated/tutorial/
+dsl/docs/examples/generated/06-tutorial/
 ├── pom.xml                             # Maven build configuration
 ├── .gitignore
 └── src/main/

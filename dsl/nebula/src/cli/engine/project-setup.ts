@@ -9,21 +9,21 @@ export class ProjectSetup {
         inputPath: string,
         projectName: string
     ): Promise<ProjectPaths> {
-        
+
         const outputDirName = path.basename(baseOutputDir);
         const projectPath = outputDirName.toLowerCase() === projectName.toLowerCase()
             ? baseOutputDir
             : path.join(baseOutputDir, projectName);
 
-        
+
         const config = getGlobalConfig();
         const basePackage = config.getBasePackage();
         const fullPackage = `${basePackage}.${projectName.toLowerCase()}`;
 
-        
+
         const javaSrcPath = path.join(...JAVA_SRC_PATH);
 
-        
+
         const packagePath = fullPackage.split('.').join(path.sep);
         const javaPath = path.join(projectPath, javaSrcPath, packagePath);
 
@@ -45,7 +45,7 @@ export class ProjectSetup {
             const isSingleFile = inputPath.endsWith('.nebula');
 
             if (isSingleFile) {
-                
+
                 const config = getGlobalConfig();
                 const basePackage = config.getBasePackage();
                 const packageParts = basePackage.split('.');
@@ -70,8 +70,10 @@ export class ProjectSetup {
         const resolvedInputPath = path.resolve(inputPath);
         const inputFolderName = path.basename(resolvedInputPath);
 
-        return inputFolderName.endsWith('.nebula')
+        const folderName = inputFolderName.endsWith('.nebula')
             ? path.basename(path.dirname(resolvedInputPath))
             : inputFolderName;
+
+        return folderName.replace(/^\d+-/, '');
     }
 }
