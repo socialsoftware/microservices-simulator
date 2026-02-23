@@ -1,0 +1,17 @@
+SharedEnums {
+    enum ContactType { PERSONAL, WORK, FAMILY }
+}
+
+Aggregate Contact {
+    @GenerateCrud
+
+    Root Entity Contact {
+        String firstName
+        String lastName
+        String email
+        ContactType category
+        LocalDateTime createdAt
+        Boolean favorite = false
+        Integer callCount = 0
+    }
+}
