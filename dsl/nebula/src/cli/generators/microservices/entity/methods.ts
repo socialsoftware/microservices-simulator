@@ -21,6 +21,9 @@ const detectPrimaryKey = (elementType: string, allEntities?: Entity[]): { pkType
             const pkGetter = `get${capitalize(pkName)}`;
             return { pkType, pkGetter };
         }
+        if (targetEntity && (targetEntity as any).aggregateRef) {
+            return { pkType: 'Long', pkGetter: 'getId' };
+        }
     }
 
     console.warn(chalk.yellow(`[WARN] Could not determine primary key for entity '${elementType}'. Using default Long id.`));
@@ -84,7 +87,7 @@ export function generateGettersSetters(properties: any[], entity?: Entity, proje
     const entityName = entity?.name || 'Unknown';
     const isRootEntity = entity?.isRoot || false;
 
-    
+
     const processedProperties = [...properties];
     if (!isRootEntity) {
         const hasIdField = processedProperties.some(prop => prop?.name === 'id');
