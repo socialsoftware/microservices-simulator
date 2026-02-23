@@ -1,7 +1,6 @@
 import { Aggregate, Entity, References, ReferenceConstraint } from "../../../../language/generated/ast.js";
 import { EventBaseGenerator } from "./event-base-generator.js";
 import { EventGenerationOptions } from "./event-types.js";
-import { capitalize } from "../../../utils/generator-utils.js";
 
 
 
@@ -59,20 +58,17 @@ export class ReferencesGenerator extends EventBaseGenerator {
         const targetAggregate = constraint.targetAggregate;
         const eventType = `${targetAggregate}DeletedEvent`;
         const className = `${aggregateName}Subscribes${targetAggregate}Deleted`;
-        const handlerClassName = `${targetAggregate}DeletedEventHandler`;
+        const lowerAggregate = aggregateName.toLowerCase();
 
-        return `package ${basePackage}.${projectName}.microservices.${aggregateName.toLowerCase()}.events.subscribe;
+        return `package ${basePackage}.${projectName}.microservices.${lowerAggregate}.events.subscribe;
 
 import ${basePackage}.ms.domain.event.EventSubscription;
-import ${basePackage}.${projectName}.microservices.${aggregateName.toLowerCase()}.aggregate.${aggregateName};
+import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${aggregateName};
 import ${basePackage}.${projectName}.microservices.${targetAggregate.toLowerCase()}.events.publish.${eventType};
-import ${basePackage}.${projectName}.microservices.${aggregateName.toLowerCase()}.events.handling.handlers.${handlerClassName};
 
 public class ${className} extends EventSubscription {
-    public ${className}(${aggregateName} ${aggregateName.toLowerCase()}) {
-        super(${aggregateName.toLowerCase()},
-                ${eventType}.class,
-                ${handlerClassName}.class);
+    public ${className}(${aggregateName} ${lowerAggregate}) {
+        super(${lowerAggregate}.getAggregateId(), 0, ${eventType}.class);
     }
 }
 `;
@@ -87,95 +83,29 @@ public class ${className} extends EventSubscription {
         basePackage: string
     ): string {
         const aggregateName = aggregate.name;
+        const lowerAggregate = aggregateName.toLowerCase();
         const targetAggregate = constraint.targetAggregate;
         const eventType = `${targetAggregate}DeletedEvent`;
         const className = `${targetAggregate}DeletedEventHandler`;
-        const action = constraint.action;
-        const message = constraint.message.replace(/"/g, ''); // Remove quotes
-        const fieldName = constraint.fieldName;
 
-        const handlerLogic = this.generateHandlerLogic(
-            aggregate,
-            constraint,
-            aggregateName,
-            targetAggregate,
-            fieldName,
-            action,
-            message
-        );
+        return `package ${basePackage}.${projectName}.microservices.${lowerAggregate}.events.handling.handlers;
 
-        return `package ${basePackage}.${projectName}.microservices.${aggregateName.toLowerCase()}.events.handling.handlers;
-
-import ${basePackage}.ms.coordination.eventProcessing.EventProcessingHandler;
-import ${basePackage}.ms.domain.aggregate.Aggregate;
-import ${basePackage}.ms.exception.SimulatorException;
-import static ${basePackage}.ms.exception.SimulatorErrorMessage.AGGREGATE_DELETED;
-import ${basePackage}.${projectName}.microservices.${aggregateName.toLowerCase()}.aggregate.${aggregateName};
-import ${basePackage}.${projectName}.microservices.${aggregateName.toLowerCase()}.repository.${aggregateName}Repository;
+import ${basePackage}.ms.domain.event.Event;
+import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${aggregateName}Repository;
+import ${basePackage}.${projectName}.coordination.eventProcessing.${aggregateName}EventProcessing;
 import ${basePackage}.${projectName}.microservices.${targetAggregate.toLowerCase()}.events.publish.${eventType};
 
-import org.springframework.stereotype.Component;
-import java.util.List;
-
-@Component
-public class ${className} implements EventProcessingHandler<${eventType}, ${aggregateName}> {
-
-    private final ${aggregateName}Repository ${aggregateName.toLowerCase()}Repository;
-
-    public ${className}(${aggregateName}Repository ${aggregateName.toLowerCase()}Repository) {
-        this.${aggregateName.toLowerCase()}Repository = ${aggregateName.toLowerCase()}Repository;
+public class ${className} extends ${aggregateName}EventHandler {
+    public ${className}(${aggregateName}Repository ${lowerAggregate}Repository, ${aggregateName}EventProcessing ${lowerAggregate}EventProcessing) {
+        super(${lowerAggregate}Repository, ${lowerAggregate}EventProcessing);
     }
 
     @Override
-    public void handleEvent(${aggregateName} ${aggregateName.toLowerCase()}, ${eventType} event) {
-${handlerLogic}
+    public void handleEvent(Integer subscriberAggregateId, Event event) {
+        this.${lowerAggregate}EventProcessing.process${targetAggregate}DeletedEvent(subscriberAggregateId, (${eventType}) event);
     }
 }
 `;
     }
 
-    private generateHandlerLogic(
-        aggregate: Aggregate,
-        constraint: ReferenceConstraint,
-        aggregateName: string,
-        targetAggregate: string,
-        fieldName: string,
-        action: string,
-        message: string
-    ): string {
-        const aggregateVar = aggregateName.toLowerCase();
-        const fieldGetter = `get${capitalize(fieldName)}`;
-
-        switch (action) {
-            case 'prevent':
-                return `        // Reference constraint: prevent deletion if references exist
-        if (${aggregateVar}.${fieldGetter}() != null) {
-            Integer referenced${targetAggregate}Id = ${aggregateVar}.${fieldGetter}().get${targetAggregate}AggregateId();
-            if (referenced${targetAggregate}Id != null && referenced${targetAggregate}Id.equals(event.getPublisherAggregateId())) {
-                throw new SimulatorException(AGGREGATE_DELETED, "${message}");
-            }
-        }`;
-
-            case 'cascade':
-                return `        // Reference constraint: cascade deletion
-        if (${aggregateVar}.${fieldGetter}() != null) {
-            Integer referenced${targetAggregate}Id = ${aggregateVar}.${fieldGetter}().get${targetAggregate}AggregateId();
-            if (referenced${targetAggregate}Id != null && referenced${targetAggregate}Id.equals(event.getPublisherAggregateId())) {
-                ${aggregateVar}.remove();
-            }
-        }`;
-
-            case 'setNull':
-                return `        // Reference constraint: set reference to null
-        if (${aggregateVar}.${fieldGetter}() != null) {
-            Integer referenced${targetAggregate}Id = ${aggregateVar}.${fieldGetter}().get${targetAggregate}AggregateId();
-            if (referenced${targetAggregate}Id != null && referenced${targetAggregate}Id.equals(event.getPublisherAggregateId())) {
-                ${aggregateVar}.set${capitalize(fieldName)}(null);
-            }
-        }`;
-
-            default:
-                return `        // Unknown action: ${action}`;
-        }
-    }
 }

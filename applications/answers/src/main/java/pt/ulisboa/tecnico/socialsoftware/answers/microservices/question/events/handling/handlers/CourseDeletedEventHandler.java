@@ -1,33 +1,17 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.handling.handlers;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.eventProcessing.EventProcessingHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.AGGREGATE_DELETED;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.repository.QuestionRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionRepository;
+import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.QuestionEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.events.publish.CourseDeletedEvent;
 
-import org.springframework.stereotype.Component;
-import java.util.List;
-
-@Component
-public class CourseDeletedEventHandler implements EventProcessingHandler<CourseDeletedEvent, Question> {
-
-    private final QuestionRepository questionRepository;
-
-    public CourseDeletedEventHandler(QuestionRepository questionRepository) {
-        this.questionRepository = questionRepository;
+public class CourseDeletedEventHandler extends QuestionEventHandler {
+    public CourseDeletedEventHandler(QuestionRepository questionRepository, QuestionEventProcessing questionEventProcessing) {
+        super(questionRepository, questionEventProcessing);
     }
 
     @Override
-    public void handleEvent(Question question, CourseDeletedEvent event) {
-        // Reference constraint: prevent deletion if references exist
-        if (question.getCourse() != null) {
-            Integer referencedCourseId = question.getCourse().getCourseAggregateId();
-            if (referencedCourseId != null && referencedCourseId.equals(event.getPublisherAggregateId())) {
-                throw new SimulatorException(AGGREGATE_DELETED, "Cannot delete course that has questions");
-            }
-        }
+    public void handleEvent(Integer subscriberAggregateId, Event event) {
+        this.questionEventProcessing.processCourseDeletedEvent(subscriberAggregateId, (CourseDeletedEvent) event);
     }
 }

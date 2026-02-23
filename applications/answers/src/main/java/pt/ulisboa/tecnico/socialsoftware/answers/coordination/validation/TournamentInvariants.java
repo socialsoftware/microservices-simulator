@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.validation.invariants;
+package pt.ulisboa.tecnico.socialsoftware.answers.coordination.validation;
 
 
 import jakarta.validation.Constraint;
@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.regex.Pattern;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.Tournament;
 
 /**
  * Invariant validation methods for Tournament
@@ -52,7 +53,7 @@ public class TournamentInvariants {
      * Cancelled cannot be null
      */
     public static void invariantCancelledNotNull(Tournament entity) {
-        if (entity.isCancelled() == null) {
+        if (entity.getCancelled() == null) {
             throw new IllegalStateException("Cancelled cannot be null");
         }
     }

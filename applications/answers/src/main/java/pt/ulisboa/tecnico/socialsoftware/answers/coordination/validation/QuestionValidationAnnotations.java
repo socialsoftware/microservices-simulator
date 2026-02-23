@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.validation.annotations;
+package pt.ulisboa.tecnico.socialsoftware.answers.coordination.validation;
 
 
 import jakarta.validation.Constraint;
@@ -15,7 +15,12 @@ import java.lang.annotation.Target;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Option;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionCourse;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionTopic;
 
 public class QuestionValidationAnnotations {
 

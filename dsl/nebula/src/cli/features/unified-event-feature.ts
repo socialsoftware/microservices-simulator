@@ -53,7 +53,7 @@ export class UnifiedEventFeature {
     ): Promise<void> {
         await ErrorHandler.wrapAsync(
             async () => {
-                
+
                 const allAggregates = options.allModels?.flatMap((model: any) => model.aggregates) || [];
 
                 const eventCode = await generators.eventGenerator.generateEvents(aggregate, {
@@ -61,7 +61,7 @@ export class UnifiedEventFeature {
                     allAggregates
                 });
 
-                
+
                 const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
                 const hasGenerateCrud = aggregate.generateCrud;
 
@@ -102,7 +102,7 @@ export class UnifiedEventFeature {
                     await this.generateIndividualEventHandlers(individualEventHandlers, aggregatePath);
                 }
 
-                
+
                 if ((aggregate as any).references && rootEntity) {
                     await this.generateReferenceHandlers(aggregate, rootEntity, aggregatePath, options, allAggregates);
                 }
@@ -183,7 +183,7 @@ export class UnifiedEventFeature {
         aggregatePath: string,
         options: GenerationOptions
     ): Promise<void> {
-        
+
         const allAggregates = options.allModels?.flatMap((model: any) => model.aggregates) || [];
         const enhancedOptions = { ...options, allAggregates };
 
@@ -196,8 +196,8 @@ export class UnifiedEventFeature {
         const eventMap = new Map<string, any>();
         allSubscribed.forEach((event: any) => {
             const eventTypeName = event.eventType || 'UnknownEvent';
-            
-            
+
+
             const mapKey = event.isInterInvariant
                 ? `${eventTypeName}:${event.interInvariantName}`
                 : eventTypeName;
@@ -213,10 +213,10 @@ export class UnifiedEventFeature {
                     const subscriptionCode = this.eventGenerator.generateSubscribedEvent(subscribedEvent, aggregate, enhancedOptions);
                     const eventTypeName = (subscribedEvent as any).eventType || 'UnknownEvent';
 
-                    
+
                     let subscriptionName = `${aggregate.name}Subscribes${eventTypeName.replace('Event', '')}`;
                     if ((subscribedEvent as any).isInterInvariant && (subscribedEvent as any).interInvariantName) {
-                        
+
                         const interInvariantName = (subscribedEvent as any).interInvariantName;
                         const interInvariantSuffix = interInvariantName
                             .split('_')
@@ -228,8 +228,8 @@ export class UnifiedEventFeature {
                     const subscriptionPath = path.join(aggregatePath, 'events', 'subscribe', `${subscriptionName}.java`);
                     await FileWriter.writeGeneratedFile(subscriptionPath, subscriptionCode, `subscribed event ${subscriptionName}`);
 
-                    
-                    
+
+
                     const isInterInvariant = (subscribedEvent as any).isInterInvariant;
                     if (!isInterInvariant) {
                         const handlerCode = this.eventGenerator.generateEventHandler(subscribedEvent, aggregate, enhancedOptions);
@@ -320,6 +320,13 @@ export class UnifiedEventFeature {
         options: GenerationOptions,
         allAggregates: any[]
     ): Promise<void> {
+        const baseHandlerPath = path.join(aggregatePath, 'events', 'handling', 'handlers', `${aggregate.name}EventHandler.java`);
+        const fs = await import('fs');
+        if (!fs.existsSync(baseHandlerPath)) {
+            const baseHandlerCode = this.eventGenerator.generateBaseEventHandler(aggregate, options);
+            await FileWriter.writeGeneratedFile(baseHandlerPath, baseHandlerCode, `base event handler ${aggregate.name}EventHandler`);
+        }
+
         const referenceHandlers = await this.referencesGenerator.generateReferenceHandlers(
             aggregate,
             rootEntity,
@@ -330,7 +337,7 @@ export class UnifiedEventFeature {
             }
         );
 
-        
+
         for (const [key, code] of Object.entries(referenceHandlers)) {
             if (key.startsWith('ref-subscription-')) {
                 const targetAggregate = key.replace('ref-subscription-', '');

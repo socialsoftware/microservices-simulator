@@ -11,11 +11,9 @@ export abstract class ValidationBaseGenerator {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-    protected generatePackageName(projectName: string, aggregateName: string, subPackage: string, ...additionalSubPackages: string[]): string {
+    protected generatePackageName(projectName: string, _aggregateName?: string, _subPackage?: string, ..._additionalSubPackages: string[]): string {
         const basePackage = 'pt.ulisboa.tecnico.socialsoftware';
-        const microservicePackage = `microservices.${aggregateName.toLowerCase()}`;
-        const subPackages = [subPackage, ...additionalSubPackages].filter(p => p).join('.');
-        return `${basePackage}.${projectName.toLowerCase()}.${microservicePackage}.${subPackages}`;
+        return `${basePackage}.${projectName.toLowerCase()}.coordination.validation`;
     }
 
     protected createAggregateNaming(aggregateName: string) {
@@ -32,7 +30,7 @@ export abstract class ValidationBaseGenerator {
         return Array.from(combined).sort();
     }
 
-    protected buildStandardImports(projectName: string, aggregateName: string): string[] {
+    protected buildStandardImports(_projectName: string, _aggregateName: string): string[] {
         return [];
     }
 

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.validation.invariants;
+package pt.ulisboa.tecnico.socialsoftware.answers.coordination.validation;
 
 
 import jakarta.validation.Constraint;
@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.regex.Pattern;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz;
 
 /**
  * Invariant validation methods for Quiz

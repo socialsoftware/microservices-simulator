@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.validation.validators;
+package pt.ulisboa.tecnico.socialsoftware.answers.coordination.validation;
 
 
 import jakarta.validation.Constraint;
@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.regex.Pattern;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
 
 public class AnswerBusinessRuleValidator implements ConstraintValidator<ValidAnswerBusinessRule, Answer> {
     

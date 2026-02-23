@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.validation.invariants;
+package pt.ulisboa.tecnico.socialsoftware.answers.coordination.validation;
 
 
 import jakarta.validation.Constraint;
@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.regex.Pattern;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.User;
 
 /**
  * Invariant validation methods for User
@@ -70,7 +71,7 @@ public class UserInvariants {
      * Active cannot be null
      */
     public static void invariantActiveNotNull(User entity) {
-        if (entity.isActive() == null) {
+        if (entity.getActive() == null) {
             throw new IllegalStateException("Active cannot be null");
         }
     }

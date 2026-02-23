@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.validation.invariants;
+package pt.ulisboa.tecnico.socialsoftware.answers.coordination.validation;
 
 
 import jakarta.validation.Constraint;
@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.regex.Pattern;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
 
 /**
  * Invariant validation methods for Answer
@@ -43,7 +44,7 @@ public class AnswerInvariants {
      * Completed cannot be null
      */
     public static void invariantCompletedNotNull(Answer entity) {
-        if (entity.isCompleted() == null) {
+        if (entity.getCompleted() == null) {
             throw new IllegalStateException("Completed cannot be null");
         }
     }

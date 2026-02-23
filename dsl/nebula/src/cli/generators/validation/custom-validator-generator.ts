@@ -287,14 +287,17 @@ export class CustomValidatorGenerator extends ValidationBaseGenerator {
     }
 
     private buildCustomValidatorsImports(aggregate: Aggregate, options: ValidationGenerationOptions, validators: any[]): string[] {
-        const projectName = options?.projectName || 'unknown';
+        const projectName = options?.projectName?.toLowerCase() || 'unknown';
         const baseImports = this.buildValidationImports(projectName, aggregate.name);
+        const lowerAggregate = aggregate.name.toLowerCase();
+        const basePackage = 'pt.ulisboa.tecnico.socialsoftware';
         const validatorImports = [
             'import java.net.URL;',
             'import java.net.MalformedURLException;',
             'import java.lang.reflect.Field;',
             'import java.time.LocalDateTime;',
-            'import java.time.LocalDate;'
+            'import java.time.LocalDate;',
+            `import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${aggregate.name};`
         ];
 
         return this.combineImports(baseImports, validatorImports);

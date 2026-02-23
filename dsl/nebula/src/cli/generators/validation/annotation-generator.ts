@@ -22,7 +22,7 @@ export class AnnotationGenerator extends ValidationBaseGenerator {
         };
     }
 
-    private buildValidationAnnotations(rootEntity: Entity, aggregateName: string, aggregate: Aggregate): any[] {
+    private buildValidationAnnotations(rootEntity: Entity, aggregateName: string, _aggregate: Aggregate): any[] {
         if (!rootEntity.properties) return [];
 
         return rootEntity.properties.map(property => {
@@ -68,7 +68,62 @@ export class AnnotationGenerator extends ValidationBaseGenerator {
             'import jakarta.validation.Valid;'
         ];
 
-        return this.combineImports(baseImports, annotationImports);
+        const projectName = options?.projectName?.toLowerCase() || 'unknown';
+        const lowerAggregate = aggregate.name.toLowerCase();
+        const basePackage = 'pt.ulisboa.tecnico.socialsoftware';
+
+        // Collect entity names from this aggregate
+        const entityNames = new Set<string>();
+        const aggregateElements = (aggregate as any).aggregateElements || [];
+        for (const elem of aggregateElements) {
+            if (elem?.name) {
+                entityNames.add(elem.name);
+            }
+        }
+
+        const standardTypes = new Set([
+            'String', 'Integer', 'Long', 'Float', 'Double', 'Boolean',
+            'LocalDateTime', 'LocalDate', 'Date', 'BigDecimal',
+            'Object', 'Void', 'Byte', 'Short', 'Character'
+        ]);
+
+        const typeImports: string[] = [];
+        const addedTypes = new Set<string>();
+
+        for (const annotation of annotations) {
+            const propType = annotation.propertyType;
+            if (!propType) continue;
+
+            // Check for collection types like Set<X> or List<X>
+            const collectionMatch = propType.match(/^(Set|List)<(.+)>$/);
+            if (collectionMatch) {
+                const collectionType = collectionMatch[1];
+                const innerType = collectionMatch[2];
+
+                if (!addedTypes.has(collectionType)) {
+                    typeImports.push(`import java.util.${collectionType};`);
+                    addedTypes.add(collectionType);
+                }
+
+                if (!standardTypes.has(innerType) && !addedTypes.has(innerType)) {
+                    if (entityNames.has(innerType)) {
+                        typeImports.push(`import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${innerType};`);
+                    } else {
+                        typeImports.push(`import ${basePackage}.${projectName}.shared.enums.${innerType};`);
+                    }
+                    addedTypes.add(innerType);
+                }
+            } else if (!standardTypes.has(propType) && !addedTypes.has(propType)) {
+                if (entityNames.has(propType)) {
+                    typeImports.push(`import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${propType};`);
+                } else {
+                    typeImports.push(`import ${basePackage}.${projectName}.shared.enums.${propType};`);
+                }
+                addedTypes.add(propType);
+            }
+        }
+
+        return this.combineImports(baseImports, annotationImports, typeImports);
     }
 
     private getValidationAnnotationsTemplate(): string {

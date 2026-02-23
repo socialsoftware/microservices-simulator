@@ -9,6 +9,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizDeletedEvent;
 
 @Service
 public class TournamentEventProcessing {
@@ -43,5 +45,13 @@ public class TournamentEventProcessing {
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
         tournamentService.handleQuizUpdatedEvent(aggregateId, quizUpdatedEvent.getPublisherAggregateId(), quizUpdatedEvent.getPublisherAggregateVersion(), unitOfWork);
         unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void processExecutionDeletedEvent(Integer aggregateId, ExecutionDeletedEvent executionDeletedEvent) {
+        // Reference constraint event processing - implement constraint logic
+    }
+
+    public void processQuizDeletedEvent(Integer aggregateId, QuizDeletedEvent quizDeletedEvent) {
+        // Reference constraint event processing - implement constraint logic
     }
 }
