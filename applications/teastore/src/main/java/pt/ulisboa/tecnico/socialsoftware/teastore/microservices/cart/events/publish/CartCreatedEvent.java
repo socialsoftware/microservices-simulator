@@ -8,6 +8,7 @@ public class CartCreatedEvent extends Event {
     private Long userId;
 
     public CartCreatedEvent() {
+        super();
     }
 
     public CartCreatedEvent(Integer aggregateId, Long userId) {

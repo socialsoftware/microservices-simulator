@@ -22,8 +22,8 @@ public class SagaOrder extends Order implements SagaAggregate {
         this.sagaState = other.getSagaState();
     }
 
-    public SagaOrder(Integer aggregateId, OrderDto orderDto, OrderUser user) {
-        super(aggregateId, orderDto, user);
+    public SagaOrder(Integer aggregateId, OrderDto orderDto) {
+        super(aggregateId, orderDto);
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 

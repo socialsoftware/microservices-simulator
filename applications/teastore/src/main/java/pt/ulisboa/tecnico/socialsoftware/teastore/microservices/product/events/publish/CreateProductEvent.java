@@ -10,6 +10,7 @@ public class CreateProductEvent extends Event {
     private Double listPriceInCents;
 
     public CreateProductEvent() {
+        super();
     }
 
     public CreateProductEvent(Integer aggregateId, String name, String categoryName, Double listPriceInCents) {

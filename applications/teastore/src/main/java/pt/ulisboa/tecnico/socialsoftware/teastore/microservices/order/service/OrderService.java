@@ -1,224 +1,187 @@
 package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.service;
 
-import java.sql.SQLException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.aggregate.*;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.dao.CannotAcquireLockException;
-
+import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.OrderDto;
+import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.OrderUserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.aggregate.*;
-import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.*;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.events.publish.OrderUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.events.publish.OrderDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.teastore.shared.enums.Object;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.events.publish.OrderUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.events.publish.OrderUserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.events.publish.OrderUserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
+import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateOrderRequestDto;
+
 
 @Service
+@Transactional
 public class OrderService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    @Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    private final OrderRepository orderRepository;
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Autowired
     private OrderFactory orderFactory;
 
-    public OrderService(UnitOfWorkService unitOfWorkService, OrderRepository orderRepository) {
-        this.unitOfWorkService = unitOfWorkService;
-        this.orderRepository = orderRepository;
+    public OrderService() {}
+
+    public OrderDto createOrder(CreateOrderRequestDto createRequest, UnitOfWork unitOfWork) {
+        try {
+            OrderDto orderDto = new OrderDto();
+            orderDto.setTime(createRequest.getTime());
+            orderDto.setTotalPriceInCents(createRequest.getTotalPriceInCents());
+            orderDto.setAddressName(createRequest.getAddressName());
+            orderDto.setAddress1(createRequest.getAddress1());
+            orderDto.setAddress2(createRequest.getAddress2());
+            orderDto.setCreditCardCompany(createRequest.getCreditCardCompany());
+            orderDto.setCreditCardNumber(createRequest.getCreditCardNumber());
+            orderDto.setCreditCardExpiryDate(createRequest.getCreditCardExpiryDate());
+            if (createRequest.getUser() != null) {
+                OrderUserDto userDto = new OrderUserDto();
+                userDto.setAggregateId(createRequest.getUser().getAggregateId());
+                userDto.setVersion(createRequest.getUser().getVersion());
+                userDto.setState(createRequest.getUser().getState());
+                orderDto.setUser(userDto);
+            }
+
+            Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+            Order order = orderFactory.createOrder(aggregateId, orderDto);
+            unitOfWorkService.registerChanged(order, unitOfWork);
+            return orderFactory.createOrderDto(order);
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error creating order: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public OrderDto createOrder(OrderUser user, OrderDto orderDto, UnitOfWork unitOfWork) {
-        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        Order order = orderFactory.createOrder(aggregateId, user, orderDto);
-        unitOfWorkService.registerChanged(order, unitOfWork);
-        return orderFactory.createOrderDto(order);
+    public OrderDto getOrderById(Integer id, UnitOfWork unitOfWork) {
+        try {
+            Order order = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            return orderFactory.createOrderDto(order);
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error retrieving order: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public OrderDto getOrderById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return orderFactory.createOrderDto((Order) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public OrderDto updateOrder(OrderDto orderDto, UnitOfWork unitOfWork) {
-        Integer aggregateId = orderDto.getAggregateId();
-        Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
-        newOrder.setTime(orderDto.getTime());
-        newOrder.setTotalPriceInCents(orderDto.getTotalPriceInCents());
-        newOrder.setAddressName(orderDto.getAddressName());
-        newOrder.setAddress1(orderDto.getAddress1());
-        newOrder.setAddress2(orderDto.getAddress2());
-        newOrder.setCreditCardCompany(orderDto.getCreditCardCompany());
-        newOrder.setCreditCardNumber(orderDto.getCreditCardNumber());
-        newOrder.setCreditCardExpiryDate(orderDto.getCreditCardExpiryDate());
-        unitOfWorkService.registerChanged(newOrder, unitOfWork);
-        unitOfWorkService.registerEvent(new OrderUpdatedEvent(newOrder.getAggregateId(), newOrder.getTime(), newOrder.getTotalPriceInCents(), newOrder.getAddressName(), newOrder.getAddress1(), newOrder.getAddress2(), newOrder.getCreditCardCompany(), newOrder.getCreditCardNumber(), newOrder.getCreditCardExpiryDate()), unitOfWork);
-        return orderFactory.createOrderDto(newOrder);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void deleteOrder(Integer aggregateId, UnitOfWork unitOfWork) {
-        Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
-        newOrder.remove();
-        unitOfWorkService.registerChanged(newOrder, unitOfWork);
-        unitOfWorkService.registerEvent(new OrderDeletedEvent(newOrder.getAggregateId()), unitOfWork);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<OrderDto> searchOrders(String time, String addressName, String address1, String address2, String creditCardCompany, String creditCardNumber, String creditCardExpiryDate, Integer userAggregateId, UnitOfWork unitOfWork) {
-        Set<Integer> aggregateIds = orderRepository.findAll().stream()
-                .filter(entity -> {
-                    if (time != null) {
-                        if (!entity.getTime().equals(time)) {
-                            return false;
-                        }
-                    }
-                    if (addressName != null) {
-                        if (!entity.getAddressName().equals(addressName)) {
-                            return false;
-                        }
-                    }
-                    if (address1 != null) {
-                        if (!entity.getAddress1().equals(address1)) {
-                            return false;
-                        }
-                    }
-                    if (address2 != null) {
-                        if (!entity.getAddress2().equals(address2)) {
-                            return false;
-                        }
-                    }
-                    if (creditCardCompany != null) {
-                        if (!entity.getCreditCardCompany().equals(creditCardCompany)) {
-                            return false;
-                        }
-                    }
-                    if (creditCardNumber != null) {
-                        if (!entity.getCreditCardNumber().equals(creditCardNumber)) {
-                            return false;
-                        }
-                    }
-                    if (creditCardExpiryDate != null) {
-                        if (!entity.getCreditCardExpiryDate().equals(creditCardExpiryDate)) {
-                            return false;
-                        }
-                    }
-                    if (userAggregateId != null) {
-                        if (!entity.getUser().getUserAggregateId().equals(userAggregateId)) {
-                            return false;
-                        }
-                                            }
-                    return true;
-                })
+    public List<OrderDto> getAllOrders(UnitOfWork unitOfWork) {
+        try {
+            Set<Integer> aggregateIds = orderRepository.findAll().stream()
                 .map(Order::getAggregateId)
                 .collect(Collectors.toSet());
-        return aggregateIds.stream()
+
+            return aggregateIds.stream()
                 .map(id -> (Order) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(orderFactory::createOrderDto)
                 .collect(Collectors.toList());
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error retrieving order: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Object cancelOrder(Integer orderAggregateId, UnitOfWork unitOfWork) {
-        // TODO: Implement cancelOrder method
-        return null;
+    public OrderDto updateOrder(OrderDto orderDto, UnitOfWork unitOfWork) {
+        try {
+            Integer id = orderDto.getAggregateId();
+            Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
+            if (orderDto.getTime() != null) {
+                newOrder.setTime(orderDto.getTime());
+            }
+            if (orderDto.getTotalPriceInCents() != null) {
+                newOrder.setTotalPriceInCents(orderDto.getTotalPriceInCents());
+            }
+            if (orderDto.getAddressName() != null) {
+                newOrder.setAddressName(orderDto.getAddressName());
+            }
+            if (orderDto.getAddress1() != null) {
+                newOrder.setAddress1(orderDto.getAddress1());
+            }
+            if (orderDto.getAddress2() != null) {
+                newOrder.setAddress2(orderDto.getAddress2());
+            }
+            if (orderDto.getCreditCardCompany() != null) {
+                newOrder.setCreditCardCompany(orderDto.getCreditCardCompany());
+            }
+            if (orderDto.getCreditCardNumber() != null) {
+                newOrder.setCreditCardNumber(orderDto.getCreditCardNumber());
+            }
+            if (orderDto.getCreditCardExpiryDate() != null) {
+                newOrder.setCreditCardExpiryDate(orderDto.getCreditCardExpiryDate());
+            }
+
+            unitOfWorkService.registerChanged(newOrder, unitOfWork);            OrderUpdatedEvent event = new OrderUpdatedEvent(newOrder.getAggregateId(), newOrder.getTime(), newOrder.getTotalPriceInCents(), newOrder.getAddressName(), newOrder.getAddress1(), newOrder.getAddress2(), newOrder.getCreditCardCompany(), newOrder.getCreditCardNumber(), newOrder.getCreditCardExpiryDate());
+            event.setPublisherAggregateVersion(newOrder.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
+            return orderFactory.createOrderDto(newOrder);
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error updating order: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Order findByOrderId(Integer orderAggregateId, UnitOfWork unitOfWork) {
-        // TODO: Implement findByOrderId method
-        return null;
+    public void deleteOrder(Integer id, UnitOfWork unitOfWork) {
+        try {
+            Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
+            newOrder.remove();
+            unitOfWorkService.registerChanged(newOrder, unitOfWork);            unitOfWorkService.registerEvent(new OrderDeletedEvent(newOrder.getAggregateId()), unitOfWork);
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error deleting order: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Object findByUserAggregateId(Integer userAggregateId, UnitOfWork unitOfWork) {
-        // TODO: Implement findByUserAggregateId method
-        return null;
+
+
+
+    public Order handleUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, UnitOfWork unitOfWork) {
+        try {
+            Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
+
+
+
+            unitOfWorkService.registerChanged(newOrder, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new OrderUserUpdatedEvent(
+                    newOrder.getAggregateId(),
+                    userAggregateId,
+                    userVersion
+            ),
+            unitOfWork
+        );
+
+            return newOrder;
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error handling UserUpdatedEvent order: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Order updateOrderStatus(Integer orderAggregateId, String status, UnitOfWork unitOfWork) {
-        // TODO: Implement updateOrderStatus method
-        return null;
-    }
+
+
 
 }

@@ -10,19 +10,19 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.sagas.aggregates.dtos.SagaOrde
 
 @Service
 @Profile("sagas")
-public class SagasOrderFactory extends OrderFactory {
-@Override
-public Order createOrder(Integer aggregateId, OrderDto orderDto) {
-return new SagaOrder(orderDto);
-}
+public class SagasOrderFactory implements OrderFactory {
+    @Override
+    public Order createOrder(Integer aggregateId, OrderDto orderDto) {
+        return new SagaOrder(aggregateId, orderDto);
+    }
 
-@Override
-public Order createOrderFromExisting(Order existingOrder) {
-return new SagaOrder((SagaOrder) existingOrder);
-}
+    @Override
+    public Order createOrderFromExisting(Order existingOrder) {
+        return new SagaOrder((SagaOrder) existingOrder);
+    }
 
-@Override
-public OrderDto createOrderDto(Order order) {
-return new SagaOrderDto(order);
-}
+    @Override
+    public OrderDto createOrderDto(Order order) {
+        return new SagaOrderDto(order);
+    }
 }

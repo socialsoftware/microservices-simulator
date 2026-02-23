@@ -10,6 +10,7 @@ public class CartUpdatedEvent extends Event {
     private Double totalPrice;
 
     public CartUpdatedEvent() {
+        super();
     }
 
     public CartUpdatedEvent(Integer aggregateId, Long userId, Boolean checkedOut, Double totalPrice) {

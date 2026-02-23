@@ -8,6 +8,7 @@ public class CategoryDeletedEvent extends Event {
     private String name;
 
     public CategoryDeletedEvent() {
+        super();
     }
 
     public CategoryDeletedEvent(Integer aggregateId, String name) {

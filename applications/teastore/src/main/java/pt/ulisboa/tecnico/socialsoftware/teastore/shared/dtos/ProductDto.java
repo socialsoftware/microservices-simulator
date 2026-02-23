@@ -8,7 +8,7 @@ public class ProductDto implements Serializable {
     private Integer aggregateId;
     private Integer version;
     private AggregateState state;
-    private Integer categoryAggregateId;
+    private ProductCategoryDto productCategory;
     private String name;
     private String description;
     private Double listPriceInCents;
@@ -20,7 +20,7 @@ public class ProductDto implements Serializable {
         this.aggregateId = product.getAggregateId();
         this.version = product.getVersion();
         this.state = product.getState();
-        this.categoryAggregateId = product.getProductCategory() != null ? product.getProductCategory().getCategoryAggregateId() : null;
+        this.productCategory = product.getProductCategory() != null ? new ProductCategoryDto(product.getProductCategory()) : null;
         this.name = product.getName();
         this.description = product.getDescription();
         this.listPriceInCents = product.getListPriceInCents();
@@ -50,12 +50,12 @@ public class ProductDto implements Serializable {
         this.state = state;
     }
 
-    public Integer getCategoryAggregateId() {
-        return categoryAggregateId;
+    public ProductCategoryDto getProductCategory() {
+        return productCategory;
     }
 
-    public void setCategoryAggregateId(Integer categoryAggregateId) {
-        this.categoryAggregateId = categoryAggregateId;
+    public void setProductCategory(ProductCategoryDto productCategory) {
+        this.productCategory = productCategory;
     }
 
     public String getName() {

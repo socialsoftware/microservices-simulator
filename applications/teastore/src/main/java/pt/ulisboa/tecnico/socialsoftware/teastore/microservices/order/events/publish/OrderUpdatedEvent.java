@@ -15,6 +15,7 @@ public class OrderUpdatedEvent extends Event {
     private String creditCardExpiryDate;
 
     public OrderUpdatedEvent() {
+        super();
     }
 
     public OrderUpdatedEvent(Integer aggregateId, String time, Double totalPriceInCents, String addressName, String address1, String address2, String creditCardCompany, String creditCardNumber, String creditCardExpiryDate) {

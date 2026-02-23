@@ -8,6 +8,7 @@ public class OrderCancelledEvent extends Event {
     private Integer userAggregateId;
 
     public OrderCancelledEvent() {
+        super();
     }
 
     public OrderCancelledEvent(Integer aggregateId, Integer userAggregateId) {

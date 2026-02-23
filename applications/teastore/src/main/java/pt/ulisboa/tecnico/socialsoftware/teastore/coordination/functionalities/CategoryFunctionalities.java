@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.teastore.sagas.coordination.category.*;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.service.CategoryService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.CategoryDto;
+import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateCategoryRequestDto;
 import java.util.List;
 
 @Service
@@ -41,32 +42,93 @@ public class CategoryFunctionalities {
         }
     }
 
-    public CategoryDto createCategory(CategoryDto categoryDto) throws TeastoreException {
+    public CategoryDto createCategory(CreateCategoryRequestDto createRequest) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(createRequest);
                 CreateCategoryFunctionalitySagas createCategoryFunctionalitySagas = new CreateCategoryFunctionalitySagas(
-                        categoryService, sagaUnitOfWorkService, categoryDto, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, categoryService, createRequest);
                 createCategoryFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return createCategoryFunctionalitySagas.getCreatedCategory();
+                return createCategoryFunctionalitySagas.getCreatedCategoryDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public List<CategoryDto> findAllCategories() {
+    public CategoryDto getCategoryById(Integer categoryAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                FindAllCategoriesFunctionalitySagas findAllCategoriesFunctionalitySagas = new FindAllCategoriesFunctionalitySagas(
-                        categoryService, sagaUnitOfWorkService, sagaUnitOfWork);
-                findAllCategoriesFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return findAllCategoriesFunctionalitySagas.getFindAllCategories();
+                GetCategoryByIdFunctionalitySagas getCategoryByIdFunctionalitySagas = new GetCategoryByIdFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, categoryService, categoryAggregateId);
+                getCategoryByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getCategoryByIdFunctionalitySagas.getCategoryDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
+    public CategoryDto updateCategory(CategoryDto categoryDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(categoryDto);
+                UpdateCategoryFunctionalitySagas updateCategoryFunctionalitySagas = new UpdateCategoryFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, categoryService, categoryDto);
+                updateCategoryFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return updateCategoryFunctionalitySagas.getUpdatedCategoryDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void deleteCategory(Integer categoryAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeleteCategoryFunctionalitySagas deleteCategoryFunctionalitySagas = new DeleteCategoryFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, categoryService, categoryAggregateId);
+                deleteCategoryFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public List<CategoryDto> getAllCategorys() {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetAllCategorysFunctionalitySagas getAllCategorysFunctionalitySagas = new GetAllCategorysFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, categoryService);
+                getAllCategorysFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getAllCategorysFunctionalitySagas.getCategorys();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    private void checkInput(CategoryDto categoryDto) {
+        if (categoryDto.getName() == null) {
+            throw new TeastoreException(CATEGORY_MISSING_NAME);
+        }
+        if (categoryDto.getDescription() == null) {
+            throw new TeastoreException(CATEGORY_MISSING_DESCRIPTION);
+        }
+}
+
+    private void checkInput(CreateCategoryRequestDto createRequest) {
+        if (createRequest.getName() == null) {
+            throw new TeastoreException(CATEGORY_MISSING_NAME);
+        }
+        if (createRequest.getDescription() == null) {
+            throw new TeastoreException(CATEGORY_MISSING_DESCRIPTION);
+        }
+}
 }

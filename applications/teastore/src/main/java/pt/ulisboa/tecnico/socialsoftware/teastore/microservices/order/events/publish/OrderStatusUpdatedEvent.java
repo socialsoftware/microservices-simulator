@@ -8,6 +8,7 @@ public class OrderStatusUpdatedEvent extends Event {
     private String status;
 
     public OrderStatusUpdatedEvent() {
+        super();
     }
 
     public OrderStatusUpdatedEvent(Integer aggregateId, String status) {

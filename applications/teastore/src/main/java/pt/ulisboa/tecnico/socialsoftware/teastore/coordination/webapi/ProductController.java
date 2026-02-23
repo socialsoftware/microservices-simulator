@@ -3,9 +3,10 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.functionalities.ProductFunctionalities;
+import org.springframework.http.HttpStatus;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.ProductDto;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.*;
+import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateProductRequestDto;
 
 @RestController
 public class ProductController {
@@ -13,22 +14,29 @@ public class ProductController {
     private ProductFunctionalities productFunctionalities;
 
     @PostMapping("/products/create")
-    public ProductDto createProduct(@RequestBody ProductDto productDto) throws Exception {
-        return productFunctionalities.createProduct(productDto);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProductDto createProduct(@RequestBody CreateProductRequestDto createRequest) {
+        return productFunctionalities.createProduct(createRequest);
     }
 
     @GetMapping("/products/{productAggregateId}")
-    public ProductDto findByProductId(@PathVariable Integer productAggregateId) {
-        return productFunctionalities.findByProductId(productAggregateId);
+    public ProductDto getProductById(@PathVariable Integer productAggregateId) {
+        return productFunctionalities.getProductById(productAggregateId);
     }
 
-    @GetMapping("/products/category/{categoryName}")
-    public List<ProductDto> findByCategory(@PathVariable String categoryName) {
-        return productFunctionalities.findByCategory(categoryName);
+    @PutMapping("/products")
+    public ProductDto updateProduct(@RequestBody ProductDto productDto) {
+        return productFunctionalities.updateProduct(productDto);
     }
 
-    @DeleteMapping("/products/{productAggregateId}/delete")
-    public void deleteProduct(@PathVariable Integer productAggregateId) throws Exception {
+    @DeleteMapping("/products/{productAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProduct(@PathVariable Integer productAggregateId) {
         productFunctionalities.deleteProduct(productAggregateId);
+    }
+
+    @GetMapping("/products")
+    public List<ProductDto> getAllProducts() {
+        return productFunctionalities.getAllProducts();
     }
 }

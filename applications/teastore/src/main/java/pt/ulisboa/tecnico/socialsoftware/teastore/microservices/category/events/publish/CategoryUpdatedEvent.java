@@ -9,6 +9,7 @@ public class CategoryUpdatedEvent extends Event {
     private String description;
 
     public CategoryUpdatedEvent() {
+        super();
     }
 
     public CategoryUpdatedEvent(Integer aggregateId, String name, String description) {

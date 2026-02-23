@@ -3,8 +3,10 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.functionalities.CartFunctionalities;
+import org.springframework.http.HttpStatus;
+import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.CartDto;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.*;
+import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateCartRequestDto;
 
 @RestController
 public class CartController {
@@ -12,32 +14,29 @@ public class CartController {
     private CartFunctionalities cartFunctionalities;
 
     @PostMapping("/carts/create")
-    public CartDto createCart(@RequestBody CartDto cartDto) throws Exception {
-        return cartFunctionalities.createCart(cartDto);
+    @ResponseStatus(HttpStatus.CREATED)
+    public CartDto createCart(@RequestBody CreateCartRequestDto createRequest) {
+        return cartFunctionalities.createCart(createRequest);
     }
 
-    @PostMapping("/carts/{cartAggregateId}/add")
-    public CartDto addItem(@PathVariable Long cartAggregateId, @RequestParam Long productId, @RequestParam String productName, @RequestParam Double unitPriceInCents, @RequestParam Integer quantity) throws Exception {
-        return cartFunctionalities.addItem(cartAggregateId, productId, productName, unitPriceInCents, quantity);
+    @GetMapping("/carts/{cartAggregateId}")
+    public CartDto getCartById(@PathVariable Integer cartAggregateId) {
+        return cartFunctionalities.getCartById(cartAggregateId);
     }
 
-    @PutMapping("/carts/{cartAggregateId}/update")
-    public CartDto updateItem(@PathVariable Long cartAggregateId, @RequestParam Long productId, @RequestParam Integer quantity) throws Exception {
-        return cartFunctionalities.updateItem(cartAggregateId, productId, quantity);
+    @PutMapping("/carts")
+    public CartDto updateCart(@RequestBody CartDto cartDto) {
+        return cartFunctionalities.updateCart(cartDto);
     }
 
-    @DeleteMapping("/carts/{cartAggregateId}/remove")
-    public CartDto removeItem(@PathVariable Long cartAggregateId, @RequestParam Long productId) throws Exception {
-        return cartFunctionalities.removeItem(cartAggregateId, productId);
+    @DeleteMapping("/carts/{cartAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCart(@PathVariable Integer cartAggregateId) {
+        cartFunctionalities.deleteCart(cartAggregateId);
     }
 
-    @PostMapping("/carts/{cartAggregateId}/checkout")
-    public CartDto checkoutCart(@PathVariable Long cartAggregateId) throws Exception {
-        return cartFunctionalities.checkoutCart(cartAggregateId);
-    }
-
-    @GetMapping("/carts/user/{userId}")
-    public CartDto findByUserId(@PathVariable Long userId) {
-        return cartFunctionalities.findByUserId(userId);
+    @GetMapping("/carts")
+    public List<CartDto> getAllCarts() {
+        return cartFunctionalities.getAllCarts();
     }
 }

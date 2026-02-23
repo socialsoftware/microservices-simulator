@@ -11,6 +11,7 @@ public class UserUpdatedEvent extends Event {
     private String email;
 
     public UserUpdatedEvent() {
+        super();
     }
 
     public UserUpdatedEvent(Integer aggregateId, String userName, String password, String realName, String email) {

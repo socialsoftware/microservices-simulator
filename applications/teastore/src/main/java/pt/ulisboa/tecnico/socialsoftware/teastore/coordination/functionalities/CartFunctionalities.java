@@ -14,16 +14,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.sagas.coordination.cart.*;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.service.CartService;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.CartDto;
+import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateCartRequestDto;
+import java.util.List;
 
 @Service
 public class CartFunctionalities {
     @Autowired
     private CartService cartService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
@@ -44,88 +42,81 @@ public class CartFunctionalities {
         }
     }
 
-    public CartDto createCart(CartDto cartDto) throws TeastoreException {
+    public CartDto createCart(CreateCartRequestDto createRequest) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(createRequest);
                 CreateCartFunctionalitySagas createCartFunctionalitySagas = new CreateCartFunctionalitySagas(
-                        cartService, sagaUnitOfWorkService, cartDto, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, cartService, createRequest);
                 createCartFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return createCartFunctionalitySagas.getCreatedCart();
+                return createCartFunctionalitySagas.getCreatedCartDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public CartDto addItem(Long cartAggregateId, Long productId, String productName, Double unitPriceInCents, Integer quantity) throws TeastoreException {
+    public CartDto getCartById(Integer cartAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                AddItemFunctionalitySagas addItemFunctionalitySagas = new AddItemFunctionalitySagas(
-                        cartService, sagaUnitOfWorkService, cartAggregateId, productId, productName, unitPriceInCents, quantity, sagaUnitOfWork);
-                addItemFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return addItemFunctionalitySagas.getResult();
+                GetCartByIdFunctionalitySagas getCartByIdFunctionalitySagas = new GetCartByIdFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, cartService, cartAggregateId);
+                getCartByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getCartByIdFunctionalitySagas.getCartDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public CartDto updateItem(Long cartAggregateId, Long productId, Integer quantity) throws TeastoreException {
+    public CartDto updateCart(CartDto cartDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                UpdateItemFunctionalitySagas updateItemFunctionalitySagas = new UpdateItemFunctionalitySagas(
-                        cartService, sagaUnitOfWorkService, cartAggregateId, productId, quantity, sagaUnitOfWork);
-                updateItemFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return updateItemFunctionalitySagas.getResult();
+                checkInput(cartDto);
+                UpdateCartFunctionalitySagas updateCartFunctionalitySagas = new UpdateCartFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, cartService, cartDto);
+                updateCartFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return updateCartFunctionalitySagas.getUpdatedCartDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public CartDto removeItem(Long cartAggregateId, Long productId) throws TeastoreException {
+    public void deleteCart(Integer cartAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                RemoveItemFunctionalitySagas removeItemFunctionalitySagas = new RemoveItemFunctionalitySagas(
-                        cartService, sagaUnitOfWorkService, cartAggregateId, productId, sagaUnitOfWork);
-                removeItemFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return removeItemFunctionalitySagas.getResult();
+                DeleteCartFunctionalitySagas deleteCartFunctionalitySagas = new DeleteCartFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, cartService, cartAggregateId);
+                deleteCartFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public CartDto checkoutCart(Long cartAggregateId) throws TeastoreException {
+    public List<CartDto> getAllCarts() {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                CheckoutCartFunctionalitySagas checkoutCartFunctionalitySagas = new CheckoutCartFunctionalitySagas(
-                        cartService, sagaUnitOfWorkService, cartAggregateId, sagaUnitOfWork);
-                checkoutCartFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return checkoutCartFunctionalitySagas.getResult();
+                GetAllCartsFunctionalitySagas getAllCartsFunctionalitySagas = new GetAllCartsFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, cartService);
+                getAllCartsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getAllCartsFunctionalitySagas.getCarts();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public CartDto findByUserId(Long userId) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+    private void checkInput(CartDto cartDto) {
+}
 
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                FindByUserIdFunctionalitySagas findByUserIdFunctionalitySagas = new FindByUserIdFunctionalitySagas(
-                        cartService, sagaUnitOfWorkService, userId, sagaUnitOfWork);
-                findByUserIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return findByUserIdFunctionalitySagas.getResult();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
+    private void checkInput(CreateCartRequestDto createRequest) {
+}
 }

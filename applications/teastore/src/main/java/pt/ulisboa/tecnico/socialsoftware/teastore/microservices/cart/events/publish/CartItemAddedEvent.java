@@ -9,6 +9,7 @@ public class CartItemAddedEvent extends Event {
     private Integer quantity;
 
     public CartItemAddedEvent() {
+        super();
     }
 
     public CartItemAddedEvent(Integer aggregateId, Long productId, Integer quantity) {

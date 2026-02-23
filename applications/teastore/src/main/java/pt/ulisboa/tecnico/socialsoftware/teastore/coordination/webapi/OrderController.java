@@ -3,9 +3,10 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.functionalities.OrderFunctionalities;
+import org.springframework.http.HttpStatus;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.OrderDto;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.*;
+import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateOrderRequestDto;
 
 @RestController
 public class OrderController {
@@ -13,22 +14,29 @@ public class OrderController {
     private OrderFunctionalities orderFunctionalities;
 
     @PostMapping("/orders/create")
-    public OrderDto createOrder(@RequestBody OrderDto orderDto) throws Exception {
-        return orderFunctionalities.createOrder(orderDto);
+    @ResponseStatus(HttpStatus.CREATED)
+    public OrderDto createOrder(@RequestBody CreateOrderRequestDto createRequest) {
+        return orderFunctionalities.createOrder(createRequest);
     }
 
     @GetMapping("/orders/{orderAggregateId}")
-    public OrderDto findByOrderId(@PathVariable Integer orderAggregateId) {
-        return orderFunctionalities.findByOrderId(orderAggregateId);
+    public OrderDto getOrderById(@PathVariable Integer orderAggregateId) {
+        return orderFunctionalities.getOrderById(orderAggregateId);
     }
 
-    @GetMapping("/orders/user/{userAggregateId}")
-    public List<OrderDto> findByUserAggregateId(@PathVariable Integer userAggregateId) {
-        return orderFunctionalities.findByUserAggregateId(userAggregateId);
+    @PutMapping("/orders")
+    public OrderDto updateOrder(@RequestBody OrderDto orderDto) {
+        return orderFunctionalities.updateOrder(orderDto);
     }
 
-    @PostMapping("/orders/{orderAggregateId}/cancel")
-    public void cancelOrder(@PathVariable Integer orderAggregateId) throws Exception {
-        orderFunctionalities.cancelOrder(orderAggregateId);
+    @DeleteMapping("/orders/{orderAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteOrder(@PathVariable Integer orderAggregateId) {
+        orderFunctionalities.deleteOrder(orderAggregateId);
+    }
+
+    @GetMapping("/orders")
+    public List<OrderDto> getAllOrders() {
+        return orderFunctionalities.getAllOrders();
     }
 }

@@ -10,6 +10,7 @@ public class OrderCreatedEvent extends Event {
     private String time;
 
     public OrderCreatedEvent() {
+        super();
     }
 
     public OrderCreatedEvent(Integer aggregateId, Integer userAggregateId, Double totalPriceInCents, String time) {

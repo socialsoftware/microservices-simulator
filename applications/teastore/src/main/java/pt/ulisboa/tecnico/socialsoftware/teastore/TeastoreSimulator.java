@@ -9,20 +9,35 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 
 @PropertySource({"classpath:application.properties"})
-@EnableJpaRepositories(basePackages = {".ms.*",
-".teastore.*"})
-@EntityScan(basePackages = {".ms.*",
-".teastore.*"})
+@EnableJpaRepositories(basePackages = {
+    "pt.ulisboa.tecnico.socialsoftware.ms",
+    "pt.ulisboa.tecnico.socialsoftware.teastore"
+})
+@EntityScan(basePackages = {
+    "pt.ulisboa.tecnico.socialsoftware.ms",
+    "pt.ulisboa.tecnico.socialsoftware.teastore"
+})
 @EnableTransactionManagement
 @EnableJpaAuditing
 
+@EnableScheduling
 
-@SpringBootApplication(scanBasePackages = {".ms.*",
-".teastore.*"})
+
+@EnableRetry
+
+@SpringBootApplication(scanBasePackages = {
+    "pt.ulisboa.tecnico.socialsoftware.ms",
+    "pt.ulisboa.tecnico.socialsoftware.teastore"
+})
 public class TeastoreSimulator implements InitializingBean {
+
+@Autowired
+private EventService eventService;
 
 
 public static void main(String[] args) {
@@ -31,7 +46,8 @@ SpringApplication.run(TeastoreSimulator.class, args);
 
 @Override
 public void afterPropertiesSet() {
-// Run on startup
+
+eventService.clearEventsAtApplicationStartUp();
 
 }
 }

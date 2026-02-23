@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggrega
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.ProductDto;
 
 public interface ProductFactory {
-    Product createProduct(Integer aggregateId, ProductCategory productCategory, ProductDto productDto);
+    Product createProduct(Integer aggregateId, ProductDto productDto);
     Product createProductFromExisting(Product existingProduct);
     ProductDto createProductDto(Product product);
 }

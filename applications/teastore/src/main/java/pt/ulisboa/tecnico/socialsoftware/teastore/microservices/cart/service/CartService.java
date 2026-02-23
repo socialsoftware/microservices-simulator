@@ -1,209 +1,130 @@
 package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.service;
 
-import java.sql.SQLException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.aggregate.*;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.dao.CannotAcquireLockException;
-
+import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.CartDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.aggregate.*;
-import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.*;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.events.publish.CartUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.events.publish.CartDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.events.publish.CartUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
+import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateCartRequestDto;
+
 
 @Service
+@Transactional
 public class CartService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    @Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    private final CartRepository cartRepository;
+    @Autowired
+    private CartRepository cartRepository;
 
     @Autowired
     private CartFactory cartFactory;
 
-    public CartService(UnitOfWorkService unitOfWorkService, CartRepository cartRepository) {
-        this.unitOfWorkService = unitOfWorkService;
-        this.cartRepository = cartRepository;
+    public CartService() {}
+
+    public CartDto createCart(CreateCartRequestDto createRequest, UnitOfWork unitOfWork) {
+        try {
+            CartDto cartDto = new CartDto();
+            cartDto.setUserId(createRequest.getUserId());
+            cartDto.setCheckedOut(createRequest.getCheckedOut());
+            cartDto.setTotalPrice(createRequest.getTotalPrice());
+
+            Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+            Cart cart = cartFactory.createCart(aggregateId, cartDto);
+            unitOfWorkService.registerChanged(cart, unitOfWork);
+            return cartFactory.createCartDto(cart);
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error creating cart: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public CartDto createCart(CartDto cartDto, UnitOfWork unitOfWork) {
-        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        Cart cart = cartFactory.createCart(aggregateId, cartDto);
-        unitOfWorkService.registerChanged(cart, unitOfWork);
-        return cartFactory.createCartDto(cart);
+    public CartDto getCartById(Integer id, UnitOfWork unitOfWork) {
+        try {
+            Cart cart = (Cart) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            return cartFactory.createCartDto(cart);
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error retrieving cart: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public CartDto getCartById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return cartFactory.createCartDto((Cart) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public CartDto updateCart(CartDto cartDto, UnitOfWork unitOfWork) {
-        Integer aggregateId = cartDto.getAggregateId();
-        Cart oldCart = (Cart) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        Cart newCart = cartFactory.createCartFromExisting(oldCart);
-        newCart.setUserId(cartDto.getUserId());
-        newCart.setCheckedOut(cartDto.getCheckedOut());
-        newCart.setTotalPrice(cartDto.getTotalPrice());
-        unitOfWorkService.registerChanged(newCart, unitOfWork);
-        unitOfWorkService.registerEvent(new CartUpdatedEvent(newCart.getAggregateId(), newCart.getUserId(), newCart.getCheckedOut(), newCart.getTotalPrice()), unitOfWork);
-        return cartFactory.createCartDto(newCart);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void deleteCart(Integer aggregateId, UnitOfWork unitOfWork) {
-        Cart oldCart = (Cart) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        Cart newCart = cartFactory.createCartFromExisting(oldCart);
-        newCart.remove();
-        unitOfWorkService.registerChanged(newCart, unitOfWork);
-        unitOfWorkService.registerEvent(new CartDeletedEvent(newCart.getAggregateId()), unitOfWork);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<CartDto> searchCarts(Boolean checkedOut, UnitOfWork unitOfWork) {
-        Set<Integer> aggregateIds = cartRepository.findAll().stream()
-                .filter(entity -> {
-                    if (checkedOut != null) {
-                        if (entity.getCheckedOut() != checkedOut) {
-                            return false;
-                        }
-                    }
-                    return true;
-                })
+    public List<CartDto> getAllCarts(UnitOfWork unitOfWork) {
+        try {
+            Set<Integer> aggregateIds = cartRepository.findAll().stream()
                 .map(Cart::getAggregateId)
                 .collect(Collectors.toSet());
-        return aggregateIds.stream()
+
+            return aggregateIds.stream()
                 .map(id -> (Cart) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(cartFactory::createCartDto)
                 .collect(Collectors.toList());
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error retrieving cart: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Cart addItem(Long cartAggregateId, Long productId, String productName, Double unitPriceInCents, Integer quantity, UnitOfWork unitOfWork) {
-        // TODO: Implement addItem method
-        return null;
+    public CartDto updateCart(CartDto cartDto, UnitOfWork unitOfWork) {
+        try {
+            Integer id = cartDto.getAggregateId();
+            Cart oldCart = (Cart) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Cart newCart = cartFactory.createCartFromExisting(oldCart);
+            if (cartDto.getUserId() != null) {
+                newCart.setUserId(cartDto.getUserId());
+            }
+            newCart.setCheckedOut(cartDto.getCheckedOut());
+            if (cartDto.getTotalPrice() != null) {
+                newCart.setTotalPrice(cartDto.getTotalPrice());
+            }
+
+            unitOfWorkService.registerChanged(newCart, unitOfWork);            CartUpdatedEvent event = new CartUpdatedEvent(newCart.getAggregateId(), newCart.getUserId(), newCart.getCheckedOut(), newCart.getTotalPrice());
+            event.setPublisherAggregateVersion(newCart.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
+            return cartFactory.createCartDto(newCart);
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error updating cart: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Cart updateItem(Long cartAggregateId, Long productId, Integer quantity, UnitOfWork unitOfWork) {
-        // TODO: Implement updateItem method
-        return null;
+    public void deleteCart(Integer id, UnitOfWork unitOfWork) {
+        try {
+            Cart oldCart = (Cart) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            Cart newCart = cartFactory.createCartFromExisting(oldCart);
+            newCart.remove();
+            unitOfWorkService.registerChanged(newCart, unitOfWork);            unitOfWorkService.registerEvent(new CartDeletedEvent(newCart.getAggregateId()), unitOfWork);
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error deleting cart: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Cart removeItem(Long cartAggregateId, Long productId, UnitOfWork unitOfWork) {
-        // TODO: Implement removeItem method
-        return null;
-    }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Cart checkoutCart(Long cartAggregateId, UnitOfWork unitOfWork) {
-        // TODO: Implement checkoutCart method
-        return null;
-    }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Cart findCartById(Long cartAggregateId, UnitOfWork unitOfWork) {
-        // TODO: Implement findCartById method
-        return null;
-    }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Cart findByUserId(Long userId, UnitOfWork unitOfWork) {
-        // TODO: Implement findByUserId method
-        return null;
-    }
+
+
+
 
 }

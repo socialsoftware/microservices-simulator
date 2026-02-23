@@ -6,5 +6,4 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.sagas.aggregates.SagaCart;
 
 @Repository
 public interface CartCustomRepositorySagas extends JpaRepository<SagaCart, Integer> {
-    // Saga-specific repository methods can be added here
-    }
+}

@@ -1,8 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.aggregate;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import jakarta.persistence.Entity;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.CategoryDto;
 
@@ -21,6 +25,7 @@ public abstract class Category extends Aggregate {
         setName(categoryDto.getName());
         setDescription(categoryDto.getDescription());
     }
+
 
     public Category(Category other) {
         super(other);
@@ -46,8 +51,22 @@ public abstract class Category extends Aggregate {
 
 
     @Override
-    public void verifyInvariants() {
-        // No invariants defined
+    public Set<EventSubscription> getEventSubscriptions() {
+        return new HashSet<>();
     }
 
+
+    @Override
+    public void verifyInvariants() {
+    }
+
+    public CategoryDto buildDto() {
+        CategoryDto dto = new CategoryDto();
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
+        dto.setName(getName());
+        dto.setDescription(getDescription());
+        return dto;
+    }
 }

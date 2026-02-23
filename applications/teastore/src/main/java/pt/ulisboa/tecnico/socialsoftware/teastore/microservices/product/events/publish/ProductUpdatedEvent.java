@@ -10,6 +10,7 @@ public class ProductUpdatedEvent extends Event {
     private Double listPriceInCents;
 
     public ProductUpdatedEvent() {
+        super();
     }
 
     public ProductUpdatedEvent(Integer aggregateId, String name, String description, Double listPriceInCents) {

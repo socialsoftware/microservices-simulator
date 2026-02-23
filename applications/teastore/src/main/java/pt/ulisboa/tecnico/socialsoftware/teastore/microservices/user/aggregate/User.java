@@ -1,8 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.aggregate;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import jakarta.persistence.Entity;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.UserDto;
 
@@ -25,6 +29,7 @@ public abstract class User extends Aggregate {
         setRealName(userDto.getRealName());
         setEmail(userDto.getEmail());
     }
+
 
     public User(User other) {
         super(other);
@@ -68,8 +73,24 @@ public abstract class User extends Aggregate {
 
 
     @Override
-    public void verifyInvariants() {
-        // No invariants defined
+    public Set<EventSubscription> getEventSubscriptions() {
+        return new HashSet<>();
     }
 
+
+    @Override
+    public void verifyInvariants() {
+    }
+
+    public UserDto buildDto() {
+        UserDto dto = new UserDto();
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
+        dto.setUserName(getUserName());
+        dto.setPassword(getPassword());
+        dto.setRealName(getRealName());
+        dto.setEmail(getEmail());
+        return dto;
+    }
 }

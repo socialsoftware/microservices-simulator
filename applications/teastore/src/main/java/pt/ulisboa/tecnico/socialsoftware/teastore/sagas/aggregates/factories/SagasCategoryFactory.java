@@ -10,19 +10,19 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.sagas.aggregates.dtos.SagaCate
 
 @Service
 @Profile("sagas")
-public class SagasCategoryFactory extends CategoryFactory {
-@Override
-public Category createCategory(Integer aggregateId, CategoryDto categoryDto) {
-return new SagaCategory(categoryDto);
-}
+public class SagasCategoryFactory implements CategoryFactory {
+    @Override
+    public Category createCategory(Integer aggregateId, CategoryDto categoryDto) {
+        return new SagaCategory(aggregateId, categoryDto);
+    }
 
-@Override
-public Category createCategoryFromExisting(Category existingCategory) {
-return new SagaCategory((SagaCategory) existingCategory);
-}
+    @Override
+    public Category createCategoryFromExisting(Category existingCategory) {
+        return new SagaCategory((SagaCategory) existingCategory);
+    }
 
-@Override
-public CategoryDto createCategoryDto(Category category) {
-return new SagaCategoryDto(category);
-}
+    @Override
+    public CategoryDto createCategoryDto(Category category) {
+        return new SagaCategoryDto(category);
+    }
 }

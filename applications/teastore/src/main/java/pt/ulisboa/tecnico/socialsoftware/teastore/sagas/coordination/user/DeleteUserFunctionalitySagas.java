@@ -1,30 +1,30 @@
 package pt.ulisboa.tecnico.socialsoftware.teastore.sagas.coordination.user;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.service.UserService;
-import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 
 public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
-    
-        private final UserService userService;
-    private final SagaUnitOfWorkService sagaUnitOfWorkService;
-    private final SagaUnitOfWork unitOfWork;
+    private final UserService userService;
+    private final SagaUnitOfWorkService unitOfWorkService;
 
-    public DeleteUserFunctionalitySagas(UserService userService, SagaUnitOfWorkService sagaUnitOfWorkService, SagaUnitOfWork unitOfWork) {
+
+    public DeleteUserFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, UserService userService, Integer userAggregateId) {
         this.userService = userService;
-        this.sagaUnitOfWorkService = sagaUnitOfWorkService;
-        this.unitOfWork = unitOfWork;
+        this.unitOfWorkService = unitOfWorkService;
+        this.buildWorkflow(userAggregateId, unitOfWork);
     }
 
-    public void buildWorkflow() {
-        this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
+    public void buildWorkflow(Integer userAggregateId, SagaUnitOfWork unitOfWork) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
+        SagaSyncStep deleteUserStep = new SagaSyncStep("deleteUserStep", () -> {
+            userService.deleteUser(userAggregateId, unitOfWork);
+        });
+
+        workflow.addStep(deleteUserStep);
     }
-
 }
-
-

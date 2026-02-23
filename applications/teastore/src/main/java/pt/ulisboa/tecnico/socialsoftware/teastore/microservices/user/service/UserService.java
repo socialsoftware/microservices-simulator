@@ -1,160 +1,136 @@
 package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.service;
 
-import java.sql.SQLException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.aggregate.*;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.dao.CannotAcquireLockException;
-
+import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.aggregate.*;
-import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.*;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.events.publish.UserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.events.publish.UserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.events.publish.UserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
+import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateUserRequestDto;
+
 
 @Service
+@Transactional
 public class UserService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    @Autowired
+    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
-    private final UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private UserFactory userFactory;
 
-    public UserService(UnitOfWorkService unitOfWorkService, UserRepository userRepository) {
-        this.unitOfWorkService = unitOfWorkService;
-        this.userRepository = userRepository;
+    public UserService() {}
+
+    public UserDto createUser(CreateUserRequestDto createRequest, UnitOfWork unitOfWork) {
+        try {
+            UserDto userDto = new UserDto();
+            userDto.setUserName(createRequest.getUserName());
+            userDto.setPassword(createRequest.getPassword());
+            userDto.setRealName(createRequest.getRealName());
+            userDto.setEmail(createRequest.getEmail());
+
+            Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+            User user = userFactory.createUser(aggregateId, userDto);
+            unitOfWorkService.registerChanged(user, unitOfWork);
+            return userFactory.createUserDto(user);
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error creating user: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public UserDto createUser(UserDto userDto, UnitOfWork unitOfWork) {
-        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        User user = userFactory.createUser(aggregateId, userDto);
-        unitOfWorkService.registerChanged(user, unitOfWork);
-        return userFactory.createUserDto(user);
+    public UserDto getUserById(Integer id, UnitOfWork unitOfWork) {
+        try {
+            User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            return userFactory.createUserDto(user);
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error retrieving user: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public UserDto getUserById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return userFactory.createUserDto((User) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public UserDto updateUser(UserDto userDto, UnitOfWork unitOfWork) {
-        Integer aggregateId = userDto.getAggregateId();
-        User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        User newUser = userFactory.createUserFromExisting(oldUser);
-        newUser.setUserName(userDto.getUserName());
-        newUser.setPassword(userDto.getPassword());
-        newUser.setRealName(userDto.getRealName());
-        newUser.setEmail(userDto.getEmail());
-        unitOfWorkService.registerChanged(newUser, unitOfWork);
-        unitOfWorkService.registerEvent(new UserUpdatedEvent(newUser.getAggregateId(), newUser.getUserName(), newUser.getPassword(), newUser.getRealName(), newUser.getEmail()), unitOfWork);
-        return userFactory.createUserDto(newUser);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void deleteUser(Integer aggregateId, UnitOfWork unitOfWork) {
-        User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-        User newUser = userFactory.createUserFromExisting(oldUser);
-        newUser.remove();
-        unitOfWorkService.registerChanged(newUser, unitOfWork);
-        unitOfWorkService.registerEvent(new UserDeletedEvent(newUser.getAggregateId()), unitOfWork);
-    }
-
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public List<UserDto> searchUsers(String userName, String password, String realName, String email, UnitOfWork unitOfWork) {
-        Set<Integer> aggregateIds = userRepository.findAll().stream()
-                .filter(entity -> {
-                    if (userName != null) {
-                        if (!entity.getUserName().equals(userName)) {
-                            return false;
-                        }
-                    }
-                    if (password != null) {
-                        if (!entity.getPassword().equals(password)) {
-                            return false;
-                        }
-                    }
-                    if (realName != null) {
-                        if (!entity.getRealName().equals(realName)) {
-                            return false;
-                        }
-                    }
-                    if (email != null) {
-                        if (!entity.getEmail().equals(email)) {
-                            return false;
-                        }
-                    }
-                    return true;
-                })
+    public List<UserDto> getAllUsers(UnitOfWork unitOfWork) {
+        try {
+            Set<Integer> aggregateIds = userRepository.findAll().stream()
                 .map(User::getAggregateId)
                 .collect(Collectors.toSet());
-        return aggregateIds.stream()
+
+            return aggregateIds.stream()
                 .map(id -> (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
                 .map(userFactory::createUserDto)
                 .collect(Collectors.toList());
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error retrieving user: " + e.getMessage());
+        }
     }
 
-    @Retryable(
-            value = { SQLException.class, CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-            backoff = @Backoff(
-                delayExpression = "${retry.db.delay}",
-                multiplierExpression = "${retry.db.multiplier}"
-            ))
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public User findByUserId(Integer userAggregateId, UnitOfWork unitOfWork) {
-        // TODO: Implement findByUserId method
-        return null;
+    public UserDto updateUser(UserDto userDto, UnitOfWork unitOfWork) {
+        try {
+            Integer id = userDto.getAggregateId();
+            User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            User newUser = userFactory.createUserFromExisting(oldUser);
+            if (userDto.getUserName() != null) {
+                newUser.setUserName(userDto.getUserName());
+            }
+            if (userDto.getPassword() != null) {
+                newUser.setPassword(userDto.getPassword());
+            }
+            if (userDto.getRealName() != null) {
+                newUser.setRealName(userDto.getRealName());
+            }
+            if (userDto.getEmail() != null) {
+                newUser.setEmail(userDto.getEmail());
+            }
+
+            unitOfWorkService.registerChanged(newUser, unitOfWork);            UserUpdatedEvent event = new UserUpdatedEvent(newUser.getAggregateId(), newUser.getUserName(), newUser.getPassword(), newUser.getRealName(), newUser.getEmail());
+            event.setPublisherAggregateVersion(newUser.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
+            return userFactory.createUserDto(newUser);
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error updating user: " + e.getMessage());
+        }
     }
+
+    public void deleteUser(Integer id, UnitOfWork unitOfWork) {
+        try {
+            User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            User newUser = userFactory.createUserFromExisting(oldUser);
+            newUser.remove();
+            unitOfWorkService.registerChanged(newUser, unitOfWork);            unitOfWorkService.registerEvent(new UserDeletedEvent(newUser.getAggregateId()), unitOfWork);
+        } catch (TeastoreException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TeastoreException("Error deleting user: " + e.getMessage());
+        }
+    }
+
+
+
+
+
+
+
 
 }

@@ -10,19 +10,19 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.sagas.aggregates.dtos.SagaProd
 
 @Service
 @Profile("sagas")
-public class SagasProductFactory extends ProductFactory {
-@Override
-public Product createProduct(Integer aggregateId, ProductDto productDto) {
-return new SagaProduct(productDto);
-}
+public class SagasProductFactory implements ProductFactory {
+    @Override
+    public Product createProduct(Integer aggregateId, ProductDto productDto) {
+        return new SagaProduct(aggregateId, productDto);
+    }
 
-@Override
-public Product createProductFromExisting(Product existingProduct) {
-return new SagaProduct((SagaProduct) existingProduct);
-}
+    @Override
+    public Product createProductFromExisting(Product existingProduct) {
+        return new SagaProduct((SagaProduct) existingProduct);
+    }
 
-@Override
-public ProductDto createProductDto(Product product) {
-return new SagaProductDto(product);
-}
+    @Override
+    public ProductDto createProductDto(Product product) {
+        return new SagaProductDto(product);
+    }
 }

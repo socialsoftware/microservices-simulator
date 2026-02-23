@@ -10,19 +10,19 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.sagas.aggregates.dtos.SagaCart
 
 @Service
 @Profile("sagas")
-public class SagasCartFactory extends CartFactory {
-@Override
-public Cart createCart(Integer aggregateId, CartDto cartDto) {
-return new SagaCart(cartDto);
-}
+public class SagasCartFactory implements CartFactory {
+    @Override
+    public Cart createCart(Integer aggregateId, CartDto cartDto) {
+        return new SagaCart(aggregateId, cartDto);
+    }
 
-@Override
-public Cart createCartFromExisting(Cart existingCart) {
-return new SagaCart((SagaCart) existingCart);
-}
+    @Override
+    public Cart createCartFromExisting(Cart existingCart) {
+        return new SagaCart((SagaCart) existingCart);
+    }
 
-@Override
-public CartDto createCartDto(Cart cart) {
-return new SagaCartDto(cart);
-}
+    @Override
+    public CartDto createCartDto(Cart cart) {
+        return new SagaCartDto(cart);
+    }
 }

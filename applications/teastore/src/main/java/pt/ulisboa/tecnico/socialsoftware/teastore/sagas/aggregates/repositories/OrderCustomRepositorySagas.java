@@ -6,5 +6,4 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.sagas.aggregates.SagaOrder;
 
 @Repository
 public interface OrderCustomRepositorySagas extends JpaRepository<SagaOrder, Integer> {
-    // Saga-specific repository methods can be added here
-    }
+}

@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 public class CartDeletedEvent extends Event {
 
     public CartDeletedEvent() {
+        super();
     }
 
     public CartDeletedEvent(Integer aggregateId) {

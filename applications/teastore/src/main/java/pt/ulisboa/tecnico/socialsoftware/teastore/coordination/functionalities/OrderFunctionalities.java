@@ -14,17 +14,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.sagas.coordination.order.*;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.service.OrderService;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.service.UserService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.OrderDto;
+import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateOrderRequestDto;
 import java.util.List;
 
 @Service
 public class OrderFunctionalities {
     @Autowired
     private OrderService orderService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
@@ -45,60 +42,123 @@ public class OrderFunctionalities {
         }
     }
 
-    public OrderDto createOrder(OrderDto orderDto) throws TeastoreException {
+    public OrderDto createOrder(CreateOrderRequestDto createRequest) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(createRequest);
                 CreateOrderFunctionalitySagas createOrderFunctionalitySagas = new CreateOrderFunctionalitySagas(
-                        orderService, sagaUnitOfWorkService, orderDto, sagaUnitOfWork);
+                        sagaUnitOfWork, sagaUnitOfWorkService, orderService, createRequest);
                 createOrderFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return createOrderFunctionalitySagas.getCreatedOrder();
+                return createOrderFunctionalitySagas.getCreatedOrderDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public OrderDto findByOrderId(Integer orderAggregateId) {
+    public OrderDto getOrderById(Integer orderAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                FindByOrderIdFunctionalitySagas findByOrderIdFunctionalitySagas = new FindByOrderIdFunctionalitySagas(
-                        orderService, sagaUnitOfWorkService, orderAggregateId, sagaUnitOfWork);
-                findByOrderIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return findByOrderIdFunctionalitySagas.getResult();
+                GetOrderByIdFunctionalitySagas getOrderByIdFunctionalitySagas = new GetOrderByIdFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, orderService, orderAggregateId);
+                getOrderByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getOrderByIdFunctionalitySagas.getOrderDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public List<OrderDto> findByUserAggregateId(Integer userAggregateId) {
+    public OrderDto updateOrder(OrderDto orderDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                FindByUserAggregateIdFunctionalitySagas findByUserAggregateIdFunctionalitySagas = new FindByUserAggregateIdFunctionalitySagas(
-                        orderService, sagaUnitOfWorkService, userAggregateId, sagaUnitOfWork);
-                findByUserAggregateIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                return findByUserAggregateIdFunctionalitySagas.getFindByUserAggregateId();
+                checkInput(orderDto);
+                UpdateOrderFunctionalitySagas updateOrderFunctionalitySagas = new UpdateOrderFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, orderService, orderDto);
+                updateOrderFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return updateOrderFunctionalitySagas.getUpdatedOrderDto();
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
-    public void cancelOrder(Integer orderAggregateId) throws TeastoreException {
+    public void deleteOrder(Integer orderAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                CancelOrderFunctionalitySagas cancelOrderFunctionalitySagas = new CancelOrderFunctionalitySagas(
-                        orderService, sagaUnitOfWorkService, orderAggregateId, sagaUnitOfWork);
-                cancelOrderFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                DeleteOrderFunctionalitySagas deleteOrderFunctionalitySagas = new DeleteOrderFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, orderService, orderAggregateId);
+                deleteOrderFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
+    public List<OrderDto> getAllOrders() {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetAllOrdersFunctionalitySagas getAllOrdersFunctionalitySagas = new GetAllOrdersFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, orderService);
+                getAllOrdersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getAllOrdersFunctionalitySagas.getOrders();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    private void checkInput(OrderDto orderDto) {
+        if (orderDto.getTime() == null) {
+            throw new TeastoreException(ORDER_MISSING_TIME);
+        }
+        if (orderDto.getAddressName() == null) {
+            throw new TeastoreException(ORDER_MISSING_ADDRESSNAME);
+        }
+        if (orderDto.getAddress1() == null) {
+            throw new TeastoreException(ORDER_MISSING_ADDRESS1);
+        }
+        if (orderDto.getAddress2() == null) {
+            throw new TeastoreException(ORDER_MISSING_ADDRESS2);
+        }
+        if (orderDto.getCreditCardCompany() == null) {
+            throw new TeastoreException(ORDER_MISSING_CREDITCARDCOMPANY);
+        }
+        if (orderDto.getCreditCardNumber() == null) {
+            throw new TeastoreException(ORDER_MISSING_CREDITCARDNUMBER);
+        }
+        if (orderDto.getCreditCardExpiryDate() == null) {
+            throw new TeastoreException(ORDER_MISSING_CREDITCARDEXPIRYDATE);
+        }
+}
+
+    private void checkInput(CreateOrderRequestDto createRequest) {
+        if (createRequest.getTime() == null) {
+            throw new TeastoreException(ORDER_MISSING_TIME);
+        }
+        if (createRequest.getAddressName() == null) {
+            throw new TeastoreException(ORDER_MISSING_ADDRESSNAME);
+        }
+        if (createRequest.getAddress1() == null) {
+            throw new TeastoreException(ORDER_MISSING_ADDRESS1);
+        }
+        if (createRequest.getAddress2() == null) {
+            throw new TeastoreException(ORDER_MISSING_ADDRESS2);
+        }
+        if (createRequest.getCreditCardCompany() == null) {
+            throw new TeastoreException(ORDER_MISSING_CREDITCARDCOMPANY);
+        }
+        if (createRequest.getCreditCardNumber() == null) {
+            throw new TeastoreException(ORDER_MISSING_CREDITCARDNUMBER);
+        }
+        if (createRequest.getCreditCardExpiryDate() == null) {
+            throw new TeastoreException(ORDER_MISSING_CREDITCARDEXPIRYDATE);
+        }
+}
 }

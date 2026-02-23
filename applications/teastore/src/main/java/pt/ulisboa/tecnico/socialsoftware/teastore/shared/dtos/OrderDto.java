@@ -8,7 +8,7 @@ public class OrderDto implements Serializable {
     private Integer aggregateId;
     private Integer version;
     private AggregateState state;
-    private Integer userAggregateId;
+    private OrderUserDto user;
     private String time;
     private Double totalPriceInCents;
     private String addressName;
@@ -25,7 +25,7 @@ public class OrderDto implements Serializable {
         this.aggregateId = order.getAggregateId();
         this.version = order.getVersion();
         this.state = order.getState();
-        this.userAggregateId = order.getUser() != null ? order.getUser().getUserAggregateId() : null;
+        this.user = order.getUser() != null ? new OrderUserDto(order.getUser()) : null;
         this.time = order.getTime();
         this.totalPriceInCents = order.getTotalPriceInCents();
         this.addressName = order.getAddressName();
@@ -60,12 +60,12 @@ public class OrderDto implements Serializable {
         this.state = state;
     }
 
-    public Integer getUserAggregateId() {
-        return userAggregateId;
+    public OrderUserDto getUser() {
+        return user;
     }
 
-    public void setUserAggregateId(Integer userAggregateId) {
-        this.userAggregateId = userAggregateId;
+    public void setUser(OrderUserDto user) {
+        this.user = user;
     }
 
     public String getTime() {

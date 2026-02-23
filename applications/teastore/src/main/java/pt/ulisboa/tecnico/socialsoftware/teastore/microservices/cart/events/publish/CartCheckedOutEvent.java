@@ -9,6 +9,7 @@ public class CartCheckedOutEvent extends Event {
     private Double totalPrice;
 
     public CartCheckedOutEvent() {
+        super();
     }
 
     public CartCheckedOutEvent(Integer aggregateId, Long userId, Double totalPrice) {

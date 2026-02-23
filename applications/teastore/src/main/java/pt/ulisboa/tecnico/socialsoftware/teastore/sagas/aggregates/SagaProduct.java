@@ -22,8 +22,8 @@ public class SagaProduct extends Product implements SagaAggregate {
         this.sagaState = other.getSagaState();
     }
 
-    public SagaProduct(Integer aggregateId, ProductDto productDto, ProductCategory productCategory) {
-        super(aggregateId, productDto, productCategory);
+    public SagaProduct(Integer aggregateId, ProductDto productDto) {
+        super(aggregateId, productDto);
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 

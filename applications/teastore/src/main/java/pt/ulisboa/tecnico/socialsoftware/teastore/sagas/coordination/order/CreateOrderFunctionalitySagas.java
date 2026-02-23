@@ -1,30 +1,41 @@
 package pt.ulisboa.tecnico.socialsoftware.teastore.sagas.coordination.order;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.service.OrderService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.OrderDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaSyncStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateOrderRequestDto;
 
 public class CreateOrderFunctionalitySagas extends WorkflowFunctionality {
-    
-        private final OrderService orderService;
-    private final SagaUnitOfWorkService sagaUnitOfWorkService;
-    private final SagaUnitOfWork unitOfWork;
+    private OrderDto createdOrderDto;
+    private final OrderService orderService;
+    private final SagaUnitOfWorkService unitOfWorkService;
 
-    public CreateOrderFunctionalitySagas(OrderService orderService, SagaUnitOfWorkService sagaUnitOfWorkService, SagaUnitOfWork unitOfWork) {
+
+    public CreateOrderFunctionalitySagas(SagaUnitOfWork unitOfWork, SagaUnitOfWorkService unitOfWorkService, OrderService orderService, CreateOrderRequestDto createRequest) {
         this.orderService = orderService;
-        this.sagaUnitOfWorkService = sagaUnitOfWorkService;
-        this.unitOfWork = unitOfWork;
+        this.unitOfWorkService = unitOfWorkService;
+        this.buildWorkflow(createRequest, unitOfWork);
     }
 
-    public void buildWorkflow() {
-        this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
+    public void buildWorkflow(CreateOrderRequestDto createRequest, SagaUnitOfWork unitOfWork) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
+        SagaSyncStep createOrderStep = new SagaSyncStep("createOrderStep", () -> {
+            OrderDto createdOrderDto = orderService.createOrder(createRequest, unitOfWork);
+            setCreatedOrderDto(createdOrderDto);
+        });
+
+        workflow.addStep(createOrderStep);
+    }
+    public OrderDto getCreatedOrderDto() {
+        return createdOrderDto;
     }
 
+    public void setCreatedOrderDto(OrderDto createdOrderDto) {
+        this.createdOrderDto = createdOrderDto;
+    }
 }
-
-

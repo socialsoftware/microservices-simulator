@@ -1,12 +1,21 @@
 package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.aggregate;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.events.subscribe.OrderSubscribesUserDeletedOrderUserExists;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.events.subscribe.OrderSubscribesUserUpdated;
 
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.OrderDto;
+import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.OrderUserDto;
 
 @Entity
 public abstract class Order extends Aggregate {
@@ -25,7 +34,7 @@ public abstract class Order extends Aggregate {
 
     }
 
-    public Order(Integer aggregateId, OrderUser user, OrderDto orderDto) {
+    public Order(Integer aggregateId, OrderDto orderDto) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setTime(orderDto.getTime());
@@ -36,8 +45,9 @@ public abstract class Order extends Aggregate {
         setCreditCardCompany(orderDto.getCreditCardCompany());
         setCreditCardNumber(orderDto.getCreditCardNumber());
         setCreditCardExpiryDate(orderDto.getCreditCardExpiryDate());
-        setUser(user);
+        setUser(orderDto.getUser() != null ? new OrderUser(orderDto.getUser()) : null);
     }
+
 
     public Order(Order other) {
         super(other);
@@ -129,8 +139,36 @@ public abstract class Order extends Aggregate {
 
 
     @Override
-    public void verifyInvariants() {
-        // No invariants defined
+    public Set<EventSubscription> getEventSubscriptions() {
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();
+        if (this.getState() == AggregateState.ACTIVE) {
+            interInvariantOrderUserExists(eventSubscriptions);
+            eventSubscriptions.add(new OrderSubscribesUserUpdated());
+        }
+        return eventSubscriptions;
+    }
+    private void interInvariantOrderUserExists(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new OrderSubscribesUserDeletedOrderUserExists(this.getUser()));
     }
 
+    @Override
+    public void verifyInvariants() {
+    }
+
+    public OrderDto buildDto() {
+        OrderDto dto = new OrderDto();
+        dto.setAggregateId(getAggregateId());
+        dto.setVersion(getVersion());
+        dto.setState(getState());
+        dto.setUser(getUser() != null ? new OrderUserDto(getUser()) : null);
+        dto.setTime(getTime());
+        dto.setTotalPriceInCents(getTotalPriceInCents());
+        dto.setAddressName(getAddressName());
+        dto.setAddress1(getAddress1());
+        dto.setAddress2(getAddress2());
+        dto.setCreditCardCompany(getCreditCardCompany());
+        dto.setCreditCardNumber(getCreditCardNumber());
+        dto.setCreditCardExpiryDate(getCreditCardExpiryDate());
+        return dto;
+    }
 }

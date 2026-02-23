@@ -5,6 +5,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
+import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.OrderUserDto;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.UserDto;
 
 @Entity
@@ -12,10 +15,12 @@ public class OrderUser {
     @Id
     @GeneratedValue
     private Long id;
-    private Integer userAggregateId;
     private String userName;
     private String userRealName;
     private String userEmail;
+    private Integer userAggregateId;
+    private Integer userVersion;
+    private AggregateState userState;
     @OneToOne
     private Order order;
 
@@ -25,16 +30,26 @@ public class OrderUser {
 
     public OrderUser(UserDto userDto) {
         setUserAggregateId(userDto.getAggregateId());
-        setUserName(userDto.getUserName());
-        setUserRealName(userDto.getRealName());
-        setUserEmail(userDto.getEmail());
+        setUserVersion(userDto.getVersion());
+        setUserState(userDto.getState());
+    }
+
+    public OrderUser(OrderUserDto orderUserDto) {
+        setUserName(orderUserDto.getUserName());
+        setUserRealName(orderUserDto.getRealName());
+        setUserEmail(orderUserDto.getEmail());
+        setUserAggregateId(orderUserDto.getAggregateId());
+        setUserVersion(orderUserDto.getVersion());
+        setUserState(orderUserDto.getState());
     }
 
     public OrderUser(OrderUser other) {
-        setUserAggregateId(other.getUserAggregateId());
         setUserName(other.getUserName());
         setUserRealName(other.getUserRealName());
         setUserEmail(other.getUserEmail());
+        setUserAggregateId(other.getUserAggregateId());
+        setUserVersion(other.getUserVersion());
+        setUserState(other.getUserState());
     }
 
     public Long getId() {
@@ -43,14 +58,6 @@ public class OrderUser {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Integer getUserAggregateId() {
-        return userAggregateId;
-    }
-
-    public void setUserAggregateId(Integer userAggregateId) {
-        this.userAggregateId = userAggregateId;
     }
 
     public String getUserName() {
@@ -77,6 +84,30 @@ public class OrderUser {
         this.userEmail = userEmail;
     }
 
+    public Integer getUserAggregateId() {
+        return userAggregateId;
+    }
+
+    public void setUserAggregateId(Integer userAggregateId) {
+        this.userAggregateId = userAggregateId;
+    }
+
+    public Integer getUserVersion() {
+        return userVersion;
+    }
+
+    public void setUserVersion(Integer userVersion) {
+        this.userVersion = userVersion;
+    }
+
+    public AggregateState getUserState() {
+        return userState;
+    }
+
+    public void setUserState(AggregateState userState) {
+        this.userState = userState;
+    }
+
     public Order getOrder() {
         return order;
     }
@@ -86,12 +117,16 @@ public class OrderUser {
     }
 
 
-    public UserDto buildDto() {
-        UserDto dto = new UserDto();
-        dto.setAggregateId(getUserAggregateId());
+
+
+    public OrderUserDto buildDto() {
+        OrderUserDto dto = new OrderUserDto();
         dto.setUserName(getUserName());
         dto.setRealName(getUserRealName());
         dto.setEmail(getUserEmail());
+        dto.setAggregateId(getUserAggregateId());
+        dto.setVersion(getUserVersion());
+        dto.setState(getUserState());
         return dto;
     }
 }
