@@ -506,7 +506,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
             if (ref && typeof ref === 'object' && '$type' in ref && ((ref as any).$type === 'EnumDefinition' || (ref as any).$type === 'Enum')) {
                 return true;
             }
-            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Category|Method|Kind|Mode|Level|Priority)$/)) {
+            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Method|Kind|Mode|Level|Priority)$/)) {
                 return true;
             }
         }

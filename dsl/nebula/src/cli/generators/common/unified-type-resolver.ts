@@ -101,7 +101,7 @@ export class UnifiedTypeResolver {
     }
 
     static isEnumType(typeName: string): boolean {
-        return typeof typeName === 'string' && typeName.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Category|Method|Kind|Mode|Level|Priority)$/) !== null;
+        return typeof typeName === 'string' && typeName.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Method|Kind|Mode|Level|Priority)$/) !== null;
     }
 
     static isBuiltinType(typeName: string): boolean {

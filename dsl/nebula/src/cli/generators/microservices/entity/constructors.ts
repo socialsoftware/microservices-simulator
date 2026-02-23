@@ -17,7 +17,7 @@ const isEnumType = (type: any) => {
         if (type.type.ref && (type.type.ref.$type === 'EnumDefinition' || type.type.ref.$type === 'Enum')) {
             return true;
         }
-        if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Category|Method|Kind|Mode|Level|Priority)$/)) {
+        if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Method|Kind|Mode|Level|Priority)$/)) {
             return true;
         }
     }
@@ -92,7 +92,7 @@ export function generateDefaultConstructor(entity: Entity): { code: string } {
                 if (type.type.ref && (type.type.ref.$type === 'EnumDefinition' || type.type.ref.$type === 'Enum')) {
                     return true;
                 }
-                if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Category|Method|Kind|Mode|Level|Priority)$/)) {
+                if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Method|Kind|Mode|Level|Priority)$/)) {
                     return true;
                 }
             }

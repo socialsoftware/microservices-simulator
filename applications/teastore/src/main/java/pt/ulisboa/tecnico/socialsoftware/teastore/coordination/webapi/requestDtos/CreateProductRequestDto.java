@@ -1,11 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos;
 
 import jakarta.validation.constraints.*;
-import pt.ulisboa.tecnico.socialsoftware.teastore.shared.enums.ProductCategory;
+import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.CategoryDto;
 
 public class CreateProductRequestDto {
     @NotNull
-    private ProductCategory productCategory;
+    private CategoryDto productCategory;
     @NotNull
     private String name;
     @NotNull
@@ -15,18 +15,18 @@ public class CreateProductRequestDto {
 
     public CreateProductRequestDto() {}
 
-    public CreateProductRequestDto(ProductCategory productCategory, String name, String description, Double listPriceInCents) {
+    public CreateProductRequestDto(CategoryDto productCategory, String name, String description, Double listPriceInCents) {
         this.productCategory = productCategory;
         this.name = name;
         this.description = description;
         this.listPriceInCents = listPriceInCents;
     }
 
-    public ProductCategory getProductCategory() {
+    public CategoryDto getProductCategory() {
         return productCategory;
     }
 
-    public void setProductCategory(ProductCategory productCategory) {
+    public void setProductCategory(CategoryDto productCategory) {
         this.productCategory = productCategory;
     }
     public String getName() {

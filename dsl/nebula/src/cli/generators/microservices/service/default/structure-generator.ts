@@ -79,7 +79,7 @@ export class ServiceStructureGenerator {
                     const ref = propType.type.ref;
                     const typeName = propType.type.$refText || ref?.name;
                     const isEnum = (ref && (ref.$type === 'EnumDefinition' || ref.$type === 'Enum')) ||
-                        (typeName && typeName !== 'AggregateState' && /^[A-Z][a-zA-Z]*(Type|State|Role|Status|Category|Method|Kind|Mode|Level|Priority)$/.test(typeName));
+                        (typeName && typeName !== 'AggregateState' && /^[A-Z][a-zA-Z]*(Type|State|Role|Status|Method|Kind|Mode|Level|Priority)$/.test(typeName));
                     if (typeName && typeName !== 'AggregateState' && isEnum) {
                         imports.push(
                             `import ${getGlobalConfig().buildPackageName(

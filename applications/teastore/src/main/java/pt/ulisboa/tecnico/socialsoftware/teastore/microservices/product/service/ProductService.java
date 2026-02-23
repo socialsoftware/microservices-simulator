@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.ProductDto;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.ProductCategoryDto;
-import pt.ulisboa.tecnico.socialsoftware.teastore.shared.enums.ProductCategory;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
@@ -44,10 +43,16 @@ public class ProductService {
     public ProductDto createProduct(CreateProductRequestDto createRequest, UnitOfWork unitOfWork) {
         try {
             ProductDto productDto = new ProductDto();
-            productDto.setProductCategory(createRequest.getProductCategory() != null ? createRequest.getProductCategory().name() : null);
             productDto.setName(createRequest.getName());
             productDto.setDescription(createRequest.getDescription());
             productDto.setListPriceInCents(createRequest.getListPriceInCents());
+            if (createRequest.getProductCategory() != null) {
+                ProductCategoryDto productCategoryDto = new ProductCategoryDto();
+                productCategoryDto.setAggregateId(createRequest.getProductCategory().getAggregateId());
+                productCategoryDto.setVersion(createRequest.getProductCategory().getVersion());
+                productCategoryDto.setState(createRequest.getProductCategory().getState() != null ? createRequest.getProductCategory().getState().name() : null);
+                productDto.setProductCategory(productCategoryDto);
+            }
 
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
             Product product = productFactory.createProduct(aggregateId, productDto);
@@ -93,9 +98,6 @@ public class ProductService {
             Integer id = productDto.getAggregateId();
             Product oldProduct = (Product) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Product newProduct = productFactory.createProductFromExisting(oldProduct);
-            if (productDto.getProductCategory() != null) {
-                newProduct.setProductCategory(ProductCategory.valueOf(productDto.getProductCategory()));
-            }
             if (productDto.getName() != null) {
                 newProduct.setName(productDto.getName());
             }
