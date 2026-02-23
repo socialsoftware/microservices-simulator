@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.grpc.stub.StreamObserver;
 import org.springframework.context.annotation.Profile;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
@@ -25,6 +27,7 @@ public abstract class GrpcCommandHandler extends CommandHandler {
         this.objectMapper = mapperProvider.newMapper();
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void handleGrpcRequest(CommandRequest request, StreamObserver<CommandReply> responseObserver) {
         String correlationId = request.getCorrelationId();
         Command command;

@@ -1,6 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.AbortCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.command.CommitCausalCommand;
@@ -12,7 +14,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.AbortSagaCo
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command.CommitSagaCommand;
 
 import java.util.logging.Logger;
-
 
 public abstract class CommandHandler {
     private static final Logger logger = Logger.getLogger(CommandHandler.class.getName());
@@ -27,6 +28,7 @@ public abstract class CommandHandler {
 
     protected abstract Object handleDomainCommand(Command command);
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public Object handle(Command command) {
         // Verify saga state
         if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {

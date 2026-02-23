@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Profile;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
@@ -27,6 +29,7 @@ public abstract class StreamCommandHandler extends CommandHandler {
         this.objectMapper = mapperProvider.newMapper();
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void handleCommandMessage(Message<?> message) {
         Command command;
         if (!(message.getPayload() instanceof Command)) {
