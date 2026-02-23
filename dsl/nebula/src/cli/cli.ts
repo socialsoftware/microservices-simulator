@@ -51,7 +51,6 @@ export default async function cli(): Promise<void> {
                 
                 await CodeGenerator.generateCode(abstractionsPath, {
                     destination: options.output,
-                    name: path.basename(path.resolve(abstractionsPath)),
                     validate: options.validate
                 });
 
