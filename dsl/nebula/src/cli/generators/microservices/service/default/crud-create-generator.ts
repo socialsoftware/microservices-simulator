@@ -66,8 +66,7 @@ export class CrudCreateGenerator extends MethodGeneratorTemplate {
 
         const primitiveSetters = primitiveProps.map(prop => {
             const capitalizedName = this.capitalize(prop.name);
-            const javaType = TypeResolver.resolveJavaType(prop.type);
-            const isEnum = CrudHelpers.isEnumType(prop.type) || javaType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/);
+            const isEnum = CrudHelpers.isEnumType(prop.type);
 
             if (isEnum) {
                 return `            ${lowerAggregate}Dto.set${capitalizedName}(createRequest.get${capitalizedName}() != null ? createRequest.get${capitalizedName}().name() : null);`;
@@ -88,7 +87,7 @@ export class CrudCreateGenerator extends MethodGeneratorTemplate {
                     ${projectionDtoName} projDto = new ${projectionDtoName}();
                     projDto.setAggregateId(srcDto.getAggregateId());
                     projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState());
+                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
                     return projDto;
                 }).collect(Collectors.to${rel.collectionType}()));
             }`;
@@ -97,7 +96,7 @@ export class CrudCreateGenerator extends MethodGeneratorTemplate {
                 ${projectionDtoName} ${rel.paramName}Dto = new ${projectionDtoName}();
                 ${rel.paramName}Dto.setAggregateId(createRequest.get${capitalizedName}().getAggregateId());
                 ${rel.paramName}Dto.setVersion(createRequest.get${capitalizedName}().getVersion());
-                ${rel.paramName}Dto.setState(createRequest.get${capitalizedName}().getState());
+                ${rel.paramName}Dto.setState(createRequest.get${capitalizedName}().getState() != null ? createRequest.get${capitalizedName}().getState().name() : null);
                 ${lowerAggregate}Dto.set${capitalizedName}(${rel.paramName}Dto);
             }`;
                 }

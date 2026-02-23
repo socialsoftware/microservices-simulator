@@ -49,7 +49,7 @@ export class CrudMethodGenerator {
         }
 
         if (options.includeUpdate) {
-            methods.push(this.generateUpdateMethod(entityName, lowerEntity, options, properties));
+            methods.push(this.generateUpdateMethod(aggregate, entityName, lowerEntity, options, properties));
         }
 
         if (options.includeDelete) {
@@ -88,28 +88,28 @@ export class CrudMethodGenerator {
     }
 
     private generateCreateMethod(aggregate: Aggregate, rootEntity: Entity, entityName: string, lowerEntity: string, options: CrudGenerationOptions, properties: { name: string; capitalizedName: string }[]): GeneratedMethod {
-        
+
         const entityRelationships = this.findEntityRelationships(rootEntity, aggregate);
         const singleEntityRels = entityRelationships.filter(rel => !rel.isCollection);
         const collectionEntityRels = entityRelationships.filter(rel => rel.isCollection);
 
-        
+
         const parameters: MethodParameter[] = [];
 
-        
+
         for (const rel of singleEntityRels) {
             parameters.push({ type: rel.entityType, name: rel.paramName });
         }
 
-        
+
         parameters.push({ type: `Create${entityName}RequestDto`, name: 'createRequest' });
 
-        
+
         for (const rel of collectionEntityRels) {
             parameters.push({ type: rel.javaType, name: rel.paramName });
         }
 
-        
+
         parameters.push({ type: 'UnitOfWork', name: 'unitOfWork' });
 
         return {
@@ -129,7 +129,7 @@ export class CrudMethodGenerator {
         } as any;
     }
 
-    
+
 
     private findEntityRelationships(rootEntity: Entity, aggregate: Aggregate): Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> {
         const relationships: Array<{ entityType: string; paramName: string; javaType: string; isCollection: boolean }> = [];
@@ -142,28 +142,28 @@ export class CrudMethodGenerator {
             const javaType = TypeResolver.resolveJavaType(prop.type);
             const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
 
-            
+
             const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
 
             if (isEntityType) {
-                
+
                 const entityRef = (prop.type as any).type?.ref;
                 let entityName: string;
 
                 if (isCollection) {
-                    
+
                     const elementType = TypeResolver.getElementType(prop.type);
                     entityName = elementType || javaType.replace(/^(Set|List)<(.+)>$/, '$2');
                 } else {
                     entityName = entityRef?.name || javaType;
                 }
 
-                
+
                 const relatedEntity = aggregate.entities?.find((e: any) => e.name === entityName);
                 const isEntityInAggregate = !!relatedEntity;
 
-                
-                
+
+
                 if (isEntityInAggregate) {
                     const paramName = prop.name;
                     relationships.push({
@@ -179,16 +179,16 @@ export class CrudMethodGenerator {
         return relationships;
     }
 
-    
+
 
     private isEnumType(type: any): boolean {
         if (type && typeof type === 'object' &&
             type.$type === 'EntityType' &&
             type.type) {
-            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
+            if (type.type.ref && (type.type.ref.$type === 'EnumDefinition' || type.type.ref.$type === 'Enum')) {
                 return true;
             }
-            if (type.type.ref && type.type.ref.$type === 'EnumDefinition') {
+            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Category|Method|Kind|Mode|Level|Priority)$/)) {
                 return true;
             }
         }
@@ -213,8 +213,21 @@ export class CrudMethodGenerator {
         } as any;
     }
 
-    private generateUpdateMethod(entityName: string, lowerEntity: string, options: CrudGenerationOptions, properties: { name: string; capitalizedName: string; isFinal?: boolean }[]): GeneratedMethod {
+    private generateUpdateMethod(aggregate: Aggregate, entityName: string, lowerEntity: string, options: CrudGenerationOptions, properties: { name: string; capitalizedName: string; isFinal?: boolean }[]): GeneratedMethod {
         const nonFinalProperties = properties.filter(p => !p.isFinal);
+
+        const events = (aggregate as any).events;
+        const publishedEvents = events?.publishedEvents || [];
+        const updatedEventName = `${aggregate.name}UpdatedEvent`;
+        const explicitEvent = publishedEvents.find((e: any) => e.name === updatedEventName);
+
+        let eventProperties;
+        if (explicitEvent && explicitEvent.fields?.length > 0) {
+            const eventFieldNames = new Set(explicitEvent.fields.map((f: any) => f.name));
+            eventProperties = nonFinalProperties.filter(p => eventFieldNames.has(p.name));
+        } else {
+            eventProperties = nonFinalProperties;
+        }
 
         return {
             name: `update${entityName}`,
@@ -229,7 +242,8 @@ export class CrudMethodGenerator {
             lowerEntityName: lowerEntity,
             lowerRepositoryName: `${lowerEntity}Repository`,
             properties,
-            nonFinalProperties
+            nonFinalProperties,
+            eventProperties
         } as any;
     }
 

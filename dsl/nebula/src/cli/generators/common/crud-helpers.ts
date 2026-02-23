@@ -4,7 +4,7 @@ import { UnifiedTypeResolver as TypeResolver } from "./unified-type-resolver.js"
 
 
 export class CrudHelpers {
-    
+
 
     static getMethodNames(aggregateName: string) {
         const capitalized = StringUtils.capitalize(aggregateName);
@@ -17,7 +17,7 @@ export class CrudHelpers {
         };
     }
 
-    
+
 
     static getDtoTypes(aggregateName: string) {
         const capitalized = StringUtils.capitalize(aggregateName);
@@ -28,7 +28,7 @@ export class CrudHelpers {
         };
     }
 
-    
+
 
     static getEventNames(aggregateName: string) {
         const capitalized = StringUtils.capitalize(aggregateName);
@@ -39,7 +39,7 @@ export class CrudHelpers {
         };
     }
 
-    
+
 
     static findCrossAggregateReferences(
         rootEntity: any,
@@ -68,7 +68,7 @@ export class CrudHelpers {
             const javaType = TypeResolver.resolveJavaType(prop.type);
             const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
 
-            
+
             const isEntityType = TypeResolver.isEntityType(javaType);
 
             if (isEntityType) {
@@ -76,18 +76,18 @@ export class CrudHelpers {
 
                 if (isCollection) {
                     entityName = TypeResolver.getElementType(prop.type) ||
-                                javaType.replace(/^(Set|List)<(.+)>$/, '$2');
+                        javaType.replace(/^(Set|List)<(.+)>$/, '$2');
                 } else {
                     const entityRef = (prop.type as any).type?.ref;
                     entityName = entityRef?.name || javaType;
                 }
 
-                
+
                 const localEntity = aggregate.entities?.find((e: any) => e.name === entityName);
 
                 if (!localEntity) {
-                    
-                    
+
+
                     for (const otherAgg of allAggregates) {
                         if (otherAgg.name === aggregate.name) continue;
 
@@ -114,7 +114,7 @@ export class CrudHelpers {
         return references;
     }
 
-    
+
 
     static findEntityRelationships(
         rootEntity: any,
@@ -147,13 +147,13 @@ export class CrudHelpers {
 
                 if (isCollection) {
                     entityName = TypeResolver.getElementType(prop.type) ||
-                                javaType.replace(/^(Set|List)<(.+)>$/, '$2');
+                        javaType.replace(/^(Set|List)<(.+)>$/, '$2');
                 } else {
                     const entityRef = (prop.type as any).type?.ref;
                     entityName = entityRef?.name || javaType;
                 }
 
-                
+
                 const relatedEntity = aggregate.entities?.find((e: any) => e.name === entityName);
 
                 if (relatedEntity) {
@@ -170,7 +170,7 @@ export class CrudHelpers {
         return relationships;
     }
 
-    
+
 
     static generateParameterList(operation: 'create' | 'getById' | 'update' | 'delete' | 'getAll', aggregateName: string): Array<{ type: string; name: string }> {
         const lower = aggregateName.toLowerCase();
@@ -197,7 +197,7 @@ export class CrudHelpers {
         }
     }
 
-    
+
 
     static getReturnType(operation: 'create' | 'getById' | 'update' | 'delete' | 'getAll', aggregateName: string): string {
         const dtoTypes = this.getDtoTypes(aggregateName);
@@ -219,31 +219,28 @@ export class CrudHelpers {
         }
     }
 
-    
+
 
     static shouldExcludeFromUpdate(propertyName: string): boolean {
         const lowerPropName = propertyName.toLowerCase();
         return lowerPropName === 'id' ||
-               lowerPropName === 'aggregateid' ||
-               lowerPropName === 'version' ||
-               lowerPropName === 'state';
+            lowerPropName === 'aggregateid' ||
+            lowerPropName === 'version' ||
+            lowerPropName === 'state';
     }
 
-    
+
 
     static isEnumType(type: any): boolean {
         if (!type) return false;
 
-        
         if (type && typeof type === 'object' &&
             type.$type === 'EntityType' &&
             type.type) {
-            
-            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/)) {
+            if (type.type.ref && (type.type.ref.$type === 'EnumDefinition' || type.type.ref.$type === 'Enum')) {
                 return true;
             }
-            
-            if (type.type.ref && (type.type.ref.$type === 'EnumDefinition' || type.type.ref.$type === 'Enum')) {
+            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Category|Method|Kind|Mode|Level|Priority)$/)) {
                 return true;
             }
         }

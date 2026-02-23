@@ -21,25 +21,25 @@ export class ServiceStructureGenerator {
             ''
         ];
 
-        
+
         imports.push('import java.util.List;');
         imports.push('import java.util.Set;');
         imports.push('import java.util.stream.Collectors;');
-        
-        
+
+
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
         if (rootEntity) {
             imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.${rootEntity.name}Dto;`);
         }
-        
-        
-        
+
+
+
         aggregate.entities.forEach(entity => {
             if (!entity.isRoot) {
                 imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.${entity.name}Dto;`);
             }
         });
-        
+
         const hasDateTime = aggregate.entities.some(entity =>
             entity.properties?.some(prop => {
                 if (!prop.type) return false;
@@ -58,36 +58,29 @@ export class ServiceStructureGenerator {
             imports.push('');
         }
 
-        
+
         if (rootEntity && rootEntity.properties) {
             for (const prop of rootEntity.properties) {
                 const propName = (prop as any).name?.toLowerCase?.() ?? '';
-                
+
                 if (propName === 'id') {
                     continue;
                 }
-                
+
                 if ((prop as any).isFinal) {
                     continue;
                 }
 
                 const javaType = TypeResolver.resolveJavaType((prop as any).type);
                 const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
-                
-                const isEntityType = TypeResolver.isEntityType(javaType);
-                if (isCollection || isEntityType) {
-                    continue;
-                }
 
-                
                 const propType = (prop as any).type;
                 if (propType && propType.$type === 'EntityType' && propType.type) {
-                    const typeName = propType.type.$refText || propType.type.ref?.name;
-                    if (
-                        typeName &&
-                        typeName !== 'AggregateState' &&
-                        /^[A-Z][a-zA-Z]*(Type|State|Role)$/.test(typeName)
-                    ) {
+                    const ref = propType.type.ref;
+                    const typeName = propType.type.$refText || ref?.name;
+                    const isEnum = (ref && (ref.$type === 'EnumDefinition' || ref.$type === 'Enum')) ||
+                        (typeName && typeName !== 'AggregateState' && /^[A-Z][a-zA-Z]*(Type|State|Role|Status|Category|Method|Kind|Mode|Level|Priority)$/.test(typeName));
+                    if (typeName && typeName !== 'AggregateState' && isEnum) {
                         imports.push(
                             `import ${getGlobalConfig().buildPackageName(
                                 projectName,
@@ -95,7 +88,13 @@ export class ServiceStructureGenerator {
                                 'enums'
                             )}.${typeName};`
                         );
+                        continue;
                     }
+                }
+
+                const isEntityType = TypeResolver.isEntityType(javaType);
+                if (isCollection || isEntityType) {
+                    continue;
                 }
             }
         }
@@ -105,12 +104,12 @@ export class ServiceStructureGenerator {
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;');
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;');
 
-        
+
         const eventsPackage = getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'events', 'publish');
         imports.push(`import ${eventsPackage}.${aggregateName}DeletedEvent;`);
         imports.push(`import ${eventsPackage}.${aggregateName}UpdatedEvent;`);
 
-        
+
         const projectionEntities = (aggregate.entities || []).filter((e: any) =>
             !e.isRoot && e.aggregateRef
         );
@@ -121,17 +120,17 @@ export class ServiceStructureGenerator {
             imports.push(`import ${eventsPackage}.${projEntityName}UpdatedEvent;`);
         });
 
-        
+
         const rootEntityForCollections = aggregate.entities?.find((e: any) => e.isRoot);
         if (rootEntityForCollections && rootEntityForCollections.properties) {
             for (const prop of rootEntityForCollections.properties) {
                 const propType = (prop as any).type;
-                
+
                 const javaType = TypeResolver.resolveJavaType(propType);
                 if (javaType && (javaType.startsWith('Set<') || javaType.startsWith('List<'))) {
                     const elementType = TypeResolver.getElementType(propType);
                     if (elementType && TypeResolver.isEntityType(javaType)) {
-                        
+
                         imports.push(`import ${eventsPackage}.${elementType}RemovedEvent;`);
                         imports.push(`import ${eventsPackage}.${elementType}UpdatedEvent;`);
                     }
@@ -140,8 +139,8 @@ export class ServiceStructureGenerator {
         }
 
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', 'exception')}.${capitalize(projectName)}Exception;`);
-        
-        
+
+
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'coordination', 'webapi', 'requestDtos')}.Create${capitalize(aggregateName)}RequestDto;`);
         imports.push('');
 

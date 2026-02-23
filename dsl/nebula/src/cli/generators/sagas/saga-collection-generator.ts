@@ -192,11 +192,9 @@ export class SagaCollectionGenerator {
         
         
         
-        const includeAggregateName = collection.isProjection;
-        const operationVerb = spec.operation === 'addBatch'
-            ? (includeAggregateName ? `add${capitalizedAggregate}${collection.capitalizedSingular}s` : `add${collection.capitalizedSingular}s`)
-            : (includeAggregateName ? `${spec.operation}${capitalizedAggregate}${collection.capitalizedSingular}` : `${spec.operation}${collection.capitalizedSingular}`);
-        const serviceMethodName = operationVerb;
+        const serviceMethodName = spec.operation === 'addBatch'
+            ? `add${collection.elementType}s`
+            : `${spec.operation}${collection.elementType}`;
         const serviceArgs = [...spec.params.map((p: any) => p.name), 'unitOfWork'];
 
         let stepBody: string;

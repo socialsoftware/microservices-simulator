@@ -2,7 +2,7 @@
   "name": "nebula",
   "displayName": "Nebula Language Support",
   "description": "Language support for Nebula DSL - A domain-specific language for defining aggregates and entities for the microservices simulator",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "publisher": "LourencoPonces",
   "repository": {
@@ -18,7 +18,10 @@
     "langium:generate": "langium generate",
     "langium:watch": "langium generate --watch",
     "vscode:prepublish": "npm run build && npm run lint",
-    "esbuild-base": "esbuild ./src/extension/main.ts --bundle --outfile=out/extension/main.cjs --external:vscode --format=cjs --platform=node"
+    "esbuild-base": "esbuild ./src/extension/main.ts --bundle --outfile=out/extension/main.cjs --external:vscode --format=cjs --platform=node",
+    "release": "bash release.sh patch",
+    "release:minor": "bash release.sh minor",
+    "release:major": "bash release.sh major"
   },
   "dependencies": {
     "@types/handlebars": "^4.0.40",

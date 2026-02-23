@@ -7,21 +7,21 @@ import { UnifiedTypeResolver as TypeResolver } from "../../common/unified-type-r
 import { getEntities } from "../../../utils/aggregate-helpers.js";
 
 export interface CrossAggregateReference {
-    entityType: string;      
-    paramName: string;       
-    relatedAggregate: string; 
-    relatedDtoType: string;  
-    isCollection: boolean;   
+    entityType: string;
+    paramName: string;
+    relatedAggregate: string;
+    relatedDtoType: string;
+    isCollection: boolean;
 }
 
 export class WebApiDtoGenerator extends WebApiBaseGenerator {
-    
+
 
     async generateRequestDtos(aggregate: Aggregate, rootEntity: Entity, options: WebApiGenerationOptions, allAggregates?: Aggregate[]): Promise<Record<string, string>> {
         const context = this.buildRequestDtosContext(aggregate, rootEntity, options, allAggregates);
         const results: Record<string, string> = {};
-        
-        
+
+
         for (const dto of context.requestDtos) {
             const dtoContext = {
                 packageName: context.packageName,
@@ -31,26 +31,26 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
             const content = this.renderSingleRequestDto(dtoContext);
             results[dto.name] = content;
         }
-        
+
         return results;
     }
 
     private renderSingleRequestDto(context: { packageName: string; imports: string[]; dto: any }): string {
         const { packageName, imports, dto } = context;
-        
+
         let content = `package ${packageName};\n\n`;
-        
-        
+
+
         for (const imp of imports) {
             content += `${imp}\n`;
         }
         if (imports.length > 0) {
             content += '\n';
         }
-        
+
         content += `public class ${dto.name} {\n`;
-        
-        
+
+
         for (const field of dto.fields) {
             if (field.required) {
                 content += `    @NotNull\n`;
@@ -58,11 +58,11 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
             content += `    private ${field.type} ${field.name};\n`;
         }
         content += '\n';
-        
-        
+
+
         content += `    public ${dto.name}() {}\n\n`;
 
-        
+
         if (dto.fields.length > 0) {
             const params = dto.fields.map((field: any) => `${field.type} ${field.name}`).join(', ');
             content += `    public ${dto.name}(${params}) {\n`;
@@ -71,21 +71,21 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
             }
             content += `    }\n\n`;
         }
-        
-        
+
+
         for (const field of dto.fields) {
             const capitalizedName = field.name.charAt(0).toUpperCase() + field.name.slice(1);
             content += `    public ${field.type} get${capitalizedName}() {\n`;
             content += `        return ${field.name};\n`;
             content += `    }\n\n`;
-            
+
             content += `    public void set${capitalizedName}(${field.type} ${field.name}) {\n`;
             content += `        this.${field.name} = ${field.name};\n`;
             content += `    }\n`;
         }
-        
+
         content += `}\n`;
-        
+
         return content;
     }
 
@@ -132,7 +132,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
     private buildRequestDtos(aggregate: Aggregate, rootEntity: Entity, aggregateName: string, dtoRegistry?: DtoSchemaRegistry, allAggregates?: Aggregate[]): any[] {
         const dtos: any[] = [];
 
-        
+
         const crossAggregateRefs = this.findCrossAggregateReferences(rootEntity, aggregate, allAggregates);
 
         dtos.push({
@@ -155,7 +155,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         return dtos;
     }
 
-    
+
 
     findCrossAggregateReferences(rootEntity: Entity, aggregate: Aggregate, allAggregates?: Aggregate[]): CrossAggregateReference[] {
         const references: CrossAggregateReference[] = [];
@@ -170,11 +170,11 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
             const javaType = TypeResolver.resolveJavaType(prop.type);
             const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
 
-            
+
             const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
 
             if (isEntityType) {
-                
+
                 const entityRef = (prop.type as any).type?.ref;
                 let entityName: string;
 
@@ -185,16 +185,16 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                     entityName = entityRef?.name || javaType;
                 }
 
-                
+
                 const relatedEntity = entities.find(e => e.name === entityName);
                 if (!relatedEntity) continue;
 
-                
+
                 const entityAny = relatedEntity as any;
                 const aggregateRef = entityAny.aggregateRef;
 
                 if (aggregateRef) {
-                    
+
                     let referencedName: string | undefined;
                     if (typeof aggregateRef === 'string') {
                         referencedName = aggregateRef;
@@ -205,13 +205,13 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                     }
 
                     if (referencedName) {
-                        
+
                         const directAggregate = allAggregates?.find(
                             agg => agg.name === referencedName && agg.name !== aggregate.name
                         );
 
                         if (directAggregate) {
-                            
+
                             references.push({
                                 entityType: entityName,
                                 paramName: prop.name,
@@ -220,8 +220,8 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                                 isCollection
                             });
                         } else {
-                            
-                            
+
+
                             const ultimateAggregate = this.resolveTransitiveAggregateRef(referencedName, allAggregates);
                             if (ultimateAggregate) {
                                 references.push({
@@ -241,20 +241,20 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         return references;
     }
 
-    
+
 
     private resolveTransitiveAggregateRef(entityName: string, allAggregates?: Aggregate[]): string | undefined {
         if (!allAggregates) return undefined;
 
-        
+
         for (const agg of allAggregates) {
             const entities = getEntities(agg);
             const entity = entities.find(e => e.name === entityName);
-            
+
             if (entity) {
                 const entityAny = entity as any;
                 const aggregateRef = entityAny.aggregateRef;
-                
+
                 if (aggregateRef) {
                     let refName: string | undefined;
                     if (typeof aggregateRef === 'string') {
@@ -266,18 +266,18 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                     }
 
                     if (refName) {
-                        
+
                         const directAgg = allAggregates.find(a => a.name === refName);
                         if (directAgg) {
                             return refName;
                         }
-                        
+
                         return this.resolveTransitiveAggregateRef(refName, allAggregates);
                     }
                 }
-                
-                
-                
+
+
+
                 if (entityAny.isRoot) {
                     return agg.name;
                 }
@@ -287,14 +287,14 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         return undefined;
     }
 
-    
+
 
     private extractCreateDtoFields(entity: Entity, aggregate: Aggregate, dtoRegistry?: DtoSchemaRegistry, crossAggregateRefs?: CrossAggregateReference[]): any[] {
         const fields: any[] = [];
         const crossRefParamNames = new Set(crossAggregateRefs?.map(r => r.paramName) || []);
         const entities = getEntities(aggregate);
 
-        
+
         for (const ref of crossAggregateRefs || []) {
             if (ref.isCollection) {
                 const collectionType = ref.paramName.endsWith('s') ? 'Set' : 'List';
@@ -316,23 +316,23 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
             }
         }
 
-        
+
         if (entity.properties) {
             for (const prop of entity.properties) {
                 if ((prop as any).dtoExclude) continue;
                 if (prop.name.toLowerCase() === 'id') continue;
 
-                
+
                 if (crossRefParamNames.has(prop.name)) continue;
 
                 const javaType = this.resolveParameterType(prop.type);
                 const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
 
-                
+
                 const isEntityType = !this.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
-                
+
                 if (isEntityType) {
-                    
+
                     const entityRef = (prop.type as any).type?.ref;
                     let entityName: string;
 
@@ -343,30 +343,32 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                         entityName = entityRef?.name || javaType;
                     }
 
-                    
+
                     const relatedEntity = entities.find(e => e.name === entityName);
                     if (relatedEntity) {
                         const entityAny = relatedEntity as any;
-                        
+
                         if (entityAny.generateDto && isCollection) {
                             const collectionPrefix = javaType.startsWith('Set<') ? 'Set' : 'List';
                             fields.push({
                                 name: prop.name,
                                 type: `${collectionPrefix}<${entityName}Dto>`,
-                                required: false,  
+                                required: false,
                                 isProjectionDtoCollection: true
                             });
                         }
-                        
+
                         continue;
                     }
                 }
 
-                
+                const isEnum = this.isEnumType(prop.type);
+
                 fields.push({
                     name: prop.name,
                     type: javaType,
-                    required: true
+                    required: true,
+                    isEnum
                 });
             }
         }
@@ -433,7 +435,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
             imports.add('import jakarta.validation.constraints.*;');
         }
 
-        
+
         for (const dto of requestDtos) {
             const crossAggregateRefs = dto.crossAggregateRefs as CrossAggregateReference[] | undefined;
             if (crossAggregateRefs) {
@@ -443,12 +445,12 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                 }
             }
 
-            
+
             for (const field of dto.fields) {
                 const fieldType = field.type as string;
                 if (!fieldType) continue;
 
-                
+
                 if (fieldType.includes('List<')) {
                     imports.add('import java.util.List;');
                 }
@@ -456,24 +458,24 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                     imports.add('import java.util.Set;');
                 }
 
-                
+
                 if (fieldType === 'LocalDateTime' || fieldType.includes('LocalDateTime')) {
                     imports.add('import java.time.LocalDateTime;');
                 }
 
-                
-                if (fieldType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/) && fieldType !== 'AggregateState') {
+                const isEnumField = field.isEnum || (fieldType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/) && fieldType !== 'AggregateState');
+                if (isEnumField && fieldType !== 'AggregateState') {
                     const enumImportPath = getGlobalConfig().buildPackageName(options.projectName, 'shared', 'enums') + '.' + fieldType;
                     imports.add(`import ${enumImportPath};`);
                 }
 
-                
+
                 if (fieldType.match(/^[A-Z][a-zA-Z]*Dto$/)) {
                     const dtoImportPath = getGlobalConfig().buildPackageName(options.projectName, 'shared', 'dtos') + '.' + fieldType;
                     imports.add(`import ${dtoImportPath};`);
                 }
 
-                
+
                 const collectionDtoMatch = fieldType.match(/(?:Set|List)<([A-Z][a-zA-Z]*Dto)>/);
                 if (collectionDtoMatch) {
                     const dtoType = collectionDtoMatch[1];
@@ -494,17 +496,17 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         return Array.from(imports);
     }
 
-    
+
 
     private isEnumType(type: any): boolean {
         if (type && typeof type === 'object' &&
             type.$type === 'EntityType' &&
             type.type) {
-            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
+            const ref = type.type.ref;
+            if (ref && typeof ref === 'object' && '$type' in ref && ((ref as any).$type === 'EnumDefinition' || (ref as any).$type === 'Enum')) {
                 return true;
             }
-            const ref = type.type.ref;
-            if (ref && typeof ref === 'object' && '$type' in ref && (ref as any).$type === 'EnumDefinition') {
+            if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Category|Method|Kind|Mode|Level|Priority)$/)) {
                 return true;
             }
         }

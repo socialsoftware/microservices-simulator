@@ -2,8 +2,7 @@ import chalk from 'chalk';
 import { AggregateExt, EntityExt } from '../../types/ast-extensions.js';
 import { CoordinationGenerationOptions } from '../microservices/types.js';
 import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../common/generator-capabilities.js';
-import { getEntities, getEffectiveFieldMappings, getAllModels, getAggregateRefName, dtoFieldToString } from '../../utils/aggregate-helpers.js';
-import { Entity } from '../../../language/generated/ast.js';
+import { getEntities, getEffectiveFieldMappings, dtoFieldToString } from '../../utils/aggregate-helpers.js';
 import { StringUtils } from '../../utils/string-utils.js';
 import { EventNameParser } from '../common/utils/event-name-parser.js';
 
@@ -356,37 +355,9 @@ public class {{aggregateName}}EventProcessing {
 
 
 
-            const isProjectionEntityEvent = /^([A-Z][a-z]+)([A-Z][a-z]+)UpdatedEvent$/.test(eventTypeName);
+            if (matchingProjection) {
 
-
-
-
-
-            if (matchingProjection && isProjectionEntityEvent) {
-
-
-
-                const sourceEntityName = getAggregateRefName(matchingProjection);
-
-
-                let sourceEntity: Entity | null = null;
-                if (sourceEntityName) {
-                    const allModels = getAllModels();
-                    for (const model of allModels) {
-                        for (const aggregate of model.aggregates) {
-                            const entities = getEntities(aggregate);
-                            const found = entities.find((e: any) => e.name === sourceEntityName);
-                            if (found) {
-                                sourceEntity = found as Entity;
-                                break;
-                            }
-                        }
-                        if (sourceEntity) break;
-                    }
-                }
-
-
-                const entityToExtractFrom = sourceEntity || matchingProjection;
+                const entityToExtractFrom = matchingProjection;
 
 
                 const fieldMappings = getEffectiveFieldMappings(entityToExtractFrom);

@@ -83,6 +83,20 @@ function propertyTypeMatchesEntity(prop: any, entityName: string, allEntities?: 
     return false;
 }
 
+const isEnumTypeFromAst = (type: any): boolean => {
+    if (type && typeof type === 'object' &&
+        type.$type === 'EntityType' &&
+        type.type) {
+        if (type.type.ref && (type.type.ref.$type === 'EnumDefinition' || type.type.ref.$type === 'Enum')) {
+            return true;
+        }
+        if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Category|Method|Kind|Mode|Level|Priority)$/)) {
+            return true;
+        }
+    }
+    return false;
+};
+
 export function generateGettersSetters(properties: any[], entity?: Entity, projectName?: string, allEntities?: Entity[]): { code: string } {
     const entityName = entity?.name || 'Unknown';
     const isRootEntity = entity?.isRoot || false;
@@ -119,7 +133,8 @@ export function generateGettersSetters(properties: any[], entity?: Entity, proje
 
 function generateBidirectionalSetter(prop: any, javaType: string, capName: string, entityName: string, allEntities?: Entity[]): string {
     const propName = prop.name;
-    const isEntityType = TypeResolver.isEntityType(javaType);
+    const isEnum = isEnumTypeFromAst(prop.type);
+    const isEntityType = !isEnum && TypeResolver.isEntityType(javaType);
     const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
 
     const findBackRefFieldName = (targetEntityType: string): string | null => {

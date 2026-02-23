@@ -33,7 +33,8 @@ export class CrudUpdateGenerator extends MethodGeneratorTemplate {
                 }
             ],
             returnType: `${entityName}Dto`,
-            rootEntity
+            rootEntity,
+            aggregate
         };
     }
 
@@ -48,7 +49,7 @@ export class CrudUpdateGenerator extends MethodGeneratorTemplate {
         const lowerAggregate = this.lowercase(metadata.aggregateName);
         const capitalizedAggregate = this.capitalize(metadata.aggregateName);
 
-        
+
         const updateLogic = this.generateUpdateLogic(rootEntity, metadata.aggregateName);
 
         return `            Integer id = ${lowerAggregate}Dto.getAggregateId();
@@ -61,11 +62,12 @@ ${updateLogic}
 
     protected override buildEventHandling(metadata: MethodMetadata): string {
         const rootEntity = metadata.rootEntity as Entity;
+        const aggregate = metadata.aggregate as Aggregate;
         const capitalizedAggregate = this.capitalize(metadata.aggregateName);
         const lowerAggregate = this.lowercase(metadata.aggregateName);
 
-        
-        const eventArgs = this.generateUpdateEventArgs(rootEntity, metadata.aggregateName);
+
+        const eventArgs = this.generateUpdateEventArgs(rootEntity, metadata.aggregateName, aggregate);
 
         return `            ${capitalizedAggregate}UpdatedEvent event = new ${capitalizedAggregate}UpdatedEvent(${eventArgs});
             event.setPublisherAggregateVersion(new${capitalizedAggregate}.getVersion());
@@ -73,10 +75,10 @@ ${updateLogic}
             return ${lowerAggregate}Factory.create${metadata.entityName}Dto(new${capitalizedAggregate});`;
     }
 
-    
 
 
-    
+
+
 
     private generateUpdateLogic(rootEntity: Entity, aggregateName: string): string {
         if (!rootEntity.properties) return '';
@@ -90,10 +92,10 @@ ${updateLogic}
                 const propName = prop.name.toLowerCase();
                 if (propName === 'id') return false;
 
-                
+
                 if ((prop as any).isFinal) return false;
 
-                
+
                 const javaType = TypeResolver.resolveJavaType(prop.type);
                 const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
                 const isEntityType = !CrudHelpers.isEnumType(prop.type) && TypeResolver.isEntityType(javaType);
@@ -106,12 +108,12 @@ ${updateLogic}
                 const getterName = this.getGetterMethodName(prop);
                 const isBoolean = this.isBooleanProperty(prop);
                 const javaType = TypeResolver.resolveJavaType(prop.type);
-                const isEnum = CrudHelpers.isEnumType(prop.type) || javaType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/);
+                const isEnum = CrudHelpers.isEnumType(prop.type);
 
                 if (isBoolean) {
                     return `            ${targetVar}.${setterName}(${lowerAggregate}Dto.${getterName}());`;
                 } else if (isEnum) {
-                    
+
                     return `            if (${lowerAggregate}Dto.${getterName}() != null) {
                 ${targetVar}.${setterName}(${javaType}.valueOf(${lowerAggregate}Dto.${getterName}()));
             }`;
@@ -125,19 +127,28 @@ ${updateLogic}
         return updates.join('\n');
     }
 
-    
 
-    private generateUpdateEventArgs(rootEntity: Entity, aggregateName: string): string {
+
+    private generateUpdateEventArgs(rootEntity: Entity, aggregateName: string, aggregate?: Aggregate): string {
         const capitalizedAggregate = this.capitalize(aggregateName);
         const targetVar = `new${capitalizedAggregate}`;
 
         const args: string[] = [];
-        
+
         args.push(`${targetVar}.getAggregateId()`);
 
         if (!rootEntity.properties) {
             return args.join(', ');
         }
+
+        const events = (aggregate as any)?.events;
+        const publishedEvents = events?.publishedEvents || [];
+        const updatedEventName = `${aggregateName}UpdatedEvent`;
+        const explicitEvent = publishedEvents.find((e: any) => e.name === updatedEventName);
+
+        const explicitFieldNames = explicitEvent && explicitEvent.fields?.length > 0
+            ? new Set(explicitEvent.fields.map((f: any) => f.name))
+            : null;
 
         for (const prop of rootEntity.properties) {
             const propName = (prop as any).name?.toLowerCase?.() ?? '';
@@ -151,12 +162,13 @@ ${updateLogic}
                 !CrudHelpers.isEnumType((prop as any).type) && TypeResolver.isEntityType(javaType);
             if (isCollection || isEntityType) continue;
 
-            
-            
+
             const isEnum =
                 CrudHelpers.isEnumType((prop as any).type) ||
                 javaType.match(/^[A-Z][a-zA-Z]*(Type|State|Role)$/);
             if (isEnum) continue;
+
+            if (explicitFieldNames && !explicitFieldNames.has(prop.name)) continue;
 
             const getterName = this.getGetterMethodName(prop as any);
             args.push(`${targetVar}.${getterName}()`);

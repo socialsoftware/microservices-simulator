@@ -46,7 +46,7 @@ public class {{serviceName}} {
         new{{../entityName}}.set{{capitalizedName}}({{../lowerEntityName}}Dto.get{{capitalizedName}}());
 {{/each}}
         unitOfWorkService.registerChanged(new{{entityName}}, unitOfWork);
-        unitOfWorkService.registerEvent(new {{../aggregateName}}UpdatedEvent(new{{entityName}}.getAggregateId(){{#each nonFinalProperties}}, new{{../../entityName}}.get{{capitalizedName}}(){{/each}}), unitOfWork);
+        unitOfWorkService.registerEvent(new {{../aggregateName}}UpdatedEvent(new{{entityName}}.getAggregateId(){{#each eventProperties}}, new{{../../entityName}}.get{{capitalizedName}}(){{/each}}), unitOfWork);
         return {{lowerEntityName}}Factory.create{{entityName}}Dto(new{{entityName}});
 {{else if (eq crudAction "delete")}}
         {{entityName}} old{{entityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);

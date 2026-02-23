@@ -14,10 +14,10 @@ const isEnumType = (type: any) => {
     if (type && typeof type === 'object' &&
         type.$type === 'EntityType' &&
         type.type) {
-        if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
+        if (type.type.ref && (type.type.ref.$type === 'EnumDefinition' || type.type.ref.$type === 'Enum')) {
             return true;
         }
-        if (type.type.ref && type.type.ref.$type === 'EnumDefinition') {
+        if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Category|Method|Kind|Mode|Level|Priority)$/)) {
             return true;
         }
     }
@@ -89,10 +89,10 @@ export function generateDefaultConstructor(entity: Entity): { code: string } {
             if (type && typeof type === 'object' &&
                 type.$type === 'EntityType' &&
                 type.type) {
-                if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*Type$/)) {
+                if (type.type.ref && (type.type.ref.$type === 'EnumDefinition' || type.type.ref.$type === 'Enum')) {
                     return true;
                 }
-                if (type.type.ref && type.type.ref.$type === 'EnumDefinition') {
+                if (type.type.$refText && type.type.$refText.match(/^[A-Z][a-zA-Z]*(Type|State|Role|Status|Category|Method|Kind|Mode|Level|Priority)$/)) {
                     return true;
                 }
             }
@@ -156,7 +156,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
     let dtoTypeName: string;
 
     if (aggregateRef) {
-        
+
         dtoName = `${aggregateRef}Dto`;
         dtoTypeName = dtoName;
     } else {
@@ -177,29 +177,29 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         ? `${aggregateRef.charAt(0).toLowerCase() + aggregateRef.slice(1)}Dto`
         : `${entityName.charAt(0).toLowerCase() + entityName.slice(1)}Dto`;
 
-    
+
     const singleEntityRels: Array<{ javaType: string; name: string; dtoType: string }> = [];
     const collectionEntityRels: Array<{ javaType: string; name: string; elementType: string; dtoElementType: string; collectionType: string }> = [];
-    
+
     if (isRootEntity) {
         for (const prop of effectiveProps || []) {
             const javaType = resolveJavaType(prop.type);
             const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
-            
+
             if (!isEnumType(prop.type) && TypeResolver.isEntityType(javaType)) {
                 if (isCollection) {
                     const elementType = TypeResolver.getElementType(prop.type) || javaType.replace(/^(Set|List)<(.+)>$/, '$2');
                     const collectionType = javaType.startsWith('Set<') ? 'Set' : 'List';
-                    collectionEntityRels.push({ 
-                        javaType, 
-                        name: prop.name, 
+                    collectionEntityRels.push({
+                        javaType,
+                        name: prop.name,
                         elementType,
                         dtoElementType: `${elementType}Dto`,
                         collectionType
                     });
                 } else {
-                    singleEntityRels.push({ 
-                        javaType, 
+                    singleEntityRels.push({
+                        javaType,
                         name: prop.name,
                         dtoType: `${javaType}Dto`
                     });
@@ -208,7 +208,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         }
     }
 
-    
+
     const paramsParts: string[] = [];
     if (isRootEntity) {
         paramsParts.push('Integer aggregateId');
@@ -216,7 +216,7 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
     } else {
         paramsParts.push(`${dtoTypeName} ${dtoParamName}`);
     }
-    
+
     const params = paramsParts.join(', ');
 
     const setterCalls: string[] = [];
@@ -349,15 +349,15 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
         }
     }
 
-    
+
     if (isRootEntity) {
-        
+
         for (const rel of singleEntityRels) {
             const prop = effectiveProps.find((p: any) => p.name === rel.name);
             if (prop) {
                 const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
                 const isFinalProp = (prop as any).isFinal || false;
-                
+
                 if (isFinalProp) {
                     setterCalls.push(`        this.${prop.name} = ${dtoParamName}.get${capitalizedName}() != null ? new ${rel.javaType}(${dtoParamName}.get${capitalizedName}()) : null;`);
                 } else {
@@ -365,15 +365,15 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
                 }
             }
         }
-        
-        
+
+
         for (const rel of collectionEntityRels) {
             const prop = effectiveProps.find((p: any) => p.name === rel.name);
             if (prop) {
                 const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
                 const isFinalProp = (prop as any).isFinal || false;
                 const collector = rel.collectionType === 'Set' ? 'Collectors.toSet()' : 'Collectors.toList()';
-                
+
                 if (isFinalProp) {
                     setterCalls.push(`        this.${prop.name} = ${dtoParamName}.get${capitalizedName}() != null ? ${dtoParamName}.get${capitalizedName}().stream().map(${rel.elementType}::new).collect(${collector}) : null;`);
                 } else {
@@ -439,8 +439,8 @@ export function generateProjectionDtoConstructor(entity: Entity, projectName: st
     const entityAny = entity as any;
     const aggregateRef = entityAny.aggregateRef as string | undefined;
 
-    
-    
+
+
     if (isRootEntity || !aggregateRef) {
         return null;
     }
@@ -457,30 +457,33 @@ export function generateProjectionDtoConstructor(entity: Entity, projectName: st
     const setterCalls: string[] = [];
 
     for (const field of dtoSchema.fields) {
-        
-        
+
+
         const entityProp = effectiveProps.find((p: any) => p.name === field.sourceName || p.name === field.name);
         if (!entityProp) continue;
 
-        
+
         const entityPropName = entityProp.name;
         const capitalizedEntityPropName = entityPropName.charAt(0).toUpperCase() + entityPropName.slice(1);
-        
-        
+
+
         const dtoFieldName = field.name;
         const capitalizedDtoFieldName = dtoFieldName.charAt(0).toUpperCase() + dtoFieldName.slice(1);
-        
+
         const javaType = resolveJavaType(entityProp.type);
         const isCollection = javaType.startsWith('Set<') || javaType.startsWith('List<');
         const isEntityType = !isEnumType(entityProp.type) && TypeResolver.isEntityType(javaType);
 
-        if (isEnumType(entityProp.type)) {
+        const isAggregateState = javaType === 'AggregateState' ||
+            (entityProp.type && entityProp.type.$type === 'BuiltinType' && entityProp.type.typeName === 'AggregateState');
+
+        if (isAggregateState) {
+            setterCalls.push(`        set${capitalizedEntityPropName}(${projectionDtoParamName}.get${capitalizedDtoFieldName}() != null ? AggregateState.valueOf(${projectionDtoParamName}.get${capitalizedDtoFieldName}()) : null);`);
+        } else if (isEnumType(entityProp.type)) {
             setterCalls.push(`        set${capitalizedEntityPropName}(${projectionDtoParamName}.get${capitalizedDtoFieldName}() != null ? ${javaType}.valueOf(${projectionDtoParamName}.get${capitalizedDtoFieldName}()) : null);`);
         } else if (isEntityType && !isCollection) {
-            
             setterCalls.push(`        set${capitalizedEntityPropName}(${projectionDtoParamName}.get${capitalizedDtoFieldName}() != null ? new ${javaType}(${projectionDtoParamName}.get${capitalizedDtoFieldName}()) : null);`);
         } else if (isEntityType && isCollection) {
-            
             const collectionType = javaType.startsWith('Set<') ? 'Set' : 'List';
             const elementType = TypeResolver.getElementType(entityProp.type) || javaType.replace(/^(Set|List)<(.+)>$/, '$2');
             setterCalls.push(`        set${capitalizedEntityPropName}(${projectionDtoParamName}.get${capitalizedDtoFieldName}() != null ? ${projectionDtoParamName}.get${capitalizedDtoFieldName}().stream().map(${elementType}::new).collect(Collectors.to${collectionType}()) : null);`);
@@ -507,14 +510,14 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
     const imports: ImportRequirements = {};
     const effectiveProps = getEffectiveProperties(entity);
 
-    
+
     const entityAny = entity as any;
     const isProjectionEntity = !!entityAny.aggregateRef;
 
     const setterCalls = effectiveProps.map((prop: any, index: number) => {
-        
-        
-        
+
+
+
         if (!isRootEntity && !isProjectionEntity && index === 0) {
             return '';
         }
@@ -527,7 +530,9 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
             return `        this.${prop.name} = other.get${capitalizedName}();`;
         }
 
-        if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
+        if (isEnumType(prop.type)) {
+            return `        set${capitalizedName}(other.get${capitalizedName}());`;
+        } else if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
             return `        set${capitalizedName}(new ${javaType}(other.get${capitalizedName}()));`;
         } else if (javaType.startsWith('Set<')) {
             const elementType = TypeResolver.getElementType(prop.type);

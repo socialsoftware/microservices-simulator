@@ -2,7 +2,7 @@ import { Entity } from "../../../../../language/generated/ast.js";
 import { EntityExt } from "../../../../types/ast-extensions.js";
 import { capitalize } from "../../../../utils/generator-utils.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
-import { getEntities, getAllModels, getAggregateRefName, getEffectiveFieldMappings } from "../../../../utils/aggregate-helpers.js";
+import { getEffectiveFieldMappings } from "../../../../utils/aggregate-helpers.js";
 import { EXTENDED_PRIMITIVE_TYPES } from "../../../common/utils/type-constants.js";
 import { ExceptionGenerator } from "../../../common/utils/exception-generator.js";
 
@@ -201,31 +201,13 @@ ${ExceptionGenerator.generateTryCatchWrapper(projectName, `handling ${eventTypeN
             return { methodSignature: '', paramList: [] };
         }
 
-        
-        
-        
+
+
+
         const projectionEntity = projectionEntities[0];
-        const sourceEntityName = getAggregateRefName(projectionEntity as Entity);
 
-        
-        let sourceEntity: Entity | null = null;
-        if (sourceEntityName) {
-            const allModels = getAllModels();
-            for (const model of allModels) {
-                for (const aggregate of model.aggregates) {
-                    const entities = getEntities(aggregate);
-                    const found = entities.find((e: any) => e.name === sourceEntityName);
-                    if (found) {
-                        sourceEntity = found as Entity;
-                        break;
-                    }
-                }
-                if (sourceEntity) break;
-            }
-        }
 
-        
-        const entityToExtractFrom = sourceEntity || (projectionEntity as Entity);
+        const entityToExtractFrom = projectionEntity as Entity;
 
         
         const fieldMappings = getEffectiveFieldMappings(entityToExtractFrom);
