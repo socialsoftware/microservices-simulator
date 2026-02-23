@@ -240,13 +240,58 @@ mvn clean install -DskipTests       # Install without tests
 
 ## VSCode Extension
 
-Nebula includes a VSCode extension for syntax highlighting:
+Nebula includes a VSCode extension that provides language support for `.nebula` files.
+
+### Installing the Extension
+
+Pre-built `.vsix` packages are available in the `dsl/extensions/` directory:
 
 ```bash
-code --install-extension dsl/nebula/nebula-0.0.8.vsix
+# Install the latest packaged extension
+code --install-extension dsl/extensions/nebula-extension-0.0.2.vsix
 ```
 
-Features: syntax highlighting, bracket matching, comment toggling, error detection.
+After installation, restart VSCode. The extension activates automatically when you open a `.nebula` file.
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Syntax highlighting** | Keywords, strings, comments, and annotations are color-coded |
+| **Error detection** | Invalid syntax and semantic errors are underlined in the editor |
+| **Code completion** | Suggestions for keywords, types, and cross-aggregate references |
+| **Bracket matching** | Automatic matching of `{}`  |
+| **Comment toggling** | `Ctrl+/` toggles line comments |
+
+### Building the Extension from Source
+
+If you need to rebuild the extension (e.g., after grammar changes):
+
+```bash
+cd dsl/nebula
+
+# Build and package a new version (bumps patch version automatically)
+npm run release
+
+# Or for minor/major version bumps
+npm run release:minor
+npm run release:major
+```
+
+The packaged `.vsix` file is output to `dsl/extensions/`. Install it with:
+
+```bash
+code --install-extension dsl/extensions/nebula-extension-<version>.vsix
+```
+
+### Verifying the Extension Works
+
+1. Open a `.nebula` file in VSCode
+2. Keywords like `Aggregate`, `Entity`, `Root` should be highlighted
+3. Syntax errors should appear as red underlines
+4. Type an aggregate name after `from` to see cross-file references resolve
+
+For details on the extension architecture and development, see the [Developer Guide: VSCode Extension](../developer-guide/07-VSCode-Extension.md).
 
 ## Troubleshooting
 

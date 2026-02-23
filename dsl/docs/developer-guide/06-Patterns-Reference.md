@@ -288,4 +288,4 @@ getSchema(entityName: string): DtoSchema | undefined
 
 ---
 
-**Previous:** [05-Adding-Features](05-Adding-Features.md) | **Back to:** [01-Architecture](01-Architecture.md)
+**Previous:** [05-Adding-Features](05-Adding-Features.md) | **Next:** [07-VSCode-Extension](07-VSCode-Extension.md)
