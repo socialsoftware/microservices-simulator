@@ -22,16 +22,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerUserDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerUserUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerExecutionDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerExecutionUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerQuestionDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerQuestionUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerQuizDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerQuizUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerQuestionRemovedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerQuestionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerExecutionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateAnswerRequestDto;
 

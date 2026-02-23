@@ -17,7 +17,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.publish.ProductDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.publish.ProductUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.publish.ProductCategoryDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.publish.ProductCategoryUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
 import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateProductRequestDto;

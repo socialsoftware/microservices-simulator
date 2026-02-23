@@ -3,6 +3,8 @@ import { capitalize } from "../../../../utils/generator-utils.js";
 import { getGlobalConfig } from "../../../common/config.js";
 import { ServiceContext } from "./types.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
+import { getEvents } from "../../../../utils/aggregate-helpers.js";
+import { EventNameParser } from "../../../common/utils/event-name-parser.js";
 
 export class ServiceStructureGenerator {
     static generateServiceImports(aggregate: Aggregate, projectName: string): string {
@@ -106,37 +108,84 @@ export class ServiceStructureGenerator {
 
 
         const eventsPackage = getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'events', 'publish');
-        imports.push(`import ${eventsPackage}.${aggregateName}DeletedEvent;`);
-        imports.push(`import ${eventsPackage}.${aggregateName}UpdatedEvent;`);
+        const eventImports = new Set<string>();
 
+        eventImports.add(`import ${eventsPackage}.${aggregateName}DeletedEvent;`);
+        eventImports.add(`import ${eventsPackage}.${aggregateName}UpdatedEvent;`);
 
-        const projectionEntities = (aggregate.entities || []).filter((e: any) =>
-            !e.isRoot && e.aggregateRef
-        );
-
-        projectionEntities.forEach((projEntity: any) => {
-            const projEntityName = projEntity.name;
-            imports.push(`import ${eventsPackage}.${projEntityName}DeletedEvent;`);
-            imports.push(`import ${eventsPackage}.${projEntityName}UpdatedEvent;`);
-        });
-
-
-        const rootEntityForCollections = aggregate.entities?.find((e: any) => e.isRoot);
-        if (rootEntityForCollections && rootEntityForCollections.properties) {
-            for (const prop of rootEntityForCollections.properties) {
+        if (rootEntity?.properties) {
+            for (const prop of rootEntity.properties) {
                 const propType = (prop as any).type;
 
                 const javaType = TypeResolver.resolveJavaType(propType);
                 if (javaType && (javaType.startsWith('Set<') || javaType.startsWith('List<'))) {
                     const elementType = TypeResolver.getElementType(propType);
                     if (elementType && TypeResolver.isEntityType(javaType)) {
-
-                        imports.push(`import ${eventsPackage}.${elementType}RemovedEvent;`);
-                        imports.push(`import ${eventsPackage}.${elementType}UpdatedEvent;`);
+                        eventImports.add(`import ${eventsPackage}.${elementType}RemovedEvent;`);
+                        eventImports.add(`import ${eventsPackage}.${elementType}UpdatedEvent;`);
                     }
                 }
             }
         }
+
+        const events = getEvents(aggregate);
+        if (events?.subscribedEvents) {
+            const projectionEntities = (aggregate.entities || []).filter((e: any) =>
+                !e.isRoot && e.aggregateRef
+            );
+
+            const simpleSubscriptions = events.subscribedEvents.filter((sub: any) => {
+                const hasConditions = sub.conditions && sub.conditions.length > 0 &&
+                    sub.conditions.some((c: any) => c.condition);
+                const hasRouting = (sub as any).routingIdExpr;
+                return !hasConditions && !hasRouting;
+            });
+
+            for (const sub of simpleSubscriptions) {
+                const eventTypeName = (sub as any).eventType || '';
+                if (!eventTypeName) continue;
+
+                const isUpdate = eventTypeName.includes('Updated');
+                const isDelete = eventTypeName.includes('Deleted');
+                if (!isUpdate && !isDelete) continue;
+
+                const publisherName = EventNameParser.extractEntityName(eventTypeName);
+
+                let matched = projectionEntities.filter((e: any) =>
+                    e.aggregateRef && e.aggregateRef.toLowerCase() === publisherName.toLowerCase()
+                );
+                if (matched.length === 0) {
+                    matched = projectionEntities.filter((e: any) =>
+                        e.aggregateRef && eventTypeName.toLowerCase().includes(e.aggregateRef.toLowerCase())
+                    );
+                }
+
+                for (const entity of matched) {
+                    if (isDelete) {
+                        eventImports.add(`import ${eventsPackage}.${entity.name}DeletedEvent;`);
+                    } else if (isUpdate) {
+                        const entityHasLocalProps = ((entity as any).properties || []).some((prop: any) => {
+                            const propName = (prop as any).name;
+                            if (propName === 'id' || propName === 'aggregateId' ||
+                                propName === 'version' || propName === 'state') {
+                                return false;
+                            }
+                            const fieldMappings = (entity as any).fieldMappings || [];
+                            const isFromMapping = fieldMappings.some((m: any) =>
+                                m.entityField === propName || m.dtoField === propName
+                            );
+                            return !isFromMapping;
+                        });
+
+                        if (!entityHasLocalProps) {
+                            eventImports.add(`import ${eventsPackage}.${entity.name}UpdatedEvent;`);
+                        }
+                    }
+                }
+            }
+        }
+
+        eventImports.forEach(imp => imports.push(imp));
 
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', 'exception')}.${capitalize(projectName)}Exception;`);
 
