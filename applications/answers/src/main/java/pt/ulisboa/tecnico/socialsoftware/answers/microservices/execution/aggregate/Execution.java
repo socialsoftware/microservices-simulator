@@ -162,9 +162,6 @@ public abstract class Execution extends Aggregate {
         }
     }
 
-    // ============================================================================
-    // INVARIANTS
-    // ============================================================================
 
     private boolean invariantAcronymNotBlank() {
         return this.acronym != null && this.acronym.length() > 0;

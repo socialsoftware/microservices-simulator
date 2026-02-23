@@ -29,9 +29,7 @@ public class UpdateCourseFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(updateCourseStep);
-
     }
-
     public CourseDto getUpdatedCourseDto() {
         return updatedCourseDto;
     }

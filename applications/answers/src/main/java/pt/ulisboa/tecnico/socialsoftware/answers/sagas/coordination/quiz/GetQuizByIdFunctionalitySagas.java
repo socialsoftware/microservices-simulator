@@ -29,9 +29,7 @@ public class GetQuizByIdFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getQuizStep);
-
     }
-
     public QuizDto getQuizDto() {
         return quizDto;
     }

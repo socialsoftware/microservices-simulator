@@ -30,9 +30,7 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(createExecutionStep);
-
     }
-
     public ExecutionDto getCreatedExecutionDto() {
         return createdExecutionDto;
     }

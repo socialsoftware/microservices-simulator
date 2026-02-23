@@ -30,9 +30,7 @@ public class GetAllTournamentsFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getAllTournamentsStep);
-
     }
-
     public List<TournamentDto> getTournaments() {
         return tournaments;
     }

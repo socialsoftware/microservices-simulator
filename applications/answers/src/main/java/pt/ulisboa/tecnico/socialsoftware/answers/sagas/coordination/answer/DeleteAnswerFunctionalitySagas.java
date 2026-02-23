@@ -26,7 +26,5 @@ public class DeleteAnswerFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(deleteAnswerStep);
-
     }
-
 }

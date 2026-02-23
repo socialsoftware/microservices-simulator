@@ -30,9 +30,7 @@ public class GetAllTopicsFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getAllTopicsStep);
-
     }
-
     public List<TopicDto> getTopics() {
         return topics;
     }

@@ -26,7 +26,5 @@ public class DeleteExecutionFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(deleteExecutionStep);
-
     }
-
 }

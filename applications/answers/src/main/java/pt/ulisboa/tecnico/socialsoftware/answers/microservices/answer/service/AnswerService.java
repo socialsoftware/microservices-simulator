@@ -261,7 +261,6 @@ public class AnswerService {
             Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
 
-        // Handle user single reference
         if (newAnswer.getUser() != null && 
             newAnswer.getUser().getUserAggregateId() != null &&
             newAnswer.getUser().getUserAggregateId().equals(userAggregateId)) {

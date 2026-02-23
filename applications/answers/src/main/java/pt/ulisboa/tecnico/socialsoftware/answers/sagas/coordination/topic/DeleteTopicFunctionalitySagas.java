@@ -26,7 +26,5 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(deleteTopicStep);
-
     }
-
 }

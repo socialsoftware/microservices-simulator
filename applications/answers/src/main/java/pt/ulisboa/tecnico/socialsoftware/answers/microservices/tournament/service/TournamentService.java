@@ -407,7 +407,6 @@ public class TournamentService {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
-        // Handle topics collection
         if (newTournament.getTopics() != null) {
             newTournament.getTopics().stream()
                 .filter(item -> item.getTopicAggregateId() != null && 
@@ -431,7 +430,6 @@ public class TournamentService {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
-        // Handle quiz single reference
         if (newTournament.getQuiz() != null && 
             newTournament.getQuiz().getQuizAggregateId() != null &&
             newTournament.getQuiz().getQuizAggregateId().equals(quizAggregateId)) {

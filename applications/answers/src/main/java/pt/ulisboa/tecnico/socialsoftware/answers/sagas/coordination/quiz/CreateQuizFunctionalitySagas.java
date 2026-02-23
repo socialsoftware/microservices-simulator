@@ -30,9 +30,7 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(createQuizStep);
-
     }
-
     public QuizDto getCreatedQuizDto() {
         return createdQuizDto;
     }

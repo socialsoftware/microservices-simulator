@@ -81,9 +81,6 @@ public abstract class User extends Aggregate {
     }
 
 
-    // ============================================================================
-    // INVARIANTS
-    // ============================================================================
 
     private boolean invariantNameNotBlank() {
         return this.name != null && this.name.length() > 0;

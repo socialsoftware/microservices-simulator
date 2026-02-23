@@ -215,9 +215,6 @@ public abstract class Question extends Aggregate {
         }
     }
 
-    // ============================================================================
-    // INVARIANTS
-    // ============================================================================
 
     private boolean invariantTitleNotBlank() {
         return this.title != null && this.title.length() > 0;

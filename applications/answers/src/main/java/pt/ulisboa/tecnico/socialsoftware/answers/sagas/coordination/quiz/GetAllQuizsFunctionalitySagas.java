@@ -30,9 +30,7 @@ public class GetAllQuizsFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getAllQuizsStep);
-
     }
-
     public List<QuizDto> getQuizs() {
         return quizs;
     }

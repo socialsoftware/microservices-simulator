@@ -210,9 +210,6 @@ public abstract class Answer extends Aggregate {
         }
     }
 
-    // ============================================================================
-    // INVARIANTS
-    // ============================================================================
 
     private boolean invariantExecutionNotNull() {
         return this.execution != null;

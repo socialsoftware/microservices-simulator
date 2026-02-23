@@ -29,9 +29,7 @@ public class GetTopicByIdFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getTopicStep);
-
     }
-
     public TopicDto getTopicDto() {
         return topicDto;
     }

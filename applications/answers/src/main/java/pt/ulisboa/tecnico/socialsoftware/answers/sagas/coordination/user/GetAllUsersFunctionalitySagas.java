@@ -30,9 +30,7 @@ public class GetAllUsersFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getAllUsersStep);
-
     }
-
     public List<UserDto> getUsers() {
         return users;
     }

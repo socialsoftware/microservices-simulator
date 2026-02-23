@@ -30,9 +30,7 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(createQuestionStep);
-
     }
-
     public QuestionDto getCreatedQuestionDto() {
         return createdQuestionDto;
     }

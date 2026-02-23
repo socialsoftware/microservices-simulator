@@ -46,7 +46,6 @@ SpringApplication.run(AnswersSimulator.class, args);
 
 @Override
 public void afterPropertiesSet() {
-// Run on startup
 
 eventService.clearEventsAtApplicationStartUp();
 

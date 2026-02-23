@@ -29,9 +29,7 @@ public class GetUserByIdFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getUserStep);
-
     }
-
     public UserDto getUserDto() {
         return userDto;
     }

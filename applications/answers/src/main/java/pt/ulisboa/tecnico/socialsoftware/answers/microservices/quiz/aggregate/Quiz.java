@@ -203,9 +203,6 @@ public abstract class Quiz extends Aggregate {
         }
     }
 
-    // ============================================================================
-    // INVARIANTS
-    // ============================================================================
 
     private boolean invariantTitleNotBlank() {
         return this.title != null && this.title.length() > 0;

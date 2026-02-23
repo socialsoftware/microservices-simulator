@@ -30,9 +30,7 @@ public class CreateCourseFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(createCourseStep);
-
     }
-
     public CourseDto getCreatedCourseDto() {
         return createdCourseDto;
     }

@@ -30,9 +30,7 @@ public class GetAllExecutionsFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getAllExecutionsStep);
-
     }
-
     public List<ExecutionDto> getExecutions() {
         return executions;
     }

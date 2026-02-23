@@ -29,9 +29,7 @@ public class UpdateAnswerFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(updateAnswerStep);
-
     }
-
     public AnswerDto getUpdatedAnswerDto() {
         return updatedAnswerDto;
     }

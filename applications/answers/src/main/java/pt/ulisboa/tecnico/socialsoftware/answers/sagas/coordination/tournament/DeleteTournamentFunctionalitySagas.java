@@ -26,7 +26,5 @@ public class DeleteTournamentFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(deleteTournamentStep);
-
     }
-
 }

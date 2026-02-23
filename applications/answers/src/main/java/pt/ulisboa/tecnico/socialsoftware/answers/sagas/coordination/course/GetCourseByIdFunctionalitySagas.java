@@ -29,9 +29,7 @@ public class GetCourseByIdFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getCourseStep);
-
     }
-
     public CourseDto getCourseDto() {
         return courseDto;
     }

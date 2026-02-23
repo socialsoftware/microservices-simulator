@@ -29,9 +29,7 @@ public class UpdateExecutionFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(updateExecutionStep);
-
     }
-
     public ExecutionDto getUpdatedExecutionDto() {
         return updatedExecutionDto;
     }

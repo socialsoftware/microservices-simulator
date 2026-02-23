@@ -75,9 +75,6 @@ public abstract class Topic extends Aggregate {
         eventSubscriptions.add(new TopicSubscribesCourseDeletedTopicCourseExists(this.getCourse()));
     }
 
-    // ============================================================================
-    // INVARIANTS
-    // ============================================================================
 
     private boolean invariantNameNotBlank() {
         return this.name != null && this.name.length() > 0;

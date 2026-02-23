@@ -29,9 +29,7 @@ public class GetTournamentByIdFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(getTournamentStep);
-
     }
-
     public TournamentDto getTournamentDto() {
         return tournamentDto;
     }

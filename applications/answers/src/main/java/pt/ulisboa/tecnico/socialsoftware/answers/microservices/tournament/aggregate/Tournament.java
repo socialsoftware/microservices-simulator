@@ -281,9 +281,6 @@ public abstract class Tournament extends Aggregate {
         eventSubscriptions.add(new TournamentSubscribesQuizDeletedTournamentQuizExists(this.getQuiz()));
     }
 
-    // ============================================================================
-    // INVARIANTS
-    // ============================================================================
 
     private boolean invariantStartTimeBeforeEndTime() {
         return this.startTime.isBefore(this.endTime);

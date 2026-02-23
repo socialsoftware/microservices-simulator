@@ -29,9 +29,7 @@ public class UpdateUserFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(updateUserStep);
-
     }
-
     public UserDto getUpdatedUserDto() {
         return updatedUserDto;
     }

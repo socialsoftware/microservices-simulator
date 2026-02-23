@@ -26,7 +26,5 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(deleteUserStep);
-
     }
-
 }

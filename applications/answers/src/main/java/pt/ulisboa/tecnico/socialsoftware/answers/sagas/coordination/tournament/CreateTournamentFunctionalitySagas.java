@@ -30,9 +30,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(createTournamentStep);
-
     }
-
     public TournamentDto getCreatedTournamentDto() {
         return createdTournamentDto;
     }

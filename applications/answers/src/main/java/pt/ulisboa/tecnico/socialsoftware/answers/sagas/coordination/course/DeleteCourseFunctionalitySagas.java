@@ -26,7 +26,5 @@ public class DeleteCourseFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(deleteCourseStep);
-
     }
-
 }

@@ -30,9 +30,7 @@ public class CreateUserFunctionalitySagas extends WorkflowFunctionality {
         });
 
         workflow.addStep(createUserStep);
-
     }
-
     public UserDto getCreatedUserDto() {
         return createdUserDto;
     }

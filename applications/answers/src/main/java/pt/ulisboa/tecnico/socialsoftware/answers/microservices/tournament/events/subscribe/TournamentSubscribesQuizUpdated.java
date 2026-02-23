@@ -9,8 +9,6 @@ public class TournamentSubscribesQuizUpdated extends EventSubscription {
     
 
     public TournamentSubscribesQuizUpdated() {
-        // Parameterless constructor for simple subscriptions
-        // Event matching is handled by the framework
     }
 
     public boolean subscribesEvent(Event event) {
