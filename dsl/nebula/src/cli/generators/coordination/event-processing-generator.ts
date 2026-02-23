@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { AggregateExt, EntityExt } from '../../types/ast-extensions.js';
 import { CoordinationGenerationOptions } from '../microservices/types.js';
 import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../common/generator-capabilities.js';
@@ -225,7 +226,7 @@ export class EventProcessingGenerator {
                 if (found) {
                     sourceAggregateName = found;
                 } else {
-                    console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
+                    console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
                     
                     sourceAggregateName = eventTypeName
                         .replace(/(Updated|Deleted|Created)Event$/, '')  
@@ -234,7 +235,7 @@ export class EventProcessingGenerator {
             }
             
             else {
-                console.warn(`Warning: allAggregates not available, using fallback for ${eventTypeName}`);
+                console.warn(chalk.yellow(`[WARN] allAggregates not available, using fallback for ${eventTypeName}`));
                 sourceAggregateName = eventTypeName
                     .replace(/(Updated|Deleted|Created)Event$/, '')
                     .toLowerCase();

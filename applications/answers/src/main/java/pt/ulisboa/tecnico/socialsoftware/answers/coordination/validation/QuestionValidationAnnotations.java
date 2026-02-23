@@ -1,0 +1,104 @@
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.validation.annotations;
+
+
+import jakarta.validation.Constraint;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+import jakarta.validation.Payload;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.regex.Pattern;
+
+public class QuestionValidationAnnotations {
+
+    public static class TitleValidation {
+        @NotNull
+    @NotBlank
+        private String title;
+        
+        public String getTitle() {
+            return title;
+        }
+        
+        public void setTitle(String title) {
+            this.title = title;
+        }
+    }
+
+    public static class ContentValidation {
+        @NotNull
+    @NotBlank
+        private String content;
+        
+        public String getContent() {
+            return content;
+        }
+        
+        public void setContent(String content) {
+            this.content = content;
+        }
+    }
+
+    public static class CreationDateValidation {
+        @NotNull
+        private LocalDateTime creationDate;
+        
+        public LocalDateTime getCreationDate() {
+            return creationDate;
+        }
+        
+        public void setCreationDate(LocalDateTime creationDate) {
+            this.creationDate = creationDate;
+        }
+    }
+
+    public static class CourseValidation {
+        @NotNull
+        private QuestionCourse course;
+        
+        public QuestionCourse getCourse() {
+            return course;
+        }
+        
+        public void setCourse(QuestionCourse course) {
+            this.course = course;
+        }
+    }
+
+    public static class TopicsValidation {
+        @NotNull
+    @NotEmpty
+        private Set<QuestionTopic> topics;
+        
+        public Set<QuestionTopic> getTopics() {
+            return topics;
+        }
+        
+        public void setTopics(Set<QuestionTopic> topics) {
+            this.topics = topics;
+        }
+    }
+
+    public static class OptionsValidation {
+        @NotNull
+    @NotEmpty
+        private List<Option> options;
+        
+        public List<Option> getOptions() {
+            return options;
+        }
+        
+        public void setOptions(List<Option> options) {
+            this.options = options;
+        }
+    }
+
+}

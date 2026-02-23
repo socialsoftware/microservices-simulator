@@ -6,8 +6,9 @@ import { InputValidator, ValidationError } from './input-validator.js';
 
 
 export class FileWriter {
-    
+
     private static baseOutputDir: string | null = null;
+    private static fileCount = 0;
 
     
 
@@ -52,11 +53,9 @@ export class FileWriter {
             
             await fs.mkdir(path.dirname(safePath), { recursive: true });
 
-            
-            await fs.writeFile(safePath, content, 'utf-8');
 
-            
-            console.log(`\t- Generated ${description}`);
+            await fs.writeFile(safePath, content, 'utf-8');
+            this.fileCount++;
         } catch (error) {
             if (error instanceof ValidationError) {
                 ErrorHandler.handle(
@@ -133,20 +132,28 @@ export class FileWriter {
 
     static async writeIfChanged(filePath: string, content: string, description: string): Promise<boolean> {
         try {
-            
+
             try {
                 const existingContent = await fs.readFile(filePath, 'utf-8');
                 if (existingContent === content) {
-                    return false; 
+                    return false;
                 }
             } catch {
-                
+
             }
 
             await this.writeGeneratedFile(filePath, content, description);
-            return true; 
+            return true;
         } catch (error) {
             throw new Error(`Failed to write file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
         }
+    }
+
+    static resetCount(): void {
+        this.fileCount = 0;
+    }
+
+    static getCount(): number {
+        return this.fileCount;
     }
 }

@@ -1,3 +1,4 @@
+import Handlebars from 'handlebars';
 import { Aggregate, Entity } from "../../../language/generated/ast.js";
 import { ValidationGenerationOptions, ValidationContext } from "./validation-types.js";
 import { UnifiedTypeResolver as TypeResolver } from "../common/unified-type-resolver.js";
@@ -48,7 +49,6 @@ export abstract class ValidationBaseGenerator {
     }
 
     protected renderTemplate(template: string, context: any): string {
-        const Handlebars = require('handlebars');
         const compiledTemplate = Handlebars.compile(template, { noEscape: true });
         return compiledTemplate(context);
     }

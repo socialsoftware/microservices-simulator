@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { EventBaseGenerator } from "./event-base-generator.js";
 import { EventGenerationOptions, EventSubscriptionContext } from "./event-types.js";
@@ -82,7 +83,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
                 if (found) {
                     sourceAggregateName = found;
                 } else {
-                    console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
+                    console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
                     
                     const entityName = EventNameParser.extractEntityName(eventTypeName);
                     sourceAggregateName = entityName.toLowerCase();
@@ -90,7 +91,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
             }
             
             else {
-                console.warn(`Warning: allAggregates not available for event ${eventTypeName}`);
+                console.warn(chalk.yellow(`[WARN] allAggregates not available for event ${eventTypeName}`));
                 const entityName = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
                 sourceAggregateName = entityName.toLowerCase();
             }

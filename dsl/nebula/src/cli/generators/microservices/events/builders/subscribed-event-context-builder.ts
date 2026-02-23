@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { Aggregate, SubscribedEvent } from "../../../../../language/generated/ast.js";
 import { AggregateExt } from "../../../../types/ast-extensions.js";
 import { GeneratorCapabilities } from "../../../common/generator-capabilities.js";
@@ -58,17 +59,17 @@ export class SubscribedEventContextBuilder {
             if (found) {
                 eventSourceAggregate = found;
             } else {
-                console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
-                
+                console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
+
                 const inferredPublisher = EventNameParser.extractPublisherAggregate(eventTypeName);
                 eventSourceAggregate = inferredPublisher.toLowerCase();
             }
         }
-        
+
         else {
-            
-            
-            
+
+
+
             const inferredPublisher = EventNameParser.extractPublisherAggregate(eventTypeName);
             eventSourceAggregate = inferredPublisher.toLowerCase();
         }
@@ -122,7 +123,7 @@ export class SubscribedEventContextBuilder {
         
         const entityRef = this.extractEntityReferenceFromCondition(event, aggregate);
         if (!entityRef) {
-            console.warn(`Warning: Could not extract entity reference for inter-invariant subscription ${subscriptionName}`);
+            console.warn(chalk.yellow(`[WARN] Could not extract entity reference for inter-invariant subscription ${subscriptionName}`));
             return this.buildSubscribedEventContext(event, aggregate, options);
         }
 
@@ -225,8 +226,8 @@ export class SubscribedEventContextBuilder {
                 if (found) {
                     sourceAggregateName = found;
                 } else {
-                    console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
-                    
+                    console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
+
                     sourceAggregateName = entityName.toLowerCase();
                 }
             }
@@ -285,12 +286,12 @@ export class SubscribedEventContextBuilder {
             if (found) {
                 sourceAggregateName = found;
             } else {
-                console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
-                
+                console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
+
                 sourceAggregateName = entityName.toLowerCase();
             }
         }
-        
+
         else {
             
             

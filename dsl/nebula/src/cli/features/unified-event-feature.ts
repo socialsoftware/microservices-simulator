@@ -94,8 +94,8 @@ export class UnifiedEventFeature {
 
                 await this.generateEventSubscriptionsFromCode(eventCode, aggregatePath);
 
-                if (generators.eventHandlerGenerator) {
-                    const individualEventHandlers = await generators.eventHandlerGenerator.generateEventHandlers(aggregate, {
+                if (generators.eventHandlerGenerator && rootEntity) {
+                    const individualEventHandlers = await generators.eventHandlerGenerator.generateEventHandlers(aggregate, rootEntity, {
                         ...options,
                         allAggregates
                     });

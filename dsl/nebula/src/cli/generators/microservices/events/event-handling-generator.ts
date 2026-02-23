@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { EventBaseGenerator } from "./event-base-generator.js";
 import { EventGenerationOptions, EventContext } from "./event-types.js";
@@ -76,7 +77,7 @@ export class EventHandlingGenerator extends EventBaseGenerator {
                 if (found) {
                     sourceAggregateName = found;
                 } else {
-                    console.warn(`Warning: Could not find publisher aggregate for event ${eventTypeName}`);
+                    console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
                     
                     sourceAggregateName = entityName.toLowerCase();
                 }
