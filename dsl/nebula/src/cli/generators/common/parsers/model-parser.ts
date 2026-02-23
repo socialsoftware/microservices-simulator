@@ -184,7 +184,7 @@ export class ModelParser {
             return '';
         }
 
-        let report = `\n❌ Parse Errors Found (${parseErrors.length} issue${parseErrors.length > 1 ? 's' : ''}):\n\n`;
+        let report = `\nParse Errors Found (${parseErrors.length} issue${parseErrors.length > 1 ? 's' : ''}):\n\n`;
 
         for (const error of parseErrors) {
             report += `  [${error.code}] ${error.message}\n`;

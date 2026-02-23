@@ -1,6 +1,7 @@
 
 
 
+import chalk from 'chalk';
 import { getGlobalConfig, ConfigManager } from "../generators/common/config.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "./error-handler.js";
 
@@ -284,15 +285,12 @@ export class ConfigurationFacade {
             this.cachedConfigs.delete('framework-config');
         }
 
-        
-        console.log('⚙️  Configuration overrides applied');
     }
 
     
 
     resetCache(): void {
         this.cachedConfigs.clear();
-        console.log('🗑️  Configuration cache cleared');
     }
 
     
@@ -434,7 +432,7 @@ export class ConfigUtils {
 
         if (validation.warnings.length > 0) {
             validation.warnings.forEach(warning => {
-                console.warn(`⚠️  Configuration warning: ${warning}`);
+                console.warn(chalk.yellow(`[WARN] Configuration warning: ${warning}`));
             });
         }
     }

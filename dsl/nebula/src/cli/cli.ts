@@ -55,13 +55,9 @@ export default async function cli(): Promise<void> {
                     validate: options.validate
                 });
 
-                
-                console.log(chalk.green('\n✓ Code generation completed successfully!'));
-
-                
                 const stats = ErrorHandler.getStats();
                 if (stats.warnings > 0) {
-                    console.log(chalk.yellow(`   ⚠ ${stats.warnings} warning(s) encountered`));
+                    console.log(chalk.yellow(`[WARN] ${stats.warnings} warning(s) encountered`));
                 }
 
             } catch (error) {
@@ -107,7 +103,7 @@ async function validateAbstractionsPath(abstractionsPath: string, debug: boolean
     }
 
     if (debug) {
-        console.log(chalk.gray(`✓ Validated abstractions path: ${resolvedPath}`));
+        console.log(chalk.gray(`[OK] Validated abstractions path: ${resolvedPath}`));
     }
 }
 
@@ -120,7 +116,7 @@ function validateOutputDirectory(outputDir: string, debug: boolean): void {
     }
 
     if (debug) {
-        console.log(chalk.gray(`✓ Validated output directory: ${path.resolve(outputDir)}`));
+        console.log(chalk.gray(`[OK] Validated output directory: ${path.resolve(outputDir)}`));
     }
 }
 
@@ -131,7 +127,7 @@ function handleCliError(error: unknown, debug: boolean): void {
 
     if (debug) {
         
-        console.error(chalk.red('✗ Generation failed with error:\n'));
+        console.error(chalk.red('[ERROR] Generation failed with error:\n'));
         ErrorUtils.safeLog(error, chalk.red('Error'));
 
         
@@ -140,7 +136,7 @@ function handleCliError(error: unknown, debug: boolean): void {
     } else {
         
         const message = ErrorUtils.extractMessage(error);
-        console.error(chalk.red(`✗ Generation failed: ${message}`));
+        console.error(chalk.red(`[ERROR] Generation failed: ${message}`));
 
         
         console.log(chalk.gray('\n[TIP] Run with --debug flag for detailed error information'));

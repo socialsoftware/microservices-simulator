@@ -45,9 +45,6 @@ export class EntityFeature {
 
         const hasServiceDefinition = (aggregate as any).serviceDefinition;
         if (!hasServiceDefinition) {
-            console.log(`\t- Generating default service with options:`, {
-                projectName: options.projectName
-            });
             await ErrorHandler.wrapAsync(
                 async () => {
                     const serviceCode = await generators.serviceGenerator.generateService(aggregate, options);
@@ -62,8 +59,6 @@ export class EntityFeature {
                 ),
                 ErrorSeverity.FATAL
             );
-        } else {
-            console.log(`\t- Service definition found in DSL for ${aggregate.name}, skipping default service generation`);
         }
 
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);

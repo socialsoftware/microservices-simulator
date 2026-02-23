@@ -89,7 +89,7 @@ export class AggregateValidator {
 
     getValidationReport(result: ValidationResult): string {
         let report = `\n=== VALIDATION REPORT ===\n`;
-        report += `Status: ${result.isValid ? '✅ PASSED' : '❌ FAILED'}\n`;
+        report += `Status: ${result.isValid ? 'PASSED' : 'FAILED'}\n`;
         report += `Errors: ${result.errors.length}\n`;
         report += `Warnings: ${result.warnings.length}\n\n`;
 

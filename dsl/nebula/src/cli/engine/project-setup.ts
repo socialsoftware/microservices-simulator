@@ -53,20 +53,16 @@ export class ProjectSetup {
                 try {
                     const existingAggregates = await fs.readdir(microservicesPath);
                     if (existingAggregates.length > 0) {
-                        console.log(`Preserving existing project directory with ${existingAggregates.length} aggregates: ${projectPath}`);
+                        // Preserve existing project directory
                     } else {
                         await fs.rm(projectPath, { recursive: true, force: true });
-                        console.log(`Cleaned existing project directory: ${projectPath}`);
                     }
                 } catch (microservicesErr) {
                     await fs.rm(projectPath, { recursive: true, force: true });
-                    console.log(`Cleaned existing project directory: ${projectPath}`);
                 }
-            } else {
-                console.log(`Using existing project directory: ${projectPath}`);
             }
         } catch (accessErr) {
-            console.log(`Directory ${projectPath} did not exist`);
+            // Directory does not exist yet
         }
     }
 

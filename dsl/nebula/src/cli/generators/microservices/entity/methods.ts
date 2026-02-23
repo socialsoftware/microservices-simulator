@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { Entity } from "../../../../language/generated/ast.js";
 import { capitalize } from "../../../utils/generator-utils.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../common/unified-type-resolver.js";
@@ -22,7 +23,7 @@ const detectPrimaryKey = (elementType: string, allEntities?: Entity[]): { pkType
         }
     }
 
-    console.warn(`Warning: Could not determine primary key for entity '${elementType}'. Using default Long id.`);
+    console.warn(chalk.yellow(`[WARN] Could not determine primary key for entity '${elementType}'. Using default Long id.`));
     return { pkType: 'Long', pkGetter: 'getId' };
 };
 

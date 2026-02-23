@@ -2,6 +2,7 @@
 
 
 import * as path from 'node:path';
+import chalk from 'chalk';
 import { GenerationOptions } from '../engine/types.js';
 import { FileWriter } from '../utils/file-writer.js';
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from '../utils/error-handler.js';
@@ -38,9 +39,6 @@ export abstract class FeatureBase {
     protected async createDirectory(dirPath: string, description?: string): Promise<void> {
         try {
             await FileWriter.ensureDirectory(dirPath);
-            if (description) {
-                console.log(`\t- Created ${description}: ${path.basename(dirPath)}`);
-            }
         } catch (error) {
             ErrorHandler.handle(
                 error instanceof Error ? error : new Error(String(error)),
@@ -146,22 +144,20 @@ export abstract class FeatureBase {
 
     
 
-    protected logFeatureStart(aggregateName: string): void {
-        console.log(`\t🔧 Generating ${this.featureName} for ${aggregateName}...`);
+    protected logFeatureStart(_aggregateName: string): void {
     }
 
     
 
-    protected logFeatureComplete(aggregateName: string, filesGenerated: number): void {
-        console.log(`\t✅ ${this.featureName} generation complete (${filesGenerated} files)`);
+    protected logFeatureComplete(_aggregateName: string, _filesGenerated: number): void {
     }
 
     
 
     protected logWarning(message: string, context?: any): void {
-        console.warn(`\t⚠️  ${this.featureName}: ${message}`);
+        console.warn(chalk.yellow(`[WARN] ${this.featureName}: ${message}`));
         if (context) {
-            console.warn(`\t   Context: ${JSON.stringify(context)}`);
+            console.warn(chalk.yellow(`  Context: ${JSON.stringify(context)}`));
         }
     }
 
@@ -226,8 +222,8 @@ export abstract class FeatureBase {
             if (result.success) {
                 this.logFeatureComplete(aggregateName, result.filesGenerated);
             } else {
-                console.error(`\t❌ ${this.featureName} generation failed for ${aggregateName}`);
-                result.errors.forEach(error => console.error(`\t   Error: ${error}`));
+                console.error(chalk.red(`[ERROR] ${this.featureName} generation failed for ${aggregateName}`));
+                result.errors.forEach(error => console.error(chalk.red(`  ${error}`)));
             }
 
             result.warnings.forEach(warning => this.logWarning(warning));
@@ -235,7 +231,7 @@ export abstract class FeatureBase {
             return result;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            console.error(`\t❌ ${this.featureName} generation failed for ${aggregateName}: ${errorMessage}`);
+            console.error(chalk.red(`[ERROR] ${this.featureName} generation failed for ${aggregateName}: ${errorMessage}`));
 
             this.handleFeatureError(
                 error instanceof Error ? error : new Error(errorMessage),

@@ -1,7 +1,7 @@
 
 
 
-
+import chalk from 'chalk';
 
 export interface ErrorContext {
     operation: string;
@@ -103,9 +103,9 @@ export class ErrorHandler {
 
     private static getIcon(severity: ErrorSeverity): string {
         return {
-            [ErrorSeverity.WARNING]: '⚠',
-            [ErrorSeverity.ERROR]: '✗',
-            [ErrorSeverity.FATAL]: '[FATAL]'
+            [ErrorSeverity.WARNING]: chalk.yellow('[WARN]'),
+            [ErrorSeverity.ERROR]: chalk.red('[ERROR]'),
+            [ErrorSeverity.FATAL]: chalk.red('[FATAL]')
         }[severity];
     }
 
@@ -228,12 +228,12 @@ export class ErrorHandler {
     static printSummary(): void {
         const stats = this.getStats();
         if (stats.errors > 0 || stats.warnings > 0) {
-            console.log('\n[SUMMARY] Generation Summary:');
+            console.log('\n' + chalk.bold('Generation Summary:'));
             if (stats.errors > 0) {
-                console.log(`   ✗ Errors: ${stats.errors}`);
+                console.log(chalk.red(`  Errors: ${stats.errors}`));
             }
             if (stats.warnings > 0) {
-                console.log(`   ⚠ Warnings: ${stats.warnings}`);
+                console.log(chalk.yellow(`  Warnings: ${stats.warnings}`));
             }
         }
     }

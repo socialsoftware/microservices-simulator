@@ -107,7 +107,6 @@ export class TemplateManager {
         });
 
         await Promise.all(loadPromises);
-        console.log(`📦 Preloaded ${templatePaths.length} templates`);
     }
 
     
@@ -121,7 +120,6 @@ export class TemplateManager {
 
     clearCache(): void {
         this.templateCache.clear();
-        console.log('🗑️  Template cache cleared');
     }
 
     
@@ -145,9 +143,6 @@ export class TemplateManager {
 
     setDevMode(enabled: boolean): void {
         this.config.enableDevMode = enabled;
-        if (enabled) {
-            console.log('🔧 Template dev mode enabled - will check file modifications');
-        }
     }
 
     
@@ -330,9 +325,6 @@ export class TemplateManager {
                 Handlebars.registerPartial(partialName, partialTemplate);
             });
 
-            if (partialFiles.length > 0) {
-                console.log(`📦 Registered ${partialFiles.length} Handlebars partial(s)`);
-            }
         } catch (error) {
             ErrorHandler.handle(
                 error instanceof Error ? error : new Error(String(error)),

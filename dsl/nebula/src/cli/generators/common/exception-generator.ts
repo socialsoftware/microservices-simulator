@@ -32,9 +32,6 @@ export class ExceptionGenerator {
         const advicePath = path.join(outputPath, 'src', 'main', 'java', ...packageName.split('.'), 'microservices', 'exception', `${capitalizedProjectName}ExceptionHandler.java`);
         await fs.writeFile(advicePath, controllerAdviceClass);
 
-        console.log(`        - Generated exception ${capitalizedProjectName}Exception`);
-        console.log(`        - Generated error messages ${capitalizedProjectName}ErrorMessage`);
-        console.log(`        - Generated exception handler ${capitalizedProjectName}ExceptionHandler`);
     }
 
     private extractErrorMessagesFromDSL(allModels: Model[]): Array<{ name: string, message: string }> {

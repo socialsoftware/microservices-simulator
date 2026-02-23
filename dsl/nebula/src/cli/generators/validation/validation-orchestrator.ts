@@ -191,7 +191,7 @@ export class ValidationOrchestrator {
         );
 
         await Promise.all(generatePromises);
-        console.log(`📝 Generated validation for ${aggregates.length} aggregates`);
+        console.log(`Generated validation for ${aggregates.length} aggregates`);
     }
 
     

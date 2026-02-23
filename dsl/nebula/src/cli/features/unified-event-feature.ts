@@ -33,7 +33,6 @@ export class UnifiedEventFeature {
         config: EventGenerationConfig = this.getDefaultConfig()
     ): Promise<void> {
         if (!aggregate.events && !config.generateStandardEvents) {
-            console.log(`\t- No events defined for ${aggregate.name}`);
             return;
         }
 

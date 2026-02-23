@@ -1,6 +1,7 @@
 
 
 
+import chalk from 'chalk';
 import { Aggregate } from "../../language/generated/ast.js";
 import { GenerationOptions, GeneratorRegistry } from "./types.js";
 import { FileWriter } from "../utils/file-writer.js";
@@ -141,7 +142,6 @@ export class FeatureOrchestrator {
     
 
     async execute(aggregate: Aggregate, options: GenerationOptions): Promise<OrchestrationResult> {
-        console.log(`\n🔄 Executing ${this.pipelines.length} pipelines for ${aggregate.name}`);
 
         const results: PipelineResult[] = [];
 
@@ -175,7 +175,7 @@ export class FeatureOrchestrator {
 
             
             if (!result.generationResult.success) {
-                console.warn(`⚠️  Pipeline ${pipeline.getName()} failed, continuing with remaining pipelines`);
+                console.warn(chalk.yellow(`[WARN] Pipeline ${pipeline.getName()} failed, continuing with remaining pipelines`));
             }
         }
 
@@ -193,7 +193,6 @@ export class FeatureOrchestrator {
 
         const result = await ErrorHandler.wrapAsync(
             async () => {
-                console.log(`  📦 Running ${pipelineName} pipeline...`);
 
                 
                 const generationResult = await pipeline.generate(aggregate, options);
@@ -222,7 +221,6 @@ export class FeatureOrchestrator {
                 
                 await pipeline.write(generationResult);
 
-                console.log(`  ✅ ${pipelineName} completed (${generationResult.generatedFiles.length} files)`);
 
                 return {
                     pipelineName,
@@ -257,14 +255,11 @@ export class FeatureOrchestrator {
         const allErrors = results.flatMap(r => r.generationResult.errors);
         const allWarnings = results.flatMap(r => r.generationResult.warnings);
 
-        console.log(`\n📊 Pipeline execution summary for ${aggregateName}:`);
-        console.log(`  ✅ Successful: ${successful.length}/${results.length} pipelines`);
-        console.log(`  📁 Generated: ${totalFiles} files`);
         if (failed.length > 0) {
-            console.log(`  ❌ Failed: ${failed.map(f => f.pipelineName).join(', ')}`);
+            console.error(chalk.red(`[ERROR] Failed pipelines for ${aggregateName}: ${failed.map(f => f.pipelineName).join(', ')}`));
         }
         if (allWarnings.length > 0) {
-            console.log(`  ⚠️  Warnings: ${allWarnings.length}`);
+            console.warn(chalk.yellow(`[WARN] ${allWarnings.length} warning(s) for ${aggregateName}`));
         }
 
         return {

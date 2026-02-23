@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { GenerationOptions, Aggregate, GeneratorRegistry } from '../engine/types.js';
@@ -12,7 +13,6 @@ export class ServiceFeature {
 
             const serviceDefinition = (aggregate as any).serviceDefinition;
             if (!serviceDefinition) {
-                console.log(`\t- No service definition found for ${aggregate.name}, skipping service generation`);
                 return;
             }
 
@@ -25,10 +25,9 @@ export class ServiceFeature {
             const servicePath = path.join(aggregatePath, 'service', `${serviceDefinition.name || aggregate.name + 'Service'}.java`);
             await fs.mkdir(path.dirname(servicePath), { recursive: true });
             await fs.writeFile(servicePath, serviceCode, 'utf-8');
-            console.log(`\t- Generated service ${serviceDefinition.name || aggregate.name + 'Service'}`);
 
         } catch (error) {
-            console.error(`\t- Error generating service for ${aggregate.name}: ${error instanceof Error ? error.message : String(error)}`);
+            console.error(chalk.red(`[ERROR] Error generating service for ${aggregate.name}: ${error instanceof Error ? error.message : String(error)}`));
         }
     }
 }

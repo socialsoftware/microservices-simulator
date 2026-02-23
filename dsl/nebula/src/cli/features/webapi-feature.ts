@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { GenerationOptions } from "../engine/types.js";
@@ -23,7 +24,6 @@ export class WebApiFeature {
                 controllerCode = webApiCode['controller'] as string;
                 requestDtos = webApiCode['request-dtos'] as Record<string, string>;
             } else {
-                
                 controllerCode = await generators.webApiGenerator.generateEmptyController(aggregate, options);
             }
 
@@ -31,13 +31,12 @@ export class WebApiFeature {
             await fs.mkdir(path.dirname(webApiPath), { recursive: true });
             await fs.writeFile(webApiPath, controllerCode, 'utf-8');
 
-            
             if (requestDtos && typeof requestDtos === 'object') {
                 const dtoKeys = Object.keys(requestDtos);
                 if (dtoKeys.length > 0) {
                     const dtosDir = path.join(paths.javaPath, 'coordination', 'webapi', 'requestDtos');
                     await fs.mkdir(dtosDir, { recursive: true });
-                    
+
                     for (const [dtoName, dtoContent] of Object.entries(requestDtos)) {
                         if (dtoContent && typeof dtoContent === 'string' && dtoContent.trim()) {
                             const dtoPath = path.join(dtosDir, `${dtoName}.java`);
@@ -46,16 +45,8 @@ export class WebApiFeature {
                     }
                 }
             }
-
-            if (hasEndpoints) {
-                const endpointCount = hasAutoCrud ? 5 : aggregate.webApiEndpoints.endpoints.length;
-                const crudNote = hasAutoCrud ? ' (CRUD auto-generated)' : '';
-                console.log(`\t- Generated web API ${aggregate.name}Controller (using Functionalities, ${endpointCount} endpoints${crudNote})`);
-            } else {
-                console.log(`\t- Generated empty ${aggregate.name}Controller (no WebAPIEndpoints defined)`);
-            }
         } catch (error) {
-            console.error(`\t- Error generating web API for ${aggregate.name}: ${error instanceof Error ? error.message : String(error)}`);
+            console.error(chalk.red(`[ERROR] Error generating web API for ${aggregate.name}: ${error instanceof Error ? error.message : String(error)}`));
         }
     }
 
@@ -66,13 +57,11 @@ export class WebApiFeature {
             const behaviourControllerPath = path.join(paths.javaPath, 'coordination', 'webapi', 'BehaviourController.java');
             await fs.mkdir(path.dirname(behaviourControllerPath), { recursive: true });
             await fs.writeFile(behaviourControllerPath, globalControllersCode['behaviour-controller'], 'utf-8');
-            console.log(`\t- Generated global web API BehaviourController`);
 
             const tracesControllerPath = path.join(paths.javaPath, 'coordination', 'webapi', 'TracesController.java');
             await fs.writeFile(tracesControllerPath, globalControllersCode['traces-controller'], 'utf-8');
-            console.log(`\t- Generated global web API TracesController`);
         } catch (error) {
-            console.error(`\t- Error generating global web API controllers: ${error instanceof Error ? error.message : String(error)}`);
+            console.error(chalk.red(`[ERROR] Error generating global web API controllers: ${error instanceof Error ? error.message : String(error)}`));
         }
     }
 }

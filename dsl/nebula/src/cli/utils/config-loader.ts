@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import chalk from 'chalk';
 import { GenerationConfig, initializeConfig, getGlobalConfig } from '../generators/common/config.js';
 
 export interface NebulaConfig {
@@ -42,7 +43,7 @@ export class ConfigLoader {
             return config.replace(/\$\{([^}]+)\}/g, (match, varName) => {
                 const envValue = process.env[varName];
                 if (envValue === undefined) {
-                    console.warn(`Environment variable ${varName} is not set, using placeholder`);
+                    console.warn(chalk.yellow(`[WARN] Environment variable ${varName} is not set, using placeholder`));
                     return match; 
                 }
                 return envValue;
@@ -66,24 +67,15 @@ export class ConfigLoader {
         if (config.database?.password) {
             const password = config.database.password;
 
-            
+
             if (password.includes('${') && password.includes('}')) {
-                console.warn('⚠️  Database password contains unresolved environment variable placeholder');
+                console.warn(chalk.yellow('[WARN] Database password contains unresolved environment variable placeholder'));
             }
 
-            
             const weakPasswords = ['password', '123456', 'admin', 'root', 'test', ''];
             if (weakPasswords.includes(password.toLowerCase())) {
-                console.warn('⚠️  Database password appears to be weak or default. Consider using a stronger password.');
+                console.warn(chalk.yellow('[WARN] Database password appears to be weak or default. Consider using a stronger password.'));
             }
-
-            
-            console.log('Database password configured (not displayed for security)');
-        }
-
-        
-        if (config.database?.host && config.database.host !== 'localhost' && config.database.host !== '127.0.0.1') {
-            console.log(`Database host configured: ${config.database.host}`);
         }
     }
 
@@ -94,7 +86,6 @@ export class ConfigLoader {
         let fileConfig: NebulaConfig = {};
 
         if (configFile) {
-            console.log(`Loading configuration from: ${configFile}`);
             try {
                 const configContent = fs.readFileSync(configFile, 'utf-8');
                 fileConfig = JSON.parse(configContent);
@@ -102,7 +93,7 @@ export class ConfigLoader {
                 
                 fileConfig = this.resolveEnvironmentVariables(fileConfig);
             } catch (error) {
-                console.warn(`Warning: Failed to parse config file: ${error instanceof Error ? error.message : String(error)}`);
+                console.warn(chalk.yellow(`[WARN] Failed to parse config file: ${error instanceof Error ? error.message : String(error)}`));
             }
         }
 
