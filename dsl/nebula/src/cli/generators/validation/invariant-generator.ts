@@ -234,7 +234,7 @@ export class InvariantGenerator extends ValidationBaseGenerator {
             name: `invariant${aggregateName}Valid`,
             property: 'aggregate',
             propertyType: aggregateName,
-            condition: 'true', 
+            condition: 'true',
             message: `${aggregateName} aggregate must be in a valid state`,
             logic: this.buildAggregateInvariantLogic(rootEntity, aggregateName),
             severity: 'error'
@@ -313,10 +313,14 @@ export class InvariantGenerator extends ValidationBaseGenerator {
 
     private buildInvariantsImports(aggregate: Aggregate, options: ValidationGenerationOptions, invariants: any[]): string[] {
         const baseImports = this.buildValidationImports(options.projectName, aggregate.name);
+        const projectName = options?.projectName?.toLowerCase() || 'unknown';
+        const lowerAggregate = aggregate.name.toLowerCase();
+        const basePackage = 'pt.ulisboa.tecnico.socialsoftware';
         const invariantImports = [
             'import java.time.LocalDateTime;',
             'import java.util.Collection;',
-            'import java.util.regex.Pattern;'
+            'import java.util.regex.Pattern;',
+            `import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${aggregate.name};`
         ];
 
         return this.combineImports(baseImports, invariantImports);
@@ -346,31 +350,7 @@ public class {{capitalizedAggregate}}Invariants {
 }`;
     }
 
-    private getGetterMethodName(propertyName: string, capitalizedProperty: string, property?: any): string {
-        if (this.isBooleanProperty(property) || this.isBooleanPropertyName(propertyName)) {
-            return `is${capitalizedProperty}`;
-        }
+    private getGetterMethodName(_propertyName: string, capitalizedProperty: string, _property?: any): string {
         return `get${capitalizedProperty}`;
-    }
-
-    private isBooleanProperty(property: any): boolean {
-        if (!property || !property.type) return false;
-
-        const type = property.type;
-
-        if (typeof type === 'string') {
-            return type.toLowerCase() === 'boolean';
-        }
-
-        if (type.$type === 'PrimitiveType') {
-            return type.typeName?.toLowerCase() === 'boolean';
-        }
-
-        return false;
-    }
-
-    private isBooleanPropertyName(propertyName: string): boolean {
-        const booleanNames = ['completed', 'active', 'enabled', 'visible', 'valid', 'required', 'available'];
-        return booleanNames.includes(propertyName.toLowerCase());
     }
 }

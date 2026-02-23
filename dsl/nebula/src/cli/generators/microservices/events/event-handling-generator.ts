@@ -54,38 +54,32 @@ export class EventHandlingGenerator extends EventBaseGenerator {
         const basePackage = this.getEventBasePackage(options);
 
         return simpleSubscriptions.map((sub: any) => {
-            const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
+            const eventTypeName = sub.eventType || 'UnknownEvent';
 
-            
+
             const entityName = EventNameParser.extractEntityName(eventTypeName);
 
-            
+
             let sourceAggregateName = 'unknown';
 
-            
-            const publishedEvent = sub.eventType?.ref as any;
-            const eventsContainer = publishedEvent?.$container as any;
-            const sourceAggregate = eventsContainer?.$container as Aggregate | undefined;
-            if (sourceAggregate?.name) {
-                sourceAggregateName = sourceAggregate.name.toLowerCase();
-            } else if (sub.sourceAggregate) {
+            if (sub.sourceAggregate) {
                 sourceAggregateName = sub.sourceAggregate.toLowerCase();
             }
-            
+
             else if (options?.allAggregates && options.allAggregates.length > 0) {
                 const found = this.findEventPublisher(eventTypeName, options.allAggregates);
                 if (found) {
                     sourceAggregateName = found;
                 } else {
                     console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
-                    
+
                     sourceAggregateName = entityName.toLowerCase();
                 }
             }
-            
+
             else {
-                
-                
+
+
                 sourceAggregateName = entityName.toLowerCase();
             }
 

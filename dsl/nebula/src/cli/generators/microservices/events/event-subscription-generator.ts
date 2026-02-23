@@ -63,44 +63,38 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
         const basePackage = this.getEventBasePackage(options);
 
         return simpleSubscriptions.map((sub: any) => {
-            const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
+            const eventTypeName = sub.eventType || 'UnknownEvent';
 
-            
+
             let sourceAggregateName = 'unknown';
 
-            
-            const publishedEvent = sub.eventType?.ref as any;
-            const eventsContainer = publishedEvent?.$container as any;
-            const sourceAggregate = eventsContainer?.$container as Aggregate | undefined;
-            if (sourceAggregate?.name) {
-                sourceAggregateName = sourceAggregate.name.toLowerCase();
-            } else if (sub.sourceAggregate) {
+            if (sub.sourceAggregate) {
                 sourceAggregateName = sub.sourceAggregate.toLowerCase();
             }
-            
+
             else if (options?.allAggregates && options.allAggregates.length > 0) {
                 const found = this.findEventPublisher(eventTypeName, options.allAggregates);
                 if (found) {
                     sourceAggregateName = found;
                 } else {
                     console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
-                    
+
                     const entityName = EventNameParser.extractEntityName(eventTypeName);
                     sourceAggregateName = entityName.toLowerCase();
                 }
             }
-            
+
             else {
                 console.warn(chalk.yellow(`[WARN] allAggregates not available for event ${eventTypeName}`));
                 const entityName = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
                 sourceAggregateName = entityName.toLowerCase();
             }
 
-            
+
             const entityName = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
             const subscriptionClassName = `${aggregateName}Subscribes${entityName}`;
-            
-            
+
+
             const entities = getEntities(aggregate);
             const projectionEntities = entities.filter((e: any) => {
                 const aggregateRef = e.aggregateRef;
@@ -200,7 +194,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
             console.log(`DEBUG: Processing inter-invariant ${interInvariant.name} with ${subscribedEvents.length} subscriptions`);
 
             for (const sub of subscribedEvents) {
-                const eventTypeName = sub.eventType?.ref?.name || sub.eventType?.$refText || 'UnknownEvent';
+                const eventTypeName = sub.eventType || 'UnknownEvent';
                 const sourceAggregateName = sub.sourceAggregate?.toLowerCase() || this.extractSourceAggregateFromEvent(eventTypeName);
 
                 

@@ -232,16 +232,7 @@ export class EventProcessingGenerator {
             const eventTypeName = event.eventType || 'UnknownEvent';
             let sourceAggregateName = 'unknown';
 
-
-            const publishedEvent = event.eventType?.ref as any;
-            const eventsContainer = publishedEvent?.$container as any;
-            const sourceAggregate = eventsContainer?.$container as any;
-
-            if (sourceAggregate?.name) {
-                sourceAggregateName = sourceAggregate.name.toLowerCase();
-            }
-
-            else if (allAggregates && allAggregates.length > 0) {
+            if (allAggregates && allAggregates.length > 0) {
                 const found = this.findEventPublisher(eventTypeName, allAggregates);
                 if (found) {
                     sourceAggregateName = found;

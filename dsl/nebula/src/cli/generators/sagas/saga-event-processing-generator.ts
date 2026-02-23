@@ -46,7 +46,7 @@ export class SagaEventProcessingGenerator {
         
         const eventMap = new Map<string, any>();
         allSubscribedEvents.forEach((event: any) => {
-            const eventTypeName = event.eventType?.ref?.name || event.eventType?.$refText || 'UnknownEvent';
+            const eventTypeName = event.eventType || 'UnknownEvent';
             if (!eventMap.has(eventTypeName)) {
                 eventMap.set(eventTypeName, event);
             }
@@ -133,16 +133,9 @@ export class SagaEventProcessingGenerator {
 
         
         let sourceAggregateName = 'unknown';
-        const publishedEvent = subscribedEvent.eventType?.ref as any;
-        const eventsContainer = publishedEvent?.$container as any;
-        const sourceAggregate = eventsContainer?.$container as any;
-        if (sourceAggregate?.name) {
-            sourceAggregateName = sourceAggregate.name.toLowerCase();
-        } else if (subscribedEvent.sourceAggregate) {
+        if (subscribedEvent.sourceAggregate) {
             sourceAggregateName = subscribedEvent.sourceAggregate.toLowerCase();
         } else {
-            
-            
             sourceAggregateName = entityName.toLowerCase();
         }
 
