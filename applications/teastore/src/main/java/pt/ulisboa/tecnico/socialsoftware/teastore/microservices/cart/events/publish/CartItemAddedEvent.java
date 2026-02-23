@@ -12,6 +12,10 @@ public class CartItemAddedEvent extends Event {
         super();
     }
 
+    public CartItemAddedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public CartItemAddedEvent(Integer aggregateId, Long productId, Integer quantity) {
         super(aggregateId);
         setProductId(productId);

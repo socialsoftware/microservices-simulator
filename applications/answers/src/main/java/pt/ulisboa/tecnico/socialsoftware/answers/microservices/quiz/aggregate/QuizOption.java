@@ -36,7 +36,7 @@ public class QuizOption {
         setOptionContent(quizOptionDto.getContent());
         setQuestionAggregateId(quizOptionDto.getAggregateId());
         setQuestionVersion(quizOptionDto.getVersion());
-        setQuestionState(quizOptionDto.getState());
+        setQuestionState(quizOptionDto.getState() != null ? AggregateState.valueOf(quizOptionDto.getState()) : null);
     }
 
     public QuizOption(QuizOption other) {
@@ -102,7 +102,7 @@ public class QuizOption {
         dto.setContent(getOptionContent());
         dto.setAggregateId(getQuestionAggregateId());
         dto.setVersion(getQuestionVersion());
-        dto.setState(getQuestionState());
+        dto.setState(getQuestionState() != null ? getQuestionState().name() : null);
         return dto;
     }
 }

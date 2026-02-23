@@ -14,6 +14,10 @@ public class UpdateProductEvent extends Event {
         super();
     }
 
+    public UpdateProductEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public UpdateProductEvent(Integer aggregateId, String name, String description, Double listPriceInCents, String categoryName) {
         super(aggregateId);
         setName(name);

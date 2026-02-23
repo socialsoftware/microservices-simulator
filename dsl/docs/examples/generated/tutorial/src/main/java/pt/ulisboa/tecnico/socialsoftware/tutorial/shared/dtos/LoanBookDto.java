@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos;
 
 import java.io.Serializable;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.aggregate.LoanBook;
 
 public class LoanBookDto implements Serializable {
@@ -10,7 +9,7 @@ public class LoanBookDto implements Serializable {
     private String genre;
     private Integer aggregateId;
     private Integer version;
-    private AggregateState state;
+    private String state;
 
     public LoanBookDto() {
     }
@@ -21,7 +20,7 @@ public class LoanBookDto implements Serializable {
         this.genre = loanBook.getBookGenre();
         this.aggregateId = loanBook.getBookAggregateId();
         this.version = loanBook.getBookVersion();
-        this.state = loanBook.getBookState();
+        this.state = loanBook.getBookState() != null ? loanBook.getBookState().name() : null;
     }
 
     public String getTitle() {
@@ -64,11 +63,11 @@ public class LoanBookDto implements Serializable {
         this.version = version;
     }
 
-    public AggregateState getState() {
+    public String getState() {
         return state;
     }
 
-    public void setState(AggregateState state) {
+    public void setState(String state) {
         this.state = state;
     }
 }

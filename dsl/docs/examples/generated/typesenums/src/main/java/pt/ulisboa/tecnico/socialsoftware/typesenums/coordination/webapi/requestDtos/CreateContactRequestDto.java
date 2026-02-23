@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.typesenums.coordination.webapi.requestDtos;
 
 import jakarta.validation.constraints.*;
-import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.enums.ContactType;
+import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.enums.ContactCategory;
 import java.time.LocalDateTime;
 
 public class CreateContactRequestDto {
@@ -12,7 +12,7 @@ public class CreateContactRequestDto {
     @NotNull
     private String email;
     @NotNull
-    private ContactType category;
+    private ContactCategory category;
     @NotNull
     private LocalDateTime createdAt;
     @NotNull
@@ -22,7 +22,7 @@ public class CreateContactRequestDto {
 
     public CreateContactRequestDto() {}
 
-    public CreateContactRequestDto(String firstName, String lastName, String email, ContactType category, LocalDateTime createdAt, Boolean favorite, Integer callCount) {
+    public CreateContactRequestDto(String firstName, String lastName, String email, ContactCategory category, LocalDateTime createdAt, Boolean favorite, Integer callCount) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -53,11 +53,11 @@ public class CreateContactRequestDto {
     public void setEmail(String email) {
         this.email = email;
     }
-    public ContactType getCategory() {
+    public ContactCategory getCategory() {
         return category;
     }
 
-    public void setCategory(ContactType category) {
+    public void setCategory(ContactCategory category) {
         this.category = category;
     }
     public LocalDateTime getCreatedAt() {

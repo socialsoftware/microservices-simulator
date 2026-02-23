@@ -1,14 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos;
 
 import java.io.Serializable;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.aggregate.PostAuthor;
 
 public class PostAuthorDto implements Serializable {
     private String name;
     private Integer aggregateId;
     private Integer version;
-    private AggregateState state;
+    private String state;
 
     public PostAuthorDto() {
     }
@@ -17,7 +16,7 @@ public class PostAuthorDto implements Serializable {
         this.name = postAuthor.getAuthorName();
         this.aggregateId = postAuthor.getAuthorAggregateId();
         this.version = postAuthor.getAuthorVersion();
-        this.state = postAuthor.getAuthorState();
+        this.state = postAuthor.getAuthorState() != null ? postAuthor.getAuthorState().name() : null;
     }
 
     public String getName() {
@@ -44,11 +43,11 @@ public class PostAuthorDto implements Serializable {
         this.version = version;
     }
 
-    public AggregateState getState() {
+    public String getState() {
         return state;
     }
 
-    public void setState(AggregateState state) {
+    public void setState(String state) {
         this.state = state;
     }
 }

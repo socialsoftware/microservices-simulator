@@ -11,6 +11,10 @@ public class OrderUserDeletedEvent extends Event {
         super();
     }
 
+    public OrderUserDeletedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public OrderUserDeletedEvent(Integer aggregateId, Integer userAggregateId) {
         super(aggregateId);
         setUserAggregateId(userAggregateId);

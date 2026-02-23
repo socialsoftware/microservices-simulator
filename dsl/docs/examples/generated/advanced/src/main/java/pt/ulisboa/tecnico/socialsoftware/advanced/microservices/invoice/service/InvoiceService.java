@@ -55,14 +55,14 @@ public class InvoiceService {
                 InvoiceOrderDto orderDto = new InvoiceOrderDto();
                 orderDto.setAggregateId(createRequest.getOrder().getAggregateId());
                 orderDto.setVersion(createRequest.getOrder().getVersion());
-                orderDto.setState(createRequest.getOrder().getState());
+                orderDto.setState(createRequest.getOrder().getState() != null ? createRequest.getOrder().getState().name() : null);
                 invoiceDto.setOrder(orderDto);
             }
             if (createRequest.getCustomer() != null) {
                 InvoiceCustomerDto customerDto = new InvoiceCustomerDto();
                 customerDto.setAggregateId(createRequest.getCustomer().getAggregateId());
                 customerDto.setVersion(createRequest.getCustomer().getVersion());
-                customerDto.setState(createRequest.getCustomer().getState());
+                customerDto.setState(createRequest.getCustomer().getState() != null ? createRequest.getCustomer().getState().name() : null);
                 invoiceDto.setCustomer(customerDto);
             }
 

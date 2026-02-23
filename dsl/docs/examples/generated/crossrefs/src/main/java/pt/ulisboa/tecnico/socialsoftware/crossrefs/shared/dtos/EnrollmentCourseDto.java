@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos;
 
 import java.io.Serializable;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.aggregate.EnrollmentCourse;
 
 public class EnrollmentCourseDto implements Serializable {
@@ -10,7 +9,7 @@ public class EnrollmentCourseDto implements Serializable {
     private Integer maxStudents;
     private Integer aggregateId;
     private Integer version;
-    private AggregateState state;
+    private String state;
 
     public EnrollmentCourseDto() {
     }
@@ -21,7 +20,7 @@ public class EnrollmentCourseDto implements Serializable {
         this.maxStudents = enrollmentCourse.getCourseMaxStudents();
         this.aggregateId = enrollmentCourse.getCourseAggregateId();
         this.version = enrollmentCourse.getCourseVersion();
-        this.state = enrollmentCourse.getCourseState();
+        this.state = enrollmentCourse.getCourseState() != null ? enrollmentCourse.getCourseState().name() : null;
     }
 
     public String getTitle() {
@@ -64,11 +63,11 @@ public class EnrollmentCourseDto implements Serializable {
         this.version = version;
     }
 
-    public AggregateState getState() {
+    public String getState() {
         return state;
     }
 
-    public void setState(AggregateState state) {
+    public void setState(String state) {
         this.state = state;
     }
 }

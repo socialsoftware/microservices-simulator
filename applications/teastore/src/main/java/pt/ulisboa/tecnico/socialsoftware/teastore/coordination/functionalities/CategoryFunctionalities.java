@@ -53,7 +53,7 @@ public class CategoryFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, categoryService, createRequest);
                 createCategoryFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createCategoryFunctionalitySagas.getCreatedCategoryDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -67,7 +67,7 @@ public class CategoryFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, categoryService, categoryAggregateId);
                 getCategoryByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getCategoryByIdFunctionalitySagas.getCategoryDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -82,7 +82,7 @@ public class CategoryFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, categoryService, categoryDto);
                 updateCategoryFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateCategoryFunctionalitySagas.getUpdatedCategoryDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -96,7 +96,7 @@ public class CategoryFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, categoryService, categoryAggregateId);
                 deleteCategoryFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -110,7 +110,7 @@ public class CategoryFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, categoryService);
                 getAllCategorysFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getAllCategorysFunctionalitySagas.getCategorys();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

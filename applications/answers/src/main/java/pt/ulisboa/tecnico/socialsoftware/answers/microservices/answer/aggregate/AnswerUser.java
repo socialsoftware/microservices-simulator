@@ -36,7 +36,7 @@ public class AnswerUser {
         setUserAggregateId(answerUserDto.getAggregateId());
         setUserName(answerUserDto.getName());
         setUserVersion(answerUserDto.getVersion());
-        setUserState(answerUserDto.getState());
+        setUserState(answerUserDto.getState() != null ? AggregateState.valueOf(answerUserDto.getState()) : null);
     }
 
     public AnswerUser(AnswerUser other) {
@@ -102,7 +102,7 @@ public class AnswerUser {
         dto.setAggregateId(getUserAggregateId());
         dto.setName(getUserName());
         dto.setVersion(getUserVersion());
-        dto.setState(getUserState());
+        dto.setState(getUserState() != null ? getUserState().name() : null);
         return dto;
     }
 }

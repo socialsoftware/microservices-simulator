@@ -34,7 +34,7 @@ public class EnrollmentTeacher {
     public EnrollmentTeacher(EnrollmentTeacherDto enrollmentTeacherDto) {
         setTeacherAggregateId(enrollmentTeacherDto.getAggregateId());
         setTeacherVersion(enrollmentTeacherDto.getVersion());
-        setTeacherState(enrollmentTeacherDto.getState());
+        setTeacherState(enrollmentTeacherDto.getState() != null ? AggregateState.valueOf(enrollmentTeacherDto.getState()) : null);
     }
 
     public EnrollmentTeacher(EnrollmentTeacher other) {
@@ -90,7 +90,7 @@ public class EnrollmentTeacher {
         EnrollmentTeacherDto dto = new EnrollmentTeacherDto();
         dto.setAggregateId(getTeacherAggregateId());
         dto.setVersion(getTeacherVersion());
-        dto.setState(getTeacherState());
+        dto.setState(getTeacherState() != null ? getTeacherState().name() : null);
         return dto;
     }
 }

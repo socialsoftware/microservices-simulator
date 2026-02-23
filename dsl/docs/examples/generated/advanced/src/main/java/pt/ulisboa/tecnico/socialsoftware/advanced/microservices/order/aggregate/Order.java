@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
@@ -21,6 +23,9 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.sub
 
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderCustomerDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderDto;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderItemDto;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.enums.OrderStatus;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.enums.PaymentMethod;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
 
@@ -30,8 +35,14 @@ public abstract class Order extends Aggregate {
     private OrderCustomer customer;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "order")
     private Set<OrderProduct> products = new HashSet<>();
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "order")
+    private Set<OrderItem> items = new HashSet<>();
     private Double totalAmount;
     private LocalDateTime orderDate;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
     public Order() {
 
@@ -42,8 +53,11 @@ public abstract class Order extends Aggregate {
         setAggregateType(getClass().getSimpleName());
         setTotalAmount(orderDto.getTotalAmount());
         setOrderDate(orderDto.getOrderDate());
+        setStatus(OrderStatus.valueOf(orderDto.getStatus()));
+        setPaymentMethod(PaymentMethod.valueOf(orderDto.getPaymentMethod()));
         setCustomer(orderDto.getCustomer() != null ? new OrderCustomer(orderDto.getCustomer()) : null);
         setProducts(orderDto.getProducts() != null ? orderDto.getProducts().stream().map(OrderProduct::new).collect(Collectors.toSet()) : null);
+        setItems(orderDto.getItems() != null ? orderDto.getItems().stream().map(OrderItem::new).collect(Collectors.toSet()) : null);
     }
 
 
@@ -51,8 +65,11 @@ public abstract class Order extends Aggregate {
         super(other);
         setCustomer(new OrderCustomer(other.getCustomer()));
         setProducts(other.getProducts().stream().map(OrderProduct::new).collect(Collectors.toSet()));
+        setItems(other.getItems().stream().map(OrderItem::new).collect(Collectors.toSet()));
         setTotalAmount(other.getTotalAmount());
         setOrderDate(other.getOrderDate());
+        setStatus(other.getStatus());
+        setPaymentMethod(other.getPaymentMethod());
     }
 
     public OrderCustomer getCustomer() {
@@ -112,6 +129,52 @@ public abstract class Order extends Aggregate {
             .orElse(null);
     }
 
+    public Set<OrderItem> getItems() {
+        return items;
+    }
+
+    public void setItems(Set<OrderItem> items) {
+        this.items = items;
+        if (this.items != null) {
+            this.items.forEach(item -> item.setOrder(this));
+        }
+    }
+
+    public void addOrderItem(OrderItem orderItem) {
+        if (this.items == null) {
+            this.items = new HashSet<>();
+        }
+        this.items.add(orderItem);
+        if (orderItem != null) {
+            orderItem.setOrder(this);
+        }
+    }
+
+    public void removeOrderItem(String id) {
+        if (this.items != null) {
+            this.items.removeIf(item -> 
+                item.getKey() != null && item.getKey().equals(id));
+        }
+    }
+
+    public boolean containsOrderItem(String id) {
+        if (this.items == null) {
+            return false;
+        }
+        return this.items.stream().anyMatch(item -> 
+            item.getKey() != null && item.getKey().equals(id));
+    }
+
+    public OrderItem findOrderItemById(String id) {
+        if (this.items == null) {
+            return null;
+        }
+        return this.items.stream()
+            .filter(item -> item.getKey() != null && item.getKey().equals(id))
+            .findFirst()
+            .orElse(null);
+    }
+
     public Double getTotalAmount() {
         return totalAmount;
     }
@@ -126,6 +189,22 @@ public abstract class Order extends Aggregate {
 
     public void setOrderDate(LocalDateTime orderDate) {
         this.orderDate = orderDate;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
 
@@ -166,8 +245,11 @@ public abstract class Order extends Aggregate {
         dto.setState(getState());
         dto.setCustomer(getCustomer() != null ? new OrderCustomerDto(getCustomer()) : null);
         dto.setProducts(getProducts() != null ? getProducts().stream().map(OrderProduct::buildDto).collect(Collectors.toSet()) : null);
+        dto.setItems(getItems() != null ? getItems().stream().map(OrderItemDto::new).collect(Collectors.toSet()) : null);
         dto.setTotalAmount(getTotalAmount());
         dto.setOrderDate(getOrderDate());
+        dto.setStatus(getStatus() != null ? getStatus().name() : null);
+        dto.setPaymentMethod(getPaymentMethod() != null ? getPaymentMethod().name() : null);
         return dto;
     }
 }

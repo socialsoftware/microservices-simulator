@@ -40,7 +40,7 @@ public class ExecutionUser {
         setUserActive(executionUserDto.getActive());
         setUserAggregateId(executionUserDto.getAggregateId());
         setUserVersion(executionUserDto.getVersion());
-        setUserState(executionUserDto.getState());
+        setUserState(executionUserDto.getState() != null ? AggregateState.valueOf(executionUserDto.getState()) : null);
     }
 
     public ExecutionUser(ExecutionUser other) {
@@ -126,7 +126,7 @@ public class ExecutionUser {
         dto.setActive(getUserActive());
         dto.setAggregateId(getUserAggregateId());
         dto.setVersion(getUserVersion());
-        dto.setState(getUserState());
+        dto.setState(getUserState() != null ? getUserState().name() : null);
         return dto;
     }
 }

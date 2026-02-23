@@ -20,7 +20,7 @@ public class InvoiceOrder {
     @GeneratedValue
     private Long id;
     private AggregateState orderState;
-    private Set<Integer> orderProductIds = new HashSet<>();
+    private Set<String> orderItemKeys = new HashSet<>();
     private Integer orderAggregateId;
     private Integer orderVersion;
     @OneToOne
@@ -37,15 +37,15 @@ public class InvoiceOrder {
     }
 
     public InvoiceOrder(InvoiceOrderDto invoiceOrderDto) {
-        setOrderState(invoiceOrderDto.getState());
-        setOrderProductIds(invoiceOrderDto.getOrderProductIds() != null ? invoiceOrderDto.getOrderProductIds().stream().map(Integer::new).collect(Collectors.toSet()) : null);
+        setOrderState(invoiceOrderDto.getState() != null ? AggregateState.valueOf(invoiceOrderDto.getState()) : null);
+        setOrderItemKeys(invoiceOrderDto.getOrderItemKeys() != null ? invoiceOrderDto.getOrderItemKeys().stream().map(String::new).collect(Collectors.toSet()) : null);
         setOrderAggregateId(invoiceOrderDto.getAggregateId());
         setOrderVersion(invoiceOrderDto.getVersion());
     }
 
     public InvoiceOrder(InvoiceOrder other) {
         setOrderState(other.getOrderState());
-        setOrderProductIds(new HashSet<>(other.getOrderProductIds()));
+        setOrderItemKeys(new HashSet<>(other.getOrderItemKeys()));
         setOrderAggregateId(other.getOrderAggregateId());
         setOrderVersion(other.getOrderVersion());
     }
@@ -66,12 +66,12 @@ public class InvoiceOrder {
         this.orderState = orderState;
     }
 
-    public Set<Integer> getOrderProductIds() {
-        return orderProductIds;
+    public Set<String> getOrderItemKeys() {
+        return orderItemKeys;
     }
 
-    public void setOrderProductIds(Set<Integer> orderProductIds) {
-        this.orderProductIds = orderProductIds;
+    public void setOrderItemKeys(Set<String> orderItemKeys) {
+        this.orderItemKeys = orderItemKeys;
     }
 
     public Integer getOrderAggregateId() {
@@ -103,8 +103,8 @@ public class InvoiceOrder {
 
     public InvoiceOrderDto buildDto() {
         InvoiceOrderDto dto = new InvoiceOrderDto();
-        dto.setState(getOrderState());
-        dto.setOrderProductIds(getOrderProductIds());
+        dto.setState(getOrderState() != null ? getOrderState().name() : null);
+        dto.setOrderItemKeys(getOrderItemKeys());
         dto.setAggregateId(getOrderAggregateId());
         dto.setVersion(getOrderVersion());
         return dto;

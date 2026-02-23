@@ -42,7 +42,7 @@ public class AnswerQuestion {
         setCorrect(answerQuestionDto.getCorrect());
         setQuestionAggregateId(answerQuestionDto.getAggregateId());
         setQuestionVersion(answerQuestionDto.getVersion());
-        setQuestionState(answerQuestionDto.getState());
+        setQuestionState(answerQuestionDto.getState() != null ? AggregateState.valueOf(answerQuestionDto.getState()) : null);
     }
 
     public AnswerQuestion(AnswerQuestion other) {
@@ -138,7 +138,7 @@ public class AnswerQuestion {
         dto.setCorrect(getCorrect());
         dto.setAggregateId(getQuestionAggregateId());
         dto.setVersion(getQuestionVersion());
-        dto.setState(getQuestionState());
+        dto.setState(getQuestionState() != null ? getQuestionState().name() : null);
         return dto;
     }
 }

@@ -38,7 +38,7 @@ public class InvoiceCustomer {
         setCustomerEmail(invoiceCustomerDto.getEmail());
         setCustomerAggregateId(invoiceCustomerDto.getAggregateId());
         setCustomerVersion(invoiceCustomerDto.getVersion());
-        setCustomerState(invoiceCustomerDto.getState());
+        setCustomerState(invoiceCustomerDto.getState() != null ? AggregateState.valueOf(invoiceCustomerDto.getState()) : null);
     }
 
     public InvoiceCustomer(InvoiceCustomer other) {
@@ -114,7 +114,7 @@ public class InvoiceCustomer {
         dto.setEmail(getCustomerEmail());
         dto.setAggregateId(getCustomerAggregateId());
         dto.setVersion(getCustomerVersion());
-        dto.setState(getCustomerState());
+        dto.setState(getCustomerState() != null ? getCustomerState().name() : null);
         return dto;
     }
 }

@@ -40,7 +40,7 @@ public class LoanBook {
         setBookGenre(loanBookDto.getGenre());
         setBookAggregateId(loanBookDto.getAggregateId());
         setBookVersion(loanBookDto.getVersion());
-        setBookState(loanBookDto.getState());
+        setBookState(loanBookDto.getState() != null ? AggregateState.valueOf(loanBookDto.getState()) : null);
     }
 
     public LoanBook(LoanBook other) {
@@ -126,7 +126,7 @@ public class LoanBook {
         dto.setGenre(getBookGenre());
         dto.setAggregateId(getBookAggregateId());
         dto.setVersion(getBookVersion());
-        dto.setState(getBookState());
+        dto.setState(getBookState() != null ? getBookState().name() : null);
         return dto;
     }
 }

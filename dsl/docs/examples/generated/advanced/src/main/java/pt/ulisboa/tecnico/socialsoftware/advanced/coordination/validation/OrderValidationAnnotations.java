@@ -18,7 +18,10 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.regex.Pattern;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.OrderCustomer;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.OrderItem;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.OrderProduct;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.enums.OrderStatus;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.enums.PaymentMethod;
 
 public class OrderValidationAnnotations {
 
@@ -49,6 +52,20 @@ public class OrderValidationAnnotations {
         }
     }
 
+    public static class ItemsValidation {
+        @NotNull
+    @NotEmpty
+        private Set<OrderItem> items;
+        
+        public Set<OrderItem> getItems() {
+            return items;
+        }
+        
+        public void setItems(Set<OrderItem> items) {
+            this.items = items;
+        }
+    }
+
     public static class TotalAmountValidation {
         @NotNull
         private Double totalAmount;
@@ -72,6 +89,32 @@ public class OrderValidationAnnotations {
         
         public void setOrderDate(LocalDateTime orderDate) {
             this.orderDate = orderDate;
+        }
+    }
+
+    public static class StatusValidation {
+        @NotNull
+        private OrderStatus status;
+        
+        public OrderStatus getStatus() {
+            return status;
+        }
+        
+        public void setStatus(OrderStatus status) {
+            this.status = status;
+        }
+    }
+
+    public static class PaymentMethodValidation {
+        @NotNull
+        private PaymentMethod paymentMethod;
+        
+        public PaymentMethod getPaymentMethod() {
+            return paymentMethod;
+        }
+        
+        public void setPaymentMethod(PaymentMethod paymentMethod) {
+            this.paymentMethod = paymentMethod;
         }
     }
 

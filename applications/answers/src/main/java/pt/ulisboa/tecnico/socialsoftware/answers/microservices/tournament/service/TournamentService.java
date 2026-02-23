@@ -72,7 +72,7 @@ public class TournamentService {
                 TournamentCreatorDto creatorDto = new TournamentCreatorDto();
                 creatorDto.setAggregateId(createRequest.getCreator().getAggregateId());
                 creatorDto.setVersion(createRequest.getCreator().getVersion());
-                creatorDto.setState(createRequest.getCreator().getState());
+                creatorDto.setState(createRequest.getCreator().getState() != null ? createRequest.getCreator().getState().name() : null);
                 tournamentDto.setCreator(creatorDto);
             }
             if (createRequest.getParticipants() != null) {
@@ -80,7 +80,7 @@ public class TournamentService {
                     TournamentParticipantDto projDto = new TournamentParticipantDto();
                     projDto.setAggregateId(srcDto.getAggregateId());
                     projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState());
+                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
                     return projDto;
                 }).collect(Collectors.toSet()));
             }
@@ -88,7 +88,7 @@ public class TournamentService {
                 TournamentExecutionDto executionDto = new TournamentExecutionDto();
                 executionDto.setAggregateId(createRequest.getExecution().getAggregateId());
                 executionDto.setVersion(createRequest.getExecution().getVersion());
-                executionDto.setState(createRequest.getExecution().getState());
+                executionDto.setState(createRequest.getExecution().getState() != null ? createRequest.getExecution().getState().name() : null);
                 tournamentDto.setExecution(executionDto);
             }
             if (createRequest.getTopics() != null) {
@@ -96,7 +96,7 @@ public class TournamentService {
                     TournamentTopicDto projDto = new TournamentTopicDto();
                     projDto.setAggregateId(srcDto.getAggregateId());
                     projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState());
+                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
                     return projDto;
                 }).collect(Collectors.toSet()));
             }
@@ -104,7 +104,7 @@ public class TournamentService {
                 TournamentQuizDto quizDto = new TournamentQuizDto();
                 quizDto.setAggregateId(createRequest.getQuiz().getAggregateId());
                 quizDto.setVersion(createRequest.getQuiz().getVersion());
-                quizDto.setState(createRequest.getQuiz().getState());
+                quizDto.setState(createRequest.getQuiz().getState() != null ? createRequest.getQuiz().getState().name() : null);
                 tournamentDto.setQuiz(quizDto);
             }
 
@@ -366,7 +366,7 @@ public class TournamentService {
     }
 
 
-    public Tournament handleExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, UnitOfWork unitOfWork) {
+    public Tournament handleExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, String executionAcronym, UnitOfWork unitOfWork) {
         try {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
@@ -384,7 +384,7 @@ public class TournamentService {
         }
     }
 
-    public Tournament handleExecutionUserUpdatedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, String userName, String userUsername, Boolean userActive, UnitOfWork unitOfWork) {
+    public Tournament handleExecutionUserUpdatedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, UnitOfWork unitOfWork) {
         try {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
@@ -402,7 +402,7 @@ public class TournamentService {
         }
     }
 
-    public Tournament handleTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, UnitOfWork unitOfWork) {
+    public Tournament handleTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, String topicName, UnitOfWork unitOfWork) {
         try {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);

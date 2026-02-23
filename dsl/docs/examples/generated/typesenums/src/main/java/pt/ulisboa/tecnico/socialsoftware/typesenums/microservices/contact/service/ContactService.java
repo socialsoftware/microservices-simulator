@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.dtos.ContactDto;
 import java.time.LocalDateTime;
 
-import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.enums.ContactType;
+import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.enums.ContactCategory;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
@@ -105,7 +105,7 @@ public class ContactService {
                 newContact.setEmail(contactDto.getEmail());
             }
             if (contactDto.getCategory() != null) {
-                newContact.setCategory(ContactType.valueOf(contactDto.getCategory()));
+                newContact.setCategory(ContactCategory.valueOf(contactDto.getCategory()));
             }
             if (contactDto.getCreatedAt() != null) {
                 newContact.setCreatedAt(contactDto.getCreatedAt());

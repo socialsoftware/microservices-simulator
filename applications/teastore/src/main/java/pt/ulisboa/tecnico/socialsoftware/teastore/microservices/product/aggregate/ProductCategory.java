@@ -38,7 +38,7 @@ public class ProductCategory {
         setCategoryDescription(productCategoryDto.getDescription());
         setCategoryAggregateId(productCategoryDto.getAggregateId());
         setCategoryVersion(productCategoryDto.getVersion());
-        setCategoryState(productCategoryDto.getState());
+        setCategoryState(productCategoryDto.getState() != null ? AggregateState.valueOf(productCategoryDto.getState()) : null);
     }
 
     public ProductCategory(ProductCategory other) {
@@ -114,7 +114,7 @@ public class ProductCategory {
         dto.setDescription(getCategoryDescription());
         dto.setAggregateId(getCategoryAggregateId());
         dto.setVersion(getCategoryVersion());
-        dto.setState(getCategoryState());
+        dto.setState(getCategoryState() != null ? getCategoryState().name() : null);
         return dto;
     }
 }

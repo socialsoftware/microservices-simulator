@@ -52,7 +52,7 @@ public class PostService {
                 PostAuthorDto authorDto = new PostAuthorDto();
                 authorDto.setAggregateId(createRequest.getAuthor().getAggregateId());
                 authorDto.setVersion(createRequest.getAuthor().getVersion());
-                authorDto.setState(createRequest.getAuthor().getState());
+                authorDto.setState(createRequest.getAuthor().getState() != null ? createRequest.getAuthor().getState().name() : null);
                 postDto.setAuthor(authorDto);
             }
 
@@ -137,6 +137,32 @@ public class PostService {
 
 
 
+    public Post handleAuthorUpdatedEvent(Integer aggregateId, Integer authorAggregateId, Integer authorVersion, String authorName, UnitOfWork unitOfWork) {
+        try {
+            Post oldPost = (Post) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Post newPost = postFactory.createPostFromExisting(oldPost);
+
+
+
+            unitOfWorkService.registerChanged(newPost, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new PostAuthorUpdatedEvent(
+                    newPost.getAggregateId(),
+                    authorAggregateId,
+                    authorVersion,
+                    authorName
+            ),
+            unitOfWork
+        );
+
+            return newPost;
+        } catch (EventdrivenException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new EventdrivenException("Error handling AuthorUpdatedEvent post: " + e.getMessage());
+        }
+    }
 
 
 

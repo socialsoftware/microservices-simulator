@@ -34,7 +34,7 @@ public class AnswerExecution {
     public AnswerExecution(AnswerExecutionDto answerExecutionDto) {
         setExecutionAggregateId(answerExecutionDto.getAggregateId());
         setExecutionVersion(answerExecutionDto.getVersion());
-        setExecutionState(answerExecutionDto.getState());
+        setExecutionState(answerExecutionDto.getState() != null ? AggregateState.valueOf(answerExecutionDto.getState()) : null);
     }
 
     public AnswerExecution(AnswerExecution other) {
@@ -90,7 +90,7 @@ public class AnswerExecution {
         AnswerExecutionDto dto = new AnswerExecutionDto();
         dto.setAggregateId(getExecutionAggregateId());
         dto.setVersion(getExecutionVersion());
-        dto.setState(getExecutionState());
+        dto.setState(getExecutionState() != null ? getExecutionState().name() : null);
         return dto;
     }
 }

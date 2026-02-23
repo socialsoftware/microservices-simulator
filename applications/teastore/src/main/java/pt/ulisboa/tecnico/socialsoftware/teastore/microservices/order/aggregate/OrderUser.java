@@ -40,7 +40,7 @@ public class OrderUser {
         setUserEmail(orderUserDto.getEmail());
         setUserAggregateId(orderUserDto.getAggregateId());
         setUserVersion(orderUserDto.getVersion());
-        setUserState(orderUserDto.getState());
+        setUserState(orderUserDto.getState() != null ? AggregateState.valueOf(orderUserDto.getState()) : null);
     }
 
     public OrderUser(OrderUser other) {
@@ -126,7 +126,7 @@ public class OrderUser {
         dto.setEmail(getUserEmail());
         dto.setAggregateId(getUserAggregateId());
         dto.setVersion(getUserVersion());
-        dto.setState(getUserState());
+        dto.setState(getUserState() != null ? getUserState().name() : null);
         return dto;
     }
 }

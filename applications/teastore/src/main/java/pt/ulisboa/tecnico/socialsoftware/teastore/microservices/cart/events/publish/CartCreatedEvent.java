@@ -11,6 +11,10 @@ public class CartCreatedEvent extends Event {
         super();
     }
 
+    public CartCreatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public CartCreatedEvent(Integer aggregateId, Long userId) {
         super(aggregateId);
         setUserId(userId);

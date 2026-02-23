@@ -38,7 +38,7 @@ public class LoanMember {
         setMemberEmail(loanMemberDto.getEmail());
         setMemberAggregateId(loanMemberDto.getAggregateId());
         setMemberVersion(loanMemberDto.getVersion());
-        setMemberState(loanMemberDto.getState());
+        setMemberState(loanMemberDto.getState() != null ? AggregateState.valueOf(loanMemberDto.getState()) : null);
     }
 
     public LoanMember(LoanMember other) {
@@ -114,7 +114,7 @@ public class LoanMember {
         dto.setEmail(getMemberEmail());
         dto.setAggregateId(getMemberAggregateId());
         dto.setVersion(getMemberVersion());
-        dto.setState(getMemberState());
+        dto.setState(getMemberState() != null ? getMemberState().name() : null);
         return dto;
     }
 }

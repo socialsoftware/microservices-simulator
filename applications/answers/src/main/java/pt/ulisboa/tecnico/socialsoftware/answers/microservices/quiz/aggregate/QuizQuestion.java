@@ -35,7 +35,7 @@ public class QuizQuestion {
     }
 
     public QuizQuestion(QuizQuestionDto quizQuestionDto) {
-        setQuestionState(quizQuestionDto.getState());
+        setQuestionState(quizQuestionDto.getState() != null ? AggregateState.valueOf(quizQuestionDto.getState()) : null);
         setQuestionSequence(quizQuestionDto.getQuestionSequence());
         setQuestionTitle(quizQuestionDto.getTitle());
         setQuestionContent(quizQuestionDto.getContent());
@@ -121,7 +121,7 @@ public class QuizQuestion {
 
     public QuizQuestionDto buildDto() {
         QuizQuestionDto dto = new QuizQuestionDto();
-        dto.setState(getQuestionState());
+        dto.setState(getQuestionState() != null ? getQuestionState().name() : null);
         dto.setQuestionSequence(getQuestionSequence());
         dto.setTitle(getQuestionTitle());
         dto.setContent(getQuestionContent());

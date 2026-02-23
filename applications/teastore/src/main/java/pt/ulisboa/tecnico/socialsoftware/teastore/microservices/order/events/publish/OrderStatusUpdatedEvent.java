@@ -11,6 +11,10 @@ public class OrderStatusUpdatedEvent extends Event {
         super();
     }
 
+    public OrderStatusUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public OrderStatusUpdatedEvent(Integer aggregateId, String status) {
         super(aggregateId);
         setStatus(status);

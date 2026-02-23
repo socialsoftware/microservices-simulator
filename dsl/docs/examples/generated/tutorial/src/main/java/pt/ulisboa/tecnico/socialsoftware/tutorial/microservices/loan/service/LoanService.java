@@ -54,14 +54,14 @@ public class LoanService {
                 LoanMemberDto memberDto = new LoanMemberDto();
                 memberDto.setAggregateId(createRequest.getMember().getAggregateId());
                 memberDto.setVersion(createRequest.getMember().getVersion());
-                memberDto.setState(createRequest.getMember().getState());
+                memberDto.setState(createRequest.getMember().getState() != null ? createRequest.getMember().getState().name() : null);
                 loanDto.setMember(memberDto);
             }
             if (createRequest.getBook() != null) {
                 LoanBookDto bookDto = new LoanBookDto();
                 bookDto.setAggregateId(createRequest.getBook().getAggregateId());
                 bookDto.setVersion(createRequest.getBook().getVersion());
-                bookDto.setState(createRequest.getBook().getState());
+                bookDto.setState(createRequest.getBook().getState() != null ? createRequest.getBook().getState().name() : null);
                 loanDto.setBook(bookDto);
             }
 

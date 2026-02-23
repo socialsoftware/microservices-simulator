@@ -13,6 +13,10 @@ public class CartUpdatedEvent extends Event {
         super();
     }
 
+    public CartUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public CartUpdatedEvent(Integer aggregateId, Long userId, Boolean checkedOut, Double totalPrice) {
         super(aggregateId);
         setUserId(userId);

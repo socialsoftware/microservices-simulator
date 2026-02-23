@@ -1,5 +1,5 @@
 SharedEnums {
-    enum ContactType { PERSONAL, WORK, FAMILY }
+    enum ContactCategory { PERSONAL, WORK, FAMILY }
 }
 
 Aggregate Contact {
@@ -9,7 +9,7 @@ Aggregate Contact {
         String firstName
         String lastName
         String email
-        ContactType category
+        ContactCategory category
         LocalDateTime createdAt
         Boolean favorite = false
         Integer callCount = 0

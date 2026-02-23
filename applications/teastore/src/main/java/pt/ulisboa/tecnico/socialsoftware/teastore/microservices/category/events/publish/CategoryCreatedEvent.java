@@ -12,6 +12,10 @@ public class CategoryCreatedEvent extends Event {
         super();
     }
 
+    public CategoryCreatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public CategoryCreatedEvent(Integer aggregateId, String name, String description) {
         super(aggregateId);
         setName(name);

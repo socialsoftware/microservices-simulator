@@ -40,7 +40,7 @@ public class AnswerQuiz {
         setQuizAggregateId(answerQuizDto.getAggregateId());
         setQuizVersion(answerQuizDto.getVersion());
         setQuizQuestionsAggregateIds(answerQuizDto.getQuizQuestionsAggregateIds() != null ? answerQuizDto.getQuizQuestionsAggregateIds().stream().map(Integer::new).collect(Collectors.toSet()) : null);
-        setQuizState(answerQuizDto.getState());
+        setQuizState(answerQuizDto.getState() != null ? AggregateState.valueOf(answerQuizDto.getState()) : null);
     }
 
     public AnswerQuiz(AnswerQuiz other) {
@@ -106,7 +106,7 @@ public class AnswerQuiz {
         dto.setAggregateId(getQuizAggregateId());
         dto.setVersion(getQuizVersion());
         dto.setQuizQuestionsAggregateIds(getQuizQuestionsAggregateIds());
-        dto.setState(getQuizState());
+        dto.setState(getQuizState() != null ? getQuizState().name() : null);
         return dto;
     }
 }

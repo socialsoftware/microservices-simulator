@@ -12,8 +12,11 @@ import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderCustomerDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderProductDto;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderItemDto;
 import java.time.LocalDateTime;
 
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.enums.OrderStatus;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.enums.PaymentMethod;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
@@ -26,6 +29,8 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.pub
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderProductUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderProductRemovedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderProductUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderItemRemovedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderItemUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.exception.AdvancedException;
 import pt.ulisboa.tecnico.socialsoftware.advanced.coordination.webapi.requestDtos.CreateOrderRequestDto;
 
@@ -52,11 +57,13 @@ public class OrderService {
             OrderDto orderDto = new OrderDto();
             orderDto.setTotalAmount(createRequest.getTotalAmount());
             orderDto.setOrderDate(createRequest.getOrderDate());
+            orderDto.setStatus(createRequest.getStatus() != null ? createRequest.getStatus().name() : null);
+            orderDto.setPaymentMethod(createRequest.getPaymentMethod() != null ? createRequest.getPaymentMethod().name() : null);
             if (createRequest.getCustomer() != null) {
                 OrderCustomerDto customerDto = new OrderCustomerDto();
                 customerDto.setAggregateId(createRequest.getCustomer().getAggregateId());
                 customerDto.setVersion(createRequest.getCustomer().getVersion());
-                customerDto.setState(createRequest.getCustomer().getState());
+                customerDto.setState(createRequest.getCustomer().getState() != null ? createRequest.getCustomer().getState().name() : null);
                 orderDto.setCustomer(customerDto);
             }
             if (createRequest.getProducts() != null) {
@@ -64,10 +71,11 @@ public class OrderService {
                     OrderProductDto projDto = new OrderProductDto();
                     projDto.setAggregateId(srcDto.getAggregateId());
                     projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState());
+                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
                     return projDto;
                 }).collect(Collectors.toSet()));
             }
+            orderDto.setItems(createRequest.getItems());
 
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
             Order order = orderFactory.createOrder(aggregateId, orderDto);
@@ -118,6 +126,12 @@ public class OrderService {
             }
             if (orderDto.getOrderDate() != null) {
                 newOrder.setOrderDate(orderDto.getOrderDate());
+            }
+            if (orderDto.getStatus() != null) {
+                newOrder.setStatus(OrderStatus.valueOf(orderDto.getStatus()));
+            }
+            if (orderDto.getPaymentMethod() != null) {
+                newOrder.setPaymentMethod(PaymentMethod.valueOf(orderDto.getPaymentMethod()));
             }
 
             unitOfWorkService.registerChanged(newOrder, unitOfWork);            OrderUpdatedEvent event = new OrderUpdatedEvent(newOrder.getAggregateId(), newOrder.getTotalAmount(), newOrder.getOrderDate());
@@ -230,6 +244,103 @@ public class OrderService {
             throw e;
         } catch (Exception e) {
             throw new AdvancedException("Error updating OrderProduct: " + e.getMessage());
+        }
+    }
+
+    public OrderItemDto addOrderItem(Integer orderId, Integer key, OrderItemDto OrderItemDto, UnitOfWork unitOfWork) {
+        try {
+            Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(orderId, unitOfWork);
+            Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
+            OrderItem element = new OrderItem(OrderItemDto);
+            newOrder.getItems().add(element);
+            unitOfWorkService.registerChanged(newOrder, unitOfWork);
+            return OrderItemDto;
+        } catch (AdvancedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AdvancedException("Error adding OrderItem: " + e.getMessage());
+        }
+    }
+
+    public List<OrderItemDto> addOrderItems(Integer orderId, List<OrderItemDto> OrderItemDtos, UnitOfWork unitOfWork) {
+        try {
+            Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(orderId, unitOfWork);
+            Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
+            OrderItemDtos.forEach(dto -> {
+                OrderItem element = new OrderItem(dto);
+                newOrder.getItems().add(element);
+            });
+            unitOfWorkService.registerChanged(newOrder, unitOfWork);
+            return OrderItemDtos;
+        } catch (AdvancedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AdvancedException("Error adding OrderItems: " + e.getMessage());
+        }
+    }
+
+    public OrderItemDto getOrderItem(Integer orderId, Integer key, UnitOfWork unitOfWork) {
+        try {
+            Order order = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(orderId, unitOfWork);
+            OrderItem element = order.getItems().stream()
+                .filter(item -> item.getKey() != null &&
+                               item.getKey().equals(key))
+                .findFirst()
+                .orElseThrow(() -> new AdvancedException("OrderItem not found"));
+            return element.buildDto();
+        } catch (AdvancedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AdvancedException("Error retrieving OrderItem: " + e.getMessage());
+        }
+    }
+
+    public void removeOrderItem(Integer orderId, Integer key, UnitOfWork unitOfWork) {
+        try {
+            Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(orderId, unitOfWork);
+            Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
+            newOrder.getItems().removeIf(item ->
+                item.getKey() != null &&
+                item.getKey().equals(key)
+            );
+            unitOfWorkService.registerChanged(newOrder, unitOfWork);
+            OrderItemRemovedEvent event = new OrderItemRemovedEvent(orderId, key);
+            event.setPublisherAggregateVersion(newOrder.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
+        } catch (AdvancedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AdvancedException("Error removing OrderItem: " + e.getMessage());
+        }
+    }
+
+    public OrderItemDto updateOrderItem(Integer orderId, Integer key, OrderItemDto OrderItemDto, UnitOfWork unitOfWork) {
+        try {
+            Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(orderId, unitOfWork);
+            Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
+            OrderItem element = newOrder.getItems().stream()
+                .filter(item -> item.getKey() != null &&
+                               item.getKey().equals(key))
+                .findFirst()
+                .orElseThrow(() -> new AdvancedException("OrderItem not found"));
+            if (OrderItemDto.getProductName() != null) {
+                element.setProductName(OrderItemDto.getProductName());
+            }
+            if (OrderItemDto.getQuantity() != null) {
+                element.setQuantity(OrderItemDto.getQuantity());
+            }
+            if (OrderItemDto.getUnitPrice() != null) {
+                element.setUnitPrice(OrderItemDto.getUnitPrice());
+            }
+            unitOfWorkService.registerChanged(newOrder, unitOfWork);
+            OrderItemUpdatedEvent event = new OrderItemUpdatedEvent(orderId, key);
+            event.setPublisherAggregateVersion(newOrder.getVersion());
+            unitOfWorkService.registerEvent(event, unitOfWork);
+            return element.buildDto();
+        } catch (AdvancedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AdvancedException("Error updating OrderItem: " + e.getMessage());
         }
     }
 

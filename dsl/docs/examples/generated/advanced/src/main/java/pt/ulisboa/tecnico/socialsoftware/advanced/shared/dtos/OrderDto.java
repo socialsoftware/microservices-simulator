@@ -14,8 +14,11 @@ public class OrderDto implements Serializable {
     private AggregateState state;
     private OrderCustomerDto customer;
     private Set<OrderProductDto> products;
+    private Set<OrderItemDto> items;
     private Double totalAmount;
     private LocalDateTime orderDate;
+    private String status;
+    private String paymentMethod;
 
     public OrderDto() {
     }
@@ -26,8 +29,11 @@ public class OrderDto implements Serializable {
         this.state = order.getState();
         this.customer = order.getCustomer() != null ? new OrderCustomerDto(order.getCustomer()) : null;
         this.products = order.getProducts() != null ? order.getProducts().stream().map(OrderProduct::buildDto).collect(Collectors.toSet()) : null;
+        this.items = order.getItems() != null ? order.getItems().stream().map(OrderItemDto::new).collect(Collectors.toSet()) : null;
         this.totalAmount = order.getTotalAmount();
         this.orderDate = order.getOrderDate();
+        this.status = order.getStatus() != null ? order.getStatus().name() : null;
+        this.paymentMethod = order.getPaymentMethod() != null ? order.getPaymentMethod().name() : null;
     }
 
     public Integer getAggregateId() {
@@ -70,6 +76,14 @@ public class OrderDto implements Serializable {
         this.products = products;
     }
 
+    public Set<OrderItemDto> getItems() {
+        return items;
+    }
+
+    public void setItems(Set<OrderItemDto> items) {
+        this.items = items;
+    }
+
     public Double getTotalAmount() {
         return totalAmount;
     }
@@ -84,5 +98,21 @@ public class OrderDto implements Serializable {
 
     public void setOrderDate(LocalDateTime orderDate) {
         this.orderDate = orderDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 }

@@ -18,6 +18,10 @@ public class OrderUpdatedEvent extends Event {
         super();
     }
 
+    public OrderUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public OrderUpdatedEvent(Integer aggregateId, String time, Double totalPriceInCents, String addressName, String address1, String address2, String creditCardCompany, String creditCardNumber, String creditCardExpiryDate) {
         super(aggregateId);
         setTime(time);

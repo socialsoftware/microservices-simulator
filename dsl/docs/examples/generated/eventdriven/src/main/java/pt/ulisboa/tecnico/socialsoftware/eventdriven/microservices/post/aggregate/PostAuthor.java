@@ -36,7 +36,7 @@ public class PostAuthor {
         setAuthorName(postAuthorDto.getName());
         setAuthorAggregateId(postAuthorDto.getAggregateId());
         setAuthorVersion(postAuthorDto.getVersion());
-        setAuthorState(postAuthorDto.getState());
+        setAuthorState(postAuthorDto.getState() != null ? AggregateState.valueOf(postAuthorDto.getState()) : null);
     }
 
     public PostAuthor(PostAuthor other) {
@@ -102,7 +102,7 @@ public class PostAuthor {
         dto.setName(getAuthorName());
         dto.setAggregateId(getAuthorAggregateId());
         dto.setVersion(getAuthorVersion());
-        dto.setState(getAuthorState());
+        dto.setState(getAuthorState() != null ? getAuthorState().name() : null);
         return dto;
     }
 }

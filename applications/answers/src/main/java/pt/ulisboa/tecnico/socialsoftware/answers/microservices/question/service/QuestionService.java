@@ -60,7 +60,7 @@ public class QuestionService {
                 QuestionCourseDto courseDto = new QuestionCourseDto();
                 courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
                 courseDto.setVersion(createRequest.getCourse().getVersion());
-                courseDto.setState(createRequest.getCourse().getState());
+                courseDto.setState(createRequest.getCourse().getState() != null ? createRequest.getCourse().getState().name() : null);
                 questionDto.setCourse(courseDto);
             }
             if (createRequest.getTopics() != null) {
@@ -68,7 +68,7 @@ public class QuestionService {
                     QuestionTopicDto projDto = new QuestionTopicDto();
                     projDto.setAggregateId(srcDto.getAggregateId());
                     projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState());
+                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
                     return projDto;
                 }).collect(Collectors.toSet()));
             }
@@ -339,7 +339,7 @@ public class QuestionService {
     }
 
 
-    public Question handleTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, UnitOfWork unitOfWork) {
+    public Question handleTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, String topicName, UnitOfWork unitOfWork) {
         try {
             Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);

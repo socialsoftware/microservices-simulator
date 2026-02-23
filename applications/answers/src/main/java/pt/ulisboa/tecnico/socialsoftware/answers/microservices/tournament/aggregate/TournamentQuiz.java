@@ -34,7 +34,7 @@ public class TournamentQuiz {
     public TournamentQuiz(TournamentQuizDto tournamentQuizDto) {
         setQuizAggregateId(tournamentQuizDto.getAggregateId());
         setQuizVersion(tournamentQuizDto.getVersion());
-        setQuizState(tournamentQuizDto.getState());
+        setQuizState(tournamentQuizDto.getState() != null ? AggregateState.valueOf(tournamentQuizDto.getState()) : null);
     }
 
     public TournamentQuiz(TournamentQuiz other) {
@@ -90,7 +90,7 @@ public class TournamentQuiz {
         TournamentQuizDto dto = new TournamentQuizDto();
         dto.setAggregateId(getQuizAggregateId());
         dto.setVersion(getQuizVersion());
-        dto.setState(getQuizState());
+        dto.setState(getQuizState() != null ? getQuizState().name() : null);
         return dto;
     }
 }

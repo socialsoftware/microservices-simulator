@@ -16,7 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.regex.Pattern;
-import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.enums.ContactType;
+import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.enums.ContactCategory;
 
 public class ContactValidationAnnotations {
 
@@ -65,13 +65,13 @@ public class ContactValidationAnnotations {
 
     public static class CategoryValidation {
         @NotNull
-        private ContactType category;
+        private ContactCategory category;
         
-        public ContactType getCategory() {
+        public ContactCategory getCategory() {
             return category;
         }
         
-        public void setCategory(ContactType category) {
+        public void setCategory(ContactCategory category) {
             this.category = category;
         }
     }

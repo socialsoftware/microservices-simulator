@@ -321,6 +321,11 @@ export function generateEntityDtoConstructor(entity: Entity, projectName: string
             continue;
         }
 
+        if (javaType === 'AggregateState' && field.javaType === 'String') {
+            setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? AggregateState.valueOf(${dtoParamName}.get${dtoGetterName}()) : null);`);
+            continue;
+        }
+
         if (!isRootEntity && isEntityRelationship && field.referencedEntityName) {
             setterCalls.push(`        set${capitalizedName}(${dtoParamName}.get${dtoGetterName}() != null ? new ${field.referencedEntityName}(${dtoParamName}.get${dtoGetterName}()) : null);`);
             continue;

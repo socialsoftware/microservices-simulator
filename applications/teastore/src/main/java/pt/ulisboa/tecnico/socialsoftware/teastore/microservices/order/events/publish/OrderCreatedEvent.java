@@ -13,6 +13,10 @@ public class OrderCreatedEvent extends Event {
         super();
     }
 
+    public OrderCreatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public OrderCreatedEvent(Integer aggregateId, Integer userAggregateId, Double totalPriceInCents, String time) {
         super(aggregateId);
         setUserAggregateId(userAggregateId);

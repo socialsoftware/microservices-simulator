@@ -5,6 +5,7 @@ import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../common/g
 import { getEntities, getEffectiveFieldMappings, dtoFieldToString } from '../../utils/aggregate-helpers.js';
 import { StringUtils } from '../../utils/string-utils.js';
 import { EventNameParser } from '../common/utils/event-name-parser.js';
+import { UnifiedTypeResolver as TypeResolver } from '../common/unified-type-resolver.js';
 
 export class EventProcessingGenerator {
     private capabilities: GeneratorCapabilities;
@@ -382,25 +383,21 @@ public class {{aggregateName}}EventProcessing {
                 for (const mapping of fieldMappings) {
                     let dtoField = dtoFieldToString(mapping.dtoField);
 
-
-
                     const lowerDtoField = dtoField.toLowerCase();
                     if (lowerDtoField.endsWith('aggregateid') || lowerDtoField.endsWith('version') || lowerDtoField.endsWith('state')) {
                         continue;
                     }
 
-
-
-
-                    if (!fieldPrefix) {
-
-                        const lowerPublisher = publisherAggregateName.toLowerCase();
-                        if (dtoField.startsWith(lowerPublisher)) {
-                            dtoField = dtoField.substring(lowerPublisher.length);
-
-                            dtoField = dtoField.charAt(0).toLowerCase() + dtoField.substring(1);
+                    if (mapping.type) {
+                        const javaType = TypeResolver.resolveJavaType(mapping.type);
+                        if (javaType === 'Object' || !javaType) {
+                            continue;
                         }
+                    } else {
+                        continue;
                     }
+
+
 
 
                     const fieldName = fieldPrefix ? fieldPrefix + StringUtils.capitalize(dtoField) : dtoField;

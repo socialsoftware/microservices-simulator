@@ -40,7 +40,7 @@ public class EnrollmentCourse {
         setCourseMaxStudents(enrollmentCourseDto.getMaxStudents());
         setCourseAggregateId(enrollmentCourseDto.getAggregateId());
         setCourseVersion(enrollmentCourseDto.getVersion());
-        setCourseState(enrollmentCourseDto.getState());
+        setCourseState(enrollmentCourseDto.getState() != null ? AggregateState.valueOf(enrollmentCourseDto.getState()) : null);
     }
 
     public EnrollmentCourse(EnrollmentCourse other) {
@@ -126,7 +126,7 @@ public class EnrollmentCourse {
         dto.setMaxStudents(getCourseMaxStudents());
         dto.setAggregateId(getCourseAggregateId());
         dto.setVersion(getCourseVersion());
-        dto.setState(getCourseState());
+        dto.setState(getCourseState() != null ? getCourseState().name() : null);
         return dto;
     }
 }

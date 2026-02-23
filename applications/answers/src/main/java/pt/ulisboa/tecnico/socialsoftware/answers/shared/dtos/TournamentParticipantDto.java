@@ -2,13 +2,12 @@ package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipant;
 
 public class TournamentParticipantDto implements Serializable {
     private Integer aggregateId;
     private Integer version;
-    private AggregateState state;
+    private String state;
     private LocalDateTime participantEnrollTime;
     private TournamentParticipantQuizDto participantQuiz;
 
@@ -18,7 +17,7 @@ public class TournamentParticipantDto implements Serializable {
     public TournamentParticipantDto(TournamentParticipant tournamentParticipant) {
         this.aggregateId = tournamentParticipant.getParticipantAggregateId();
         this.version = tournamentParticipant.getParticipantVersion();
-        this.state = tournamentParticipant.getParticipantState();
+        this.state = tournamentParticipant.getParticipantState() != null ? tournamentParticipant.getParticipantState().name() : null;
         this.participantEnrollTime = tournamentParticipant.getParticipantEnrollTime();
         this.participantQuiz = tournamentParticipant.getParticipantQuiz() != null ? new TournamentParticipantQuizDto(tournamentParticipant.getParticipantQuiz()) : null;
     }
@@ -39,11 +38,11 @@ public class TournamentParticipantDto implements Serializable {
         this.version = version;
     }
 
-    public AggregateState getState() {
+    public String getState() {
         return state;
     }
 
-    public void setState(AggregateState state) {
+    public void setState(String state) {
         this.state = state;
     }
 

@@ -53,7 +53,7 @@ public class CartFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, cartService, createRequest);
                 createCartFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createCartFunctionalitySagas.getCreatedCartDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -67,7 +67,7 @@ public class CartFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, cartService, cartAggregateId);
                 getCartByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getCartByIdFunctionalitySagas.getCartDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -82,7 +82,7 @@ public class CartFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, cartService, cartDto);
                 updateCartFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateCartFunctionalitySagas.getUpdatedCartDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -96,7 +96,7 @@ public class CartFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, cartService, cartAggregateId);
                 deleteCartFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -110,7 +110,7 @@ public class CartFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, cartService);
                 getAllCartsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getAllCartsFunctionalitySagas.getCarts();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

@@ -16,6 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.events.subscribe.PostSubscribesAuthorDeleted;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.events.subscribe.PostSubscribesAuthorDeletedAuthorExists;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.events.subscribe.PostSubscribesAuthorUpdated;
 
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos.PostAuthorDto;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos.PostDto;
@@ -93,6 +94,7 @@ public abstract class Post extends Aggregate {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (this.getState() == AggregateState.ACTIVE) {
             interInvariantAuthorExists(eventSubscriptions);
+            eventSubscriptions.add(new PostSubscribesAuthorUpdated());
             eventSubscriptions.add(new PostSubscribesAuthorDeleted(this));
         }
         return eventSubscriptions;

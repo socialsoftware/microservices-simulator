@@ -11,11 +11,21 @@ Aggregate Order {
         map price as productPrice
     }
 
+    Dto Entity OrderItem {
+        String key
+        String productName
+        Integer quantity
+        Double unitPrice
+    }
+
     Root Entity Order {
         OrderCustomer customer
         Set<OrderProduct> products
+        Set<OrderItem> items
         Double totalAmount
         LocalDateTime orderDate
+        OrderStatus status
+        PaymentMethod paymentMethod
 
         invariants {
             check customerNotNull { customer != null } error "Order must have a customer"

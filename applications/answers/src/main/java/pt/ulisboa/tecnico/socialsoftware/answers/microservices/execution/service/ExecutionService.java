@@ -57,7 +57,7 @@ public class ExecutionService {
                 ExecutionCourseDto courseDto = new ExecutionCourseDto();
                 courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
                 courseDto.setVersion(createRequest.getCourse().getVersion());
-                courseDto.setState(createRequest.getCourse().getState());
+                courseDto.setState(createRequest.getCourse().getState() != null ? createRequest.getCourse().getState().name() : null);
                 executionDto.setCourse(courseDto);
             }
             if (createRequest.getUsers() != null) {
@@ -65,7 +65,7 @@ public class ExecutionService {
                     ExecutionUserDto projDto = new ExecutionUserDto();
                     projDto.setAggregateId(srcDto.getAggregateId());
                     projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState());
+                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
                     return projDto;
                 }).collect(Collectors.toSet()));
             }

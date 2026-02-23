@@ -50,7 +50,7 @@ public class CourseService {
                 CourseTeacherDto teacherDto = new CourseTeacherDto();
                 teacherDto.setAggregateId(createRequest.getTeacher().getAggregateId());
                 teacherDto.setVersion(createRequest.getTeacher().getVersion());
-                teacherDto.setState(createRequest.getTeacher().getState());
+                teacherDto.setState(createRequest.getTeacher().getState() != null ? createRequest.getTeacher().getState().name() : null);
                 courseDto.setTeacher(teacherDto);
             }
 

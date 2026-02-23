@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
 import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.dtos.ContactDto;
-import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.enums.ContactType;
+import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.enums.ContactCategory;
 
 @Entity
 public abstract class Contact extends Aggregate {
@@ -21,7 +21,7 @@ public abstract class Contact extends Aggregate {
     private String lastName;
     private String email;
     @Enumerated(EnumType.STRING)
-    private ContactType category;
+    private ContactCategory category;
     private LocalDateTime createdAt;
     private Boolean favorite;
     private Integer callCount;
@@ -36,7 +36,7 @@ public abstract class Contact extends Aggregate {
         setFirstName(contactDto.getFirstName());
         setLastName(contactDto.getLastName());
         setEmail(contactDto.getEmail());
-        setCategory(ContactType.valueOf(contactDto.getCategory()));
+        setCategory(ContactCategory.valueOf(contactDto.getCategory()));
         setCreatedAt(contactDto.getCreatedAt());
         setFavorite(contactDto.getFavorite());
         setCallCount(contactDto.getCallCount());
@@ -78,11 +78,11 @@ public abstract class Contact extends Aggregate {
         this.email = email;
     }
 
-    public ContactType getCategory() {
+    public ContactCategory getCategory() {
         return category;
     }
 
-    public void setCategory(ContactType category) {
+    public void setCategory(ContactCategory category) {
         this.category = category;
     }
 

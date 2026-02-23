@@ -53,7 +53,7 @@ public class ProductFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, productService, createRequest);
                 createProductFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createProductFunctionalitySagas.getCreatedProductDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -67,7 +67,7 @@ public class ProductFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, productService, productAggregateId);
                 getProductByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getProductByIdFunctionalitySagas.getProductDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -82,7 +82,7 @@ public class ProductFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, productService, productDto);
                 updateProductFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateProductFunctionalitySagas.getUpdatedProductDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -96,7 +96,7 @@ public class ProductFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, productService, productAggregateId);
                 deleteProductFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -110,7 +110,7 @@ public class ProductFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, productService);
                 getAllProductsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getAllProductsFunctionalitySagas.getProducts();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

@@ -50,6 +50,24 @@ public class OrderInvariants {
     }
 
     /**
+     * Items cannot be null
+     */
+    public static void invariantItemsNotNull(Order entity) {
+        if (entity.getItems() == null) {
+            throw new IllegalStateException("Items cannot be null");
+        }
+    }
+
+    /**
+     * Items cannot be empty
+     */
+    public static void invariantItemsNotEmpty(Order entity) {
+        if (entity.getItems() == null || ((java.util.Collection) entity.getItems()).isEmpty()) {
+            throw new IllegalStateException("Items cannot be empty");
+        }
+    }
+
+    /**
      * TotalAmount cannot be null
      */
     public static void invariantTotalAmountNotNull(Order entity) {
@@ -64,6 +82,24 @@ public class OrderInvariants {
     public static void invariantOrderDateNotNull(Order entity) {
         if (entity.getOrderDate() == null) {
             throw new IllegalStateException("OrderDate cannot be null");
+        }
+    }
+
+    /**
+     * Status cannot be null
+     */
+    public static void invariantStatusNotNull(Order entity) {
+        if (entity.getStatus() == null) {
+            throw new IllegalStateException("Status cannot be null");
+        }
+    }
+
+    /**
+     * PaymentMethod cannot be null
+     */
+    public static void invariantPaymentMethodNotNull(Order entity) {
+        if (entity.getPaymentMethod() == null) {
+            throw new IllegalStateException("PaymentMethod cannot be null");
         }
     }
 

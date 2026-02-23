@@ -11,6 +11,10 @@ public class CartItemRemovedEvent extends Event {
         super();
     }
 
+    public CartItemRemovedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public CartItemRemovedEvent(Integer aggregateId, Long productId) {
         super(aggregateId);
         setProductId(productId);

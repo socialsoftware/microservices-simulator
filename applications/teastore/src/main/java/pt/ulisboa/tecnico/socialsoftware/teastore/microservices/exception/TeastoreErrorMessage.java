@@ -3,6 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception;
 public final class TeastoreErrorMessage {
     private TeastoreErrorMessage() {}
 
+    public static final String UNDEFINED_TRANSACTIONAL_MODEL = "Undefined transactional model";
+
     public static final String CATEGORY_MISSING_NAME = "Category requires a name.";
 
     public static final String CATEGORY_MISSING_DESCRIPTION = "Category requires a description.";

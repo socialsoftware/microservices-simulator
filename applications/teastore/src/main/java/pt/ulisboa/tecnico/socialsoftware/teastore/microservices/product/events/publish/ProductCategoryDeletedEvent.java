@@ -11,6 +11,10 @@ public class ProductCategoryDeletedEvent extends Event {
         super();
     }
 
+    public ProductCategoryDeletedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public ProductCategoryDeletedEvent(Integer aggregateId, Integer categoryAggregateId) {
         super(aggregateId);
         setCategoryAggregateId(categoryAggregateId);

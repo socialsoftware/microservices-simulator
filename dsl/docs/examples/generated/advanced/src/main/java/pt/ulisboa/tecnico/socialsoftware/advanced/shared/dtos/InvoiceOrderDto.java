@@ -2,12 +2,11 @@ package pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos;
 
 import java.io.Serializable;
 import java.util.Set;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregate.InvoiceOrder;
 
 public class InvoiceOrderDto implements Serializable {
-    private AggregateState state;
-    private Set<Integer> orderProductIds;
+    private String state;
+    private Set<String> orderItemKeys;
     private Integer aggregateId;
     private Integer version;
 
@@ -15,26 +14,26 @@ public class InvoiceOrderDto implements Serializable {
     }
 
     public InvoiceOrderDto(InvoiceOrder invoiceOrder) {
-        this.state = invoiceOrder.getOrderState();
-        this.orderProductIds = invoiceOrder.getOrderProductIds();
+        this.state = invoiceOrder.getOrderState() != null ? invoiceOrder.getOrderState().name() : null;
+        this.orderItemKeys = invoiceOrder.getOrderItemKeys();
         this.aggregateId = invoiceOrder.getOrderAggregateId();
         this.version = invoiceOrder.getOrderVersion();
     }
 
-    public AggregateState getState() {
+    public String getState() {
         return state;
     }
 
-    public void setState(AggregateState state) {
+    public void setState(String state) {
         this.state = state;
     }
 
-    public Set<Integer> getOrderProductIds() {
-        return orderProductIds;
+    public Set<String> getOrderItemKeys() {
+        return orderItemKeys;
     }
 
-    public void setOrderProductIds(Set<Integer> orderProductIds) {
-        this.orderProductIds = orderProductIds;
+    public void setOrderItemKeys(Set<String> orderItemKeys) {
+        this.orderItemKeys = orderItemKeys;
     }
 
     public Integer getAggregateId() {

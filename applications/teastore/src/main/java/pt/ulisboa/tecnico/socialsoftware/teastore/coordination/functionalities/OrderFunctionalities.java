@@ -53,7 +53,7 @@ public class OrderFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, orderService, createRequest);
                 createOrderFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createOrderFunctionalitySagas.getCreatedOrderDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -67,7 +67,7 @@ public class OrderFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, orderService, orderAggregateId);
                 getOrderByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getOrderByIdFunctionalitySagas.getOrderDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -82,7 +82,7 @@ public class OrderFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, orderService, orderDto);
                 updateOrderFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateOrderFunctionalitySagas.getUpdatedOrderDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -96,7 +96,7 @@ public class OrderFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, orderService, orderAggregateId);
                 deleteOrderFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -110,7 +110,7 @@ public class OrderFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, orderService);
                 getAllOrdersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getAllOrdersFunctionalitySagas.getOrders();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

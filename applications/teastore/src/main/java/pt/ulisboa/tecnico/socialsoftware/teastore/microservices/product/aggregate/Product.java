@@ -3,9 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggrega
 import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
-import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
@@ -15,14 +13,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.subscribe.ProductSubscribesCategoryDeletedProductCategoryExists;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.subscribe.ProductSubscribesCategoryUpdated;
 
-import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.ProductCategoryDto;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.ProductDto;
+import pt.ulisboa.tecnico.socialsoftware.teastore.shared.enums.ProductCategory;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
 
 @Entity
 public abstract class Product extends Aggregate {
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "product")
     private ProductCategory productCategory;
     private String name;
     private String description;
@@ -35,16 +32,16 @@ public abstract class Product extends Aggregate {
     public Product(Integer aggregateId, ProductDto productDto) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
+        setProductCategory(ProductCategory.valueOf(productDto.getProductCategory()));
         setName(productDto.getName());
         setDescription(productDto.getDescription());
         setListPriceInCents(productDto.getListPriceInCents());
-        setProductCategory(productDto.getProductCategory() != null ? new ProductCategory(productDto.getProductCategory()) : null);
     }
 
 
     public Product(Product other) {
         super(other);
-        setProductCategory(new ProductCategory(other.getProductCategory()));
+        setProductCategory(other.getProductCategory());
         setName(other.getName());
         setDescription(other.getDescription());
         setListPriceInCents(other.getListPriceInCents());
@@ -56,9 +53,6 @@ public abstract class Product extends Aggregate {
 
     public void setProductCategory(ProductCategory productCategory) {
         this.productCategory = productCategory;
-        if (this.productCategory != null) {
-            this.productCategory.setProduct(this);
-        }
     }
 
     public String getName() {
@@ -122,7 +116,7 @@ public abstract class Product extends Aggregate {
         dto.setAggregateId(getAggregateId());
         dto.setVersion(getVersion());
         dto.setState(getState());
-        dto.setProductCategory(getProductCategory() != null ? new ProductCategoryDto(getProductCategory()) : null);
+        dto.setProductCategory(getProductCategory() != null ? getProductCategory().name() : null);
         dto.setName(getName());
         dto.setDescription(getDescription());
         dto.setListPriceInCents(getListPriceInCents());

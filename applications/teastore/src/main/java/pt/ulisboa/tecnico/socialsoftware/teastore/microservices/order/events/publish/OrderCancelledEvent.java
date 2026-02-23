@@ -11,6 +11,10 @@ public class OrderCancelledEvent extends Event {
         super();
     }
 
+    public OrderCancelledEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public OrderCancelledEvent(Integer aggregateId, Integer userAggregateId) {
         super(aggregateId);
         setUserAggregateId(userAggregateId);

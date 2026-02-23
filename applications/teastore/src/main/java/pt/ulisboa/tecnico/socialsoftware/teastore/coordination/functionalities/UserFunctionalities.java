@@ -53,7 +53,7 @@ public class UserFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, userService, createRequest);
                 createUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return createUserFunctionalitySagas.getCreatedUserDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -67,7 +67,7 @@ public class UserFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, userService, userAggregateId);
                 getUserByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getUserByIdFunctionalitySagas.getUserDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -82,7 +82,7 @@ public class UserFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, userService, userDto);
                 updateUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return updateUserFunctionalitySagas.getUpdatedUserDto();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -96,7 +96,7 @@ public class UserFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, userService, userAggregateId);
                 deleteUserFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -110,7 +110,7 @@ public class UserFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, userService);
                 getAllUsersFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return getAllUsersFunctionalitySagas.getUsers();
-            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new TeastoreException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

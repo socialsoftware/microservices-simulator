@@ -38,7 +38,7 @@ public class OrderCustomer {
         setCustomerEmail(orderCustomerDto.getEmail());
         setCustomerAggregateId(orderCustomerDto.getAggregateId());
         setCustomerVersion(orderCustomerDto.getVersion());
-        setCustomerState(orderCustomerDto.getState());
+        setCustomerState(orderCustomerDto.getState() != null ? AggregateState.valueOf(orderCustomerDto.getState()) : null);
     }
 
     public OrderCustomer(OrderCustomer other) {
@@ -114,7 +114,7 @@ public class OrderCustomer {
         dto.setEmail(getCustomerEmail());
         dto.setAggregateId(getCustomerAggregateId());
         dto.setVersion(getCustomerVersion());
-        dto.setState(getCustomerState());
+        dto.setState(getCustomerState() != null ? getCustomerState().name() : null);
         return dto;
     }
 }

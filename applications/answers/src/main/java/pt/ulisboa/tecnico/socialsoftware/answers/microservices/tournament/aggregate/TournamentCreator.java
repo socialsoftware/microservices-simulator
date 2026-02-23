@@ -28,13 +28,13 @@ public class TournamentCreator {
     public TournamentCreator(ExecutionUserDto executionUserDto) {
         setCreatorAggregateId(executionUserDto.getAggregateId());
         setCreatorVersion(executionUserDto.getVersion());
-        setCreatorState(executionUserDto.getState());
+        setCreatorState(executionUserDto.getState() != null ? AggregateState.valueOf(executionUserDto.getState()) : null);
     }
 
     public TournamentCreator(TournamentCreatorDto tournamentCreatorDto) {
         setCreatorAggregateId(tournamentCreatorDto.getAggregateId());
         setCreatorVersion(tournamentCreatorDto.getVersion());
-        setCreatorState(tournamentCreatorDto.getState());
+        setCreatorState(tournamentCreatorDto.getState() != null ? AggregateState.valueOf(tournamentCreatorDto.getState()) : null);
     }
 
     public TournamentCreator(TournamentCreator other) {
@@ -90,7 +90,7 @@ public class TournamentCreator {
         TournamentCreatorDto dto = new TournamentCreatorDto();
         dto.setAggregateId(getCreatorAggregateId());
         dto.setVersion(getCreatorVersion());
-        dto.setState(getCreatorState());
+        dto.setState(getCreatorState() != null ? getCreatorState().name() : null);
         return dto;
     }
 }

@@ -14,4 +14,5 @@ public class CartDeletedEvent extends Event {
         super(aggregateId);
     }
 
+
 }

@@ -35,7 +35,7 @@ public class QuestionTopic {
 
     public QuestionTopic(QuestionTopicDto questionTopicDto) {
         setTopicId(questionTopicDto.getTopicId());
-        setTopicState(questionTopicDto.getState());
+        setTopicState(questionTopicDto.getState() != null ? AggregateState.valueOf(questionTopicDto.getState()) : null);
         setTopicName(questionTopicDto.getName());
         setTopicAggregateId(questionTopicDto.getAggregateId());
         setTopicVersion(questionTopicDto.getVersion());
@@ -111,7 +111,7 @@ public class QuestionTopic {
     public QuestionTopicDto buildDto() {
         QuestionTopicDto dto = new QuestionTopicDto();
         dto.setTopicId(getTopicId());
-        dto.setState(getTopicState());
+        dto.setState(getTopicState() != null ? getTopicState().name() : null);
         dto.setName(getTopicName());
         dto.setAggregateId(getTopicAggregateId());
         dto.setVersion(getTopicVersion());

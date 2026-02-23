@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizExecution;
 
 public class QuizExecutionDto implements Serializable {
@@ -10,7 +9,7 @@ public class QuizExecutionDto implements Serializable {
     private String academicTerm;
     private Integer aggregateId;
     private Integer version;
-    private AggregateState state;
+    private String state;
 
     public QuizExecutionDto() {
     }
@@ -21,7 +20,7 @@ public class QuizExecutionDto implements Serializable {
         this.academicTerm = quizExecution.getExecutionAcademicTerm();
         this.aggregateId = quizExecution.getExecutionAggregateId();
         this.version = quizExecution.getExecutionVersion();
-        this.state = quizExecution.getExecutionState();
+        this.state = quizExecution.getExecutionState() != null ? quizExecution.getExecutionState().name() : null;
     }
 
     public String getExecutionName() {
@@ -64,11 +63,11 @@ public class QuizExecutionDto implements Serializable {
         this.version = version;
     }
 
-    public AggregateState getState() {
+    public String getState() {
         return state;
     }
 
-    public void setState(AggregateState state) {
+    public void setState(String state) {
         this.state = state;
     }
 }

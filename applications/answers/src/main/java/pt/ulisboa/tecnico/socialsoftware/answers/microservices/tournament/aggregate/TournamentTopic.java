@@ -35,7 +35,7 @@ public class TournamentTopic {
     public TournamentTopic(TournamentTopicDto tournamentTopicDto) {
         setTopicAggregateId(tournamentTopicDto.getAggregateId());
         setTopicVersion(tournamentTopicDto.getVersion());
-        setTopicState(tournamentTopicDto.getState());
+        setTopicState(tournamentTopicDto.getState() != null ? AggregateState.valueOf(tournamentTopicDto.getState()) : null);
         setTopicName(tournamentTopicDto.getName());
     }
 
@@ -101,7 +101,7 @@ public class TournamentTopic {
         TournamentTopicDto dto = new TournamentTopicDto();
         dto.setAggregateId(getTopicAggregateId());
         dto.setVersion(getTopicVersion());
-        dto.setState(getTopicState());
+        dto.setState(getTopicState() != null ? getTopicState().name() : null);
         dto.setName(getTopicName());
         return dto;
     }

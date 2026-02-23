@@ -1,14 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerUser;
 
 public class AnswerUserDto implements Serializable {
     private Integer aggregateId;
     private String name;
     private Integer version;
-    private AggregateState state;
+    private String state;
 
     public AnswerUserDto() {
     }
@@ -17,7 +16,7 @@ public class AnswerUserDto implements Serializable {
         this.aggregateId = answerUser.getUserAggregateId();
         this.name = answerUser.getUserName();
         this.version = answerUser.getUserVersion();
-        this.state = answerUser.getUserState();
+        this.state = answerUser.getUserState() != null ? answerUser.getUserState().name() : null;
     }
 
     public Integer getAggregateId() {
@@ -44,11 +43,11 @@ public class AnswerUserDto implements Serializable {
         this.version = version;
     }
 
-    public AggregateState getState() {
+    public String getState() {
         return state;
     }
 
-    public void setState(AggregateState state) {
+    public void setState(String state) {
         this.state = state;
     }
 }

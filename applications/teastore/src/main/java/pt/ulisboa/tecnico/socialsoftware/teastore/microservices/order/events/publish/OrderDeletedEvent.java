@@ -14,4 +14,5 @@ public class OrderDeletedEvent extends Event {
         super(aggregateId);
     }
 
+
 }

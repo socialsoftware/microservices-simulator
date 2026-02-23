@@ -56,7 +56,7 @@ public class EnrollmentService {
                 EnrollmentCourseDto courseDto = new EnrollmentCourseDto();
                 courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
                 courseDto.setVersion(createRequest.getCourse().getVersion());
-                courseDto.setState(createRequest.getCourse().getState());
+                courseDto.setState(createRequest.getCourse().getState() != null ? createRequest.getCourse().getState().name() : null);
                 enrollmentDto.setCourse(courseDto);
             }
             if (createRequest.getTeachers() != null) {
@@ -64,7 +64,7 @@ public class EnrollmentService {
                     EnrollmentTeacherDto projDto = new EnrollmentTeacherDto();
                     projDto.setAggregateId(srcDto.getAggregateId());
                     projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState());
+                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
                     return projDto;
                 }).collect(Collectors.toSet()));
             }

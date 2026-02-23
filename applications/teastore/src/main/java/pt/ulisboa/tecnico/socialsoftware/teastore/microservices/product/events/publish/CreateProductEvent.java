@@ -13,6 +13,10 @@ public class CreateProductEvent extends Event {
         super();
     }
 
+    public CreateProductEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public CreateProductEvent(Integer aggregateId, String name, String categoryName, Double listPriceInCents) {
         super(aggregateId);
         setName(name);

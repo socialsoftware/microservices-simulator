@@ -45,7 +45,7 @@ public class TournamentParticipantQuiz {
         setParticipantQuizNumberOfAnswered(tournamentParticipantQuizDto.getParticipantQuizNumberOfAnswered());
         setParticipantQuizNumberOfCorrect(tournamentParticipantQuizDto.getParticipantQuizNumberOfCorrect());
         setTournamentParticipant(tournamentParticipantQuizDto.getTournamentParticipant() != null ? new TournamentParticipant(tournamentParticipantQuizDto.getTournamentParticipant()) : null);
-        setQuizState(tournamentParticipantQuizDto.getState());
+        setQuizState(tournamentParticipantQuizDto.getState() != null ? AggregateState.valueOf(tournamentParticipantQuizDto.getState()) : null);
     }
 
     public TournamentParticipantQuiz(TournamentParticipantQuiz other) {
@@ -144,7 +144,7 @@ public class TournamentParticipantQuiz {
         dto.setParticipantQuizNumberOfAnswered(getParticipantQuizNumberOfAnswered());
         dto.setParticipantQuizNumberOfCorrect(getParticipantQuizNumberOfCorrect());
         dto.setTournamentParticipant(getTournamentParticipant() != null ? new TournamentParticipantDto(getTournamentParticipant()) : null);
-        dto.setState(getQuizState());
+        dto.setState(getQuizState() != null ? getQuizState().name() : null);
         return dto;
     }
 }

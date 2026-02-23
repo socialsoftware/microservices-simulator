@@ -14,6 +14,10 @@ public class ProductCategoryUpdatedEvent extends Event {
         super();
     }
 
+    public ProductCategoryUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public ProductCategoryUpdatedEvent(Integer aggregateId, Integer categoryAggregateId, Integer categoryVersion, String categoryName, String categoryDescription) {
         super(aggregateId);
         setCategoryAggregateId(categoryAggregateId);

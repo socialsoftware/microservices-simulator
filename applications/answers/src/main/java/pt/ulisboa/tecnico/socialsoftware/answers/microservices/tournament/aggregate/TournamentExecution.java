@@ -33,7 +33,7 @@ public class TournamentExecution {
     }
 
     public TournamentExecution(TournamentExecutionDto tournamentExecutionDto) {
-        setExecutionState(tournamentExecutionDto.getState());
+        setExecutionState(tournamentExecutionDto.getState() != null ? AggregateState.valueOf(tournamentExecutionDto.getState()) : null);
         setExecutionVersion(tournamentExecutionDto.getVersion());
         setExecutionAcronym(tournamentExecutionDto.getAcronym());
         setExecutionAggregateId(tournamentExecutionDto.getAggregateId());
@@ -99,7 +99,7 @@ public class TournamentExecution {
 
     public TournamentExecutionDto buildDto() {
         TournamentExecutionDto dto = new TournamentExecutionDto();
-        dto.setState(getExecutionState());
+        dto.setState(getExecutionState() != null ? getExecutionState().name() : null);
         dto.setVersion(getExecutionVersion());
         dto.setAcronym(getExecutionAcronym());
         dto.setAggregateId(getExecutionAggregateId());

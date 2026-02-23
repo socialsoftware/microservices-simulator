@@ -15,6 +15,10 @@ public class OrderUserUpdatedEvent extends Event {
         super();
     }
 
+    public OrderUserUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public OrderUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, String userName, String userRealName, String userEmail) {
         super(aggregateId);
         setUserAggregateId(userAggregateId);

@@ -34,7 +34,7 @@ public class TopicCourse {
     public TopicCourse(TopicCourseDto topicCourseDto) {
         setCourseAggregateId(topicCourseDto.getAggregateId());
         setCourseVersion(topicCourseDto.getVersion());
-        setCourseState(topicCourseDto.getState());
+        setCourseState(topicCourseDto.getState() != null ? AggregateState.valueOf(topicCourseDto.getState()) : null);
     }
 
     public TopicCourse(TopicCourse other) {
@@ -90,7 +90,7 @@ public class TopicCourse {
         TopicCourseDto dto = new TopicCourseDto();
         dto.setAggregateId(getCourseAggregateId());
         dto.setVersion(getCourseVersion());
-        dto.setState(getCourseState());
+        dto.setState(getCourseState() != null ? getCourseState().name() : null);
         return dto;
     }
 }

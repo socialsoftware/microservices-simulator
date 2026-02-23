@@ -42,7 +42,7 @@ public class ExecutionCourse {
         setCourseType(executionCourseDto.getType() != null ? CourseType.valueOf(executionCourseDto.getType()) : null);
         setCourseAggregateId(executionCourseDto.getAggregateId());
         setCourseVersion(executionCourseDto.getVersion());
-        setCourseState(executionCourseDto.getState());
+        setCourseState(executionCourseDto.getState() != null ? AggregateState.valueOf(executionCourseDto.getState()) : null);
     }
 
     public ExecutionCourse(ExecutionCourse other) {
@@ -118,7 +118,7 @@ public class ExecutionCourse {
         dto.setType(getCourseType() != null ? getCourseType().name() : null);
         dto.setAggregateId(getCourseAggregateId());
         dto.setVersion(getCourseVersion());
-        dto.setState(getCourseState());
+        dto.setState(getCourseState() != null ? getCourseState().name() : null);
         return dto;
     }
 }

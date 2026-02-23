@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos;
 
 import java.io.Serializable;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregate.InvoiceCustomer;
 
 public class InvoiceCustomerDto implements Serializable {
@@ -9,7 +8,7 @@ public class InvoiceCustomerDto implements Serializable {
     private String email;
     private Integer aggregateId;
     private Integer version;
-    private AggregateState state;
+    private String state;
 
     public InvoiceCustomerDto() {
     }
@@ -19,7 +18,7 @@ public class InvoiceCustomerDto implements Serializable {
         this.email = invoiceCustomer.getCustomerEmail();
         this.aggregateId = invoiceCustomer.getCustomerAggregateId();
         this.version = invoiceCustomer.getCustomerVersion();
-        this.state = invoiceCustomer.getCustomerState();
+        this.state = invoiceCustomer.getCustomerState() != null ? invoiceCustomer.getCustomerState().name() : null;
     }
 
     public String getName() {
@@ -54,11 +53,11 @@ public class InvoiceCustomerDto implements Serializable {
         this.version = version;
     }
 
-    public AggregateState getState() {
+    public String getState() {
         return state;
     }
 
-    public void setState(AggregateState state) {
+    public void setState(String state) {
         this.state = state;
     }
 }

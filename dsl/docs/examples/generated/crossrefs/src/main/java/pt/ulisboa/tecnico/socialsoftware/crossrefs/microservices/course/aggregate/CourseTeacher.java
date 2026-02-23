@@ -40,7 +40,7 @@ public class CourseTeacher {
         setTeacherDepartment(courseTeacherDto.getDepartment());
         setTeacherAggregateId(courseTeacherDto.getAggregateId());
         setTeacherVersion(courseTeacherDto.getVersion());
-        setTeacherState(courseTeacherDto.getState());
+        setTeacherState(courseTeacherDto.getState() != null ? AggregateState.valueOf(courseTeacherDto.getState()) : null);
     }
 
     public CourseTeacher(CourseTeacher other) {
@@ -126,7 +126,7 @@ public class CourseTeacher {
         dto.setDepartment(getTeacherDepartment());
         dto.setAggregateId(getTeacherAggregateId());
         dto.setVersion(getTeacherVersion());
-        dto.setState(getTeacherState());
+        dto.setState(getTeacherState() != null ? getTeacherState().name() : null);
         return dto;
     }
 }

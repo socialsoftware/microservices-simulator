@@ -2,7 +2,7 @@ Aggregate Invoice {
     @GenerateCrud
 
     Entity InvoiceOrder from Order {
-        map products.aggregateId as orderProductIds
+        map items.key as orderItemKeys
         AggregateState orderState
     }
 

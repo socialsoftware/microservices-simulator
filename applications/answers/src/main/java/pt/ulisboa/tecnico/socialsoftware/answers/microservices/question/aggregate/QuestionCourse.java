@@ -36,7 +36,7 @@ public class QuestionCourse {
         setCourseName(questionCourseDto.getName());
         setCourseAggregateId(questionCourseDto.getAggregateId());
         setCourseVersion(questionCourseDto.getVersion());
-        setCourseState(questionCourseDto.getState());
+        setCourseState(questionCourseDto.getState() != null ? AggregateState.valueOf(questionCourseDto.getState()) : null);
     }
 
     public QuestionCourse(QuestionCourse other) {
@@ -102,7 +102,7 @@ public class QuestionCourse {
         dto.setName(getCourseName());
         dto.setAggregateId(getCourseAggregateId());
         dto.setVersion(getCourseVersion());
-        dto.setState(getCourseState());
+        dto.setState(getCourseState() != null ? getCourseState().name() : null);
         return dto;
     }
 }

@@ -11,6 +11,10 @@ public class CategoryDeletedEvent extends Event {
         super();
     }
 
+    public CategoryDeletedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public CategoryDeletedEvent(Integer aggregateId, String name) {
         super(aggregateId);
         setName(name);

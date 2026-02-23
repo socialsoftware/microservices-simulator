@@ -16,6 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.sagas.coordination.order.*;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.service.OrderService;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderProductDto;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderItemDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.coordination.webapi.requestDtos.CreateOrderRequestDto;
 import java.util.List;
 
@@ -185,6 +186,81 @@ public class OrderFunctionalities {
                         sagaUnitOfWork, sagaUnitOfWorkService, orderService,
                         orderId, productAggregateId);
                 removeOrderProductFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new AdvancedException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public OrderItemDto addOrderItem(Integer orderId, Integer key, OrderItemDto itemDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AddOrderItemFunctionalitySagas addOrderItemFunctionalitySagas = new AddOrderItemFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, orderService,
+                        orderId, key, itemDto);
+                addOrderItemFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return addOrderItemFunctionalitySagas.getAddedItemDto();
+            default: throw new AdvancedException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public List<OrderItemDto> addOrderItems(Integer orderId, List<OrderItemDto> itemDtos) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AddOrderItemsFunctionalitySagas addOrderItemsFunctionalitySagas = new AddOrderItemsFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, orderService,
+                        orderId, itemDtos);
+                addOrderItemsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return addOrderItemsFunctionalitySagas.getAddedItemDtos();
+            default: throw new AdvancedException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public OrderItemDto getOrderItem(Integer orderId, Integer key) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetOrderItemFunctionalitySagas getOrderItemFunctionalitySagas = new GetOrderItemFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, orderService,
+                        orderId, key);
+                getOrderItemFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getOrderItemFunctionalitySagas.getItemDto();
+            default: throw new AdvancedException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public OrderItemDto updateOrderItem(Integer orderId, Integer key, OrderItemDto itemDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateOrderItemFunctionalitySagas updateOrderItemFunctionalitySagas = new UpdateOrderItemFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, orderService,
+                        orderId, key, itemDto);
+                updateOrderItemFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return updateOrderItemFunctionalitySagas.getUpdatedItemDto();
+            default: throw new AdvancedException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void removeOrderItem(Integer orderId, Integer key) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveOrderItemFunctionalitySagas removeOrderItemFunctionalitySagas = new RemoveOrderItemFunctionalitySagas(
+                        sagaUnitOfWork, sagaUnitOfWorkService, orderService,
+                        orderId, key);
+                removeOrderItemFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             default: throw new AdvancedException(UNDEFINED_TRANSACTIONAL_MODEL);
         }

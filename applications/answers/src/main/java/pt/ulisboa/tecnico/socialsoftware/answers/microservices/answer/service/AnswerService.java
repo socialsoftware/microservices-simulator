@@ -63,21 +63,21 @@ public class AnswerService {
                 AnswerExecutionDto executionDto = new AnswerExecutionDto();
                 executionDto.setAggregateId(createRequest.getExecution().getAggregateId());
                 executionDto.setVersion(createRequest.getExecution().getVersion());
-                executionDto.setState(createRequest.getExecution().getState());
+                executionDto.setState(createRequest.getExecution().getState() != null ? createRequest.getExecution().getState().name() : null);
                 answerDto.setExecution(executionDto);
             }
             if (createRequest.getUser() != null) {
                 AnswerUserDto userDto = new AnswerUserDto();
                 userDto.setAggregateId(createRequest.getUser().getAggregateId());
                 userDto.setVersion(createRequest.getUser().getVersion());
-                userDto.setState(createRequest.getUser().getState());
+                userDto.setState(createRequest.getUser().getState() != null ? createRequest.getUser().getState().name() : null);
                 answerDto.setUser(userDto);
             }
             if (createRequest.getQuiz() != null) {
                 AnswerQuizDto quizDto = new AnswerQuizDto();
                 quizDto.setAggregateId(createRequest.getQuiz().getAggregateId());
                 quizDto.setVersion(createRequest.getQuiz().getVersion());
-                quizDto.setState(createRequest.getQuiz().getState());
+                quizDto.setState(createRequest.getQuiz().getState() != null ? createRequest.getQuiz().getState().name() : null);
                 answerDto.setQuiz(quizDto);
             }
             if (createRequest.getQuestions() != null) {
@@ -85,7 +85,7 @@ public class AnswerService {
                     AnswerQuestionDto projDto = new AnswerQuestionDto();
                     projDto.setAggregateId(srcDto.getAggregateId());
                     projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState());
+                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
                     return projDto;
                 }).collect(Collectors.toList()));
             }

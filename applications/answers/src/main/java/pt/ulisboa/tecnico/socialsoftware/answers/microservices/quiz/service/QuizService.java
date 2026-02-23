@@ -64,7 +64,7 @@ public class QuizService {
                 QuizExecutionDto executionDto = new QuizExecutionDto();
                 executionDto.setAggregateId(createRequest.getExecution().getAggregateId());
                 executionDto.setVersion(createRequest.getExecution().getVersion());
-                executionDto.setState(createRequest.getExecution().getState());
+                executionDto.setState(createRequest.getExecution().getState() != null ? createRequest.getExecution().getState().name() : null);
                 quizDto.setExecution(executionDto);
             }
             if (createRequest.getQuestions() != null) {
@@ -72,7 +72,7 @@ public class QuizService {
                     QuizQuestionDto projDto = new QuizQuestionDto();
                     projDto.setAggregateId(srcDto.getAggregateId());
                     projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState());
+                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
                     return projDto;
                 }).collect(Collectors.toSet()));
             }
@@ -254,7 +254,7 @@ public class QuizService {
     }
 
 
-    public Quiz handleExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, UnitOfWork unitOfWork) {
+    public Quiz handleExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, String executionAcronym, String executionAcademicTerm, UnitOfWork unitOfWork) {
         try {
             Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);

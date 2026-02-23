@@ -48,7 +48,7 @@ public class TopicService {
                 TopicCourseDto courseDto = new TopicCourseDto();
                 courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
                 courseDto.setVersion(createRequest.getCourse().getVersion());
-                courseDto.setState(createRequest.getCourse().getState());
+                courseDto.setState(createRequest.getCourse().getState() != null ? createRequest.getCourse().getState().name() : null);
                 topicDto.setCourse(courseDto);
             }
 

@@ -38,7 +38,7 @@ public class OrderProduct {
         setProductPrice(orderProductDto.getPrice());
         setProductAggregateId(orderProductDto.getAggregateId());
         setProductVersion(orderProductDto.getVersion());
-        setProductState(orderProductDto.getState());
+        setProductState(orderProductDto.getState() != null ? AggregateState.valueOf(orderProductDto.getState()) : null);
     }
 
     public OrderProduct(OrderProduct other) {
@@ -114,7 +114,7 @@ public class OrderProduct {
         dto.setPrice(getProductPrice());
         dto.setAggregateId(getProductAggregateId());
         dto.setVersion(getProductVersion());
-        dto.setState(getProductState());
+        dto.setState(getProductState() != null ? getProductState().name() : null);
         return dto;
     }
 }

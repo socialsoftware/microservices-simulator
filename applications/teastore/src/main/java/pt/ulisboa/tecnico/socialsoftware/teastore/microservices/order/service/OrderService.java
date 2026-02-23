@@ -55,7 +55,7 @@ public class OrderService {
                 OrderUserDto userDto = new OrderUserDto();
                 userDto.setAggregateId(createRequest.getUser().getAggregateId());
                 userDto.setVersion(createRequest.getUser().getVersion());
-                userDto.setState(createRequest.getUser().getState());
+                userDto.setState(createRequest.getUser().getState() != null ? createRequest.getUser().getState().name() : null);
                 orderDto.setUser(userDto);
             }
 
@@ -155,7 +155,7 @@ public class OrderService {
 
 
 
-    public Order handleUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, UnitOfWork unitOfWork) {
+    public Order handleUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, String userName, String userRealName, String userEmail, UnitOfWork unitOfWork) {
         try {
             Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
@@ -168,7 +168,10 @@ public class OrderService {
             new OrderUserUpdatedEvent(
                     newOrder.getAggregateId(),
                     userAggregateId,
-                    userVersion
+                    userVersion,
+                    userName,
+                    userRealName,
+                    userEmail
             ),
             unitOfWork
         );

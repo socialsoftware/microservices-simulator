@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.OrderCustomer;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.OrderProduct;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.OrderItem;
 import java.util.Set;
 
 @Entity

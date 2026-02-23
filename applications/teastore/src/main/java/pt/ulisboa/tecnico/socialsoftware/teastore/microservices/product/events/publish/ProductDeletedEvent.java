@@ -14,4 +14,5 @@ public class ProductDeletedEvent extends Event {
         super(aggregateId);
     }
 
+
 }

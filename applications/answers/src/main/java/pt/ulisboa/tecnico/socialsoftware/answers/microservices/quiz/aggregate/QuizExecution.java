@@ -40,7 +40,7 @@ public class QuizExecution {
         setExecutionAcademicTerm(quizExecutionDto.getAcademicTerm());
         setExecutionAggregateId(quizExecutionDto.getAggregateId());
         setExecutionVersion(quizExecutionDto.getVersion());
-        setExecutionState(quizExecutionDto.getState());
+        setExecutionState(quizExecutionDto.getState() != null ? AggregateState.valueOf(quizExecutionDto.getState()) : null);
     }
 
     public QuizExecution(QuizExecution other) {
@@ -126,7 +126,7 @@ public class QuizExecution {
         dto.setAcademicTerm(getExecutionAcademicTerm());
         dto.setAggregateId(getExecutionAggregateId());
         dto.setVersion(getExecutionVersion());
-        dto.setState(getExecutionState());
+        dto.setState(getExecutionState() != null ? getExecutionState().name() : null);
         return dto;
     }
 }

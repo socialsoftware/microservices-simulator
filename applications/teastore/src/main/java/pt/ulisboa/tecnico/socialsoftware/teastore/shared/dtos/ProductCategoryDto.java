@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos;
 
 import java.io.Serializable;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregate.ProductCategory;
 
 public class ProductCategoryDto implements Serializable {
@@ -9,7 +8,7 @@ public class ProductCategoryDto implements Serializable {
     private String description;
     private Integer aggregateId;
     private Integer version;
-    private AggregateState state;
+    private String state;
 
     public ProductCategoryDto() {
     }
@@ -19,7 +18,7 @@ public class ProductCategoryDto implements Serializable {
         this.description = productCategory.getCategoryDescription();
         this.aggregateId = productCategory.getCategoryAggregateId();
         this.version = productCategory.getCategoryVersion();
-        this.state = productCategory.getCategoryState();
+        this.state = productCategory.getCategoryState() != null ? productCategory.getCategoryState().name() : null;
     }
 
     public String getName() {
@@ -54,11 +53,11 @@ public class ProductCategoryDto implements Serializable {
         this.version = version;
     }
 
-    public AggregateState getState() {
+    public String getState() {
         return state;
     }
 
-    public void setState(AggregateState state) {
+    public void setState(String state) {
         this.state = state;
     }
 }

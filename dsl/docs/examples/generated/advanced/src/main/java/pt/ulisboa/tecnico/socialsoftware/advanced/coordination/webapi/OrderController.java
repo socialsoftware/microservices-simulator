@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import java.util.List;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderProductDto;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderItemDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.coordination.webapi.requestDtos.CreateOrderRequestDto;
 
 @RestController
@@ -66,5 +67,32 @@ public class OrderController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeOrderProduct(@PathVariable Integer orderId, @PathVariable Integer productAggregateId) {
         orderFunctionalities.removeOrderProduct(orderId, productAggregateId);
+    }
+
+    @PostMapping("/orders/{orderId}/items")
+    @ResponseStatus(HttpStatus.CREATED)
+    public OrderItemDto addOrderItem(@PathVariable Integer orderId, @RequestParam Integer key, @RequestBody OrderItemDto itemDto) {
+        return orderFunctionalities.addOrderItem(orderId, key, itemDto);
+    }
+
+    @PostMapping("/orders/{orderId}/items/batch")
+    public List<OrderItemDto> addOrderItems(@PathVariable Integer orderId, @RequestBody List<OrderItemDto> itemDtos) {
+        return orderFunctionalities.addOrderItems(orderId, itemDtos);
+    }
+
+    @GetMapping("/orders/{orderId}/items/{key}")
+    public OrderItemDto getOrderItem(@PathVariable Integer orderId, @PathVariable Integer key) {
+        return orderFunctionalities.getOrderItem(orderId, key);
+    }
+
+    @PutMapping("/orders/{orderId}/items/{key}")
+    public OrderItemDto updateOrderItem(@PathVariable Integer orderId, @PathVariable Integer key, @RequestBody OrderItemDto itemDto) {
+        return orderFunctionalities.updateOrderItem(orderId, key, itemDto);
+    }
+
+    @DeleteMapping("/orders/{orderId}/items/{key}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeOrderItem(@PathVariable Integer orderId, @PathVariable Integer key) {
+        orderFunctionalities.removeOrderItem(orderId, key);
     }
 }

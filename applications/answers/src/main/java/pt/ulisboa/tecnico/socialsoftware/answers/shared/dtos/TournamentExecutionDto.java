@@ -1,11 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos;
 
 import java.io.Serializable;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentExecution;
 
 public class TournamentExecutionDto implements Serializable {
-    private AggregateState state;
+    private String state;
     private Integer version;
     private String acronym;
     private Integer aggregateId;
@@ -14,17 +13,17 @@ public class TournamentExecutionDto implements Serializable {
     }
 
     public TournamentExecutionDto(TournamentExecution tournamentExecution) {
-        this.state = tournamentExecution.getExecutionState();
+        this.state = tournamentExecution.getExecutionState() != null ? tournamentExecution.getExecutionState().name() : null;
         this.version = tournamentExecution.getExecutionVersion();
         this.acronym = tournamentExecution.getExecutionAcronym();
         this.aggregateId = tournamentExecution.getExecutionAggregateId();
     }
 
-    public AggregateState getState() {
+    public String getState() {
         return state;
     }
 
-    public void setState(AggregateState state) {
+    public void setState(String state) {
         this.state = state;
     }
 

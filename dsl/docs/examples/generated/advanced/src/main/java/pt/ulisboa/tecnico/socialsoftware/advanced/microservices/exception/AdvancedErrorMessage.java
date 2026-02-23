@@ -21,6 +21,8 @@ public final class AdvancedErrorMessage {
 
     public static final String ORDER_MISSING_PRODUCTS = "Order requires a products.";
 
+    public static final String ORDER_MISSING_ITEMS = "Order requires a items.";
+
     public static final String PRODUCT_MISSING_NAME = "Product requires a name.";
 
 }

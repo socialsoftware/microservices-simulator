@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.service.ProductService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.events.publish.CategoryUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.events.publish.CategoryDeletedEvent;
 
 @Service
 public class ProductEventProcessing {
@@ -20,7 +21,11 @@ public class ProductEventProcessing {
 
     public void processCategoryUpdatedEvent(Integer aggregateId, CategoryUpdatedEvent categoryUpdatedEvent) {
         UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
-        productService.handleCategoryUpdatedEvent(aggregateId, categoryUpdatedEvent.getPublisherAggregateId(), categoryUpdatedEvent.getPublisherAggregateVersion(), unitOfWork);
+        productService.handleCategoryUpdatedEvent(aggregateId, categoryUpdatedEvent.getPublisherAggregateId(), categoryUpdatedEvent.getPublisherAggregateVersion(), categoryUpdatedEvent.getName(), categoryUpdatedEvent.getDescription(), unitOfWork);
         unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void processCategoryDeletedEvent(Integer aggregateId, CategoryDeletedEvent categoryDeletedEvent) {
+        // Reference constraint event processing - implement constraint logic
     }
 }
