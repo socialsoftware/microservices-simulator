@@ -72,10 +72,6 @@ export class ConfigLoader {
                 console.warn(chalk.yellow('[WARN] Database password contains unresolved environment variable placeholder'));
             }
 
-            const weakPasswords = ['password', '123456', 'admin', 'root', 'test', ''];
-            if (weakPasswords.includes(password.toLowerCase())) {
-                console.warn(chalk.yellow('[WARN] Database password appears to be weak or default. Consider using a stronger password.'));
-            }
         }
     }
 
