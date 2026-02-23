@@ -183,7 +183,8 @@ public class ${capitalizedProjectName}Exception extends SimulatorException {
     private async generateErrorMessageClass(projectName: string, packageName: string, errorMessages: Array<{ name: string, message: string }>): Promise<string> {
         const capitalizedProjectName = projectName.charAt(0).toUpperCase() + projectName.slice(1);
 
-        let constants = '    public static final String UNDEFINED_TRANSACTIONAL_MODEL = "Undefined transactional model";\n\n';
+        const hasTransactionalModel = errorMessages.some(m => m.name.toUpperCase() === 'UNDEFINED_TRANSACTIONAL_MODEL');
+        let constants = hasTransactionalModel ? '' : '    public static final String UNDEFINED_TRANSACTIONAL_MODEL = "Undefined transactional model";\n\n';
         for (const errorMessage of errorMessages) {
             const constantName = errorMessage.name.toUpperCase();
             const messageValue = (errorMessage.message || '').replace(/"/g, '\\"');

@@ -1,6 +1,7 @@
 import { Aggregate, Entity } from "../../../language/generated/ast.js";
 import { ValidationBaseGenerator } from "./validation-base-generator.js";
 import { ValidationGenerationOptions, ValidatorContext } from "./validation-types.js";
+import { getGlobalConfig } from "../common/config.js";
 
 export class CustomValidatorGenerator extends ValidationBaseGenerator {
     async generateCustomValidators(aggregate: Aggregate, rootEntity: Entity, options: ValidationGenerationOptions): Promise<{ [key: string]: string }> {
@@ -290,7 +291,7 @@ export class CustomValidatorGenerator extends ValidationBaseGenerator {
         const projectName = options?.projectName?.toLowerCase() || 'unknown';
         const baseImports = this.buildValidationImports(projectName, aggregate.name);
         const lowerAggregate = aggregate.name.toLowerCase();
-        const basePackage = 'pt.ulisboa.tecnico.socialsoftware';
+        const basePackage = getGlobalConfig().getBasePackage();
         const validatorImports = [
             'import java.net.URL;',
             'import java.net.MalformedURLException;',
