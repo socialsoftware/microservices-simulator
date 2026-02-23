@@ -11,6 +11,10 @@ public class QuestionCourseDeletedEvent extends Event {
         super();
     }
 
+    public QuestionCourseDeletedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public QuestionCourseDeletedEvent(Integer aggregateId, Integer courseAggregateId) {
         super(aggregateId);
         setCourseAggregateId(courseAggregateId);

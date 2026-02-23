@@ -1,59 +1,73 @@
 # Generated Code
 
-This chapter explains what Nebula generates, how the generated code is structured, and how the key patterns work.
+This chapter explains what Nebula generates, how the generated code is structured, and how the key patterns work. Examples use the **tutorial project** (Member, Book, Loan) for simplicity.
 
 ## Generated Directory Structure
 
 For each project, Nebula generates a complete Spring Boot application:
 
 ```
-applications/answers/
+dsl/docs/examples/generated/tutorial/
 ├── pom.xml                             # Maven build configuration
 ├── .gitignore
 └── src/main/
-    ├── java/pt/ulisboa/tecnico/socialsoftware/answers/
-    │   ├── AnswersSimulator.java       # Main application class
+    ├── java/pt/ulisboa/tecnico/socialsoftware/tutorial/
+    │   ├── TutorialSimulator.java      # Main application class
     │   ├── microservices/              # Domain layer
-    │   │   ├── user/
+    │   │   ├── member/
     │   │   │   ├── aggregate/
-    │   │   │   │   ├── User.java                   # JPA entity
-    │   │   │   │   ├── UserFactory.java            # Factory interface
-    │   │   │   │   ├── UserRepository.java         # Spring Data interface
-    │   │   │   │   └── UserCustomRepository.java   # Custom queries
+    │   │   │   │   ├── Member.java                   # JPA entity
+    │   │   │   │   ├── MemberFactory.java            # Factory interface
+    │   │   │   │   ├── MemberRepository.java         # Spring Data interface
+    │   │   │   │   └── MemberCustomRepository.java   # Custom queries
+    │   │   │   └── service/
+    │   │   │       └── MemberService.java            # Business logic
+    │   │   ├── book/
+    │   │   │   ├── aggregate/
+    │   │   │   │   ├── Book.java
+    │   │   │   │   ├── BookFactory.java
+    │   │   │   │   ├── BookRepository.java
+    │   │   │   │   └── BookCustomRepository.java
     │   │   │   ├── service/
-    │   │   │   │   └── UserService.java            # Business logic
+    │   │   │   │   └── BookService.java
     │   │   │   └── events/
-    │   │   │       ├── publish/
-    │   │   │       │   └── UserDeletedEvent.java
-    │   │   │       └── handling/
-    │   │   │           └── UserEventHandling.java
-    │   │   ├── course/
-    │   │   ├── execution/
-    │   │   └── ...
+    │   │   │       └── publish/
+    │   │   │           └── BookDeletedEvent.java
+    │   │   └── loan/
+    │   │       ├── aggregate/
+    │   │       │   ├── Loan.java
+    │   │       │   ├── LoanMember.java
+    │   │       │   ├── LoanBook.java
+    │   │       │   ├── LoanFactory.java
+    │   │       │   └── LoanRepository.java
+    │   │       ├── service/
+    │   │       │   └── LoanService.java
+    │   │       └── events/
+    │   │           └── handling/
+    │   │               └── LoanEventHandling.java
     │   ├── coordination/               # Coordination layer
     │   │   ├── functionalities/
-    │   │   │   ├── UserFunctionalities.java
-    │   │   │   └── ...
+    │   │   │   ├── MemberFunctionalities.java
+    │   │   │   ├── BookFunctionalities.java
+    │   │   │   └── LoanFunctionalities.java
     │   │   ├── webapi/
-    │   │   │   ├── UserController.java
-    │   │   │   └── ...
+    │   │   │   ├── MemberController.java
+    │   │   │   ├── BookController.java
+    │   │   │   └── LoanController.java
     │   │   └── eventProcessing/
-    │   │       ├── UserEventProcessing.java
-    │   │       └── ...
+    │   │       └── LoanEventProcessing.java
     │   ├── sagas/                       # Saga coordination
     │   │   └── coordination/
-    │   │       └── user/
-    │   │           ├── CreateUserFunctionalitySagas.java
-    │   │           ├── UpdateUserFunctionalitySagas.java
-    │   │           └── DeleteUserFunctionalitySagas.java
+    │   │       ├── member/
+    │   │       ├── book/
+    │   │       └── loan/
     │   └── shared/                      # Shared components
     │       ├── dtos/
-    │       │   ├── UserDto.java
-    │       │   ├── CreateUserRequestDto.java
+    │       │   ├── MemberDto.java
+    │       │   ├── CreateMemberRequestDto.java
     │       │   └── ...
     │       └── enums/
-    │           ├── UserRole.java
-    │           └── ...
+    │           └── MembershipType.java
     └── resources/
         ├── application.yml
         ├── application-sagas.yml
@@ -318,9 +332,11 @@ public ExecutionDto removeUserFromExecution(
 
 ## Code Volume
 
-**Simple aggregate (User, ~20 lines DSL):** ~1,500 lines Java
+**Simple aggregate (Member, ~10 lines DSL):** ~1,200 lines Java
 
-**Complex aggregate (Execution, ~65 lines DSL):** ~2,000 lines Java
+**Intermediate aggregate (Book, ~30 lines DSL):** ~1,500 lines Java
+
+**Complex aggregate (Loan/Execution, ~55-65 lines DSL):** ~2,000 lines Java
 
 **Reduction ratio:** ~60-75% less code to write.
 

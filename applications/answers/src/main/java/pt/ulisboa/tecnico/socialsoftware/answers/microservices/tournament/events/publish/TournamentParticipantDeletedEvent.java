@@ -11,6 +11,10 @@ public class TournamentParticipantDeletedEvent extends Event {
         super();
     }
 
+    public TournamentParticipantDeletedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public TournamentParticipantDeletedEvent(Integer aggregateId, Integer executionuserAggregateId) {
         super(aggregateId);
         setExecutionuserAggregateId(executionuserAggregateId);

@@ -15,6 +15,10 @@ public class QuizExecutionUpdatedEvent extends Event {
         super();
     }
 
+    public QuizExecutionUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public QuizExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, String executionAcronym, String executionAcademicTerm, String executionName) {
         super(aggregateId);
         setExecutionAggregateId(executionAggregateId);

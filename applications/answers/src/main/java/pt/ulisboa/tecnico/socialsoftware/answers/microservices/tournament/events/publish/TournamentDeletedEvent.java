@@ -14,4 +14,5 @@ public class TournamentDeletedEvent extends Event {
         super(aggregateId);
     }
 
+
 }

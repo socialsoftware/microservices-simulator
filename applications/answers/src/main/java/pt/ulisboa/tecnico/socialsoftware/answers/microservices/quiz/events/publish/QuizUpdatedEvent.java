@@ -16,6 +16,10 @@ public class QuizUpdatedEvent extends Event {
         super();
     }
 
+    public QuizUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public QuizUpdatedEvent(Integer aggregateId, String title, LocalDateTime creationDate, LocalDateTime availableDate, LocalDateTime conclusionDate, LocalDateTime resultsDate) {
         super(aggregateId);
         setTitle(title);

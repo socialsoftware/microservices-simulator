@@ -13,6 +13,10 @@ public class CourseUpdatedEvent extends Event {
         super();
     }
 
+    public CourseUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public CourseUpdatedEvent(Integer aggregateId, String name, LocalDateTime creationDate) {
         super(aggregateId);
         setName(name);

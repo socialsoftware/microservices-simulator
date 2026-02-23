@@ -11,6 +11,10 @@ public class TournamentQuizDeletedEvent extends Event {
         super();
     }
 
+    public TournamentQuizDeletedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public TournamentQuizDeletedEvent(Integer aggregateId, Integer quizAggregateId) {
         super(aggregateId);
         setQuizAggregateId(quizAggregateId);

@@ -16,6 +16,10 @@ public class AnswerQuestionUpdatedEvent extends Event {
         super();
     }
 
+    public AnswerQuestionUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public AnswerQuestionUpdatedEvent(Integer aggregateId, Integer questionAggregateId, Integer questionVersion, Integer sequence, Integer key, Integer timeTaken, Boolean correct) {
         super(aggregateId);
         setQuestionAggregateId(questionAggregateId);

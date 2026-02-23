@@ -15,6 +15,10 @@ public class TournamentUpdatedEvent extends Event {
         super();
     }
 
+    public TournamentUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public TournamentUpdatedEvent(Integer aggregateId, LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions, Boolean cancelled) {
         super(aggregateId);
         setStartTime(startTime);

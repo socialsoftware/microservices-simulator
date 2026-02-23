@@ -11,6 +11,10 @@ public class OptionRemovedEvent extends Event {
         super();
     }
 
+    public OptionRemovedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public OptionRemovedEvent(Integer aggregateId, Integer key) {
         super(aggregateId);
         setKey(key);

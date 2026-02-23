@@ -15,6 +15,10 @@ public class QuizQuestionUpdatedEvent extends Event {
         super();
     }
 
+    public QuizQuestionUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public QuizQuestionUpdatedEvent(Integer aggregateId, Integer questionAggregateId, Integer questionVersion, String questionTitle, String questionContent, Integer questionSequence) {
         super(aggregateId);
         setQuestionAggregateId(questionAggregateId);

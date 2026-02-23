@@ -99,9 +99,10 @@ Write `.nebula` files describing your business domain:
 
 ```
 dsl/abstractions/myproject/
-├── user.nebula
-├── order.nebula
-└── product.nebula
+├── shared-enums.nebula
+├── member.nebula
+├── book.nebula
+└── loan.nebula
 ```
 
 ### 2. Generate Code
@@ -134,7 +135,7 @@ Modify DSL, regenerate, test. The cycle takes seconds, not hours.
 
 ### Generated Code Stack
 - **Java 21+** -- Programming language
-- **Spring Boot 3.5.3** -- Framework
+- **Spring Boot 3.3.9** -- Framework
 - **Spring Data JPA** -- Persistence
 - **PostgreSQL 14** -- Database
 - **Maven 3.9.9** -- Build system
@@ -142,7 +143,7 @@ Modify DSL, regenerate, test. The cycle takes seconds, not hours.
 
 ## What This Guide Covers
 
-This guide is for anyone writing `.nebula` abstractions and generating Java code. It covers:
+This guide is for anyone writing `.nebula` abstractions and generating Java code. It uses a **tutorial project** (a library domain with Members, Books, and Loans) that progressively introduces DSL features -- from simple CRUD aggregates to cross-aggregate references and event-driven patterns. The tutorial abstractions and generated code are in `dsl/docs/examples/`.
 
 1. **[Getting Started](02-Getting-Started.md)** -- Install, build, first generation
 2. **[DSL Syntax](03-DSL-Syntax.md)** -- All language constructs with examples

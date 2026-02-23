@@ -11,6 +11,10 @@ public class TournamentParticipantRemovedEvent extends Event {
         super();
     }
 
+    public TournamentParticipantRemovedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public TournamentParticipantRemovedEvent(Integer aggregateId, Integer participantAggregateId) {
         super(aggregateId);
         setParticipantAggregateId(participantAggregateId);

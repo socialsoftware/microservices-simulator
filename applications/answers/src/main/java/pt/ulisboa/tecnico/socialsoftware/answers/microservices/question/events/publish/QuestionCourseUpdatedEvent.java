@@ -13,6 +13,10 @@ public class QuestionCourseUpdatedEvent extends Event {
         super();
     }
 
+    public QuestionCourseUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public QuestionCourseUpdatedEvent(Integer aggregateId, Integer courseAggregateId, Integer courseVersion, String courseName) {
         super(aggregateId);
         setCourseAggregateId(courseAggregateId);

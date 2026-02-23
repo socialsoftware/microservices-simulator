@@ -11,6 +11,10 @@ public class AnswerQuestionRemovedEvent extends Event {
         super();
     }
 
+    public AnswerQuestionRemovedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public AnswerQuestionRemovedEvent(Integer aggregateId, Integer questionAggregateId) {
         super(aggregateId);
         setQuestionAggregateId(questionAggregateId);

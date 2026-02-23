@@ -11,6 +11,10 @@ public class OptionUpdatedEvent extends Event {
         super();
     }
 
+    public OptionUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public OptionUpdatedEvent(Integer aggregateId, Integer key) {
         super(aggregateId);
         setKey(key);

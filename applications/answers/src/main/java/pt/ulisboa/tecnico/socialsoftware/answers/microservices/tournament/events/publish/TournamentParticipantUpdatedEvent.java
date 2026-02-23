@@ -14,6 +14,10 @@ public class TournamentParticipantUpdatedEvent extends Event {
         super();
     }
 
+    public TournamentParticipantUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public TournamentParticipantUpdatedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, LocalDateTime participantEnrollTime) {
         super(aggregateId);
         setExecutionuserAggregateId(executionuserAggregateId);

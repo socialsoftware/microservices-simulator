@@ -12,6 +12,10 @@ public class TopicCourseUpdatedEvent extends Event {
         super();
     }
 
+    public TopicCourseUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public TopicCourseUpdatedEvent(Integer aggregateId, Integer courseAggregateId, Integer courseVersion) {
         super(aggregateId);
         setCourseAggregateId(courseAggregateId);

@@ -14,4 +14,5 @@ public class QuestionDeletedEvent extends Event {
         super(aggregateId);
     }
 
+
 }

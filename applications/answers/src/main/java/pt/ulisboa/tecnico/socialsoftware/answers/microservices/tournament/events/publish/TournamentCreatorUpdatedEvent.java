@@ -12,6 +12,10 @@ public class TournamentCreatorUpdatedEvent extends Event {
         super();
     }
 
+    public TournamentCreatorUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public TournamentCreatorUpdatedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion) {
         super(aggregateId);
         setExecutionuserAggregateId(executionuserAggregateId);

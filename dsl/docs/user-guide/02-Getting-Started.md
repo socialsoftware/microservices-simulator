@@ -49,6 +49,13 @@ Commands:
 Nebula reads `.nebula` files from an abstractions directory. Each file typically defines one aggregate:
 
 ```
+dsl/docs/examples/abstractions/
+└── tutorial/             # Tutorial project (3 aggregates) -- start here
+    ├── shared-enums.nebula
+    ├── member.nebula
+    ├── book.nebula
+    └── loan.nebula
+
 dsl/abstractions/
 ├── answers/              # Answers case study (9 aggregates)
 │   ├── user.nebula
@@ -72,46 +79,41 @@ dsl/abstractions/
 
 ## Generating Code
 
-Generate Spring Boot code from an abstractions directory:
+Generate Spring Boot code from an abstractions directory. Let's start with the tutorial project:
 
 ```bash
 cd dsl/nebula
-./bin/cli.js generate ../abstractions/answers/
+./bin/cli.js generate ../docs/examples/abstractions/tutorial/ -o ../docs/examples/generated
 ```
 
 Expected output:
 ```
-╔══════════════════════════════════════════════════════╗
-║       Nebula Code Generation - Aggregate Discovery   ║
-╚══════════════════════════════════════════════════════╝
+Starting generation for: ../docs/examples/abstractions/tutorial/
+Found 4 Nebula files
+Validating DSL files... OK
 
-📁 Searching for .nebula files
-✓ Found 9 .nebula files
+Generating code...
+  Book                13 files
+  Loan                27 files
+  Member              14 files
 
-📦 Discovered Aggregates:
-  • Answer, Course, Execution, Question, Quiz, Topic, Tournament, User
+Generated project files (integration, pom.xml, .gitignore, 1 shared enum)
 
-╔══════════════════════════════════════════════════════╗
-║              Generation Complete                      ║
-╚══════════════════════════════════════════════════════╝
-
-📊 Summary:
-  • Total Aggregates: 9
-  • Total Files Generated: 187
-  • Generation Time: 18.4s
+Code generation completed successfully!
+Output: ../docs/examples/generated/tutorial
 ```
 
 ### CLI Options
 
 ```bash
-# Generate to default output directory (applications/<project>/)
-./bin/cli.js generate ../abstractions/answers/
+# Generate tutorial to examples directory
+./bin/cli.js generate ../docs/examples/abstractions/tutorial/ -o ../docs/examples/generated
 
 # Generate to custom output directory
-./bin/cli.js generate ../abstractions/answers/ -o ./output
+./bin/cli.js generate ../docs/examples/abstractions/tutorial/ -o ./output
 
-# Generate a specific project
-./bin/cli.js generate ../abstractions/teastore/ -o ../../applications/teastore
+# Generate a larger project
+./bin/cli.js generate ../abstractions/answers/ -o ../../applications/answers
 ```
 
 ## Verifying Generated Code
@@ -128,7 +130,7 @@ mvn clean install -DskipTests
 ### Compile Generated Code
 
 ```bash
-cd applications/answers
+cd dsl/docs/examples/generated/tutorial
 mvn clean compile
 ```
 
@@ -160,17 +162,17 @@ The application runs on `http://localhost:8080`.
 
 ### Modify a `.nebula` file
 
-Edit `dsl/abstractions/answers/user.nebula` and add a property:
+Edit `dsl/docs/examples/abstractions/tutorial/member.nebula` and add a property:
 
 ```nebula
-Aggregate User {
+Aggregate Member {
     @GenerateCrud
-    Root Entity User {
+
+    Root Entity Member {
         String name
-        String username
-        final UserRole role
-        Boolean active
-        String email          // <-- Add this line
+        String email
+        MembershipType membership
+        String phone              // <-- Add this line
     }
 }
 ```
@@ -179,10 +181,10 @@ Aggregate User {
 
 ```bash
 cd dsl/nebula
-./bin/cli.js generate ../abstractions/answers/
+./bin/cli.js generate ../docs/examples/abstractions/tutorial/ -o ../docs/examples/generated
 ```
 
-The `email` field is now part of the entity, DTO, and all CRUD operations.
+The `phone` field is now part of the entity, DTO, and all CRUD operations.
 
 ## Development Workflow Summary
 
@@ -220,7 +222,7 @@ npm run watch               # Watch mode (auto-rebuild on changes)
 ### Generated Application
 
 ```bash
-cd applications/answers
+cd dsl/docs/examples/generated/tutorial   # or applications/answers, etc.
 mvn clean compile                   # Compile generated code
 mvn clean -Ptest-sagas test         # Run Saga tests
 mvn clean -Ptest-tcc test           # Run TCC tests

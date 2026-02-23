@@ -13,6 +13,10 @@ public class TournamentExecutionUpdatedEvent extends Event {
         super();
     }
 
+    public TournamentExecutionUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public TournamentExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion, String executionAcronym) {
         super(aggregateId);
         setExecutionAggregateId(executionAggregateId);

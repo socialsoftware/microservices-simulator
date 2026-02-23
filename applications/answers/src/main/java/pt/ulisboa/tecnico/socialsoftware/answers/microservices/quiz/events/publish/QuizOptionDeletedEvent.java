@@ -11,6 +11,10 @@ public class QuizOptionDeletedEvent extends Event {
         super();
     }
 
+    public QuizOptionDeletedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public QuizOptionDeletedEvent(Integer aggregateId, Integer questionAggregateId) {
         super(aggregateId);
         setQuestionAggregateId(questionAggregateId);

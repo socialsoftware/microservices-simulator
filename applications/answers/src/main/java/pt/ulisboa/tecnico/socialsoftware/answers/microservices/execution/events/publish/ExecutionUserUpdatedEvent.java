@@ -15,6 +15,10 @@ public class ExecutionUserUpdatedEvent extends Event {
         super();
     }
 
+    public ExecutionUserUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public ExecutionUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, String userName, String userUsername, Boolean userActive) {
         super(aggregateId);
         setUserAggregateId(userAggregateId);

@@ -13,6 +13,10 @@ public class TournamentTopicUpdatedEvent extends Event {
         super();
     }
 
+    public TournamentTopicUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public TournamentTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, String topicName) {
         super(aggregateId);
         setTopicAggregateId(topicAggregateId);

@@ -12,6 +12,10 @@ public class AnswerQuizUpdatedEvent extends Event {
         super();
     }
 
+    public AnswerQuizUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public AnswerQuizUpdatedEvent(Integer aggregateId, Integer quizAggregateId, Integer quizVersion) {
         super(aggregateId);
         setQuizAggregateId(quizAggregateId);

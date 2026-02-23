@@ -12,6 +12,10 @@ public class AnswerExecutionUpdatedEvent extends Event {
         super();
     }
 
+    public AnswerExecutionUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public AnswerExecutionUpdatedEvent(Integer aggregateId, Integer executionAggregateId, Integer executionVersion) {
         super(aggregateId);
         setExecutionAggregateId(executionAggregateId);

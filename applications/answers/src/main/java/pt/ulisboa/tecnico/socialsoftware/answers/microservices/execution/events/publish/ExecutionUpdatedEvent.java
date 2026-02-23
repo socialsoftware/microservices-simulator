@@ -14,6 +14,10 @@ public class ExecutionUpdatedEvent extends Event {
         super();
     }
 
+    public ExecutionUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public ExecutionUpdatedEvent(Integer aggregateId, String acronym, String academicTerm, LocalDateTime endDate) {
         super(aggregateId);
         setAcronym(acronym);

@@ -14,6 +14,10 @@ public class QuestionUpdatedEvent extends Event {
         super();
     }
 
+    public QuestionUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public QuestionUpdatedEvent(Integer aggregateId, String title, String content, LocalDateTime creationDate) {
         super(aggregateId);
         setTitle(title);

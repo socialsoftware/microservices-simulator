@@ -13,6 +13,10 @@ public class AnswerUserUpdatedEvent extends Event {
         super();
     }
 
+    public AnswerUserUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public AnswerUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, String userName) {
         super(aggregateId);
         setUserAggregateId(userAggregateId);

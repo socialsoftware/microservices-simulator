@@ -7,21 +7,26 @@ Complete grammar syntax reference and CLI reference for the Nebula DSL.
 ### Generate Command
 
 ```bash
-./bin/cli.js generate <source> [options]
+./bin/cli.js generate <abstractions-path> [options]
 ```
 
 | Argument/Option | Description |
 |-----------------|-------------|
-| `<source>` | Path to `.nebula` files (file or directory) |
-| `-o, --destination <path>` | Output directory (default: `applications/<project>/`) |
-| `-n, --name <name>` | Project name override |
+| `<abstractions-path>` | Path to `.nebula` files (file or directory) |
+| `-o, --output <dir>` | Output directory (default: `../../applications`) |
+| `-d, --debug` | Enable debug mode with detailed error output |
+| `-v, --verbose` | Enable verbose logging |
+| `--no-validate` | Skip validation during generation |
+
+The project name is automatically derived from the abstractions folder name (e.g., `../docs/examples/abstractions/tutorial/` produces project name `tutorial`).
 
 ### Examples
 
 ```bash
-./bin/cli.js generate ../abstractions/answers/
-./bin/cli.js generate ../abstractions/answers/ -o ./output
-./bin/cli.js generate ../abstractions/teastore/ -o ../../applications/teastore
+./bin/cli.js generate ../docs/examples/abstractions/tutorial/ -o ../docs/examples/generated
+./bin/cli.js generate ../docs/examples/abstractions/tutorial/ -o ./output
+./bin/cli.js generate ../abstractions/answers/ -o ../../applications/answers
+./bin/cli.js generate ../abstractions/answers/ --debug --verbose
 ```
 
 ## Grammar Syntax Reference

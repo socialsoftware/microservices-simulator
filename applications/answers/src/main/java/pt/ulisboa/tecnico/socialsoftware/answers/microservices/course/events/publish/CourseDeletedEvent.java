@@ -14,4 +14,5 @@ public class CourseDeletedEvent extends Event {
         super(aggregateId);
     }
 
+
 }

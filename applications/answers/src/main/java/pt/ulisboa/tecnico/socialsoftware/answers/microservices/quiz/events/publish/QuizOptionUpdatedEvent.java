@@ -13,6 +13,10 @@ public class QuizOptionUpdatedEvent extends Event {
         super();
     }
 
+    public QuizOptionUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public QuizOptionUpdatedEvent(Integer aggregateId, Integer questionAggregateId, Integer questionVersion, String optionContent) {
         super(aggregateId);
         setQuestionAggregateId(questionAggregateId);

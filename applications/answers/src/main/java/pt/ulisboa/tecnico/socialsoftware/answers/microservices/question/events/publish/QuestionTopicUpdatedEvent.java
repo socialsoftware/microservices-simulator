@@ -14,6 +14,10 @@ public class QuestionTopicUpdatedEvent extends Event {
         super();
     }
 
+    public QuestionTopicUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public QuestionTopicUpdatedEvent(Integer aggregateId, Integer topicAggregateId, Integer topicVersion, String topicName, Integer topicId) {
         super(aggregateId);
         setTopicAggregateId(topicAggregateId);

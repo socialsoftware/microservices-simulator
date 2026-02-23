@@ -14,6 +14,10 @@ public class AnswerUpdatedEvent extends Event {
         super();
     }
 
+    public AnswerUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public AnswerUpdatedEvent(Integer aggregateId, LocalDateTime creationDate, LocalDateTime answerDate, Boolean completed) {
         super(aggregateId);
         setCreationDate(creationDate);

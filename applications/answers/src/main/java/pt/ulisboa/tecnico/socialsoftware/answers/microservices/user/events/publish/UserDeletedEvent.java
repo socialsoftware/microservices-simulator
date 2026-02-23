@@ -14,4 +14,5 @@ public class UserDeletedEvent extends Event {
         super(aggregateId);
     }
 
+
 }

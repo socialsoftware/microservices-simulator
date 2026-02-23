@@ -11,6 +11,10 @@ public class ExecutionUserDeletedEvent extends Event {
         super();
     }
 
+    public ExecutionUserDeletedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
     public ExecutionUserDeletedEvent(Integer aggregateId, Integer userAggregateId) {
         super(aggregateId);
         setUserAggregateId(userAggregateId);

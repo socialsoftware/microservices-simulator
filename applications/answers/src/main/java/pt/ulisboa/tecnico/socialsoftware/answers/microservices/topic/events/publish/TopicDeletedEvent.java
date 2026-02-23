@@ -14,4 +14,5 @@ public class TopicDeletedEvent extends Event {
         super(aggregateId);
     }
 
+
 }

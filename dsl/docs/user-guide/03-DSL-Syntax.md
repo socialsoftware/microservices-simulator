@@ -1,92 +1,63 @@
 # DSL Syntax
 
-This chapter covers all Nebula DSL language constructs with real-world examples.
+This chapter covers all Nebula DSL language constructs, progressing from simple to complex. Examples use the **tutorial project** (library domain) to build understanding incrementally, then reference the Answers and TeaStore projects for advanced patterns.
 
 ## Table of Contents
 
-- [Aggregates](#aggregates)
-- [Entities and Properties](#entities-and-properties)
-- [Cross-Aggregate References](#cross-aggregate-references)
+- [Shared Enums](#shared-enums)
+- [Your First Aggregate: Member](#your-first-aggregate-member)
+- [Adding Invariants, Events, and Repositories: Book](#adding-invariants-events-and-repositories-book)
+- [Cross-Aggregate References: Loan](#cross-aggregate-references-loan)
 - [Extract Pattern](#extract-pattern)
-- [Invariants](#invariants)
-- [Events](#events)
-- [References](#references)
-- [Repositories](#repositories)
 - [Services](#services)
 - [Web API](#web-api)
-- [Shared Enums](#shared-enums)
 - [Exception Messages](#exception-messages)
 - [Best Practices](#best-practices)
 
-## Aggregates
+## Shared Enums
 
-### Basic Aggregate
-
-The simplest aggregate definition:
+Before defining aggregates, define shared enumerations used across them:
 
 ```nebula
-Aggregate User {
-    Root Entity User {
-        String name
-        String username
+SharedEnums {
+    enum MembershipType {
+        BASIC,
+        PREMIUM
     }
 }
 ```
 
-This generates: JPA entity, DTO, factory, repository, and service.
+Generated as standard Java enums in the `shared/enums/` package.
 
-### Aggregate with CRUD Generation
+## Your First Aggregate: Member
 
-Add `@GenerateCrud` to generate complete CRUD operations across all layers:
+The simplest aggregate -- a standalone entity with CRUD operations:
 
 ```nebula
-Aggregate User {
+Aggregate Member {
     @GenerateCrud
 
-    Root Entity User {
+    Root Entity Member {
         String name
-        String username
+        String email
+        MembershipType membership
     }
 }
 ```
 
-This additionally generates: full CRUD service methods, REST controller endpoints, functionalities, and saga workflows.
+This is the minimum needed to generate a complete microservice. Let's break it down:
 
-## Entities and Properties
+### Aggregate
+
+Every domain concept is wrapped in an `Aggregate` block. The aggregate name determines package names, class names, and file paths.
+
+### `@GenerateCrud`
+
+This annotation generates complete CRUD operations across all layers: service methods, REST controller endpoints, functionalities, and saga workflows.
 
 ### Root Entity
 
-Every aggregate must have exactly one root entity. It extends the simulator's `Aggregate` base class and has `aggregateId`, `version`, and `state` fields automatically.
-
-```nebula
-Aggregate Course {
-    Root Entity Course {
-        String name
-        CourseType type
-        Integer credits
-    }
-}
-```
-
-### Non-Root Entities
-
-Aggregates can have child entities for composition:
-
-```nebula
-Aggregate Execution {
-    Entity ExecutionCourse from Course {
-        map name as courseName
-        map type as courseType
-    }
-
-    Root Entity Execution {
-        ExecutionCourse course
-        Set<ExecutionUser> users
-    }
-}
-```
-
-Non-root entities are simple JPA entities (no version chain, no invariants).
+Every aggregate must have exactly one root entity. It extends the simulator's `Aggregate` base class and automatically gets `aggregateId`, `version`, and `state` fields.
 
 ### Data Types
 
@@ -119,13 +90,12 @@ Optional<LocalDateTime> deadline
 
 **Enums** (defined in `SharedEnums`):
 ```nebula
-UserRole role
-CourseType type
+MembershipType membership
 ```
 
 **Entity references** (composition):
 ```nebula
-ExecutionCourse course
+LoanBook book
 ```
 
 **Built-in types:**
@@ -138,13 +108,13 @@ UnitOfWork unitOfWork
 
 **Immutable (`final`)** -- cannot be changed after creation:
 ```nebula
-final UserRole role
+final String genre
 final LocalDateTime createdAt
 ```
 
 **Default values:**
 ```nebula
-Boolean active = true
+Boolean available = true
 Integer count = 0
 AggregateState state = AggregateState.ACTIVE
 ```
@@ -159,56 +129,238 @@ String internalId dto-exclude
 String firstName, lastName, email
 ```
 
-## Cross-Aggregate References
+## Adding Invariants, Events, and Repositories: Book
 
-### Basic Mapping
+The Book aggregate builds on Member by adding business rules, events, and custom queries:
+
+```nebula
+Aggregate Book {
+    @GenerateCrud
+
+    Root Entity Book {
+        String title
+        String author
+        String genre
+        Boolean available = true
+
+        invariants {
+            check titleNotBlank { title.length() > 0 }
+                error "Book title cannot be blank"
+
+            check authorNotBlank { author.length() > 0 }
+                error "Author name cannot be blank"
+        }
+    }
+
+    Events {
+        publish BookDeletedEvent {
+            Integer bookId
+            String title
+        }
+    }
+
+    Repository {
+        List<Book> findByGenre(String genre)
+        List<Book> findByAvailableTrue()
+    }
+}
+```
+
+### Invariants
+
+Business rules enforced at the aggregate level. Error messages are mandatory.
+
+**Simple invariants:**
+```nebula
+invariants {
+    check nameNotBlank { name.length() > 0 }
+        error "User name cannot be blank"
+
+    check roleNotNull { role != null }
+        error "User role is required"
+}
+```
+
+**Temporal constraints:**
+```nebula
+invariants {
+    check dateOrdering {
+        availableDate.isBefore(conclusionDate) &&
+        conclusionDate.isBefore(resultsDate)
+    }
+        error "Dates must be in chronological order"
+}
+```
+
+**Collection constraints:**
+```nebula
+invariants {
+    check topicsNotEmpty { topics != null && !topics.isEmpty() }
+        error "Question must have at least one topic"
+}
+```
+
+**Supported expressions:**
+
+| Category | Operators |
+|----------|-----------|
+| Comparisons | `<`, `>`, `<=`, `>=`, `==`, `!=` |
+| Boolean logic | `&&`, `||`, `!` |
+| String | `name.length() > 0`, `email.contains("@")` |
+| Temporal | `startDate.isBefore(endDate)`, `deadline.isAfter(now())` |
+| Collection | `users.size() > 0`, `questions.isEmpty()`, `topics.unique(topicId)` |
+
+### Published Events
+
+Define events that this aggregate emits:
+
+```nebula
+Events {
+    publish BookDeletedEvent {
+        Integer bookId
+        String title
+    }
+}
+```
+
+Generates event classes and publishing logic in services.
+
+### Repositories
+
+**Spring Data method names** (parsed automatically):
+```nebula
+Repository {
+    List<Book> findByGenre(String genre)
+    List<Book> findByAvailableTrue()
+    Optional<User> findByUsername(String username)
+}
+```
+
+**Custom JPQL queries:**
+```nebula
+Repository {
+    @Query("select e.aggregateId from Execution e where e.state != 'DELETED'")
+    Set<Integer> findActiveExecutionIds()
+
+    @Query("select a from Answer a where a.quiz.quizAggregateId = :quizId")
+    List<Answer> findByQuizId(Integer quizId)
+}
+```
+
+Parameters are bound using `:paramName` syntax matching method parameter names.
+
+## Cross-Aggregate References: Loan
+
+The Loan aggregate demonstrates cross-aggregate references, event subscriptions, and referential integrity -- the most powerful DSL features:
+
+```nebula
+Aggregate Loan {
+    @GenerateCrud
+
+    Entity LoanMember from Member {
+        map name as memberName
+        map email as memberEmail
+    }
+
+    Entity LoanBook from Book {
+        map title as bookTitle
+        map author as bookAuthor
+        map genre as bookGenre
+    }
+
+    Root Entity Loan {
+        LoanMember member
+        LoanBook book
+        LocalDateTime loanDate
+        LocalDateTime dueDate
+
+        invariants {
+            check memberNotNull { member != null }
+                error "Loan must have a member"
+
+            check bookNotNull { book != null }
+                error "Loan must have a book"
+
+            check dateOrdering { loanDate.isBefore(dueDate) }
+                error "Loan date must be before due date"
+        }
+    }
+
+    References {
+        member -> Member {
+            onDelete: cascade
+            message: "Member deleted, removing their loans"
+        }
+        book -> Book {
+            onDelete: prevent
+            message: "Cannot delete book that has active loans"
+        }
+    }
+
+    Events {
+        interInvariant MEMBER_EXISTS {
+            subscribe MemberDeletedEvent from Member {
+                member.memberAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant BOOK_EXISTS {
+            subscribe BookDeletedEvent from Book {
+                book.bookAggregateId == event.aggregateId
+            }
+        }
+    }
+}
+```
+
+### Non-Root Entities with `from`
 
 Reference entities from other aggregates with automatic type inference:
 
 ```nebula
-Entity ExecutionCourse from Course {
-    map name as courseName      // String (inferred from Course.name)
-    map type as courseType       // CourseType (inferred from Course.type)
+Entity LoanMember from Member {
+    map name as memberName      // String (inferred from Member.name)
+    map email as memberEmail    // String (inferred from Member.email)
 }
 ```
 
 The generator:
-1. Finds the `Course` aggregate
+1. Finds the `Member` aggregate
 2. Gets its root entity
-3. Infers types from `Course.name` and `Course.type`
+3. Infers types from `Member.name` and `Member.email`
 
 **Generated code:**
 ```java
 @Embeddable
-public class ExecutionCourse {
-    private Integer courseAggregateId;  // Auto-added
-    private Integer courseVersion;      // Auto-added
-    private String courseName;         // Inferred: String
-    private CourseType courseType;      // Inferred: CourseType
+public class LoanMember {
+    private Integer memberAggregateId;  // Auto-added
+    private Integer memberVersion;      // Auto-added
+    private String memberName;          // Inferred: String
+    private String memberEmail;         // Inferred: String
 }
 ```
+
+Non-root entities are simple JPA entities (no version chain, no invariants).
 
 ### Cross-File Type Inference
 
 Type inference works across file boundaries. A model registry tracks all aggregates:
 
 ```nebula
-// user.nebula
-Aggregate User {
-    Root Entity User {
+// member.nebula
+Aggregate Member {
+    Root Entity Member {
         String name
-        String username
-        Boolean active
+        String email
     }
 }
 ```
 
 ```nebula
-// execution.nebula (different file)
-Entity ExecutionUser from User {
-    map name as userName          // String (from user.nebula)
-    map username as userUsername   // String (from user.nebula)
-    map active as userActive      // Boolean (from user.nebula)
+// loan.nebula (different file)
+Entity LoanMember from Member {
+    map name as memberName      // String (from member.nebula)
+    map email as memberEmail    // String (from member.nebula)
 }
 ```
 
@@ -217,13 +369,97 @@ Entity ExecutionUser from User {
 All cross-aggregate entities automatically include:
 
 ```java
-private Integer <aggregate>AggregateId;  // e.g., courseAggregateId
-private Integer <aggregate>Version;      // e.g., courseVersion
+private Integer <aggregate>AggregateId;  // e.g., memberAggregateId
+private Integer <aggregate>Version;      // e.g., memberVersion
+```
+
+### References
+
+Define how to handle deletion of referenced aggregates:
+
+```nebula
+References {
+    member -> Member {
+        onDelete: cascade
+        message: "Member deleted, removing their loans"
+    }
+    book -> Book {
+        onDelete: prevent
+        message: "Cannot delete book that has active loans"
+    }
+}
+```
+
+| Action | Behavior |
+|--------|----------|
+| `prevent` | Throw exception if referenced aggregate is deleted |
+| `setNull` | Set reference to null when referenced aggregate is deleted |
+| `cascade` | Delete this aggregate when referenced aggregate is deleted |
+
+### Subscribed Events
+
+Subscribe to events from other aggregates:
+
+**Simple subscription:**
+```nebula
+subscribe CourseDeletedEvent
+```
+
+**With source aggregate:**
+```nebula
+subscribe UserDeletedEvent from User
+```
+
+**With routing** (only deliver if match found):
+```nebula
+subscribe UserUpdatedEvent from User routing (users.userAggregateId)
+```
+
+**With condition:**
+```nebula
+subscribe CourseDeletedEvent from Course {
+    course.courseAggregateId == event.aggregateId
+}
+```
+
+### Inter-Invariants
+
+Group related subscriptions for referential integrity:
+
+```nebula
+Events {
+    interInvariant MEMBER_EXISTS {
+        subscribe MemberDeletedEvent from Member {
+            member.memberAggregateId == event.aggregateId
+        }
+    }
+
+    interInvariant BOOK_EXISTS {
+        subscribe BookDeletedEvent from Book {
+            book.bookAggregateId == event.aggregateId
+        }
+    }
+}
+```
+
+For a more complex example with multiple subscriptions per inter-invariant, see the Answers project's `execution.nebula`:
+
+```nebula
+Events {
+    interInvariant USERS_EXIST {
+        subscribe UserDeletedEvent from User {
+            users.userAggregateId == event.aggregateId
+        }
+        subscribe UserUpdatedEvent from User {
+            users.userAggregateId == event.aggregateId
+        }
+    }
+}
 ```
 
 ## Extract Pattern
 
-Extract specific fields from collection properties in cross-aggregate references.
+Extract specific fields from collection properties in cross-aggregate references. This is an advanced feature used in the Answers project.
 
 ### Syntax
 
@@ -273,210 +509,6 @@ map orders.status as orderStatuses
 - No filtering support
 - Works with `List<T>` and `Set<T>` only
 
-## Invariants
-
-### Simple Invariants
-
-Business rules enforced at the aggregate level:
-
-```nebula
-Root Entity User {
-    String name
-    UserRole role
-
-    invariants {
-        check nameNotBlank { name.length() > 0 }
-            error "User name cannot be blank"
-
-        check roleNotNull { role != null }
-            error "User role is required"
-    }
-}
-```
-
-Error messages are mandatory for all invariants.
-
-### Complex Invariants
-
-**Temporal constraints:**
-```nebula
-invariants {
-    check dateOrdering {
-        availableDate.isBefore(conclusionDate) &&
-        conclusionDate.isBefore(resultsDate)
-    }
-        error "Dates must be in chronological order"
-}
-```
-
-**Collection constraints:**
-```nebula
-invariants {
-    check topicsNotEmpty { topics != null && !topics.isEmpty() }
-        error "Question must have at least one topic"
-}
-```
-
-### Supported Expressions
-
-**Comparisons:** `<`, `>`, `<=`, `>=`, `==`, `!=`
-
-**Boolean logic:** `&&`, `||`, `!`
-
-**String operations:**
-```nebula
-name.length() > 0          // Automatic null check added
-email.contains("@")
-```
-
-**Temporal operations:**
-```nebula
-startDate.isBefore(endDate)
-deadline.isAfter(now())
-```
-
-**Collection operations:**
-```nebula
-users.size() > 0
-questions.isEmpty()
-topics.unique(topicId)     // All topicIds are unique
-```
-
-## Events
-
-### Published Events
-
-Define events that this aggregate emits:
-
-```nebula
-Events {
-    publish UserDeleted {
-        Integer userId
-        String username
-        UserRole role
-    }
-
-    publish UserUpdated {
-        Integer userId
-        String newName
-    }
-}
-```
-
-Generates event classes and publishing logic in services.
-
-### Subscribed Events
-
-Subscribe to events from other aggregates:
-
-**Simple subscription:**
-```nebula
-subscribe CourseDeletedEvent
-```
-
-**With source aggregate:**
-```nebula
-subscribe UserDeletedEvent from User
-```
-
-**With routing** (only deliver if match found):
-```nebula
-subscribe UserUpdatedEvent from User routing (users.userAggregateId)
-```
-
-**With condition:**
-```nebula
-subscribe CourseDeletedEvent from Course {
-    course.courseAggregateId == event.aggregateId
-}
-```
-
-### Inter-Invariants
-
-Group related subscriptions for referential integrity:
-
-```nebula
-Events {
-    interInvariant COURSE_EXISTS {
-        subscribe CourseDeletedEvent from Course {
-            course.courseAggregateId == event.aggregateId
-        }
-    }
-
-    interInvariant USERS_EXIST {
-        subscribe UserDeletedEvent from User {
-            users.userAggregateId == event.aggregateId
-        }
-        subscribe UserUpdatedEvent from User {
-            users.userAggregateId == event.aggregateId
-        }
-    }
-}
-```
-
-## References
-
-### Reference Constraints
-
-Define how to handle deletion of referenced aggregates:
-
-```nebula
-References {
-    course -> Course {
-        onDelete: prevent
-        message: "Cannot delete course that has executions"
-    }
-
-    creator -> User {
-        onDelete: setNull
-        message: "Creator deleted, reference set to null"
-    }
-
-    participants -> User {
-        onDelete: cascade
-        message: "User deleted, removing from participants"
-    }
-}
-```
-
-### Actions
-
-| Action | Behavior |
-|--------|----------|
-| `prevent` | Throw exception if referenced aggregate is deleted |
-| `setNull` | Set reference to null when referenced aggregate is deleted |
-| `cascade` | Delete this aggregate when referenced aggregate is deleted |
-
-## Repositories
-
-### Spring Data Methods
-
-Method names are parsed by Spring Data:
-
-```nebula
-Repository {
-    Optional<User> findByUsername(String username)
-    List<User> findByRole(UserRole role)
-    List<User> findByActiveTrue()
-}
-```
-
-### Custom JPQL Queries
-
-Use `@Query` annotation for complex queries:
-
-```nebula
-Repository {
-    @Query("select e.aggregateId from Execution e where e.state != 'DELETED'")
-    Set<Integer> findActiveExecutionIds()
-
-    @Query("select a from Answer a where a.quiz.quizAggregateId = :quizId")
-    List<Answer> findByQuizId(Integer quizId)
-}
-```
-
-Parameters are bound using `:paramName` syntax matching method parameter names.
-
 ## Services
 
 ### Auto-Generated Service
@@ -484,21 +516,22 @@ Parameters are bound using `:paramName` syntax matching method parameter names.
 With `@GenerateCrud`, a complete service is generated:
 
 ```nebula
-Aggregate User {
+Aggregate Member {
     @GenerateCrud
-    Root Entity User {
+    Root Entity Member {
         String name
-        UserRole role
+        String email
+        MembershipType membership
     }
 }
 ```
 
 Generated methods:
-- `createUser(CreateUserRequestDto, UnitOfWork)`
-- `getUserById(Integer, UnitOfWork)`
-- `getAllUsers(UnitOfWork)`
-- `updateUser(Integer, UserDto, UnitOfWork)`
-- `deleteUser(Integer, UnitOfWork)`
+- `createMember(CreateMemberRequestDto, UnitOfWork)`
+- `getMemberById(Integer, UnitOfWork)`
+- `getAllMembers(UnitOfWork)`
+- `updateMember(Integer, MemberDto, UnitOfWork)`
+- `deleteMember(Integer, UnitOfWork)`
 
 Collection properties additionally get add/remove methods.
 
@@ -532,11 +565,11 @@ Service {
 `@GenerateCrud` creates REST endpoints:
 
 ```java
-POST   /users                 createUser
-GET    /users/{id}            getUser
-GET    /users                 getAllUsers
-PUT    /users/{id}            updateUser
-DELETE /users/{id}            deleteUser
+POST   /members                 createMember
+GET    /members/{id}            getMember
+GET    /members                 getAllMembers
+PUT    /members/{id}            updateMember
+DELETE /members/{id}            deleteMember
 ```
 
 ### Custom Endpoints
@@ -554,24 +587,6 @@ WebAPIEndpoints {
 }
 ```
 
-## Shared Enums
-
-Define enumerations shared across aggregates:
-
-```nebula
-SharedEnums {
-    enum UserRole {
-        STUDENT, TEACHER, ADMIN
-    }
-
-    enum CourseType {
-        TECNICO, EXTERNAL
-    }
-}
-```
-
-Generated as standard Java enums in the `shared/enums/` package.
-
 ## Exception Messages
 
 Define project-specific error messages:
@@ -588,83 +603,116 @@ Generated as static constants in an exception class.
 
 ## Complete Example
 
-Here's the Execution aggregate from the Answers project, demonstrating multiple features together:
+Here's the full tutorial project -- three aggregates that progressively demonstrate DSL features:
+
+### 1. Member (simplest -- pure CRUD)
 
 ```nebula
-Aggregate Execution {
+Aggregate Member {
     @GenerateCrud
 
-    Entity ExecutionCourse from Course {
-        map name as courseName
-        map type as courseType
-    }
-
-    Entity ExecutionUser from User {
-        map name as userName
-        map username as userUsername
-        map active as userActive
-    }
-
-    Root Entity Execution {
-        String acronym
-        String academicTerm
-        LocalDateTime endDate
-        ExecutionCourse course
-        Set<ExecutionUser> users
-
-        invariants {
-            check acronymNotBlank { acronym.length() > 0 }
-                error "Execution acronym cannot be blank"
-
-            check academicTermNotBlank { academicTerm.length() > 0 }
-                error "Academic term cannot be blank"
-
-            check courseNotNull { course != null }
-                error "Execution must be associated with a course"
-
-            check usersNotNull { users != null }
-                error "Execution must have a users collection"
-        }
-    }
-
-    References {
-        course -> Course {
-            onDelete: prevent
-            message: "Cannot delete course that has executions"
-        }
-    }
-
-    Events {
-        interInvariant COURSE_EXISTS {
-            subscribe CourseDeletedEvent from Course {
-                course.courseAggregateId == event.aggregateId
-            }
-        }
-
-        interInvariant USERS_EXIST {
-            subscribe UserDeletedEvent from User {
-                users.userAggregateId == event.aggregateId
-            }
-            subscribe UserUpdatedEvent from User {
-                users.userAggregateId == event.aggregateId
-            }
-        }
-    }
-
-    Repository {
-        @Query("select e1.aggregateId from Execution e1 where e1.aggregateId NOT IN (select e2.aggregateId from Execution e2 where e2.state = 'DELETED' AND e2.sagaState != 'NOT_IN_SAGA')")
-        Set<Integer> findCourseExecutionIdsOfAllNonDeletedForSaga()
+    Root Entity Member {
+        String name
+        String email
+        MembershipType membership
     }
 }
 ```
 
-This single file (~65 lines) generates ~2,000 lines of Java code:
-- 3 JPA entities, 3 DTOs, 1 factory, 2 repositories
-- 1 service with CRUD + collection methods
-- 1 REST controller
-- Event subscriptions and handlers
-- Saga workflows
-- Invariant validation
+### 2. Book (intermediate -- invariants, events, repository)
+
+```nebula
+Aggregate Book {
+    @GenerateCrud
+
+    Root Entity Book {
+        String title
+        String author
+        String genre
+        Boolean available = true
+
+        invariants {
+            check titleNotBlank { title.length() > 0 }
+                error "Book title cannot be blank"
+            check authorNotBlank { author.length() > 0 }
+                error "Author name cannot be blank"
+        }
+    }
+
+    Events {
+        publish BookDeletedEvent {
+            Integer bookId
+            String title
+        }
+    }
+
+    Repository {
+        List<Book> findByGenre(String genre)
+        List<Book> findByAvailableTrue()
+    }
+}
+```
+
+### 3. Loan (advanced -- cross-aggregate refs, references, inter-invariants)
+
+```nebula
+Aggregate Loan {
+    @GenerateCrud
+
+    Entity LoanMember from Member {
+        map name as memberName
+        map email as memberEmail
+    }
+
+    Entity LoanBook from Book {
+        map title as bookTitle
+        map author as bookAuthor
+        map genre as bookGenre
+    }
+
+    Root Entity Loan {
+        LoanMember member
+        LoanBook book
+        LocalDateTime loanDate
+        LocalDateTime dueDate
+
+        invariants {
+            check memberNotNull { member != null }
+                error "Loan must have a member"
+            check bookNotNull { book != null }
+                error "Loan must have a book"
+            check dateOrdering { loanDate.isBefore(dueDate) }
+                error "Loan date must be before due date"
+        }
+    }
+
+    References {
+        member -> Member {
+            onDelete: cascade
+            message: "Member deleted, removing their loans"
+        }
+        book -> Book {
+            onDelete: prevent
+            message: "Cannot delete book that has active loans"
+        }
+    }
+
+    Events {
+        interInvariant MEMBER_EXISTS {
+            subscribe MemberDeletedEvent from Member {
+                member.memberAggregateId == event.aggregateId
+            }
+        }
+        interInvariant BOOK_EXISTS {
+            subscribe BookDeletedEvent from Book {
+                book.bookAggregateId == event.aggregateId
+            }
+        }
+    }
+}
+```
+
+For a more complex real-world example, see the Answers project's `execution.nebula` which adds custom JPQL queries, collection-type cross-aggregate references (`Set<ExecutionUser>`), and multiple event subscriptions per inter-invariant.
 
 ## Best Practices
 
@@ -677,8 +725,8 @@ Most aggregates need CRUD operations. Start with `@GenerateCrud` and add custom 
 ### Use Cross-Aggregate References
 Instead of duplicating data, reference other aggregates with `from`:
 ```nebula
-Entity ExecutionUser from User {
-    map name as userName
+Entity LoanMember from Member {
+    map name as memberName
 }
 ```
 
