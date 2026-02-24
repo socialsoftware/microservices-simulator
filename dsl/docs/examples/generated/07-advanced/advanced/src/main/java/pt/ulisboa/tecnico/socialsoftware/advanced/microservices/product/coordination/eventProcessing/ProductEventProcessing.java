@@ -1,0 +1,18 @@
+package pt.ulisboa.tecnico.socialsoftware.advanced.microservices.product.coordination.eventProcessing;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.product.service.ProductService;
+
+@Service
+public class ProductEventProcessing {
+    @Autowired
+    private ProductService productService;
+    
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+
+    public ProductEventProcessing(UnitOfWorkService unitOfWorkService) {
+        this.unitOfWorkService = unitOfWorkService;
+    }}

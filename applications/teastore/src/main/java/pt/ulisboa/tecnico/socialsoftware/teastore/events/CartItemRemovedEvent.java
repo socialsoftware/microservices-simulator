@@ -1,0 +1,31 @@
+package pt.ulisboa.tecnico.socialsoftware.teastore.events;
+
+import jakarta.persistence.Entity;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+
+@Entity
+public class CartItemRemovedEvent extends Event {
+    private Long productId;
+
+    public CartItemRemovedEvent() {
+        super();
+    }
+
+    public CartItemRemovedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
+    public CartItemRemovedEvent(Integer aggregateId, Long productId) {
+        super(aggregateId);
+        setProductId(productId);
+    }
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+}

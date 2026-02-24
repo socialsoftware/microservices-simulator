@@ -107,11 +107,11 @@ export class ServiceDefinitionGenerator {
         if (aggregate.generateCrud) {
             const aggregateName = aggregate.name;
             const lowerAggregate = aggregateName.toLowerCase();
-            const eventPackage = getGlobalConfig().buildPackageName(options.projectName, 'microservices', lowerAggregate, 'events', 'publish');
+            const eventPackage = getGlobalConfig().buildPackageName(options.projectName, 'events');
             imports.push(`import ${eventPackage}.${aggregateName}UpdatedEvent;`);
             imports.push(`import ${eventPackage}.${aggregateName}DeletedEvent;`);
-            
-            const requestDtoPackage = getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'webapi', 'requestDtos');
+
+            const requestDtoPackage = getGlobalConfig().buildPackageName(options.projectName, 'microservices', lowerAggregate, 'coordination', 'webapi', 'requestDtos');
             imports.push(`import ${requestDtoPackage}.Create${aggregateName}RequestDto;`);
         }
 

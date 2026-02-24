@@ -2,9 +2,18 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.event
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentTopic;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.TopicUpdatedEvent;
 
 public class TournamentSubscribesTopicUpdated extends EventSubscription {
     
+
+    public TournamentSubscribesTopicUpdated(TournamentTopic tournamentTopic) {
+        super(tournamentTopic.getTopicAggregateId(),
+                tournamentTopic.getTopicVersion(),
+                TopicUpdatedEvent.class.getSimpleName());
+        
+    }
 
     public TournamentSubscribesTopicUpdated() {
     }

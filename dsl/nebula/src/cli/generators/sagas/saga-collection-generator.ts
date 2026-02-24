@@ -142,12 +142,12 @@ export class SagaCollectionGenerator {
     ): string {
         const basePackage = this.getBasePackage(options);
         const className = `${StringUtils.capitalize(spec.name)}FunctionalitySagas`;
-        const capitalizedAggregate = StringUtils.capitalize(aggregateName);
 
-        
         const imports: string[] = [];
         imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
-        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${capitalizedAggregate}Service;`);
+        imports.push(`import ${basePackage}.ms.coordination.workflow.CommandGateway;`);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.ServiceMapping;`);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.command.${lowerAggregate}.*;`);
 
         if (spec.resultType) {
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${collection.elementDtoType};`);
@@ -155,30 +155,27 @@ export class SagaCollectionGenerator {
 
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
-        imports.push(`import ${basePackage}.ms.sagas.workflow.SagaSyncStep;`);
+        imports.push(`import ${basePackage}.ms.sagas.workflow.SagaStep;`);
         imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
 
         if (spec.resultType?.includes('List<')) {
             imports.push('import java.util.List;');
         }
 
-        
         const fields: string[] = [];
         if (spec.resultType) {
             fields.push(`    private ${spec.resultType} ${spec.resultField};`);
         }
-        fields.push(`    private final ${capitalizedAggregate}Service ${lowerAggregate}Service;`);
         fields.push(`    private final SagaUnitOfWorkService unitOfWorkService;`);
+        fields.push(`    private final CommandGateway commandGateway;`);
 
-        
         const constructorParams = [
-            'SagaUnitOfWork unitOfWork',
             'SagaUnitOfWorkService unitOfWorkService',
-            `${capitalizedAggregate}Service ${lowerAggregate}Service`,
-            ...spec.params.map((p: any) => `${p.type} ${p.name}`)
+            ...spec.params.map((p: any) => `${p.type} ${p.name}`),
+            'SagaUnitOfWork unitOfWork',
+            'CommandGateway commandGateway'
         ];
 
-        
         const buildWorkflowParams = [
             ...spec.params.map((p: any) => `${p.type} ${p.name}`),
             'SagaUnitOfWork unitOfWork'
@@ -189,25 +186,26 @@ export class SagaCollectionGenerator {
             'unitOfWork'
         ];
 
-        
-        
-        
-        const serviceMethodName = spec.operation === 'addBatch'
-            ? `add${collection.elementType}s`
-            : `${spec.operation}${collection.elementType}`;
-        const serviceArgs = [...spec.params.map((p: any) => p.name), 'unitOfWork'];
+        const enumName = aggregateName.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
+        const commandMethodName = spec.operation === 'addBatch'
+            ? `add${aggregateName}${collection.capitalizedCollection}`
+            : `${spec.operation}${aggregateName}${collection.capitalizedSingular}`;
+        const commandClassName = `${StringUtils.capitalize(commandMethodName)}Command`;
+        const commandArgs = spec.params.map((p: any) => p.name).join(', ');
 
         let stepBody: string;
         if (spec.resultType) {
             const setterName = `set${StringUtils.capitalize(spec.resultField)}`;
-            stepBody = `            ${spec.resultType} ${spec.resultField} = ${lowerAggregate}Service.${serviceMethodName}(${serviceArgs.join(', ')});
+            stepBody = `            ${commandClassName} cmd = new ${commandClassName}(unitOfWork, ServiceMapping.${enumName}.getServiceName()${commandArgs ? ', ' + commandArgs : ''});
+            ${spec.resultType} ${spec.resultField} = (${spec.resultType}) commandGateway.send(cmd);
             ${setterName}(${spec.resultField});`;
         } else {
-            stepBody = `            ${lowerAggregate}Service.${serviceMethodName}(${serviceArgs.join(', ')});`;
+            stepBody = `            ${commandClassName} cmd = new ${commandClassName}(unitOfWork, ServiceMapping.${enumName}.getServiceName()${commandArgs ? ', ' + commandArgs : ''});
+            commandGateway.send(cmd);`;
         }
 
         const workflowBody = `
-        SagaSyncStep ${spec.stepName} = new SagaSyncStep("${spec.stepName}", () -> {
+        SagaStep ${spec.stepName} = new SagaStep("${spec.stepName}", () -> {
 ${stepBody}
         });
 
@@ -226,7 +224,6 @@ ${stepBody}
     }`;
         }
 
-        
         return `package ${packageName};
 
 ${imports.join('\n')}
@@ -235,8 +232,8 @@ public class ${className} extends WorkflowFunctionality {
 ${fields.join('\n')}
 
     public ${className}(${constructorParams.join(', ')}) {
-        this.${lowerAggregate}Service = ${lowerAggregate}Service;
         this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
         this.buildWorkflow(${buildWorkflowCallArgs.join(', ')});
     }
 

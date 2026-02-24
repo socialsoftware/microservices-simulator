@@ -3,14 +3,14 @@ import { Aggregate, SubscribedEvent } from "../../../../../language/generated/as
 import { AggregateExt } from "../../../../types/ast-extensions.js";
 import { GeneratorCapabilities } from "../../../common/generator-capabilities.js";
 import { EventNameParser } from "../../../common/utils/event-name-parser.js";
-import { EventPublisherDiscovery } from "./event-publisher-discovery.js";
+
 
 
 
 export class SubscribedEventContextBuilder {
-    constructor(private capabilities: GeneratorCapabilities) {}
+    constructor(private capabilities: GeneratorCapabilities) { }
 
-    
+
 
     buildSubscribedEventContext(event: SubscribedEvent, aggregate: AggregateExt, options: any): any {
         const lowerAggregate = aggregate.name.toLowerCase();
@@ -18,61 +18,28 @@ export class SubscribedEventContextBuilder {
 
         const subscriptionName = EventNameParser.generateSubscriptionName(aggregate.name, eventTypeName);
 
-        
+
         let subscribingEntityName = event.sourceAggregate;
         if (!subscribingEntityName) {
-            
+
             const inferredEntityName = EventNameParser.extractEntityName(eventTypeName);
 
-            
+
             const entities = (aggregate as any).entities || [];
             const projectionEntity = entities.find((e: any) => {
                 const aggregateRef = e.aggregateRef;
                 return aggregateRef && aggregateRef.toLowerCase() === inferredEntityName.toLowerCase();
             });
 
-            
+
             subscribingEntityName = projectionEntity ? projectionEntity.name : aggregate.name;
         }
 
-        
-        
+
+
         const subscribingEntityVariable = subscribingEntityName
             ? subscribingEntityName.charAt(0).toLowerCase() + subscribingEntityName.slice(1)
             : '';
-
-        
-        let eventSourceAggregate = lowerAggregate;  
-
-        
-        const publishedEvent = (event as any).eventType?.ref;
-        const eventsContainer = publishedEvent?.$container;
-        const sourceAggregate = eventsContainer?.$container;
-        if (sourceAggregate?.name) {
-            eventSourceAggregate = sourceAggregate.name.toLowerCase();
-        } else if (event.sourceAggregate) {
-            eventSourceAggregate = event.sourceAggregate.toLowerCase();
-        }
-        
-        else if (options?.allAggregates && options.allAggregates.length > 0) {
-            const found = EventPublisherDiscovery.findEventPublisher(eventTypeName, options.allAggregates);
-            if (found) {
-                eventSourceAggregate = found;
-            } else {
-                console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
-
-                const inferredPublisher = EventNameParser.extractPublisherAggregate(eventTypeName);
-                eventSourceAggregate = inferredPublisher.toLowerCase();
-            }
-        }
-
-        else {
-
-
-
-            const inferredPublisher = EventNameParser.extractPublisherAggregate(eventTypeName);
-            eventSourceAggregate = inferredPublisher.toLowerCase();
-        }
 
         const conditions = event.conditions?.map((condition: any) => {
             if (!condition.condition) {
@@ -87,7 +54,8 @@ export class SubscribedEventContextBuilder {
             event,
             aggregate,
             subscribingEntityVariable,
-            eventTypeName
+            eventTypeName,
+            subscribingEntityName
         );
 
         return {
@@ -97,65 +65,37 @@ export class SubscribedEventContextBuilder {
             sourceAggregateVariable: subscribingEntityVariable,
             sourceAggregatePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate`,
             eventTypeName,
-            eventTypePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${eventSourceAggregate}.events.publish`,
+            eventTypePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.events`,
             conditions,
             subscriptionKeyAggregateIdExpr: aggregateIdExpr,
             subscriptionKeyVersionExpr: versionExpr
         };
     }
 
-    
+
 
     buildInterInvariantSubscriptionContext(event: SubscribedEvent, aggregate: AggregateExt, options: any): any {
         const aggregateName = aggregate.name;
         const eventTypeName = (event as any).eventType || 'UnknownEvent';
         const eventBaseName = EventNameParser.removeEventSuffix(eventTypeName);
 
-        
-        
+
+
         const interInvariantName = (event as any).interInvariantName || '';
-        
+
         const fieldSuffix = interInvariantName
             ? interInvariantName.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join('')
             : '';
         const subscriptionName = `${aggregateName}Subscribes${eventBaseName}${fieldSuffix}`;
 
-        
+
         const entityRef = this.extractEntityReferenceFromCondition(event, aggregate);
         if (!entityRef) {
             console.warn(chalk.yellow(`[WARN] Could not extract entity reference for inter-invariant subscription ${subscriptionName}`));
             return this.buildSubscribedEventContext(event, aggregate, options);
         }
 
-        
-        
-        let eventSourceAggregate = aggregateName.toLowerCase();
-        if (event.sourceAggregate) {
-            eventSourceAggregate = event.sourceAggregate.toLowerCase();
-        } else {
-            
-            const entities = (aggregate as any).entities || [];
-            const referencedEntity = entities.find((e: any) => e.name === entityRef.entityTypeName);
 
-            if (referencedEntity && (referencedEntity as any).aggregateRef) {
-                
-                eventSourceAggregate = (referencedEntity as any).aggregateRef.toLowerCase();
-            } else {
-                
-                const publishedEvent = (event as any).eventType?.ref;
-                const eventsContainer = publishedEvent?.$container;
-                const sourceAggregate = eventsContainer?.$container;
-                if (sourceAggregate?.name) {
-                    eventSourceAggregate = sourceAggregate.name.toLowerCase();
-                } else {
-                    
-                    const inferredPublisher = EventNameParser.extractPublisherAggregate(eventTypeName);
-                    eventSourceAggregate = inferredPublisher.toLowerCase();
-                }
-            }
-        }
-
-        
         const cleanEntityName = entityRef.entityTypeName.replace(new RegExp(`^${aggregateName}`, 'i'), '');
         const lowerEntityName = cleanEntityName.charAt(0).toLowerCase() + cleanEntityName.slice(1);
         const aggregateIdField = `${lowerEntityName}AggregateId`;
@@ -178,13 +118,13 @@ export class SubscribedEventContextBuilder {
                 `import ${this.getBasePackage()}.ms.domain.event.Event;`,
                 `import ${this.getBasePackage()}.ms.domain.event.EventSubscription;`,
                 `import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregateName.toLowerCase()}.aggregate.${entityRef.entityTypeName};`,
-                `import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${eventSourceAggregate}.events.publish.${eventTypeName};`,
+                `import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.events.${eventTypeName};`,
                 ''
             ]
         };
     }
 
-    
+
 
     buildCustomEventHandlingContext(aggregate: AggregateExt, options: any): any {
         const aggregateName = aggregate.name;
@@ -192,7 +132,7 @@ export class SubscribedEventContextBuilder {
 
         const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
 
-        
+
         const eventsWithHandlers = allSubscribedEvents.filter((event: any) => !(event as any).isInterInvariant);
 
         const subscribedEvents = eventsWithHandlers.map(event => {
@@ -205,44 +145,11 @@ export class SubscribedEventContextBuilder {
             const eventTypeName = (event as any).eventType || 'UnknownEvent';
             const handlerName = `${eventTypeName}Handler`;
 
-            
-            const entityName = EventNameParser.extractEntityName(eventTypeName);
-
-            
-            let sourceAggregateName = lowerAggregateName;
-
-            
-            const publishedEvent = (event as any).eventType?.ref;
-            const eventsContainer = publishedEvent?.$container;
-            const sourceAggregate = eventsContainer?.$container;
-            if (sourceAggregate?.name) {
-                sourceAggregateName = sourceAggregate.name.toLowerCase();
-            } else if ((event as any).sourceAggregate) {
-                sourceAggregateName = ((event as any).sourceAggregate as string).toLowerCase();
-            }
-            
-            else if (options?.allAggregates && options.allAggregates.length > 0) {
-                const found = EventPublisherDiscovery.findEventPublisher(eventTypeName, options.allAggregates);
-                if (found) {
-                    sourceAggregateName = found;
-                } else {
-                    console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
-
-                    sourceAggregateName = entityName.toLowerCase();
-                }
-            }
-            
-            else {
-                
-                
-                sourceAggregateName = entityName.toLowerCase();
-            }
-
             return {
                 handlerName,
                 handlerPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.events.handling.handlers`,
                 eventName: eventTypeName,
-                eventPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${sourceAggregateName}.events.publish`
+                eventPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.events`
             };
         }) || [];
 
@@ -250,53 +157,20 @@ export class SubscribedEventContextBuilder {
             packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.events.handling`,
             aggregateName,
             lowerAggregateName,
-            coordinationPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.coordination.eventProcessing`,
+            coordinationPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.coordination.eventProcessing`,
             aggregatePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.aggregate`,
             subscribedEvents,
             subscribedEventImports
         };
     }
 
-    
+
 
     buildEventHandlerContext(event: SubscribedEvent, aggregate: AggregateExt, options: any): any {
         const aggregateName = aggregate.name;
         const lowerAggregateName = aggregateName.toLowerCase();
         const eventTypeName = (event as any).eventType || 'UnknownEvent';
         const handlerName = `${eventTypeName}Handler`;
-
-        
-        const entityName = EventNameParser.extractEntityName(eventTypeName);
-
-        
-        let sourceAggregateName = lowerAggregateName;
-
-        
-        const publishedEvent = (event as any).eventType?.ref;
-        const eventsContainer = publishedEvent?.$container;
-        const sourceAggregate = eventsContainer?.$container;
-        if (sourceAggregate?.name) {
-            sourceAggregateName = sourceAggregate.name.toLowerCase();
-        } else if ((event as any).sourceAggregate) {
-            sourceAggregateName = ((event as any).sourceAggregate as string).toLowerCase();
-        }
-        
-        else if (options?.allAggregates && options.allAggregates.length > 0) {
-            const found = EventPublisherDiscovery.findEventPublisher(eventTypeName, options.allAggregates);
-            if (found) {
-                sourceAggregateName = found;
-            } else {
-                console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
-
-                sourceAggregateName = entityName.toLowerCase();
-            }
-        }
-
-        else {
-            
-            
-            sourceAggregateName = entityName.toLowerCase();
-        }
 
         return {
             packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.events.handling.handlers`,
@@ -305,12 +179,12 @@ export class SubscribedEventContextBuilder {
             lowerAggregateName,
             eventTypeName,
             aggregatePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.aggregate`,
-            aggregateCoordinationPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.coordination.eventProcessing`,
-            eventTypePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${sourceAggregateName}.events.publish`
+            aggregateCoordinationPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.coordination.eventProcessing`,
+            eventTypePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.events`
         };
     }
 
-    
+
 
     buildBaseEventHandlerContext(aggregate: AggregateExt, options: { projectName: string }): any {
         const aggregateName = aggregate.name;
@@ -320,16 +194,16 @@ export class SubscribedEventContextBuilder {
             packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.events.handling.handlers`,
             aggregateName,
             lowerAggregateName,
-            coordinationPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.coordination.eventProcessing`,
+            coordinationPackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.coordination.eventProcessing`,
             aggregatePackage: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregateName}.aggregate`
         };
     }
 
-    
-    
-    
 
-    
+
+
+
+
 
     private extractEntityReferenceFromCondition(event: SubscribedEvent, aggregate: AggregateExt): { fieldName: string, entityTypeName: string } | null {
         const conditions = event.conditions || [];
@@ -346,7 +220,7 @@ export class SubscribedEventContextBuilder {
             return null;
         }
 
-        
+
         const match = conditionText.match(/^(\w+)\./);
         if (!match) {
             return null;
@@ -354,7 +228,7 @@ export class SubscribedEventContextBuilder {
 
         const fieldName = match[1];
 
-        
+
         const rootEntity: any = (aggregate as any).entities?.find((e: any) => e.isRoot);
         if (!rootEntity) {
             return null;
@@ -365,7 +239,7 @@ export class SubscribedEventContextBuilder {
             return null;
         }
 
-        
+
         const entityTypeName = this.extractEntityTypeName(property);
         if (!entityTypeName) {
             return null;
@@ -374,7 +248,7 @@ export class SubscribedEventContextBuilder {
         return { fieldName, entityTypeName };
     }
 
-    
+
 
     private extractEntityTypeName(property: any): string | null {
         const typeObj = property.type;
@@ -382,12 +256,12 @@ export class SubscribedEventContextBuilder {
             return null;
         }
 
-        
+
         if ((typeObj.$type === 'ListType' || typeObj.$type === 'SetType') && typeObj.elementType) {
             const elementType = typeObj.elementType;
-            
+
             if (elementType.$type === 'EntityType') {
-                
+
                 if (elementType.type?.ref?.name) {
                     return elementType.type.ref.name;
                 }
@@ -395,7 +269,7 @@ export class SubscribedEventContextBuilder {
                     return elementType.type.$refText;
                 }
             }
-            
+
             if (elementType.$refText) {
                 return elementType.$refText;
             }
@@ -404,17 +278,17 @@ export class SubscribedEventContextBuilder {
             }
         }
 
-        
+
         if (typeObj.$type === 'EntityType' && typeObj.type?.$refText) {
             return typeObj.type.$refText;
         }
 
-        
+
         if (typeObj.type?.$refText) {
             return typeObj.type.$refText;
         }
 
-        
+
         if (typeObj.collection) {
             if (typeObj.type?.type?.$refText) {
                 return typeObj.type.type.$refText;
@@ -427,17 +301,18 @@ export class SubscribedEventContextBuilder {
         return null;
     }
 
-    
-    
-    
 
-    
+
+
+
+
 
     private buildSubscriptionKeyExpressions(
         event: SubscribedEvent,
         aggregate: Aggregate,
         aggregateVariable: string,
-        eventTypeName: string
+        eventTypeName: string,
+        subscribingEntityName?: string
     ): { aggregateIdExpr: string; versionExpr: string } {
         if ((event as any).routingIdExpr) {
             const idExpr = this.buildGetterChainFromRoutingExpression(
@@ -460,6 +335,23 @@ export class SubscribedEventContextBuilder {
             aggregateIdExpr: `${aggregateVariable}.getAggregateId()`,
             versionExpr: '0'
         };
+
+        const aggregateName = aggregate.name;
+        if (subscribingEntityName && subscribingEntityName !== aggregateName) {
+            const cleanEntityName = subscribingEntityName.replace(new RegExp(`^${aggregateName}`, 'i'), '');
+            if (cleanEntityName && cleanEntityName !== subscribingEntityName) {
+                const lowerEntityName = cleanEntityName.charAt(0).toLowerCase() + cleanEntityName.slice(1);
+                const aggregateIdField = `${lowerEntityName}AggregateId`;
+                const versionField = `${lowerEntityName}Version`;
+                const capAggId = aggregateIdField.charAt(0).toUpperCase() + aggregateIdField.slice(1);
+                const capVersion = versionField.charAt(0).toUpperCase() + versionField.slice(1);
+
+                return {
+                    aggregateIdExpr: `${aggregateVariable}.get${capAggId}()`,
+                    versionExpr: `${aggregateVariable}.get${capVersion}()`
+                };
+            }
+        }
 
         const rootEntity: any = (aggregate as any).entities?.find((e: any) => e.isRoot);
         if (!rootEntity || !rootEntity.properties) {
@@ -517,7 +409,7 @@ export class SubscribedEventContextBuilder {
         };
     }
 
-    
+
 
     private buildGetterChainFromRoutingExpression(
         expr: any,
@@ -562,11 +454,11 @@ export class SubscribedEventContextBuilder {
         return this.convertEventConditionToJava(expr, aggregateVariable, eventTypeName);
     }
 
-    
-    
-    
 
-    
+
+
+
+
 
     private collectSubscribedEvents(aggregate: AggregateExt): any[] {
         const direct = aggregate.events?.subscribedEvents || [];
@@ -578,11 +470,11 @@ export class SubscribedEventContextBuilder {
         return allSubscribed;
     }
 
-    
-    
-    
 
-    
+
+
+
+
 
     private convertEventConditionToJava(expression: any, entityVariable: string, eventTypeName: string): string {
         if (!expression) {
@@ -624,7 +516,7 @@ export class SubscribedEventContextBuilder {
         return rewritten;
     }
 
-    
+
 
     private convertExpressionASTToJava(expression: any, entityVariable: string, eventTypeName: string): string {
         if (!expression) {
@@ -680,7 +572,7 @@ export class SubscribedEventContextBuilder {
         return 'true';
     }
 
-    
+
 
     private convertPropertyChainToJava(expression: any, entityVariable: string, eventTypeName: string): string {
         const head = expression.head;
@@ -712,17 +604,17 @@ export class SubscribedEventContextBuilder {
         return result;
     }
 
-    
+
 
     private isPropertyAccess(expression: any): boolean {
         return expression?.$type === 'PropertyReference' || expression?.$type === 'PropertyChainExpression';
     }
 
-    
-    
-    
 
-    
+
+
+
+
 
     private getBasePackage(): string {
         return this.capabilities.packageBuilder.buildCustomPackage('').split('.').slice(0, -1).join('.');

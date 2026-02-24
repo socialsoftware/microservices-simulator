@@ -39,11 +39,12 @@ export class FunctionalitiesImportsBuilder {
         imports.push(`import ${basePackage}.ms.TransactionalModel;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
-        imports.push(`import ${basePackage}.${projectName}.sagas.coordination.${aggregate.name.toLowerCase()}.*;`);
+        imports.push(`import ${basePackage}.ms.coordination.workflow.CommandGateway;`);
+        imports.push(`import ${basePackage}.${projectName}.microservices.${aggregate.name.toLowerCase()}.coordination.sagas.*;`);
 
         
         dependencies.forEach(dep => {
-            if (dep.required && !dep.name.includes('UnitOfWorkService')) {
+            if (dep.required && !dep.name.includes('UnitOfWorkService') && !dep.name.includes('commandGateway')) {
                 const serviceName = dep.name.toLowerCase().replace('service', '');
                 imports.push(`import ${basePackage}.${projectName}.microservices.${serviceName}.service.${dep.type};`);
             }
@@ -135,8 +136,7 @@ export class FunctionalitiesImportsBuilder {
             imports.push(`import ${dtoPackage}.${dtoType};`);
         });
 
-        
-        const requestDtoPackage = `${basePackage}.${projectName}.coordination.webapi.requestDtos`;
+        const requestDtoPackage = `${basePackage}.${projectName}.microservices.${aggregate.name.toLowerCase()}.coordination.webapi.requestDtos`;
         usedRequestDtoTypes.forEach(requestDtoType => {
             imports.push(`import ${requestDtoPackage}.${requestDtoType};`);
         });

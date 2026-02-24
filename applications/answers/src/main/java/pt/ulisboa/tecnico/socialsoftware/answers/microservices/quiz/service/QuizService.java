@@ -17,12 +17,12 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizQuestionRemovedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizQuestionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizQuestionRemovedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizQuestionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
-import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateQuizRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.coordination.webapi.requestDtos.CreateQuizRequestDto;
 
 
 @Service

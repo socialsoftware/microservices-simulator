@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+
 import { AggregateExt, EntityExt } from '../../types/ast-extensions.js';
 import { CoordinationGenerationOptions } from '../microservices/types.js';
 import { GeneratorCapabilities, GeneratorCapabilitiesFactory } from '../common/generator-capabilities.js';
@@ -68,7 +68,7 @@ export class EventProcessingGenerator {
         const tempContext = {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
-            packageName: `${basePackage}.${projectName}.coordination.eventProcessing`,
+            packageName: `${basePackage}.${projectName}.microservices.${lowerAggregate}.coordination.eventProcessing`,
             basePackage,
             transactionModel: this.getTransactionModel(),
             imports: imports.join('\n'),
@@ -169,48 +169,6 @@ export class EventProcessingGenerator {
 
 
 
-    private findEventPublisher(eventTypeName: string, allAggregates: AggregateExt[]): string | null {
-        for (const agg of allAggregates) {
-            const aggName = agg.name;
-
-
-            const aggregateEvents = (agg as any).events;
-            const customEvents = aggregateEvents?.publishedEvents || [];
-            if (customEvents.some((e: any) => e.name === eventTypeName)) {
-                return aggName.toLowerCase();
-            }
-
-
-            if (agg.generateCrud) {
-                const rootCrudEvents = [
-                    `${aggName}UpdatedEvent`,
-                    `${aggName}DeletedEvent`
-                ];
-                if (rootCrudEvents.includes(eventTypeName)) {
-                    return aggName.toLowerCase();
-                }
-            }
-
-
-            const projectionEntities = (agg.entities || []).filter((e: any) =>
-                !e.isRoot && e.aggregateRef
-            );
-            for (const proj of projectionEntities) {
-                const projName = proj.name;
-                const projCrudEvents = [
-                    `${projName}UpdatedEvent`,
-                    `${projName}DeletedEvent`,
-                    `${projName}RemovedEvent`
-                ];
-                if (projCrudEvents.includes(eventTypeName)) {
-                    return aggName.toLowerCase();
-                }
-            }
-        }
-
-        return null;
-    }
-
     private buildImports(aggregate: AggregateExt, options: CoordinationGenerationOptions, allAggregates?: AggregateExt[]): string[] {
         const imports: string[] = [];
         const projectName = options.projectName.toLowerCase();
@@ -230,29 +188,8 @@ export class EventProcessingGenerator {
 
         eventsWithHandlers.forEach((event: any) => {
             const eventTypeName = event.eventType || 'UnknownEvent';
-            let sourceAggregateName = 'unknown';
 
-            if (allAggregates && allAggregates.length > 0) {
-                const found = this.findEventPublisher(eventTypeName, allAggregates);
-                if (found) {
-                    sourceAggregateName = found;
-                } else {
-                    console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
-
-                    sourceAggregateName = eventTypeName
-                        .replace(/(Updated|Deleted|Created)Event$/, '')
-                        .toLowerCase();
-                }
-            }
-
-            else {
-                console.warn(chalk.yellow(`[WARN] allAggregates not available, using fallback for ${eventTypeName}`));
-                sourceAggregateName = eventTypeName
-                    .replace(/(Updated|Deleted|Created)Event$/, '')
-                    .toLowerCase();
-            }
-
-            imports.push(`import ${basePackage}.${projectName}.microservices.${sourceAggregateName}.events.publish.${eventTypeName};`);
+            imports.push(`import ${basePackage}.${projectName}.events.${eventTypeName};`);
         });
 
         const references = (aggregate as any).references;
@@ -260,7 +197,7 @@ export class EventProcessingGenerator {
             for (const constraint of references.constraints) {
                 const targetAggregate = constraint.targetAggregate;
                 const eventTypeName = `${targetAggregate}DeletedEvent`;
-                const importLine = `import ${basePackage}.${projectName}.microservices.${targetAggregate.toLowerCase()}.events.publish.${eventTypeName};`;
+                const importLine = `import ${basePackage}.${projectName}.events.${eventTypeName};`;
                 if (!imports.includes(importLine)) {
                     imports.push(importLine);
                 }

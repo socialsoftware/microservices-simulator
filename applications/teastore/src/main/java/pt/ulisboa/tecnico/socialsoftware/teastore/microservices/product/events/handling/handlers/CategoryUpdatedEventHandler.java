@@ -1,9 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.handling.handlers;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
-import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.eventProcessing.ProductEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.coordination.eventProcessing.ProductEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregate.ProductRepository;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.events.publish.CategoryUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.CategoryUpdatedEvent;
 
 public class CategoryUpdatedEventHandler extends ProductEventHandler {
     public CategoryUpdatedEventHandler(ProductRepository productRepository, ProductEventProcessing productEventProcessing) {

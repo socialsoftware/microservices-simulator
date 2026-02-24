@@ -1,9 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.handling.handlers;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
-import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.TournamentEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.coordination.eventProcessing.TournamentEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizUpdatedEvent;
 
 public class QuizUpdatedEventHandler extends TournamentEventHandler {
     public QuizUpdatedEventHandler(TournamentRepository tournamentRepository, TournamentEventProcessing tournamentEventProcessing) {

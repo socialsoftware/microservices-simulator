@@ -32,7 +32,7 @@ export class SagaFunctionalityGenerator {
         const outputs: Record<string, string> = {};
         const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
-        const packageName = `${basePackage}.${options.projectName.toLowerCase()}.sagas.coordination.${lowerAggregate}`;
+        const packageName = `${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.coordination.sagas`;
 
         
         initializeAggregateProperties(aggregate);
@@ -120,13 +120,15 @@ export class SagaFunctionalityGenerator {
         const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
 
         const imports: string[] = [];
-        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${StringUtils.capitalize(aggregate.name)}Service;`);
+        imports.push(`import ${basePackage}.ms.coordination.workflow.CommandGateway;`);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.ServiceMapping;`);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.command.${lowerAggregate}.*;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
 
         const constructorDependencies = [
-            { type: `${StringUtils.capitalize(aggregate.name)}Service`, name: `${lowerAggregate}Service` },
             { type: 'SagaUnitOfWorkService', name: 'sagaUnitOfWorkService' },
-            { type: 'SagaUnitOfWork', name: 'unitOfWork' }
+            { type: 'SagaUnitOfWork', name: 'unitOfWork' },
+            { type: 'CommandGateway', name: 'commandGateway' }
         ];
 
         let resultType: string | undefined;
@@ -179,13 +181,15 @@ export class SagaFunctionalityGenerator {
             const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
 
             const imports: string[] = [];
-            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${StringUtils.capitalize(aggregate.name)}Service;`);
+            imports.push(`import ${basePackage}.ms.coordination.workflow.CommandGateway;`);
+            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.ServiceMapping;`);
+            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.command.${lowerAggregate}.*;`);
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
 
             const constructorDependencies: Array<{ type: string; name: string }> = [
-                { type: `${StringUtils.capitalize(aggregate.name)}Service`, name: `${lowerAggregate}Service` },
                 { type: 'SagaUnitOfWorkService', name: 'sagaUnitOfWorkService' },
-                { type: 'SagaUnitOfWork', name: 'unitOfWork' }
+                { type: 'SagaUnitOfWork', name: 'unitOfWork' },
+                { type: 'CommandGateway', name: 'commandGateway' }
             ];
 
             if (func.dependencyRefs && Array.isArray(func.dependencyRefs)) {
@@ -317,7 +321,7 @@ export class SagaFunctionalityGenerator {
                 stepDependencies = `, new ArrayList<>(Arrays.asList(${depVars}))`;
             }
 
-            let stepCode = `        SagaSyncStep ${stepVar} = new SagaSyncStep("${stepName}", () -> {\n${stepBody}        }${stepDependencies});\n`;
+            let stepCode = `        SagaStep ${stepVar} = new SagaStep("${stepName}", () -> {\n${stepBody}        }${stepDependencies});\n`;
 
             
             if (compensation && compensation.compensationActions) {

@@ -1,9 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
-import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.AnswerEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.coordination.eventProcessing.AnswerEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.publish.QuestionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.QuestionUpdatedEvent;
 
 public class QuestionUpdatedEventHandler extends AnswerEventHandler {
     public QuestionUpdatedEventHandler(AnswerRepository answerRepository, AnswerEventProcessing answerEventProcessing) {

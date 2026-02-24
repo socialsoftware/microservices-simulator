@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
-import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.eventProcessing.ProductEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.coordination.eventProcessing.ProductEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregate.Product;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregate.ProductRepository;
 

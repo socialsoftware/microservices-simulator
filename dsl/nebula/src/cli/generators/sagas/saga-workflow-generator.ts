@@ -24,11 +24,13 @@ export class SagaWorkflowGenerator {
 
         const imports: string[] = [];
         imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
+        imports.push(`import ${basePackage}.ms.coordination.workflow.CommandGateway;`);
         imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
-        imports.push(`import ${basePackage}.ms.sagas.workflow.SagaSyncStep;`);
+        imports.push(`import ${basePackage}.ms.sagas.workflow.SagaStep;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
-        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${capitalizedAggregate}Service;`);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.ServiceMapping;`);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.command.${lowerAggregate}.*;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
 
         
@@ -45,15 +47,15 @@ export class SagaWorkflowGenerator {
             (s.compensation?.compensationActions || []).some((a: any) => a.$type === 'WorkflowRegisterStateAction')
         );
         if (usesRegisterState) {
-            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.sagas.aggregates.states.${capitalizedAggregate}SagaState;`);
+            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate.sagas.states.${capitalizedAggregate}SagaState;`);
             imports.push(`import ${basePackage}.ms.sagas.aggregate.GenericSagaState;`);
         }
 
         
         const workflowParams = workflow.parameters || [];
         const constructorParams: Array<{ type: string; name: string }> = [
-            { type: `${capitalizedAggregate}Service`, name: `${lowerAggregate}Service` },
-            { type: 'SagaUnitOfWorkService', name: 'sagaUnitOfWorkService' }
+            { type: 'SagaUnitOfWorkService', name: 'sagaUnitOfWorkService' },
+            { type: 'CommandGateway', name: 'commandGateway' }
         ];
 
         
@@ -79,8 +81,8 @@ export class SagaWorkflowGenerator {
 
         
         const serviceFields = [
-            `    private ${capitalizedAggregate}Service ${lowerAggregate}Service;`,
-            `    private SagaUnitOfWorkService sagaUnitOfWorkService;`
+            `    private SagaUnitOfWorkService sagaUnitOfWorkService;`,
+            `    private CommandGateway commandGateway;`
         ];
 
         
@@ -93,8 +95,8 @@ export class SagaWorkflowGenerator {
 
         
         const constructorAssignments = [
-            `        this.${lowerAggregate}Service = ${lowerAggregate}Service;`,
-            `        this.sagaUnitOfWorkService = sagaUnitOfWorkService;`
+            `        this.sagaUnitOfWorkService = sagaUnitOfWorkService;`,
+            `        this.commandGateway = commandGateway;`
         ];
 
         
@@ -154,7 +156,7 @@ ${gettersSetters}
 
         // No workflow steps defined in DSL - implement via workflowSteps block
         // Example structure:
-        // SagaSyncStep step1 = new SagaSyncStep("step1", () -> {
+        // SagaStep step1 = new SagaStep("step1", () -> {
         //     // Step implementation
         // });
         // this.workflow.addStep(step1);`;
@@ -198,7 +200,7 @@ ${gettersSetters}
                 stepDependencies = `, new ArrayList<>(Arrays.asList(${depVars}))`;
             }
 
-            lines.push(`        SagaSyncStep ${stepVar} = new SagaSyncStep("${stepName}", () -> {`);
+            lines.push(`        SagaStep ${stepVar} = new SagaStep("${stepName}", () -> {`);
             lines.push(stepBody);
             lines.push(`        }${stepDependencies});`);
             lines.push('');

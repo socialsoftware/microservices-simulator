@@ -8,7 +8,7 @@ public class {{subscription.capitalizedSubscriptionName}} extends EventSubscript
     public {{subscription.capitalizedSubscriptionName}}({{subscription.entityTypeName}} {{subscription.entityParamName}}) {
         super({{subscription.entityParamName}}.get{{subscription.capitalizedAggregateIdField}}(),
                 {{subscription.entityParamName}}.get{{subscription.capitalizedVersionField}}(),
-                {{subscription.eventTypeName}}.class);
+                {{subscription.eventTypeName}}.class.getSimpleName());
     }
 
     @Override

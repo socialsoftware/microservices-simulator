@@ -38,7 +38,6 @@ ${cases}
     generateFunctionalityMethodBody(func: any, returnType: string, aggregateName: string, projectName?: string): string {
         const methodName = func.name;
         const capitalizedMethodName = StringUtils.capitalize(methodName);
-        const lowerAggregateName = aggregateName.toLowerCase();
         const params = this.extractFunctionalityParameters(func.parameters);
         const paramNames = params.map(p => p.name).join(', ');
 
@@ -47,7 +46,7 @@ ${cases}
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                ${capitalizedMethodName}FunctionalitySagas ${methodName}FunctionalitySagas = new ${capitalizedMethodName}FunctionalitySagas(${lowerAggregateName}Service, sagaUnitOfWorkService, sagaUnitOfWork);
+                ${capitalizedMethodName}FunctionalitySagas ${methodName}FunctionalitySagas = new ${capitalizedMethodName}FunctionalitySagas(sagaUnitOfWorkService, sagaUnitOfWork, commandGateway);
                 ${methodName}FunctionalitySagas.buildWorkflow(${paramNames});
                 ${methodName}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 ${returnType !== 'void' ? `return ${methodName}FunctionalitySagas.getResult();` : ''}
@@ -156,7 +155,7 @@ ${cases}
     
 
     private buildSagaParameters(params: any[], aggregateName: string): string {
-        const baseParams = [`${aggregateName}Service`, 'sagaUnitOfWorkService'];
+        const baseParams = ['sagaUnitOfWorkService'];
 
         params.forEach(param => {
             if (param.name) {
@@ -165,6 +164,7 @@ ${cases}
         });
 
         baseParams.push('sagaUnitOfWork');
+        baseParams.push('commandGateway');
         return baseParams.join(', ');
     }
 

@@ -132,10 +132,11 @@ export class FunctionalitiesCrudGenerator {
         
         
         
-        const sagaParams: string[] = ['sagaUnitOfWork', 'sagaUnitOfWorkService', `${lowerAggregate}Service`];
+        const sagaParams: string[] = ['sagaUnitOfWorkService'];
 
-        
         sagaParams.push(...paramNames);
+        sagaParams.push('sagaUnitOfWork');
+        sagaParams.push('commandGateway');
 
         const sagaParamsString = sagaParams.join(', ');
 

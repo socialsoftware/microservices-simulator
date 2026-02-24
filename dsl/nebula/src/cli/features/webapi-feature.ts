@@ -6,7 +6,7 @@ import { GenerationOptions } from "../engine/types.js";
 export class WebApiFeature {
     static async generateWebApi(
         aggregate: any,
-        paths: any,
+        aggregatePath: string,
         options: GenerationOptions,
         generators: any,
         allAggregates?: any[]
@@ -27,14 +27,14 @@ export class WebApiFeature {
                 controllerCode = await generators.webApiGenerator.generateEmptyController(aggregate, options);
             }
 
-            const webApiPath = path.join(paths.javaPath, 'coordination', 'webapi', `${aggregate.name}Controller.java`);
+            const webApiPath = path.join(aggregatePath, 'coordination', 'webapi', `${aggregate.name}Controller.java`);
             await fs.mkdir(path.dirname(webApiPath), { recursive: true });
             await fs.writeFile(webApiPath, controllerCode, 'utf-8');
 
             if (requestDtos && typeof requestDtos === 'object') {
                 const dtoKeys = Object.keys(requestDtos);
                 if (dtoKeys.length > 0) {
-                    const dtosDir = path.join(paths.javaPath, 'coordination', 'webapi', 'requestDtos');
+                    const dtosDir = path.join(aggregatePath, 'coordination', 'webapi', 'requestDtos');
                     await fs.mkdir(dtosDir, { recursive: true });
 
                     for (const [dtoName, dtoContent] of Object.entries(requestDtos)) {

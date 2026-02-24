@@ -45,6 +45,15 @@ export class UnifiedEventFeature {
         }
     }
 
+    private getSharedEventsPath(aggregatePath: string): string {
+        const parts = aggregatePath.split('/');
+        const msIndex = parts.lastIndexOf('microservices');
+        if (msIndex !== -1) {
+            return parts.slice(0, msIndex).join('/') + '/events';
+        }
+        return path.join(aggregatePath, '..', '..', 'events');
+    }
+
     private async generateStandardEvents(
         aggregate: Aggregate,
         aggregatePath: string,
@@ -140,11 +149,12 @@ export class UnifiedEventFeature {
         aggregatePath: string,
         options: GenerationOptions
     ): Promise<void> {
+        const sharedEventsPath = this.getSharedEventsPath(aggregatePath);
         for (const publishedEvent of aggregate.events!.publishedEvents!) {
             await ErrorHandler.wrapAsync(
                 async () => {
                     const eventCode = this.eventGenerator.generatePublishedEvent(publishedEvent, aggregate, options);
-                    const eventPath = path.join(aggregatePath, 'events', 'publish', `${publishedEvent.name}.java`);
+                    const eventPath = path.join(sharedEventsPath, `${publishedEvent.name}.java`);
                     await FileWriter.writeGeneratedFile(eventPath, eventCode, `published event ${publishedEvent.name}`);
                 },
                 ErrorUtils.entityContext(
@@ -263,12 +273,13 @@ export class UnifiedEventFeature {
 
     private async generatePublishedEventsFromCode(eventCode: any, aggregatePath: string): Promise<void> {
         const publishedEventEntries = Object.entries(eventCode).filter(([key]) => key.startsWith('published-event-'));
+        const sharedEventsPath = this.getSharedEventsPath(aggregatePath);
 
         const writePromises = publishedEventEntries.map(([key, content]) => {
             const eventName = key.replace('published-event-', '');
             const className = this.extractClassNameFromContent(content as string);
             const fileName = className || eventName;
-            const eventPath = path.join(aggregatePath, 'events', 'publish', `${fileName}.java`);
+            const eventPath = path.join(sharedEventsPath, `${fileName}.java`);
             return FileWriter.writeGeneratedFile(eventPath, content as string, `published event ${fileName}`);
         });
 

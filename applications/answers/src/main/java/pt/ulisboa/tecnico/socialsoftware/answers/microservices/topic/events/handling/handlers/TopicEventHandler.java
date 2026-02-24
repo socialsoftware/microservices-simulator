@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.TopicEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.coordination.eventProcessing.TopicEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.Topic;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicRepository;
 

@@ -5,7 +5,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.0.0</version>
+    <version>3.5.3</version>
     <relativePath/>
   </parent>
   <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
@@ -14,7 +14,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
   <name>answers</name>
   <description>answers - Generated with Nebula DSL</description>
   <properties>
-    <java.version>17</java.version>
+    <java.version>21</java.version>
   </properties>
   <dependencies>
     <!-- MicroservicesSimulator Framework Dependency -->
@@ -22,7 +22,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <dependency>
       <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
       <artifactId>MicroservicesSimulator</artifactId>
-      <version>2.1.0-SNAPSHOT</version>
+      <version>3.0.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

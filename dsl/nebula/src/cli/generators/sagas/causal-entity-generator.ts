@@ -23,7 +23,7 @@ export class CausalEntityGenerator {
 
     private generateCausalEntityClass(aggregate: Aggregate, rootEntity: Entity, options: CausalEntityGenerationOptions): string {
         const aggregateName = this.capitalize(aggregate.name);
-        const packageName = `${getGlobalConfig().buildPackageName(options.projectName, 'sagas', 'aggregates', 'causal')}`;
+        const packageName = `${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'aggregate', 'causal')}`;
 
         const properties = (rootEntity.properties || []).map((prop: any) => ({
             name: prop.name,
@@ -50,7 +50,7 @@ ${gettersSetters}
 
     private generateCausalFactoryClass(aggregate: Aggregate, rootEntity: Entity, options: CausalEntityGenerationOptions): string {
         const aggregateName = this.capitalize(aggregate.name);
-        const packageName = `${getGlobalConfig().buildPackageName(options.projectName, 'sagas', 'aggregates', 'causal')}`;
+        const packageName = `${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'aggregate', 'causal')}`;
 
         const imports = this.generateImports(aggregate, rootEntity, options);
 

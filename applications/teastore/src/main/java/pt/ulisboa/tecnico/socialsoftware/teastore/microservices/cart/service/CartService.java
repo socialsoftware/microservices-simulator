@@ -14,10 +14,10 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.CartDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.events.publish.CartDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.events.publish.CartUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.CartDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.CartUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
-import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateCartRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.coordination.webapi.requestDtos.CreateCartRequestDto;
 
 
 @Service

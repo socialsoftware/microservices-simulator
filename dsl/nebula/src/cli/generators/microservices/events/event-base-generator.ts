@@ -49,7 +49,7 @@ export abstract class EventBaseGenerator extends GeneratorBase {
         const naming = this.createAggregateNaming(aggregate.name);
         const projectName = options?.projectName || 'unknown';
         const basePackage = this.getEventBasePackage(options);
-        const packageName = this.generateEventPackageName(basePackage, projectName, aggregate.name, 'events', 'publish');
+        const packageName = `${basePackage}.${projectName.toLowerCase()}.events`;
 
         return {
             aggregateName: naming.original,

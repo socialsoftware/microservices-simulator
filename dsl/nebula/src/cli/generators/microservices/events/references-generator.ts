@@ -64,11 +64,11 @@ export class ReferencesGenerator extends EventBaseGenerator {
 
 import ${basePackage}.ms.domain.event.EventSubscription;
 import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${aggregateName};
-import ${basePackage}.${projectName}.microservices.${targetAggregate.toLowerCase()}.events.publish.${eventType};
+import ${basePackage}.${projectName}.events.${eventType};
 
 public class ${className} extends EventSubscription {
     public ${className}(${aggregateName} ${lowerAggregate}) {
-        super(${lowerAggregate}.getAggregateId(), 0, ${eventType}.class);
+        super(${lowerAggregate}.getAggregateId(), 0, ${eventType}.class.getSimpleName());
     }
 }
 `;
@@ -92,8 +92,8 @@ public class ${className} extends EventSubscription {
 
 import ${basePackage}.ms.domain.event.Event;
 import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${aggregateName}Repository;
-import ${basePackage}.${projectName}.coordination.eventProcessing.${aggregateName}EventProcessing;
-import ${basePackage}.${projectName}.microservices.${targetAggregate.toLowerCase()}.events.publish.${eventType};
+import ${basePackage}.${projectName}.microservices.${lowerAggregate}.coordination.eventProcessing.${aggregateName}EventProcessing;
+import ${basePackage}.${projectName}.events.${eventType};
 
 public class ${className} extends ${aggregateName}EventHandler {
     public ${className}(${aggregateName}Repository ${lowerAggregate}Repository, ${aggregateName}EventProcessing ${lowerAggregate}EventProcessing) {

@@ -103,7 +103,7 @@ export class ServiceStructureGenerator {
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;');
 
 
-        const eventsPackage = getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'events', 'publish');
+        const eventsPackage = getGlobalConfig().buildPackageName(projectName, 'events');
         const eventImports = new Set<string>();
 
         eventImports.add(`import ${eventsPackage}.${aggregateName}DeletedEvent;`);
@@ -186,7 +186,7 @@ export class ServiceStructureGenerator {
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', 'exception')}.${capitalize(projectName)}Exception;`);
 
 
-        imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'coordination', 'webapi', 'requestDtos')}.Create${capitalize(aggregateName)}RequestDto;`);
+        imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'coordination', 'webapi', 'requestDtos')}.Create${capitalize(aggregateName)}RequestDto;`);
         imports.push('');
 
         return imports.join('\n');

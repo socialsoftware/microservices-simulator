@@ -18,13 +18,13 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerQuestionRemovedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerQuestionUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerExecutionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.AnswerDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.AnswerUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.AnswerQuestionRemovedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.AnswerQuestionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.AnswerExecutionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
-import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateAnswerRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.coordination.webapi.requestDtos.CreateAnswerRequestDto;
 
 
 @Service

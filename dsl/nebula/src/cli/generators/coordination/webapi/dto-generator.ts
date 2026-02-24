@@ -106,7 +106,7 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
         return {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
-            packageName: `${getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'webapi', 'requestDtos')}`,
+            packageName: `${getGlobalConfig().buildPackageName(options.projectName, 'microservices', lowerAggregate, 'coordination', 'webapi', 'requestDtos')}`,
             requestDtos,
             imports
         };

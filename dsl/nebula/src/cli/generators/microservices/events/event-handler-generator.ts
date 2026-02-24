@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { Aggregate, Entity } from "../../../../language/generated/ast.js";
 import { EventBaseGenerator } from "./event-base-generator.js";
 import { EventGenerationOptions, EventHandlerContext } from "./event-types.js";
@@ -60,31 +59,6 @@ export class EventHandlerGenerator extends EventBaseGenerator {
             const eventTypeName = sub.eventType || 'UnknownEvent';
 
 
-            let sourceAggregateName = 'unknown';
-
-            if (sub.sourceAggregate) {
-                sourceAggregateName = sub.sourceAggregate.toLowerCase();
-            }
-
-            else if (options?.allAggregates && options.allAggregates.length > 0) {
-                const found = this.findEventPublisher(eventTypeName, options.allAggregates);
-                if (found) {
-                    sourceAggregateName = found;
-                } else {
-                    console.warn(chalk.yellow(`[WARN] Could not find publisher aggregate for event ${eventTypeName}`));
-
-                    const entityName = EventNameParser.extractEntityName(eventTypeName);
-                    sourceAggregateName = entityName.toLowerCase();
-                }
-            }
-
-            else {
-                console.warn(chalk.yellow(`[WARN] allAggregates not available for event ${eventTypeName}`));
-                const entityName = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
-                sourceAggregateName = entityName.toLowerCase();
-            }
-
-            
             const entityName = eventTypeName.replace(/^(Update|Delete|Create)/, '').replace(/Event$/, '');
             const handlerName = `${entityName}EventHandler`;
             
@@ -95,7 +69,7 @@ export class EventHandlerGenerator extends EventBaseGenerator {
                 capitalizedHandlerName: handlerName,
                 capitalizedEventName: eventTypeName,
                 fullEventName: eventTypeName,
-                eventTypePackage: `${basePackage}.${projectName}.microservices.${sourceAggregateName}.events.publish`,
+                eventTypePackage: `${basePackage}.${projectName}.events`,
                 properties: this.buildEventProperties(rootEntity, EventNameParser.removeEventSuffix(eventTypeName))
             };
         });

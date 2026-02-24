@@ -30,13 +30,17 @@ export class SagaReadGenerator extends SagaFunctionalityGeneratorBase {
     }
 
     protected buildWorkflowMethod(metadata: SagaOperationMetadata, aggregate: any, options: SagaGenerationOptions): string {
+        const capitalizedAggregate = StringUtils.capitalize(aggregate.name);
+        const lowerAggregate = aggregate.name.toLowerCase();
+        const enumName = this.toEnumCase(aggregate.name);
         const buildWorkflowParams = [...metadata.params.map(p => `${p.type} ${p.name}`), 'SagaUnitOfWork unitOfWork'];
 
         return `    public void buildWorkflow(${buildWorkflowParams.join(', ')}) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaSyncStep ${metadata.stepName} = new SagaSyncStep("${metadata.stepName}", () -> {
-            ${metadata.resultType} ${metadata.resultField} = ${metadata.serviceCall}(${metadata.serviceArgs.join(', ')});
+        SagaStep ${metadata.stepName} = new SagaStep("${metadata.stepName}", () -> {
+            Get${capitalizedAggregate}ByIdCommand cmd = new Get${capitalizedAggregate}ByIdCommand(unitOfWork, ServiceMapping.${enumName}.getServiceName(), ${lowerAggregate}AggregateId);
+            ${metadata.resultType} ${metadata.resultField} = (${metadata.resultType}) commandGateway.send(cmd);
             ${metadata.resultSetter}(${metadata.resultField});
         });
 

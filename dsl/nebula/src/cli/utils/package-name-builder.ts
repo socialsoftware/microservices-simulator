@@ -94,8 +94,20 @@ export class PackageNameBuilder {
 
     buildCoordinationPackage(
         projectName: string,
-        component: ComponentType | string
+        component: ComponentType | string,
+        aggregateName?: string
     ): string {
+        if (aggregateName) {
+            const segments = [
+                this.basePackage,
+                projectName.toLowerCase(),
+                PackageType.MICROSERVICES,
+                aggregateName.toLowerCase(),
+                PackageType.COORDINATION,
+                component
+            ];
+            return segments.join('.');
+        }
         const segments = [
             this.basePackage,
             projectName.toLowerCase(),
@@ -113,6 +125,27 @@ export class PackageNameBuilder {
         component: ComponentType | string,
         aggregateName?: string
     ): string {
+        if (aggregateName) {
+            if (component === ComponentType.COORDINATION_SAGA) {
+                return [
+                    this.basePackage,
+                    projectName.toLowerCase(),
+                    PackageType.MICROSERVICES,
+                    aggregateName.toLowerCase(),
+                    PackageType.COORDINATION,
+                    'sagas'
+                ].join('.');
+            }
+            return [
+                this.basePackage,
+                projectName.toLowerCase(),
+                PackageType.MICROSERVICES,
+                aggregateName.toLowerCase(),
+                'aggregate',
+                'sagas',
+                ...(component === ComponentType.AGGREGATES ? [] : [component.replace('aggregates.', '')])
+            ].join('.');
+        }
         const segments = [
             this.basePackage,
             projectName.toLowerCase(),
@@ -220,45 +253,68 @@ export class PackageNameBuilder {
     }
 
     
-    buildFunctionalitiesPackage(projectName: string): string {
-        return this.buildCoordinationPackage(projectName, ComponentType.FUNCTIONALITIES);
+    buildFunctionalitiesPackage(projectName: string, aggregateName?: string): string {
+        return this.buildCoordinationPackage(projectName, ComponentType.FUNCTIONALITIES, aggregateName);
     }
 
-    buildEventProcessingPackage(projectName: string): string {
-        return this.buildCoordinationPackage(projectName, ComponentType.EVENT_PROCESSING);
+    buildEventProcessingPackage(projectName: string, aggregateName?: string): string {
+        return this.buildCoordinationPackage(projectName, ComponentType.EVENT_PROCESSING, aggregateName);
     }
 
-    buildWebApiPackage(projectName: string): string {
-        return this.buildCoordinationPackage(projectName, ComponentType.WEBAPI);
+    buildWebApiPackage(projectName: string, aggregateName?: string): string {
+        return this.buildCoordinationPackage(projectName, ComponentType.WEBAPI, aggregateName);
     }
 
-    buildWebApiDtosPackage(projectName: string): string {
-        return this.buildCoordinationPackage(projectName, ComponentType.WEBAPI_DTOS);
+    buildWebApiDtosPackage(projectName: string, aggregateName?: string): string {
+        return this.buildCoordinationPackage(projectName, ComponentType.WEBAPI_DTOS, aggregateName);
     }
 
-    
-    buildSagaAggregatesPackage(projectName: string): string {
-        return this.buildSagaPackage(projectName, ComponentType.AGGREGATES);
+
+    buildSagaAggregatesPackage(projectName: string, aggregateName?: string): string {
+        return this.buildSagaPackage(projectName, ComponentType.AGGREGATES, aggregateName);
     }
 
-    buildSagaStatesPackage(projectName: string): string {
-        return this.buildSagaPackage(projectName, ComponentType.STATES);
+    buildSagaStatesPackage(projectName: string, aggregateName?: string): string {
+        return this.buildSagaPackage(projectName, ComponentType.STATES, aggregateName);
     }
 
-    buildSagaDtosPackage(projectName: string): string {
-        return this.buildSagaPackage(projectName, ComponentType.DTOS);
+    buildSagaDtosPackage(projectName: string, aggregateName?: string): string {
+        return this.buildSagaPackage(projectName, ComponentType.DTOS, aggregateName);
     }
 
-    buildSagaFactoriesPackage(projectName: string): string {
-        return this.buildSagaPackage(projectName, ComponentType.FACTORIES);
+    buildSagaFactoriesPackage(projectName: string, aggregateName?: string): string {
+        return this.buildSagaPackage(projectName, ComponentType.FACTORIES, aggregateName);
     }
 
-    buildSagaRepositoriesPackage(projectName: string): string {
-        return this.buildSagaPackage(projectName, ComponentType.REPOSITORIES);
+    buildSagaRepositoriesPackage(projectName: string, aggregateName?: string): string {
+        return this.buildSagaPackage(projectName, ComponentType.REPOSITORIES, aggregateName);
     }
 
     buildSagaCoordinationPackage(projectName: string, aggregateName: string): string {
         return this.buildSagaPackage(projectName, ComponentType.COORDINATION_SAGA, aggregateName);
+    }
+
+    buildEventsPackage(projectName: string): string {
+        return [this.basePackage, projectName.toLowerCase(), 'events'].join('.');
+    }
+
+    buildCommandPackage(projectName: string, aggregateName: string): string {
+        return [this.basePackage, projectName.toLowerCase(), 'command', aggregateName.toLowerCase()].join('.');
+    }
+
+    buildCommandHandlerPackage(projectName: string, aggregateName: string): string {
+        return this.buildMicroservicePackage(projectName, aggregateName, 'commandHandler');
+    }
+
+    buildCausalPackage(projectName: string, aggregateName: string): string {
+        return [
+            this.basePackage,
+            projectName.toLowerCase(),
+            PackageType.MICROSERVICES,
+            aggregateName.toLowerCase(),
+            'aggregate',
+            'causal'
+        ].join('.');
     }
 
     

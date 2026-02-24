@@ -97,12 +97,14 @@ export class SagaEventProcessingGenerator {
         const capitalizedAggregate = StringUtils.capitalize(aggregate.name);
 
         const imports: string[] = [];
-        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${capitalizedAggregate}Service;`);
+        imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
+        imports.push(`import ${basePackage}.ms.coordination.workflow.CommandGateway;`);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.ServiceMapping;`);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.command.${lowerAggregate}.*;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
-        imports.push(`import ${basePackage}.ms.sagas.workflow.SagaSyncStep;`);
+        imports.push(`import ${basePackage}.ms.sagas.workflow.SagaStep;`);
         imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
-        imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
 
         
         const workflowSteps = sagaWorkflow.workflowSteps || [];
@@ -129,25 +131,13 @@ export class SagaEventProcessingGenerator {
         }
 
         
-        const entityName = EventNameParser.extractEntityName(eventTypeName);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.events.${eventTypeName};`);
 
-        
-        let sourceAggregateName = 'unknown';
-        if (subscribedEvent.sourceAggregate) {
-            sourceAggregateName = subscribedEvent.sourceAggregate.toLowerCase();
-        } else {
-            sourceAggregateName = entityName.toLowerCase();
-        }
-
-        
-        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${sourceAggregateName}.events.publish.${eventTypeName};`);
-
-        
         const workflowParams = sagaWorkflow.parameters || [];
         const constructorParams: Array<{ type: string; name: string }> = [
-            { type: `${capitalizedAggregate}Service`, name: `${lowerAggregate}Service` },
             { type: 'SagaUnitOfWorkService', name: 'sagaUnitOfWorkService' },
-            { type: 'Integer', name: 'aggregateId' } 
+            { type: 'CommandGateway', name: 'commandGateway' },
+            { type: 'Integer', name: 'aggregateId' }
         ];
 
         

@@ -88,7 +88,7 @@ export class EventHandlingGenerator extends EventBaseGenerator {
             return {
                 eventName: eventTypeName,
                 handlerName: handlerName,
-                eventPackage: `${basePackage}.${projectName}.microservices.${sourceAggregateName}.events.publish`,
+                eventPackage: `${basePackage}.${projectName}.events`,
                 handlerPackage: `${basePackage}.${projectName}.microservices.${aggregateName.toLowerCase()}.events.handling.handlers`,
                 sourceAggregate: sourceAggregateName,
                 isExternal: sourceAggregateName !== aggregateName.toLowerCase()

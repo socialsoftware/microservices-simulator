@@ -5,12 +5,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
-import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.AnswerEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.coordination.eventProcessing.AnswerEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.ExecutionUserUpdatedEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionUserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.handling.handlers.QuestionUpdatedEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.publish.QuestionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.QuestionUpdatedEvent;
 
 @Component
 public class AnswerEventHandling {

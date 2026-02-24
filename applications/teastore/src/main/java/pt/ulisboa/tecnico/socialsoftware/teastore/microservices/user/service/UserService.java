@@ -14,10 +14,10 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.events.publish.UserDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.events.publish.UserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.UserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.UserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
-import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateUserRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.coordination.webapi.requestDtos.CreateUserRequestDto;
 
 
 @Service

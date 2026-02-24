@@ -91,7 +91,7 @@ export class FunctionalitiesGenerator {
         return {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
-            packageName: `${basePackage}.${projectName}.coordination.functionalities`,
+            packageName: `${basePackage}.${projectName}.microservices.${lowerAggregate}.coordination.functionalities`,
             basePackage,
             annotations: this.getFrameworkAnnotations(),
             transactionModel: this.getTransactionModel(),
@@ -136,6 +136,12 @@ export class FunctionalitiesGenerator {
         dependencies.push({
             name: 'sagaUnitOfWorkService',
             type: 'SagaUnitOfWorkService',
+            required: true
+        });
+
+        dependencies.push({
+            name: 'commandGateway',
+            type: 'CommandGateway',
             required: true
         });
 

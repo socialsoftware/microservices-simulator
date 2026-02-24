@@ -97,7 +97,7 @@ export class SagaGenerator {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
             rootEntityName: rootEntityName,
-            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates`,
+            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.sagas`,
             imports,
             constructorParams
         };
@@ -173,7 +173,7 @@ export class SagaGenerator {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
             rootEntityName: rootEntityName,
-            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.dtos`,
+            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.sagas.dtos`,
             imports
         };
     }
@@ -192,7 +192,7 @@ export class SagaGenerator {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
             upperAggregateName,
-            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.states`,
+            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.sagas.states`,
             imports,
             sagaStates
         };
@@ -277,7 +277,7 @@ export class SagaGenerator {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
             rootEntityName: rootEntityName,
-            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.factories`,
+            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.sagas.factories`,
             imports,
             createMethodParams,
             constructorCallArgs,
@@ -296,7 +296,7 @@ export class SagaGenerator {
         return {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
-            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.repositories`,
+            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.sagas.repositories`,
             imports
         };
     }
@@ -329,12 +329,13 @@ export class SagaGenerator {
 
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
         const rootEntityName = rootEntity ? rootEntity.name : aggregate.name;
+        const lowerAggregate = aggregate.name.toLowerCase();
 
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${StringUtils.capitalize(aggregate.name)};`);
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${rootEntityName};`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate.${StringUtils.capitalize(aggregate.name)};`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate.${rootEntityName};`);
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntityName}Dto;`);
 
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.Saga${StringUtils.capitalize(aggregate.name)};`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate.sagas.Saga${StringUtils.capitalize(aggregate.name)};`);
         imports.push(`import ${this.getBasePackage()}.ms.sagas.aggregate.SagaAggregate.SagaState;`);
 
         return imports;
@@ -365,8 +366,8 @@ export class SagaGenerator {
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntityName}Dto;`);
         imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${capitalizedAggregate}Factory;`);
 
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.Saga${capitalizedAggregate};`);
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.dtos.Saga${capitalizedAggregate}Dto;`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.sagas.Saga${capitalizedAggregate};`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.sagas.dtos.Saga${capitalizedAggregate}Dto;`);
 
         return imports;
     }
@@ -377,7 +378,7 @@ export class SagaGenerator {
         imports.push('import org.springframework.data.jpa.repository.JpaRepository;');
         imports.push('import org.springframework.stereotype.Repository;');
 
-        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.sagas.aggregates.Saga${StringUtils.capitalize(aggregate.name)};`);
+        imports.push(`import ${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.sagas.Saga${StringUtils.capitalize(aggregate.name)};`);
 
         return imports;
     }

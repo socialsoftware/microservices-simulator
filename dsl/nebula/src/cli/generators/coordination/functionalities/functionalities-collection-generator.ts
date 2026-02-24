@@ -72,8 +72,9 @@ export class FunctionalitiesCollectionGenerator {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 ${sagaClassName} ${uncapitalizedMethod}FunctionalitySagas = new ${sagaClassName}(
-                        sagaUnitOfWork, sagaUnitOfWorkService, ${lowerAggregate}Service,
-                        ${lowerAggregate}Id, ${collection.identifierField}, ${collection.singularName}Dto);
+                        sagaUnitOfWorkService,
+                        ${lowerAggregate}Id, ${collection.identifierField}, ${collection.singularName}Dto,
+                        sagaUnitOfWork, commandGateway);
                 ${uncapitalizedMethod}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return ${uncapitalizedMethod}FunctionalitySagas.getAdded${collection.capitalizedSingular}Dto();
             default: throw new ${StringUtils.capitalize(projectName || 'answers')}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -112,8 +113,9 @@ export class FunctionalitiesCollectionGenerator {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 ${sagaClassName} ${uncapitalizedMethod}FunctionalitySagas = new ${sagaClassName}(
-                        sagaUnitOfWork, sagaUnitOfWorkService, ${lowerAggregate}Service,
-                        ${lowerAggregate}Id, ${collection.singularName}Dtos);
+                        sagaUnitOfWorkService,
+                        ${lowerAggregate}Id, ${collection.singularName}Dtos,
+                        sagaUnitOfWork, commandGateway);
                 ${uncapitalizedMethod}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return ${uncapitalizedMethod}FunctionalitySagas.getAdded${collection.capitalizedSingular}Dtos();
             default: throw new ${StringUtils.capitalize(projectName || 'answers')}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -152,8 +154,9 @@ export class FunctionalitiesCollectionGenerator {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 ${sagaClassName} ${uncapitalizedMethod}FunctionalitySagas = new ${sagaClassName}(
-                        sagaUnitOfWork, sagaUnitOfWorkService, ${lowerAggregate}Service,
-                        ${lowerAggregate}Id, ${collection.identifierField});
+                        sagaUnitOfWorkService,
+                        ${lowerAggregate}Id, ${collection.identifierField},
+                        sagaUnitOfWork, commandGateway);
                 ${uncapitalizedMethod}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return ${uncapitalizedMethod}FunctionalitySagas.get${collection.capitalizedSingular}Dto();
             default: throw new ${StringUtils.capitalize(projectName || 'answers')}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -193,8 +196,9 @@ export class FunctionalitiesCollectionGenerator {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 ${sagaClassName} ${uncapitalizedMethod}FunctionalitySagas = new ${sagaClassName}(
-                        sagaUnitOfWork, sagaUnitOfWorkService, ${lowerAggregate}Service,
-                        ${lowerAggregate}Id, ${collection.identifierField}, ${collection.singularName}Dto);
+                        sagaUnitOfWorkService,
+                        ${lowerAggregate}Id, ${collection.identifierField}, ${collection.singularName}Dto,
+                        sagaUnitOfWork, commandGateway);
                 ${uncapitalizedMethod}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 return ${uncapitalizedMethod}FunctionalitySagas.getUpdated${collection.capitalizedSingular}Dto();
             default: throw new ${StringUtils.capitalize(projectName || 'answers')}Exception(UNDEFINED_TRANSACTIONAL_MODEL);
@@ -233,8 +237,9 @@ export class FunctionalitiesCollectionGenerator {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
                 ${sagaClassName} ${uncapitalizedMethod}FunctionalitySagas = new ${sagaClassName}(
-                        sagaUnitOfWork, sagaUnitOfWorkService, ${lowerAggregate}Service,
-                        ${lowerAggregate}Id, ${collection.identifierField});
+                        sagaUnitOfWorkService,
+                        ${lowerAggregate}Id, ${collection.identifierField},
+                        sagaUnitOfWork, commandGateway);
                 ${uncapitalizedMethod}FunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             default: throw new ${StringUtils.capitalize(projectName || 'answers')}Exception(UNDEFINED_TRANSACTIONAL_MODEL);

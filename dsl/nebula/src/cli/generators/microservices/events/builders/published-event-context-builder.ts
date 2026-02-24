@@ -13,7 +13,6 @@ export class PublishedEventContextBuilder {
 
     buildPublishedEventContext(event: PublishedEvent, aggregate: AggregateExt, options: { projectName: string }): any {
         const eventName = event.name;
-        const lowerAggregate = aggregate.name.toLowerCase();
 
         const fields = event.fields.map((field: EventField) => ({
             type: TypeResolver.resolveJavaType(field.type),
@@ -24,7 +23,7 @@ export class PublishedEventContextBuilder {
         const imports = this.generatePublishedEventImports(fields);
 
         return {
-            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.events.publish`,
+            packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.events`,
             eventName,
             fields,
             imports

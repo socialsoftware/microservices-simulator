@@ -16,12 +16,12 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionUserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserRemovedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionUserRemovedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionUserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
-import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateExecutionRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.coordination.webapi.requestDtos.CreateExecutionRequestDto;
 
 
 @Service

@@ -15,11 +15,11 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.ProductCategoryDto
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.publish.ProductDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.publish.ProductUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.publish.ProductCategoryUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.ProductDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.ProductUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.ProductCategoryUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
-import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.webapi.requestDtos.CreateProductRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.coordination.webapi.requestDtos.CreateProductRequestDto;
 
 
 @Service

@@ -1,5 +1,5 @@
 {
-    "projectName": "answers",
+    "projectName": "teastore",
     "basePackage": "pt.ulisboa.tecnico.socialsoftware",
     "consistencyModels": [
         "sagas"
@@ -13,7 +13,7 @@
         "password": "password"
     },
     "java": {
-        "version": "17",
-        "springBootVersion": "3.0.0"
+        "version": "21",
+        "springBootVersion": "3.5.3"
     }
 }

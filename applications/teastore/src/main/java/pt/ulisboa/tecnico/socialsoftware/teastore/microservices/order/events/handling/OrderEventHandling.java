@@ -5,10 +5,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
-import pt.ulisboa.tecnico.socialsoftware.teastore.coordination.eventProcessing.OrderEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.coordination.eventProcessing.OrderEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.aggregate.OrderRepository;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.events.handling.handlers.UserUpdatedEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.events.publish.UserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.UserUpdatedEvent;
 
 @Component
 public class OrderEventHandling {

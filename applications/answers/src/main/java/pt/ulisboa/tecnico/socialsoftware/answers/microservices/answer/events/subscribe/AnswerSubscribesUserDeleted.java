@@ -2,10 +2,10 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.su
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.UserDeletedEvent;
 
 public class AnswerSubscribesUserDeleted extends EventSubscription {
     public AnswerSubscribesUserDeleted(Answer answer) {
-        super(answer.getAggregateId(), 0, UserDeletedEvent.class);
+        super(answer.getAggregateId(), 0, UserDeletedEvent.class.getSimpleName());
     }
 }

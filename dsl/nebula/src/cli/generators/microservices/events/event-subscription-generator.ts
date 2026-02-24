@@ -126,7 +126,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
                 versionField: versionField,
                 capitalizedAggregateIdField: capitalizedAggregateIdField,
                 capitalizedVersionField: capitalizedVersionField,
-                eventTypePackage: `${basePackage}.${projectName}.microservices.${sourceAggregateName}.events.publish`,
+                eventTypePackage: `${basePackage}.${projectName}.events`,
                 isAsync: true,
                 transactionPhase: 'AFTER_COMMIT'
             };
@@ -221,7 +221,7 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
                     versionField: versionField,
                     capitalizedAggregateIdField: aggregateIdField.charAt(0).toUpperCase() + aggregateIdField.slice(1),
                     capitalizedVersionField: versionField.charAt(0).toUpperCase() + versionField.slice(1),
-                    eventTypePackage: `${basePackage}.${projectName}.microservices.${sourceAggregateName}.events.publish`,
+                    eventTypePackage: `${basePackage}.${projectName}.events`,
                     entityTypePackage: `${basePackage}.${projectName}.microservices.${aggregateName.toLowerCase()}.aggregate`
                 });
             }

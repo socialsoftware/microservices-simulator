@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.coordination.eventProcessing.QuestionEventProcessing;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.events.publish.CourseDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.coordination.eventProcessing.QuestionEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.CourseDeletedEvent;
 
 public class CourseDeletedEventHandler extends QuestionEventHandler {
     public CourseDeletedEventHandler(QuestionRepository questionRepository, QuestionEventProcessing questionEventProcessing) {

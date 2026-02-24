@@ -26,7 +26,7 @@ export class ControllerGenerator extends WebApiBaseGenerator {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
             functionalitiesName: `${aggregate.name.charAt(0).toLowerCase() + aggregate.name.slice(1)}Functionalities`,
-            packageName: getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'webapi'),
+            packageName: getGlobalConfig().buildPackageName(options.projectName, 'microservices', lowerAggregate, 'coordination', 'webapi'),
             endpoints,
             imports,
             projectName: options.projectName.toLowerCase(),
@@ -166,7 +166,7 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         imports.add('import org.springframework.web.bind.annotation.*;');
         imports.add('import org.springframework.beans.factory.annotation.Autowired;');
 
-        imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'functionalities')}.${aggregate.name}Functionalities;`);
+        imports.add(`import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'coordination', 'functionalities')}.${aggregate.name}Functionalities;`);
 
         
         const needsHttpStatus = endpoints.some(e => e.responseStatus !== undefined);
@@ -219,7 +219,7 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         
         const hasCreateEndpoint = endpoints.some(e => e.isCreate);
         if (hasCreateEndpoint) {
-            const requestDtoPackage = getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'webapi', 'requestDtos');
+            const requestDtoPackage = getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'coordination', 'webapi', 'requestDtos');
             imports.add(`import ${requestDtoPackage}.Create${aggregate.name}RequestDto;`);
         }
 
@@ -261,7 +261,7 @@ export class ControllerGenerator extends WebApiBaseGenerator {
     }
 
     async generateEmptyController(aggregate: Aggregate, options: WebApiGenerationOptions): Promise<string> {
-        const packageName = getGlobalConfig().buildPackageName(options.projectName, 'coordination', 'webapi');
+        const packageName = getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'coordination', 'webapi');
 
         const context = {
             packageName,

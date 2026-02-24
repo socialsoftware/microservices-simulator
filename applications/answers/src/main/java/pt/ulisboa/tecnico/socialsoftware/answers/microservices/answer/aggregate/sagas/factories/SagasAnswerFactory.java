@@ -1,0 +1,28 @@
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.sagas.factories;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerFactory;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.sagas.SagaAnswer;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.sagas.dtos.SagaAnswerDto;
+
+@Service
+@Profile("sagas")
+public class SagasAnswerFactory implements AnswerFactory {
+    @Override
+    public Answer createAnswer(Integer aggregateId, AnswerDto answerDto) {
+        return new SagaAnswer(aggregateId, answerDto);
+    }
+
+    @Override
+    public Answer createAnswerFromExisting(Answer existingAnswer) {
+        return new SagaAnswer((SagaAnswer) existingAnswer);
+    }
+
+    @Override
+    public AnswerDto createAnswerDto(Answer answer) {
+        return new SagaAnswerDto(answer);
+    }
+}

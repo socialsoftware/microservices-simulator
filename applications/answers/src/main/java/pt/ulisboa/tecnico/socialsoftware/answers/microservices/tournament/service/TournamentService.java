@@ -19,14 +19,14 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentParticipantRemovedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentParticipantUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentTopicRemovedEvent;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentTopicUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentParticipantRemovedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentParticipantUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentTopicRemovedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentTopicUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
-import pt.ulisboa.tecnico.socialsoftware.answers.coordination.webapi.requestDtos.CreateTournamentRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.coordination.webapi.requestDtos.CreateTournamentRequestDto;
 
 
 @Service

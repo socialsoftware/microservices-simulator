@@ -27,19 +27,22 @@ import {
 } from "../features/index.js";
 import { SharedFeature } from "../generators/microservices/shared/index.js";
 import { DtoSchemaService } from "../services/dto-schema-service.js";
+import { ServiceMappingGenerator } from "../generators/microservices/service/service-mapping-generator.js";
+import { CommandGenerator } from "../generators/microservices/command/command-generator.js";
+import { CommandHandlerGenerator } from "../generators/microservices/command/command-handler-generator.js";
 
 export class CodeGenerator {
-    
+
 
     static async generateCode(inputPath: string, opts: TemplateGenerateOptions): Promise<void> {
         try {
             console.log(`Starting generation for: ${inputPath}`);
 
-            
-            
-            
 
-            
+
+
+
+
             const nebulaFiles = await collectNebulaFiles(inputPath);
             if (nebulaFiles.length === 0) {
                 console.error(`No Nebula files found at path: ${inputPath}`);
@@ -51,14 +54,14 @@ export class CodeGenerator {
             await this.loadLanguageDocuments(services, nebulaFiles);
             const models = await this.parseModels(nebulaFiles, services);
 
-            
+
             registerAllModels(models);
 
-            
-            
-            
 
-            
+
+
+
+
             const config = await this.setupConfiguration(opts, inputPath);
             const paths = await ProjectSetup.setupProjectPaths(config.baseOutputDir, inputPath, config.projectName);
 
@@ -68,12 +71,12 @@ export class CodeGenerator {
             } catch {
             }
 
-            
+
             await this.validateModels(models, config);
 
-            
-            
-            
+
+
+
 
             const generators = GeneratorRegistryFactory.createRegistry();
 
@@ -91,9 +94,9 @@ export class CodeGenerator {
 
             const aggregates = models.flatMap(model => model.aggregates);
 
-            
-            
-            
+
+
+
 
             console.log("\nGenerating code...");
             for (const model of models) {
@@ -106,10 +109,26 @@ export class CodeGenerator {
                     await EntityFeature.generateCoreComponents(aggregate, aggregatePath, options, generators);
                     await ServiceFeature.generateService(aggregate, aggregatePath, options, generators);
                     await EventsFeature.generateEvents(aggregate, aggregatePath, options, generators);
-                    await CoordinationFeature.generateCoordination(aggregate, paths, options, generators, aggregates);
-                    await WebApiFeature.generateWebApi(aggregate, paths, options, generators, aggregates);
+                    await CoordinationFeature.generateCoordination(aggregate, aggregatePath, options, generators, aggregates);
+                    await WebApiFeature.generateWebApi(aggregate, aggregatePath, options, generators, aggregates);
                     await ValidationFeature.generateValidation(aggregate, paths, options, generators);
-                    await SagaFeature.generateSaga(aggregate, paths, options, generators, aggregates);
+                    await SagaFeature.generateSaga(aggregate, aggregatePath, options, generators, aggregates);
+
+                    const commandGenerator = new CommandGenerator();
+                    const commandFiles = commandGenerator.generate(aggregate, options);
+                    const commandPath = paths.javaPath + '/command/' + aggregate.name.toLowerCase();
+                    for (const [fileName, content] of Object.entries(commandFiles)) {
+                        await fs.mkdir(commandPath, { recursive: true });
+                        await fs.writeFile(path.join(commandPath, fileName), content, 'utf-8');
+                    }
+
+                    const commandHandlerGenerator = new CommandHandlerGenerator();
+                    const handlerFiles = commandHandlerGenerator.generate(aggregate, options);
+                    const handlerPath = aggregatePath + '/commandHandler';
+                    for (const [fileName, content] of Object.entries(handlerFiles)) {
+                        await fs.mkdir(handlerPath, { recursive: true });
+                        await fs.writeFile(path.join(handlerPath, fileName), content, 'utf-8');
+                    }
 
                     const count = FileWriter.getCount();
                     const name = aggregate.name.padEnd(20);
@@ -117,9 +136,9 @@ export class CodeGenerator {
                 }
             }
 
-            
-            
-            
+
+
+
 
             const projectOptions: GenerationOptions = {
                 projectName: config.projectName,
@@ -150,6 +169,11 @@ export class CodeGenerator {
             }
 
             await WebApiFeature.generateGlobalWebApi(paths, projectOptions, generators);
+
+            const serviceMappingGenerator = new ServiceMappingGenerator();
+            const serviceMappingCode = serviceMappingGenerator.generate(aggregates, projectOptions);
+            const serviceMappingPath = path.join(paths.javaPath, 'ServiceMapping.java');
+            await fs.writeFile(serviceMappingPath, serviceMappingCode, 'utf-8');
 
             const pomContent = TemplateGenerators.generatePomXml(config.projectName);
             await fs.writeFile(path.join(paths.projectPath, "pom.xml"), pomContent, 'utf-8');
@@ -248,12 +272,12 @@ export class CodeGenerator {
     }
 
     private static async setupConfiguration(opts: TemplateGenerateOptions, inputPath: string) {
-        
+
         const baseOutputDir = opts.destination || DEFAULT_OUTPUT_DIR;
         const projectName = opts.name || ProjectSetup.deriveProjectName(inputPath);
         const validate = opts.validate || true;
 
-        
+
         const loadedConfig = await ConfigLoader.loadConfig(inputPath, {
             projectName,
             outputDirectory: baseOutputDir

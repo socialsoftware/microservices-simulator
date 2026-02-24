@@ -3,14 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.event
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentTopic;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.publish.TopicDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.TopicDeletedEvent;
 
 
 public class TournamentSubscribesTopicDeletedTournamentTopicsExist extends EventSubscription {
     public TournamentSubscribesTopicDeletedTournamentTopicsExist(TournamentTopic topics) {
         super(topics.getTopicAggregateId(),
                 topics.getTopicVersion(),
-                TopicDeletedEvent.class);
+                TopicDeletedEvent.class.getSimpleName());
     }
 
     @Override

@@ -3,14 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.events.publish.UserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.UserDeletedEvent;
 
 
 public class ExecutionSubscribesUserDeletedUsersExist extends EventSubscription {
     public ExecutionSubscribesUserDeletedUsersExist(ExecutionUser users) {
         super(users.getUserAggregateId(),
                 users.getUserVersion(),
-                UserDeletedEvent.class);
+                UserDeletedEvent.class.getSimpleName());
     }
 
     @Override

@@ -3,14 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.events.sub
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicCourse;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.events.publish.CourseDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.CourseDeletedEvent;
 
 
 public class TopicSubscribesCourseDeletedTopicCourseExists extends EventSubscription {
     public TopicSubscribesCourseDeletedTopicCourseExists(TopicCourse course) {
         super(course.getCourseAggregateId(),
                 course.getCourseVersion(),
-                CourseDeletedEvent.class);
+                CourseDeletedEvent.class.getSimpleName());
     }
 
     @Override

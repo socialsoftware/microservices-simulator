@@ -3,14 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.su
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerQuiz;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizDeletedEvent;
 
 
 public class AnswerSubscribesQuizDeletedAnswerQuizExists extends EventSubscription {
     public AnswerSubscribesQuizDeletedAnswerQuizExists(AnswerQuiz quiz) {
         super(quiz.getQuizAggregateId(),
                 quiz.getQuizVersion(),
-                QuizDeletedEvent.class);
+                QuizDeletedEvent.class.getSimpleName());
     }
 
     @Override
