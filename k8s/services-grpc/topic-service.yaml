@@ -55,6 +55,8 @@ spec:
               value: "jdbc:postgresql://localhost:5432/topicdb"
             - name: SPRING_RABBITMQ_HOST
               value: "rabbitmq"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger:4317"
           readinessProbe:
             httpGet:
               path: /actuator/health

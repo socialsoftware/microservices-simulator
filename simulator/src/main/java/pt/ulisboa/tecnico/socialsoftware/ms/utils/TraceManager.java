@@ -19,6 +19,7 @@ import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,44 +48,43 @@ public class TraceManager {
     private TraceManager(String serviceName) {
         this.serviceName = serviceName;
 
-        OtlpGrpcSpanExporter spanExporter = OtlpGrpcSpanExporter.builder()
-            .setEndpoint("http://localhost:4317")
-            .build();
+        String otlpEndpoint = Objects.requireNonNull(
+                System.getenv().getOrDefault("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317"));
 
-        Resource serviceResource = Resource.getDefault().merge(
-            Resource.create(
-                Attributes.of(AttributeKey.stringKey("service.name"), serviceName)
-            )
-        );
+        OtlpGrpcSpanExporter spanExporter = OtlpGrpcSpanExporter.builder()
+                .setEndpoint(otlpEndpoint)
+                .build();
+
+        Resource serviceResource = Objects.requireNonNull(Resource.getDefault().merge(
+                Resource.create(
+                        Attributes.of(AttributeKey.stringKey("service.name"), serviceName))));
 
         SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
-            .setResource(serviceResource)
-            .addSpanProcessor(BatchSpanProcessor.builder(spanExporter).build())
-            .build();
+                .setResource(serviceResource)
+                .addSpanProcessor(BatchSpanProcessor.builder(spanExporter).build())
+                .build();
 
         this.tracerProvider = tracerProvider;
 
         OpenTelemetrySdk.builder()
-            .setTracerProvider(tracerProvider)
-            .buildAndRegisterGlobal();
+                .setTracerProvider(tracerProvider)
+                .buildAndRegisterGlobal();
 
         this.tracer = GlobalOpenTelemetry.getTracer(serviceName);
 
         // Separate TracerProvider for master root span with service.name = "root"
         OtlpGrpcSpanExporter masterExporter = OtlpGrpcSpanExporter.builder()
-            .setEndpoint("http://localhost:4317")
-            .build();
+                .setEndpoint(otlpEndpoint)
+                .build();
 
-        Resource masterResource = Resource.getDefault().merge(
-            Resource.create(
-                Attributes.of(AttributeKey.stringKey("service.name"), "root")
-            )
-        );
+        Resource masterResource = Objects.requireNonNull(Resource.getDefault().merge(
+                Resource.create(
+                        Attributes.of(AttributeKey.stringKey("service.name"), "root"))));
 
         this.masterRootTracerProvider = SdkTracerProvider.builder()
-            .setResource(masterResource)
-            .addSpanProcessor(BatchSpanProcessor.builder(masterExporter).build())
-            .build();
+                .setResource(masterResource)
+                .addSpanProcessor(BatchSpanProcessor.builder(masterExporter).build())
+                .build();
 
         this.masterRootTracer = masterRootTracerProvider.get("root");
     }
@@ -104,8 +104,8 @@ public class TraceManager {
     public void createMasterRoot() {
         String rootSpanName = "root" + rootSpanId;
         masterRootSpan = masterRootTracer.spanBuilder(rootSpanName)
-                        .setSpanKind(SpanKind.INTERNAL)
-                        .startSpan();
+                .setSpanKind(SpanKind.INTERNAL)
+                .startSpan();
     }
 
     public String getMasterRootTraceId() {
@@ -120,8 +120,8 @@ public class TraceManager {
     public void startRootSpan() {
         String rootSpanName = serviceName + "-root" + rootSpanId;
         Span span = tracer.spanBuilder(rootSpanName)
-                        .setSpanKind(SpanKind.INTERNAL)
-                        .startSpan();
+                .setSpanKind(SpanKind.INTERNAL)
+                .startSpan();
         rootSpan = span;
         span.setAttribute("root", "root");
         span.setAttribute("service", serviceName);
@@ -134,9 +134,9 @@ public class TraceManager {
         Context remoteContext = Context.current().with(Span.wrap(parentContext));
         String rootSpanName = serviceName + "-root" + rootSpanId;
         Span span = tracer.spanBuilder(rootSpanName)
-                        .setParent(remoteContext)
-                        .setSpanKind(SpanKind.INTERNAL)
-                        .startSpan();
+                .setParent(remoteContext)
+                .setSpanKind(SpanKind.INTERNAL)
+                .startSpan();
         rootSpan = span;
         span.setAttribute("root", "root");
         span.setAttribute("service", serviceName);
@@ -179,24 +179,27 @@ public class TraceManager {
         int counter = functionalityCounters.computeIfAbsent(func, k -> new AtomicInteger(0)).getAndIncrement();
         String invocationKey = func + "::" + counter;
         Span span = tracer.spanBuilder(invocationKey)
-                        .setParent(Context.current().with(rootSpan))
-                        .setSpanKind(SpanKind.INTERNAL)
-                        .startSpan();
+                .setParent(Context.current().with(rootSpan))
+                .setSpanKind(SpanKind.INTERNAL)
+                .startSpan();
 
         span.setAttribute("func.name", invocationKey);
         span.setAttribute("functionality", func);
 
         functionalitySpans.put(invocationKey, span);
-        activeInvocationKeys.computeIfAbsent(func, k -> new java.util.concurrent.ConcurrentLinkedQueue<>()).add(invocationKey);
+        activeInvocationKeys.computeIfAbsent(func, k -> new java.util.concurrent.ConcurrentLinkedQueue<>())
+                .add(invocationKey);
 
         return invocationKey;
     }
 
     public void endSpanForFunctionality(String func) {
         java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get(func);
-        if (queue == null || queue.isEmpty()) return;
+        if (queue == null || queue.isEmpty())
+            return;
         String invocationKey = queue.poll();
-        if (invocationKey == null) return;
+        if (invocationKey == null)
+            return;
 
         forceEndAllActiveStepsSpans(invocationKey);
 
@@ -212,7 +215,8 @@ public class TraceManager {
 
     public Span getSpanForFunctionality(String func) {
         java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get(func);
-        if (queue == null || queue.isEmpty()) return null;
+        if (queue == null || queue.isEmpty())
+            return null;
         String latestKey = queue.peek();
         return functionalitySpans.get(latestKey);
     }
@@ -222,25 +226,30 @@ public class TraceManager {
         if (rootSpan == null) {
             return;
         }
-        int counter = functionalityCounters.computeIfAbsent("[Compensate]" + func, k -> new AtomicInteger(0)).getAndIncrement();
+        int counter = functionalityCounters.computeIfAbsent("[Compensate]" + func, k -> new AtomicInteger(0))
+                .getAndIncrement();
         String invocationKey = "[Compensate]" + func + "::" + counter;
         Span span = tracer.spanBuilder(invocationKey)
-                        .setParent(Context.current().with(rootSpan))
-                        .setSpanKind(SpanKind.INTERNAL)
-                        .startSpan();
+                .setParent(Context.current().with(rootSpan))
+                .setSpanKind(SpanKind.INTERNAL)
+                .startSpan();
 
         span.setAttribute("func.name", invocationKey);
         span.setAttribute("functionality", func);
 
         functionalitySpans.put(invocationKey, span);
-        activeInvocationKeys.computeIfAbsent("[Compensate]" + func, k -> new java.util.concurrent.ConcurrentLinkedQueue<>()).add(invocationKey);
+        activeInvocationKeys
+                .computeIfAbsent("[Compensate]" + func, k -> new java.util.concurrent.ConcurrentLinkedQueue<>())
+                .add(invocationKey);
     }
 
     public void endSpanForCompensation(String func) {
         java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get("[Compensate]" + func);
-        if (queue == null || queue.isEmpty()) return;
+        if (queue == null || queue.isEmpty())
+            return;
         String invocationKey = queue.poll();
-        if (invocationKey == null) return;
+        if (invocationKey == null)
+            return;
 
         forceEndAllActiveStepsSpans(invocationKey);
 
@@ -303,16 +312,17 @@ public class TraceManager {
             return null;
         }
         Span parentSpan = getStepSpan(func, step);
-        if (parentSpan == null) return null;
+        if (parentSpan == null)
+            return null;
         String spanName = (isBefore ? "before" : "after");
         Span span = tracer.spanBuilder(spanName)
-                        .setParent(Context.current().with(parentSpan))
-                        .setSpanKind(SpanKind.INTERNAL)
-                        .startSpan();
+                .setParent(Context.current().with(parentSpan))
+                .setSpanKind(SpanKind.INTERNAL)
+                .startSpan();
 
         span.setAttribute("functionality", func);
         span.setAttribute("step", step);
-        span.setAttribute("value", Integer.toString(delay)+ " ms");
+        span.setAttribute("value", Integer.toString(delay) + " ms");
 
         return span;
     }
@@ -335,22 +345,22 @@ public class TraceManager {
 
     public void recordException(String func, Throwable e, String message) {
         Span span = getSpanForFunctionality(func);
-        if (span == null) return;
+        if (span == null)
+            return;
         span.recordException(e);
         span.setStatus(StatusCode.ERROR, message != null ? message : e.getMessage());
         span.addEvent("exception.caught", Attributes.of(
-            AttributeKey.stringKey("exception.type"), e.getClass().getSimpleName(),
-            AttributeKey.stringKey("exception.message"), e.getMessage()
-        ));
+                AttributeKey.stringKey("exception.type"), e.getClass().getSimpleName(),
+                AttributeKey.stringKey("exception.message"), e.getMessage()));
     }
 
     public void recordWarning(String func, Exception e, String message) {
         Span span = getSpanForFunctionality(func);
-        if (span == null) return;
+        if (span == null)
+            return;
         span.addEvent("warning", Attributes.of(
-            AttributeKey.stringKey("exception.type"), e.getClass().getSimpleName(),
-            AttributeKey.stringKey("message"), message
-        ));
+                AttributeKey.stringKey("exception.type"), e.getClass().getSimpleName(),
+                AttributeKey.stringKey("message"), message));
     }
 
     public void setSpanAttribute(String func, String key, String value) {
@@ -372,8 +382,7 @@ public class TraceManager {
             if (stepSpan != null) {
                 stepSpan.setAttribute("Warning", "Forced end step span");
                 stepSpan.addEvent("forced-end", Attributes.of(
-                    AttributeKey.stringKey("reason"), "Functionality was aborted!"
-                ));
+                        AttributeKey.stringKey("reason"), "Functionality was aborted!"));
                 stepSpan.end();
                 stepSpans.remove(key);
             }

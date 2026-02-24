@@ -42,6 +42,7 @@ services:
     restart: unless-stopped
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     networks:
       - messaging-network
 
@@ -66,6 +67,7 @@ services:
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     networks:
       - messaging-network
 
@@ -85,6 +87,7 @@ services:
     restart: unless-stopped
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
 
   quizzes-tcc-stream:
     build:
@@ -107,6 +110,7 @@ services:
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     networks:
       - messaging-network
 
@@ -355,6 +359,7 @@ services:
       - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://answer-db:5432/answerdb
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     networks:
       - messaging-network
     healthcheck:
@@ -386,6 +391,7 @@ services:
       - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://course-db:5432/coursedb
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     networks:
       - messaging-network
     healthcheck:
@@ -417,6 +423,7 @@ services:
       - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://execution-db:5432/executiondb
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     networks:
       - messaging-network
     healthcheck:
@@ -448,6 +455,7 @@ services:
       - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://question-db:5432/questiondb
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     networks:
       - messaging-network
     healthcheck:
@@ -479,6 +487,7 @@ services:
       - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://quiz-db:5432/quizdb
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     networks:
       - messaging-network
     healthcheck:
@@ -510,6 +519,7 @@ services:
       - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://topic-db:5432/topicdb
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     networks:
       - messaging-network
     healthcheck:
@@ -541,6 +551,7 @@ services:
       - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://tournament-db:5432/tournamentdb
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     networks:
       - messaging-network
     healthcheck:
@@ -572,6 +583,7 @@ services:
       - EUREKA_HOST=eureka-server
       - SPRING_DATASOURCE_URL=jdbc:postgresql://user-db:5432/userdb
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     networks:
       - messaging-network
     healthcheck:
@@ -711,6 +723,8 @@ services:
       - "4317:4317" # OTLP gRPC receiver
       - "4318:4318" # OTLP HTTP receiver
     restart: unless-stopped
+    networks:
+      - messaging-network
 
   rabbitmq:
     image: rabbitmq:4-management

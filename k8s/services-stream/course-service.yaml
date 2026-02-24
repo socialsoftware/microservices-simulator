@@ -1,37 +1,37 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: tournament-service
+  name: course-service
   namespace: microservices-simulator
 spec:
   selector:
-    app: tournament-service
+    app: course-service
   ports:
-    - port: 8087
-      targetPort: 8087
+    - port: 8089
+      targetPort: 8089
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tournament-service
+  name: course-service
   namespace: microservices-simulator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tournament-service
+      app: course-service
   template:
     metadata:
       labels:
-        app: tournament-service
+        app: course-service
     spec:
       serviceAccountName: microservices-sa
       containers:
-        - name: tournament-service
-          image: quizzes-tournament:latest
+        - name: course-service
+          image: quizzes-course:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8087
+            - containerPort: 8089
           resources:
             requests:
               memory: "512Mi"
@@ -41,18 +41,21 @@ spec:
               cpu: "1000m"
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: "kubernetes,tournament-service,sagas,stream"
+              value: "kubernetes,course-service,sagas,stream"
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://localhost:5432/tournamentdb"
+              value: "jdbc:postgresql://localhost:5432/coursedb"
             - name: SPRING_RABBITMQ_HOST
               value: "rabbitmq"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger:4317"
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8087
+              port: 8089
             initialDelaySeconds: 60
             periodSeconds: 10
 
+        # PostgreSQL sidecar container (database-per-service pattern)
         - name: postgres
           image: postgres:14-alpine
           ports:
@@ -66,7 +69,7 @@ spec:
               cpu: "500m"
           env:
             - name: POSTGRES_DB
-              value: "tournamentdb"
+              value: "coursedb"
             - name: POSTGRES_USER
               value: "postgres"
             - name: POSTGRES_PASSWORD

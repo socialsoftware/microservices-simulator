@@ -18,13 +18,11 @@ in [Transactional Causal Consistent Microservices Simulator](https://doi.org/10.
 The simulator supports multiple execution modes to test different aspects of system behavior, ranging from simple local
 execution to full distributed deployment.
 
-| Mode                  | Description                                                                                                        | Profiles                                       | Infrastructure                                                                                                               |
-|-----------------------|--------------------------------------------------------------------------------------------------------------------|------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
-| **Monolith (Local)**  | Runs as a single application. Service calls are internal.                                                          | `sagas,local` or `tcc,local`                   | PostgreSQL, Jaeger                                                                                                           |
-| **Monolith (Stream)** | Single application but uses RabbitMQ for remote communication between components. Simulates distributed messaging. | `sagas,stream` or `tcc,stream`                 | PostgreSQL, Jaeger, RabbitMQ                                                                                                 |
-| **Monolith (gRPC)**   | Single application using gRPC for remote communication between components.                                         | `sagas,grpc` or `tcc,grpc`                     | PostgreSQL, Jaeger                                                                                                           |
-| **Microservices**     | Fully distributed. Each domain service runs independently. Uses Eureka for discovery and RabbitMQ for messaging.   | Service-specific (e.g., `answer,sagas,stream`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, RabbitMQ, Eureka |
-| **Kubernetes**        | Distributed microservices orchestrated by Kubernetes. Uses Spring Cloud Kubernetes for discovery.                  | `kubernetes`                                   | K8s Cluster, RabbitMQ, PostgreSQL                                                                                            |
+| Mode              | Description                                                                                                | Profiles                                                              | Infrastructure                                                                                                                            |
+|-------------------|------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| **Monolith**      | Runs as a single application. Supports local (internal), stream (RabbitMQ), or gRPC service calls.         | `sagas\|tcc, local\|stream\|grpc`          | PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                                 |
+| **Microservices** | Fully distributed. Each domain service runs independently. Uses Eureka for discovery and RabbitMQ or gRPC. | Service-specific (e.g., `answer,sagas\|tcc,stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
+| **Kubernetes**    | Distributed microservices orchestrated by Kubernetes (`k8s/services-stream`, `k8s/services-grpc` or `k8s/services-azure` to deploy in Microsoft Azure). Uses Spring Cloud Kubernetes for discovery. | `kubernetes`                                                              | K8s Cluster, PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                    |
 
 ## Run Using Docker
 
@@ -436,20 +434,26 @@ kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/configmap.yaml
 
-# Deploy rabbitmq infrastructure
+# Deploy infrastructure
 kubectl apply -f k8s/infrastructure/rabbitmq.yaml
+kubectl apply -f k8s/infrastructure/jaeger.yaml
 
 # Wait for infrastructure to be ready
 kubectl wait --for=condition=ready pod -l app=rabbitmq -n microservices-simulator --timeout=120s
+kubectl wait --for=condition=ready pod -l app=jaeger -n microservices-simulator --timeout=60s
 
-# Deploy microservices
-kubectl apply -f k8s/services/
+# Deploy microservices (choose one)
+# For stream communication
+kubectl apply -f k8s/services-stream/
+
+# For gRPC communication
+# kubectl apply -f k8s/services-grpc/
 
 # Check status
 kubectl get pods -n microservices-simulator
 ```
 
-> **Note:** To change transactional model profile, edit `k8s/services/` and change the
+> **Note:** To change transactional model profile, edit `k8s/services-stream/` or `k8s/services-grpc/` and change the
 > `SPRING_PROFILES_ACTIVE` environment variable of each service.
 
 #### Access the Application
@@ -458,6 +462,14 @@ kubectl get pods -n microservices-simulator
 # Port-forward to gateway
 kubectl port-forward svc/gateway 8080:8080 -n microservices-simulator
 ```
+
+#### Access Jaeger UI
+
+```bash
+kubectl port-forward svc/jaeger 16686:16686 -n microservices-simulator
+```
+
+Then open [http://localhost:16686](http://localhost:16686) to view distributed traces.
 
 #### Cleanup
 

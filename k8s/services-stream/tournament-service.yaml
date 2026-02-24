@@ -1,37 +1,37 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: topic-service
+  name: tournament-service
   namespace: microservices-simulator
 spec:
   selector:
-    app: topic-service
+    app: tournament-service
   ports:
-    - port: 8086
-      targetPort: 8086
+    - port: 8087
+      targetPort: 8087
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: topic-service
+  name: tournament-service
   namespace: microservices-simulator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: topic-service
+      app: tournament-service
   template:
     metadata:
       labels:
-        app: topic-service
+        app: tournament-service
     spec:
       serviceAccountName: microservices-sa
       containers:
-        - name: topic-service
-          image: quizzes-topic:latest
+        - name: tournament-service
+          image: quizzes-tournament:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8086
+            - containerPort: 8087
           resources:
             requests:
               memory: "512Mi"
@@ -41,15 +41,17 @@ spec:
               cpu: "1000m"
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: "kubernetes,topic-service,sagas,stream"
+              value: "kubernetes,tournament-service,sagas,stream"
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://localhost:5432/topicdb"
+              value: "jdbc:postgresql://localhost:5432/tournamentdb"
             - name: SPRING_RABBITMQ_HOST
               value: "rabbitmq"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger:4317"
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8086
+              port: 8087
             initialDelaySeconds: 60
             periodSeconds: 10
 
@@ -66,7 +68,7 @@ spec:
               cpu: "500m"
           env:
             - name: POSTGRES_DB
-              value: "topicdb"
+              value: "tournamentdb"
             - name: POSTGRES_USER
               value: "postgres"
             - name: POSTGRES_PASSWORD

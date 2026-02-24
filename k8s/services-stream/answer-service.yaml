@@ -1,37 +1,37 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: execution-service
+  name: answer-service
   namespace: microservices-simulator
 spec:
   selector:
-    app: execution-service
+    app: answer-service
   ports:
-    - port: 8083
-      targetPort: 8083
+    - port: 8082
+      targetPort: 8082
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: execution-service
+  name: answer-service
   namespace: microservices-simulator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: execution-service
+      app: answer-service
   template:
     metadata:
       labels:
-        app: execution-service
+        app: answer-service
     spec:
       serviceAccountName: microservices-sa
       containers:
-        - name: execution-service
-          image: quizzes-execution:latest
+        - name: answer-service
+          image: quizzes-answer:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8083
+            - containerPort: 8082
           resources:
             requests:
               memory: "512Mi"
@@ -41,15 +41,17 @@ spec:
               cpu: "1000m"
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: "kubernetes,execution-service,sagas,stream"
+              value: "kubernetes,answer-service,sagas,stream"
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://localhost:5432/executiondb"
+              value: "jdbc:postgresql://localhost:5432/answerdb"
             - name: SPRING_RABBITMQ_HOST
               value: "rabbitmq"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger:4317"
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8083
+              port: 8082
             initialDelaySeconds: 60
             periodSeconds: 10
 
@@ -66,7 +68,7 @@ spec:
               cpu: "500m"
           env:
             - name: POSTGRES_DB
-              value: "executiondb"
+              value: "answerdb"
             - name: POSTGRES_USER
               value: "postgres"
             - name: POSTGRES_PASSWORD
