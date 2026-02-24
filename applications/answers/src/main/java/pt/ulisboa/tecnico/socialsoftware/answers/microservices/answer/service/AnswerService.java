@@ -14,11 +14,9 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerUserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuizDto;
-import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.publish.AnswerUpdatedEvent;

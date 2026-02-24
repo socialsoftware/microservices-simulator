@@ -12,13 +12,10 @@ import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizQuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizOptionDto;
-import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.enums.QuizType;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.publish.QuizUpdatedEvent;

@@ -312,18 +312,26 @@ export class InvariantGenerator extends ValidationBaseGenerator {
     }
 
     private buildInvariantsImports(aggregate: Aggregate, options: ValidationGenerationOptions, invariants: any[]): string[] {
-        const baseImports = this.buildValidationImports(options.projectName, aggregate.name);
         const projectName = options?.projectName?.toLowerCase() || 'unknown';
         const lowerAggregate = aggregate.name.toLowerCase();
         const basePackage = 'pt.ulisboa.tecnico.socialsoftware';
-        const invariantImports = [
-            'import java.time.LocalDateTime;',
-            'import java.util.Collection;',
-            'import java.util.regex.Pattern;',
+
+        const imports: string[] = [
             `import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${aggregate.name};`
         ];
 
-        return this.combineImports(baseImports, invariantImports);
+        const allLogic = invariants.map(inv => inv.logic || '').join('\n');
+        if (allLogic.includes('LocalDateTime')) {
+            imports.push('import java.time.LocalDateTime;');
+        }
+        if (allLogic.includes('Collection') && !allLogic.includes('java.util.Collection')) {
+            imports.push('import java.util.Collection;');
+        }
+        if (allLogic.includes('Pattern')) {
+            imports.push('import java.util.regex.Pattern;');
+        }
+
+        return imports.sort();
     }
 
     private getInvariantsTemplate(): string {

@@ -135,8 +135,6 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
 
     private buildEventSubscriptionsImports(aggregate: Aggregate, options: EventGenerationOptions, eventSubscriptions: any[]): string[] {
         const baseImports = this.buildBaseImports(aggregate, options);
-        const lowerAggregate = aggregate.name.toLowerCase();
-        const projectName = options?.projectName?.toLowerCase() || 'unknown';
         const basePackage = this.getEventBasePackage(options);
 
         const imports = [
@@ -144,14 +142,6 @@ export class EventSubscriptionGenerator extends EventBaseGenerator {
             `import ${basePackage}.ms.domain.event.Event;`,
             `import ${basePackage}.ms.domain.event.EventSubscription;`
         ];
-
-        
-        eventSubscriptions.forEach((sub: any) => {
-            if (sub.projectionEntityName) {
-                imports.push(`import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${sub.projectionEntityName};`);
-            }
-            imports.push(`import ${sub.eventTypePackage}.${sub.eventTypeName};`);
-        });
 
         imports.push('');
         return imports;

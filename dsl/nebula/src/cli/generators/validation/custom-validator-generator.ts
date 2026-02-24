@@ -8,14 +8,22 @@ export class CustomValidatorGenerator extends ValidationBaseGenerator {
         const context = this.buildCustomValidatorsContext(aggregate, rootEntity, options);
         const results: { [key: string]: string } = {};
 
+        const constraintImports = this.buildConstraintAnnotationImports(context.packageName);
+        const baseValidatorImports = this.buildValidatorClassImports(aggregate, options, context.packageName);
+
         for (const validator of context.customValidators) {
             const constraintTemplate = this.getConstraintTemplate();
             const validatorTemplate = this.getValidatorTemplate();
 
-            const constraintContext = { ...context, validator };
+            const constraintContext = { ...context, validator, imports: constraintImports };
             results[`${validator.constraintName}.java`] = this.renderTemplate(constraintTemplate, constraintContext);
 
-            const validatorContext = { ...context, validator };
+            const needsAggregateImport = validator.validationType === aggregate.name;
+            const validatorImports = needsAggregateImport
+                ? baseValidatorImports
+                : baseValidatorImports.filter((imp: string) => !imp.includes(`.aggregate.${aggregate.name};`));
+
+            const validatorContext = { ...context, validator, imports: validatorImports };
             results[`${validator.name}.java`] = this.renderTemplate(validatorTemplate, validatorContext);
         }
 
@@ -288,20 +296,33 @@ export class CustomValidatorGenerator extends ValidationBaseGenerator {
     }
 
     private buildCustomValidatorsImports(aggregate: Aggregate, options: ValidationGenerationOptions, validators: any[]): string[] {
+        return [];
+    }
+
+    private buildConstraintAnnotationImports(packageName: string): string[] {
+        return [
+            'import java.lang.annotation.Documented;',
+            'import java.lang.annotation.ElementType;',
+            'import java.lang.annotation.Retention;',
+            'import java.lang.annotation.RetentionPolicy;',
+            'import java.lang.annotation.Target;',
+            '',
+            'import jakarta.validation.Constraint;',
+            'import jakarta.validation.Payload;'
+        ];
+    }
+
+    private buildValidatorClassImports(aggregate: Aggregate, options: ValidationGenerationOptions, packageName: string): string[] {
         const projectName = options?.projectName?.toLowerCase() || 'unknown';
-        const baseImports = this.buildValidationImports(projectName, aggregate.name);
         const lowerAggregate = aggregate.name.toLowerCase();
         const basePackage = getGlobalConfig().getBasePackage();
-        const validatorImports = [
-            'import java.net.URL;',
-            'import java.net.MalformedURLException;',
-            'import java.lang.reflect.Field;',
-            'import java.time.LocalDateTime;',
-            'import java.time.LocalDate;',
+
+        return [
+            'import jakarta.validation.ConstraintValidator;',
+            'import jakarta.validation.ConstraintValidatorContext;',
+            '',
             `import ${basePackage}.${projectName}.microservices.${lowerAggregate}.aggregate.${aggregate.name};`
         ];
-
-        return this.combineImports(baseImports, validatorImports);
     }
 
     private getConstraintTemplate(): string {

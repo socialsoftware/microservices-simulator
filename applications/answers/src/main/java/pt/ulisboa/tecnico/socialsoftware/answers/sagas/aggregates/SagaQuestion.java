@@ -6,11 +6,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaSt
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionCourse;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionTopic;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Option;
-import java.util.Set;
-import java.util.List;
 
 @Entity
 public class SagaQuestion extends Question implements SagaAggregate {

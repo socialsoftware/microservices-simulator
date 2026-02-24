@@ -11,9 +11,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.OrderDto;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.OrderUserDto;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.events.publish.OrderDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.events.publish.OrderUpdatedEvent;

@@ -6,7 +6,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaSt
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.Topic;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicCourse;
 
 @Entity
 public class SagaTopic extends Topic implements SagaAggregate {

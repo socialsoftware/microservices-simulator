@@ -6,9 +6,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaSt
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionCourse;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionUser;
-import java.util.Set;
 
 @Entity
 public class SagaExecution extends Execution implements SagaAggregate {

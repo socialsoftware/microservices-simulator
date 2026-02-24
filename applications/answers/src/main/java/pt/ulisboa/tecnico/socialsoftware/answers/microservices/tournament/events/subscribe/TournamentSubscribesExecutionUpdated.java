@@ -2,8 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.event
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentExecution;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUpdatedEvent;
 
 public class TournamentSubscribesExecutionUpdated extends EventSubscription {
     

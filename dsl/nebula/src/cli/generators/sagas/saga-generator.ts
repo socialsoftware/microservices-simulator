@@ -321,22 +321,6 @@ export class SagaGenerator {
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${capitalizedAggregate};`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntityName}Dto;`);
 
-        
-        const relationships = this.extractEntityRelationships(aggregate, rootEntity);
-        for (const rel of relationships) {
-            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.${rel.type};`);
-        }
-        
-        
-        const hasSet = relationships.some((r: any) => r.isCollection && r.javaType?.startsWith('Set<'));
-        const hasList = relationships.some((r: any) => r.isCollection && r.javaType?.startsWith('List<'));
-        if (hasSet) {
-            imports.push('import java.util.Set;');
-        }
-        if (hasList) {
-            imports.push('import java.util.List;');
-        }
-
         return imports;
     }
 

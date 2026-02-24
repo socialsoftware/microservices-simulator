@@ -62,7 +62,6 @@ export class AnnotationGenerator extends ValidationBaseGenerator {
     }
 
     private buildValidationAnnotationsImports(aggregate: Aggregate, options: ValidationGenerationOptions, annotations: any[]): string[] {
-        const baseImports = this.buildValidationImports(options.projectName, aggregate.name);
         const annotationImports = [
             'import jakarta.validation.constraints.*;',
             'import jakarta.validation.Valid;'
@@ -89,6 +88,18 @@ export class AnnotationGenerator extends ValidationBaseGenerator {
 
         const typeImports: string[] = [];
         const addedTypes = new Set<string>();
+
+        const temporalTypeImports: Record<string, string> = {
+            'LocalDateTime': 'import java.time.LocalDateTime;',
+            'LocalDate': 'import java.time.LocalDate;'
+        };
+        for (const annotation of annotations) {
+            const propType = annotation.propertyType;
+            if (propType && temporalTypeImports[propType] && !addedTypes.has(propType)) {
+                typeImports.push(temporalTypeImports[propType]);
+                addedTypes.add(propType);
+            }
+        }
 
         for (const annotation of annotations) {
             const propType = annotation.propertyType;
@@ -123,7 +134,7 @@ export class AnnotationGenerator extends ValidationBaseGenerator {
             }
         }
 
-        return this.combineImports(baseImports, annotationImports, typeImports);
+        return this.combineImports(annotationImports, typeImports);
     }
 
     private getValidationAnnotationsTemplate(): string {

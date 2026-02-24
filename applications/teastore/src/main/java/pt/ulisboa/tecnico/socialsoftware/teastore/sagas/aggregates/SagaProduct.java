@@ -6,7 +6,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaSt
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregate.Product;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.ProductDto;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregate.ProductCategory;
 
 @Entity
 public class SagaProduct extends Product implements SagaAggregate {

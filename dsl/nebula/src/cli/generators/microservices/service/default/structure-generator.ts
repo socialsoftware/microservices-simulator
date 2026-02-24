@@ -36,29 +36,26 @@ export class ServiceStructureGenerator {
 
 
 
+        const referencedEntityNames = new Set<string>();
+        if (rootEntity?.properties) {
+            for (const prop of rootEntity.properties) {
+                const javaType = TypeResolver.resolveJavaType((prop as any).type);
+                if (aggregate.entities.some(e => e.name === javaType)) {
+                    referencedEntityNames.add(javaType);
+                }
+                const elementType = TypeResolver.getElementType((prop as any).type);
+                if (elementType && aggregate.entities.some(e => e.name === elementType)) {
+                    referencedEntityNames.add(elementType);
+                }
+            }
+        }
         aggregate.entities.forEach(entity => {
-            if (!entity.isRoot) {
+            if (!entity.isRoot && referencedEntityNames.has(entity.name)) {
                 imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.${entity.name}Dto;`);
             }
         });
 
-        const hasDateTime = aggregate.entities.some(entity =>
-            entity.properties?.some(prop => {
-                if (!prop.type) return false;
-                if (typeof prop.type === 'string') {
-                    return prop.type === 'LocalDateTime';
-                }
-                if (prop.type.$type === 'PrimitiveType') {
-                    return prop.type.typeName === 'LocalDateTime';
-                }
-                return false;
-            })
-        );
-
-        if (hasDateTime) {
-            imports.push('import java.time.LocalDateTime;');
-            imports.push('');
-        }
+        imports.push('');
 
 
         if (rootEntity && rootEntity.properties) {
@@ -103,7 +100,6 @@ export class ServiceStructureGenerator {
 
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;');
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;');
-        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;');
         imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;');
 
 

@@ -13,14 +13,11 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantQuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentQuizDto;
-import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.publish.TournamentUpdatedEvent;

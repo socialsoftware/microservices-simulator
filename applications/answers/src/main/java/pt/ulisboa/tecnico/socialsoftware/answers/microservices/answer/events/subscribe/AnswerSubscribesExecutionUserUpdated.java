@@ -2,8 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.su
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.events.publish.ExecutionUserUpdatedEvent;
 
 public class AnswerSubscribesExecutionUserUpdated extends EventSubscription {
     
