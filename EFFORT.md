@@ -20,3 +20,4 @@
     - Create a `UserEnableDisableEventsController` for testing purposes
     - Create a `UserEventSubscriberService` to receive remote events from publisher services
 
+4. Create the databases in postgres

@@ -156,16 +156,20 @@ IntelliJ, these configurations will be automatically available in the Run/Debug 
 
 - Run the `sagas local` or the `tcc local` configuration
 
-### Running as a Monolith with Remote Service Calls With RabbitMQ
+### Running as a Monolith with Remote Service Calls
 
-- Run the `Quizzes SAGAS Stream` or the `Quizzes TCC Stream` configuration
-- Run the `VersionServiceApplication` configuration to start the version service
+- Run the `quizzes-simulator` folder (contains `sagas-stream`, `sagas-grpc`, `tcc-stream`, `tcc-grpc` configurations)
+- Run one of the `version-service` folder configurations (`version-stream` or `version-grpc`) matching the communication layer
 
 ### Running as Microservices
 
-- Run the `microservices-sagas` folder or the `microservices-tcc` folder to run all the microservices
-- Run the `VersionServiceApplication` configuration
-- Run the `GatewayApplication` configuration to start the API gateway
+- Run one of the microservices folders to start all domain services:
+  - `microservices-sagas-stream` — Sagas with RabbitMQ
+  - `microservices-sagas-grpc` — Sagas with gRPC
+  - `microservices-tcc-stream` — TCC with RabbitMQ
+  - `microservices-tcc-grpc` — TCC with gRPC
+- Run the matching `version-service` configuration (`version-stream` or `version-grpc`)
+- Run the `api-gateway` configuration
 
 ---
 
@@ -201,7 +205,7 @@ There is two ways to set up the database:
     sudo service postgresql start
     ```
 
-2. **Create the database:**
+2. **Create the databases:**
 
     ```bash
     sudo su -l postgres
@@ -209,7 +213,13 @@ There is two ways to set up the database:
     createdb msdb
     ```
 
-3. **Create user to access db:**
+3. **Create microservice databases (required for microservices mode):**
+
+    ```bash
+    psql -U postgres -d msdb -f data/init/init-databases.sh
+    ```
+
+4. **Create user to access db:**
 
     ```bash
     psql msdb
@@ -218,7 +228,7 @@ There is two ways to set up the database:
     exit
     ```
 
-4. **Configure application properties:**
+5. **Configure application properties:**
     - Fill in the placeholder fields with your database credentials in
       `applications/quizzes/src/main/resources/application.yaml`
 
@@ -348,44 +358,16 @@ mvn spring-boot:run -Dspring-boot.run.profiles=version-service,stream
 cd applications/quizzes
 ```
 
-**Sagas with Stream (RabbitMQ):**
-
-| Service                  | Command                                               |
-|--------------------------|-------------------------------------------------------|
-| Answer Service           | `mvn spring-boot:run -Panswer,sagas,stream`           |
-| Course Service           | `mvn spring-boot:run -Pcourse,sagas,stream`           |
-| Course Execution Service | `mvn spring-boot:run -Pcourse-execution,sagas,stream` |
-| Question Service         | `mvn spring-boot:run -Pquestion,sagas,stream`         |
-| Quiz Service             | `mvn spring-boot:run -Pquiz,sagas,stream`             |
-| Topic Service            | `mvn spring-boot:run -Ptopic,sagas,stream`            |
-| Tournament Service       | `mvn spring-boot:run -Ptournament,sagas,stream`       |
-| User Service             | `mvn spring-boot:run -Puser,sagas,stream`             |
-
-**Sagas with gRPC:**
-
-| Service                  | Command                                             |
-|--------------------------|-----------------------------------------------------|
-| Answer Service           | `mvn spring-boot:run -Panswer,sagas,grpc`           |
-| Course Service           | `mvn spring-boot:run -Pcourse,sagas,grpc`           |
-| Course Execution Service | `mvn spring-boot:run -Pcourse-execution,sagas,grpc` |
-| Question Service         | `mvn spring-boot:run -Pquestion,sagas,grpc`         |
-| Quiz Service             | `mvn spring-boot:run -Pquiz,sagas,grpc`             |
-| Topic Service            | `mvn spring-boot:run -Ptopic,sagas,grpc`            |
-| Tournament Service       | `mvn spring-boot:run -Ptournament,sagas,grpc`       |
-| User Service             | `mvn spring-boot:run -Puser,sagas,grpc`             |
-
-**TCC with Stream:**
-
-| Service                  | Command                                             |
-|--------------------------|-----------------------------------------------------|
-| Answer Service           | `mvn spring-boot:run -Panswer,tcc,stream`           |
-| Course Service           | `mvn spring-boot:run -Pcourse,tcc,stream`           |
-| Course Execution Service | `mvn spring-boot:run -Pcourse-execution,tcc,stream` |
-| Question Service         | `mvn spring-boot:run -Pquestion,tcc,stream`         |
-| Quiz Service             | `mvn spring-boot:run -Pquiz,tcc,stream`             |
-| Topic Service            | `mvn spring-boot:run -Ptopic,tcc,stream`            |
-| Tournament Service       | `mvn spring-boot:run -Ptournament,tcc,stream`       |
-| User Service             | `mvn spring-boot:run -Puser,tcc,stream`             |
+| Service                  | Command                                                            |
+|--------------------------|--------------------------------------------------------------------|
+| Answer Service           | `mvn spring-boot:run -Panswer,sagas\|tcc,stream\|grpc`            |
+| Course Service           | `mvn spring-boot:run -Pcourse,sagas\|tcc,stream\|grpc`            |
+| Course Execution Service | `mvn spring-boot:run -Pcourse-execution,sagas\|tcc,stream\|grpc`  |
+| Question Service         | `mvn spring-boot:run -Pquestion,sagas\|tcc,stream\|grpc`          |
+| Quiz Service             | `mvn spring-boot:run -Pquiz,sagas\|tcc,stream\|grpc`              |
+| Topic Service            | `mvn spring-boot:run -Ptopic,sagas\|tcc,stream\|grpc`             |
+| Tournament Service       | `mvn spring-boot:run -Ptournament,sagas\|tcc,stream\|grpc`        |
+| User Service             | `mvn spring-boot:run -Puser,sagas\|tcc,stream\|grpc`              |
 
 **3. Start the Gateway (from `applications/gateway`):**
 
@@ -665,7 +647,7 @@ Each microservice runs on a dedicated port:
 | Tournament Service | 8087 | [application-tournament-service.yaml](applications/quizzes/src/main/resources/application-tournament-service.yaml)             |
 | User Service       | 8088 | [application-user-service.yaml](applications/quizzes/src/main/resources/application-user-service.yaml)                         |
 
-Every service port can be changed, except `version-service` port 8081, and `gateway` port 8080. Service Discovery will
+Every service port can be changed, including `version-service` port 8081, and `gateway` port 8080. Service Discovery will
 map the service name to the service port automatically.
 
 ### API Gateway Configuration
@@ -788,11 +770,19 @@ For the inter-service communication:
 1. **Create the CommandHandlers of the aggregate**: It receives commands from local or remote services' functionalities
    and calls the corresponding aggregate service method of that command,
    like [TournamentCommandHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/commandHandler/TournamentCommandHandler.java)
-   for local calls
-   and [TournamentStreamCommandHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/commandHandler/TournamentStreamCommandHandler.java)
-   for remote calls via messaging.
-2. **Configure Spring Cloud Stream Bindings**: Define the command and event channels in `application.yaml`,
+   for local calls,
+   [TournamentStreamCommandHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/commandHandler/TournamentStreamCommandHandler.java)
+   for remote calls via messaging,
+   and [TournamentGrpcCommandHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/commandHandler/TournamentGrpcCommandHandler.java)
+   for remote calls via gRPC.
+2. **Configure Spring Cloud Stream Bindings** (for `stream` profile): Define the command and event channels in `application.yaml`,
    like [tournament-service bindings](applications/quizzes/src/main/resources/application-tournament-service.yaml).
+3. **Configure gRPC Server Port** (for `grpc` profile): Define the gRPC server port in the service profile file and
+   expose it via Eureka metadata,
+   like [tournament-service gRPC config](applications/quizzes/src/main/resources/application-tournament-service.yaml).
+4. **Configure API Gateway Routes**: Define the route mappings in the
+   [Gateway application.yaml](applications/gateway/src/main/resources/application.yaml) to route API requests to the
+   new microservice.
 
 To write tests:
 
