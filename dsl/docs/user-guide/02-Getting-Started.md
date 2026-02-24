@@ -50,11 +50,31 @@ Nebula reads `.nebula` files from an abstractions directory. Each file typically
 
 ```
 dsl/docs/examples/abstractions/
-└── 06-tutorial/          # Tutorial project (3 aggregates) -- start here
+├── 01-helloworld/        # Simplest example — start here (Ch 03)
+│   └── task.nebula
+├── 02-typesenums/        # Types and enumerations (Ch 04)
+│   └── contact.nebula
+├── 03-businessrules/     # Invariants and repositories (Ch 05)
+│   └── product.nebula
+├── 04-crossrefs/         # Cross-aggregate references (Ch 06)
+│   ├── teacher.nebula
+│   ├── course.nebula
+│   └── enrollment.nebula
+├── 05-eventdriven/       # Event publishing and subscribing (Ch 07)
+│   ├── author.nebula
+│   └── post.nebula
+├── 06-tutorial/          # Library system tutorial (Ch 08)
+│   ├── shared-enums.nebula
+│   ├── member.nebula
+│   ├── book.nebula
+│   └── loan.nebula
+└── 07-advanced/          # Advanced patterns (Ch 09)
     ├── shared-enums.nebula
-    ├── member.nebula
-    ├── book.nebula
-    └── loan.nebula
+    ├── customer.nebula
+    ├── product.nebula
+    ├── order.nebula
+    ├── invoice.nebula
+    └── exceptions.nebula
 
 dsl/abstractions/
 ├── answers/              # Answers case study (9 aggregates)
@@ -77,12 +97,20 @@ dsl/abstractions/
     └── shared-enums.nebula
 ```
 
+> **Note:** Examples 01-07 map directly to guide chapters 03-09. Each chapter references its tied example with generation commands.
+
 ## Generating Code
 
-Generate Spring Boot code from an abstractions directory. Let's start with the tutorial project:
+Generate Spring Boot code from an abstractions directory. Let's start with the simplest example:
 
 ```bash
 cd dsl/nebula
+./bin/cli.js generate ../docs/examples/abstractions/01-helloworld/ -o ../docs/examples/generated
+```
+
+For a more complete example, try the tutorial project:
+
+```bash
 ./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ../docs/examples/generated
 ```
 
@@ -314,4 +342,4 @@ cd dsl/nebula && npm run langium:generate && npm run build
 
 ---
 
-**Previous:** [01-Introduction](01-Introduction.md) | **Next:** [03-DSL-Syntax](03-DSL-Syntax.md)
+**Previous:** [01-Introduction](01-Introduction.md) | **Next:** [03-Your-First-Aggregate](03-Your-First-Aggregate.md)

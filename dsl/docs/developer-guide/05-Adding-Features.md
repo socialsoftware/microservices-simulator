@@ -6,13 +6,13 @@ This chapter provides a step-by-step guide for extending the Nebula DSL with new
 
 Adding a new DSL feature involves:
 
-1. **Grammar modification** -- define syntax in `nebula.langium`
-2. **Parser regeneration** -- `npm run langium:generate`
-3. **Validator implementation** -- add semantic checks (optional)
-4. **Generator creation** -- implement code generation
-5. **Template creation** -- define output structure (if needed)
-6. **Testing** -- verify end-to-end
-7. **Documentation** -- update guides
+1. **Grammar modification** - define syntax in `nebula.langium`
+2. **Parser regeneration** - `npm run langium:generate`
+3. **Validator implementation** - add semantic checks (optional)
+4. **Generator creation** - implement code generation
+5. **Template creation** - define output structure (if needed)
+6. **Testing** - verify end-to-end
+7. **Documentation** - update guides
 
 ## Example: Adding Default Values
 
@@ -179,7 +179,7 @@ npm run langium:generate && npm run build
 cd ../../applications/answers && mvn clean compile
 
 # 5. Run tests
-mvn clean -Ptest-sagas test
+mvn clean - Ptest-sagas test
 ```
 
 ### Debugging

@@ -114,7 +114,7 @@ export interface Entity extends AstNode {
 
 This is an important distinction:
 
-**Plain ID** -- just a string, no resolution:
+**Plain ID** - just a string, no resolution:
 ```langium
 Entity:
     'Entity' name=ID ('from' aggregateRef=ID)?;
@@ -122,7 +122,7 @@ Entity:
 
 Here `aggregateRef` is just a string. The generator resolves it manually via the model registry.
 
-**Cross-reference** -- Langium resolves the reference:
+**Cross-reference** - Langium resolves the reference:
 ```langium
 EntityType:
     type=[Entity:QualifiedName];
@@ -157,7 +157,7 @@ hidden terminal ML_COMMENT: /\/\*([^*]|\*+[^*/])*\*+\//;
 hidden terminal SL_COMMENT: /\/\/[^\n\r]*/;
 ```
 
-Whitespace and comments are ignored by the parser -- no need to handle them in grammar rules.
+Whitespace and comments are ignored by the parser - no need to handle them in grammar rules.
 
 ## Scope Provider
 
@@ -251,7 +251,7 @@ After grammar changes, always run:
 npm run langium:generate && npm run build
 ```
 
-> For the complete grammar syntax reference, see the [User Guide](../user-guide/05-Reference.md).
+> For the complete grammar syntax reference, see the [User Guide](../user-guide/11-Reference.md).
 
 ---
 

@@ -7,10 +7,10 @@ This chapter covers Nebula's template-based code generation using Handlebars, in
 **Handlebars** is a logic-less template engine that separates presentation (templates) from logic (generators).
 
 **Benefits:**
-1. **Separation of concerns** -- templates focus on structure, generators focus on logic
-2. **Readability** -- templates look like the output they generate
-3. **Maintainability** -- easy to modify generated code structure
-4. **Reusability** -- partials and helpers promote DRY
+1. **Separation of concerns** - templates focus on structure, generators focus on logic
+2. **Readability** - templates look like the output they generate
+3. **Maintainability** - easy to modify generated code structure
+4. **Reusability** - partials and helpers promote DRY
 
 ## Template Manager
 
@@ -108,6 +108,8 @@ src/cli/templates/
 └── _partials/                     # Reusable fragments
     └── dto-class.hbs
 ```
+
+> **Note:** Not all generators use Handlebars templates. The `CommandGenerator`, `CommandHandlerGenerator`, and `ServiceMappingGenerator` (added in Simulator v3.0) use **inline code generation** — they build Java source directly via string concatenation in TypeScript. This approach was chosen because their output structure is highly dynamic (variable command counts, switch expression arms) and would not benefit from template-based rendering.
 
 **Naming conventions:**
 - Template files: `kebab-case.hbs`
@@ -282,10 +284,10 @@ export class FactoryGenerator extends GeneratorBase {
 
 ### Context Best Practices
 
-1. **Flat structure** -- avoid deep nesting
-2. **Meaningful names** -- `aggregateName` not `an`
-3. **Pre-computed values** -- do logic in generator, not template
-4. **Type safety** -- use TypeScript interfaces for context
+1. **Flat structure** - avoid deep nesting
+2. **Meaningful names** - `aggregateName` not `an`
+3. **Pre-computed values** - do logic in generator, not template
+4. **Type safety** - use TypeScript interfaces for context
 
 ## Real-World Examples
 
@@ -392,9 +394,9 @@ const templateManager = TemplateManager.getInstance({ enableDevMode: true });
 
 ### Common Errors
 
-**"Missing variable: createMethodParams"** -- check that the generator includes all variables used by the template.
+**"Missing variable: createMethodParams"** - check that the generator includes all variables used by the template.
 
-**Templates not updating** -- run `npm run build` to copy templates to `out/`.
+**Templates not updating** - run `npm run build` to copy templates to `out/`.
 
 ---
 

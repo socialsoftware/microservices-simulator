@@ -21,11 +21,13 @@ This chapter provides an overview of the Nebula DSL codebase architecture, proje
 │                                                             │
 │  Discovery → Parsing → Validation → Generation → Output     │
 │                                                             │
-│  19 Specialized Generators:                                 │
+│  22 Specialized Generators:                                 │
 │  • Entity Generator      • DTO Generator                    │
 │  • Service Generator     • Repository Generator             │
 │  • Factory Generator     • Event Generators                 │
 │  • Controller Generator  • Saga Generators                  │
+│  • Command Generator     • Command Handler Generator        │
+│  • Service Mapping Generator                                │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
@@ -69,6 +71,8 @@ dsl/nebula/
 │   │   ├── generators/         # Specialized generators
 │   │   │   ├── common/         # Shared utilities and base classes
 │   │   │   ├── microservices/  # Entity, Service, Repository, Factory, Events
+│   │   │   │   ├── command/    # Command + CommandHandler generators (v3.0)
+│   │   │   │   └── service/    # Includes ServiceMapping generator (v3.0)
 │   │   │   ├── coordination/   # Functionalities, WebAPI, Config
 │   │   │   ├── sagas/          # Saga orchestration
 │   │   │   └── validation/     # Business rules
@@ -116,10 +120,10 @@ dsl/nebula/
 ```
 
 **Build pipeline:**
-1. `langium:generate` -- Generate parser from grammar
-2. `tsc` -- Compile TypeScript to JavaScript (`src/` → `out/`)
-3. `esbuild` -- Bundle VSCode extension
-4. `cp` -- Copy templates to output directory (templates are not TypeScript, so `tsc` doesn't process them)
+1. `langium:generate` - Generate parser from grammar
+2. `tsc` - Compile TypeScript to JavaScript (`src/` → `out/`)
+3. `esbuild` - Bundle VSCode extension
+4. `cp` - Copy templates to output directory (templates are not TypeScript, so `tsc` doesn't process them)
 
 ### Key Dependencies
 
@@ -180,8 +184,15 @@ for (const model of models) {
         await WebApiFeature.generateWebApi(aggregate, ...);
         await ValidationFeature.generateValidation(aggregate, ...);
         await SagaFeature.generateSaga(aggregate, ...);
+
+        // v3.0: Command/Handler pattern (inline, not registry-based)
+        new CommandGenerator().generate(aggregate, options);       // → command/{aggregate}/
+        new CommandHandlerGenerator().generate(aggregate, options); // → microservices/{aggregate}/commandHandler/
     }
 }
+
+// Project-level generation (after aggregate loop)
+new ServiceMappingGenerator().generate(allAggregates, options);    // → ServiceMapping.java
 ```
 
 ### Phase 6: Completion
@@ -228,10 +239,10 @@ This enables generators to resolve types from referenced aggregates in different
 
 Errors have context (aggregate, generator, operation) and severity levels:
 
-- **FATAL** -- Stop generation immediately
-- **ERROR** -- Report error but continue
-- **WARNING** -- Log warning and continue
-- **INFO** -- Informational message
+- **FATAL** - Stop generation immediately
+- **ERROR** - Report error but continue
+- **WARNING** - Log warning and continue
+- **INFO** - Informational message
 
 ```typescript
 ErrorHandler.handle(
@@ -255,7 +266,7 @@ Clear boundaries: grammar (syntax) → validators (semantics) → generators (co
 ### Pipeline Architecture
 Modular, composable generators registered in a central registry with dependency tracking.
 
-> For DSL syntax and constructs, see the [User Guide](../user-guide/03-DSL-Syntax.md).
+> For DSL syntax and constructs, see the User Guide chapters on [Your First Aggregate](../user-guide/03-Your-First-Aggregate.md) through [Advanced Patterns](../user-guide/09-Advanced-Patterns.md).
 
 ---
 

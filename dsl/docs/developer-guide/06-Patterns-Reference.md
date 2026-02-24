@@ -18,7 +18,7 @@ This chapter documents the design patterns, naming conventions, and key utilitie
 
 ### Template Method Pattern
 
-**Where:** `MethodGeneratorTemplate` -- base class for CRUD method generators.
+**Where:** `MethodGeneratorTemplate` - base class for CRUD method generators.
 
 **How it works:** The base class defines the algorithm skeleton (`generate()`), subclasses override specific steps (`extractMetadata`, `buildMethodSignature`, `buildMethodBody`).
 
@@ -37,7 +37,7 @@ generate(aggregate, options) {
 
 ### Strategy Pattern
 
-**Where:** DTO setter builders -- different strategies for different field types.
+**Where:** DTO setter builders - different strategies for different field types.
 
 ```typescript
 export interface DtoSetterStrategy {
@@ -46,11 +46,11 @@ export interface DtoSetterStrategy {
 }
 
 // Strategies (checked in order, first match wins):
-// 1. AggregateFieldStrategy  -- cross-aggregate fields
-// 2. EnumFieldStrategy       -- enum fields
-// 3. OverrideFieldStrategy   -- field mappings
-// 4. ExtractFieldStrategy    -- extract patterns
-// 5. DefaultSetterStrategy   -- fallback for simple fields
+// 1. AggregateFieldStrategy  - cross-aggregate fields
+// 2. EnumFieldStrategy       - enum fields
+// 3. OverrideFieldStrategy   - field mappings
+// 4. ExtractFieldStrategy    - extract patterns
+// 5. DefaultSetterStrategy   - fallback for simple fields
 ```
 
 **Usage:**
@@ -93,7 +93,7 @@ Provides centralized lookup without passing objects through many layers.
 
 ### Singleton Pattern
 
-**Where:** `TemplateManager` -- ensures template cache is shared across all generators.
+**Where:** `TemplateManager` - ensures template cache is shared across all generators.
 
 ```typescript
 const manager = TemplateManager.getInstance();
@@ -213,6 +213,13 @@ Java package name construction:
 ```typescript
 buildPackageName(projectName: string, ...segments: string[]): string
 // e.g., "pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate"
+
+// v3.0: Command/Handler packages
+buildCommandPackage(projectName: string, aggregateName: string): string
+// → "{basePackage}.{project}.command.{aggregate}"
+
+buildCommandHandlerPackage(projectName: string, aggregateName: string): string
+// → "{basePackage}.{project}.microservices.{aggregate}.commandHandler"
 ```
 
 ### `import-manager.ts`
@@ -279,9 +286,9 @@ getSchema(entityName: string): DtoSchema | undefined
 
 | Topic | Lives in | Referenced from |
 |-------|----------|-----------------|
-| DSL syntax & constructs | [User Guide: DSL Syntax](../user-guide/03-DSL-Syntax.md) | Grammar Internals |
-| Grammar reference | [User Guide: Reference](../user-guide/05-Reference.md) | Grammar Internals |
-| Generated code structure | [User Guide: Generated Code](../user-guide/04-Generated-Code.md) | Generator System |
+| DSL syntax & constructs | [User Guide: Your First Aggregate](../user-guide/03-Your-First-Aggregate.md) (chapters 03-09) | Grammar Internals |
+| Grammar reference | [User Guide: Reference](../user-guide/11-Reference.md) | Grammar Internals |
+| Generated code structure | [User Guide: Generated Code](../user-guide/10-Generated-Code.md) | Generator System |
 | Architecture & pipeline | [Dev Guide: Architecture](01-Architecture.md) | User Guide Introduction |
 | Generator details | [Dev Guide: Generator System](03-Generator-System.md) | User Guide Generated Code |
 | Adding features | [Dev Guide: Adding Features](05-Adding-Features.md) | User Guide Introduction |

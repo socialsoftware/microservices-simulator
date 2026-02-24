@@ -23,8 +23,8 @@ The project name is automatically derived from the abstractions folder name (e.g
 ### Examples
 
 ```bash
+./bin/cli.js generate ../docs/examples/abstractions/01-helloworld/ -o ../docs/examples/generated
 ./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ../docs/examples/generated
-./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ./output
 ./bin/cli.js generate ../abstractions/answers/ -o ../../applications/answers
 ./bin/cli.js generate ../abstractions/answers/ --debug --verbose
 ```
@@ -51,6 +51,8 @@ Aggregate:
         (aggregateElements+=AggregateElement)*
     '}';
 ```
+
+See [Chapter 03](03-Your-First-Aggregate.md) for basic usage.
 
 ### Aggregate Elements
 
@@ -88,6 +90,8 @@ Entity:
     )?;
 ```
 
+See [Chapter 03](03-Your-First-Aggregate.md) for root entities, [Chapter 06](06-Cross-Aggregate-References.md) for `from` references, [Chapter 09](09-Advanced-Patterns.md) for `Dto` entities.
+
 ### Property
 
 ```langium
@@ -96,6 +100,8 @@ Property:
     ('=' defaultValue=PropertyDefaultValue)?
     (dtoExclude?='dto-exclude')?;
 ```
+
+See [Chapter 04](04-Types-Enums-Properties.md) for property modifiers.
 
 ### Default Values
 
@@ -114,6 +120,8 @@ DtoFieldMapping:
 DtoFieldPath:
     parts+=ID ('.' parts+=ID)*;
 ```
+
+See [Chapter 06](06-Cross-Aggregate-References.md) for field mappings, [Chapter 09](09-Advanced-Patterns.md) for the extract pattern (dotted paths).
 
 ## Type System
 
@@ -140,6 +148,8 @@ BaseType:
 - No nested collections: `List<List<Integer>>` is invalid
 - Collection element type must be a BaseType
 
+See [Chapter 04](04-Types-Enums-Properties.md) for detailed type documentation.
+
 ## Invariants
 
 ```langium
@@ -149,6 +159,8 @@ Invariant:
     '}'
     'error' errorMessage=STRING;
 ```
+
+See [Chapter 05](05-Business-Rules-Repositories.md) for invariant usage.
 
 ### Expression Language
 
@@ -199,6 +211,8 @@ EventField:
     type=Type name=ID;
 ```
 
+See [Chapter 07](07-Events-Reactive-Patterns.md) for event publishing.
+
 ### Subscribed Events
 
 ```langium
@@ -230,6 +244,8 @@ InterInvariant:
     '}';
 ```
 
+See [Chapter 07](07-Events-Reactive-Patterns.md) for inter-invariants.
+
 ## References
 
 ```langium
@@ -247,6 +263,8 @@ ReferenceConstraint:
 ReferenceAction returns string:
     'prevent' | 'cascade' | 'setNull';
 ```
+
+See [Chapter 06](06-Cross-Aggregate-References.md) for reference usage.
 
 ## Repository
 
@@ -269,6 +287,8 @@ RepositoryMethod:
 - Parameter binding: `:paramName` matches method parameter names
 - Return types: entity, collection, `Set<Integer>`, `Optional<T>`
 
+See [Chapter 05](05-Business-Rules-Repositories.md) for repository usage.
+
 ## Service
 
 ```langium
@@ -280,6 +300,8 @@ ServiceDefinition:
         '}')?
     '}';
 ```
+
+See [Chapter 09](09-Advanced-Patterns.md) for custom service methods.
 
 ## Web API Endpoints
 
@@ -303,6 +325,8 @@ HttpMethod:
     method=('GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH');
 ```
 
+See [Chapter 09](09-Advanced-Patterns.md) for custom endpoint usage.
+
 ## Shared Enums
 
 ```langium
@@ -317,6 +341,8 @@ EnumDefinition:
     '}';
 ```
 
+See [Chapter 04](04-Types-Enums-Properties.md) for enum usage.
+
 ## Exception Messages
 
 ```langium
@@ -328,6 +354,8 @@ ExceptionMessages:
 ExceptionMessage:
     name=ID ':' message=STRING;
 ```
+
+See [Chapter 09](09-Advanced-Patterns.md) for exception message usage.
 
 ## Annotations
 
@@ -496,4 +524,4 @@ exceptions {
 
 ---
 
-**Previous:** [04-Generated-Code](04-Generated-Code.md) | **Back to:** [01-Introduction](01-Introduction.md)
+**Previous:** [10-Generated-Code](10-Generated-Code.md) | **Back to:** [01-Introduction](01-Introduction.md)

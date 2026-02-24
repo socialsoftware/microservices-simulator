@@ -2,6 +2,8 @@
 
 This chapter explains what Nebula generates, how the generated code is structured, and how the key patterns work. Examples use the **tutorial project** (Member, Book, Loan) for simplicity.
 
+> For the DSL syntax that produces this code, see chapters [03](03-Your-First-Aggregate.md)-[09](09-Advanced-Patterns.md).
+
 ## Generated Directory Structure
 
 For each project, Nebula generates a complete Spring Boot application:
@@ -75,7 +77,7 @@ dsl/docs/examples/generated/06-tutorial/
 
 ## What Gets Generated Per Aggregate
 
-For an aggregate with `@GenerateCrud`:
+For an aggregate with `@GenerateCrud` ([Chapter 03](03-Your-First-Aggregate.md)):
 
 | Component | Files | Purpose |
 |-----------|-------|---------|
@@ -130,13 +132,13 @@ public class User extends Aggregate {
 ```
 
 Three constructors are generated:
-1. **Default** -- for JPA
-2. **DTO constructor** -- for creating from request data
-3. **Copy constructor** -- for the immutable update pattern
+1. **Default** — for JPA
+2. **DTO constructor** — for creating from request data
+3. **Copy constructor** — for the immutable update pattern
 
 ### DTO (`UserDto.java`)
 
-DTOs include base fields plus entity properties (minus `dto-exclude` fields):
+DTOs include base fields plus entity properties (minus `dto-exclude` fields — see [Chapter 04](04-Types-Enums-Properties.md)):
 
 ```java
 public class UserDto {
@@ -255,7 +257,7 @@ newUser = unitOfWorkService.registerChanged(newUser, unitOfWork);
 
 ### Event Publishing
 
-Events are registered with the Unit of Work and emitted on commit:
+Events are registered with the Unit of Work and emitted on commit (see [Chapter 07](07-Events-Reactive-Patterns.md)):
 
 ```java
 UserDeletedEvent event = new UserDeletedEvent(user.getAggregateId());
@@ -278,7 +280,7 @@ public class Execution extends Aggregate {
 
 ### Invariant Verification
 
-Invariants are verified when changes are registered:
+Invariants ([Chapter 05](05-Business-Rules-Repositories.md)) are verified when changes are registered:
 
 ```java
 @Override
@@ -343,4 +345,4 @@ public ExecutionDto removeUserFromExecution(
 
 ---
 
-**Previous:** [03-DSL-Syntax](03-DSL-Syntax.md) | **Next:** [05-Reference](05-Reference.md)
+**Previous:** [09-Advanced-Patterns](09-Advanced-Patterns.md) | **Next:** [11-Reference](11-Reference.md)

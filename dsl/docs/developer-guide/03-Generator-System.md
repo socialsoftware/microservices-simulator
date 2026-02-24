@@ -21,7 +21,8 @@ This chapter covers the generator architecture: the registry, feature facades, b
 ┌─────────────────────────────────────────────────────────────┐
 │                   Specialized Generators                    │
 │  EntityOrchestrator, DtoGenerator, ServiceGenerator,        │
-│  RepositoryGenerator, FactoryGenerator, EventGenerator, ... │
+│  RepositoryGenerator, FactoryGenerator, EventGenerator,     │
+│  CommandGenerator, CommandHandlerGenerator, ...              │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
@@ -80,6 +81,8 @@ const generators = GeneratorRegistryFactory.createRegistry();
 const entityCode = await generators.entityGenerator.generateEntity(entity, options);
 ```
 
+> **Note:** `CommandGenerator`, `CommandHandlerGenerator`, and `ServiceMappingGenerator` (added in Simulator v3.0) are **not** registered in the `GeneratorRegistry`. They are instantiated inline in `code-generator.ts` and called directly during the generation pipeline. See [Command Generators](#command-generators) below.
+
 ## Feature Facades
 
 Feature facades orchestrate multiple generators to produce a complete feature. Each facade:
@@ -126,6 +129,7 @@ export class EntityFeature {
 | `WebApiFeature` | REST controllers |
 | `SagaFeature` | Saga workflows |
 | `ValidationFeature` | Business rule validation |
+| *Direct (no facade)* | Commands, Command Handlers, ServiceMapping (v3.0) |
 
 ## Generator Base Class
 
@@ -219,6 +223,9 @@ export class CrudCreateGenerator extends MethodGeneratorTemplate {
 
 ```
 generators/microservices/
+├── command/                            # NEW (v3.0)
+│   ├── command-generator.ts            # CRUD + collection command classes
+│   └── command-handler-generator.ts    # Command routing + stream handler
 ├── entity/
 │   ├── entity-orchestrator.ts      # Main entity generator
 │   ├── constructors.ts             # Constructor generation
@@ -244,7 +251,8 @@ generators/microservices/
 │   │   ├── crud-update-generator.ts
 │   │   ├── crud-delete-generator.ts
 │   │   └── collection-generator.ts
-│   └── service-definition-generator.ts
+│   ├── service-definition-generator.ts
+│   └── service-mapping-generator.ts    # NEW (v3.0) - project-level ServiceMapping enum
 ├── factory/
 │   └── factory-generator.ts
 ├── events/
@@ -289,7 +297,6 @@ generators/sagas/
 ├── saga-event-processing-generator.ts
 ├── saga-workflow-generator.ts
 ├── saga-helpers.ts
-├── causal-entity-generator.ts
 ├── base/
 │   └── saga-functionality-generator-base.ts
 └── operations/
@@ -298,6 +305,93 @@ generators/sagas/
     ├── saga-read-all-generator.ts
     ├── saga-update-generator.ts
     └── saga-delete-generator.ts
+```
+
+### Command Generators
+
+> **New in Simulator v3.0.** These generators produce the Command/CommandHandler pattern used for decoupled service invocation.
+
+```
+generators/microservices/command/
+├── command-generator.ts           # CRUD + collection command classes
+└── command-handler-generator.ts   # Command routing + stream handler
+```
+
+**`CommandGenerator`** — Generates command classes that extend `Command` from the simulator framework. For each aggregate with `@GenerateCrud`, it produces:
+- `Create{Aggregate}Command`
+- `Get{Aggregate}ByIdCommand`
+- `GetAll{Aggregate}sCommand`
+- `Update{Aggregate}Command`
+- `Delete{Aggregate}Command`
+- Collection commands (e.g., `Add{Aggregate}{Element}Command`) for Set/List properties
+
+Each command carries its parameters as `final` fields with getters, and delegates `UnitOfWork`, `serviceName`, and `aggregateId` to the superclass constructor.
+
+**Output path:** `command/{aggregate}/` (project-level, not under `microservices/`)
+
+**`CommandHandlerGenerator`** — Generates two files per aggregate:
+- **`{Aggregate}CommandHandler`** — A `@Component` extending `CommandHandler` that routes commands to service methods via Java 17+ `switch` expressions with pattern matching
+- **`{Aggregate}StreamCommandHandler`** — A `@Component @Profile("stream")` extending `StreamCommandHandler` for Spring Cloud Stream message-based dispatch
+
+**Output path:** `microservices/{aggregate}/commandHandler/`
+
+### Service Mapping Generator
+
+```
+generators/microservices/service/
+└── service-mapping-generator.ts   # Project-level ServiceMapping enum
+```
+
+Generates a single `ServiceMapping.java` enum at the project root that maps aggregate names to service names for inter-service communication. Each aggregate becomes an enum constant (e.g., `USER("user")`, `QUIZ("quiz")`).
+
+**Output path:** `ServiceMapping.java` (project root)
+
+**Invocation:** Unlike registry-based generators, all three are instantiated inline in `code-generator.ts`. CommandGenerator and CommandHandlerGenerator run inside the per-aggregate loop; ServiceMappingGenerator runs after all aggregates are processed.
+
+## Generated Output Structure
+
+The current generated file layout (Simulator v3.0):
+
+```
+applications/{project}/src/main/java/.../
+├── command/{aggregate}/                    # Command classes (v3.0)
+│   ├── Create{Aggregate}Command.java
+│   ├── Get{Aggregate}ByIdCommand.java
+│   ├── GetAll{Aggregate}sCommand.java
+│   ├── Update{Aggregate}Command.java
+│   └── Delete{Aggregate}Command.java
+├── events/                                 # Project-level events
+│   ├── {Aggregate}UpdatedEvent.java
+│   └── {Aggregate}DeletedEvent.java
+├── coordination/
+│   └── validation/
+├── ServiceMapping.java                     # Service registry enum (v3.0)
+└── microservices/{aggregate}/
+    ├── aggregate/
+    │   ├── {Entity}.java
+    │   ├── {Aggregate}Factory.java
+    │   ├── {Aggregate}Repository.java
+    │   └── sagas/                          # Saga components (under aggregate)
+    │       ├── dtos/
+    │       ├── factories/
+    │       ├── repositories/
+    │       └── states/
+    ├── commandHandler/                     # Command handlers (v3.0)
+    │   ├── {Aggregate}CommandHandler.java
+    │   └── {Aggregate}StreamCommandHandler.java
+    ├── coordination/                       # Per-aggregate coordination
+    │   ├── eventProcessing/
+    │   ├── functionalities/
+    │   ├── sagas/
+    │   └── webapi/
+    │       ├── {Aggregate}Controller.java
+    │       └── requestDtos/
+    ├── events/
+    │   ├── handling/
+    │   │   └── handlers/
+    │   └── subscribe/
+    └── service/
+        └── {Aggregate}Service.java
 ```
 
 ## Data Flow Example
@@ -340,6 +434,47 @@ How a `.nebula` Entity becomes a Java class:
    }
 ```
 
+### Command Data Flow (v3.0)
+
+How `@GenerateCrud` on an aggregate produces the command/handler pattern:
+
+```
+1. DSL Input:
+   Aggregate User {
+       @GenerateCrud
+       Root Entity User {
+           String name
+           UserRole role
+       }
+   }
+
+2. CommandGenerator:
+   - Reads aggregate name + root entity properties
+   - Builds CRUD commands with typed parameters
+   - Output: command/user/CreateUserCommand.java, etc.
+
+3. CommandHandlerGenerator:
+   - Reads aggregate's service methods (CRUD + custom)
+   - Builds switch expression mapping Command → Service call
+   - Output: microservices/user/commandHandler/UserCommandHandler.java
+   - Output: microservices/user/commandHandler/UserStreamCommandHandler.java
+
+4. Generated Command:
+   public class CreateUserCommand extends Command {
+       private final CreateUserRequestDto createRequest;
+       // constructor, getter
+   }
+
+5. Generated Handler (switch expression):
+   return switch (command) {
+       case CreateUserCommand cmd -> userService.createUser(
+           cmd.getCreateRequest(), cmd.getUnitOfWork());
+       case GetUserByIdCommand cmd -> userService.getUserById(
+           cmd.getAggregateId(), cmd.getUnitOfWork());
+       // ...
+   };
+```
+
 ## Error Handling Pattern
 
 Generators use contextual error handling:
@@ -379,7 +514,7 @@ export interface GenerationOptions {
 }
 ```
 
-> For details on what the generators produce, see the [User Guide](../user-guide/04-Generated-Code.md).
+> For details on what the generators produce, see the [User Guide](../user-guide/10-Generated-Code.md).
 
 ---
 

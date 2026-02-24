@@ -21,7 +21,7 @@ Nebula solves this by:
 - **Generating all layers** from a single domain definition
 - **Ensuring consistency** through template-based generation
 - **Reducing code volume by ~60%** compared to manual implementation
-- **Enabling rapid iteration** -- regenerate code in seconds
+- **Enabling rapid iteration** - regenerate code in seconds
 
 ## Key Features
 
@@ -126,7 +126,7 @@ Build and run the generated microservices:
 
 ```bash
 cd applications/myproject
-mvn clean -Psagas spring-boot:run
+mvn clean - Psagas spring-boot:run
 ```
 
 ### 5. Iterate
@@ -135,28 +135,34 @@ Modify DSL, regenerate, test. The cycle takes seconds, not hours.
 ## Technology Stack
 
 ### DSL Tooling
-- **Langium** -- Language framework for building DSLs
-- **TypeScript** -- Generator implementation
-- **Node.js 18+** -- Runtime environment
-- **Handlebars** -- Template engine for code generation
-- **npm** -- Package management
+- **Langium** - Language framework for building DSLs
+- **TypeScript** - Generator implementation
+- **Node.js 18+** - Runtime environment
+- **Handlebars** - Template engine for code generation
+- **npm** - Package management
 
 ### Generated Code Stack
-- **Java 21+** -- Programming language
-- **Spring Boot 3.5.3** -- Framework
-- **Spring Data JPA** -- Persistence
-- **PostgreSQL 14** -- Database
-- **Maven 3.9.9** -- Build system
-- **Groovy/Spock** -- Testing framework
+- **Java 21+** - Programming language
+- **Spring Boot 3.5.3** - Framework
+- **Spring Data JPA** - Persistence
+- **PostgreSQL 14** - Database
+- **Maven 3.9.9** - Build system
+- **Groovy/Spock** - Testing framework
 
 ## What This Guide Covers
 
-This guide is for anyone writing `.nebula` abstractions and generating Java code. It uses a **tutorial project** (a library domain with Members, Books, and Loans) that progressively introduces DSL features -- from simple CRUD aggregates to cross-aggregate references and event-driven patterns. The tutorial abstractions and generated code are in `dsl/docs/examples/`.
+This guide is for anyone writing `.nebula` abstractions and generating Java code. It uses **7 progressive examples** (from a single-aggregate hello world to a complex e-commerce system) that introduce DSL features incrementally. Each chapter is tied to its example project in `dsl/docs/examples/`.
 
-1. **[Getting Started](02-Getting-Started.md)** -- Install, build, first generation
-2. **[DSL Syntax](03-DSL-Syntax.md)** -- All language constructs with examples
-3. **[Generated Code](04-Generated-Code.md)** -- What gets generated and how to use it
-4. **[Reference](05-Reference.md)** -- Complete grammar and CLI reference
+1. **[Getting Started](02-Getting-Started.md)** — Install, build, first generation
+2. **[Your First Aggregate](03-Your-First-Aggregate.md)** — Build a microservice in 10 lines
+3. **[Types, Enums, and Properties](04-Types-Enums-Properties.md)** — Data types, enums, modifiers
+4. **[Business Rules and Repositories](05-Business-Rules-Repositories.md)** — Invariants and custom queries
+5. **[Cross-Aggregate References](06-Cross-Aggregate-References.md)** — Reference data across aggregates
+6. **[Events and Reactive Patterns](07-Events-Reactive-Patterns.md)** — Event publishing and subscriptions
+7. **[Tutorial: Building a Library System](08-Tutorial-Library-System.md)** — Combines all features end-to-end
+8. **[Advanced Patterns](09-Advanced-Patterns.md)** — Extract patterns, DTO entities, custom endpoints
+9. **[Generated Code](10-Generated-Code.md)** — What gets generated and how to use it
+10. **[Reference](11-Reference.md)** — Complete grammar and CLI reference
 
 > For information on extending or modifying the DSL tooling itself (grammar, generators, templates), see the [Developer Guide](../developer-guide/01-Architecture.md).
 
