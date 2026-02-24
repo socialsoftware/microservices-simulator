@@ -398,33 +398,18 @@ References {
 
 ### Subscribed Events
 
-Subscribe to events from other aggregates:
+Subscribe to events from other aggregates for data synchronization:
 
-**Simple subscription:**
 ```nebula
-subscribe CourseDeletedEvent
+subscribe ExecutionUpdatedEvent
+subscribe TopicUpdatedEvent
 ```
 
-**With source aggregate:**
-```nebula
-subscribe UserDeletedEvent from User
-```
-
-**With routing** (only deliver if match found):
-```nebula
-subscribe UserUpdatedEvent from User routing (users.userAggregateId)
-```
-
-**With condition:**
-```nebula
-subscribe CourseDeletedEvent from Course {
-    course.courseAggregateId == event.aggregateId
-}
-```
+These generate event handlers that update local copies of data when the source aggregate changes.
 
 ### Inter-Invariants
 
-Group related subscriptions for referential integrity:
+Inter-invariants enforce referential integrity across aggregates. They use `subscribe ... from Aggregate { condition }` to match events against local data:
 
 ```nebula
 Events {

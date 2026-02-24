@@ -13,7 +13,7 @@ Building microservices involves significant boilerplate code:
 - Service layers with CRUD operations
 - Event handling infrastructure
 - REST controllers with endpoint mappings
-- Saga/TCC coordination logic
+- Saga coordination logic
 
 Manually writing this code is **time-consuming**, **error-prone**, **difficult to maintain**, and **hard to evolve**.
 
@@ -90,10 +90,7 @@ Generates all layers of a microservices application:
 - **Domain Layer**: JPA entities, factories, repositories
 - **Service Layer**: CRUD operations, business methods, event handlers
 - **Coordination Layer**: Functionalities, REST controllers, event processing
-- **Saga/TCC Layer**: Distributed transaction workflows
-
-### 7. Distributed Transaction Support
-Nebula generates code for two distributed transaction models. **Sagas** use a choreography/orchestration approach where each step has a compensating action to undo its effects if a later step fails, ensuring eventual consistency. **Transactional Causal Consistency (TCC)** uses an optimistic concurrency approach where operations proceed in parallel and conflicts are resolved through merge semantics. Use Sagas when operations have clear compensating actions and strict ordering matters; use TCC when high concurrency and low latency are priorities.
+- **Saga Layer**: Distributed transaction workflows
 
 ## How Nebula Fits Into Your Workflow
 
@@ -108,15 +105,23 @@ dsl/abstractions/myproject/
 └── loan.nebula
 ```
 
-### 2. Generate Code
-Run the Nebula CLI to generate a Spring Boot application:
+### 2. Build the CLI
+Install dependencies and compile the generator:
 
 ```bash
 cd dsl/nebula
+npm install
+npm run langium:generate && npm run build
+```
+
+### 3. Generate Code
+Run the Nebula CLI to generate a Spring Boot application:
+
+```bash
 ./bin/cli.js generate ../abstractions/myproject/
 ```
 
-### 3. Run Application
+### 4. Run Application
 Build and run the generated microservices:
 
 ```bash
@@ -124,7 +129,7 @@ cd applications/myproject
 mvn clean -Psagas spring-boot:run
 ```
 
-### 4. Iterate
+### 5. Iterate
 Modify DSL, regenerate, test. The cycle takes seconds, not hours.
 
 ## Technology Stack

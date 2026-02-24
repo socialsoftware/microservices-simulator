@@ -70,8 +70,7 @@ dsl/docs/examples/generated/06-tutorial/
     │           └── MembershipType.java
     └── resources/
         ├── application.yml
-        ├── application-sagas.yml
-        └── application-tcc.yml
+        └── application-sagas.yml
 ```
 
 ## What Gets Generated Per Aggregate

@@ -139,21 +139,13 @@ If compilation succeeds, the generated code is valid.
 ### Run Tests
 
 ```bash
-# Saga tests
 mvn clean -Ptest-sagas test
-
-# TCC tests
-mvn clean -Ptest-tcc test
 ```
 
 ### Run the Application
 
 ```bash
-# Start with Saga coordination
 mvn clean -Psagas spring-boot:run
-
-# Start with TCC coordination
-mvn clean -Ptcc spring-boot:run
 ```
 
 The application runs on `http://localhost:8080`.
@@ -225,9 +217,7 @@ npm run watch               # Watch mode (auto-rebuild on changes)
 cd dsl/docs/examples/generated/06-tutorial   # or applications/answers, etc.
 mvn clean compile                   # Compile generated code
 mvn clean -Ptest-sagas test         # Run Saga tests
-mvn clean -Ptest-tcc test           # Run TCC tests
 mvn clean -Psagas spring-boot:run   # Run Saga application
-mvn clean -Ptcc spring-boot:run     # Run TCC application
 ```
 
 ### Simulator Framework
