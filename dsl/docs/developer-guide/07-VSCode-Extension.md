@@ -14,19 +14,19 @@ The Nebula VSCode extension provides language support for `.nebula` files:
 The extension follows the standard Language Server Protocol (LSP) architecture: a **language client** runs inside VSCode, communicating over IPC with a **language server** that performs parsing, validation, and analysis.
 
 ```
-┌─────────────────────────────────────────────────┐
-│                    VSCode                        │
-│                                                  │
-│  ┌─────────────┐          ┌──────────────────┐  │
-│  │  Extension   │   IPC    │  Language Server  │  │
-│  │  (Client)    │◄────────►│  (Langium)       │  │
-│  │  main.ts     │          │  main.ts         │  │
-│  └─────────────┘          └──────────────────┘  │
-│         │                          │             │
-│         ▼                          ▼             │
-│  TextMate Grammar           Grammar Parser       │
-│  (syntax colors)         (diagnostics, LSP)      │
-└─────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────┐
+│                      VSCode                       │
+│                                                   │
+│  ┌─────────────┐          ┌────────────────────┐  │
+│  │  Extension  │   IPC    │  Language Server   │  │
+│  │  (Client)   │◄────────►│  (Langium)         │  │
+│  │  main.ts    │          │  main.ts           │  │
+│  └─────────────┘          └────────────────────┘  │
+│         │                          │              │
+│         ▼                          ▼              │
+│  TextMate Grammar           Grammar Parser        │
+│  (syntax colors)         (diagnostics, LSP)       │
+└───────────────────────────────────────────────────┘
 ```
 
 ## Extension Architecture

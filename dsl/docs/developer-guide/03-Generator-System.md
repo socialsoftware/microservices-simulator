@@ -6,36 +6,36 @@ This chapter covers the generator architecture: the registry, feature facades, b
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Generator Registry                        │
-│  Central registry of all generator instances                 │
+│                      Generator Registry                     │
+│  Central registry of all generator instances                │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    Feature Facades                           │
-│  EntityFeature, ServiceFeature, EventsFeature,               │
-│  CoordinationFeature, WebApiFeature, SagaFeature             │
+│                       Feature Facades                       │
+│  EntityFeature, ServiceFeature, EventsFeature,              │
+│  CoordinationFeature, WebApiFeature, SagaFeature            │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    Specialized Generators                    │
-│  EntityOrchestrator, DtoGenerator, ServiceGenerator,         │
-│  RepositoryGenerator, FactoryGenerator, EventGenerator, ...  │
+│                   Specialized Generators                    │
+│  EntityOrchestrator, DtoGenerator, ServiceGenerator,        │
+│  RepositoryGenerator, FactoryGenerator, EventGenerator, ... │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    Generator Base Class                      │
-│  Template rendering, type resolution, string utilities,      │
-│  package naming, file I/O, error handling                    │
+│                    Generator Base Class                     │
+│  Template rendering, type resolution, string utilities,     │
+│  package naming, file I/O, error handling                   │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    Templates & Utilities                     │
-│  Handlebars templates, TemplateManager, FileWriter,          │
-│  UnifiedTypeResolver                                         │
+│                    Templates & Utilities                    │
+│  Handlebars templates, TemplateManager, FileWriter,         │
+│  UnifiedTypeResolver                                        │
 └─────────────────────────────────────────────────────────────┘
 ```
 

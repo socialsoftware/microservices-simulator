@@ -6,31 +6,31 @@ This chapter provides an overview of the Nebula DSL codebase architecture, proje
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Nebula DSL (.nebula files)               │
+│                    Nebula DSL (.nebula files)               │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    Langium Parser                            │
-│              (Grammar-based AST Construction)                │
+│                       Langium Parser                        │
+│             (Grammar-based AST Construction)                │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                  Code Generation Pipeline                    │
-│                                                              │
-│  Discovery → Parsing → Validation → Generation → Output      │
-│                                                              │
-│  19 Specialized Generators:                                  │
-│  • Entity Generator      • DTO Generator                     │
-│  • Service Generator     • Repository Generator              │
-│  • Factory Generator     • Event Generators                  │
-│  • Controller Generator  • Saga Generators                   │
+│                 Code Generation Pipeline                    │
+│                                                             │
+│  Discovery → Parsing → Validation → Generation → Output     │
+│                                                             │
+│  19 Specialized Generators:                                 │
+│  • Entity Generator      • DTO Generator                    │
+│  • Service Generator     • Repository Generator             │
+│  • Factory Generator     • Event Generators                 │
+│  • Controller Generator  • Saga Generators                  │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              Generated Spring Boot Application               │
+│             Generated Spring Boot Application               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
