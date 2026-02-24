@@ -174,7 +174,7 @@ public abstract class CourseExecution extends Aggregate {
 
     @Override
     public void verifyInvariants() {
-        if (!(removedNoStudents() /*&& allStudentsAreActive()*/)) {
+        if (!(removedNoStudents() /* && allStudentsAreActive() */)) {
             throw new QuizzesException(QuizzesErrorMessage.INVARIANT_BREAK, getAggregateId());
         }
     }
@@ -193,14 +193,9 @@ public abstract class CourseExecution extends Aggregate {
 
     @Override
     public void setVersion(Integer version) {
-<<<<<<< HEAD
         // if the course version is null, it means it that we're creating during this
         // transaction
-        if (this.courseExecutionCourse.getCourseVersion() == null) {
-=======
-        // if the course version is null, it means it that we're creating during this transaction
         if (this.courseExecutionCourse != null && this.courseExecutionCourse.getCourseVersion() == null) {
->>>>>>> origin/master
             this.courseExecutionCourse.setCourseVersion(version);
         }
         super.setVersion(version);

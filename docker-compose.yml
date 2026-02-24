@@ -488,10 +488,6 @@ services:
       - "4318:4318" # OTLP HTTP receiver
     restart: unless-stopped
 
-<<<<<<< HEAD
-volumes:
-  mavencache:
-=======
   rabbitmq:
     image: rabbitmq:4-management
     container_name: rabbitmq
@@ -521,4 +517,3 @@ volumes:
 networks:
   messaging-network:
     driver: bridge
->>>>>>> origin/master
