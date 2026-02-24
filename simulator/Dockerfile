@@ -11,7 +11,7 @@ ARG PROFILE=version-service,stream
 RUN mvn clean package -P$PROFILE,kubernetes -Dmaven.test.skip=true
 
 FROM eclipse-temurin:21-jre-alpine
-ARG APP_VERSION=3.0.0-SNAPSHOT
+ARG APP_VERSION=3.1.0-SNAPSHOT
 ENV JAR_FILE=MicroservicesSimulator-${APP_VERSION}-exec.jar
 COPY --from=run target/MicroservicesSimulator-*-exec.jar ./app.jar
 CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar", "./app.jar"]
