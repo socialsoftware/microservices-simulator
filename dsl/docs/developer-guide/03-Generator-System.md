@@ -282,14 +282,20 @@ generators/coordination/
 
 ```
 generators/sagas/
+├── saga-generator.ts                  # Saga aggregate/DTO/state/factory/repository
 ├── saga-functionality-generator.ts
 ├── saga-crud-generator.ts
 ├── saga-collection-generator.ts
 ├── saga-event-processing-generator.ts
+├── saga-workflow-generator.ts
+├── saga-helpers.ts
 ├── causal-entity-generator.ts
+├── base/
+│   └── saga-functionality-generator-base.ts
 └── operations/
     ├── saga-create-generator.ts
     ├── saga-read-generator.ts
+    ├── saga-read-all-generator.ts
     ├── saga-update-generator.ts
     └── saga-delete-generator.ts
 ```

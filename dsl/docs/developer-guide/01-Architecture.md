@@ -87,6 +87,8 @@ dsl/nebula/
 │   │   │   ├── file-writer.ts
 │   │   │   ├── aggregate-helpers.ts
 │   │   │   ├── package-name-builder.ts
+│   │   │   ├── import-manager.ts
+│   │   │   ├── string-utils.ts
 │   │   │   └── error-handler.ts
 │   │   └── services/           # Singleton services
 │   │       └── dto-schema-service.ts

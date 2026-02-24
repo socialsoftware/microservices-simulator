@@ -73,23 +73,38 @@ src/cli/templates/
 │   └── service-implementation.hbs
 ├── web/
 │   ├── controller.hbs             # REST controller
+│   ├── empty-controller.hbs       # Empty controller scaffold
 │   ├── request-dtos.hbs
 │   └── response-dtos.hbs
 ├── events/
 │   ├── published-event.hbs        # Event class
 │   ├── event-subscription.hbs     # EventSubscription impl
-│   ├── event-handler.hbs
+│   ├── subscribed-event.hbs       # Subscribed event class
+│   ├── event-handler.hbs          # Specific event handler
+│   ├── event-handler-base.hbs     # Event handler base class
+│   ├── base-event-handler.hbs     # Base handler utilities
+│   ├── individual-event-handler.hbs  # Individual handler
+│   ├── inter-invariant-subscription.hbs  # Inter-invariant subscriptions
 │   └── event-handling.hbs         # Event handling router
 ├── saga/
-│   ├── saga-functionality.hbs
-│   ├── saga-coordination.hbs
-│   └── saga-aggregate.hbs
+│   ├── saga-aggregate.hbs         # Saga aggregate class
+│   ├── saga-functionality.hbs     # Saga functionality
+│   ├── saga-coordination.hbs      # Saga coordination
+│   ├── saga-workflows.hbs         # Saga workflow definitions
+│   ├── saga-dtos.hbs              # Saga DTOs
+│   ├── saga-state.hbs             # Saga state tracking
+│   ├── saga-factories.hbs         # Saga factory classes
+│   ├── saga-repositories.hbs      # Saga repositories
+│   └── functionality.hbs          # Base functionality
 ├── coordination/
 │   └── functionalities.hbs
 ├── config/
 │   ├── pom.hbs                    # Maven POM
 │   ├── application.hbs            # application.yml
-│   └── configuration.hbs          # Spring @Configuration
+│   ├── configuration.hbs          # Spring @Configuration
+│   ├── profiles.hbs               # Maven profiles
+│   ├── properties.hbs             # Application properties
+│   └── gitignore.hbs              # .gitignore template
 └── _partials/                     # Reusable fragments
     └── dto-class.hbs
 ```

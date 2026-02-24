@@ -92,6 +92,9 @@ Generates all layers of a microservices application:
 - **Coordination Layer**: Functionalities, REST controllers, event processing
 - **Saga/TCC Layer**: Distributed transaction workflows
 
+### 7. Distributed Transaction Support
+Nebula generates code for two distributed transaction models. **Sagas** use a choreography/orchestration approach where each step has a compensating action to undo its effects if a later step fails, ensuring eventual consistency. **Transactional Causal Consistency (TCC)** uses an optimistic concurrency approach where operations proceed in parallel and conflicts are resolved through merge semantics. Use Sagas when operations have clear compensating actions and strict ordering matters; use TCC when high concurrency and low latency are priorities.
+
 ## How Nebula Fits Into Your Workflow
 
 ### 1. Define Domain
@@ -135,7 +138,7 @@ Modify DSL, regenerate, test. The cycle takes seconds, not hours.
 
 ### Generated Code Stack
 - **Java 21+** -- Programming language
-- **Spring Boot 3.3.9** -- Framework
+- **Spring Boot 3.5.3** -- Framework
 - **Spring Data JPA** -- Persistence
 - **PostgreSQL 14** -- Database
 - **Maven 3.9.9** -- Build system

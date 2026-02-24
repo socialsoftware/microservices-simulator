@@ -64,6 +64,8 @@ AggregateElement:
 |---------|---------------|
 | Entity | 0 or more |
 | Method | 0 or more |
+| Workflow | 0 or more |
+| Functionalities | 0 or more |
 | Repository | 0 or 1 |
 | Events | 0 or 1 |
 | References | 0 or 1 |
