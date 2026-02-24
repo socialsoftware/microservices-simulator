@@ -1,36 +1,26 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service;
 
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.USER_ACTIVE;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteUserEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.*;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-
-
-import org.springframework.dao.CannotAcquireLockException;
-
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.Role;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.User;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserRepository;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.events.publish.DeleteUserEvent;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.USER_ACTIVE;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.USER_NOT_ACTIVE;
 
 @Service
 public class UserService {
-    
+
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
@@ -40,32 +30,18 @@ public class UserService {
 
     @Autowired
     private UserFactory userFactory;
-    
+
     public UserService(UnitOfWorkService unitOfWorkService, UserRepository userRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.userRepository = userRepository;
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public UserDto getUserById(Integer aggregateId, UnitOfWork unitOfWork) {
         return userFactory.createUserDto((User) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
     /*simple user creation*/
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public UserDto createUser(UserDto userDto, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
@@ -74,13 +50,6 @@ public class UserService {
         return userFactory.createUserDto(user);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void activateUser(Integer userAggregateId, UnitOfWork unitOfWork) {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
@@ -92,13 +61,17 @@ public class UserService {
         unitOfWorkService.registerChanged(newUser, unitOfWork);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void deactivateUser(Integer userAggregateId, UnitOfWork unitOfWork) {
+        User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
+        if (!oldUser.isActive()) {
+            throw new QuizzesException(USER_NOT_ACTIVE);
+        }
+        User newUser = userFactory.createUserFromExisting(oldUser);
+        newUser.setActive(false);
+        unitOfWorkService.registerChanged(newUser, unitOfWork);
+    }
+
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void deleteUser(Integer userAggregateId, UnitOfWork unitOfWork) {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
@@ -108,13 +81,6 @@ public class UserService {
         unitOfWorkService.registerEvent(new DeleteUserEvent(newUser.getAggregateId()), unitOfWork);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<UserDto> getStudents(UnitOfWork unitOfWork) {
         Set<Integer> studentsIds = userRepository.findAll().stream()
@@ -127,13 +93,6 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<UserDto> getTeachers(UnitOfWork unitOfWork) {
         Set<Integer> teacherIds = userRepository.findAll().stream()
@@ -146,3 +105,4 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 }
+

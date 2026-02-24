@@ -1,29 +1,26 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
-import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.UpdateStudentNameFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
 
 @DataJpaTest
 class AddParticipantWithDelaysTest extends QuizzesSpockTest {
@@ -49,6 +46,9 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
 
     @Autowired
     private TournamentEventHandling tournamentEventHandling
+
+    @Autowired
+    private LocalCommandGateway commandGateway
 
     @Autowired
     public TraceService traceService
@@ -105,9 +105,9 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
 
         and: 'one functionality to add a participant'
         def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(
-            tournamentService, courseExecutionService, unitOfWorkService,
+                unitOfWorkService,
             tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(),
-            userDto.getAggregateId(), unitOfWork1
+            userDto.getAggregateId(), unitOfWork1, commandGateway
         )
 
         when: 'adding a participant measure the time taken to execute the workflow'

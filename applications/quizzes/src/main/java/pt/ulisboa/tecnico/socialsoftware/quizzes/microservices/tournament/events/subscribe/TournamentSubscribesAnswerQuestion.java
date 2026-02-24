@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.subscribe;
 
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.publish.QuizAnswerQuestionAnswerEvent;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.QuizAnswerQuestionAnswerEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentParticipant;
 
 public class TournamentSubscribesAnswerQuestion extends EventSubscription {
@@ -13,6 +13,8 @@ public class TournamentSubscribesAnswerQuestion extends EventSubscription {
                 QuizAnswerQuestionAnswerEvent.class.getSimpleName());
         this.studentAggregateId = tournamentParticipant.getParticipantAggregateId();
     }
+
+    public TournamentSubscribesAnswerQuestion() {}
 
     @Override
     public boolean subscribesEvent(Event event) {

@@ -1,0 +1,50 @@
+# TODO
+
+- [ ] Update README diagrams
+- [ ] Verify command for TCC
+- [ ] Verify idempotency
+- [ ] Local calls in StreamComandGateway
+- [ ] Use kafka streams
+- [ ] GrpcCommandGateway
+- [ ] Verify 2 phase commit in TCC commit
+- [ ] Pass all jmeter tests
+  - TCC local tests
+    - [x] 5a-updateStudentName-addParticipant-processUpdateNameEvent
+    - [x] 5b-addParticipant-updateStudentName-processUpdateNameEvent
+    - [x] 5c-updateStudentName1-addParticipant-updateStudentName2-processUpdateNameEvent
+    - [x] 5d-addParticipant1-updateStudentName-processUpdateNameEvent1-addParticipant2-processUpdateNameEvent2
+    - [x] 8-10-concurrent-delete-tournament-add-participant
+    - [x] 8-5-update-tournament-concurrent-intention-pass
+    - [x] 8-6-add-participant-concurrent-update-execution-student-name-processing-ends-first
+    - [x] 8-7-add-participant-concurrent-anonymize-event-processing-processing-ends-last
+    - [x] 8-8-update-execution-student-add-participant-process-event-add-participant
+    - [x] 8-9-add-participant-concurrent-anonymize-event-processing-processing-ends-first
+  - [ ] DeleteTournament
+    - `Request tournament: 400`
+  - [ ] DeleteUserTest
+    - `request tournament: Assertion failure message:Value in json path '$..students.length()' expected to be '0', but found '1'`
+    - `request course: Assertion failure message:Value in json path '$..students.length()' expected to be '0', but found '1'`
+    - `request user: 400`
+  - [ ] DeleteUserTest1
+    - `Verify if User 2 was removed: Assertion failure message:javax.script.ScriptException: groovy.lang.MissingPropertyException: No such property: aggregateId for class: java.util.LinkedHashMap$Entry`
+  - [x] Getquiz
+  - [ ] concurrent-addCreatorAsParticipant-updateCreatorName-invBreak
+    - `add participant: 400`
+    - `request tournament: Assertion failure message:Value in json path '$..participants[0].name' expected to be 'Updated_Student_Name_1', but found '[]'`
+  - [ ] concurrentAddUpdateparticipant
+    - `add participant: 400`
+    - `request tournament: Assertion failure message:Value in json path '$..participants[0].name' expected to be 'Updated_Student_Name_1', but found '[]'`
+  - [x] concurrentAddparticipant
+  - [ ] test_Multiple_Tests
+    - `add participant: 400`
+    - `request tournament: Assertion failure message:Value in json path '$..participants[0].name' expected to be 'Updated_Student_Name_1', but found '[]'`
+- [ ] Verify Upgrade to Java 25 
+- [ ] Verify upgrade to spring boot 4
+- [ ] Use kubernetes
+- [ ] Version Service Distributed
+- [ ] Make each microservice in docker compose to have its own postgres service
+- [ ] Create TCC profile for microservices in docker compose
+- [ ] Clean application.yaml files with placeholders?
+- [ ] See `CommandResponseListener`
+- [ ] See `TraceService` and `utils/`
+- [ ] Check the need of a transactional Outbox Table

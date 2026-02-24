@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: topic
+  datasource:
+    url: jdbc:postgresql://localhost:5432/topicdb
+
+  cloud:
+    function:
+      definition: commandResponseChannel;topicServiceCommandChannel;topicEventSubscriber;
+    stream:
+      bindings:
+        topic-command-channel:
+          destination: topic-command-channel
+        topicServiceCommandChannel-in-0:
+          destination: topic-command-channel
+          group: topic-service-group
+        commandResponseChannel-in-0:
+          destination: topic-command-responses
+          group: topic-response-group
+        topicEventSubscriber-in-0:
+          destination: event-channel
+          group: topic-service-group
+
+server:
+  port: 8086

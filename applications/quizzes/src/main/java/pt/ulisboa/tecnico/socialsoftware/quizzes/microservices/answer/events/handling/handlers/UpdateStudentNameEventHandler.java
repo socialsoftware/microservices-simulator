@@ -1,9 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.eventProcessing.QuizAnswerEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerRepository;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.eventProcessing.QuizAnswerEventProcessing;
 
 public class UpdateStudentNameEventHandler extends QuizAnswerEventHandler {
     public UpdateStudentNameEventHandler(QuizAnswerRepository quizAnswerRepository, QuizAnswerEventProcessing quizAnswerEventProcessing) {

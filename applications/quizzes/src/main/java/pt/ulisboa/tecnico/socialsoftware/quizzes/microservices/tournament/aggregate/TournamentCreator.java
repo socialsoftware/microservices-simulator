@@ -1,6 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
@@ -21,7 +25,9 @@ public class TournamentCreator {
     public TournamentCreator() {
 
     }
-    public TournamentCreator(Integer creatorAggregateId, String creatorName, String creatorUsername, Integer creatorVersion) {
+
+    public TournamentCreator(Integer creatorAggregateId, String creatorName, String creatorUsername,
+            Integer creatorVersion) {
         setCreatorAggregateId(creatorAggregateId);
         setCreatorName(creatorName);
         setCreatorUsername(creatorUsername);
@@ -83,6 +89,7 @@ public class TournamentCreator {
         this.creatorState = creatorState;
     }
 
+    @JsonIgnore
     public Tournament getTournament() {
         return tournament;
     }

@@ -1,21 +1,19 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ;
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.springframework.context.annotation.Profile;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ;
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED;
 
 @Profile("tcc")
 public class CausalUnitOfWork extends UnitOfWork {
@@ -42,7 +40,7 @@ public class CausalUnitOfWork extends UnitOfWork {
                         .filter(e -> e.getClass().getSimpleName().equals(es.getEventType()))
                         .filter(e -> e.getPublisherAggregateVersion() <= snapshotAggregate.getVersion())
                         .filter(e -> e.getPublisherAggregateVersion() > es.getSubscribedVersion())
-                        .collect(Collectors.toList());
+                        .toList();
                 // snapshotAggregateEmittedEvents is a list of emitted events of the same type of the current sub emitted
                 // by the current snapshot aggregate emitted after the version of the current subscription
 
@@ -64,7 +62,7 @@ public class CausalUnitOfWork extends UnitOfWork {
                         .filter(e -> e.getClass().getSimpleName().equals(es.getEventType()))
                         .filter(e -> e.getPublisherAggregateVersion() <= snapshotAggregate.getVersion())
                         .filter(e -> e.getPublisherAggregateVersion() > es.getSubscribedVersion())
-                        .collect(Collectors.toList());
+                        .toList();
                 for (Event snapshotAggregateEmittedEvent : aggregateEmittedEvents) {
                     if (es.subscribesEvent(snapshotAggregateEmittedEvent)) {
                         throw new SimulatorException(CANNOT_PERFORM_CAUSAL_READ, aggregate.getAggregateId(), getVersion());

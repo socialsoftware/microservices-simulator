@@ -3,31 +3,29 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.CourseExecutionFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.QuizFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
-
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaQuizDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.aggregates.dtos.SagaTournamentDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState
-
 
 @DataJpaTest
 class UpdateTournamentTest extends QuizzesSpockTest {
@@ -47,6 +45,8 @@ class UpdateTournamentTest extends QuizzesSpockTest {
     private TopicService topicService
     @Autowired
     private QuizService quizService
+    @Autowired
+    private LocalCommandGateway commandGateway;
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
@@ -88,6 +88,11 @@ class UpdateTournamentTest extends QuizzesSpockTest {
 
     def cleanup() {}
 
+    def "only run setup"() {
+        expect:
+        true // or just leave it blank if using Spock 2+
+    }
+
     def 'update tournament successfully'() {
         given:
         tournamentDto.setStartTime(DateHandler.toISOString(TIME_2))
@@ -125,11 +130,11 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         def error = thrown(SimulatorException)
         error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
         and: 'tournament is not changed'
-        def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        def updatedTournamentDto = (TournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto.numberOfQuestions == 2
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
         and: 'saga sate is undone'
-        updatedTournamentDto.sagaState == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(updatedTournamentDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def 'update tournament aborts when trying to create a quiz and there are not enough questions'() {
@@ -144,15 +149,15 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         def error = thrown(QuizzesException)
         error.errorMessage == QuizzesErrorMessage.NOT_ENOUGH_QUESTIONS
         and: 'compensation is executed'
-        def updatedTournamentDto = (SagaTournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        def updatedTournamentDto = (TournamentDto) tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto.numberOfQuestions == 2
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
         and: 'saga sate is undone'
-        updatedTournamentDto.sagaState == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(updatedTournamentDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
         and: 'quiz is not changed'
-        def quizDto = (SagaQuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
+        def quizDto = (QuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 2
-        quizDto.sagaState == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(quizDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def 'concurrent update of tournament' () {
@@ -165,7 +170,7 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         tournamentDto2.setStartTime(DateHandler.toISOString(TIME_2))
         tournamentDto2.setEndTime(DateHandler.toISOString(TIME_4))
         and: 'the first execution occurs until getTopicsStep'
-        def updateTournamentFunctionalityOne = new UpdateTournamentFunctionalitySagas(tournamentService, topicService, quizService, unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1)
+        def updateTournamentFunctionalityOne = new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)
         updateTournamentFunctionalityOne.executeUntilStep('getTopicsStep', unitOfWork1)
 
         when: 'the second execution occurs'

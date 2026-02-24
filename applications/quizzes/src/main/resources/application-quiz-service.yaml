@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: quiz
+  datasource:
+    url: jdbc:postgresql://localhost:5432/quizdb
+
+  cloud:
+    function:
+      definition: commandResponseChannel;quizServiceCommandChannel;quizEventSubscriber;
+    stream:
+      bindings:
+        quiz-command-channel:
+          destination: quiz-command-channel
+        quizServiceCommandChannel-in-0:
+          destination: quiz-command-channel
+          group: quiz-service-group
+        commandResponseChannel-in-0:
+          destination: quiz-command-responses
+          group: quiz-response-group
+        quizEventSubscriber-in-0:
+          destination: event-channel
+          group: quiz-service-group
+
+server:
+  port: 8085

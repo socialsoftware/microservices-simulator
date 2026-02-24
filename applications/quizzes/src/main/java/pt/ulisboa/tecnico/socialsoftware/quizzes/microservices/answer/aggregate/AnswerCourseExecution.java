@@ -1,6 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class AnswerCourseExecution {
@@ -50,6 +54,7 @@ public class AnswerCourseExecution {
         this.courseExecutionVersion = courseExecutionVersion;
     }
 
+    @JsonIgnore
     public QuizAnswer getQuizAnswer() {
         return quizAnswer;
     }

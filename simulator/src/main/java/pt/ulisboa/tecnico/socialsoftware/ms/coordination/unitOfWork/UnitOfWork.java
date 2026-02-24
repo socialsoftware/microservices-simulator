@@ -1,22 +1,29 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 
-public abstract class UnitOfWork {
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public abstract class UnitOfWork implements Serializable {
+
     private Integer id;
     private Integer version;
-    private Map<Integer, Aggregate> aggregatesToCommit;
-    private Set<Event> eventsToEmit;
+    private final List<Aggregate> aggregatesToCommit;
+    private final Set<Event> eventsToEmit;
     private String functionalityName;
 
+    protected UnitOfWork() {
+        this.aggregatesToCommit = new ArrayList<>();
+        this.eventsToEmit = new HashSet<>();
+    }
+
     public UnitOfWork(Integer version, String functionalityName) {
-        this.aggregatesToCommit = new HashMap<>();
+        this.aggregatesToCommit = new ArrayList<>();
         this.eventsToEmit = new HashSet<>();
         setVersion(version);
         this.functionalityName = functionalityName;
@@ -46,14 +53,8 @@ public abstract class UnitOfWork {
         this.functionalityName = functionalityName;
     }
 
-    public Map<Integer, Aggregate> getAggregatesToCommit() {
+    public List<Aggregate> getAggregatesToCommit() {
         return this.aggregatesToCommit;
-    }
-
-    public void registerChanged(Aggregate aggregate) {
-        // the id set to null to force a new entry in the db
-        aggregate.setId(null);
-        this.aggregatesToCommit.put(aggregate.getAggregateId(), aggregate);
     }
 
     public Set<Event> getEventsToEmit() {
@@ -62,4 +63,5 @@ public abstract class UnitOfWork {
 
     public void addEvent(Event event) {
         this.eventsToEmit.add(event);
-    }}
+    }
+}

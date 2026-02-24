@@ -1,21 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.utils;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 public class BehaviourGenerator {
     private String directory;

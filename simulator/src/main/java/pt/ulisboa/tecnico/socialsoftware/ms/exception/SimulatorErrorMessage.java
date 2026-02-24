@@ -1,7 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.exception;
 
 public final class SimulatorErrorMessage {
-    private SimulatorErrorMessage() {}
+    private SimulatorErrorMessage() {
+    }
 
     public static final String UNDEFINED_TRANSACTIONAL_MODEL = "Undefined transactional model.";
 
@@ -25,5 +26,6 @@ public final class SimulatorErrorMessage {
     public static final String INVARIANT_BREAK = "Aggregate %d breaks invariants";
     public static final String INVALID_EVENT_TYPE = "Invalid event type %s.";
     public static final String CANNOT_MODIFY_INACTIVE_AGGREGATE = "Cannot update aggregate %d because it is INACTIVE.";
+    public static final String CANNOT_COMMIT_CAUSAL = "Cannot commit causal transaction: %s";
 
 }

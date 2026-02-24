@@ -1,6 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Option {
@@ -69,6 +73,7 @@ public class Option {
         this.content = content;
     }
 
+    @JsonIgnore
     public Question getQuestion() {
         return question;
     }

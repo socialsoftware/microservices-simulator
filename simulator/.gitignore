@@ -34,3 +34,5 @@ build/
 
 ### Profile files ###
 src/main/resources/application-dev.properties
+
+/logs/

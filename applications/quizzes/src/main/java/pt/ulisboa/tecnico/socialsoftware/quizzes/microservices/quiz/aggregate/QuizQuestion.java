@@ -1,6 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 
@@ -95,6 +99,7 @@ public class QuizQuestion {
         this.state = state;
     }
 
+    @JsonIgnore
     public Quiz getQuiz() {
         return quiz;
     }
@@ -115,11 +120,12 @@ public class QuizQuestion {
 
     @Override
     public boolean equals(Object obj) {
-        if(!(obj instanceof QuizQuestion)) {
+        if (!(obj instanceof QuizQuestion)) {
             return false;
         }
         QuizQuestion quizQuestion = (QuizQuestion) obj;
-        return getQuestionAggregateId() != null && getQuestionAggregateId().equals(quizQuestion.getQuestionAggregateId()) &&
+        return getQuestionAggregateId() != null
+                && getQuestionAggregateId().equals(quizQuestion.getQuestionAggregateId()) &&
                 getQuestionVersion() != null && getQuestionVersion().equals(quizQuestion.getQuestionVersion());
     }
 

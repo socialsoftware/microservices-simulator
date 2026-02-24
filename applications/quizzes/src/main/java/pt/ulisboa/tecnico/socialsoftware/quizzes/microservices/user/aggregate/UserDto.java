@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate;
 
-import java.io.Serializable;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+
+import java.io.Serializable;
 
 public class UserDto implements Serializable {
     private Integer aggregateId;

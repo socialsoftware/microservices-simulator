@@ -1,25 +1,22 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.DELETED;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import jakarta.persistence.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.ManyToOne;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.DELETED;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public abstract class Aggregate {
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+public abstract class Aggregate implements Serializable {
+
     public enum AggregateState {
         ACTIVE,
         INACTIVE,
@@ -37,6 +34,7 @@ public abstract class Aggregate {
     private AggregateState state;
     private String aggregateType;
     @ManyToOne
+    @JsonIdentityReference(alwaysAsId = true)
     private Aggregate prev;
 
     public void remove() {
@@ -47,7 +45,7 @@ public abstract class Aggregate {
 
     }
 
-    /* used when creating a new aggregate*/
+    /* used when creating a new aggregate */
     public Aggregate(Integer aggregateId) {
         setAggregateId(aggregateId);
         setState(AggregateState.ACTIVE);

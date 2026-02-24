@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "dtype", length = 50) // increase size if needed
 public abstract class Event {
     @Id
     @GeneratedValue
@@ -16,6 +17,9 @@ public abstract class Event {
     @Column
     private Integer publisherAggregateVersion;
     private LocalDateTime timestamp;
+
+    @Column(nullable = false)
+    private boolean published = false;
 
     public Event() {
 
@@ -48,6 +52,14 @@ public abstract class Event {
 
     public void setPublisherAggregateVersion(Integer publisherAggregateVersion) {
         this.publisherAggregateVersion = publisherAggregateVersion;
+    }
+
+    public boolean isPublished() {
+        return published;
+    }
+
+    public void setPublished(boolean published) {
+        this.published = published;
     }
 
     public LocalDateTime getTimestamp() {

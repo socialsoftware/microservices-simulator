@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
@@ -16,6 +17,8 @@ public class TournamentParticipantQuizAnswer {
     private Integer numberOfAnswered;
     private Integer numberOfCorrect;
     @OneToOne
+    @JoinColumn(name = "tournament_participant_id")
+    @JsonBackReference
     private TournamentParticipant tournamentParticipant;
 
     public TournamentParticipantQuizAnswer() {

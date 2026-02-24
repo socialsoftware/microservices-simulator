@@ -1,9 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe;
 
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
 
 public class QuizAnswerSubscribesUpdateStudentName extends EventSubscription {
     private Integer studentAggregateId;
@@ -15,6 +15,8 @@ public class QuizAnswerSubscribesUpdateStudentName extends EventSubscription {
 
         this.studentAggregateId = quizAnswer.getStudent().getStudentAggregateId();
     }
+
+    public QuizAnswerSubscribesUpdateStudentName() {}
 
     public boolean subscribesEvent(Event event) {
         return super.subscribesEvent(event) && checkAnswerInfo((UpdateStudentNameEvent)event);

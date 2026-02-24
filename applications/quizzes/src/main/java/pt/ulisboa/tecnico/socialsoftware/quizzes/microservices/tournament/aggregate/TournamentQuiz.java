@@ -1,6 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 
 @Entity
@@ -16,6 +20,7 @@ public class TournamentQuiz {
     public TournamentQuiz() {
 
     }
+
     public TournamentQuiz(Integer quizAggregateId, Integer quizVersion) {
         setQuizAggregateId(quizAggregateId);
         setQuizVersion(quizVersion);
@@ -50,6 +55,7 @@ public class TournamentQuiz {
         this.quizVersion = quizVersion;
     }
 
+    @JsonIgnore
     public Tournament getTournament() {
         return tournament;
     }
@@ -63,6 +69,6 @@ public class TournamentQuiz {
         quizDto.setAggregateId(getQuizAggregateId());
         quizDto.setVersion(quizDto.getVersion());
 
-        return  quizDto;
+        return quizDto;
     }
 }

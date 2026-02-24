@@ -1,0 +1,171 @@
+spring:
+  profiles:
+    active: "@activatedProperties@"
+
+  main:
+    allow-bean-definition-overriding: true
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/msdb
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+
+  jpa:
+    properties:
+      jakarta.persistence.sharedCache.mode: UNSPECIFIED
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create # IMPORTANT this is only for jmeter testing
+    show-sql: false
+    open-in-view: false
+
+  groovy:
+    template:
+      check-template-location: false
+
+  task:
+    scheduling:
+      pool:
+        size: 5
+
+maven:
+  basedir: "@project.basedir@"
+
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        max-attempts: 5
+        wait-duration: 1s
+        retry-exceptions:
+          - org.springframework.dao.TransientDataAccessException
+        ignore-exceptions:
+          - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,beans"
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: stream
+
+  cloud:
+    function:
+      definition: >-
+        commandResponseChannel;
+
+        answerServiceCommandChannel;
+        courseExecutionServiceCommandChannel;
+        questionServiceCommandChannel;
+        quizServiceCommandChannel;
+        topicServiceCommandChannel;
+        tournamentServiceCommandChannel;
+        userServiceCommandChannel;
+        courseServiceCommandChannel;
+
+        questionEventSubscriber;
+        tournamentEventSubscriber;
+        courseExecutionEventSubscriber;
+        answerEventSubscriber;
+        quizEventSubscriber;
+        courseEventSubscriber;
+        topicEventSubscriber;
+        userEventSubscriber
+
+    stream:
+      default:
+        contentType: application/json
+
+      bindings:
+        # --- Command producers (outputs) ---
+        quiz-command-channel:
+          destination: quiz-command-channel
+        topic-command-channel:
+          destination: topic-command-channel
+        user-command-channel:
+          destination: user-command-channel
+        answer-command-channel:
+          destination: answer-command-channel
+        course-execution-command-channel:
+          destination: courseExecution-command-channel
+        question-command-channel:
+          destination: question-command-channel
+        tournament-command-channel:
+          destination: tournament-command-channel
+        course-command-channel:
+          destination: course-command-channel
+
+        # --- Command consumers (inputs) ---
+        quizServiceCommandChannel-in-0:
+          destination: quiz-command-channel
+          group: quiz-service-group
+        topicServiceCommandChannel-in-0:
+          destination: topic-command-channel
+          group: topic-service-group
+        userServiceCommandChannel-in-0:
+          destination: user-command-channel
+          group: user-service-group
+        answerServiceCommandChannel-in-0:
+          destination: answer-command-channel
+          group: answer-service-group
+        courseExecutionServiceCommandChannel-in-0:
+          destination: courseExecution-command-channel
+          group: course-execution-service-group
+        questionServiceCommandChannel-in-0:
+          destination: question-command-channel
+          group: question-service-group
+        tournamentServiceCommandChannel-in-0:
+          destination: tournament-command-channel
+          group: tournament-service-group
+        courseServiceCommandChannel-in-0:
+          destination: course-command-channel
+          group: course-service-group
+
+        # --- Response channel ---
+        commandResponseChannel-in-0:
+          destination: command-responses
+          group: response-group
+
+        # --- Single Event channel (all events go through here) ---
+        event-channel:
+          destination: event-channel
+        
+        # --- Event Subscribers ---
+        questionEventSubscriber-in-0:
+          destination: event-channel
+          group: question-service-group
+        tournamentEventSubscriber-in-0:
+          destination: event-channel
+          group: tournament-service-group
+        courseExecutionEventSubscriber-in-0:
+          destination: event-channel
+          group: course-execution-service-group
+        answerEventSubscriber-in-0:
+          destination: event-channel
+          group: answer-service-group
+        quizEventSubscriber-in-0:
+          destination: event-channel
+          group: quiz-service-group
+        courseEventSubscriber-in-0:
+          destination: event-channel
+          group: course-service-group
+        topicEventSubscriber-in-0:
+          destination: event-channel
+          group: topic-service-group
+        userEventSubscriber-in-0:
+          destination: event-channel
+          group: user-service-group
+
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest

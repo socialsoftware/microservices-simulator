@@ -1,29 +1,18 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-
-import org.springframework.dao.CannotAcquireLockException;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.Topic;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicCourse;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicRepository;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publish.DeleteTopicEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publish.UpdateTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TopicService {
@@ -43,25 +32,11 @@ public class TopicService {
         this.topicRepository = topicRepository;
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public TopicDto getTopicById(Integer topicAggregateId, UnitOfWork unitOfWork) {
         return topicFactory.createTopicDto((Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork));
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public TopicDto createTopic(TopicDto topicDto, TopicCourse course, UnitOfWork unitOfWork) { //TODO check this
         Topic topic = topicFactory.createTopic(aggregateIdGeneratorService.getNewAggregateId(),
@@ -70,13 +45,6 @@ public class TopicService {
         return topicFactory.createTopicDto(topic);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<TopicDto> findTopicsByCourseId(Integer courseAggregateId, UnitOfWork unitOfWork) {
         return topicRepository.findAll().stream()
@@ -88,13 +56,6 @@ public class TopicService {
                 .collect(Collectors.toList());
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateTopic(TopicDto topicDto, UnitOfWork unitOfWork) {
         Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
@@ -104,13 +65,6 @@ public class TopicService {
         unitOfWorkService.registerEvent(new UpdateTopicEvent(newTopic.getAggregateId(), newTopic.getName()), unitOfWork);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void deleteTopic(Integer topicAggregateId, UnitOfWork unitOfWork) {
         Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);

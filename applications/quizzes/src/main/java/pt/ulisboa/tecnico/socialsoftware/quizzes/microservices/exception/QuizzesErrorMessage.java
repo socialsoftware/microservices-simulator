@@ -73,6 +73,7 @@ public final class QuizzesErrorMessage {
     public static final String USER_DELETED = "User with aggregate id %d alreadt deleted.";
     public static final String INACTIVE_USER = "Cannot add course execution to inactive user.";
     public static final String USER_ACTIVE = "User %d is already active.";
+    public static final String USER_NOT_ACTIVE = "User %d is already not active.";
 
     public static final String USER_MERGE_FAILURE = "Two versions of a user with aggregate id %d cannot be merged.";
 

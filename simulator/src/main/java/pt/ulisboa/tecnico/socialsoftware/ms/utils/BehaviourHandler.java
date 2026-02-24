@@ -1,6 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.utils;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -59,14 +61,7 @@ public class BehaviourHandler {
         return funcCounter.compute(functionality, (k, v) -> (v == null) ? 1 : v + 1);
     }
 
-    public static synchronized int getFuncCounter(String functionality) {
-    Integer current = funcCounter.get(functionality);
-    if (current == null) {
-        return 1; 
-    } else {
-        return current + 1;
-    }
-}
+   
     
     public static List<String[]> parseCSVForBlock(Path filePath, String funcName, int targetBlock) throws IOException {
         List<String[]> currentBlock = new ArrayList<>();

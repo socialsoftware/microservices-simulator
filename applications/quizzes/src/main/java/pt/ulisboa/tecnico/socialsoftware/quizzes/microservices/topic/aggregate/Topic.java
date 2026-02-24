@@ -1,14 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /*
     INTRA-INVARIANTS:

@@ -1,29 +1,24 @@
     package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service;
 
-    import java.sql.SQLException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.Course;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseCustomRepository;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.stereotype.Service;
+    import org.springframework.transaction.annotation.Isolation;
+    import org.springframework.transaction.annotation.Transactional;
+    import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+    import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
+    import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+    import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.Course;
+    import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseCustomRepository;
+    import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
+    import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseFactory;
+    import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
     @Service
     public class CourseService {
         @Autowired
         private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-        private final UnitOfWorkService unitOfWorkService;
+        private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
         private final CourseCustomRepository courseRepository;
 
@@ -35,25 +30,11 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggrega
             this.courseRepository = courseRepository;
         }
 
-        @Retryable(
-                value = { SQLException.class },
-                maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
         @Transactional(isolation = Isolation.SERIALIZABLE)
         public CourseDto getCourseById(Integer aggregateId, UnitOfWork unitOfWorkWorkService) {
             return courseFactory.createCourseDto((Course) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWorkWorkService));
         }
 
-        @Retryable(
-                value = { SQLException.class },
-                maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
         @Transactional(isolation = Isolation.SERIALIZABLE)
         public CourseExecutionDto getAndOrCreateCourseRemote(CourseExecutionDto courseExecutionDto, UnitOfWork unitOfWork) {
             Course course = getCourseByName(courseExecutionDto.getName(), unitOfWork);

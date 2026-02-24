@@ -2,7 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subs
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.publish.DeleteQuestionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizQuestion;
 
 public class QuizSubscribesDeleteQuestion extends EventSubscription {
@@ -11,6 +11,8 @@ public class QuizSubscribesDeleteQuestion extends EventSubscription {
                 quizQuestion.getQuestionVersion(),
                 DeleteQuestionEvent.class.getSimpleName());
     }
+
+    public QuizSubscribesDeleteQuestion() {}
 
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event);

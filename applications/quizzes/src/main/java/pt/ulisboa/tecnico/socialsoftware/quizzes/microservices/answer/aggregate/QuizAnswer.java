@@ -1,7 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.QUESTION_ALREADY_ANSWERED;
+import jakarta.persistence.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,19 +13,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesAnonymizeStudent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesInvalidateQuiz;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesRemoveCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesUnerollStudentFromCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesUpdateStudentName;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
+import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.QUESTION_ALREADY_ANSWERED;
 
 /*
     INTRA-INVARIANTS:

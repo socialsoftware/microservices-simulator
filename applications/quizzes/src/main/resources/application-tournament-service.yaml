@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: tournament
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tournamentdb
+
+  cloud:
+    function:
+      definition: commandResponseChannel;tournamentServiceCommandChannel;tournamentEventSubscriber;
+    stream:
+      bindings:
+        tournament-command-channel:
+          destination: tournament-command-channel
+        tournamentServiceCommandChannel-in-0:
+          destination: tournament-command-channel
+          group: tournament-service-group
+        commandResponseChannel-in-0:
+          destination: tournament-command-responses
+          group: tournament-response-group
+        tournamentEventSubscriber-in-0:
+          destination: event-channel
+          group: tournament-service-group
+
+server:
+  port: 8087

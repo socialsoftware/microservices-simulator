@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateTopicEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionTopic;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.events.publish.UpdateTopicEvent;
 
 public class QuestionSubscribesUpdateTopic extends EventSubscription {
     public QuestionSubscribesUpdateTopic(QuestionTopic questionTopic) {
@@ -11,6 +11,8 @@ public class QuestionSubscribesUpdateTopic extends EventSubscription {
                 questionTopic.getTopicVersion(),
                 UpdateTopicEvent.class.getSimpleName());
     }
+
+    public QuestionSubscribesUpdateTopic() {}
 
     public boolean subscribesEvent(Event event) {
          return super.subscribesEvent(event);

@@ -1,9 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe;
 
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.publish.AnonymizeStudentEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.AnonymizeStudentEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
 
 public class QuizAnswerSubscribesAnonymizeStudent extends EventSubscription {
     private Integer studentAggregateId;
@@ -15,6 +15,8 @@ public class QuizAnswerSubscribesAnonymizeStudent extends EventSubscription {
 
         this.studentAggregateId = quizAnswer.getStudent().getStudentAggregateId();
     }
+
+    public QuizAnswerSubscribesAnonymizeStudent() {}
 
     public boolean subscribesEvent(Event event) {
         return super.subscribesEvent(event) && checkAnswerInfo((AnonymizeStudentEvent)event);

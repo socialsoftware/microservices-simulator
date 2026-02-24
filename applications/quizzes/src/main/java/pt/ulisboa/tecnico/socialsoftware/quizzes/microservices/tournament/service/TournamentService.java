@@ -1,19 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service;
 
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.CannotAcquireLockException;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
@@ -23,18 +15,14 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.Quizzes
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentCustomRepository;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentParticipant;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentTopic;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.*;
 
@@ -43,11 +31,9 @@ public class TournamentService {
     private static final Logger logger = LoggerFactory.getLogger(TournamentService.class);
 
     @Autowired
-    private QuizService quizService;
-    @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    private final UnitOfWorkService unitOfWorkService;
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     private final TournamentCustomRepository tournamentRepository;
 
@@ -60,25 +46,11 @@ public class TournamentService {
     }
 
     // intended for requests from external functionalities
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public TournamentDto getTournamentById(Integer aggregateId, UnitOfWork unitOfWork) {
         return tournamentFactory.createTournamentDto((Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public TournamentDto createTournament(TournamentDto tournamentDto, UserDto creatorDto,
                                           CourseExecutionDto courseExecutionDto, Set<TopicDto> topicDtos,
@@ -92,15 +64,9 @@ public class TournamentService {
         return tournamentFactory.createTournamentDto(tournament);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void addParticipant(Integer tournamentAggregateId, TournamentParticipant tournamentParticipant, UnitOfWork unitOfWork) {
+    public void addParticipant(Integer tournamentAggregateId, UserDto userDto, UnitOfWork unitOfWork) {
+        TournamentParticipant tournamentParticipant = new TournamentParticipant(userDto);
         if (tournamentParticipant.getParticipantName().equals("ANONYMOUS") || tournamentParticipant.getParticipantUsername().equals("ANONYMOUS")) {
             throw new QuizzesException(QuizzesErrorMessage.USER_IS_ANONYMOUS, tournamentParticipant.getParticipantAggregateId());
         }
@@ -108,18 +74,13 @@ public class TournamentService {
 
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
+        logger.info("Adding participant {} to tournament {}", tournamentParticipant.getParticipantName(), tournamentAggregateId);
+
         newTournament.addParticipant(tournamentParticipant);
 
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class},
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public TournamentDto updateTournament(TournamentDto tournamentDto, Set<TopicDto> topicDtos, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentDto.getAggregateId(), unitOfWork);
@@ -149,13 +110,6 @@ public class TournamentService {
         return tournamentFactory.createTournamentDto(newTournament);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<TournamentDto> getTournamentsByCourseExecutionId(Integer executionAggregateId, UnitOfWork unitOfWork) {
         return tournamentRepository.findAllRelevantTournamentIds(executionAggregateId).stream()
@@ -165,13 +119,6 @@ public class TournamentService {
 
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<TournamentDto> getOpenedTournamentsForCourseExecution(Integer executionAggregateId, UnitOfWork unitOfWork) {
         LocalDateTime now = DateHandler.now();
@@ -184,13 +131,6 @@ public class TournamentService {
                 .collect(Collectors.toList());
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<TournamentDto> getClosedTournamentsForCourseExecution(Integer executionAggregateId, UnitOfWork unitOfWork) {
         LocalDateTime now = DateHandler.now();
@@ -203,13 +143,6 @@ public class TournamentService {
                 .collect(Collectors.toList());
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void leaveTournament(Integer tournamentAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
@@ -222,13 +155,6 @@ public class TournamentService {
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void solveQuiz(Integer tournamentAggregateId, Integer userAggregateId, Integer answerAggregateId, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
@@ -241,13 +167,6 @@ public class TournamentService {
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void cancelTournament(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
@@ -256,13 +175,6 @@ public class TournamentService {
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeTournament(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
@@ -274,15 +186,8 @@ public class TournamentService {
 
     /******************************************* EVENT PROCESSING SERVICES ********************************************/
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament anonymizeUser(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId, String name, String username, Integer eventVersion, UnitOfWork unitOfWork) {
+    public TournamentDto anonymizeUser(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId, String name, String username, Integer eventVersion, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
 
@@ -306,18 +211,11 @@ public class TournamentService {
                 unitOfWorkService.registerChanged(newTournament, unitOfWork);
             }
         }
-        return newTournament;
+        return new TournamentDto(newTournament);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament removeCourseExecution(Integer tournamentAggregateId, Integer courseExecutionId, Integer eventVersion, UnitOfWork unitOfWork) {
+    public TournamentDto removeCourseExecution(Integer tournamentAggregateId, Integer courseExecutionId, Integer eventVersion, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         if (oldTournament.getTournamentCourseExecution() != null && oldTournament.getTournamentCourseExecution().getCourseExecutionVersion() >= eventVersion) {
             return null;
@@ -328,18 +226,11 @@ public class TournamentService {
             newTournament.setState(Aggregate.AggregateState.INACTIVE);
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
-        return newTournament;
+        return new TournamentDto(newTournament);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament removeUser(Integer tournamentAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, Integer eventVersion, UnitOfWork unitOfWork) {
+    public TournamentDto removeUser(Integer tournamentAggregateId, Integer courseExecutionAggregateId, Integer userAggregateId, Integer eventVersion, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
 
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
@@ -357,18 +248,11 @@ public class TournamentService {
             //tournamentParticipant.setVersion(eventVersion);
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
         }
-        return newTournament;
+        return new TournamentDto(newTournament);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament updateTopic(Integer tournamentAggregateId, Integer topicAggregateId, String topicName, Integer eventVersion, UnitOfWork unitOfWork) {
+    public TournamentDto updateTopic(Integer tournamentAggregateId, Integer topicAggregateId, String topicName, Integer eventVersion, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
         TournamentTopic topic = newTournament.findTopic(topicAggregateId);
@@ -379,53 +263,40 @@ public class TournamentService {
         topic.setTopicVersion(eventVersion);
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
 
-        return newTournament;
+        return new TournamentDto(newTournament);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament removeTopic(Integer tournamentAggregateId, Integer topicAggregateId, Integer eventVersion, UnitOfWork unitOfWork) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-        TournamentTopic oldTopic = oldTournament.findTopic(topicAggregateId);
-        if (oldTopic != null && oldTopic.getTopicVersion() >= eventVersion) {
-            return null;
-        }
-        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
-        TournamentTopic tournamentTopic  = newTournament.findTopic(topicAggregateId);
-        if (tournamentTopic == null) {
-            throw new QuizzesException(TOURNAMENT_TOPIC_NOT_FOUND, topicAggregateId, tournamentAggregateId);
-        }
-        newTournament.removeTopic(tournamentTopic);
-        QuizDto quizDto = new QuizDto();
-        quizDto.setAggregateId(newTournament.getTournamentQuiz().getQuizAggregateId());
-        quizDto.setAvailableDate(newTournament.getStartTime().toString());
-        quizDto.setConclusionDate(newTournament.getEndTime().toString());
-        quizDto.setResultsDate(newTournament.getEndTime().toString());
-        try {
-            quizService.updateGeneratedQuiz(quizDto, newTournament.getTournamentTopics().stream().filter(t -> t.getState() == Aggregate.AggregateState.ACTIVE).map(TournamentTopic::getTopicAggregateId).collect(Collectors.toSet()), newTournament.getNumberOfQuestions(), unitOfWork);
-        } catch (QuizzesException e) {
-            newTournament.setState(Aggregate.AggregateState.INACTIVE);
-        }
-
-        unitOfWorkService.registerChanged(newTournament, unitOfWork);
-        return newTournament;
+    public TournamentDto removeTopic(Integer tournamentAggregateId, Integer topicAggregateId, Integer eventVersion, UnitOfWork unitOfWork) {
+//        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+//        TournamentTopic oldTopic = oldTournament.findTopic(topicAggregateId);
+//        if (oldTopic != null && oldTopic.getTopicVersion() >= eventVersion) {
+//            return null;
+//        }
+//        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+//        TournamentTopic tournamentTopic  = newTournament.findTopic(topicAggregateId);
+//        if (tournamentTopic == null) {
+//            throw new QuizzesException(TOURNAMENT_TOPIC_NOT_FOUND, topicAggregateId, tournamentAggregateId);
+//        }
+//        newTournament.removeTopic(tournamentTopic);
+//        QuizDto quizDto = new QuizDto();
+//        quizDto.setAggregateId(newTournament.getTournamentQuiz().getQuizAggregateId());
+//        quizDto.setAvailableDate(newTournament.getStartTime().toString());
+//        quizDto.setConclusionDate(newTournament.getEndTime().toString());
+//        quizDto.setResultsDate(newTournament.getEndTime().toString());
+//        try {
+//            quizService.updateGeneratedQuiz(quizDto, newTournament.getTournamentTopics().stream().filter(t -> t.getState() == Aggregate.AggregateState.ACTIVE).map(TournamentTopic::getTopicAggregateId).collect(Collectors.toSet()), newTournament.getNumberOfQuestions(), unitOfWork);
+//        } catch (QuizzesException e) {
+//            newTournament.setState(Aggregate.AggregateState.INACTIVE);
+//        }
+//
+//        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+//        return new TournamentDto(newTournament);
+        return null;
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament updateParticipantAnswer(Integer tournamentAggregateId, Integer studentAggregateId, Integer quizAnswerAggregateId, Integer questionAggregateId, boolean isCorrect, Integer eventVersion, UnitOfWork unitOfWork) {
+    public TournamentDto updateParticipantAnswer(Integer tournamentAggregateId, Integer studentAggregateId, Integer quizAnswerAggregateId, Integer questionAggregateId, boolean isCorrect, Integer eventVersion, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         TournamentParticipant oldParticipant = oldTournament.findParticipant(studentAggregateId);
         if (oldParticipant != null && oldParticipant.getParticipantAnswer().getQuizAnswerVersion() >= eventVersion) {
@@ -449,50 +320,37 @@ public class TournamentService {
         }
         tournamentParticipant.updateAnswerWithQuestion(quizAnswerAggregateId, quizAnswerAggregateId, isCorrect, eventVersion);
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
-        return newTournament;
+        return new TournamentDto(newTournament);
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Tournament invalidateQuiz(Integer tournamentAggregateId, Integer aggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
-        List<Integer> topicsIds = newTournament.getTournamentTopics().stream().map(TournamentTopic::getTopicAggregateId).collect(Collectors.toList());
-
-        QuizDto quizDto = new QuizDto();
-        quizDto.setAvailableDate(newTournament.getStartTime().toString());
-        quizDto.setConclusionDate(newTournament.getEndTime().toString());
-        quizDto.setResultsDate(newTournament.getEndTime().toString());
-
-        QuizDto quizDto1 = null;
-        try {
-            quizDto1 = quizService.generateQuiz(newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId(), quizDto, topicsIds, newTournament.getNumberOfQuestions(), unitOfWork);
-        } catch (QuizzesException e) {
-            newTournament.setState(Aggregate.AggregateState.INACTIVE);
-        }
-
-        if (quizDto1 != null) {
-            newTournament.getTournamentQuiz().setQuizAggregateId(quizDto1.getAggregateId());
-            newTournament.getTournamentQuiz().setQuizVersion(quizDto1.getVersion());
-            unitOfWorkService.registerChanged(newTournament, unitOfWork);
-        }
-
-        return newTournament;
+    public TournamentDto invalidateQuiz(Integer tournamentAggregateId, Integer aggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
+//        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+//        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+//        List<Integer> topicsIds = newTournament.getTournamentTopics().stream().map(TournamentTopic::getTopicAggregateId).collect(Collectors.toList());
+//
+//        QuizDto quizDto = new QuizDto();
+//        quizDto.setAvailableDate(newTournament.getStartTime().toString());
+//        quizDto.setConclusionDate(newTournament.getEndTime().toString());
+//        quizDto.setResultsDate(newTournament.getEndTime().toString());
+//
+//        QuizDto quizDto1 = null;
+//        try {
+//            quizDto1 = quizService.generateQuiz(newTournament.getTournamentCourseExecution().getCourseExecutionAggregateId(), quizDto, new ArrayList<>(), newTournament.getNumberOfQuestions(), unitOfWork); // TODO - empty questionDtos
+//        } catch (QuizzesException e) {
+//            newTournament.setState(Aggregate.AggregateState.INACTIVE);
+//        }
+//
+//        if (quizDto1 != null) {
+//            newTournament.getTournamentQuiz().setQuizAggregateId(quizDto1.getAggregateId());
+//            newTournament.getTournamentQuiz().setQuizVersion(quizDto1.getVersion());
+//            unitOfWorkService.registerChanged(newTournament, unitOfWork);
+//        }
+//
+//        return new TournamentDto(newTournament);
+        return null;
     }
 
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateUserName(Integer tournamentAggregateId, Integer executionAggregateId, Integer eventVersion, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
         boolean changes = false;
@@ -521,3 +379,4 @@ public class TournamentService {
         }
     }
 }
+

@@ -1,0 +1,17 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
+
+public class GetCourseExecutionByIdCommand extends Command {
+    private Integer executionAggregateId;
+
+    public GetCourseExecutionByIdCommand(UnitOfWork unitOfWork, String serviceName, Integer executionAggregateId) {
+        super(unitOfWork, serviceName, executionAggregateId);
+        this.executionAggregateId = executionAggregateId;
+    }
+
+    public Integer getExecutionAggregateId() {
+        return executionAggregateId;
+    }
+}

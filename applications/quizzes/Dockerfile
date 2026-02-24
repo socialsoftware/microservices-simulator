@@ -17,6 +17,8 @@ FROM base AS run
 ARG PROFILE=tcc,dev
 RUN mvn clean -P$PROFILE -Dmaven.test.skip=true package
 
-FROM openjdk:21-jdk-slim
-COPY --from=run target/QuizzesTutor-2.1.0-SNAPSHOT.jar ./
-CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar", "./QuizzesTutor-2.1.0-SNAPSHOT.jar"]
+FROM eclipse-temurin:21-jre-alpine
+ARG APP_VERSION=3.0.0-SNAPSHOT
+ENV JAR_FILE=QuizzesTutor-${APP_VERSION}.jar
+COPY --from=run target/QuizzesTutor-*.jar ./app.jar
+CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar", "./app.jar"]

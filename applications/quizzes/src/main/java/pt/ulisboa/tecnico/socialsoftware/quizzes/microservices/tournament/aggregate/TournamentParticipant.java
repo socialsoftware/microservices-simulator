@@ -1,18 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
-import java.time.LocalDateTime;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
+
+import java.time.LocalDateTime;
 
 @Entity
 public class TournamentParticipant {
@@ -24,6 +19,7 @@ public class TournamentParticipant {
     private String participantUsername;
     private LocalDateTime enrollTime;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentParticipant")
+    @JsonManagedReference
     private TournamentParticipantQuizAnswer participantAnswer;
     private Integer participantVersion;
     @Enumerated(EnumType.STRING)
@@ -124,6 +120,7 @@ public class TournamentParticipant {
         this.state = state;
     }
 
+    @JsonIgnore
     public Tournament getTournament() {
         return tournament;
     }
@@ -132,8 +129,10 @@ public class TournamentParticipant {
         this.tournament = tournament;
     }
 
-    public void updateAnswerWithQuestion(Integer quizAnswerAggregateId, Integer questionAnswerAggregateId, boolean isCorrect, Integer version) {
-        this.participantAnswer.updateAnswerWithQuestion(quizAnswerAggregateId, questionAnswerAggregateId, isCorrect, version);
+    public void updateAnswerWithQuestion(Integer quizAnswerAggregateId, Integer questionAnswerAggregateId,
+            boolean isCorrect, Integer version) {
+        this.participantAnswer.updateAnswerWithQuestion(quizAnswerAggregateId, questionAnswerAggregateId, isCorrect,
+                version);
     }
 
     public UserDto buildDto() {
@@ -162,7 +161,9 @@ public class TournamentParticipant {
             return false;
         }
 
-        return getParticipantAggregateId() != null && getParticipantAggregateId().equals(otherParticipant.getParticipantAggregateId()) &&
-                getParticipantVersion() != null && getParticipantVersion().equals(otherParticipant.getParticipantVersion());
+        return getParticipantAggregateId() != null
+                && getParticipantAggregateId().equals(otherParticipant.getParticipantAggregateId()) &&
+                getParticipantVersion() != null
+                && getParticipantVersion().equals(otherParticipant.getParticipantVersion());
     }
 }

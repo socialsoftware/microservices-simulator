@@ -1,9 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 
-import java.util.concurrent.CompletionException;
-
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+
+import java.util.concurrent.CompletionException;
 
 public abstract class WorkflowFunctionality {
     protected Workflow workflow;

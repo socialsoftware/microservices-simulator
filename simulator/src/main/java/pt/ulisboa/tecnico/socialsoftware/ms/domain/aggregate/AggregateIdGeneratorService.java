@@ -1,26 +1,15 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.dao.CannotAcquireLockException;
-
-import java.sql.SQLException;
 
 @Service
 public class AggregateIdGeneratorService {
     @Autowired
     private AggregateIdRepository aggregateIdRepository;
-    @Retryable(
-            value = { SQLException.class,  CannotAcquireLockException.class },
-            maxAttemptsExpression = "${retry.db.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.db.delay}",
-            multiplierExpression = "${retry.db.multiplier}"
-        ))
+
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Integer getNewAggregateId() {
         AggregateIdGenerator aggregateId = new AggregateIdGenerator();

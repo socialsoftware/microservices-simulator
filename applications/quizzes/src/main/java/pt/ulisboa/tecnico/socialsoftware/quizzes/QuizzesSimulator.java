@@ -13,14 +13,16 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 
-@PropertySource({"classpath:application.properties"})
-@EnableJpaRepositories(basePackages = {"pt.ulisboa.tecnico.socialsoftware.ms.*", "pt.ulisboa.tecnico.socialsoftware.quizzes.*"})
-@EntityScan(basePackages = {"pt.ulisboa.tecnico.socialsoftware.ms.*", "pt.ulisboa.tecnico.socialsoftware.quizzes.*"})
+@PropertySource({ "classpath:application.yaml" })
+@EnableJpaRepositories(basePackages = { "pt.ulisboa.tecnico.socialsoftware.ms.*",
+		"pt.ulisboa.tecnico.socialsoftware.quizzes.*" })
+@EntityScan(basePackages = { "pt.ulisboa.tecnico.socialsoftware.ms.*", "pt.ulisboa.tecnico.socialsoftware.quizzes.*" })
 @EnableTransactionManagement
 @EnableJpaAuditing
 @EnableScheduling
 @EnableRetry
-@SpringBootApplication(scanBasePackages = {"pt.ulisboa.tecnico.socialsoftware.ms.*", "pt.ulisboa.tecnico.socialsoftware.quizzes.*"})
+@SpringBootApplication(scanBasePackages = { "pt.ulisboa.tecnico.socialsoftware.ms.*",
+		"pt.ulisboa.tecnico.socialsoftware.quizzes.*" })
 public class QuizzesSimulator implements InitializingBean {
 	@Autowired
 	private EventService eventService;

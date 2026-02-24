@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.event;
 
+import java.util.Objects;
+
 public abstract class EventSubscription {
     private Integer subscribedAggregateId;
     private Integer subscribedVersion;
@@ -9,15 +11,13 @@ public abstract class EventSubscription {
     public EventSubscription() {
     }
 
-    public EventSubscription(Integer subscribedAggregateId, Integer subscribedVersion, Class<? extends Event> eventClass) {
+    public EventSubscription(Integer subscribedAggregateId, Integer subscribedVersion,
+            Class<? extends Event> eventClass) {
         setSubscribedAggregateId(subscribedAggregateId);
-        // this is for complex functionalities where we don't know the id of an aggregate we are creating
-        if (subscribedVersion == null) {
-            setSubscribedVersion(0);
-        } else {
-            setSubscribedVersion(subscribedVersion);
-        }
-        setEventClass(eventClass);
+        // this is for complex functionalities where we don't know the id of an
+        // aggregate we are creating
+        setSubscribedVersion(Objects.requireNonNullElse(subscribedVersion, 0));
+        setEventType(eventType);
         setSubscriberAggregateId(subscribedAggregateId);
     }
 
@@ -27,13 +27,11 @@ public abstract class EventSubscription {
         setEventClass(other.getEventClass());
     }
 
-
     public boolean subscribesEvent(Event event) {
         return getEventClass().isInstance(event) &&
                 getSubscribedAggregateId().equals(event.getPublisherAggregateId()) &&
                 getSubscribedVersion() < event.getPublisherAggregateVersion();
     }
-
 
     public Integer getSubscribedAggregateId() {
         return subscribedAggregateId;
@@ -72,6 +70,7 @@ public abstract class EventSubscription {
     /**
      * Sets the event class from a string class name.
      * Kept for backward compatibility.
+     * 
      * @deprecated Use setEventClass(Class) instead
      */
     @Deprecated
@@ -81,8 +80,7 @@ public abstract class EventSubscription {
         try {
             @SuppressWarnings("unchecked")
             Class<? extends Event> clazz = (Class<? extends Event>) Class.forName(
-                "pt.ulisboa.tecnico.socialsoftware.ms.domain.event." + eventType
-            );
+                    "pt.ulisboa.tecnico.socialsoftware.ms.domain.event." + eventType);
             this.eventClass = clazz;
         } catch (ClassNotFoundException e) {
             // Fallback: store null and rely on subclass initialization
@@ -104,7 +102,8 @@ public abstract class EventSubscription {
             return false;
         }
         EventSubscription other = (EventSubscription) obj;
-        return getSubscribedAggregateId() != null && getSubscribedAggregateId().equals(other.getSubscribedAggregateId()) &&
+        return getSubscribedAggregateId() != null && getSubscribedAggregateId().equals(other.getSubscribedAggregateId())
+                &&
                 getSubscribedVersion() != null && getSubscribedVersion().equals(other.getSubscribedVersion()) &&
                 getEventClass() != null && getEventClass().equals(other.getEventClass());
     }

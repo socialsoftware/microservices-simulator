@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: course
+  datasource:
+    url: jdbc:postgresql://localhost:5432/coursedb
+
+  cloud:
+    function:
+      definition: commandResponseChannel;courseServiceCommandChannel;courseEventSubscriber;
+    stream:
+      bindings:
+        course-command-channel:
+          destination: course-command-channel
+        courseServiceCommandChannel-in-0:
+          destination: course-command-channel
+          group: course-service-group
+        commandResponseChannel-in-0:
+          destination: course-command-responses
+          group: course-response-group
+        courseEventSubscriber-in-0:
+          destination: event-channel
+          group: course-service-group
+
+server:
+  port: 8089

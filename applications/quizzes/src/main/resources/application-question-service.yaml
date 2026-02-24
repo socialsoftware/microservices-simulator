@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: question
+  datasource:
+    url: jdbc:postgresql://localhost:5432/questiondb
+
+  cloud:
+    function:
+      definition: commandResponseChannel;questionServiceCommandChannel;questionEventSubscriber;
+    stream:
+      bindings:
+        question-command-channel:
+          destination: question-command-channel
+        questionServiceCommandChannel-in-0:
+          destination: question-command-channel
+          group: question-service-group
+        commandResponseChannel-in-0:
+          destination: question-command-responses
+          group: question-response-group
+        questionEventSubscriber-in-0:
+          destination: event-channel
+          group: question-service-group
+
+server:
+  port: 8084

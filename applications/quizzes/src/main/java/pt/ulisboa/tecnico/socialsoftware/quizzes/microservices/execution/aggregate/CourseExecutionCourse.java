@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseType;
 
@@ -72,6 +73,7 @@ public class CourseExecutionCourse {
         this.courseVersion = courseVersion;
     }
 
+    @JsonIgnore
     public CourseExecution getCourseExecution() {
         return courseExecution;
     }

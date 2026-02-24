@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
@@ -66,6 +67,7 @@ public class AnsweredQuiz {
         this.quizQuestionsAggregateIds = quizQuestionsAggregateIds;
     }
 
+    @JsonIgnore
     public QuizAnswer getQuizAnswer() {
         return quizAnswer;
     }
