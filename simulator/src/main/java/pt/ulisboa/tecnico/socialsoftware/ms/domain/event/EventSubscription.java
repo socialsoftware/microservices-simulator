@@ -5,17 +5,15 @@ import java.util.Objects;
 public abstract class EventSubscription {
     private Integer subscribedAggregateId;
     private Integer subscribedVersion;
-    private Class<? extends Event> eventClass;
+    private String eventType;
     private Integer subscriberAggregateId;
 
     public EventSubscription() {
     }
 
-    public EventSubscription(Integer subscribedAggregateId, Integer subscribedVersion,
-            Class<? extends Event> eventClass) {
+    public EventSubscription(Integer subscribedAggregateId, Integer subscribedVersion, String eventType) {
         setSubscribedAggregateId(subscribedAggregateId);
-        // this is for complex functionalities where we don't know the id of an
-        // aggregate we are creating
+        // this is for complex functionalities where we don't know the id of an aggregate we are creating
         setSubscribedVersion(Objects.requireNonNullElse(subscribedVersion, 0));
         setEventType(eventType);
         setSubscriberAggregateId(subscribedAggregateId);
@@ -24,14 +22,16 @@ public abstract class EventSubscription {
     public EventSubscription(EventSubscription other) {
         setSubscribedAggregateId(other.getSubscribedAggregateId());
         setSubscribedVersion(other.getSubscribedVersion());
-        setEventClass(other.getEventClass());
+        setEventType(other.getEventType());
     }
 
+
     public boolean subscribesEvent(Event event) {
-        return getEventClass().isInstance(event) &&
+        return getEventType().equals(event.getClass().getSimpleName()) &&
                 getSubscribedAggregateId().equals(event.getPublisherAggregateId()) &&
                 getSubscribedVersion() < event.getPublisherAggregateVersion();
     }
+
 
     public Integer getSubscribedAggregateId() {
         return subscribedAggregateId;
@@ -49,43 +49,12 @@ public abstract class EventSubscription {
         this.subscribedVersion = subscribedVersion;
     }
 
-    public Class<? extends Event> getEventClass() {
-        return eventClass;
-    }
-
-    public void setEventClass(Class<? extends Event> eventClass) {
-        this.eventClass = eventClass;
-    }
-
-    /**
-     * Returns the simple name of the event class.
-     * Kept for backward compatibility.
-     *
-     * @return the simple class name (e.g., "UserDeletedEvent")
-     */
     public String getEventType() {
-        return eventClass != null ? eventClass.getSimpleName() : null;
+        return eventType;
     }
 
-    /**
-     * Sets the event class from a string class name.
-     * Kept for backward compatibility.
-     * 
-     * @deprecated Use setEventClass(Class) instead
-     */
-    @Deprecated
     public void setEventType(String eventType) {
-        // For backward compatibility, attempt to resolve class from name
-        // This is a best-effort approach and may not work in all classloaders
-        try {
-            @SuppressWarnings("unchecked")
-            Class<? extends Event> clazz = (Class<? extends Event>) Class.forName(
-                    "pt.ulisboa.tecnico.socialsoftware.ms.domain.event." + eventType);
-            this.eventClass = clazz;
-        } catch (ClassNotFoundException e) {
-            // Fallback: store null and rely on subclass initialization
-            this.eventClass = null;
-        }
+        this.eventType = eventType;
     }
 
     public Integer getSubscriberAggregateId() {
@@ -102,10 +71,9 @@ public abstract class EventSubscription {
             return false;
         }
         EventSubscription other = (EventSubscription) obj;
-        return getSubscribedAggregateId() != null && getSubscribedAggregateId().equals(other.getSubscribedAggregateId())
-                &&
+        return getSubscribedAggregateId() != null && getSubscribedAggregateId().equals(other.getSubscribedAggregateId()) &&
                 getSubscribedVersion() != null && getSubscribedVersion().equals(other.getSubscribedVersion()) &&
-                getEventClass() != null && getEventClass().equals(other.getEventClass());
+                getEventType() != null && getEventType().equals(other.getEventType());
     }
 
     @Override
@@ -113,7 +81,7 @@ public abstract class EventSubscription {
         int hash = 7;
         hash = 31 * hash + getSubscribedAggregateId();
         hash = 31 * hash + (getSubscribedVersion() == null ? 0 : getSubscribedVersion().hashCode());
-        hash = 31 * hash + (getEventClass() == null ? 0 : getEventClass().hashCode());
+        hash = 31 * hash + getEventType().hashCode();
         return hash;
     }
 }
