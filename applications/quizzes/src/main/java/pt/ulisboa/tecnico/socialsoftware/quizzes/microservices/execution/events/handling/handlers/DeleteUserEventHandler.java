@@ -3,15 +3,15 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteUserEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionRepository;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing.CourseExecutionEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing.ExecutionEventProcessing;
 
 public class DeleteUserEventHandler extends CourseExecutionEventHandler {
-    public DeleteUserEventHandler(CourseExecutionRepository courseExecutionRepository, CourseExecutionEventProcessing courseExecutionEventProcessing) {
-        super(courseExecutionRepository, courseExecutionEventProcessing);
+    public DeleteUserEventHandler(CourseExecutionRepository courseExecutionRepository, ExecutionEventProcessing executionEventProcessing) {
+        super(courseExecutionRepository, executionEventProcessing);
     }
 
     @Override
     public void handleEvent(Integer subscriberAggregateId, Event event) {
-        this.courseExecutionEventProcessing.processDeleteUserEvent(subscriberAggregateId, (DeleteUserEvent) event);
+        this.executionEventProcessing.processDeleteUserEvent(subscriberAggregateId, (DeleteUserEvent) event);
     }
 }

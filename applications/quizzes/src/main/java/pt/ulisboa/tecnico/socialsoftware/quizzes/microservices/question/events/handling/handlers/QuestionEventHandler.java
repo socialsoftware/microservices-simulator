@@ -18,7 +18,7 @@ public abstract class QuestionEventHandler extends EventHandler {
     }
 
     public Set<Integer> getAggregateIds() {
-        return questionRepository.findAll().stream().map(Question::getAggregateId).collect(Collectors.toSet());
+        return questionRepository.findAllAggregateIds();
     }
 
 }

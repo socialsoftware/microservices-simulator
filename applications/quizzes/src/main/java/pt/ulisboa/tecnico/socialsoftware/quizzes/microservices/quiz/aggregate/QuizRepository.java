@@ -20,4 +20,7 @@ public interface QuizRepository extends JpaRepository<Quiz, Integer> {
     default Optional<Quiz> findLatestQuiz() {
         return findTopByOrderByVersionDesc();
     }
+
+    @Query("SELECT q.aggregateId FROM Quiz q")
+    Set<Integer> findAllAggregateIds();
 }

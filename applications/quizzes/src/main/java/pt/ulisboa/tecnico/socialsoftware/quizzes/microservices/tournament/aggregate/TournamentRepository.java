@@ -23,4 +23,7 @@ public interface TournamentRepository extends JpaRepository<Tournament, Integer>
     default Optional<Tournament> findLatestTournament() {
         return findTopByOrderByVersionDesc();
     }
+
+    @Query("SELECT t.aggregateId FROM Tournament t")
+    Set<Integer> findAllAggregateIds();
 }

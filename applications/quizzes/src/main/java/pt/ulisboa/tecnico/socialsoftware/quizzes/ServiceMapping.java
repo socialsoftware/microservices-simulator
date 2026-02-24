@@ -4,7 +4,7 @@ public enum ServiceMapping {
     TOURNAMENT("tournament"),
     QUIZ("quiz"),
     USER("user"),
-    COURSE_EXECUTION("courseExecution"),
+    EXECUTION("execution"),
     COURSE("course"),
     QUESTION("question"),
     TOPIC("topic"),

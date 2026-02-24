@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "pt.ulisboa.tecnico.socialsoftware.ms.grpc";
+option java_outer_classname = "CommandProto";
+
+message CommandRequest {
+  string command_json = 1;
+  string correlation_id = 2;
+}
+
+message CommandReply {
+  string response_json = 1;
+}
+
+service CommandService {
+  rpc Send (CommandRequest) returns (CommandReply);
+}

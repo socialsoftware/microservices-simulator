@@ -19,7 +19,8 @@
           <option name="pomFileName" />
           <option name="profilesMap">
             <map>
-              <entry key="tcc" value="true" />
+              <entry key="tcc," value="true" />
+              <entry key="local" value="true" />
             </map>
           </option>
           <option name="projectsCmdOptionValues">

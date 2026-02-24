@@ -11,7 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import java.util.Optional;
 
 @Service
-@Profile({ "!stream", "version-service" })
+@Profile("version-service | (!stream & !grpc)")
 public class VersionService implements IVersionService {
 
     @Autowired

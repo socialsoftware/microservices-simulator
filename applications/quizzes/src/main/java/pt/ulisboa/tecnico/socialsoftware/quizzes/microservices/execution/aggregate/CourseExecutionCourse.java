@@ -15,7 +15,7 @@ public class CourseExecutionCourse {
     private CourseType type;
     private Integer courseVersion;
     @OneToOne
-    private CourseExecution courseExecution;
+    private Execution execution;
 
     public CourseExecutionCourse() {}
 
@@ -74,11 +74,11 @@ public class CourseExecutionCourse {
     }
 
     @JsonIgnore
-    public CourseExecution getCourseExecution() {
-        return courseExecution;
+    public Execution getCourseExecution() {
+        return execution;
     }
 
-    public void setCourseExecution(CourseExecution courseExecution) {
-        this.courseExecution = courseExecution;
+    public void setCourseExecution(Execution execution) {
+        this.execution = execution;
     }
 }

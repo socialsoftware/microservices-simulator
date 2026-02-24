@@ -17,9 +17,9 @@
 //import org.springframework.test.context.ActiveProfiles
 //import org.springframework.test.context.TestPropertySource
 //import pt.ulisboa.tecnico.socialsoftware.ms.SpockTest
-//import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command
-//import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler
-//import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway
+//import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command
+//import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler
+//import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
 //import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 //
 //import java.util.concurrent.atomic.AtomicInteger

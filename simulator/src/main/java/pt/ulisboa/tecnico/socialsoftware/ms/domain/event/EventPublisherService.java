@@ -9,12 +9,12 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.MessagingObjectMapperProvider;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.MessagingObjectMapperProvider;
 
 import java.util.List;
 
 @Service
-@Profile("stream")
+@Profile({ "stream", "grpc" })
 public class EventPublisherService {
     private static final Logger logger = LoggerFactory.getLogger(EventPublisherService.class);
     private static final String EVENT_CHANNEL = "event-channel";

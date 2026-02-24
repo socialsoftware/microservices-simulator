@@ -1,13 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.RemoveUserCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.RemoveUserCommand;
 
 public class RemoveUserFromCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -25,7 +25,7 @@ public class RemoveUserFromCourseExecutionFunctionalitySagas extends WorkflowFun
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
         SagaStep step = new SagaStep("removeUserFromCourseExecution", () -> {
             RemoveUserCommand command = new RemoveUserCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName(),
+                    ServiceMapping.EXECUTION.getServiceName(),
                     courseExecutionAggregateId, userAggregateId);
             commandGateway.send(command);
         });

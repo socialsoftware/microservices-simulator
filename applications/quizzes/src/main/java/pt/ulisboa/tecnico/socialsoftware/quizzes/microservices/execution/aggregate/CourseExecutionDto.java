@@ -23,18 +23,18 @@ public class CourseExecutionDto implements Serializable {
     public CourseExecutionDto() {
     }
 
-    public CourseExecutionDto(CourseExecution courseExecution) {
-        setAggregateId(courseExecution.getAggregateId());
-        setCourseAggregateId(courseExecution.getExecutionCourse().getCourseAggregateId());
-        setName(courseExecution.getExecutionCourse().getName());
-        setType(courseExecution.getExecutionCourse().getType().toString());
-        setAcronym(courseExecution.getAcronym());
-        setAcademicTerm(courseExecution.getAcademicTerm());
-        setStatus(courseExecution.getState().toString());
-        setVersion(courseExecution.getVersion());
-        setEndDate(courseExecution.getEndDate().toString());
-        setStudents(courseExecution.getStudents().stream().map(CourseExecutionStudent::buildDto).collect(Collectors.toSet()));
-        setState(courseExecution.getState().toString());
+    public CourseExecutionDto(Execution execution) {
+        setAggregateId(execution.getAggregateId());
+        setCourseAggregateId(execution.getExecutionCourse().getCourseAggregateId());
+        setName(execution.getExecutionCourse().getName());
+        setType(execution.getExecutionCourse().getType().toString());
+        setAcronym(execution.getAcronym());
+        setAcademicTerm(execution.getAcademicTerm());
+        setStatus(execution.getState().toString());
+        setVersion(execution.getVersion());
+        setEndDate(execution.getEndDate().toString());
+        setStudents(execution.getStudents().stream().map(CourseExecutionStudent::buildDto).collect(Collectors.toSet()));
+        setState(execution.getState().toString());
     }
 
     public Integer getAggregateId() {

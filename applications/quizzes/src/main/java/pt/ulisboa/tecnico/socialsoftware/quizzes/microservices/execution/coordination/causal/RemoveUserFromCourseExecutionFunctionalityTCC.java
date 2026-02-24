@@ -3,11 +3,11 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordi
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.workflow.CausalWorkflow;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.RemoveUserCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.RemoveUserCommand;
 
 public class RemoveUserFromCourseExecutionFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
@@ -26,7 +26,7 @@ public class RemoveUserFromCourseExecutionFunctionalityTCC extends WorkflowFunct
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
         Step step = new Step(() -> {
             RemoveUserCommand command = new RemoveUserCommand(unitOfWork,
-                    ServiceMapping.COURSE_EXECUTION.getServiceName(),
+                    ServiceMapping.EXECUTION.getServiceName(),
                     courseExecutionAggregateId, userAggregateId);
             commandGateway.send(command);
         });

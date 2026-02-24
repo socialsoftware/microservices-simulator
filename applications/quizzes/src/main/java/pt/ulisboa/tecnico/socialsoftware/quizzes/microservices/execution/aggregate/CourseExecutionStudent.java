@@ -23,7 +23,7 @@ public class CourseExecutionStudent {
     private boolean active;
     private Aggregate.AggregateState state;
     @ManyToOne
-    private CourseExecution courseExecution;
+    private Execution execution;
 
     public CourseExecutionStudent() {
     }
@@ -108,12 +108,12 @@ public class CourseExecutionStudent {
     }
 
     @JsonIgnore
-    public CourseExecution getCourseExecution() {
-        return courseExecution;
+    public Execution getCourseExecution() {
+        return execution;
     }
 
-    public void setCourseExecution(CourseExecution courseExecution) {
-        this.courseExecution = courseExecution;
+    public void setCourseExecution(Execution execution) {
+        this.execution = execution;
     }
 
     public UserDto buildDto() {

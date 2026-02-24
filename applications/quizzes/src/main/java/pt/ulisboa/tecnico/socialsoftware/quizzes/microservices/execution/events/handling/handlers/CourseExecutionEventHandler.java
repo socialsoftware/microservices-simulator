@@ -1,24 +1,24 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.handling.handlers;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionRepository;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing.CourseExecutionEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing.ExecutionEventProcessing;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class CourseExecutionEventHandler extends EventHandler {
     private CourseExecutionRepository courseExecutionRepository;
-    protected CourseExecutionEventProcessing courseExecutionEventProcessing;
+    protected ExecutionEventProcessing executionEventProcessing;
 
-    public CourseExecutionEventHandler(CourseExecutionRepository courseExecutionRepository, CourseExecutionEventProcessing courseExecutionEventProcessing) {
+    public CourseExecutionEventHandler(CourseExecutionRepository courseExecutionRepository, ExecutionEventProcessing executionEventProcessing) {
         this.courseExecutionRepository = courseExecutionRepository;
-        this.courseExecutionEventProcessing = courseExecutionEventProcessing;
+        this.executionEventProcessing = executionEventProcessing;
     }
 
     public Set<Integer> getAggregateIds() {
-        return courseExecutionRepository.findAll().stream().map(CourseExecution::getAggregateId).collect(Collectors.toSet());
+        return courseExecutionRepository.findAllAggregateIds();
     }
 
 }

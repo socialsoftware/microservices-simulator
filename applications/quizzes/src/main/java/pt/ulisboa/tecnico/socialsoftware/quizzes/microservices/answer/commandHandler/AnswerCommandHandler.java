@@ -2,10 +2,9 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.commandHa
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.*;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService;
 
 import java.util.logging.Logger;
@@ -43,108 +42,66 @@ public class AnswerCommandHandler extends CommandHandler {
     private Object handleGetQuizAnswerDtoByQuizIdAndUserId(GetQuizAnswerDtoByQuizIdAndUserIdCommand command) {
         logger.info("Getting quiz answer DTO by quiz ID and user ID: " + command.getQuizAggregateId() + ", "
                 + command.getUserAggregateId());
-        try {
-            QuizAnswerDto quizAnswerDto = quizAnswerService.getQuizAnswerDtoByQuizIdAndUserId(
-                    command.getQuizAggregateId(), command.getUserAggregateId(), command.getUnitOfWork());
-            return quizAnswerDto;
-        } catch (Exception e) {
-            logger.severe("Failed to get quiz answer DTO: " + e.getMessage());
-            return e;
-        }
+        return quizAnswerService.getQuizAnswerDtoByQuizIdAndUserId(
+                command.getQuizAggregateId(), command.getUserAggregateId(), command.getUnitOfWork());
     }
 
     private Object handleStartQuiz(StartQuizCommand command) {
         logger.info("Starting quiz: " + command.getQuizAggregateId());
-        try {
-            QuizAnswerDto quizAnswerDto = quizAnswerService.startQuiz(command.getQuizAggregateId(),
-                    command.getCourseExecutionAggregateId(), command.getQuizDto(), command.getUserDto(),
-                    command.getUnitOfWork());
-            return quizAnswerDto;
-        } catch (Exception e) {
-            logger.severe("Failed to start quiz: " + e.getMessage());
-            return e;
-        }
+        return quizAnswerService.startQuiz(command.getQuizAggregateId(),
+                command.getCourseExecutionAggregateId(), command.getQuizDto(), command.getUserDto(),
+                command.getUnitOfWork());
     }
 
     private Object handleConcludeQuiz(ConcludeQuizCommand command) {
         logger.info("Concluding quiz: " + command.getQuizAggregateId());
-        try {
-            quizAnswerService.concludeQuiz(command.getQuizAggregateId(), command.getUserAggregateId(),
-                    command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to conclude quiz: " + e.getMessage());
-            return e;
-        }
+        quizAnswerService.concludeQuiz(command.getQuizAggregateId(), command.getUserAggregateId(),
+                command.getUnitOfWork());
+        return null;
     }
 
     private Object handleAnswerQuestion(AnswerQuestionCommand command) {
         logger.info("Answering question for quiz: " + command.getQuizAggregateId());
-        try {
-            quizAnswerService.answerQuestion(command.getQuizAggregateId(), command.getUserAggregateId(),
-                    command.getUserAnswerDto(), command.getQuestionDto(), command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to answer question: " + e.getMessage());
-            return e;
-        }
+        quizAnswerService.answerQuestion(command.getQuizAggregateId(), command.getUserAggregateId(),
+                command.getUserAnswerDto(), command.getQuestionDto(), command.getUnitOfWork());
+        return null;
     }
 
     private Object handleRemoveQuizAnswer(RemoveQuizAnswerCommand command) {
         logger.info("Removing quiz answer: " + command.getQuizAnswerAggregateId());
-        try {
-            quizAnswerService.removeQuizAnswer(command.getQuizAnswerAggregateId(), command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to remove quiz answer: " + e.getMessage());
-            return e;
-        }
+        quizAnswerService.removeQuizAnswer(command.getQuizAnswerAggregateId(), command.getUnitOfWork());
+        return null;
     }
 
     private Object handleUpdateUserName(UpdateUserNameCommand command) {
         logger.info("Updating user name in quiz answer: " + command.getAnswerAggregateId());
-        try {
-            quizAnswerService.updateUserName(
-                    command.getAnswerAggregateId(),
-                    command.getExecutionAggregateId(),
-                    command.getEventVersion(),
-                    command.getUserAggregateId(),
-                    command.getName(),
-                    command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to update user name: " + e.getMessage());
-            return e;
-        }
+        quizAnswerService.updateUserName(
+                command.getAnswerAggregateId(),
+                command.getExecutionAggregateId(),
+                command.getEventVersion(),
+                command.getUserAggregateId(),
+                command.getName(),
+                command.getUnitOfWork());
+        return null;
     }
 
     private Object handleRemoveUserFromQuizAnswer(RemoveUserFromQuizAnswerCommand command) {
         logger.info("Removing user from quiz answer: " + command.getAnswerAggregateId());
-        try {
-            quizAnswerService.removeUser(
-                    command.getAnswerAggregateId(),
-                    command.getUserAggregateId(),
-                    command.getAggregateVersion(),
-                    command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to remove user from quiz answer: " + e.getMessage());
-            return e;
-        }
+        quizAnswerService.removeUser(
+                command.getAnswerAggregateId(),
+                command.getUserAggregateId(),
+                command.getAggregateVersion(),
+                command.getUnitOfWork());
+        return null;
     }
 
     private Object handleRemoveQuestionFromQuizAnswer(RemoveQuestionFromQuizAnswerCommand command) {
         logger.info("Removing question from quiz answer: " + command.getAnswerAggregateId());
-        try {
-            quizAnswerService.removeQuestion(
-                    command.getAnswerAggregateId(),
-                    command.getQuestionAggregateId(),
-                    command.getAggregateVersion(),
-                    command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to remove question from quiz answer: " + e.getMessage());
-            return e;
-        }
+        quizAnswerService.removeQuestion(
+                command.getAnswerAggregateId(),
+                command.getQuestionAggregateId(),
+                command.getAggregateVersion(),
+                command.getUnitOfWork());
+        return null;
     }
 }

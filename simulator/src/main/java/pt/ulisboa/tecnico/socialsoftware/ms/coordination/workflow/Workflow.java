@@ -14,14 +14,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 public abstract class Workflow {
-    private static final Logger logger = LoggerFactory.getLogger(SagaStep.class);
+    private static final Logger logger = LoggerFactory.getLogger(Workflow.class);
 
     protected UnitOfWorkService unitOfWorkService;
-    private UnitOfWork unitOfWork;
+    private final UnitOfWork unitOfWork;
     private WorkflowFunctionality functionality;
     protected HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies = new HashMap<>();
     private ExecutionPlan executionPlan; // redefined for each transaction model
-    private HashMap<String, FlowStep> stepNameMap = new HashMap<>();
+    private final HashMap<String, FlowStep> stepNameMap = new HashMap<>();
     private TraceManager traceManager;
 
     public Workflow(WorkflowFunctionality functionality, UnitOfWorkService unitOfWorkService, UnitOfWork unitOfWork) {
@@ -56,18 +56,18 @@ public abstract class Workflow {
         this.stepsWithDependencies.put(step, step.getDependencies());
         stepNameMap.put(step.getName(), step);
     }
-    
+
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-        this.traceManager.startSpanForFunctionality(unitOfWork.getFunctionalityName()); 
-        
+        this.traceManager.startSpanForFunctionality(unitOfWork.getFunctionalityName());
+
         if (this.executionPlan == null) {
             this.executionPlan = planOrder(this.stepsWithDependencies);
         }
         this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "behaviour", this.executionPlan.getBehaviour());
         String hasBehaviour = this.executionPlan.getBehaviour() != "{}" ? "true" : "false";
         this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "hasBehaviour", hasBehaviour);
-        
+
         FlowStep targetStep = getStepByName(stepName);
         executionPlan.executeUntilStep(targetStep, unitOfWork).join();
     }
@@ -82,7 +82,7 @@ public abstract class Workflow {
                 })
                 .exceptionally(ex -> {
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
-    
+
                     this.traceManager.recordException(unitOfWork.getFunctionalityName(), ex, ex.getMessage());
                     this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
                     unitOfWorkService.abort(unitOfWork);
@@ -91,7 +91,7 @@ public abstract class Workflow {
                     if (cause instanceof SimulatorException) {
                         throw (SimulatorException) cause;
                     } else {
-                        throw new RuntimeException(cause);  
+                        throw new RuntimeException(cause);
                     }
                 });
         } catch (SimulatorException e) {
@@ -126,7 +126,7 @@ public abstract class Workflow {
         this.traceManager.setSpanAttribute(functionalityName, "hasBehaviour", hasBehaviour);
 
         try {
-            
+
             executionFuture = executionPlan.execute(unitOfWork);
 
             return executionFuture
@@ -137,19 +137,19 @@ public abstract class Workflow {
                 })
                 .exceptionally(ex -> {
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
-    
+
                     this.traceManager.recordException(functionalityName, ex, ex.getMessage());
-                    if (ex.getMessage() != null && ex.getMessage().contains("invariant")) 
+                    if (ex.getMessage() != null && ex.getMessage().contains("invariant"))
                         this.traceManager.setSpanAttribute(functionalityName, "invariantBreak", "true");
-                    
+
                     this.traceManager.endSpanForFunctionality(functionalityName);
                     unitOfWorkService.abort(unitOfWork);
                     logger.info("ABORT(1) EXECUTION FUNCTIONALITY: {} with version {}", functionalityName, unitOfWork.getVersion());
-                    
+
                     if (cause instanceof SimulatorException) {
                         throw (SimulatorException) cause;
                     } else {
-                        throw new RuntimeException(cause);  
+                        throw new RuntimeException(cause);
                     }
                 });
         } catch (SimulatorException e) {
@@ -159,5 +159,5 @@ public abstract class Workflow {
             logger.info("ABORT(2) EXECUTION FUNCTIONALITY: {} with version {}", functionalityName, unitOfWork.getVersion());
             throw e;
         }
-    } 
+    }
 }

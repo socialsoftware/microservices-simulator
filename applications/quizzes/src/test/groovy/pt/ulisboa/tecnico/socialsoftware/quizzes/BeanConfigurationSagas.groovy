@@ -7,9 +7,9 @@ import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.CommandResponseAggregator
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.stream.StreamCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.stream.CommandResponseAggregator
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.stream.StreamCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
@@ -32,11 +32,11 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.Co
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.factories.SagasCourseExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.repositories.CourseExecutionCustomRepositorySagas
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.commandHandler.CourseExecutionCommandHandler
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing.CourseExecutionEventProcessing
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.commandHandler.ExecutionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing.ExecutionEventProcessing
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.handling.CourseExecutionEventHandling
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.ExecutionService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.factories.SagasQuestionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.commandHandler.QuestionCommandHandler
@@ -98,13 +98,13 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    CourseExecutionFunctionalities courseExecutionFunctionalities() {
-        return new CourseExecutionFunctionalities()
+    ExecutionFunctionalities executionFunctionalities() {
+        return new ExecutionFunctionalities()
     }
 
     @Bean
-    CourseExecutionEventProcessing courseExecutionEventProcessing() {
-        return new CourseExecutionEventProcessing()
+    ExecutionEventProcessing executionEventProcessing() {
+        return new ExecutionEventProcessing()
     }
 
     @Bean
@@ -233,8 +233,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    CourseExecutionService courseExecutionService(SagaUnitOfWorkService unitOfWorkService, CourseExecutionRepository courseExecutionRepository, CourseExecutionCustomRepositorySagas courseExecutionCustomRepository) {
-        return new CourseExecutionService(unitOfWorkService, courseExecutionRepository, courseExecutionCustomRepository)
+    ExecutionService executionService(SagaUnitOfWorkService unitOfWorkService, CourseExecutionRepository courseExecutionRepository, CourseExecutionCustomRepositorySagas courseExecutionCustomRepository) {
+        return new ExecutionService(unitOfWorkService, courseExecutionRepository, courseExecutionCustomRepository)
     }
 
     @Bean
@@ -347,8 +347,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    CourseExecutionCommandHandler courseExecutionCommandHandler() {
-        return new CourseExecutionCommandHandler()
+    ExecutionCommandHandler executionCommandHandler() {
+        return new ExecutionCommandHandler()
     }
 
     @Bean

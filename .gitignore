@@ -1,4 +1,4 @@
-/target/
+**/target/
 HELP.md
 !.mvn/wrapper/maven-wrapper.jar
 data/figs/.DS_Store
@@ -38,11 +38,11 @@ application-prod.properties
 
 ### jmeter ###
 jmeter.log
+scripts/run-jmeter-tests.sh
+jmeter-results/
 
 
 **/BehaviourReport.txt
 .vscode/settings.json
 
-applications/quizzes/logs/
-/logs/
-**/target/
+**/logs/

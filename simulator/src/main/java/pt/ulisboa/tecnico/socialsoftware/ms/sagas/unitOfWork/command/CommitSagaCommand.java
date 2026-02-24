@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.command;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 
 public class CommitSagaCommand extends Command {
     private Integer aggregateId;

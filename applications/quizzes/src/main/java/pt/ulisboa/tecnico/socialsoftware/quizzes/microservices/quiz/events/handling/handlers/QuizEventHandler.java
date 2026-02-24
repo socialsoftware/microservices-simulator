@@ -18,7 +18,7 @@ public abstract class QuizEventHandler extends EventHandler {
     }
 
     public Set<Integer> getAggregateIds() {
-        return quizRepository.findAll().stream().map(Quiz::getAggregateId).collect(Collectors.toSet());
+        return quizRepository.findAllAggregateIds();
     }
 
 }

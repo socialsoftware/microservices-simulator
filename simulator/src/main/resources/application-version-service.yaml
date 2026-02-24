@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: version
   datasource:
     url: jdbc:postgresql://localhost:5432/versiondb
     driver-class-name: org.postgresql.Driver
@@ -14,12 +16,22 @@ spring:
     show-sql: false
     open-in-view: false
 
+server:
+  port: 8081
+grpc:
+  server:
+    port: 9091
+
+---
+spring:
+  config:
+    activate:
+      on-profile: stream
   rabbitmq:
     host: localhost
     port: 5672
     username: guest
     password: guest
-
   cloud:
     function:
       definition: versionCommandChannel
@@ -30,6 +42,25 @@ spring:
           group: version-service
         command-responses-out-0:
           destination: command-responses
+---
+spring:
+  config:
+    activate:
+      on-profile: "!kubernetes"
+  cloud:
+    discovery:
+      enabled: true
 
-server:
-  port: 8081
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+    metadata-map:
+      grpcPort: ${grpc.server.port}

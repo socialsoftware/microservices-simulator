@@ -2,27 +2,27 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggreg
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionCourse;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionFactory;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.causal.CausalCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.causal.CausalExecution;
 
 @Service
 @Profile("tcc")
 public class CausalCourseExecutionFactory implements CourseExecutionFactory {
     @Override
-    public CourseExecution createCourseExecution(Integer aggregateId, CourseExecutionDto courseExecutionDto, CourseExecutionCourse courseExecutionCourse) {
-        return new CausalCourseExecution(aggregateId, courseExecutionDto, courseExecutionCourse);
+    public Execution createCourseExecution(Integer aggregateId, CourseExecutionDto courseExecutionDto, CourseExecutionCourse courseExecutionCourse) {
+        return new CausalExecution(aggregateId, courseExecutionDto, courseExecutionCourse);
     }
 
     @Override
-    public CourseExecution createCourseExecutionFromExisting(CourseExecution existingAnswer) {
-        return new CausalCourseExecution((CausalCourseExecution) existingAnswer);
+    public Execution createCourseExecutionFromExisting(Execution existingAnswer) {
+        return new CausalExecution((CausalExecution) existingAnswer);
     }
 
     @Override
-    public CourseExecutionDto createCourseExecutionDto(CourseExecution courseExecution) {
-        return new CourseExecutionDto(courseExecution);
+    public CourseExecutionDto createCourseExecutionDto(Execution execution) {
+        return new CourseExecutionDto(execution);
     }
 }

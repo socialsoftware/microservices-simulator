@@ -11,16 +11,19 @@ import java.util.Set;
 
 @Repository
 @Transactional
-public interface CourseExecutionRepository extends JpaRepository<CourseExecution, Integer> {
-    @Query(value = "select ce1.aggregateId from CourseExecution ce1 where ce1.aggregateId NOT IN (select ce2.aggregateId from CourseExecution ce2 where ce2.state = 'DELETED')")
+public interface CourseExecutionRepository extends JpaRepository<Execution, Integer> {
+    @Query(value = "select ce1.aggregateId from Execution ce1 where ce1.aggregateId NOT IN (select ce2.aggregateId from Execution ce2 where ce2.state = 'DELETED')")
     Set<Integer> findCourseExecutionIdsOfAllNonDeletedForTCC();
 
-    @Query(value = "select ce1.aggregateId from CourseExecution ce1 where ce1.aggregateId NOT IN (select ce2.aggregateId from CourseExecution ce2 where ce2.state = 'DELETED' AND ce2.sagaState != 'NOT_IN_SAGA')")
+    @Query(value = "select ce1.aggregateId from Execution ce1 where ce1.aggregateId NOT IN (select ce2.aggregateId from Execution ce2 where ce2.state = 'DELETED' AND ce2.sagaState != 'NOT_IN_SAGA')")
     Set<Integer> findCourseExecutionIdsOfAllNonDeletedForSaga();
 
-    Optional<CourseExecution> findTopByOrderByVersionDesc();
+    Optional<Execution> findTopByOrderByVersionDesc();
 
-    default Optional<CourseExecution> findLatestCourseExecution() {
+    default Optional<Execution> findLatestCourseExecution() {
         return findTopByOrderByVersionDesc();
     }
+
+    @Query("SELECT e.aggregateId FROM Execution e")
+    Set<Integer> findAllAggregateIds();
 }

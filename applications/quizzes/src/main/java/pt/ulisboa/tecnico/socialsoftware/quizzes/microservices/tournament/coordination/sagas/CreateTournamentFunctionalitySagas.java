@@ -1,14 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetCourseExecutionByIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.courseExecution.GetStudentByExecutionIdAndUserIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.GetCourseExecutionByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.FindQuestionsByTopicIdsCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GenerateQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.RemoveQuizCommand;
@@ -50,7 +50,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getCourseExecutionStep = new SagaStep("getCourseExecutionStep", () -> {
             // by making this call locks regarding the course execution are guaranteed
-            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId);
+            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionId);
             getCourseExecutionByIdCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
             CourseExecutionDto courseExecutionDto = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
             this.setCourseExecutionDto(courseExecutionDto);
@@ -60,7 +60,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             // by making this call locks regarding the role of the creator are guaranteed
             // by making this call the invariants regarding the course execution and the
             // role of the creator are guaranteed
-            GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId, userId);
+            GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand = new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionId, userId);
             UserDto creatorDto = (UserDto) commandGateway.send(getStudentByExecutionIdAndUserIdCommand);
             this.setUserDto(creatorDto);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
@@ -80,7 +80,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
 
         SagaStep getCourseExecutionById = new SagaStep("getCourseExecutionById", () -> {
-            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork,  ServiceMapping.COURSE_EXECUTION.getServiceName(), executionId);
+            GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork,  ServiceMapping.EXECUTION.getServiceName(), executionId);
             this.courseExecutionDto = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
         }, new ArrayList<>(Arrays.asList(findQuestionsByTopicIdsStep)));
 

@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: quizzes
   profiles:
     active: "@activatedProperties@"
 
@@ -29,6 +31,18 @@ spring:
       pool:
         size: 5
 
+  cloud:
+    kubernetes:
+      enabled: false
+      discovery:
+        enabled: false
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
 maven:
   basedir: "@project.basedir@"
 
@@ -50,7 +64,6 @@ management:
         include: "health,beans"
 
 ---
-
 spring:
   config:
     activate:
@@ -62,7 +75,7 @@ spring:
         commandResponseChannel;
 
         answerServiceCommandChannel;
-        courseExecutionServiceCommandChannel;
+        executionServiceCommandChannel;
         questionServiceCommandChannel;
         quizServiceCommandChannel;
         topicServiceCommandChannel;
@@ -72,7 +85,7 @@ spring:
 
         questionEventSubscriber;
         tournamentEventSubscriber;
-        courseExecutionEventSubscriber;
+        executionEventSubscriber;
         answerEventSubscriber;
         quizEventSubscriber;
         courseEventSubscriber;
@@ -93,8 +106,8 @@ spring:
           destination: user-command-channel
         answer-command-channel:
           destination: answer-command-channel
-        course-execution-command-channel:
-          destination: courseExecution-command-channel
+        execution-command-channel:
+          destination: execution-command-channel
         question-command-channel:
           destination: question-command-channel
         tournament-command-channel:
@@ -115,9 +128,9 @@ spring:
         answerServiceCommandChannel-in-0:
           destination: answer-command-channel
           group: answer-service-group
-        courseExecutionServiceCommandChannel-in-0:
-          destination: courseExecution-command-channel
-          group: course-execution-service-group
+        executionServiceCommandChannel-in-0:
+          destination: execution-command-channel
+          group: execution-service-group
         questionServiceCommandChannel-in-0:
           destination: question-command-channel
           group: question-service-group
@@ -136,7 +149,7 @@ spring:
         # --- Single Event channel (all events go through here) ---
         event-channel:
           destination: event-channel
-        
+
         # --- Event Subscribers ---
         questionEventSubscriber-in-0:
           destination: event-channel
@@ -144,9 +157,9 @@ spring:
         tournamentEventSubscriber-in-0:
           destination: event-channel
           group: tournament-service-group
-        courseExecutionEventSubscriber-in-0:
+        executionEventSubscriber-in-0:
           destination: event-channel
-          group: course-execution-service-group
+          group: execution-service-group
         answerEventSubscriber-in-0:
           destination: event-channel
           group: answer-service-group
@@ -163,9 +176,89 @@ spring:
           destination: event-channel
           group: user-service-group
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+---
+spring:
+  config:
+    activate:
+      on-profile: grpc
+
+  cloud:
+    function:
+      definition: >-
+        questionEventSubscriber;
+        tournamentEventSubscriber;
+        executionEventSubscriber;
+        answerEventSubscriber;
+        quizEventSubscriber;
+        courseEventSubscriber;
+        topicEventSubscriber;
+        userEventSubscriber
+
+    stream:
+      default:
+        contentType: application/json
+
+      bindings:
+        # --- Single Event channel (all events go through here) ---
+        event-channel:
+          destination: event-channel
+
+        # --- Event Subscribers ---
+        questionEventSubscriber-in-0:
+          destination: event-channel
+          group: question-service-group
+        tournamentEventSubscriber-in-0:
+          destination: event-channel
+          group: tournament-service-group
+        executionEventSubscriber-in-0:
+          destination: event-channel
+          group: execution-service-group
+        answerEventSubscriber-in-0:
+          destination: event-channel
+          group: answer-service-group
+        quizEventSubscriber-in-0:
+          destination: event-channel
+          group: quiz-service-group
+        courseEventSubscriber-in-0:
+          destination: event-channel
+          group: course-service-group
+        topicEventSubscriber-in-0:
+          destination: event-channel
+          group: topic-service-group
+        userEventSubscriber-in-0:
+          destination: event-channel
+          group: user-service-group
 
   rabbitmq:
     host: localhost
     port: 5672
     username: guest
     password: guest
+
+grpc:
+  server:
+    port: 9090
+  fallback-service: quizzes
+  command:
+    default-port: 9090
+    version:
+      port: 9091
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+    metadata-map:
+      grpcPort: ${grpc.server.port}

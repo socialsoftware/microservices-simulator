@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.LocalCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
@@ -27,11 +27,11 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.Co
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.causal.factories.CausalCourseExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.causal.repositories.CourseExecutionCustomRepositoryTCC
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.commandHandler.CourseExecutionCommandHandler
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing.CourseExecutionEventProcessing
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.commandHandler.ExecutionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing.ExecutionEventProcessing
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.handling.CourseExecutionEventHandling
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.CourseExecutionService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.ExecutionService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.causal.factories.CausalQuestionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.commandHandler.QuestionCommandHandler
@@ -93,13 +93,13 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    CourseExecutionFunctionalities courseExecutionFunctionalities() {
-        return new CourseExecutionFunctionalities()
+    ExecutionFunctionalities executionFunctionalities() {
+        return new ExecutionFunctionalities()
     }
 
     @Bean
-    CourseExecutionEventProcessing courseExecutionEventProcessing() {
-        return new CourseExecutionEventProcessing()
+    ExecutionEventProcessing executionEventProcessing() {
+        return new ExecutionEventProcessing()
     }
 
     @Bean
@@ -228,8 +228,8 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    CourseExecutionService courseExecutionService(CausalUnitOfWorkService unitOfWorkService, CourseExecutionRepository courseExecutionRepository, CourseExecutionCustomRepositoryTCC courseExecutionCustomRepository) {
-        return new CourseExecutionService(unitOfWorkService, courseExecutionRepository, courseExecutionCustomRepository)
+    ExecutionService executionService(CausalUnitOfWorkService unitOfWorkService, CourseExecutionRepository courseExecutionRepository, CourseExecutionCustomRepositoryTCC courseExecutionCustomRepository) {
+        return new ExecutionService(unitOfWorkService, courseExecutionRepository, courseExecutionCustomRepository)
     }
 
     @Bean
@@ -314,8 +314,8 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    CourseExecutionCommandHandler courseExecutionCommandHandler() {
-        return new CourseExecutionCommandHandler();
+    ExecutionCommandHandler executionCommandHandler() {
+        return new ExecutionCommandHandler();
     }
 
     @Bean
