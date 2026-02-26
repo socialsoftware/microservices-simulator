@@ -11,7 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordin
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 
 @DataJpaTest
-class AddStudentEnrollFaultTest extends QuizzesSpockTest {
+class RemoveStudentFaultTest extends QuizzesSpockTest {
     @Autowired
     private ExecutionFunctionalities courseExecutionFunctionalities
 
@@ -22,23 +22,37 @@ class AddStudentEnrollFaultTest extends QuizzesSpockTest {
         loadBehaviorScripts()
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
         userDto = createUser(USER_NAME_1, USER_USERNAME_1, STUDENT_ROLE)
+        courseExecutionFunctionalities.addStudent(courseExecutionDto.getAggregateId(), userDto.getAggregateId())
     }
 
     def cleanup() {
-        behaviourService.cleanUpCounter()
         behaviourService.cleanDirectory()
     }
 
-    def "student is not enrolled when enrollStudentStep fails"() {
-        when: 'addStudent fails on enrollStudentStep'
-        courseExecutionFunctionalities.addStudent(courseExecutionDto.getAggregateId(), userDto.getAggregateId())
+    def "student is still enrolled when getOldCourseExecutionStep fails"() {
+        when:
+        courseExecutionFunctionalities.removeStudentFromCourseExecution(courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
-        then: 'the injected fault is thrown'
+        then:
         thrown(SimulatorException)
 
-        and: 'the course execution has no students'
+        and: 'student is still enrolled'
         def result = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
-        result.students.isEmpty()
+        result.students.size() == 1
+        result.students.find { it.aggregateId == userDto.aggregateId } != null
+    }
+
+    def "student is still enrolled when removeStudentStep fails"() {
+        when:
+        courseExecutionFunctionalities.removeStudentFromCourseExecution(courseExecutionDto.getAggregateId(), userDto.getAggregateId())
+
+        then:
+        thrown(SimulatorException)
+
+        and: 'student is still enrolled'
+        def result = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        result.students.size() == 1
+        result.students.find { it.aggregateId == userDto.aggregateId } != null
     }
 
     @TestConfiguration
