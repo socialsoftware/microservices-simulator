@@ -15,8 +15,8 @@ public class CourseExecutionDto implements Serializable {
     private String academicTerm;
     private String endDate;
     private String status;
-    private Integer version;
-    private Integer courseVersion;
+    private Long version;
+    private Long courseVersion;
     private Set<UserDto> students;
     private String state;
 
@@ -101,19 +101,19 @@ public class CourseExecutionDto implements Serializable {
         this.status = status;
     }
 
-    public Integer getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 
-    public Integer getCourseVersion() {
+    public Long getCourseVersion() {
         return courseVersion;
     }
 
-    public void setCourseVersion(Integer courseVersion) {
+    public void setCourseVersion(Long courseVersion) {
         this.courseVersion = courseVersion;
     }
 

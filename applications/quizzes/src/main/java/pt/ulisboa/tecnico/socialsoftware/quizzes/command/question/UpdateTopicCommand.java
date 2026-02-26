@@ -7,10 +7,10 @@ public class UpdateTopicCommand extends Command {
     private final Integer questionAggregateId;
     private final Integer topicAggregateId;
     private final String topicName;
-    private final Integer aggregateVersion;
+    private final Long aggregateVersion;
 
     public UpdateTopicCommand(UnitOfWork unitOfWork, String serviceName, Integer questionAggregateId,
-            Integer topicAggregateId, String topicName, Integer aggregateVersion) {
+            Integer topicAggregateId, String topicName, Long aggregateVersion) {
         super(unitOfWork, serviceName, questionAggregateId);
         this.questionAggregateId = questionAggregateId;
         this.topicAggregateId = topicAggregateId;
@@ -30,7 +30,7 @@ public class UpdateTopicCommand extends Command {
         return topicName;
     }
 
-    public Integer getAggregateVersion() {
+    public Long getAggregateVersion() {
         return aggregateVersion;
     }
 }

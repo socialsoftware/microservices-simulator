@@ -169,7 +169,7 @@ public class QuizService {
     /************************************************ EVENT PROCESSING ************************************************/
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizDto removeCourseExecution(Integer quizAggregateId, Integer courseExecutionId, Integer aggregateVersion, UnitOfWork unitOfWork) {
+    public QuizDto removeCourseExecution(Integer quizAggregateId, Integer courseExecutionId, Long aggregateVersion, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
         Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
         
@@ -183,7 +183,7 @@ public class QuizService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateQuestion(Integer quizAggregateId, Integer questionAggregateId, String title, String content, Integer aggregateVersion, UnitOfWork unitOfWork) {
+    public void updateQuestion(Integer quizAggregateId, Integer questionAggregateId, String title, String content, Long aggregateVersion, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
         Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
 

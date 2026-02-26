@@ -16,7 +16,7 @@ public class TournamentCreator {
     private Integer creatorAggregateId;
     private String creatorName;
     private String creatorUsername;
-    private Integer creatorVersion;
+    private Long creatorVersion;
     private Aggregate.AggregateState creatorState;
 
     @OneToOne
@@ -27,7 +27,7 @@ public class TournamentCreator {
     }
 
     public TournamentCreator(Integer creatorAggregateId, String creatorName, String creatorUsername,
-            Integer creatorVersion) {
+            Long creatorVersion) {
         setCreatorAggregateId(creatorAggregateId);
         setCreatorName(creatorName);
         setCreatorUsername(creatorUsername);
@@ -73,11 +73,11 @@ public class TournamentCreator {
         this.creatorUsername = creatorUsername;
     }
 
-    public Integer getCreatorVersion() {
+    public Long getCreatorVersion() {
         return creatorVersion;
     }
 
-    public void setCreatorVersion(Integer creatorVersion) {
+    public void setCreatorVersion(Long creatorVersion) {
         this.creatorVersion = creatorVersion;
     }
 

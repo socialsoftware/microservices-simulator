@@ -14,7 +14,7 @@ public class UpdateQuestionInQuizFunctionalitySagas extends WorkflowFunctionalit
     private final CommandGateway commandGateway;
 
     public UpdateQuestionInQuizFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
-            Integer quizAggregateId, Integer questionAggregateId, String title, String content, Integer eventVersion,
+            Integer quizAggregateId, Integer questionAggregateId, String title, String content, Long eventVersion,
             SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -22,7 +22,7 @@ public class UpdateQuestionInQuizFunctionalitySagas extends WorkflowFunctionalit
     }
 
     private void buildWorkflow(Integer quizAggregateId, Integer questionAggregateId, String title, String content,
-            Integer eventVersion, SagaUnitOfWork unitOfWork) {
+            Long eventVersion, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
         SagaStep step = new SagaStep("updateQuestionInQuiz", () -> {
             UpdateQuestionCommand command = new UpdateQuestionCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(),

@@ -14,7 +14,7 @@ public class RemoveUserFromQuizAnswerFunctionalitySagas extends WorkflowFunction
     private final CommandGateway commandGateway;
 
     public RemoveUserFromQuizAnswerFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
-            Integer quizAnswerAggregateId, Integer userAggregateId, Integer publisherAggregateVersion,
+            Integer quizAnswerAggregateId, Integer userAggregateId, Long publisherAggregateVersion,
             SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -22,7 +22,7 @@ public class RemoveUserFromQuizAnswerFunctionalitySagas extends WorkflowFunction
     }
 
     private void buildWorkflow(Integer quizAnswerAggregateId, Integer userAggregateId,
-            Integer publisherAggregateVersion,
+            Long publisherAggregateVersion,
             SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
         SagaStep step = new SagaStep("removeUserFromQuizAnswer", () -> {

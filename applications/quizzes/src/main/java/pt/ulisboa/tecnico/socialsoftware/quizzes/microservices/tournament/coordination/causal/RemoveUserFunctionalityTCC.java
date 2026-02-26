@@ -14,7 +14,7 @@ public class RemoveUserFunctionalityTCC extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public RemoveUserFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId,
-            Integer executionAggregateId, Integer userAggregateId, Integer eventVersion,
+            Integer executionAggregateId, Integer userAggregateId, Long eventVersion,
             CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -22,7 +22,7 @@ public class RemoveUserFunctionalityTCC extends WorkflowFunctionality {
     }
 
     private void buildWorkflow(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
-            Integer eventVersion, CausalUnitOfWork unitOfWork) {
+            Long eventVersion, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
         Step step = new Step(() -> {
             RemoveUserCommand command = new RemoveUserCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),

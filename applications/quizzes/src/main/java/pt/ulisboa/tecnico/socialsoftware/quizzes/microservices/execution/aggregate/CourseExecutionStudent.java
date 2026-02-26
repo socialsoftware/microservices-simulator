@@ -17,7 +17,7 @@ public class CourseExecutionStudent {
     @GeneratedValue
     private Long id;
     private Integer userAggregateId;
-    private Integer userVersion;
+    private Long userVersion;
     private String name;
     private String username;
     private boolean active;
@@ -67,11 +67,11 @@ public class CourseExecutionStudent {
         this.userAggregateId = userAggregateId;
     }
 
-    public Integer getUserVersion() {
+    public Long getUserVersion() {
         return userVersion;
     }
 
-    public void setUserVersion(Integer userVersion) {
+    public void setUserVersion(Long userVersion) {
         this.userVersion = userVersion;
     }
 

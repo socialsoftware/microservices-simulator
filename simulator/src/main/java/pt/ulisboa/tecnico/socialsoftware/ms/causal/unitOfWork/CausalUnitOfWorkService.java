@@ -51,7 +51,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public CausalUnitOfWork createUnitOfWork(String functionalityName) {
-        Integer lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
+        Long lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
 
         CausalUnitOfWork unitOfWork = new CausalUnitOfWork(lastCommittedAggregateVersionNumber + 1, functionalityName);
 
@@ -104,8 +104,10 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         // STEP 3 performs steps 1 and 2 until step 1 stops holding
         // STEP 4 perform a commit of the aggregates under SERIALIZABLE isolation
 
-        // may contain merged aggregates we do not want to compare intermediate merged aggregates with concurrent
-        // aggregate, so we separate the comparison is always between the original written by the functionality
+        // may contain merged aggregates we do not want to compare intermediate merged
+        // aggregates with concurrent
+        // aggregate, so we separate the comparison is always between the original
+        // written by the functionality
         // and the concurrent
         List<Aggregate> originalAggregatesToCommit = new ArrayList<>(unitOfWork.getAggregatesToCommit());
         logger.info("Aggregates to commit: {} aggregates", originalAggregatesToCommit.size());
@@ -129,7 +131,8 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
                 Aggregate concurrentAggregate = null;
                 if (aggregateToWrite.getPrev() != null) {
                     String serviceName = this.resolveServiceName(aggregateToWrite.getAggregateType());
-                    GetConcurrentAggregateCommand command = new GetConcurrentAggregateCommand(aggregateToWrite.getAggregateId(), serviceName, aggregateToWrite.getPrev().getVersion());
+                    GetConcurrentAggregateCommand command = new GetConcurrentAggregateCommand(
+                            aggregateToWrite.getAggregateId(), serviceName, aggregateToWrite.getPrev().getVersion());
                     concurrentAggregate = (Aggregate) commandGateway.send(command);
                 }
 
@@ -139,7 +142,8 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
                 // again
                 if (concurrentAggregate != null && unitOfWork.getVersion() <= concurrentAggregate.getVersion()) {
                     concurrentAggregates = true;
-                    Aggregate newAggregate = ((CausalAggregate) aggregateToWrite).merge(aggregateToWrite, concurrentAggregate);
+                    Aggregate newAggregate = ((CausalAggregate) aggregateToWrite).merge(aggregateToWrite,
+                            concurrentAggregate);
                     newAggregate.verifyInvariants();
                     newAggregate.setId(null);
                     modifiedAggregatesToCommit.set(i, newAggregate);
@@ -156,7 +160,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         }
 
         // The commit is done with the last commited version plus one
-        Integer commitVersion = versionService.incrementAndGetVersionNumber();
+        Long commitVersion = versionService.incrementAndGetVersionNumber();
         unitOfWork.setVersion(commitVersion);
 
         commitAllObjects(commitVersion, modifiedAggregatesToCommit);
@@ -180,7 +184,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     // Must be serializable in order to ensure no other commits are made between the
     // checking of concurrent versions and the actual persist
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void commitAllObjects(Integer commitVersion, List<Aggregate> aggregates) {
+    public void commitAllObjects(Long commitVersion, List<Aggregate> aggregates) {
         // Phase 1: Prepare
         for (Aggregate aggregateToWrite : aggregates) {
             aggregateToWrite.setVersion(commitVersion);
@@ -255,7 +259,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public Aggregate getConcurrentAggregate(Integer aggregateId, Integer prevVersion, String aggregateType) {
+    public Aggregate getConcurrentAggregate(Integer aggregateId, Long prevVersion, String aggregateType) {
         Aggregate concurrentAggregate = causalAggregateRepository.findConcurrentVersions(aggregateId, prevVersion)
                 .orElse(null);
 

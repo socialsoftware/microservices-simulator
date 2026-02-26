@@ -11,7 +11,7 @@ public class TournamentParticipantQuizAnswer {
     @GeneratedValue
     private Long id;
     private Integer quizAnswerAggregateId;
-    private Integer quizAnswerVersion;
+    private Long quizAnswerVersion;
     private boolean answered;
     // TODO: to implement using the set of answers
     private Integer numberOfAnswered;
@@ -22,7 +22,7 @@ public class TournamentParticipantQuizAnswer {
     private TournamentParticipant tournamentParticipant;
 
     public TournamentParticipantQuizAnswer() {
-        setQuizAnswerVersion(0);
+        setQuizAnswerVersion(0L);
         setAnswered(false);
         this.numberOfAnswered = 0;
         this.numberOfCorrect = 0;
@@ -37,7 +37,7 @@ public class TournamentParticipantQuizAnswer {
     }
 
 
-    public void updateAnswerWithQuestion(Integer quizAnswerAggregateId, Integer questionAnswerAggregateId, boolean isCorrect, Integer version) {
+    public void updateAnswerWithQuestion(Integer quizAnswerAggregateId, Integer questionAnswerAggregateId, boolean isCorrect, Long version) {
         if (!this.answered) {
             this.quizAnswerAggregateId = quizAnswerAggregateId;
             this.answered = true;
@@ -69,11 +69,11 @@ public class TournamentParticipantQuizAnswer {
         this.quizAnswerAggregateId = id;
     }
 
-    public Integer getQuizAnswerVersion() {
+    public Long getQuizAnswerVersion() {
         return quizAnswerVersion;
     }
 
-    public void setQuizAnswerVersion(Integer quizAnswerVersion) {
+    public void setQuizAnswerVersion(Long quizAnswerVersion) {
         this.quizAnswerVersion = quizAnswerVersion;
     }
 

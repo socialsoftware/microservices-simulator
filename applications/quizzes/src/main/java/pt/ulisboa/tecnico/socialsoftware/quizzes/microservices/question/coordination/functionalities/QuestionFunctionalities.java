@@ -182,7 +182,7 @@ public class QuestionFunctionalities {
     }
 
     public void updateTopicInQuestion(Integer questionAggregateId, Integer aggregateTopicId, String topicName,
-            Integer eventVersion) {
+            Long eventVersion) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         switch (workflowType) {
             case SAGAS:
@@ -204,7 +204,7 @@ public class QuestionFunctionalities {
         }
     }
 
-    public void deleteTopicInQuestion(Integer questionAggregateId, Integer aggregateTopicId, Integer eventVersion) {
+    public void deleteTopicInQuestion(Integer questionAggregateId, Integer aggregateTopicId, Long eventVersion) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         switch (workflowType) {
             case SAGAS:

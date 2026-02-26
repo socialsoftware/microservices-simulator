@@ -8,7 +8,7 @@ public class UpdateQuestionCommand extends Command {
     private final Integer questionAggregateId;
     private final String title;
     private final String content;
-    private final Integer aggregateVersion;
+    private final Long aggregateVersion;
 
     public UpdateQuestionCommand(UnitOfWork unitOfWork,
             String serviceName,
@@ -16,7 +16,7 @@ public class UpdateQuestionCommand extends Command {
             Integer questionAggregateId,
             String title,
             String content,
-            Integer aggregateVersion) {
+            Long aggregateVersion) {
         super(unitOfWork, serviceName, quizAggregateId);
         this.quizAggregateId = quizAggregateId;
         this.questionAggregateId = questionAggregateId;
@@ -41,7 +41,7 @@ public class UpdateQuestionCommand extends Command {
         return content;
     }
 
-    public Integer getAggregateVersion() {
+    public Long getAggregateVersion() {
         return aggregateVersion;
     }
 }

@@ -10,26 +10,26 @@ public class Version {
     @GeneratedValue
     private Integer id;
     // represents the version of the last committed transaction in the system.
-    private Integer versionNumber;
+    private Long versionNumber;
     // used because of tests where the version number is temporarily decremented
     // to simulate concurrency in a deterministic test case
-    private Integer numberOfDecrements;
+    private Long numberOfDecrements;
 
     public Version() {
-        this.versionNumber = 0;
-        this.numberOfDecrements = 0;
+        this.versionNumber = 0L;
+        this.numberOfDecrements = 0L;
     }
 
-    public Integer getVersionNumber() {
-        Integer result = this.versionNumber;
+    public Long getVersionNumber() {
+        Long result = this.versionNumber;
         this.versionNumber = this.versionNumber + this.numberOfDecrements;
-        this.numberOfDecrements = 0;
+        this.numberOfDecrements = 0L;
         return result;
     }
 
     public void incrementVersion() {
         this.versionNumber = this.versionNumber + this.numberOfDecrements;
-        this.numberOfDecrements = 0;
+        this.numberOfDecrements = 0L;
         this.versionNumber++;
     }
 

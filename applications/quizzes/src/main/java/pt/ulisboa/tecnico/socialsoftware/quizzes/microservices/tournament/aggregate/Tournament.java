@@ -473,7 +473,7 @@ public abstract class Tournament extends Aggregate {
 
     // this setVersion is special because the quiz is created in the same transaction and we want to have its version upon commit
     @Override
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         if (this.tournamentQuiz != null && this.tournamentQuiz.getQuizVersion() == null) {
             this.tournamentQuiz.setQuizVersion(version);
         }

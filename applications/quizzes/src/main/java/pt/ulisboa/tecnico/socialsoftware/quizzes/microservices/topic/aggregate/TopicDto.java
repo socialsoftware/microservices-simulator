@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 public class TopicDto implements Serializable {
     private Integer aggregateId;
-    private Integer version;
+    private Long version;
     private Integer courseId;
     private String name;
     private AggregateState state;
@@ -30,11 +30,11 @@ public class TopicDto implements Serializable {
         this.aggregateId = aggregateId;
     }
 
-    public Integer getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 

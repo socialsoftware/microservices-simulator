@@ -6,9 +6,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 public class RemoveQuestionFromQuizAnswerCommand extends Command {
     private Integer answerAggregateId;
     private Integer questionAggregateId;
-    private Integer aggregateVersion;
+    private Long aggregateVersion;
 
-    public RemoveQuestionFromQuizAnswerCommand(UnitOfWork unitOfWork, String serviceName, Integer answerAggregateId, Integer questionAggregateId, Integer aggregateVersion) {
+    public RemoveQuestionFromQuizAnswerCommand(UnitOfWork unitOfWork, String serviceName, Integer answerAggregateId, Integer questionAggregateId, Long aggregateVersion) {
         super(unitOfWork, serviceName, answerAggregateId);
         this.answerAggregateId = answerAggregateId;
         this.questionAggregateId = questionAggregateId;
@@ -17,5 +17,5 @@ public class RemoveQuestionFromQuizAnswerCommand extends Command {
 
     public Integer getAnswerAggregateId() { return answerAggregateId; }
     public Integer getQuestionAggregateId() { return questionAggregateId; }
-    public Integer getAggregateVersion() { return aggregateVersion; }
+    public Long getAggregateVersion() { return aggregateVersion; }
 }

@@ -14,7 +14,7 @@ public class UpdateTopicFunctionalityTCC extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public UpdateTopicFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId,
-            Integer topicAggregateId, String topicName, Integer eventVersion,
+            Integer topicAggregateId, String topicName, Long eventVersion,
             CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -22,7 +22,7 @@ public class UpdateTopicFunctionalityTCC extends WorkflowFunctionality {
     }
 
     private void buildWorkflow(Integer tournamentAggregateId, Integer topicAggregateId, String topicName,
-            Integer eventVersion, CausalUnitOfWork unitOfWork) {
+            Long eventVersion, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
         Step step = new Step(() -> {
             UpdateTopicCommand command = new UpdateTopicCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),

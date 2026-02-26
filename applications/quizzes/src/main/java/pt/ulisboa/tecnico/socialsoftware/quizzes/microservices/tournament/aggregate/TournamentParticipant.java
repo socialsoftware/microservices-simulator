@@ -21,7 +21,7 @@ public class TournamentParticipant {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentParticipant")
     @JsonManagedReference
     private TournamentParticipantQuizAnswer participantAnswer;
-    private Integer participantVersion;
+    private Long participantVersion;
     @Enumerated(EnumType.STRING)
     private AggregateState state;
     @ManyToOne
@@ -104,11 +104,11 @@ public class TournamentParticipant {
         this.participantAnswer.setTournamentParticipant(this);
     }
 
-    public Integer getParticipantVersion() {
+    public Long getParticipantVersion() {
         return participantVersion;
     }
 
-    public void setParticipantVersion(Integer participantVersion) {
+    public void setParticipantVersion(Long participantVersion) {
         this.participantVersion = participantVersion;
     }
 
@@ -130,7 +130,7 @@ public class TournamentParticipant {
     }
 
     public void updateAnswerWithQuestion(Integer quizAnswerAggregateId, Integer questionAnswerAggregateId,
-            boolean isCorrect, Integer version) {
+            boolean isCorrect, Long version) {
         this.participantAnswer.updateAnswerWithQuestion(quizAnswerAggregateId, questionAnswerAggregateId, isCorrect,
                 version);
     }

@@ -121,7 +121,7 @@ public class QuizAnswerFunctionalities {
     }
 
     public void removeUserFromQuizAnswer(Integer quizAnswerAggregateId, Integer userAggregateId,
-            Integer publisherAggregateVersion) {
+            Long publisherAggregateVersion) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         switch (workflowType) {
             case SAGAS:
@@ -144,7 +144,7 @@ public class QuizAnswerFunctionalities {
     }
 
     public void removeQuestionFromQuizAnswer(Integer quizAnswerAggregateId, Integer questionAggregateId,
-            Integer publisherAggregateVersion) {
+            Long publisherAggregateVersion) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         switch (workflowType) {
             case SAGAS:
@@ -167,7 +167,7 @@ public class QuizAnswerFunctionalities {
     }
 
     public void updateUserNameInQuizAnswer(Integer quizAnswerAggregateId, Integer publisherAggregateId,
-            Integer publisherAggregateVersion, Integer studentAggregateId, String updatedName) {
+            Long publisherAggregateVersion, Integer studentAggregateId, String updatedName) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         switch (workflowType) {
             case SAGAS:

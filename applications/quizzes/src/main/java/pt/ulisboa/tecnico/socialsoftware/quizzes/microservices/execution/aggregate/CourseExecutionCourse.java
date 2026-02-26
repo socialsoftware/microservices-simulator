@@ -13,7 +13,7 @@ public class CourseExecutionCourse {
     private String name;
     @Enumerated(EnumType.STRING)
     private CourseType type;
-    private Integer courseVersion;
+    private Long courseVersion;
     @OneToOne
     private Execution execution;
 
@@ -65,11 +65,11 @@ public class CourseExecutionCourse {
         this.type = type;
     }
 
-    public Integer getCourseVersion() {
+    public Long getCourseVersion() {
         return courseVersion;
     }
 
-    public void setCourseVersion(Integer courseVersion) {
+    public void setCourseVersion(Long courseVersion) {
         this.courseVersion = courseVersion;
     }
 

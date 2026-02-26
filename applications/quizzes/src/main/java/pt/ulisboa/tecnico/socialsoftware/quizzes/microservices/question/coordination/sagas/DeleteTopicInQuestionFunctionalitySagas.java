@@ -14,14 +14,14 @@ public class DeleteTopicInQuestionFunctionalitySagas extends WorkflowFunctionali
     private final CommandGateway commandGateway;
 
     public DeleteTopicInQuestionFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
-            Integer questionAggregateId, Integer topicAggregateId, Integer eventVersion,
+            Integer questionAggregateId, Integer topicAggregateId, Long eventVersion,
             SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         buildWorkflow(questionAggregateId, topicAggregateId, eventVersion, unitOfWork);
     }
 
-    private void buildWorkflow(Integer questionAggregateId, Integer topicAggregateId, Integer eventVersion,
+    private void buildWorkflow(Integer questionAggregateId, Integer topicAggregateId, Long eventVersion,
             SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
         SagaStep step = new SagaStep("deleteTopicInQuestion", () -> {

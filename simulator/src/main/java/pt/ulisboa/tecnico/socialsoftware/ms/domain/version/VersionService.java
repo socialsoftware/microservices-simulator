@@ -11,7 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import java.util.Optional;
 
 @Service
-@Profile("version-service | (!stream & !grpc)")
+@Profile("!remote & !distributed_version")
 public class VersionService implements IVersionService {
 
     @Autowired
@@ -21,7 +21,7 @@ public class VersionService implements IVersionService {
     // Get version number of new transaction which is the last version of the last
     // committed transaction + 1.
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Integer getVersionNumber() {
+    public Long getVersionNumber() {
         Optional<Version> versionOp = versionRepository.findAll().stream().findAny();
         Version version;
         if (versionOp.isEmpty()) {
@@ -39,7 +39,7 @@ public class VersionService implements IVersionService {
     // If non has committed in between we commit with the same version as the
     // functionality started
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Integer incrementAndGetVersionNumber() {
+    public Long incrementAndGetVersionNumber() {
         Version version = versionRepository.findAll().stream().findAny()
                 .orElseThrow(() -> new SimulatorException(SimulatorErrorMessage.VERSION_MANAGER_DOES_NOT_EXIST));
         version.incrementVersion();

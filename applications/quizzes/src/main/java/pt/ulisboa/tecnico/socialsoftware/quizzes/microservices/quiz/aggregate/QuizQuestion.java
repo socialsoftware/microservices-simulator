@@ -14,7 +14,7 @@ public class QuizQuestion {
     @GeneratedValue
     private Long id;
     private Integer questionAggregateId;
-    private Integer questionVersion;
+    private Long questionVersion;
     private String title;
     private String content;
     private Integer sequence;
@@ -59,11 +59,11 @@ public class QuizQuestion {
         this.questionAggregateId = questionAggregateId;
     }
 
-    public Integer getQuestionVersion() {
+    public Long getQuestionVersion() {
         return questionVersion;
     }
 
-    public void setQuestionVersion(Integer questionVersion) {
+    public void setQuestionVersion(Long questionVersion) {
         this.questionVersion = questionVersion;
     }
 

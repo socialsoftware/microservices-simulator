@@ -159,7 +159,7 @@ public abstract class Execution extends Aggregate {
 
 
     @Override
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         // if the course version is null, it means it that we're creating during this transaction
         if (this.courseExecutionCourse != null && this.courseExecutionCourse.getCourseVersion() == null) {
             this.courseExecutionCourse.setCourseVersion(version);

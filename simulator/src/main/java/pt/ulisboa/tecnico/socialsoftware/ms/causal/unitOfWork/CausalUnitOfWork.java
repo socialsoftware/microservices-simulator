@@ -20,7 +20,7 @@ public class CausalUnitOfWork extends UnitOfWork {
 
     private Map<Integer, Aggregate> causalSnapshot;
 
-    public CausalUnitOfWork(Integer version, String functionalityName) {
+    public CausalUnitOfWork(Long version, String functionalityName) {
         super(version, functionalityName);
         this.causalSnapshot = new HashMap<>();
     }
@@ -41,13 +41,18 @@ public class CausalUnitOfWork extends UnitOfWork {
                         .filter(e -> e.getPublisherAggregateVersion() <= snapshotAggregate.getVersion())
                         .filter(e -> e.getPublisherAggregateVersion() > es.getSubscribedVersion())
                         .toList();
-                // snapshotAggregateEmittedEvents is a list of emitted events of the same type of the current sub emitted
-                // by the current snapshot aggregate emitted after the version of the current subscription
+                // snapshotAggregateEmittedEvents is a list of emitted events of the same type
+                // of the current sub emitted
+                // by the current snapshot aggregate emitted after the version of the current
+                // subscription
 
-                // if there are events in those situations we verify whether they are relevant or not for the subscription
+                // if there are events in those situations we verify whether they are relevant
+                // or not for the subscription
                 for (Event snapshotAggregateEmittedEvent : snapshotAggregateEmittedEvents) {
                     if (es.subscribesEvent(snapshotAggregateEmittedEvent)) {
-                        throw new SimulatorException(CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED, aggregate.getClass().getSimpleName(), snapshotAggregateEmittedEvent.getClass().getSimpleName());
+                        throw new SimulatorException(CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED,
+                                aggregate.getClass().getSimpleName(),
+                                snapshotAggregateEmittedEvent.getClass().getSimpleName());
                     }
                 }
             }
@@ -65,7 +70,8 @@ public class CausalUnitOfWork extends UnitOfWork {
                         .toList();
                 for (Event snapshotAggregateEmittedEvent : aggregateEmittedEvents) {
                     if (es.subscribesEvent(snapshotAggregateEmittedEvent)) {
-                        throw new SimulatorException(CANNOT_PERFORM_CAUSAL_READ, aggregate.getAggregateId(), getVersion());
+                        throw new SimulatorException(CANNOT_PERFORM_CAUSAL_READ, aggregate.getAggregateId(),
+                                getVersion());
                     }
                 }
             }
@@ -74,21 +80,25 @@ public class CausalUnitOfWork extends UnitOfWork {
 
     private void verifySameProcessedEvents(Aggregate aggregate, List<Event> allEvents) {
         Set<EventSubscription> aggregateEventSubscriptions = aggregate.getEventSubscriptions();
-        for(Aggregate snapshotAggregate : this.causalSnapshot.values()) {
-            for(EventSubscription es1 : aggregateEventSubscriptions) {
+        for (Aggregate snapshotAggregate : this.causalSnapshot.values()) {
+            for (EventSubscription es1 : aggregateEventSubscriptions) {
                 for (EventSubscription es2 : snapshotAggregate.getEventSubscriptions()) {
                     // if they correspond to the same aggregate and type
-                    if (es1.getSubscribedAggregateId().equals(es2.getSubscribedAggregateId()) && es1.getEventType().equals(es2.getEventType())) {
-                        Integer minVersion = Math.min(es1.getSubscribedVersion(), es2.getSubscribedVersion());
-                        Integer maxVersion = Math.max(es1.getSubscribedVersion(), es2.getSubscribedVersion());
+                    if (es1.getSubscribedAggregateId().equals(es2.getSubscribedAggregateId())
+                            && es1.getEventType().equals(es2.getEventType())) {
+                        Long minVersion = Math.min(es1.getSubscribedVersion(), es2.getSubscribedVersion());
+                        Long maxVersion = Math.max(es1.getSubscribedVersion(), es2.getSubscribedVersion());
                         List<Event> eventsBetweenAggregates = allEvents.stream()
                                 .filter(event -> event.getPublisherAggregateId().equals(es1.getSubscribedAggregateId()))
                                 .filter(event -> event.getClass().getSimpleName().equals(es1.getEventType()))
-                                .filter(event -> minVersion < event.getPublisherAggregateVersion() && event.getPublisherAggregateVersion() <= maxVersion)
+                                .filter(event -> minVersion < event.getPublisherAggregateVersion()
+                                        && event.getPublisherAggregateVersion() <= maxVersion)
                                 .toList();
                         for (Event eventBetweenAggregates : eventsBetweenAggregates) {
-                            if(es1.subscribesEvent(eventBetweenAggregates) && es2.subscribesEvent(eventBetweenAggregates)) {
-                                throw new SimulatorException(CANNOT_PERFORM_CAUSAL_READ, aggregate.getAggregateId(), getVersion());
+                            if (es1.subscribesEvent(eventBetweenAggregates)
+                                    && es2.subscribesEvent(eventBetweenAggregates)) {
+                                throw new SimulatorException(CANNOT_PERFORM_CAUSAL_READ, aggregate.getAggregateId(),
+                                        getVersion());
                             }
                         }
                     }
@@ -98,7 +108,8 @@ public class CausalUnitOfWork extends UnitOfWork {
     }
 
     private void addAggregateToSnapshot(Aggregate aggregate) {
-        if(!this.causalSnapshot.containsKey(aggregate.getAggregateId()) || aggregate.getVersion() > this.causalSnapshot.get(aggregate.getAggregateId()).getVersion()) {
+        if (!this.causalSnapshot.containsKey(aggregate.getAggregateId())
+                || aggregate.getVersion() > this.causalSnapshot.get(aggregate.getAggregateId()).getVersion()) {
             this.causalSnapshot.put(aggregate.getAggregateId(), aggregate);
         }
     }

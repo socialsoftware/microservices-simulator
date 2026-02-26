@@ -23,7 +23,7 @@ public class SagaUnitOfWork extends UnitOfWork {
 
     private final TraceManager traceManager;
 
-    public SagaUnitOfWork(Integer version, String functionalityName) {
+    public SagaUnitOfWork(Long version, String functionalityName) {
         super(version, functionalityName);
         this.compensatingActions = new ArrayList<>();
         this.aggregatesInSaga = new LinkedHashMap<>();

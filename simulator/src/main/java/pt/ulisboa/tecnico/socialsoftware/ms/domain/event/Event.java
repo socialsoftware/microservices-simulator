@@ -15,7 +15,7 @@ public abstract class Event {
     @Column
     private Integer publisherAggregateId;
     @Column
-    private Integer publisherAggregateVersion;
+    private Long publisherAggregateVersion;
     private LocalDateTime timestamp;
 
     @Column(nullable = false)
@@ -46,11 +46,11 @@ public abstract class Event {
         this.publisherAggregateId = publisherAggregateId;
     }
 
-    public Integer getPublisherAggregateVersion() {
+    public Long getPublisherAggregateVersion() {
         return publisherAggregateVersion;
     }
 
-    public void setPublisherAggregateVersion(Integer publisherAggregateVersion) {
+    public void setPublisherAggregateVersion(Long publisherAggregateVersion) {
         this.publisherAggregateVersion = publisherAggregateVersion;
     }
 

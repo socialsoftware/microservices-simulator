@@ -28,7 +28,7 @@ public abstract class Aggregate implements Serializable {
     private Integer id;
     private Integer aggregateId;
     @Column
-    private Integer version;
+    private Long version;
     private LocalDateTime creationTs;
     @Enumerated(EnumType.STRING)
     private AggregateState state;
@@ -80,11 +80,11 @@ public abstract class Aggregate implements Serializable {
         this.aggregateId = aggregateId;
     }
 
-    public Integer getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 

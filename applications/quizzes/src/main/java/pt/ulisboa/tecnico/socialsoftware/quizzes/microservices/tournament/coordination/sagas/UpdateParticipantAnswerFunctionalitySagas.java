@@ -16,7 +16,7 @@ public class UpdateParticipantAnswerFunctionalitySagas extends WorkflowFunctiona
     public UpdateParticipantAnswerFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
             Integer tournamentAggregateId,
             Integer userAggregateId, Integer executionAggregateId, Integer questionAggregateId,
-            boolean correct, Integer eventVersion, SagaUnitOfWork unitOfWork,
+            boolean correct, Long eventVersion, SagaUnitOfWork unitOfWork,
             CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -25,7 +25,7 @@ public class UpdateParticipantAnswerFunctionalitySagas extends WorkflowFunctiona
     }
 
     private void buildWorkflow(Integer tournamentAggregateId, Integer userAggregateId, Integer executionAggregateId,
-            Integer questionAggregateId, boolean correct, Integer eventVersion, SagaUnitOfWork unitOfWork) {
+            Integer questionAggregateId, boolean correct, Long eventVersion, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
         SagaStep step = new SagaStep("updateParticipantAnswerStep", () -> {
             UpdateParticipantAnswerCommand command = new UpdateParticipantAnswerCommand(unitOfWork,

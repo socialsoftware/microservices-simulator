@@ -40,6 +40,12 @@ public class SimulatorException extends RuntimeException {
         this.simulatorErrorMessage = simulatorErrorMessage;
     }
 
+    public SimulatorException(String simulatorErrorMessage, int value1, long value2) {
+        super(String.format(simulatorErrorMessage, value1, value2));
+        logger.info(String.format(simulatorErrorMessage, value1, value2));
+        this.simulatorErrorMessage = simulatorErrorMessage;
+    }
+
     public SimulatorException(String simulatorErrorMessage, String value1, int value2) {
         super(String.format(simulatorErrorMessage, value1, value2));
         logger.info(String.format(simulatorErrorMessage, value1, value2));

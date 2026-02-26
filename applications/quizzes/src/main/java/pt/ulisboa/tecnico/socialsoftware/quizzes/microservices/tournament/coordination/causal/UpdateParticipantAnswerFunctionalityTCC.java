@@ -16,7 +16,7 @@ public class UpdateParticipantAnswerFunctionalityTCC extends WorkflowFunctionali
     public UpdateParticipantAnswerFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
             Integer tournamentAggregateId,
             Integer userAggregateId, Integer executionAggregateId, Integer questionAggregateId,
-            boolean correct, Integer eventVersion, CausalUnitOfWork unitOfWork,
+            boolean correct, Long eventVersion, CausalUnitOfWork unitOfWork,
             CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -25,7 +25,7 @@ public class UpdateParticipantAnswerFunctionalityTCC extends WorkflowFunctionali
     }
 
     private void buildWorkflow(Integer tournamentAggregateId, Integer userAggregateId, Integer executionAggregateId,
-            Integer questionAggregateId, boolean correct, Integer eventVersion, CausalUnitOfWork unitOfWork) {
+            Integer questionAggregateId, boolean correct, Long eventVersion, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
         Step step = new Step(() -> {
             UpdateParticipantAnswerCommand command = new UpdateParticipantAnswerCommand(unitOfWork,

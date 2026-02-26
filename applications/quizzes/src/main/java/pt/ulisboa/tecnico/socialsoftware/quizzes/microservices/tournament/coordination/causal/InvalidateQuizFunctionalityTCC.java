@@ -14,14 +14,14 @@ public class InvalidateQuizFunctionalityTCC extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public InvalidateQuizFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId,
-            Integer quizAggregateId, Integer eventVersion, CausalUnitOfWork unitOfWork,
+            Integer quizAggregateId, Long eventVersion, CausalUnitOfWork unitOfWork,
             CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         buildWorkflow(tournamentAggregateId, quizAggregateId, eventVersion, unitOfWork);
     }
 
-    private void buildWorkflow(Integer tournamentAggregateId, Integer quizAggregateId, Integer eventVersion,
+    private void buildWorkflow(Integer tournamentAggregateId, Integer quizAggregateId, Long eventVersion,
             CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
         Step step = new Step(() -> {

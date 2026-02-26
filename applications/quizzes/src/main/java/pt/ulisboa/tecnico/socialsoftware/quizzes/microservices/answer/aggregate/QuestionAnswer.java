@@ -18,7 +18,7 @@ public class QuestionAnswer {
     private Long id;
     private Integer optionSequenceChoice;
     private Integer questionAggregateId;
-    private Integer questionVersion;
+    private Long questionVersion;
     private Integer timeTaken;
     private Integer optionKey;
     private boolean correct;
@@ -87,11 +87,11 @@ public class QuestionAnswer {
         this.questionAggregateId = questionId;
     }
 
-    public Integer getQuestionVersion() {
+    public Long getQuestionVersion() {
         return questionVersion;
     }
 
-    public void setQuestionVersion(Integer questionVersion) {
+    public void setQuestionVersion(Long questionVersion) {
         this.questionVersion = questionVersion;
     }
 

@@ -14,7 +14,7 @@ public class UpdateUserNameInQuizAnswerFunctionalitySagas extends WorkflowFuncti
     private final CommandGateway commandGateway;
 
     public UpdateUserNameInQuizAnswerFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
-            Integer quizAnswerAggregateId, Integer publisherAggregateId, Integer publisherAggregateVersion,
+            Integer quizAnswerAggregateId, Integer publisherAggregateId, Long publisherAggregateVersion,
             Integer studentAggregateId, String updatedName,
             SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
@@ -24,7 +24,7 @@ public class UpdateUserNameInQuizAnswerFunctionalitySagas extends WorkflowFuncti
     }
 
     private void buildWorkflow(Integer quizAnswerAggregateId, Integer publisherAggregateId,
-            Integer publisherAggregateVersion,
+            Long publisherAggregateVersion,
             Integer studentAggregateId, String updatedName, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
         SagaStep step = new SagaStep("updateUserNameInQuizAnswer", () -> {

@@ -13,7 +13,7 @@ public class TournamentQuiz {
     @GeneratedValue
     private Long id;
     private Integer quizAggregateId;
-    private Integer quizVersion;
+    private Long quizVersion;
     @OneToOne
     private Tournament tournament;
 
@@ -21,7 +21,7 @@ public class TournamentQuiz {
 
     }
 
-    public TournamentQuiz(Integer quizAggregateId, Integer quizVersion) {
+    public TournamentQuiz(Integer quizAggregateId, Long quizVersion) {
         setQuizAggregateId(quizAggregateId);
         setQuizVersion(quizVersion);
     }
@@ -47,11 +47,11 @@ public class TournamentQuiz {
         this.quizAggregateId = id;
     }
 
-    public Integer getQuizVersion() {
+    public Long getQuizVersion() {
         return quizVersion;
     }
 
-    public void setQuizVersion(Integer quizVersion) {
+    public void setQuizVersion(Long quizVersion) {
         this.quizVersion = quizVersion;
     }
 

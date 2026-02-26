@@ -3,6 +3,9 @@ spring:
     name: quizzes
   profiles:
     active: "@activatedProperties@"
+    group:
+      stream: remote
+      grpc: remote
 
   main:
     allow-bean-definition-overriding: true

@@ -15,7 +15,7 @@ public class QuestionTopic {
     private Long id;
     private Integer topicAggregateId;
     private String topicName;
-    private Integer topicVersion;
+    private Long topicVersion;
     private Aggregate.AggregateState state;
     @ManyToOne
     private Question question;
@@ -59,11 +59,11 @@ public class QuestionTopic {
         this.topicName = topicName;
     }
 
-    public Integer getTopicVersion() {
+    public Long getTopicVersion() {
         return topicVersion;
     }
 
-    public void setTopicVersion(Integer topicVersion) {
+    public void setTopicVersion(Long topicVersion) {
         this.topicVersion = topicVersion;
     }
 

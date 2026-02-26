@@ -108,7 +108,7 @@ public class CausalTournament extends Tournament implements CausalAggregate {
             mergedTournament.getTournamentQuiz().setQuizAggregateId(getTournamentQuiz().getQuizAggregateId());
             mergedTournament.getTournamentQuiz().setQuizVersion(getTournamentQuiz().getQuizVersion());
         } else {
-            mergedTournament.getTournamentQuiz().setQuizVersion(committedTournament.getTournamentQuiz().getQuizAggregateId());
+            mergedTournament.getTournamentQuiz().setQuizAggregateId(committedTournament.getTournamentQuiz().getQuizAggregateId());
             mergedTournament.getTournamentQuiz().setQuizVersion(committedTournament.getTournamentQuiz().getQuizVersion());
         }
 
@@ -154,7 +154,7 @@ public class CausalTournament extends Tournament implements CausalAggregate {
         Set<TournamentParticipant> v1ParticipantsPre = new HashSet<>(v1.getTournamentParticipants());
         Set<TournamentParticipant> v2ParticipantsPre = new HashSet<>(v2.getTournamentParticipants());
 
-        CausalTournament.syncParticipantsVersions(prevParticipantsPre, v1ParticipantsPre, v2ParticipantsPre, prev.getTournamentCourseExecution().getCourseExecutionVersion(), v1.getTournamentCourseExecution().getCourseExecutionVersion(), v2.getTournamentCourseExecution().getCourseExecutionAggregateId());
+        CausalTournament.syncParticipantsVersions(prevParticipantsPre, v1ParticipantsPre, v2ParticipantsPre, prev.getTournamentCourseExecution().getCourseExecutionVersion(), v1.getTournamentCourseExecution().getCourseExecutionVersion(), v2.getTournamentCourseExecution().getCourseExecutionVersion());
 
         Set<TournamentParticipant> prevParticipants = new HashSet<>(prevParticipantsPre);
         Set<TournamentParticipant> v1Participants = new HashSet<>(v1ParticipantsPre);
@@ -179,9 +179,9 @@ public class CausalTournament extends Tournament implements CausalAggregate {
     private static void syncParticipantsVersions(Set<TournamentParticipant> prevParticipants,
                                                 Set<TournamentParticipant> v1Participants,
                                                 Set<TournamentParticipant> v2Participants,
-                                                Integer prevCourseExecutionVersion,
-                                                Integer v1CourseExecutionVersion,
-                                                Integer v2CourseExecutionVersion) {
+                                                Long prevCourseExecutionVersion,
+                                                Long v1CourseExecutionVersion,
+                                                Long v2CourseExecutionVersion) {
 
         for (TournamentParticipant tp1 : v1Participants) {
             for (TournamentParticipant tp2 : v2Participants) {

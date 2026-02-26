@@ -13,7 +13,7 @@ public class QuizCourseExecution {
     @GeneratedValue
     private Long id;
     private Integer courseExecutionAggregateId;
-    private Integer courseExecutionVersion;
+    private Long courseExecutionVersion;
     @OneToOne
     private Quiz quiz;
 
@@ -47,11 +47,11 @@ public class QuizCourseExecution {
         this.courseExecutionAggregateId = courseExecutionAggregateId;
     }
 
-    public Integer getCourseExecutionVersion() {
+    public Long getCourseExecutionVersion() {
         return courseExecutionVersion;
     }
 
-    public void setCourseExecutionVersion(Integer courseExecutionVersion) {
+    public void setCourseExecutionVersion(Long courseExecutionVersion) {
         this.courseExecutionVersion = courseExecutionVersion;
     }
 

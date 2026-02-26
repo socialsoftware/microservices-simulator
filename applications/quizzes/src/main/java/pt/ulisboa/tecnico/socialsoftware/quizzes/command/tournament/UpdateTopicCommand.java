@@ -7,10 +7,10 @@ public class UpdateTopicCommand extends Command {
     private final Integer tournamentAggregateId;
     private final Integer topicAggregateId;
     private final String topicName;
-    private final Integer eventVersion;
+    private final Long eventVersion;
 
     public UpdateTopicCommand(UnitOfWork unitOfWork, String serviceName, Integer tournamentAggregateId,
-            Integer topicAggregateId, String topicName, Integer eventVersion) {
+            Integer topicAggregateId, String topicName, Long eventVersion) {
         super(unitOfWork, serviceName, tournamentAggregateId);
         this.tournamentAggregateId = tournamentAggregateId;
         this.topicAggregateId = topicAggregateId;
@@ -30,7 +30,7 @@ public class UpdateTopicCommand extends Command {
         return topicName;
     }
 
-    public Integer getEventVersion() {
+    public Long getEventVersion() {
         return eventVersion;
     }
 }

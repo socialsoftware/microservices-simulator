@@ -14,7 +14,7 @@ public class RemoveQuestionFromQuizAnswerFunctionalityTCC extends WorkflowFuncti
     private final CommandGateway commandGateway;
 
     public RemoveQuestionFromQuizAnswerFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
-            Integer quizAnswerAggregateId, Integer questionAggregateId, Integer publisherAggregateVersion,
+            Integer quizAnswerAggregateId, Integer questionAggregateId, Long publisherAggregateVersion,
             CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -22,7 +22,7 @@ public class RemoveQuestionFromQuizAnswerFunctionalityTCC extends WorkflowFuncti
     }
 
     private void buildWorkflow(Integer quizAnswerAggregateId, Integer questionAggregateId,
-            Integer publisherAggregateVersion,
+            Long publisherAggregateVersion,
             CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
         Step step = new Step(() -> {

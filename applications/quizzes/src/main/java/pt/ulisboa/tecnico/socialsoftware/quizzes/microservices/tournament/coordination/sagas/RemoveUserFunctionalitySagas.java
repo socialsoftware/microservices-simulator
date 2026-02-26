@@ -14,7 +14,7 @@ public class RemoveUserFunctionalitySagas extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public RemoveUserFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId,
-            Integer executionAggregateId, Integer userAggregateId, Integer eventVersion,
+            Integer executionAggregateId, Integer userAggregateId, Long eventVersion,
             SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -22,7 +22,7 @@ public class RemoveUserFunctionalitySagas extends WorkflowFunctionality {
     }
 
     private void buildWorkflow(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
-            Integer eventVersion, SagaUnitOfWork unitOfWork) {
+            Long eventVersion, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
         SagaStep step = new SagaStep("removeUserStep", () -> {
             RemoveUserCommand command = new RemoveUserCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),

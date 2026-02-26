@@ -7,10 +7,10 @@ public class RemoveUserCommand extends Command {
     private final Integer tournamentAggregateId;
     private final Integer courseExecutionAggregateId;
     private final Integer userAggregateId;
-    private final Integer eventVersion;
+    private final Long eventVersion;
 
     public RemoveUserCommand(UnitOfWork unitOfWork, String serviceName, Integer tournamentAggregateId,
-            Integer courseExecutionAggregateId, Integer userAggregateId, Integer eventVersion) {
+            Integer courseExecutionAggregateId, Integer userAggregateId, Long eventVersion) {
         super(unitOfWork, serviceName, tournamentAggregateId);
         this.tournamentAggregateId = tournamentAggregateId;
         this.courseExecutionAggregateId = courseExecutionAggregateId;
@@ -30,7 +30,7 @@ public class RemoveUserCommand extends Command {
         return userAggregateId;
     }
 
-    public Integer getEventVersion() {
+    public Long getEventVersion() {
         return eventVersion;
     }
 }

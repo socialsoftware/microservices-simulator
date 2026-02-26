@@ -14,7 +14,7 @@ public class QuestionCourse {
     private Long id;
     private Integer courseAggregateId;
     private String courseName;
-    private Integer courseVersion;
+    private Long courseVersion;
     @OneToOne
     private Question question;
 
@@ -57,11 +57,11 @@ public class QuestionCourse {
         this.courseName = courseName;
     }
 
-    public Integer getCourseVersion() {
+    public Long getCourseVersion() {
         return courseVersion;
     }
 
-    public void setCourseVersion(Integer courseVersion) {
+    public void setCourseVersion(Long courseVersion) {
         this.courseVersion = courseVersion;
     }
 

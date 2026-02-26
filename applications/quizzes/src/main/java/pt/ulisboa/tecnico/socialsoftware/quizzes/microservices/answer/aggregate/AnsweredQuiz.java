@@ -15,7 +15,7 @@ public class AnsweredQuiz {
     @GeneratedValue
     private Long id;
     private Integer quizAggregateId;
-    private Integer quizVersion;
+    private Long quizVersion;
     @OneToOne
     private QuizAnswer quizAnswer;
     @ElementCollection
@@ -51,11 +51,11 @@ public class AnsweredQuiz {
         return quizAggregateId;
     }
 
-    public Integer getQuizVersion() {
+    public Long getQuizVersion() {
         return quizVersion;
     }
 
-    public void setQuizVersion(Integer quizVersion) {
+    public void setQuizVersion(Long quizVersion) {
         this.quizVersion = quizVersion;
     }
 

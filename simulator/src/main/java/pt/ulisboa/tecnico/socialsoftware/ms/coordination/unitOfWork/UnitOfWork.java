@@ -12,7 +12,7 @@ import java.util.Set;
 public abstract class UnitOfWork implements Serializable {
 
     private Integer id;
-    private Integer version;
+    private Long version;
     private final List<Aggregate> aggregatesToCommit;
     private final Set<Event> eventsToEmit;
     private String functionalityName;
@@ -22,7 +22,7 @@ public abstract class UnitOfWork implements Serializable {
         this.eventsToEmit = new HashSet<>();
     }
 
-    public UnitOfWork(Integer version, String functionalityName) {
+    public UnitOfWork(Long version, String functionalityName) {
         this.aggregatesToCommit = new ArrayList<>();
         this.eventsToEmit = new HashSet<>();
         setVersion(version);
@@ -37,11 +37,11 @@ public abstract class UnitOfWork implements Serializable {
         this.id = id;
     }
 
-    public Integer getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 

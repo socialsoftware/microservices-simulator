@@ -2,7 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.domain.version;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
@@ -11,26 +10,26 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.GetVersionCom
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.IncrementVersionCommand;
 
 @Service
-@Profile({ "stream", "grpc" })
-public class VersionServiceStreamClient implements IVersionService {
-    private static final Logger logger = LoggerFactory.getLogger(VersionServiceStreamClient.class);
+@Profile("remote & !distributed_version")
+public class VersionServiceClient implements IVersionService {
+    private static final Logger logger = LoggerFactory.getLogger(VersionServiceClient.class);
 
     private final CommandGateway commandGateway;
 
-    public VersionServiceStreamClient(CommandGateway commandGateway) {
+    public VersionServiceClient(CommandGateway commandGateway) {
         this.commandGateway = commandGateway;
     }
 
     @Override
-    public Integer getVersionNumber() {
+    public Long getVersionNumber() {
         logger.debug("Requesting version number via CommandGateway");
-        return (Integer) commandGateway.send(new GetVersionCommand());
+        return (Long) commandGateway.send(new GetVersionCommand());
     }
 
     @Override
-    public Integer incrementAndGetVersionNumber() {
+    public Long incrementAndGetVersionNumber() {
         logger.debug("Requesting increment version via CommandGateway");
-        return (Integer) commandGateway.send(new IncrementVersionCommand());
+        return (Long) commandGateway.send(new IncrementVersionCommand());
     }
 
     @Override

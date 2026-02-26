@@ -13,7 +13,7 @@ public class TopicCourse {
     @GeneratedValue
     private Integer id;
     private Integer courseAggregateId;
-    private Integer courseVersion;
+    private Long courseVersion;
     @OneToOne
     private Topic topic;
 
@@ -45,11 +45,11 @@ public class TopicCourse {
         this.courseAggregateId = courseAggregateId;
     }
 
-    public Integer getCourseVersion() {
+    public Long getCourseVersion() {
         return courseVersion;
     }
 
-    public void setCourseVersion(Integer courseVersion) {
+    public void setCourseVersion(Long courseVersion) {
         this.courseVersion = courseVersion;
     }
 

@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class QuestionDto implements Serializable {
     private Integer aggregateId;
-    private Integer version;
+    private Long version;
     private String title;
     private String content;
     private String creationDate;
@@ -47,11 +47,11 @@ public class QuestionDto implements Serializable {
         this.aggregateId = aggregateId;
     }
 
-    public Integer getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 

@@ -16,7 +16,7 @@ public class AnonymizeUserTournamentFunctionalityTCC extends WorkflowFunctionali
     public AnonymizeUserTournamentFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
             Integer tournamentAggregateId,
             Integer executionAggregateId, Integer userAggregateId, String name,
-            String username, Integer eventVersion, CausalUnitOfWork unitOfWork,
+            String username, Long eventVersion, CausalUnitOfWork unitOfWork,
             CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -25,7 +25,7 @@ public class AnonymizeUserTournamentFunctionalityTCC extends WorkflowFunctionali
     }
 
     private void buildWorkflow(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
-            String name, String username, Integer eventVersion, CausalUnitOfWork unitOfWork) {
+            String name, String username, Long eventVersion, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
         Step step = new Step(() -> {
             AnonymizeUserCommand command = new AnonymizeUserCommand(unitOfWork,

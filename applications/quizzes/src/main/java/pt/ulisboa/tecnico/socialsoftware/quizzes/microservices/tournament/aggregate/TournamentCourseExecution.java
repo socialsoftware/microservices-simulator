@@ -16,7 +16,7 @@ public class TournamentCourseExecution {
     private Integer courseExecutionCourseId;
     private String courseExecutionAcronym;
     private String courseExecutionStatus;
-    private Integer courseExecutionVersion;
+    private Long courseExecutionVersion;
     @OneToOne
     private Tournament tournament;
 
@@ -79,11 +79,11 @@ public class TournamentCourseExecution {
         this.courseExecutionStatus = courseExecutionStatus;
     }
 
-    public Integer getCourseExecutionVersion() {
+    public Long getCourseExecutionVersion() {
         return courseExecutionVersion;
     }
 
-    public void setCourseExecutionVersion(Integer courseExecutionVersion) {
+    public void setCourseExecutionVersion(Long courseExecutionVersion) {
         this.courseExecutionVersion = courseExecutionVersion;
     }
 

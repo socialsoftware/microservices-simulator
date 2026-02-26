@@ -14,7 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Messag
 import java.util.List;
 
 @Service
-@Profile({ "stream", "grpc" })
+@Profile({ "remote" })
 public class EventPublisherService {
     private static final Logger logger = LoggerFactory.getLogger(EventPublisherService.class);
     private static final String EVENT_CHANNEL = "event-channel";

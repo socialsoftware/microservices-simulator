@@ -6,13 +6,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 public class RemoveCourseExecutionCommand extends Command {
     private final Integer quizAggregateId;
     private final Integer courseExecutionId;
-    private final Integer aggregateVersion;
+    private final Long aggregateVersion;
 
     public RemoveCourseExecutionCommand(UnitOfWork unitOfWork,
             String serviceName,
             Integer quizAggregateId,
             Integer courseExecutionId,
-            Integer aggregateVersion) {
+            Long aggregateVersion) {
         super(unitOfWork, serviceName, quizAggregateId);
         this.quizAggregateId = quizAggregateId;
         this.courseExecutionId = courseExecutionId;
@@ -27,7 +27,7 @@ public class RemoveCourseExecutionCommand extends Command {
         return courseExecutionId;
     }
 
-    public Integer getAggregateVersion() {
+    public Long getAggregateVersion() {
         return aggregateVersion;
     }
 }

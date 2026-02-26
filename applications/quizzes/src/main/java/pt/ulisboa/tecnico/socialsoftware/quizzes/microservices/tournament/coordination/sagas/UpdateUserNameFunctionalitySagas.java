@@ -23,11 +23,11 @@ public class UpdateUserNameFunctionalitySagas extends WorkflowFunctionality {
     private UserDto participant;
     private final String name;
     private final CommandGateway commandGateway;
-    private final Integer eventVersion;
+    private final Long eventVersion;
     private final Integer executionAggregateId;
     private final SagaUnitOfWorkService unitOfWorkService;
 
-    public UpdateUserNameFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService, Integer eventVersion, Integer tournamentAggregateId,
+    public UpdateUserNameFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService, Long eventVersion, Integer tournamentAggregateId,
                                             Integer executionAggregateId, Integer userAggregateId, SagaUnitOfWork unitOfWork, String name,
                                             CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;

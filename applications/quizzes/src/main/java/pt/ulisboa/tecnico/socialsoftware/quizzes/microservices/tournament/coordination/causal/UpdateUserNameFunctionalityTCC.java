@@ -13,7 +13,7 @@ public class UpdateUserNameFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
-    public UpdateUserNameFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, Integer eventVersion,
+    public UpdateUserNameFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, Long eventVersion,
             Integer tournamentAggregateId, Integer executionAggregateId,
             Integer userAggregateId, String updatedName, CausalUnitOfWork unitOfWork,
             CommandGateway commandGateway) {
@@ -23,7 +23,7 @@ public class UpdateUserNameFunctionalityTCC extends WorkflowFunctionality {
                 unitOfWork);
     }
 
-    private void buildWorkflow(Integer eventVersion, Integer tournamentAggregateId, Integer executionAggregateId,
+    private void buildWorkflow(Long eventVersion, Integer tournamentAggregateId, Integer executionAggregateId,
             Integer userAggregateId, String updatedName, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
         Step step = new Step(() -> {

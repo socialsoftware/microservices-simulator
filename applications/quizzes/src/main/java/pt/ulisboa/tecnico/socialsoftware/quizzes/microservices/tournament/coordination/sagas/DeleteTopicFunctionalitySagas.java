@@ -14,14 +14,14 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public DeleteTopicFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId,
-            Integer topicAggregateId, Integer eventVersion, SagaUnitOfWork unitOfWork,
+            Integer topicAggregateId, Long eventVersion, SagaUnitOfWork unitOfWork,
             CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         buildWorkflow(tournamentAggregateId, topicAggregateId, eventVersion, unitOfWork);
     }
 
-    private void buildWorkflow(Integer tournamentAggregateId, Integer topicAggregateId, Integer eventVersion,
+    private void buildWorkflow(Integer tournamentAggregateId, Integer topicAggregateId, Long eventVersion,
             SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
         SagaStep step = new SagaStep("deleteTopicStep", () -> {

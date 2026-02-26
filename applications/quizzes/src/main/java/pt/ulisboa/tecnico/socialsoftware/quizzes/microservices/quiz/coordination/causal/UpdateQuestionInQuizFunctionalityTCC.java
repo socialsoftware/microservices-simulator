@@ -14,7 +14,7 @@ public class UpdateQuestionInQuizFunctionalityTCC extends WorkflowFunctionality 
     private final CommandGateway commandGateway;
 
     public UpdateQuestionInQuizFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
-            Integer quizAggregateId, Integer questionAggregateId, String title, String content, Integer eventVersion,
+            Integer quizAggregateId, Integer questionAggregateId, String title, String content, Long eventVersion,
             CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -22,7 +22,7 @@ public class UpdateQuestionInQuizFunctionalityTCC extends WorkflowFunctionality 
     }
 
     private void buildWorkflow(Integer quizAggregateId, Integer questionAggregateId, String title, String content,
-            Integer eventVersion, CausalUnitOfWork unitOfWork) {
+            Long eventVersion, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
         Step step = new Step(() -> {
             UpdateQuestionCommand command = new UpdateQuestionCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(),

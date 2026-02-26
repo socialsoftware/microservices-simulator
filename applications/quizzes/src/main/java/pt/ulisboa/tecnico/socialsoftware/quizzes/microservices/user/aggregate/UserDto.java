@@ -10,7 +10,7 @@ public class UserDto implements Serializable {
     private String username;
     private String role;
     private boolean active;
-    private Integer version;
+    private Long version;
     private Integer answerAggregateId;
     private Integer numberAnswered;
     private Integer numberCorrect;
@@ -61,11 +61,11 @@ public class UserDto implements Serializable {
         this.role = role;
     }
 
-    public Integer getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 

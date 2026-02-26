@@ -128,7 +128,7 @@ public class QuizAnswerService {
      ************************************************/
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateUserName(Integer answerAggregateId, Integer executionAggregateId, Integer eventVersion,
+    public void updateUserName(Integer answerAggregateId, Integer executionAggregateId, Long eventVersion,
             Integer userAggregateId, String name, UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId,
                 unitOfWork);
@@ -146,7 +146,7 @@ public class QuizAnswerService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuizAnswer removeUser(Integer answerAggregateId, Integer userAggregateId, Integer aggregateVersion,
+    public QuizAnswer removeUser(Integer answerAggregateId, Integer userAggregateId, Long aggregateVersion,
             UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId,
                 unitOfWork);
@@ -162,7 +162,7 @@ public class QuizAnswerService {
         return newQuizAnswer;
     }
 
-    public QuizAnswer removeQuestion(Integer answerAggregateId, Integer questionAggregateId, Integer aggregateVersion,
+    public QuizAnswer removeQuestion(Integer answerAggregateId, Integer questionAggregateId, Long aggregateVersion,
             UnitOfWork unitOfWork) {
         QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(answerAggregateId,
                 unitOfWork);

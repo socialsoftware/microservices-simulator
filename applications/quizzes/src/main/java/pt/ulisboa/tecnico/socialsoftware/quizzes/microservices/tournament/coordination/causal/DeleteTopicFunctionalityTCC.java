@@ -14,14 +14,14 @@ public class DeleteTopicFunctionalityTCC extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public DeleteTopicFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId,
-            Integer topicAggregateId, Integer eventVersion, CausalUnitOfWork unitOfWork,
+            Integer topicAggregateId, Long eventVersion, CausalUnitOfWork unitOfWork,
             CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         buildWorkflow(tournamentAggregateId, topicAggregateId, eventVersion, unitOfWork);
     }
 
-    private void buildWorkflow(Integer tournamentAggregateId, Integer topicAggregateId, Integer eventVersion,
+    private void buildWorkflow(Integer tournamentAggregateId, Integer topicAggregateId, Long eventVersion,
             CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
         Step step = new Step(() -> {

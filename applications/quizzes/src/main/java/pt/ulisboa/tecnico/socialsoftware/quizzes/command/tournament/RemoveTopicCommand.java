@@ -6,10 +6,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 public class RemoveTopicCommand extends Command {
     private final Integer tournamentAggregateId;
     private final Integer topicAggregateId;
-    private final Integer eventVersion;
+    private final Long eventVersion;
 
     public RemoveTopicCommand(UnitOfWork unitOfWork, String serviceName, Integer tournamentAggregateId,
-            Integer topicAggregateId, Integer eventVersion) {
+            Integer topicAggregateId, Long eventVersion) {
         super(unitOfWork, serviceName, tournamentAggregateId);
         this.tournamentAggregateId = tournamentAggregateId;
         this.topicAggregateId = topicAggregateId;
@@ -24,7 +24,7 @@ public class RemoveTopicCommand extends Command {
         return topicAggregateId;
     }
 
-    public Integer getEventVersion() {
+    public Long getEventVersion() {
         return eventVersion;
     }
 }

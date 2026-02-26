@@ -14,14 +14,14 @@ public class RemoveCourseExecutionFunctionalityTCC extends WorkflowFunctionality
     private final CommandGateway commandGateway;
 
     public RemoveCourseExecutionFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
-            Integer tournamentAggregateId, Integer courseExecutionAggregateId, Integer eventVersion,
+            Integer tournamentAggregateId, Integer courseExecutionAggregateId, Long eventVersion,
             CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentAggregateId, courseExecutionAggregateId, eventVersion, unitOfWork);
     }
 
-    public void buildWorkflow(Integer tournamentAggregateId, Integer courseExecutionAggregateId, Integer eventVersion,
+    public void buildWorkflow(Integer tournamentAggregateId, Integer courseExecutionAggregateId, Long eventVersion,
             CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 

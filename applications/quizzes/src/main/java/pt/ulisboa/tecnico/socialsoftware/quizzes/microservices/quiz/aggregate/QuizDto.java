@@ -13,10 +13,10 @@ public class QuizDto implements Serializable {
     private String availableDate;
     private String conclusionDate;
     private String resultsDate;
-    private Integer version;
+    private Long version;
     private List<QuestionDto> questionDtos;
     private Integer courseExecutionAggregateId;
-    private Integer courseExecutionVersion;
+    private Long courseExecutionVersion;
     private String state;
 
     public QuizDto() {
@@ -78,11 +78,11 @@ public class QuizDto implements Serializable {
         this.resultsDate = resultsDate;
     }
 
-    public Integer getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 
@@ -102,11 +102,11 @@ public class QuizDto implements Serializable {
         this.courseExecutionAggregateId = courseExecutionAggregateId;
     }
 
-    public Integer getCourseExecutionVersion() {
+    public Long getCourseExecutionVersion() {
         return courseExecutionVersion;
     }
 
-    public void setCourseExecutionVersion(Integer courseExecutionVersion) {
+    public void setCourseExecutionVersion(Long courseExecutionVersion) {
         this.courseExecutionVersion = courseExecutionVersion;
     }
 

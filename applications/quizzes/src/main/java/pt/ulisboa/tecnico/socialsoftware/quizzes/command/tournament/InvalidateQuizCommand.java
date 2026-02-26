@@ -6,10 +6,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 public class InvalidateQuizCommand extends Command {
     private final Integer tournamentAggregateId;
     private final Integer aggregateId;
-    private final Integer aggregateVersion;
+    private final Long aggregateVersion;
 
     public InvalidateQuizCommand(UnitOfWork unitOfWork, String serviceName, Integer tournamentAggregateId,
-            Integer aggregateId, Integer aggregateVersion) {
+            Integer aggregateId, Long aggregateVersion) {
         super(unitOfWork, serviceName, tournamentAggregateId);
         this.tournamentAggregateId = tournamentAggregateId;
         this.aggregateId = aggregateId;
@@ -24,7 +24,7 @@ public class InvalidateQuizCommand extends Command {
         return aggregateId;
     }
 
-    public Integer getAggregateVersion() {
+    public Long getAggregateVersion() {
         return aggregateVersion;
     }
 }

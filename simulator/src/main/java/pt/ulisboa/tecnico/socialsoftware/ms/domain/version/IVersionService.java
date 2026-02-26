@@ -2,9 +2,9 @@ package pt.ulisboa.tecnico.socialsoftware.ms.domain.version;
 
 public interface IVersionService {
 
-    Integer getVersionNumber();
+    Long getVersionNumber();
 
-    Integer incrementAndGetVersionNumber();
+    Long incrementAndGetVersionNumber();
 
     void decrementVersionNumber();
 }

@@ -14,14 +14,14 @@ public class RemoveCourseExecutionFromQuizFunctionalitySagas extends WorkflowFun
     private final CommandGateway commandGateway;
 
     public RemoveCourseExecutionFromQuizFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
-            Integer quizAggregateId, Integer courseExecutionAggregateId, Integer eventVersion,
+            Integer quizAggregateId, Integer courseExecutionAggregateId, Long eventVersion,
             SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         buildWorkflow(quizAggregateId, courseExecutionAggregateId, eventVersion, unitOfWork);
     }
 
-    private void buildWorkflow(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer eventVersion,
+    private void buildWorkflow(Integer quizAggregateId, Integer courseExecutionAggregateId, Long eventVersion,
             SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
         SagaStep step = new SagaStep("removeCourseExecutionFromQuiz", () -> {

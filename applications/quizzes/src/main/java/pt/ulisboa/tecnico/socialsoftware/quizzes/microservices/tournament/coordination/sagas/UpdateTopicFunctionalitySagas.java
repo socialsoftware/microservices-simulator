@@ -14,7 +14,7 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public UpdateTopicFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId,
-            Integer topicAggregateId, String topicName, Integer eventVersion,
+            Integer topicAggregateId, String topicName, Long eventVersion,
             SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -22,7 +22,7 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
     }
 
     private void buildWorkflow(Integer tournamentAggregateId, Integer topicAggregateId, String topicName,
-            Integer eventVersion, SagaUnitOfWork unitOfWork) {
+            Long eventVersion, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
         SagaStep step = new SagaStep("updateTopicStep", () -> {
             UpdateTopicCommand command = new UpdateTopicCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),

@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 public class UpdateUserNameCommand extends Command {
     private final Integer tournamentAggregateId;
     private final Integer executionAggregateId;
-    private final Integer eventVersion;
+    private final Long eventVersion;
     private final Integer userAggregateId;
     private final String name;
 
@@ -14,7 +14,7 @@ public class UpdateUserNameCommand extends Command {
             String serviceName,
             Integer tournamentAggregateId,
             Integer executionAggregateId,
-            Integer eventVersion,
+            Long eventVersion,
             Integer userAggregateId,
             String name) {
         super(unitOfWork, serviceName, tournamentAggregateId);
@@ -33,7 +33,7 @@ public class UpdateUserNameCommand extends Command {
         return executionAggregateId;
     }
 
-    public Integer getEventVersion() {
+    public Long getEventVersion() {
         return eventVersion;
     }
 

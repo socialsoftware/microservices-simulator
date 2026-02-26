@@ -115,7 +115,7 @@ public class QuestionService {
     /************************************************ EVENT PROCESSING ************************************************/
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuestionDto updateTopic(Integer questionAggregateId, Integer topicAggregateId, String topicName, Integer aggregateVersion, UnitOfWork unitOfWork) {
+    public QuestionDto updateTopic(Integer questionAggregateId, Integer topicAggregateId, String topicName, Long aggregateVersion, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
 
@@ -132,7 +132,7 @@ public class QuestionService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuestionDto removeTopic(Integer questionAggregateId, Integer topicAggregateId, Integer aggregateVersion, UnitOfWork unitOfWork) {
+    public QuestionDto removeTopic(Integer questionAggregateId, Integer topicAggregateId, Long aggregateVersion, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionAggregateId, unitOfWork);
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
 

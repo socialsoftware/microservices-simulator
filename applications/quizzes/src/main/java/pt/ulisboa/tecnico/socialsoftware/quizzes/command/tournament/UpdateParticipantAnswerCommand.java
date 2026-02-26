@@ -9,11 +9,11 @@ public class UpdateParticipantAnswerCommand extends Command {
     private final Integer quizAnswerAggregateId;
     private final Integer questionAggregateId;
     private final boolean correct;
-    private final Integer eventVersion;
+    private final Long eventVersion;
 
     public UpdateParticipantAnswerCommand(UnitOfWork unitOfWork, String serviceName, Integer tournamentAggregateId,
             Integer studentAggregateId, Integer quizAnswerAggregateId, Integer questionAggregateId, boolean correct,
-            Integer eventVersion) {
+            Long eventVersion) {
         super(unitOfWork, serviceName, tournamentAggregateId);
         this.tournamentAggregateId = tournamentAggregateId;
         this.studentAggregateId = studentAggregateId;
@@ -43,7 +43,7 @@ public class UpdateParticipantAnswerCommand extends Command {
         return correct;
     }
 
-    public Integer getEventVersion() {
+    public Long getEventVersion() {
         return eventVersion;
     }
 }

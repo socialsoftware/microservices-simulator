@@ -13,7 +13,7 @@ public class TournamentTopic {
     private Integer topicAggregateId;
     private String topicName;
     private Integer topicCourseAggregateId;
-    private Integer topicVersion;
+    private Long topicVersion;
     @Enumerated(EnumType.STRING)
     private Aggregate.AggregateState state;
     @ManyToOne
@@ -71,11 +71,11 @@ public class TournamentTopic {
         this.topicCourseAggregateId = courseId;
     }
 
-    public Integer getTopicVersion() {
+    public Long getTopicVersion() {
         return topicVersion;
     }
 
-    public void setTopicVersion(Integer topicVersion) {
+    public void setTopicVersion(Long topicVersion) {
         this.topicVersion = topicVersion;
     }
 

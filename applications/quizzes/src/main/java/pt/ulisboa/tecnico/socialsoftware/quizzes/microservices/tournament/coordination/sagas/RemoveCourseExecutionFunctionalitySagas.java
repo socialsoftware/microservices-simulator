@@ -14,14 +14,14 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
     private final CommandGateway commandGateway;
 
     public RemoveCourseExecutionFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
-            Integer tournamentAggregateId, Integer courseExecutionAggregateId, Integer eventVersion,
+            Integer tournamentAggregateId, Integer courseExecutionAggregateId, Long eventVersion,
             SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         this.buildWorkflow(tournamentAggregateId, courseExecutionAggregateId, eventVersion, unitOfWork);
     }
 
-    public void buildWorkflow(Integer tournamentAggregateId, Integer courseExecutionAggregateId, Integer eventVersion,
+    public void buildWorkflow(Integer tournamentAggregateId, Integer courseExecutionAggregateId, Long eventVersion,
             SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 

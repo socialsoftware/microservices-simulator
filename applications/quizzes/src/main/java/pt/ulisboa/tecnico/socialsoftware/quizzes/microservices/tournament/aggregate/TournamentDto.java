@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class TournamentDto implements Serializable {
     private Integer aggregateId;
-    private Integer version;
+    private Long version;
     private String startTime;
     private String endTime;
     private Integer numberOfQuestions;
@@ -50,11 +50,11 @@ public class TournamentDto implements Serializable {
         this.aggregateId = aggregateId;
     }
 
-    public Integer getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 

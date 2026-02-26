@@ -9,7 +9,7 @@ public class AnonymizeUserCommand extends Command {
     private final Integer userAggregateId;
     private final String name;
     private final String username;
-    private final Integer eventVersion;
+    private final Long eventVersion;
 
     public AnonymizeUserCommand(UnitOfWork unitOfWork,
             String serviceName,
@@ -18,7 +18,7 @@ public class AnonymizeUserCommand extends Command {
             Integer userAggregateId,
             String name,
             String username,
-            Integer eventVersion) {
+            Long eventVersion) {
         super(unitOfWork, serviceName, tournamentAggregateId);
         this.tournamentAggregateId = tournamentAggregateId;
         this.executionAggregateId = executionAggregateId;
@@ -48,7 +48,7 @@ public class AnonymizeUserCommand extends Command {
         return username;
     }
 
-    public Integer getEventVersion() {
+    public Long getEventVersion() {
         return eventVersion;
     }
 }

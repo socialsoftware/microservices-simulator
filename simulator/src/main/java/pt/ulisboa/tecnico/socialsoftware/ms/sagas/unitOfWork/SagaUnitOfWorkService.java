@@ -50,7 +50,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public SagaUnitOfWork createUnitOfWork(String functionalityName) {
-        Integer lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
+        Long lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
 
         SagaUnitOfWork unitOfWork = new SagaUnitOfWork(lastCommittedAggregateVersionNumber + 1, functionalityName);
         return unitOfWork;
@@ -127,7 +127,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         entityManager.merge(aggregate);
     }
 
-    public void commitAllObjects(Integer commitVersion, List<Aggregate> aggregates) {
+    public void commitAllObjects(Long commitVersion, List<Aggregate> aggregates) {
         // aggregates are committed at the end of each service
     }
 
@@ -167,7 +167,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             throw new SimulatorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregate.getAggregateId());
         }
 
-        Integer commitVersion = versionService.incrementAndGetVersionNumber();
+        Long commitVersion = versionService.incrementAndGetVersionNumber();
 
         aggregate.verifyInvariants();
         aggregate.setVersion(commitVersion);
@@ -180,7 +180,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void registerEvent(Event event, SagaUnitOfWork unitOfWork) {
-        Integer commitVersion = versionService.incrementAndGetVersionNumber();
+        Long commitVersion = versionService.incrementAndGetVersionNumber();
         event.setPublisherAggregateVersion(commitVersion);
         // If running with "local" profile, mark event as published immediately
         if (Arrays.asList(environment.getActiveProfiles()).contains("local")) {

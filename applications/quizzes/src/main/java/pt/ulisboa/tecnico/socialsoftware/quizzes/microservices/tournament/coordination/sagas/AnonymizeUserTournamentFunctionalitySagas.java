@@ -20,7 +20,7 @@ public class AnonymizeUserTournamentFunctionalitySagas extends WorkflowFunctiona
     private final CommandGateway commandGateway;
 
     public AnonymizeUserTournamentFunctionalitySagas(UnitOfWorkService unitOfWorkService, Integer tournamentAggregateId, Integer executionAggregateId,
-                                                     Integer userAggregateId, String name, String username, Integer eventVersion, UnitOfWork unitOfWork,
+                                                     Integer userAggregateId, String name, String username, Long eventVersion, UnitOfWork unitOfWork,
                                                      CommandGateway commandGateway) {
         this.unitOfWorkService = (SagaUnitOfWorkService) unitOfWorkService;
         this.commandGateway = commandGateway;
@@ -29,7 +29,7 @@ public class AnonymizeUserTournamentFunctionalitySagas extends WorkflowFunctiona
     }
 
     public void buildWorkflow(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId,
-            String name, String username, Integer eventVersion, SagaUnitOfWork unitOfWork) {
+            String name, String username, Long eventVersion, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep anonymizeUserStep = new SagaStep("anonymizeUserStep", () -> {

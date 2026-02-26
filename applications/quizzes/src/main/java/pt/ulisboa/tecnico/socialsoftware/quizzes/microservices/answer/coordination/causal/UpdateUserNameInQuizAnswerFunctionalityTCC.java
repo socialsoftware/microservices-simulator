@@ -14,7 +14,7 @@ public class UpdateUserNameInQuizAnswerFunctionalityTCC extends WorkflowFunction
     private final CommandGateway commandGateway;
 
     public UpdateUserNameInQuizAnswerFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
-            Integer quizAnswerAggregateId, Integer publisherAggregateId, Integer publisherAggregateVersion,
+            Integer quizAnswerAggregateId, Integer publisherAggregateId, Long publisherAggregateVersion,
             Integer studentAggregateId, String updatedName,
             CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
@@ -24,7 +24,7 @@ public class UpdateUserNameInQuizAnswerFunctionalityTCC extends WorkflowFunction
     }
 
     private void buildWorkflow(Integer quizAnswerAggregateId, Integer publisherAggregateId,
-            Integer publisherAggregateVersion,
+            Long publisherAggregateVersion,
             Integer studentAggregateId, String updatedName, CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
         Step step = new Step(() -> {

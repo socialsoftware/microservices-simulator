@@ -7,7 +7,7 @@ public class CourseDto implements Serializable {
     private Integer aggregateId;
     private String type;
     private String name;
-    private Integer version;
+    private Long version;
 
     public CourseDto() {
     }
@@ -43,11 +43,11 @@ public class CourseDto implements Serializable {
         this.name = name;
     }
 
-    public Integer getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 }

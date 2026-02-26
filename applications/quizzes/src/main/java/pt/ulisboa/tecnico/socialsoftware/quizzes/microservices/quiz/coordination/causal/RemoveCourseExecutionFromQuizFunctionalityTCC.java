@@ -14,14 +14,14 @@ public class RemoveCourseExecutionFromQuizFunctionalityTCC extends WorkflowFunct
     private final CommandGateway commandGateway;
 
     public RemoveCourseExecutionFromQuizFunctionalityTCC(CausalUnitOfWorkService unitOfWorkService,
-            Integer quizAggregateId, Integer courseExecutionAggregateId, Integer eventVersion,
+            Integer quizAggregateId, Integer courseExecutionAggregateId, Long eventVersion,
             CausalUnitOfWork unitOfWork, CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         buildWorkflow(quizAggregateId, courseExecutionAggregateId, eventVersion, unitOfWork);
     }
 
-    private void buildWorkflow(Integer quizAggregateId, Integer courseExecutionAggregateId, Integer eventVersion,
+    private void buildWorkflow(Integer quizAggregateId, Integer courseExecutionAggregateId, Long eventVersion,
             CausalUnitOfWork unitOfWork) {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
         Step step = new Step(() -> {

@@ -14,14 +14,14 @@ public class InvalidateQuizFunctionalitySagas extends WorkflowFunctionality {
     private final CommandGateway commandGateway;
 
     public InvalidateQuizFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId,
-            Integer quizAggregateId, Integer eventVersion, SagaUnitOfWork unitOfWork,
+            Integer quizAggregateId, Long eventVersion, SagaUnitOfWork unitOfWork,
             CommandGateway commandGateway) {
         this.unitOfWorkService = unitOfWorkService;
         this.commandGateway = commandGateway;
         buildWorkflow(tournamentAggregateId, quizAggregateId, eventVersion, unitOfWork);
     }
 
-    private void buildWorkflow(Integer tournamentAggregateId, Integer quizAggregateId, Integer eventVersion,
+    private void buildWorkflow(Integer tournamentAggregateId, Integer quizAggregateId, Long eventVersion,
             SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
         SagaStep step = new SagaStep("invalidateQuizStep", () -> {
