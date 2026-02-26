@@ -22,6 +22,7 @@ execution to full distributed deployment.
 |-------------------|------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
 | **Monolith**      | Runs as a single application. Supports local (internal), stream (RabbitMQ), or gRPC service calls.         | `sagas\|tcc, local\|stream\|grpc`          | PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                                 |
 | **Microservices** | Fully distributed. Each domain service runs independently. Uses Eureka for discovery and RabbitMQ or gRPC. | Service-specific (e.g., `answer,sagas\|tcc,stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
+| **Microservices (Distributed Version)** | Same as Microservices, but each service generates version IDs locally using Snowflake IDs instead of relying on a centralized version service. | Service-specific + `distributed-version` | PostgreSQL, Jaeger, Eureka, (RabbitMQ for stream) — **no version-service required** |
 | **Kubernetes**    | Distributed microservices orchestrated by Kubernetes (`k8s/services-stream`, `k8s/services-grpc` or `k8s/services-azure` to deploy in Microsoft Azure). Uses Spring Cloud Kubernetes for discovery. | `kubernetes`                                                              | K8s Cluster, PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                    |
 
 ## Run Using Docker
@@ -80,6 +81,18 @@ This will build the gateway and all microservices.
 docker compose up gateway -d
 ```
 
+#### Running with Distributed Version (no version-service needed)
+
+Use the `VERSION_MODE` environment variable to enable the `distributed-version` profile. Each microservice will generate version IDs locally using Snowflake IDs.
+
+```bash
+# Sagas + Stream + Distributed Version
+VERSION_MODE=distributed-version docker compose up gateway -d
+
+# Sagas + gRPC + Distributed Version
+VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up gateway -d
+```
+
 Starting the gateway will automatically start the entire microservices ecosystem, including:
 
 **Infrastructure:**
@@ -93,7 +106,7 @@ Starting the gateway will automatically start the entire microservices ecosystem
 * `version-service`
 * `answer-service`
 * `course-service`
-* `course-execution-service`
+* `execution-service`
 * `question-service`
 * `quiz-service`
 * `topic-service`
@@ -169,6 +182,15 @@ IntelliJ, these configurations will be automatically available in the Run/Debug 
   - `microservices-tcc-stream` — TCC with RabbitMQ
   - `microservices-tcc-grpc` — TCC with gRPC
 - Run the matching `version-service` configuration (`version-stream` or `version-grpc`)
+- Run the `api-gateway` configuration
+
+### Running as Microservices with Distributed Version
+
+Uses the `distributed-version` profile so each service generates version IDs locally via Snowflake IDs — **no version-service needed**.
+
+- Run one of the distributed microservices folders:
+  - `microservices-sagas-stream-distributed` — Sagas with RabbitMQ (distributed version)
+  - `microservices-sagas-grpc-distributed` — Sagas with gRPC (distributed version)
 - Run the `api-gateway` configuration
 
 ---
@@ -345,7 +367,7 @@ running RabbitMQ for inter-service communication.
 
 #### Running the Microservices
 
-**1. Start the Version Service:**
+**1. Start the Version Service** (skip this step if using `distributed-version` profile)**:**
 
 ```bash
 cd simulator
@@ -362,12 +384,18 @@ cd applications/quizzes
 |--------------------------|--------------------------------------------------------------------|
 | Answer Service           | `mvn spring-boot:run -Panswer,sagas\|tcc,stream\|grpc`            |
 | Course Service           | `mvn spring-boot:run -Pcourse,sagas\|tcc,stream\|grpc`            |
-| Course Execution Service | `mvn spring-boot:run -Pcourse-execution,sagas\|tcc,stream\|grpc`  |
+| Course Execution Service | `mvn spring-boot:run -Pexecution,sagas\|tcc,stream\|grpc`  |
 | Question Service         | `mvn spring-boot:run -Pquestion,sagas\|tcc,stream\|grpc`          |
 | Quiz Service             | `mvn spring-boot:run -Pquiz,sagas\|tcc,stream\|grpc`              |
 | Topic Service            | `mvn spring-boot:run -Ptopic,sagas\|tcc,stream\|grpc`             |
 | Tournament Service       | `mvn spring-boot:run -Ptournament,sagas\|tcc,stream\|grpc`        |
 | User Service             | `mvn spring-boot:run -Puser,sagas\|tcc,stream\|grpc`              |
+
+To use the distributed version profile (no version-service needed), add `distributed-version` to the Maven profiles:
+
+```bash
+mvn spring-boot:run -Panswer,sagas,stream,distributed-version
+```
 
 **3. Start the Gateway (from `applications/gateway`):**
 
@@ -631,6 +659,21 @@ service-specific gRPC ports are configured in the `application-*-service.yaml` f
 key `grpcPort`). Override the default client port with `grpc.command.default-port` or per-service with
 `grpc.command.<service>.port` when needed.
 
+### Distributed Version Service
+
+When the `distributed-version` profile is active, each microservice generates version IDs locally using a
+[Snowflake ID](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/domain/version/SnowflakeIdGenerator.java)
+generator, removing the need for a centralized version-service. The 64-bit IDs are composed of a 41-bit
+timestamp, a 10-bit machine ID (derived from `spring.application.name`), and a 12-bit sequence number,
+guaranteeing globally unique, monotonically increasing versions across services.
+
+This mode is only supported with the **sagas** transactional model (TCC requires centralized version management).
+
+| Profile               | Version Source                | Requires version-service? |
+|-----------------------|-------------------------------|---------------------------|
+| *(default)*           | Centralized `VersionService`  | Yes                       |
+| `distributed-version` | Local `SnowflakeIdGenerator`  | No                        |
+
 ### Service URLs and Ports
 
 Each microservice runs on a dedicated port:
@@ -640,7 +683,7 @@ Each microservice runs on a dedicated port:
 | Gateway            | 8080 | [application.yaml](applications/gateway/src/main/resources/application.yaml)                                                   |
 | Version Service    | 8081 | -                                                                                                                              |
 | Answer Service     | 8082 | [application-answer-service.yaml](applications/quizzes/src/main/resources/application-answer-service.yaml)                     |
-| Course Execution   | 8083 | [application-course-execution-service.yaml](applications/quizzes/src/main/resources/application-execution-service.yaml)        |
+| Course Execution   | 8083 | [application-execution-service.yaml](applications/quizzes/src/main/resources/application-execution-service.yaml)        |
 | Question Service   | 8084 | [application-question-service.yaml](applications/quizzes/src/main/resources/application-question-service.yaml)                 |
 | Quiz Service       | 8085 | [application-quiz-service.yaml](applications/quizzes/src/main/resources/application-quiz-service.yaml)                         |
 | Topic Service      | 8086 | [application-topic-service.yaml](applications/quizzes/src/main/resources/application-topic-service.yaml)                       |
