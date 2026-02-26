@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.GetVersionCom
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.IncrementVersionCommand;
 
 @Service
-@Profile("remote & !distributed_version")
+@Profile("remote & !distributed-version")
 public class VersionServiceClient implements IVersionService {
     private static final Logger logger = LoggerFactory.getLogger(VersionServiceClient.class);
 

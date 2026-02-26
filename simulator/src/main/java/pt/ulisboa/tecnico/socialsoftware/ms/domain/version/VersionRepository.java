@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @Transactional
-@Profile({"!remote & !distributed_version", "version-service"})
+@Profile({"!remote & !distributed-version", "version-service"})
 public interface VersionRepository extends JpaRepository<Version, Integer> {
 }

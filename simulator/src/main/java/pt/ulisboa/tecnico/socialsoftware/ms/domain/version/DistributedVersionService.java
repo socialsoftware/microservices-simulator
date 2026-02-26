@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
  * each microservice gets a unique, stable ID automatically.
  */
 @Service
-@Profile("distributed_version")
+@Profile("distributed-version")
 public class DistributedVersionService implements IVersionService {
 
     private static final Logger logger = LoggerFactory.getLogger(DistributedVersionService.class);

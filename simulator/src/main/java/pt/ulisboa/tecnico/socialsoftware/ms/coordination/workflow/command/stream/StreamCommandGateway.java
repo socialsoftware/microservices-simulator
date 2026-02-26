@@ -74,19 +74,22 @@ public class StreamCommandGateway extends CommandGateway {
 
         logger.info("Command sent to " + destination);
 
+        CommandResponse resp;
         try {
-            CommandResponse resp = responseFuture.get();
-            logger.info("Received response for command " + command.getClass().getSimpleName());
-            mergeUnitOfWork(command.getUnitOfWork(), resp.unitOfWork());
-            if (resp.isError()) {
-                throw new SimulatorException(resp.errorMessage());
-            }
-            return resp.result();
-        } catch (SimulatorException e) {
-            throw e;
+            resp = responseFuture.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting for command response", e);
         } catch (Exception e) {
-            logger.warning("Error while waiting for response: " + e.getMessage());
-            throw new RuntimeException("Error processing command", e);
+            throw new RuntimeException("Error waiting for command response", e);
         }
+
+        logger.info("Received response for command " + command.getClass().getSimpleName());
+        mergeUnitOfWork(command.getUnitOfWork(), resp.unitOfWork());
+
+        if (resp.isError()) {
+            throw new SimulatorException(resp.errorMessage());
+        }
+        return resp.result();
     }
 }

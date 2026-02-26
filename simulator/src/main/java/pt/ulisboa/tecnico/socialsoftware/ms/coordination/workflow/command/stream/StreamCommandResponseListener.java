@@ -52,13 +52,7 @@ public class StreamCommandResponseListener {
 
             logger.info("Received response for correlation ID: " + correlationId);
 
-            if (response.isError()) {
-                responseAggregator.completeExceptionally(
-                        correlationId,
-                        new SimulatorException(response.errorMessage()));
-            } else {
-                responseAggregator.completeResponse(correlationId, response);
-            }
+            responseAggregator.completeResponse(correlationId, response);
         };
     }
 }
