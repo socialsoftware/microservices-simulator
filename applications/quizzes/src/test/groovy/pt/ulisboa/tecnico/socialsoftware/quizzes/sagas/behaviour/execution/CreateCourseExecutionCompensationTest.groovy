@@ -10,12 +10,12 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 
 @DataJpaTest
 class CreateCourseExecutionCompensationTest extends QuizzesSpockTest {
     @Autowired
-    private CourseExecutionFunctionalities courseExecutionFunctionalities
+    private ExecutionFunctionalities courseExecutionFunctionalities
 
     @Autowired
     private CourseRepository courseRepository

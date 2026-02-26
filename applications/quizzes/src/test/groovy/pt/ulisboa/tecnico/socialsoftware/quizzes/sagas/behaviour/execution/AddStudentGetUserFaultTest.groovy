@@ -7,13 +7,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.CourseExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 
 @DataJpaTest
 class AddStudentGetUserFaultTest extends QuizzesSpockTest {
     @Autowired
-    private CourseExecutionFunctionalities courseExecutionFunctionalities
+    private ExecutionFunctionalities courseExecutionFunctionalities
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userDto
