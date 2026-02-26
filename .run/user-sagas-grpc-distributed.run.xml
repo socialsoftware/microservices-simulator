@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="user-sagas-stream-distributed" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="microservices-sagas-stream-distributed">
-    <option name="ACTIVE_PROFILES" value="stream,sagas,distributed-version,user-service" />
+  <configuration default="false" name="user-sagas-grpc-distributed" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="microservices-sagas-grpc-distributed">
+    <option name="ACTIVE_PROFILES" value="grpc,sagas,distributed-version,user-service" />
     <module name="QuizzesTutor" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.UserServiceApplication" />
     <extension name="coverage">
