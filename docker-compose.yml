@@ -1,4 +1,57 @@
+# ============================================
+# SHARED CONFIGURATION (YAML anchors)
+# ============================================
+
+x-version-mode: &version-mode
+  SPRING_PROFILES_INCLUDE: ${VERSION_MODE:-}
+
+x-postgres-env: &postgres-env
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+
+x-service-db: &service-db
+  image: postgres:14-alpine
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U postgres"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+  networks:
+    - messaging-network
+
+x-service-healthcheck: &service-healthcheck
+  interval: 30s
+  timeout: 10s
+  retries: 5
+  start_period: 180s
+
+x-microservice-env: &microservice-env
+  <<: *version-mode
+  EUREKA_HOST: eureka-server
+  SPRING_RABBITMQ_HOST: rabbitmq
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+
+x-microservice-deps: &microservice-deps
+  eureka-server:
+    condition: service_healthy
+  rabbitmq:
+    condition: service_healthy
+
+x-test-quizzes: &test-quizzes
+  image: maven:3.9.7-eclipse-temurin-21-alpine
+  stop_signal: SIGKILL
+  stdin_open: true
+  tty: true
+  working_dir: /quizzes
+  volumes:
+    - ./applications/quizzes:/quizzes
+    - mavencache:/root/.m2
+
 services:
+  # ============================================
+  # MONOLITHIC DATABASE
+  # ============================================
+
   postgres:
     image: postgres:14-alpine
     container_name: postgres
@@ -11,11 +64,10 @@ services:
       - ./data/dumps:/dumps
       - ./data/init:/docker-entrypoint-initdb.d
     environment:
-      - POSTGRES_DB=msdb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      <<: *postgres-env
+      POSTGRES_DB: msdb
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 20s
       timeout: 5s
       retries: 5
@@ -41,8 +93,8 @@ services:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
     networks:
       - messaging-network
 
@@ -65,9 +117,9 @@ services:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
+      SPRING_RABBITMQ_HOST: rabbitmq
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
     networks:
       - messaging-network
 
@@ -86,8 +138,10 @@ services:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+    networks:
+      - messaging-network
 
   quizzes-tcc-stream:
     build:
@@ -108,9 +162,9 @@ services:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/msdb
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
+      SPRING_RABBITMQ_HOST: rabbitmq
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
     networks:
       - messaging-network
 
@@ -119,139 +173,67 @@ services:
   # =====================================================
 
   answer-db:
-    image: postgres:14-alpine
+    <<: *service-db
     container_name: answer-db
     environment:
-      - POSTGRES_DB=answerdb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - messaging-network
+      <<: *postgres-env
+      POSTGRES_DB: answerdb
 
   course-db:
-    image: postgres:14-alpine
+    <<: *service-db
     container_name: course-db
     environment:
-      - POSTGRES_DB=coursedb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - messaging-network
+      <<: *postgres-env
+      POSTGRES_DB: coursedb
 
   execution-db:
-    image: postgres:14-alpine
+    <<: *service-db
     container_name: execution-db
     environment:
-      - POSTGRES_DB=executiondb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - messaging-network
+      <<: *postgres-env
+      POSTGRES_DB: executiondb
 
   question-db:
-    image: postgres:14-alpine
+    <<: *service-db
     container_name: question-db
     environment:
-      - POSTGRES_DB=questiondb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - messaging-network
+      <<: *postgres-env
+      POSTGRES_DB: questiondb
 
   quiz-db:
-    image: postgres:14-alpine
+    <<: *service-db
     container_name: quiz-db
     environment:
-      - POSTGRES_DB=quizdb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - messaging-network
+      <<: *postgres-env
+      POSTGRES_DB: quizdb
 
   topic-db:
-    image: postgres:14-alpine
+    <<: *service-db
     container_name: topic-db
     environment:
-      - POSTGRES_DB=topicdb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - messaging-network
+      <<: *postgres-env
+      POSTGRES_DB: topicdb
 
   tournament-db:
-    image: postgres:14-alpine
+    <<: *service-db
     container_name: tournament-db
     environment:
-      - POSTGRES_DB=tournamentdb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - messaging-network
+      <<: *postgres-env
+      POSTGRES_DB: tournamentdb
 
   user-db:
-    image: postgres:14-alpine
+    <<: *service-db
     container_name: user-db
     environment:
-      - POSTGRES_DB=userdb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - messaging-network
+      <<: *postgres-env
+      POSTGRES_DB: userdb
 
   version-db:
-    image: postgres:14-alpine
+    <<: *service-db
     container_name: version-db
     environment:
-      - POSTGRES_DB=versiondb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - messaging-network
+      <<: *postgres-env
+      POSTGRES_DB: versiondb
 
   # ============================================
   # MICROSERVICES CONFIGURATION
@@ -264,10 +246,7 @@ services:
     image: gateway
     container_name: gateway
     depends_on:
-      eureka-server:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+      <<: *microservice-deps
       jaeger:
         condition: service_started
       answer-service:
@@ -288,23 +267,21 @@ services:
         condition: service_healthy
       version-service:
         condition: service_healthy
+        required: false
     ports:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      - VERSION_SERVICE_HOST=version-service
-      - EUREKA_HOST=eureka-server
-      - GATEWAY_LOG_LEVEL=INFO
-      - REACTIVE_LOG_LEVEL=INFO
-      - BUFFER_LOG_LEVEL=INFO
+      VERSION_SERVICE_HOST: version-service
+      EUREKA_HOST: eureka-server
+      GATEWAY_LOG_LEVEL: INFO
+      REACTIVE_LOG_LEVEL: INFO
+      BUFFER_LOG_LEVEL: INFO
     networks:
       - messaging-network
     healthcheck:
+      <<: *service-healthcheck
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 180s
 
   version-service:
     build:
@@ -315,27 +292,21 @@ services:
     image: simulator
     container_name: version-service
     depends_on:
-      eureka-server:
-        condition: service_healthy
+      <<: *microservice-deps
       version-db:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     ports:
       - "8081:8081"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=version-service,stream
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://version-db:5432/versiondb
-      - SPRING_RABBITMQ_HOST=rabbitmq
+      SPRING_PROFILES_ACTIVE: version-service,stream
+      SPRING_DATASOURCE_URL: jdbc:postgresql://version-db:5432/versiondb
+      SPRING_RABBITMQ_HOST: rabbitmq
     networks:
       - messaging-network
     healthcheck:
+      <<: *service-healthcheck
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 180s
 
   answer-service:
     build:
@@ -346,28 +317,20 @@ services:
     image: quizzes-answer
     container_name: answer-service
     depends_on:
-      eureka-server:
-        condition: service_healthy
+      <<: *microservice-deps
       answer-db:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     ports:
       - "8082:8082"
     restart: unless-stopped
     environment:
-      - EUREKA_HOST=eureka-server
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://answer-db:5432/answerdb
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      <<: *microservice-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://answer-db:5432/answerdb
     networks:
       - messaging-network
     healthcheck:
+      <<: *service-healthcheck
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8082/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 180s
 
   course-service:
     build:
@@ -378,28 +341,20 @@ services:
     image: quizzes-course
     container_name: course-service
     depends_on:
-      eureka-server:
-        condition: service_healthy
+      <<: *microservice-deps
       course-db:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     ports:
       - "8089:8089"
     restart: unless-stopped
     environment:
-      - EUREKA_HOST=eureka-server
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://course-db:5432/coursedb
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      <<: *microservice-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://course-db:5432/coursedb
     networks:
       - messaging-network
     healthcheck:
+      <<: *service-healthcheck
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8089/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 180s
 
   execution-service:
     build:
@@ -410,28 +365,20 @@ services:
     image: quizzes-execution
     container_name: execution-service
     depends_on:
-      eureka-server:
-        condition: service_healthy
+      <<: *microservice-deps
       execution-db:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     ports:
       - "8083:8083"
     restart: unless-stopped
     environment:
-      - EUREKA_HOST=eureka-server
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://execution-db:5432/executiondb
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      <<: *microservice-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://execution-db:5432/executiondb
     networks:
       - messaging-network
     healthcheck:
+      <<: *service-healthcheck
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8083/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 180s
 
   question-service:
     build:
@@ -442,28 +389,20 @@ services:
     image: quizzes-question
     container_name: question-service
     depends_on:
-      eureka-server:
-        condition: service_healthy
+      <<: *microservice-deps
       question-db:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     ports:
       - "8084:8084"
     restart: unless-stopped
     environment:
-      - EUREKA_HOST=eureka-server
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://question-db:5432/questiondb
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      <<: *microservice-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://question-db:5432/questiondb
     networks:
       - messaging-network
     healthcheck:
+      <<: *service-healthcheck
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8084/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 180s
 
   quiz-service:
     build:
@@ -474,28 +413,20 @@ services:
     image: quizzes-quiz
     container_name: quiz-service
     depends_on:
-      eureka-server:
-        condition: service_healthy
+      <<: *microservice-deps
       quiz-db:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     ports:
       - "8085:8085"
     restart: unless-stopped
     environment:
-      - EUREKA_HOST=eureka-server
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://quiz-db:5432/quizdb
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      <<: *microservice-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://quiz-db:5432/quizdb
     networks:
       - messaging-network
     healthcheck:
+      <<: *service-healthcheck
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8085/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 180s
 
   topic-service:
     build:
@@ -506,28 +437,20 @@ services:
     image: quizzes-topic
     container_name: topic-service
     depends_on:
-      eureka-server:
-        condition: service_healthy
+      <<: *microservice-deps
       topic-db:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     ports:
       - "8086:8086"
     restart: unless-stopped
     environment:
-      - EUREKA_HOST=eureka-server
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://topic-db:5432/topicdb
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      <<: *microservice-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://topic-db:5432/topicdb
     networks:
       - messaging-network
     healthcheck:
+      <<: *service-healthcheck
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8086/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 180s
 
   tournament-service:
     build:
@@ -538,28 +461,20 @@ services:
     image: quizzes-tournament
     container_name: tournament-service
     depends_on:
-      eureka-server:
-        condition: service_healthy
+      <<: *microservice-deps
       tournament-db:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     ports:
       - "8087:8087"
     restart: unless-stopped
     environment:
-      - EUREKA_HOST=eureka-server
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://tournament-db:5432/tournamentdb
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      <<: *microservice-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://tournament-db:5432/tournamentdb
     networks:
       - messaging-network
     healthcheck:
+      <<: *service-healthcheck
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8087/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 180s
 
   user-service:
     build:
@@ -570,28 +485,20 @@ services:
     image: quizzes-user
     container_name: user-service
     depends_on:
-      eureka-server:
-        condition: service_healthy
+      <<: *microservice-deps
       user-db:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     ports:
       - "8088:8088"
     restart: unless-stopped
     environment:
-      - EUREKA_HOST=eureka-server
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://user-db:5432/userdb
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      <<: *microservice-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://user-db:5432/userdb
     networks:
       - messaging-network
     healthcheck:
+      <<: *service-healthcheck
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8088/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 180s
 
   # ============================================
   # TEST CONTAINERS
@@ -617,80 +524,31 @@ services:
     command: mvn install -DskipTests
 
   test-quizzes-sagas:
-    image: maven:3.9.7-eclipse-temurin-21-alpine
-    stop_signal: SIGKILL
-    stdin_open: true
-    tty: true
-    working_dir: /quizzes
-    volumes:
-      - ./applications/quizzes:/quizzes
-      - mavencache:/root/.m2
+    <<: *test-quizzes
     command: mvn -Ptest-sagas test
 
   test-quizzes-tcc:
-    image: maven:3.9.7-eclipse-temurin-21-alpine
-    stop_signal: SIGKILL
-    stdin_open: true
-    tty: true
-    working_dir: /quizzes
-    volumes:
-      - ./applications/quizzes:/quizzes
-      - mavencache:/root/.m2
+    <<: *test-quizzes
     command: mvn -Ptest-tcc test
 
   test-fig3a:
-    image: maven:3.9.7-eclipse-temurin-21-alpine
-    stop_signal: SIGKILL
-    stdin_open: true
-    tty: true
-    working_dir: /quizzes
-    volumes:
-      - ./applications/quizzes:/quizzes
-      - mavencache:/root/.m2
+    <<: *test-quizzes
     command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'sequential update name in course execution and then add student as tournament participant'
 
   test-fig3b:
-    image: maven:3.9.7-eclipse-temurin-21-alpine
-    stop_signal: SIGKILL
-    stdin_open: true
-    tty: true
-    working_dir: /quizzes
-    volumes:
-      - ./applications/quizzes:/quizzes
-      - mavencache:/root/.m2
+    <<: *test-quizzes
     command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'sequential add student as tournament participant and then update name in course execution'
 
   test-fig3c:
-    image: maven:3.9.7-eclipse-temurin-21-alpine
-    stop_signal: SIGKILL
-    stdin_open: true
-    tty: true
-    working_dir: /quizzes
-    volumes:
-      - ./applications/quizzes:/quizzes
-      - mavencache:/root/.m2
+    <<: *test-quizzes
     command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add student as tournament participant and update name in course execution - add student finishes first'
 
   test-fig3d:
-    image: maven:3.9.7-eclipse-temurin-21-alpine
-    stop_signal: SIGKILL
-    stdin_open: true
-    tty: true
-    working_dir: /quizzes
-    volumes:
-      - ./applications/quizzes:/quizzes
-      - mavencache:/root/.m2
+    <<: *test-quizzes
     command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add student as tournament participant and update name in course execution - update name finishes first'
 
   test-fig4:
-    image: maven:3.9.7-eclipse-temurin-21-alpine
-    stop_signal: SIGKILL
-    stdin_open: true
-    tty: true
-    working_dir: /quizzes
-    volumes:
-      - ./applications/quizzes:/quizzes
-      - mavencache:/root/.m2
+    <<: *test-quizzes
     command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add creator as tournament participant and update name in course execution - update name finishes first and event processing starts before add creator finishes'
 
   # ============================================
@@ -715,13 +573,13 @@ services:
     image: jaegertracing/all-in-one:1.75.0
     container_name: jaeger
     environment:
-      - COLLECTOR_OTLP_ENABLED=true
+      COLLECTOR_OTLP_ENABLED: "true"
     ports:
       - "16686:16686" # Jaeger UI
       - "14250:14250" # Jaeger gRPC
       - "14268:14268" # Jaeger HTTP
-      - "4317:4317" # OTLP gRPC receiver
-      - "4318:4318" # OTLP HTTP receiver
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
     restart: unless-stopped
     networks:
       - messaging-network
@@ -731,7 +589,7 @@ services:
     container_name: rabbitmq
     hostname: rabbitmq
     ports:
-      - "5672:5672" # AMQP port
+      - "5672:5672"   # AMQP port
       - "15672:15672" # Management UI port
     environment:
       RABBITMQ_DEFAULT_USER: guest
@@ -742,7 +600,7 @@ services:
     networks:
       - messaging-network
     healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
+      test: ["CMD", "rabbitmqctl", "status"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -750,7 +608,6 @@ services:
 volumes:
   mavencache:
   rabbitmq_data:
-
 
 networks:
   messaging-network:
