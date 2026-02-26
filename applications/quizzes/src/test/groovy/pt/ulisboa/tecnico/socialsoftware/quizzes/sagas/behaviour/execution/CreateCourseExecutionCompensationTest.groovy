@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour
+package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.execution
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
