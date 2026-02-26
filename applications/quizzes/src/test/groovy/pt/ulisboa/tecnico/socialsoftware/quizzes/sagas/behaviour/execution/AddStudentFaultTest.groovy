@@ -11,7 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordin
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 
 @DataJpaTest
-class AddStudentGetUserFaultTest extends QuizzesSpockTest {
+class AddStudentFaultTest extends QuizzesSpockTest {
     @Autowired
     private ExecutionFunctionalities courseExecutionFunctionalities
 
@@ -25,15 +25,26 @@ class AddStudentGetUserFaultTest extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanUpCounter()
         behaviourService.cleanDirectory()
     }
 
     def "student is not enrolled when getUserStep fails"() {
-        when: 'addStudent fails on getUserStep'
+        when:
         courseExecutionFunctionalities.addStudent(courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
-        then: 'the injected fault is thrown'
+        then:
+        thrown(SimulatorException)
+
+        and: 'the course execution has no students'
+        def result = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.getAggregateId())
+        result.students.isEmpty()
+    }
+
+    def "student is not enrolled when enrollStudentStep fails"() {
+        when:
+        courseExecutionFunctionalities.addStudent(courseExecutionDto.getAggregateId(), userDto.getAggregateId())
+
+        then:
         thrown(SimulatorException)
 
         and: 'the course execution has no students'
