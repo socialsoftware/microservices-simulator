@@ -52,32 +52,17 @@ public class CourseCommandHandler extends CommandHandler {
 
     private Object handleGetCourseByNameRemote(GetCourseByNameRemoteCommand command) {
         logger.info("Getting course by name: " + command.getCourseExecutionDto().getName());
-        try {
-            return courseService.getCourseByNameRemote(command.getCourseExecutionDto(), command.getUnitOfWork());
-        } catch (Exception e) {
-            logger.severe("Failed to get course by name: " + e.getMessage());
-            return e;
-        }
+        return courseService.getCourseByNameRemote(command.getCourseExecutionDto(), command.getUnitOfWork());
     }
 
     private Object handleCreateCourseRemote(CreateCourseRemoteCommand command) {
         logger.info("Creating course: " + command.getCourseExecutionDto().getName());
-        try {
-            return courseService.createCourseRemote(command.getCourseExecutionDto(), command.getUnitOfWork());
-        } catch (Exception e) {
-            logger.severe("Failed to create course: " + e.getMessage());
-            return e;
-        }
+        return courseService.createCourseRemote(command.getCourseExecutionDto(), command.getUnitOfWork());
     }
 
     private Object handleDeleteCourse(DeleteCourseCommand command) {
         logger.info("Deleting course: " + command.getCourseAggregateId());
-        try {
-            courseService.deleteCourse(command.getCourseAggregateId(), command.getUnitOfWork());
-            return null;
-        } catch (Exception e) {
-            logger.severe("Failed to delete course: " + e.getMessage());
-            return e;
-        }
+        courseService.deleteCourse(command.getCourseAggregateId(), command.getUnitOfWork());
+        return null;
     }
 }
