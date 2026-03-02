@@ -20,10 +20,8 @@ execution to full distributed deployment.
 
 | Mode              | Description                                                                                                | Profiles                                                              | Infrastructure                                                                                                                            |
 |-------------------|------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| **Monolith**      | Runs as a single application. Supports local (internal), stream (RabbitMQ), or gRPC service calls.         | `sagas\|tcc, local\|stream\|grpc`          | PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                                 |
-| **Microservices** | Fully distributed. Each domain service runs independently. Uses Eureka for discovery and RabbitMQ or gRPC. | Service-specific (e.g., `answer,sagas\|tcc,stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
-| **Microservices (Distributed Version)** | Same as Microservices, but each service generates version IDs locally using Snowflake IDs instead of relying on a centralized version service. | Service-specific + `distributed-version` | PostgreSQL, Jaeger, Eureka, (RabbitMQ for stream) — **no version-service required** |
-| **Kubernetes**    | Distributed microservices orchestrated by Kubernetes (`k8s/services-stream`, `k8s/services-grpc` or `k8s/services-azure` to deploy in Microsoft Azure). Uses Spring Cloud Kubernetes for discovery. | `kubernetes`                                                              | K8s Cluster, PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                    |
+| **Centralized**   | Runs as a single application. Supports local (internal), stream (RabbitMQ), or gRPC service calls. Optionally uses `distributed-version` profile for Snowflake-based version IDs. | `sagas\|tcc, local\|stream\|grpc`          | PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                                 |
+| **Distributed**   | Each domain service runs independently. Uses Eureka for discovery (or Spring Cloud Kubernetes on K8s) and RabbitMQ or gRPC. Optionally uses `distributed-version` profile for local version ID generation via Snowflake IDs. Can also be deployed on [Kubernetes](#kubernetes-deployment). | Service-specific (e.g., `answer,sagas\|tcc,stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
 
 ## Run Using Docker
 
@@ -39,7 +37,7 @@ docker compose build
 
 Or run the service with the flag `--build`
 
-### Running as a Monolith with Local Service Calls
+### Running as Centralized with Local Service Calls
 
 ```bash
 # Sagas
@@ -49,7 +47,7 @@ docker compose up quizzes-sagas
 docker compose up quizzes-tcc
 ```
 
-### Running as a Monolith with Remote Service Calls With RabbitMQ
+### Running as Centralized with Remote Service Calls With RabbitMQ
 
 ```bash
 # Sagas
@@ -59,7 +57,7 @@ docker compose up quizzes-sagas-stream
 docker compose up quizzes-tcc-stream
 ```
 
-### Running as Microservices
+### Running as Distributed
 
 ```bash
 # Sagas (default) with Stream (default)
@@ -93,7 +91,7 @@ VERSION_MODE=distributed-version docker compose up gateway -d
 VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up gateway -d
 ```
 
-Starting the gateway will automatically start the entire microservices ecosystem, including:
+Starting the gateway will automatically start the entire distributed ecosystem, including:
 
 **Infrastructure:**
 
@@ -165,16 +163,16 @@ IntelliJ, these configurations will be automatically available in the Run/Debug 
 3. Select a run configuration from the dropdown (e.g., **Quizzes**)
 4. Click the **Run** button
 
-### Running as a Monolith with Local Service Calls
+### Running as Centralized with Local Service Calls
 
 - Run the `sagas local` or the `tcc local` configuration
 
-### Running as a Monolith with Remote Service Calls
+### Running as Centralized with Remote Service Calls
 
 - Run the `quizzes-simulator` folder (contains `sagas-stream`, `sagas-grpc`, `tcc-stream`, `tcc-grpc` configurations)
 - Run one of the `version-service` folder configurations (`version-stream` or `version-grpc`) matching the communication layer
 
-### Running as Microservices
+### Running as Distributed
 
 - Run one of the microservices folders to start all domain services:
   - `microservices-sagas-stream` — Sagas with RabbitMQ
@@ -184,7 +182,7 @@ IntelliJ, these configurations will be automatically available in the Run/Debug 
 - Run the matching `version-service` configuration (`version-stream` or `version-grpc`)
 - Run the `api-gateway` configuration
 
-### Running as Microservices with Distributed Version
+#### Running with Distributed Version
 
 Uses the `distributed-version` profile so each service generates version IDs locally via Snowflake IDs — **no version-service needed**.
 
@@ -235,7 +233,7 @@ There is two ways to set up the database:
     createdb msdb
     ```
 
-3. **Create microservice databases (required for microservices mode):**
+3. **Create microservice databases (required for distributed mode):**
 
     ```bash
     psql -U postgres -d msdb -f data/init/init-databases.sh
@@ -282,7 +280,7 @@ mvn clean -Ptest-sagas test
 
 ---
 
-### Quizzes Monolithic Simulation
+### Quizzes Centralized Simulation
 
 ```bash
 cd applications/quizzes
@@ -314,7 +312,7 @@ mvn clean -Ptest-tcc test
 
 ---
 
-### Quizzes Monolithic Simulation with Remote Service Calls
+### Quizzes Centralized Simulation with Remote Service Calls
 
 #### Additional Requirements:
 
@@ -340,9 +338,9 @@ mvn spring-boot:run -Psagas,grpc
 
 ---
 
-### Quizzes Microservices Simulation Deployment
+### Quizzes Distributed Simulation Deployment
 
-Running the application as distributed microservices requires setting up individual databases for each service and
+Running the application in distributed mode requires setting up individual databases for each service and
 running RabbitMQ for inter-service communication.
 
 #### Prerequisites
@@ -391,10 +389,16 @@ cd applications/quizzes
 | Tournament Service       | `mvn spring-boot:run -Ptournament,sagas\|tcc,stream\|grpc`        |
 | User Service             | `mvn spring-boot:run -Puser,sagas\|tcc,stream\|grpc`              |
 
-To use the distributed version profile (no version-service needed), add `distributed-version` to the Maven profiles:
+To use the distributed version profile (no version-service needed), add `distributed-version` to the Maven profiles. This also works in centralized mode with any communication profile:
 
 ```bash
+# Distributed mode example
 mvn spring-boot:run -Panswer,sagas,stream,distributed-version
+
+# Centralized mode examples
+mvn spring-boot:run -Psagas,local,distributed-version
+mvn spring-boot:run -Psagas,stream,distributed-version
+mvn spring-boot:run -Psagas,grpc,distributed-version
 ```
 
 **3. Start the Gateway (from `applications/gateway`):**
@@ -406,11 +410,11 @@ mvn spring-boot:run
 
 ---
 
-## Kubernetes Deployment
+### Kubernetes Deployment
 
-The application supports deployment on Kubernetes using Spring Cloud Kubernetes for service discovery.
+The distributed mode can also be deployed on Kubernetes, using Spring Cloud Kubernetes for service discovery instead of Eureka.
 
-#### Prerequisites
+##### Prerequisites
 
 Install the following packages:
 
@@ -424,7 +428,7 @@ Install the following packages:
 kind create cluster --name microservices
 ```
 
-#### Build and Load Images
+##### Build and Load Images
 
 ```bash
 # Build all Docker images
@@ -436,7 +440,7 @@ for img in gateway simulator quizzes-answer quizzes-course quizzes-execution qui
 done
 ```
 
-#### Deploy to Kubernetes
+##### Deploy to Kubernetes
 
 ```bash
 # Create namespace and RBAC
@@ -466,14 +470,14 @@ kubectl get pods -n microservices-simulator
 > **Note:** To change transactional model profile, edit `k8s/services-stream/` or `k8s/services-grpc/` and change the
 > `SPRING_PROFILES_ACTIVE` environment variable of each service.
 
-#### Access the Application
+##### Access the Application
 
 ```bash
 # Port-forward to gateway
 kubectl port-forward svc/gateway 8080:8080 -n microservices-simulator
 ```
 
-#### Access Jaeger UI
+##### Access Jaeger UI
 
 ```bash
 kubectl port-forward svc/jaeger 16686:16686 -n microservices-simulator
@@ -481,7 +485,7 @@ kubectl port-forward svc/jaeger 16686:16686 -n microservices-simulator
 
 Then open [http://localhost:16686](http://localhost:16686) to view distributed traces.
 
-#### Cleanup
+##### Cleanup
 
 ```bash
 kubectl delete namespace microservices-simulator
@@ -489,16 +493,16 @@ kubectl delete namespace microservices-simulator
 
 ---
 
-### Azure Kubernetes Service (AKS) Deployment
+#### Azure Kubernetes Service (AKS) Deployment
 
-Deploy the microservices to Azure Kubernetes Service for cloud-based deployments.
+Deploy the distributed mode to Azure Kubernetes Service for cloud-based deployments.
 
-#### Prerequisites
+##### Prerequisites
 
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) installed
 - Active Azure subscription (e.g., Azure for Students)
 
-#### Setup AKS Cluster
+##### Setup AKS Cluster
 
 ```bash
 # Login to Azure
@@ -523,7 +527,7 @@ az aks get-credentials --resource-group simulator-rg-es --name simulator-cluster
 kubectl get nodes
 ```
 
-#### Register Azure Resource Providers (One-time setup)
+##### Register Azure Resource Providers (One-time setup)
 
 ```bash
 # Register Container Registry provider (required for ACR)
@@ -533,7 +537,7 @@ az provider register --namespace Microsoft.ContainerRegistry
 az provider show --namespace Microsoft.ContainerRegistry --query "registrationState"
 ```
 
-#### Push Images to Azure Container Registry
+##### Push Images to Azure Container Registry
 
 ```bash
 # Run the push script (creates ACR, attaches to AKS, pushes images)
@@ -541,7 +545,7 @@ chmod +x scripts/push-to-acr.sh
 ./scripts/push-to-acr.sh
 ```
 
-#### Deploy to Azure
+##### Deploy to Azure
 
 ```bash
 # 1. Base setup
@@ -578,7 +582,7 @@ az aks stop --name simulator-cluster --resource-group simulator-rg-es
 az aks start --name simulator-cluster --resource-group simulator-rg-es
 ```
 
-#### Cleanup Azure Resources
+##### Cleanup Azure Resources
 
 ```bash
 # Delete the cluster
@@ -619,8 +623,8 @@ requests across microservices.
 
 ### Service Discovery
 
-Local microservices use Eureka for service discovery. The gateway and each microservice register with the Eureka
-server at `http://${EUREKA_HOST:localhost}:8761/eureka/`. In Kubernetes, the `kubernetes` profile enables
+In distributed mode, local deployments use Eureka for service discovery. The gateway and each microservice register with the Eureka
+server at `http://${EUREKA_HOST:localhost}:8761/eureka/`. When deploying on Kubernetes, the `kubernetes` profile enables
 Spring Cloud Kubernetes discovery instead of Eureka.
 
 ### Database Configuration
@@ -629,8 +633,8 @@ Database settings are defined in [application.yaml](applications/quizzes/src/mai
 
 | Profile       | Database        | Description                                                        |
 |---------------|-----------------|--------------------------------------------------------------------|
-| Monolith      | `msdb`          | Single database for all aggregates                                 |
-| Microservices | Per-service DBs | Each service has its own database (e.g., `tournamentdb`, `userdb`) |
+| Centralized   | `msdb`          | Single database for all aggregates                                 |
+| Distributed   | Per-service DBs | Each service has its own database (e.g., `tournamentdb`, `userdb`) |
 
 Service-specific database URLs are configured in profile files
 like [application-tournament-service.yaml](applications/quizzes/src/main/resources/application-tournament-service.yaml).
@@ -661,13 +665,13 @@ key `grpcPort`). Override the default client port with `grpc.command.default-por
 
 ### Distributed Version Service
 
-When the `distributed-version` profile is active, each microservice generates version IDs locally using a
+When running in distributed mode with the `distributed-version` profile active, each microservice generates version IDs locally using a
 [Snowflake ID](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/domain/version/SnowflakeIdGenerator.java)
-generator, removing the need for a centralized version-service. The 64-bit IDs are composed of a 41-bit
+generator, removing the need for a centralized version-service. This profile can also be used in centralized mode with any communication profile (`local`, `stream`, or `grpc`). The 64-bit IDs are composed of a 41-bit
 timestamp, a 10-bit machine ID (derived from `spring.application.name`), and a 12-bit sequence number,
 guaranteeing globally unique, monotonically increasing versions across services.
 
-This mode is only supported with the **sagas** transactional model (TCC requires centralized version management).
+This option is only supported with the **sagas** transactional model (TCC requires centralized version management).
 
 | Profile               | Version Source                | Requires version-service? |
 |-----------------------|-------------------------------|---------------------------|
@@ -698,7 +702,7 @@ map the service name to the service port automatically.
 The [Gateway application.yaml](applications/gateway/src/main/resources/application.yaml) configures:
 
 1. **Service discovery** ([lines 8-25](applications/gateway/src/main/resources/application.yaml)): Eureka discovery for
-   local deployments; Kubernetes discovery is enabled in the `kubernetes` profile.
+   local distributed deployments; Kubernetes discovery is enabled via the `kubernetes` profile.
 
 2. **Route definitions** ([lines 30-87](applications/gateway/src/main/resources/application.yaml)): Map API paths to
    backend services using `lb://<service>${gateway.service-suffix}` URIs.
