@@ -2,6 +2,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.version;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
@@ -12,6 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.IncrementVers
 import java.util.logging.Logger;
 
 @Component
+@Profile("version-service")
 public class VersionCommandHandler extends CommandHandler {
     private static final Logger logger = Logger.getLogger(VersionCommandHandler.class.getName());
 

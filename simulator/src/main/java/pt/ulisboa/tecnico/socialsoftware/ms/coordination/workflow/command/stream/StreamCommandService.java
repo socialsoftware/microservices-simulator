@@ -2,34 +2,39 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.strea
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandResponse;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandResponse;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.MessagingObjectMapperProvider;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import java.util.logging.Logger;
 
+@Component
 @Profile("stream")
-public abstract class StreamCommandHandler extends CommandHandler {
+public class StreamCommandService {
 
-    private static final Logger logger = Logger.getLogger(StreamCommandHandler.class.getName());
+    private static final Logger logger = Logger.getLogger(StreamCommandService.class.getName());
+    private final ApplicationContext applicationContext;
     private final StreamBridge streamBridge;
     private final ObjectMapper objectMapper;
 
-    protected StreamCommandHandler(StreamBridge streamBridge, MessagingObjectMapperProvider mapperProvider) {
+    @Autowired
+    public StreamCommandService(ApplicationContext applicationContext, StreamBridge streamBridge,
+            MessagingObjectMapperProvider mapperProvider) {
+        this.applicationContext = applicationContext;
         this.streamBridge = streamBridge;
         this.objectMapper = mapperProvider.newMapper();
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void handleCommandMessage(Message<?> message) {
         Command command;
         if (!(message.getPayload() instanceof Command)) {
@@ -58,8 +63,16 @@ public abstract class StreamCommandHandler extends CommandHandler {
         logger.info("Handling command for service: " + command.getServiceName() +
                 " with correlation ID: " + correlationId);
 
+        CommandHandler handler;
         try {
-            Object result = handle(command);
+            handler = (CommandHandler) applicationContext.getBean(command.getServiceName() + "CommandHandler");
+        } catch (Exception e) {
+            logger.severe("Failed to find command handler for service: " + command.getServiceName());
+            return;
+        }
+
+        try {
+            Object result = handler.handle(command);
             sendResponse(correlationId, result, command.getUnitOfWork(), replyTo);
         } catch (SimulatorException e) {
             logger.warning("Command handling error: " + e.getMessage());

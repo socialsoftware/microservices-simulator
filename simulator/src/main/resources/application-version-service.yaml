@@ -34,10 +34,10 @@ spring:
     password: guest
   cloud:
     function:
-      definition: versionCommandChannel
+      definition: versionServiceCommandChannel
     stream:
       bindings:
-        versionCommandChannel-in-0:
+        versionServiceCommandChannel-in-0:
           destination: version-command-channel
           group: version-service
         command-responses-out-0:
