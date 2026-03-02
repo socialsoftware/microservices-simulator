@@ -19,8 +19,8 @@
         <spring-cloud.version>2025.0.0</spring-cloud.version>
         <transaction.pattern>sagas</transaction.pattern>
         <communication.layer>local</communication.layer>
-        <version.mode></version.mode>
-        <activatedProperties>${transaction.pattern},${communication.layer},${version.mode}</activatedProperties>
+        <version.suffix></version.suffix>
+        <activatedProperties>${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -121,56 +121,56 @@
             <id>answer</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.AnswerServiceApplication</start-class>
-                <activatedProperties>answer-service,${transaction.pattern},${communication.layer},${version.mode}</activatedProperties>
+                <activatedProperties>answer-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
             <id>execution</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.ExecutionServiceApplication</start-class>
-                <activatedProperties>execution-service,${transaction.pattern},${communication.layer},${version.mode}</activatedProperties>
+                <activatedProperties>execution-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
             <id>course</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.CourseServiceApplication</start-class>
-                <activatedProperties>course-service,${transaction.pattern},${communication.layer},${version.mode}</activatedProperties>
+                <activatedProperties>course-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
             <id>question</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.QuestionServiceApplication</start-class>
-                <activatedProperties>question-service,${transaction.pattern},${communication.layer},${version.mode}</activatedProperties>
+                <activatedProperties>question-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
             <id>quiz</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.QuizServiceApplication</start-class>
-                <activatedProperties>quiz-service,${transaction.pattern},${communication.layer},${version.mode}</activatedProperties>
+                <activatedProperties>quiz-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
             <id>topic</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.TopicServiceApplication</start-class>
-                <activatedProperties>topic-service,${transaction.pattern},${communication.layer},${version.mode}</activatedProperties>
+                <activatedProperties>topic-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
             <id>tournament</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.TournamentServiceApplication</start-class>
-                <activatedProperties>tournament-service,${transaction.pattern},${communication.layer},${version.mode}</activatedProperties>
+                <activatedProperties>tournament-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
             <id>user</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.UserServiceApplication</start-class>
-                <activatedProperties>user-service,${transaction.pattern},${communication.layer},${version.mode}</activatedProperties>
+                <activatedProperties>user-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <!-- Communication Layer Profiles -->
@@ -202,7 +202,7 @@
         <profile>
             <id>distributed-version</id>
             <properties>
-                <version.mode>distributed-version</version.mode>
+                <version.suffix>,distributed-version</version.suffix> <!-- It has a comma before to not create trailing commas when the version.suffix is null -->
             </properties>
         </profile>
         <profile>
