@@ -18,10 +18,10 @@ in [Transactional Causal Consistent Microservices Simulator](https://doi.org/10.
 The simulator supports multiple execution modes to test different aspects of system behavior, ranging from simple local
 execution to full distributed deployment.
 
-| Mode              | Description                                                                                                | Profiles                                                              | Infrastructure                                                                                                                            |
-|-------------------|------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| **Centralized**   | Runs as a single application. Supports local (internal), stream (RabbitMQ), or gRPC service calls. Optionally uses `distributed-version` profile for Snowflake-based version IDs. | `sagas\|tcc, local\|stream\|grpc`          | PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                                 |
-| **Distributed**   | Each domain service runs independently. Uses Eureka for discovery (or Spring Cloud Kubernetes on K8s) and RabbitMQ or gRPC. Optionally uses `distributed-version` profile for local version ID generation via Snowflake IDs. Can also be deployed on [Kubernetes](#kubernetes-deployment). | Service-specific (e.g., `answer,sagas\|tcc,stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
+| Mode            | Description                                                                                                                                                                                                                                                                                | Profiles                                                  | Infrastructure                                                                                                                            |
+|-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| **Centralized** | Runs as a single application. Supports local (internal), stream (RabbitMQ), or gRPC service calls. Optionally uses `distributed-version` profile for Snowflake-based version IDs.                                                                                                          | `sagas\|tcc, local\|stream\|grpc`                         | PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                                 |
+| **Distributed** | Each domain service runs independently. Uses Eureka for discovery (or Spring Cloud Kubernetes on K8s) and RabbitMQ or gRPC. Optionally uses `distributed-version` profile for local version ID generation via Snowflake IDs. Can also be deployed on [Kubernetes](#kubernetes-deployment). | Service-specific (e.g., `answer,sagas\|tcc,stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
 
 ## Run Using Docker
 
@@ -81,7 +81,8 @@ docker compose up gateway -d
 
 #### Running with Distributed Version (no version-service needed)
 
-Use the `VERSION_MODE` environment variable to enable the `distributed-version` profile. Each microservice will generate version IDs locally using Snowflake IDs.
+Use the `VERSION_MODE` environment variable to enable the `distributed-version` profile. Each microservice will generate
+version IDs locally using Snowflake IDs.
 
 ```bash
 # Sagas + Stream + Distributed Version
@@ -170,25 +171,27 @@ IntelliJ, these configurations will be automatically available in the Run/Debug 
 ### Running as Centralized with Remote Service Calls
 
 - Run the `quizzes-simulator` folder (contains `sagas-stream`, `sagas-grpc`, `tcc-stream`, `tcc-grpc` configurations)
-- Run one of the `version-service` folder configurations (`version-stream` or `version-grpc`) matching the communication layer
+- Run one of the `version-service` folder configurations (`version-stream` or `version-grpc`) matching the communication
+  layer
 
 ### Running as Distributed
 
 - Run one of the microservices folders to start all domain services:
-  - `microservices-sagas-stream` — Sagas with RabbitMQ
-  - `microservices-sagas-grpc` — Sagas with gRPC
-  - `microservices-tcc-stream` — TCC with RabbitMQ
-  - `microservices-tcc-grpc` — TCC with gRPC
+    - `microservices-sagas-stream` — Sagas with RabbitMQ
+    - `microservices-sagas-grpc` — Sagas with gRPC
+    - `microservices-tcc-stream` — TCC with RabbitMQ
+    - `microservices-tcc-grpc` — TCC with gRPC
 - Run the matching `version-service` configuration (`version-stream` or `version-grpc`)
 - Run the `api-gateway` configuration
 
 #### Running with Distributed Version
 
-Uses the `distributed-version` profile so each service generates version IDs locally via Snowflake IDs — **no version-service needed**.
+Uses the `distributed-version` profile so each service generates version IDs locally via Snowflake IDs — **no
+version-service needed**.
 
 - Run one of the distributed microservices folders:
-  - `microservices-sagas-stream-distributed` — Sagas with RabbitMQ (distributed version)
-  - `microservices-sagas-grpc-distributed` — Sagas with gRPC (distributed version)
+    - `microservices-sagas-stream-distributed` — Sagas with RabbitMQ (distributed version)
+    - `microservices-sagas-grpc-distributed` — Sagas with gRPC (distributed version)
 - Run the `api-gateway` configuration
 
 ---
@@ -378,18 +381,19 @@ mvn spring-boot:run -Dspring-boot.run.profiles=version-service,stream
 cd applications/quizzes
 ```
 
-| Service                  | Command                                                            |
-|--------------------------|--------------------------------------------------------------------|
-| Answer Service           | `mvn spring-boot:run -Panswer,sagas\|tcc,stream\|grpc`            |
-| Course Service           | `mvn spring-boot:run -Pcourse,sagas\|tcc,stream\|grpc`            |
+| Service                  | Command                                                    |
+|--------------------------|------------------------------------------------------------|
+| Answer Service           | `mvn spring-boot:run -Panswer,sagas\|tcc,stream\|grpc`     |
+| Course Service           | `mvn spring-boot:run -Pcourse,sagas\|tcc,stream\|grpc`     |
 | Course Execution Service | `mvn spring-boot:run -Pexecution,sagas\|tcc,stream\|grpc`  |
-| Question Service         | `mvn spring-boot:run -Pquestion,sagas\|tcc,stream\|grpc`          |
-| Quiz Service             | `mvn spring-boot:run -Pquiz,sagas\|tcc,stream\|grpc`              |
-| Topic Service            | `mvn spring-boot:run -Ptopic,sagas\|tcc,stream\|grpc`             |
-| Tournament Service       | `mvn spring-boot:run -Ptournament,sagas\|tcc,stream\|grpc`        |
-| User Service             | `mvn spring-boot:run -Puser,sagas\|tcc,stream\|grpc`              |
+| Question Service         | `mvn spring-boot:run -Pquestion,sagas\|tcc,stream\|grpc`   |
+| Quiz Service             | `mvn spring-boot:run -Pquiz,sagas\|tcc,stream\|grpc`       |
+| Topic Service            | `mvn spring-boot:run -Ptopic,sagas\|tcc,stream\|grpc`      |
+| Tournament Service       | `mvn spring-boot:run -Ptournament,sagas\|tcc,stream\|grpc` |
+| User Service             | `mvn spring-boot:run -Puser,sagas\|tcc,stream\|grpc`       |
 
-To use the distributed version profile (no version-service needed), add `distributed-version` to the Maven profiles. This also works in centralized mode with any communication profile:
+To use the distributed version profile (no version-service needed), add `distributed-version` to the Maven profiles.
+This also works in centralized mode with any communication profile:
 
 ```bash
 # Distributed mode example
@@ -412,7 +416,8 @@ mvn spring-boot:run
 
 ### Kubernetes Deployment
 
-The distributed mode can also be deployed on Kubernetes, using Spring Cloud Kubernetes for service discovery instead of Eureka.
+The distributed mode can also be deployed on Kubernetes, using Spring Cloud Kubernetes for service discovery instead of
+Eureka.
 
 ##### Prerequisites
 
@@ -623,7 +628,8 @@ requests across microservices.
 
 ### Service Discovery
 
-In distributed mode, local deployments use Eureka for service discovery. The gateway and each microservice register with the Eureka
+In distributed mode, local deployments use Eureka for service discovery. The gateway and each microservice register with
+the Eureka
 server at `http://${EUREKA_HOST:localhost}:8761/eureka/`. When deploying on Kubernetes, the `kubernetes` profile enables
 Spring Cloud Kubernetes discovery instead of Eureka.
 
@@ -631,10 +637,10 @@ Spring Cloud Kubernetes discovery instead of Eureka.
 
 Database settings are defined in [application.yaml](applications/quizzes/src/main/resources/application.yaml):
 
-| Profile       | Database        | Description                                                        |
-|---------------|-----------------|--------------------------------------------------------------------|
-| Centralized   | `msdb`          | Single database for all aggregates                                 |
-| Distributed   | Per-service DBs | Each service has its own database (e.g., `tournamentdb`, `userdb`) |
+| Profile     | Database        | Description                                                        |
+|-------------|-----------------|--------------------------------------------------------------------|
+| Centralized | `msdb`          | Single database for all aggregates                                 |
+| Distributed | Per-service DBs | Each service has its own database (e.g., `tournamentdb`, `userdb`) |
 
 Service-specific database URLs are configured in profile files
 like [application-tournament-service.yaml](applications/quizzes/src/main/resources/application-tournament-service.yaml).
@@ -665,36 +671,39 @@ key `grpcPort`). Override the default client port with `grpc.command.default-por
 
 ### Distributed Version Service
 
-When running in distributed mode with the `distributed-version` profile active, each microservice generates version IDs locally using a
+When running in distributed mode with the `distributed-version` profile active, each microservice generates version IDs
+locally using a
 [Snowflake ID](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/domain/version/SnowflakeIdGenerator.java)
-generator, removing the need for a centralized version-service. This profile can also be used in centralized mode with any communication profile (`local`, `stream`, or `grpc`). The 64-bit IDs are composed of a 41-bit
+generator, removing the need for a centralized version-service. This profile can also be used in centralized mode with
+any communication profile (`local`, `stream`, or `grpc`). The 64-bit IDs are composed of a 41-bit
 timestamp, a 10-bit machine ID (derived from `spring.application.name`), and a 12-bit sequence number,
 guaranteeing globally unique, monotonically increasing versions across services.
 
 This option is only supported with the **sagas** transactional model (TCC requires centralized version management).
 
-| Profile               | Version Source                | Requires version-service? |
-|-----------------------|-------------------------------|---------------------------|
-| *(default)*           | Centralized `VersionService`  | Yes                       |
-| `distributed-version` | Local `SnowflakeIdGenerator`  | No                        |
+| Profile               | Version Source               | Requires version-service? |
+|-----------------------|------------------------------|---------------------------|
+| *(default)*           | Centralized `VersionService` | Yes                       |
+| `distributed-version` | Local `SnowflakeIdGenerator` | No                        |
 
 ### Service URLs and Ports
 
 Each microservice runs on a dedicated port:
 
-| Service            | Port | Profile File                                                                                                                   |
-|--------------------|------|--------------------------------------------------------------------------------------------------------------------------------|
-| Gateway            | 8080 | [application.yaml](applications/gateway/src/main/resources/application.yaml)                                                   |
-| Version Service    | 8081 | -                                                                                                                              |
-| Answer Service     | 8082 | [application-answer-service.yaml](applications/quizzes/src/main/resources/application-answer-service.yaml)                     |
-| Course Execution   | 8083 | [application-execution-service.yaml](applications/quizzes/src/main/resources/application-execution-service.yaml)        |
-| Question Service   | 8084 | [application-question-service.yaml](applications/quizzes/src/main/resources/application-question-service.yaml)                 |
-| Quiz Service       | 8085 | [application-quiz-service.yaml](applications/quizzes/src/main/resources/application-quiz-service.yaml)                         |
-| Topic Service      | 8086 | [application-topic-service.yaml](applications/quizzes/src/main/resources/application-topic-service.yaml)                       |
-| Tournament Service | 8087 | [application-tournament-service.yaml](applications/quizzes/src/main/resources/application-tournament-service.yaml)             |
-| User Service       | 8088 | [application-user-service.yaml](applications/quizzes/src/main/resources/application-user-service.yaml)                         |
+| Service            | Port | Profile File                                                                                                       |
+|--------------------|------|--------------------------------------------------------------------------------------------------------------------|
+| Gateway            | 8080 | [application.yaml](applications/gateway/src/main/resources/application.yaml)                                       |
+| Version Service    | 8081 | -                                                                                                                  |
+| Answer Service     | 8082 | [application-answer-service.yaml](applications/quizzes/src/main/resources/application-answer-service.yaml)         |
+| Course Execution   | 8083 | [application-execution-service.yaml](applications/quizzes/src/main/resources/application-execution-service.yaml)   |
+| Question Service   | 8084 | [application-question-service.yaml](applications/quizzes/src/main/resources/application-question-service.yaml)     |
+| Quiz Service       | 8085 | [application-quiz-service.yaml](applications/quizzes/src/main/resources/application-quiz-service.yaml)             |
+| Topic Service      | 8086 | [application-topic-service.yaml](applications/quizzes/src/main/resources/application-topic-service.yaml)           |
+| Tournament Service | 8087 | [application-tournament-service.yaml](applications/quizzes/src/main/resources/application-tournament-service.yaml) |
+| User Service       | 8088 | [application-user-service.yaml](applications/quizzes/src/main/resources/application-user-service.yaml)             |
 
-Every service port can be changed, including `version-service` port 8081, and `gateway` port 8080. Service Discovery will
+Every service port can be changed, including `version-service` port 8081, and `gateway` port 8080. Service Discovery
+will
 map the service name to the service port automatically.
 
 ### API Gateway Configuration
@@ -766,6 +775,7 @@ For the transactional model independent part:
    The simulator uses Spring-Boot and JPA, so the domain entities definition uses the JPA notation.
    In [Tournament](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java)
    aggregate we can see the aggregate root entity and the reference to its internal entities.
+   > **NOTE**: It's recomended to create Aggregates with a single name (Example: instead of `CourseExecution`, use `Execution`)
 2. **Specify Invariants**: The aggregate invariants are defined by overriding
    method [verifyInvariants()](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java).
 3. **Define Events**: Define the events published by upstream aggregates and subscribed by downstream aggregates,
@@ -814,15 +824,11 @@ For the functionalities:
 
 For the inter-service communication:
 
-1. **Create the CommandHandlers of the aggregate**: It receives commands from local or remote services' functionalities
+1. **Create the CommandHandler of the aggregate**: It receives commands
    and calls the corresponding aggregate service method of that command,
-   like [TournamentCommandHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/commandHandler/TournamentCommandHandler.java)
-   for local calls,
-   [TournamentStreamCommandHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/commandHandler/TournamentStreamCommandHandler.java)
-   for remote calls via messaging,
-   and [TournamentGrpcCommandHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/commandHandler/TournamentGrpcCommandHandler.java)
-   for remote calls via gRPC.
-2. **Configure Spring Cloud Stream Bindings** (for `stream` profile): Define the command and event channels in `application.yaml`,
+   like [TournamentCommandHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/commandHandler/TournamentCommandHandler.java).
+2. **Configure Spring Cloud Stream Bindings** (for `stream` profile): Define the command and event channels in
+   `application.yaml`,
    like [tournament-service bindings](applications/quizzes/src/main/resources/application-tournament-service.yaml).
 3. **Configure gRPC Server Port** (for `grpc` profile): Define the gRPC server port in the service profile file and
    expose it via Eureka metadata,

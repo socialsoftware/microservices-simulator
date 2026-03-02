@@ -2,6 +2,7 @@
 HELP.md
 !.mvn/wrapper/maven-wrapper.jar
 data/figs/.DS_Store
+data/figs/*.bkp
 
 ### STS ###
 .apt_generated
