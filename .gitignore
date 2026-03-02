@@ -4,6 +4,9 @@ HELP.md
 data/figs/.DS_Store
 data/figs/*.bkp
 
+### MacOS ###
+**/.DS_Store
+
 ### STS ###
 .apt_generated
 .classpath

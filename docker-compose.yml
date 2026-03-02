@@ -77,6 +77,22 @@ services:
       - messaging-network
 
   # ============================================
+  # AUTOMATIC FAULT INJECTION
+  # ============================================
+  fault-analysis:
+    build:
+      context: .
+      dockerfile: verifiers/Dockerfile
+    image: fault-analysis
+    container_name: fault-analysis
+    volumes:
+      - ./applications:/applications
+    environment:
+      - SPRING_PROFILES_ACTIVE=fault-analysis
+      - SIMULATOR_ANALYSIS_TARGET_APPLICATIONS_DIR=/applications
+      - SIMULATOR_ANALYSIS_TARGET_APPLICATION_BASE_PACKAGE=pt.ulisboa.tecnico.socialsoftware.quizzes
+
+  # ============================================
   # MONOLITHIC CONFIGURATIONS
   # ============================================
 

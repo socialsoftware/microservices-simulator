@@ -18,7 +18,7 @@ public class AnswerCommandHandler extends CommandHandler {
 
     @Override
     protected String getAggregateTypeName() {
-        return "QuizAnswer";
+        return "Answer";
     }
 
     @Override
