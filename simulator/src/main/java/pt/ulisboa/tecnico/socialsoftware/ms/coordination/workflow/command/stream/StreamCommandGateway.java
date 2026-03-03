@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandResponse;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.MessagingObjectMapperProvider;
@@ -42,13 +43,21 @@ public class StreamCommandGateway extends CommandGateway {
     @Override
     @Retry(name = "commandGateway", fallbackMethod = "fallbackSend")
     public Object send(Command command) {
+        String appName = applicationContext.getEnvironment().getProperty("spring.application.name");
         String service = command.getServiceName() != null ? command.getServiceName() : "";
+
+        // If appName equals service and a local CommandHandler bean exists, dispatch locally
+        String handlerBeanName = command.getServiceName() + "CommandHandler";
+        if (service.equals(appName) && applicationContext.containsBean(handlerBeanName)) {
+            CommandHandler handler = (CommandHandler) applicationContext.getBean(handlerBeanName);
+            logger.info("Dispatching command locally: " + command.getClass().getSimpleName());
+            return handler.handle(command);
+        }
 
         String destination = service + "-command-channel";
         String correlationId = java.util.UUID.randomUUID().toString();
 
-        String appName = applicationContext.getEnvironment().getProperty("spring.application.name");
-        String replyTo = (appName != null && !appName.isEmpty() && !appName.equals("quizzes"))
+        String replyTo = (appName != null && !appName.isEmpty())
                 ? appName + "-command-responses"
                 : "command-responses";
 

@@ -146,7 +146,7 @@ spring:
 
         # --- Response channel ---
         commandResponseChannel-in-0:
-          destination: command-responses
+          destination: quizzes-command-responses
           group: response-group
 
         # --- Single Event channel (all events go through here) ---

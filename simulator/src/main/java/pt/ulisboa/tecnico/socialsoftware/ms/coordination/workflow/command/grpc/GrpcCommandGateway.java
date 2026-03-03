@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandResponse;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.MessagingObjectMapperProvider;
 
@@ -81,6 +82,16 @@ public class GrpcCommandGateway extends CommandGateway {
     public Object send(Command command) {
         if (command.getServiceName() == null || command.getServiceName().isEmpty()) {
             throw new IllegalArgumentException("Command serviceName is required for gRPC routing");
+        }
+        String appName = applicationContext.getEnvironment().getProperty("spring.application.name");
+        String service = command.getServiceName();
+
+        // If a local CommandHandler bean exists for this service, dispatch locally
+        String handlerBeanName = command.getServiceName() + "CommandHandler";
+        if (service.equals(appName) && applicationContext.containsBean(handlerBeanName)) {
+            CommandHandler handler = (CommandHandler) applicationContext.getBean(handlerBeanName);
+            logger.info("Dispatching command locally: " + command.getClass().getSimpleName());
+            return handler.handle(command);
         }
 
         String correlationId = UUID.randomUUID().toString();

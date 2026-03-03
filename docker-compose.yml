@@ -562,6 +562,7 @@ services:
       - "8761:8761"
     networks:
       - messaging-network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8761/actuator/health"]
       interval: 10s
@@ -599,6 +600,7 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - messaging-network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 10s
