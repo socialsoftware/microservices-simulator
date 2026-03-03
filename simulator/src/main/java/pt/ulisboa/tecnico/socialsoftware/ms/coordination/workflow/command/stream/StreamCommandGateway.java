@@ -17,7 +17,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandResponse;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.MessagingObjectMapperProvider;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -97,7 +96,7 @@ public class StreamCommandGateway extends CommandGateway {
         mergeUnitOfWork(command.getUnitOfWork(), resp.unitOfWork());
 
         if (resp.isError()) {
-            throw new SimulatorException(resp.errorMessage());
+            throwMatchingException(resp.errorType(), resp.errorMessage());
         }
         return resp.result();
     }

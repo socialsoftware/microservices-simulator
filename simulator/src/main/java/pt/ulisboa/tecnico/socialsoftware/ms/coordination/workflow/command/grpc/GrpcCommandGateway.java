@@ -21,7 +21,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandResponse;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.MessagingObjectMapperProvider;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandReply;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandRequest;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandServiceGrpc;
@@ -119,7 +118,7 @@ public class GrpcCommandGateway extends CommandGateway {
         mergeUnitOfWork(command.getUnitOfWork(), response.unitOfWork());
 
         if (response.isError()) {
-            throw new SimulatorException(response.errorMessage());
+            throwMatchingException(response.errorType(), response.errorMessage());
         }
         return response.result();
     }

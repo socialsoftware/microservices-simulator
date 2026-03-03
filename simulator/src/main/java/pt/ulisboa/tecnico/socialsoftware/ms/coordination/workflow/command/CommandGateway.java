@@ -75,6 +75,13 @@ public abstract class CommandGateway {
                 serviceName, commandName, rootCause.getMessage()));
     }
 
+    protected void throwMatchingException(String errorType, String errorMessage) {
+        if (SimulatorException.class.getName().equals(errorType)) {
+            throw new SimulatorException(errorMessage);
+        }
+        throw new RuntimeException(errorType + ": " + errorMessage);
+    }
+
     protected void mergeUnitOfWork(UnitOfWork target, UnitOfWork source) {
         if (target == null || source == null)
             return;

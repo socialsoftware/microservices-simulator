@@ -56,7 +56,7 @@ resilience4j:
         max-attempts: 5
         wait-duration: 1s
         retry-exceptions:
-          - org.springframework.dao.TransientDataAccessException
+          - java.lang.RuntimeException
         ignore-exceptions:
           - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 

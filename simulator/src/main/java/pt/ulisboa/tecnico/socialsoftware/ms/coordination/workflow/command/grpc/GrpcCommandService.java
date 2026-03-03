@@ -42,8 +42,7 @@ public class GrpcCommandService extends CommandServiceGrpc.CommandServiceImplBas
             command = objectMapper.readValue(request.getCommandJson(), Command.class);
         } catch (Exception e) {
             logger.severe("Failed to deserialize command: " + e.getMessage());
-            sendErrorResponse(correlationId, "Failed to deserialize command: " + e.getMessage(), null,
-                    responseObserver);
+            sendResponse(correlationId, null, null, responseObserver, e);
             return;
         }
 
@@ -54,8 +53,7 @@ public class GrpcCommandService extends CommandServiceGrpc.CommandServiceImplBas
             handler = (CommandHandler) applicationContext.getBean(command.getServiceName() + "CommandHandler");
         } catch (Exception e) {
             logger.severe("Failed to find command handler for service: " + command.getServiceName());
-            sendErrorResponse(correlationId, "No handler found for service: " + command.getServiceName(),
-                    null, responseObserver);
+            sendResponse(correlationId, null, null, responseObserver, e);
             return;
         }
 
@@ -63,44 +61,36 @@ public class GrpcCommandService extends CommandServiceGrpc.CommandServiceImplBas
 
         try {
             Object result = handler.handle(command);
-            sendResponse(correlationId, result, command.getUnitOfWork(), responseObserver);
+            sendResponse(correlationId, result, command.getUnitOfWork(), responseObserver, null);
         } catch (SimulatorException e) {
             logger.warning("Command handling error: " + e.getMessage());
-            sendErrorResponse(correlationId, e.getMessage(), command.getUnitOfWork(), responseObserver);
+            sendResponse(correlationId, null, command.getUnitOfWork(), responseObserver, e);
         } catch (Exception e) {
             logger.severe(
                     "Unexpected error handling command: " + e.getMessage() + " " + command.getClass().getSimpleName());
-            sendErrorResponse(correlationId, "Unexpected error: " + e.getMessage(), command.getUnitOfWork(),
-                    responseObserver);
+            sendResponse(correlationId, null, command.getUnitOfWork(), responseObserver, e);
         }
     }
 
     private void sendResponse(String correlationId, Object result, UnitOfWork unitOfWork,
-            StreamObserver<CommandReply> responseObserver) {
+            StreamObserver<CommandReply> responseObserver, Exception exception) {
         logger.info("Sending gRPC response.....");
-        CommandResponse response = CommandResponse.success(correlationId, result, unitOfWork);
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(response);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        logger.info("Sent success response for correlationId=" + correlationId +
-                " resultType=" + (result == null ? "null" : result.getClass().getName()));
-        responseObserver.onNext(CommandReply.newBuilder().setResponseJson(json).build());
-        responseObserver.onCompleted();
-    }
 
-    private void sendErrorResponse(String correlationId, String errorMessage, UnitOfWork unitOfWork,
-            StreamObserver<CommandReply> responseObserver) {
-        CommandResponse response = CommandResponse.error(correlationId, errorMessage, unitOfWork);
+        CommandResponse response;
+        if (exception != null) {
+            logger.severe("Error sending response: " + exception.getMessage());
+            response = CommandResponse.error(correlationId, exception, unitOfWork);
+        } else {
+            response = CommandResponse.success(correlationId, result, unitOfWork);
+        }
         String json;
         try {
             json = objectMapper.writeValueAsString(response);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        logger.info("Sent error response for correlationId=" + correlationId + " message=" + errorMessage);
+        logger.info("Sent response for correlationId=" + correlationId +
+                " isError=" + response.isError());
         responseObserver.onNext(CommandReply.newBuilder().setResponseJson(json).build());
         responseObserver.onCompleted();
     }

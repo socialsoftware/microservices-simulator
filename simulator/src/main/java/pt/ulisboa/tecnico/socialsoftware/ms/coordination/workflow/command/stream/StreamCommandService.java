@@ -29,7 +29,7 @@ public class StreamCommandService {
 
     @Autowired
     public StreamCommandService(ApplicationContext applicationContext, StreamBridge streamBridge,
-            MessagingObjectMapperProvider mapperProvider) {
+                                MessagingObjectMapperProvider mapperProvider) {
         this.applicationContext = applicationContext;
         this.streamBridge = streamBridge;
         this.objectMapper = mapperProvider.newMapper();
@@ -73,20 +73,26 @@ public class StreamCommandService {
 
         try {
             Object result = handler.handle(command);
-            sendResponse(correlationId, result, command.getUnitOfWork(), replyTo);
+            sendResponse(correlationId, result, command.getUnitOfWork(), replyTo, null);
         } catch (SimulatorException e) {
             logger.warning("Command handling error: " + e.getMessage());
-            sendErrorResponse(correlationId, e.getMessage(), command.getUnitOfWork(), replyTo);
+            sendResponse(correlationId, null, command.getUnitOfWork(), replyTo, e);
         } catch (Exception e) {
             logger.severe(
                     "Unexpected error handling command: " + e.getMessage() + " " + command.getClass().getSimpleName());
-            sendErrorResponse(correlationId, "Unexpected error: " + e.getMessage(), command.getUnitOfWork(), replyTo);
+            sendResponse(correlationId, null, command.getUnitOfWork(), replyTo, e);
         }
     }
 
-    private void sendResponse(String correlationId, Object result, UnitOfWork unitOfWork, String replyTo) {
+    private void sendResponse(String correlationId, Object result, UnitOfWork unitOfWork, String replyTo, Exception exception) {
         logger.info("Sending response.....");
-        CommandResponse response = CommandResponse.success(correlationId, result, unitOfWork);
+        CommandResponse response;
+        if (exception != null) {
+            logger.severe("Error sending response: " + exception.getMessage());
+            response = CommandResponse.error(correlationId, exception, unitOfWork);
+        } else {
+            response = CommandResponse.success(correlationId, result, unitOfWork);
+        }
         String json;
         try {
             json = objectMapper.writeValueAsString(response);
@@ -95,18 +101,6 @@ public class StreamCommandService {
         }
         logger.info("Sent success response for correlationId=" + correlationId +
                 " resultType=" + (result == null ? "null" : result.getClass().getName()));
-        streamBridge.send(replyTo, MessageBuilder.withPayload(json).build());
-    }
-
-    private void sendErrorResponse(String correlationId, String errorMessage, UnitOfWork unitOfWork, String replyTo) {
-        CommandResponse response = CommandResponse.error(correlationId, errorMessage, unitOfWork);
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(response);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        logger.info("Sent error response for correlationId=" + correlationId + " message=" + errorMessage);
         streamBridge.send(replyTo, MessageBuilder.withPayload(json).build());
     }
 }
