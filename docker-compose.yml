@@ -638,6 +638,17 @@ services:
       - mavencache:/root/.m2
     command: mvn -Ptest-tcc test
 
+  test-answers-sagas:
+    image: maven:3.9.7-eclipse-temurin-21-alpine
+    stop_signal: SIGKILL
+    stdin_open: true
+    tty: true
+    working_dir: /answers
+    volumes:
+      - ./applications/answers:/answers
+      - mavencache:/root/.m2
+    command: mvn -Ptest-sagas test
+
   test-fig3a:
     image: maven:3.9.7-eclipse-temurin-21-alpine
     stop_signal: SIGKILL

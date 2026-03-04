@@ -1,0 +1,9 @@
+SharedEnums {
+    /*
+    enum UserRole {
+        STUDENT,
+        TEACHER,
+        ADMIN
+    }
+    */
+}

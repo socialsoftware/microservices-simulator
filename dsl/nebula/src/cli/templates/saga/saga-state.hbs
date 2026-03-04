@@ -1,0 +1,16 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+public enum {{aggregateName}}SagaState implements SagaState {
+{{#each sagaStates}}
+    {{this}} {
+        @Override
+        public String getStateName() {
+            return "{{this}}";
+        }
+    }{{#unless @last}},{{/unless}}
+{{/each}}
+}

@@ -1,0 +1,24 @@
+Aggregate Category {
+    @GenerateCrud
+
+    Root Entity Category {
+        String name
+        String description
+    }
+
+    Events {
+        publish CategoryCreatedEvent {
+            String name
+            String description
+        }
+
+        publish CategoryUpdatedEvent {
+            String name
+            String description
+        }
+
+        publish CategoryDeletedEvent {
+            String name
+        }
+    }
+}

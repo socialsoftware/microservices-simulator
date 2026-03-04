@@ -1,0 +1,10 @@
+package {{packageName}};
+
+{{#each imports}}
+{{{this}}}
+{{/each}}
+
+{{#each requestDtos}}
+{{> dto-class name=name fields=fields includeNotNull=true}}
+
+{{/each}}

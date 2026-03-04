@@ -1,0 +1,70 @@
+Aggregate Order {
+    @GenerateCrud
+
+    Entity OrderUser from User {
+        map userName as userName
+        map realName as userRealName
+        map email as userEmail
+    }
+
+    /*
+    Entity OrderItemProduct from Product {
+        map name as productName
+        map description as productDescription
+        map listPriceInCents as productPriceInCents
+    }
+
+    Entity OrderItem {
+        Long id
+        OrderItemProduct product
+        Integer quantity
+        Double unitPriceInCents
+    }
+    */
+
+    Root Entity Order {
+        OrderUser user
+        String time
+        Double totalPriceInCents
+
+        String addressName
+        String address1
+        String address2
+        String creditCardCompany
+        String creditCardNumber
+        String creditCardExpiryDate
+
+        // Set<OrderItem> items
+    }
+
+    Events {
+        publish OrderCreatedEvent {
+            Integer userAggregateId
+            Double totalPriceInCents
+            String time
+        }
+
+        publish OrderCancelledEvent {
+            Integer userAggregateId
+        }
+
+        publish OrderStatusUpdatedEvent {
+            String status
+        }
+
+        subscribe UserUpdatedEvent
+
+        interInvariant ORDER_USER_EXISTS {
+            subscribe UserDeletedEvent from User {
+                user.userAggregateId == event.aggregateId
+            }
+        }
+    }
+
+    References {
+        user -> User {
+            onDelete: prevent
+            message: "Cannot delete user that has orders"
+        }
+    }
+}

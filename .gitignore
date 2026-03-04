@@ -17,6 +17,7 @@ data/figs/.DS_Store
 *.iws
 *.iml
 *.ipr
+.vscode/
 
 ### NetBeans ###
 /nbproject/private/

@@ -1,0 +1,22 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+public class Saga{{aggregateName}}Dto extends {{rootEntityName}}Dto {
+private SagaState sagaState;
+
+public Saga{{aggregateName}}Dto({{aggregateName}} {{lowerAggregate}}) {
+super(({{rootEntityName}}) {{lowerAggregate}});
+this.sagaState = ((Saga{{aggregateName}}){{lowerAggregate}}).getSagaState();
+}
+
+public SagaState getSagaState() {
+return this.sagaState;
+}
+
+public void setSagaState(SagaState sagaState) {
+this.sagaState = sagaState;
+}
+}

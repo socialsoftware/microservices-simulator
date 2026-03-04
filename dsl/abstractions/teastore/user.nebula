@@ -1,0 +1,10 @@
+Aggregate User {
+    @GenerateCrud
+
+    Root Entity User {
+        String userName
+        String password
+        String realName
+        String email
+    }
+}

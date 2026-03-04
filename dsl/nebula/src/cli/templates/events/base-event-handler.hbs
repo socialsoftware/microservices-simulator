@@ -1,0 +1,24 @@
+package {{packageName}};
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
+import {{coordinationPackage}}.{{aggregateName}}EventProcessing;
+import {{aggregatePackage}}.{{aggregateName}};
+import {{aggregatePackage}}.{{aggregateName}}Repository;
+
+public abstract class {{aggregateName}}EventHandler extends EventHandler {
+    private {{aggregateName}}Repository {{lowerAggregateName}}Repository;
+    protected {{aggregateName}}EventProcessing {{lowerAggregateName}}EventProcessing;
+
+    public {{aggregateName}}EventHandler({{aggregateName}}Repository {{lowerAggregateName}}Repository, {{aggregateName}}EventProcessing {{lowerAggregateName}}EventProcessing) {
+        this.{{lowerAggregateName}}Repository = {{lowerAggregateName}}Repository;
+        this.{{lowerAggregateName}}EventProcessing = {{lowerAggregateName}}EventProcessing;
+    }
+
+    public Set<Integer> getAggregateIds() {
+        return {{lowerAggregateName}}Repository.findAll().stream().map({{aggregateName}}::getAggregateId).collect(Collectors.toSet());
+    }
+
+}
