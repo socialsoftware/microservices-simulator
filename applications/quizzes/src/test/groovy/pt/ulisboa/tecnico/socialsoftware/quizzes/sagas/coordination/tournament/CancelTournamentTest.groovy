@@ -3,6 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
@@ -67,6 +69,19 @@ class CancelTournamentTest extends QuizzesSpockTest {
         then:
         def canceledTournament = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
         canceledTournament.isCancelled() == true
+    }
+
+    def 'cannot update tournament after it has been cancelled - IS_CANCELED invariant'() {
+        given: 'the tournament is cancelled'
+        tournamentFunctionalities.cancelTournament(tournamentDto.aggregateId)
+
+        when: 'an update is attempted on the cancelled tournament'
+        tournamentDto.setNumberOfQuestions(3)
+        tournamentFunctionalities.updateTournament(tournamentDto, [] as Set)
+
+        then: 'IS_CANCELED invariant is caught by verifyInvariants()'
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
     }
 
     @TestConfiguration
