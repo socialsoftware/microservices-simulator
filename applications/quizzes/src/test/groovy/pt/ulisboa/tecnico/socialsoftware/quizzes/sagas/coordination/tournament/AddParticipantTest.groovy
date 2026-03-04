@@ -5,7 +5,10 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
@@ -130,6 +133,39 @@ class AddParticipantTest extends QuizzesSpockTest {
         updatedTournament2.participants.size() == 2
         updatedTournament2.participants.any { it.aggregateId == userDto.getAggregateId() }
         updatedTournament2.participants.any { it.aggregateId == userDto3.getAggregateId() }
+    }
+
+    def 'cannot add participant after tournament has started - ENROLL_UNTIL_START_TIME invariant'() {
+        given: 'a tournament whose start time is in the past'
+        def startedTournamentDto = createTournament(
+                DateHandler.now().minusHours(1), TIME_4, 2,
+                userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(),
+                [topicDto1.getAggregateId(), topicDto2.getAggregateId()])
+
+        when: 'a participant is added after the tournament has started'
+        tournamentFunctionalities.addParticipant(
+                startedTournamentDto.getAggregateId(),
+                courseExecutionDto.getAggregateId(),
+                userDto.getAggregateId())
+
+        then: 'ENROLL_UNTIL_START_TIME invariant is caught (enrollTime > startTime)'
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
+    }
+
+    def 'cannot add participant to a cancelled tournament - IS_CANCELED invariant'() {
+        given: 'the tournament is cancelled'
+        tournamentFunctionalities.cancelTournament(tournamentDto.aggregateId)
+
+        when: 'a participant is added to the cancelled tournament'
+        tournamentFunctionalities.addParticipant(
+                tournamentDto.getAggregateId(),
+                courseExecutionDto.getAggregateId(),
+                userDto.getAggregateId())
+
+        then: 'IS_CANCELED invariant is caught by verifyInvariants()'
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
     }
 
     @TestConfiguration

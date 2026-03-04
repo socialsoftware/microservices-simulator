@@ -199,6 +199,22 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         tournamentDtoResult2.endTime == DateHandler.toISOString(TIME_4)
     }
 
+    def 'cannot update tournament after it has started - FINAL_AFTER_START invariant'() {
+        given: 'a tournament whose start time is in the past'
+        def startedTournamentDto = createTournament(
+                DateHandler.now().minusHours(1), TIME_4, 2,
+                userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(),
+                [topicDto1.getAggregateId(), topicDto2.getAggregateId()])
+
+        when: 'an update is attempted after the tournament has started'
+        startedTournamentDto.setNumberOfQuestions(3)
+        tournamentFunctionalities.updateTournament(startedTournamentDto, [topicDto1.getAggregateId(), topicDto2.getAggregateId()].toSet())
+
+        then: 'FINAL_AFTER_START invariant is caught by verifyInvariants()'
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
+    }
+
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 }
