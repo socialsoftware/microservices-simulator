@@ -80,6 +80,21 @@ class RemoveTournamentTest extends QuizzesSpockTest {
         error1.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
     }
 
+    def "cannot remove tournament with participants"() {
+        given: 'a participant is added to the tournament'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
+
+        when: 'the tournament is removed while it still has participants'
+        tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)
+
+        then: 'the DELETE invariant is caught by verifyInvariants()'
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
+
+        and: 'the tournament was not removed - it can still be found'
+        tournamentFunctionalities.findTournament(tournamentDto.getAggregateId()) != null
+    }
+
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 }

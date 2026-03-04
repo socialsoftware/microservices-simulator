@@ -135,9 +135,6 @@ public abstract class Tournament extends Aggregate {
         DELETE
 		    this.state == DELETED => this.participants.empty
          */
-        if (getTournamentParticipants().size() > 0) {
-            throw new QuizzesException(CANNOT_DELETE_TOURNAMENT, getAggregateId());
-        }
         super.remove();
     }
 
@@ -172,7 +169,7 @@ public abstract class Tournament extends Aggregate {
     }
 
     private void interInvariantQuizAnswersExist(Set<EventSubscription> eventSubscriptions) {
-        for (TournamentParticipant tournamentParticipant: this.tournamentParticipants) {
+        for (TournamentParticipant tournamentParticipant : this.tournamentParticipants) {
             if (tournamentParticipant.getParticipantAnswer().getQuizAnswerAggregateId() != null) {
                 eventSubscriptions.add(new TournamentSubscribesAnswerQuestion(tournamentParticipant));
             }
@@ -180,7 +177,7 @@ public abstract class Tournament extends Aggregate {
     }
 
     private void interInvariantTopicsExist(Set<EventSubscription> eventSubscriptions) {
-        for (TournamentTopic tournamentTopic: this.tournamentTopics) {
+        for (TournamentTopic tournamentTopic : this.tournamentTopics) {
             eventSubscriptions.add(new TournamentSubscribesDeleteTopic(tournamentTopic));
             eventSubscriptions.add(new TournamentSubscribesUpdateTopic(tournamentTopic));
         }
@@ -190,19 +187,22 @@ public abstract class Tournament extends Aggregate {
         eventSubscriptions.add(new TournamentSubscribesInvalidateQuiz(this.getTournamentQuiz()));
     }
 
-    /* ----------------------------------------- INTRA-AGGREGATE INVARIANTS ----------------------------------------- */
+    /*
+     * ----------------------------------------- INTRA-AGGREGATE INVARIANTS
+     * -----------------------------------------
+     */
 
     /*
-    START_BEFORE_END_TIME
-		this.startTime < this.endTime
+     * START_BEFORE_END_TIME
+     * this.startTime < this.endTime
      */
     public boolean invariantStartTimeBeforeEndTime() {
         return this.startTime.isBefore(this.endTime);
     }
 
     /*
-    UNIQUE_AS_PARTICIPANT
-		p1, p2: this.participants | p1.id != p2.id
+     * UNIQUE_AS_PARTICIPANT
+     * p1, p2: this.participants | p1.id != p2.id
      */
     public boolean invariantUniqueParticipant() {
         return this.tournamentParticipants.size() == this.tournamentParticipants.stream()
@@ -212,8 +212,8 @@ public abstract class Tournament extends Aggregate {
     }
 
     /*
-    ENROLL_UNTIL_START_TIME
-		p : this.participants | p.enrollTime < this.startTime
+     * ENROLL_UNTIL_START_TIME
+     * p : this.participants | p.enrollTime < this.startTime
      */
     public boolean invariantParticipantsEnrolledBeforeStarTime() {
         for (TournamentParticipant p : this.tournamentParticipants) {
@@ -225,8 +225,8 @@ public abstract class Tournament extends Aggregate {
     }
 
     /*
-    ANSWER_BEFORE_START
-		now < this.startTime => p: this.participant | p.answer.isEmpty
+     * ANSWER_BEFORE_START
+     * now < this.startTime => p: this.participant | p.answer.isEmpty
      */
     public boolean invariantAnswerBeforeStart() {
         if (DateHandler.now().isBefore(this.startTime)) {
@@ -240,8 +240,8 @@ public abstract class Tournament extends Aggregate {
     }
 
     /*
-    DELETE
-		this.state == DELETED => this.participants.empty
+     * DELETE
+     * this.state == DELETED => this.participants.empty
      */
     private boolean invariantDeleteWhenNoParticipants() {
         if (getState() == AggregateState.DELETED) {
@@ -251,7 +251,7 @@ public abstract class Tournament extends Aggregate {
     }
 
     /*
-        CREATOR_PARTICIPANT_CONSISTENCY
+     * CREATOR_PARTICIPANT_CONSISTENCY
      */
 
     private boolean invariantCreatorParticipantConsistency() {
@@ -299,10 +299,13 @@ public abstract class Tournament extends Aggregate {
 
     public void setStartTime(LocalDateTime startTime) {
         /*
-        FINAL_AFTER_START
-		    now > this.startTime => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final canceled
-        IS_CANCELED
-		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
+         * FINAL_AFTER_START
+         * now > this.startTime => final this.startTime && final this.endTime && final
+         * this.numberOfQuestions && final this.tournamentTopics && final canceled
+         * IS_CANCELED
+         * this.canceled => final this.startTime && final this.endTime && final
+         * this.numberOfQuestions && final this.tournamentTopics && final
+         * this.participants && p: this.participant | final p.answer
          */
         checkCanModifyTournament();
         this.startTime = startTime;
@@ -315,10 +318,13 @@ public abstract class Tournament extends Aggregate {
 
     public void setEndTime(LocalDateTime endTime) {
         /*
-        FINAL_AFTER_START
-		    now > this.startTime => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final canceled
-        IS_CANCELED
-		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
+         * FINAL_AFTER_START
+         * now > this.startTime => final this.startTime && final this.endTime && final
+         * this.numberOfQuestions && final this.tournamentTopics && final canceled
+         * IS_CANCELED
+         * this.canceled => final this.startTime && final this.endTime && final
+         * this.numberOfQuestions && final this.tournamentTopics && final
+         * this.participants && p: this.participant | final p.answer
          */
         checkCanModifyTournament();
         this.endTime = endTime;
@@ -330,10 +336,13 @@ public abstract class Tournament extends Aggregate {
 
     public void setNumberOfQuestions(Integer numberOfQuestions) {
         /*
-        FINAL_AFTER_START
-		    now > this.startTime => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final canceled
-        IS_CANCELED
-		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
+         * FINAL_AFTER_START
+         * now > this.startTime => final this.startTime && final this.endTime && final
+         * this.numberOfQuestions && final this.tournamentTopics && final canceled
+         * IS_CANCELED
+         * this.canceled => final this.startTime && final this.endTime && final
+         * this.numberOfQuestions && final this.tournamentTopics && final
+         * this.participants && p: this.participant | final p.answer
          */
         checkCanModifyTournament();
         this.numberOfQuestions = numberOfQuestions;
@@ -345,10 +354,13 @@ public abstract class Tournament extends Aggregate {
 
     public void setCancelled(boolean cancelled) {
         /*
-        FINAL_AFTER_START
-		    now > this.startTime => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final canceled
-        IS_CANCELED
-		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
+         * FINAL_AFTER_START
+         * now > this.startTime => final this.startTime && final this.endTime && final
+         * this.numberOfQuestions && final this.tournamentTopics && final canceled
+         * IS_CANCELED
+         * this.canceled => final this.startTime && final this.endTime && final
+         * this.numberOfQuestions && final this.tournamentTopics && final
+         * this.participants && p: this.participant | final p.answer
          */
         checkCanModifyTournament();
         this.cancelled = cancelled;
@@ -381,8 +393,10 @@ public abstract class Tournament extends Aggregate {
             throw new QuizzesException(CANNOT_ADD_PARTICIPANT, getAggregateId());
         }
         /*
-        IS_CANCELED
-		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
+         * IS_CANCELED
+         * this.canceled => final this.startTime && final this.endTime && final
+         * this.numberOfQuestions && final this.tournamentTopics && final
+         * this.participants && p: this.participant | final p.answer
          */
         if (prev != null && prev.isCancelled()) {
             throw new QuizzesException(CANNOT_UPDATE_TOURNAMENT, getAggregateId());
@@ -406,10 +420,13 @@ public abstract class Tournament extends Aggregate {
 
     public void setTournamentTopics(Set<TournamentTopic> topics) {
         /*
-        FINAL_AFTER_START
-		    now > this.startTime => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final canceled
-        IS_CANCELED
-		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
+         * FINAL_AFTER_START
+         * now > this.startTime => final this.startTime && final this.endTime && final
+         * this.numberOfQuestions && final this.tournamentTopics && final canceled
+         * IS_CANCELED
+         * this.canceled => final this.startTime && final this.endTime && final
+         * this.numberOfQuestions && final this.tournamentTopics && final
+         * this.participants && p: this.participant | final p.answer
          */
         checkCanModifyTournament();
 
@@ -434,18 +451,21 @@ public abstract class Tournament extends Aggregate {
 
     public boolean removeParticipant(TournamentParticipant participant) {
         /*
-        LEAVE_TOURNAMENT
-		    p: this.participants | p.state == DELETED => p.answer.isEmpty
-        AFTER_END
-		    now > this.endTime => p: this.participant | final p.answer
-		IS_CANCELED
-		    this.canceled => final this.startTime && final this.endTime && final this.numberOfQuestions && final this.tournamentTopics && final this.participants && p: this.participant | final p.answer
+         * LEAVE_TOURNAMENT
+         * p: this.participants | p.state == DELETED => p.answer.isEmpty
+         * AFTER_END
+         * now > this.endTime => p: this.participant | final p.answer
+         * IS_CANCELED
+         * this.canceled => final this.startTime && final this.endTime && final
+         * this.numberOfQuestions && final this.tournamentTopics && final
+         * this.participants && p: this.participant | final p.answer
          */
         checkCanModifyTournament();
         return this.tournamentParticipants.remove(participant);
     }
 
-    // this setVersion is special because the quiz is created in the same transaction and we want to have its version upon commit
+    // this setVersion is special because the quiz is created in the same
+    // transaction and we want to have its version upon commit
     @Override
     public void setVersion(Integer version) {
         if (this.tournamentQuiz != null && this.tournamentQuiz.getQuizVersion() == null) {
