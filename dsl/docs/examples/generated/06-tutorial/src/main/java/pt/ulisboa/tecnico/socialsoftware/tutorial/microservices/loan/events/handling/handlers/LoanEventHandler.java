@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.coordination.eventProcessing.LoanEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.coordination.eventProcessing.LoanEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.aggregate.Loan;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.aggregate.LoanRepository;
 

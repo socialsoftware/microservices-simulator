@@ -10,15 +10,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.MemberDto;
+
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.enums.MembershipType;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.member.events.publish.MemberDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.member.events.publish.MemberUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.events.MemberDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.events.MemberUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.exception.TutorialException;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.coordination.webapi.requestDtos.CreateMemberRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.member.coordination.webapi.requestDtos.CreateMemberRequestDto;
 
 
 @Service

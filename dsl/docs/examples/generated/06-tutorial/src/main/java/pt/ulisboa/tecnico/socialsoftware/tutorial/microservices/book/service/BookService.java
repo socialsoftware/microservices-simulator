@@ -10,14 +10,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.BookDto;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.book.events.publish.BookDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.book.events.publish.BookUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.events.BookDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.events.BookUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.exception.TutorialException;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.coordination.webapi.requestDtos.CreateBookRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.book.coordination.webapi.requestDtos.CreateBookRequestDto;
 
 
 @Service

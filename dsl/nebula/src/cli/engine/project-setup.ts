@@ -10,10 +10,11 @@ export class ProjectSetup {
         projectName: string
     ): Promise<ProjectPaths> {
 
+        const folderName = this.deriveFolderName(inputPath);
         const outputDirName = path.basename(baseOutputDir);
-        const projectPath = outputDirName.toLowerCase() === projectName.toLowerCase()
+        const projectPath = outputDirName.toLowerCase() === folderName.toLowerCase()
             ? baseOutputDir
-            : path.join(baseOutputDir, projectName);
+            : path.join(baseOutputDir, folderName);
 
 
         const config = getGlobalConfig();
@@ -67,13 +68,16 @@ export class ProjectSetup {
     }
 
     static deriveProjectName(inputPath: string): string {
+        const folderName = this.deriveFolderName(inputPath);
+        return folderName.replace(/^\d+-/, '');
+    }
+
+    static deriveFolderName(inputPath: string): string {
         const resolvedInputPath = path.resolve(inputPath);
         const inputFolderName = path.basename(resolvedInputPath);
 
-        const folderName = inputFolderName.endsWith('.nebula')
+        return inputFolderName.endsWith('.nebula')
             ? path.basename(path.dirname(resolvedInputPath))
             : inputFolderName;
-
-        return folderName.replace(/^\d+-/, '');
     }
 }

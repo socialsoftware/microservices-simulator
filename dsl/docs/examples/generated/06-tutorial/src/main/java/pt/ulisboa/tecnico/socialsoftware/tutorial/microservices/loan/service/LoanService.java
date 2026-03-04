@@ -12,20 +12,14 @@ import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.LoanDto;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.LoanMemberDto;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.LoanBookDto;
-import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.publish.LoanDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.publish.LoanUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.publish.LoanMemberDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.publish.LoanMemberUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.publish.LoanBookDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.publish.LoanBookUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.events.LoanDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.events.LoanUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.exception.TutorialException;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.coordination.webapi.requestDtos.CreateLoanRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.coordination.webapi.requestDtos.CreateLoanRequestDto;
 
 
 @Service

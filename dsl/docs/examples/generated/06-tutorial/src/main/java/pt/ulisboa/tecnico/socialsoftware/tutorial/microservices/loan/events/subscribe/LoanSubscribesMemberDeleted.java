@@ -2,10 +2,10 @@ package pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.sub
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.aggregate.Loan;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.member.events.publish.MemberDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.events.MemberDeletedEvent;
 
 public class LoanSubscribesMemberDeleted extends EventSubscription {
     public LoanSubscribesMemberDeleted(Loan loan) {
-        super(loan.getAggregateId(), 0, MemberDeletedEvent.class);
+        super(loan.getAggregateId(), 0, MemberDeletedEvent.class.getSimpleName());
     }
 }
