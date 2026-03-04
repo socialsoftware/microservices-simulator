@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.events.
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.aggregate.PostRepository;
-import pt.ulisboa.tecnico.socialsoftware.eventdriven.coordination.eventProcessing.PostEventProcessing;
-import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.events.publish.AuthorDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.coordination.eventProcessing.PostEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.events.AuthorDeletedEvent;
 
 public class AuthorDeletedEventHandler extends PostEventHandler {
     public AuthorDeletedEventHandler(PostRepository postRepository, PostEventProcessing postEventProcessing) {

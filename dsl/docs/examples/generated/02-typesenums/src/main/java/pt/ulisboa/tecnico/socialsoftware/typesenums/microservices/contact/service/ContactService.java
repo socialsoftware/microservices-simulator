@@ -10,17 +10,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.dtos.ContactDto;
-import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.enums.ContactCategory;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.typesenums.microservices.contact.events.publish.ContactDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.typesenums.microservices.contact.events.publish.ContactUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.typesenums.events.ContactDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.typesenums.events.ContactUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.typesenums.microservices.exception.TypesenumsException;
-import pt.ulisboa.tecnico.socialsoftware.typesenums.coordination.webapi.requestDtos.CreateContactRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.typesenums.microservices.contact.coordination.webapi.requestDtos.CreateContactRequestDto;
 
 
 @Service

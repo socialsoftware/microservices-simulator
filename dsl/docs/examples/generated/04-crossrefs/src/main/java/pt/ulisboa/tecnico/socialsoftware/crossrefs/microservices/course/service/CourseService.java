@@ -11,16 +11,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.CourseTeacherDto;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.events.publish.CourseDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.events.publish.CourseUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.events.publish.CourseTeacherDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.events.publish.CourseTeacherUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.CourseDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.CourseUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.exception.CrossrefsException;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.coordination.webapi.requestDtos.CreateCourseRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.coordination.webapi.requestDtos.CreateCourseRequestDto;
 
 
 @Service

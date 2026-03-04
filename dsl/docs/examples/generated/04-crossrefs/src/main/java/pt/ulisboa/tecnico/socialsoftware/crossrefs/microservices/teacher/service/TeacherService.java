@@ -10,14 +10,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.TeacherDto;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.teacher.events.publish.TeacherDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.teacher.events.publish.TeacherUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.TeacherDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.TeacherUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.exception.CrossrefsException;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.coordination.webapi.requestDtos.CreateTeacherRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.teacher.coordination.webapi.requestDtos.CreateTeacherRequestDto;
 
 
 @Service

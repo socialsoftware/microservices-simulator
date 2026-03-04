@@ -10,14 +10,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos.AuthorDto;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.events.publish.AuthorDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.events.publish.AuthorUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.events.AuthorDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.events.AuthorUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.exception.EventdrivenException;
-import pt.ulisboa.tecnico.socialsoftware.eventdriven.coordination.webapi.requestDtos.CreateAuthorRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.coordination.webapi.requestDtos.CreateAuthorRequestDto;
 
 
 @Service

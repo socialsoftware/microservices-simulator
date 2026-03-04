@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
-import pt.ulisboa.tecnico.socialsoftware.eventdriven.coordination.eventProcessing.PostEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.coordination.eventProcessing.PostEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.aggregate.Post;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.aggregate.PostRepository;
 

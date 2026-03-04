@@ -194,7 +194,7 @@ export class ConfigLoader {
             result.simulatorFramework = {
                 groupId: config.framework.groupId || 'pt.ulisboa.tecnico.socialsoftware',
                 artifactId: config.framework.artifactId || 'MicroservicesSimulator',
-                version: config.framework.version || '3.0.0-SNAPSHOT'
+                version: config.framework.version || '3.1.0-SNAPSHOT'
             };
         }
 
@@ -231,7 +231,7 @@ export class ConfigLoader {
             framework: {
                 groupId: 'pt.ulisboa.tecnico.socialsoftware',
                 artifactId: 'MicroservicesSimulator',
-                version: '3.0.0-SNAPSHOT'
+                version: '3.1.0-SNAPSHOT'
             },
             portRange: {
                 min: 8080,

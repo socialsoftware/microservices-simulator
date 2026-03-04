@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregate.InvoiceRepository;
-import pt.ulisboa.tecnico.socialsoftware.advanced.coordination.eventProcessing.InvoiceEventProcessing;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.events.publish.CustomerDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.coordination.eventProcessing.InvoiceEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.CustomerDeletedEvent;
 
 public class CustomerDeletedEventHandler extends InvoiceEventHandler {
     public CustomerDeletedEventHandler(InvoiceRepository invoiceRepository, InvoiceEventProcessing invoiceEventProcessing) {

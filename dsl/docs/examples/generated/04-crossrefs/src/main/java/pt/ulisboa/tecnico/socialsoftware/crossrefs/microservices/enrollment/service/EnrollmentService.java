@@ -12,22 +12,16 @@ import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.EnrollmentDto;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.EnrollmentCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.EnrollmentTeacherDto;
-import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.events.publish.EnrollmentDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.events.publish.EnrollmentUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.events.publish.EnrollmentCourseDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.events.publish.EnrollmentCourseUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.events.publish.EnrollmentTeacherDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.events.publish.EnrollmentTeacherUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.events.publish.EnrollmentTeacherRemovedEvent;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.events.publish.EnrollmentTeacherUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.EnrollmentDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.EnrollmentUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.EnrollmentTeacherRemovedEvent;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.EnrollmentTeacherUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.exception.CrossrefsException;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.coordination.webapi.requestDtos.CreateEnrollmentRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.coordination.webapi.requestDtos.CreateEnrollmentRequestDto;
 
 
 @Service

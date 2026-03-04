@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.eve
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.aggregate.EnrollmentRepository;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.coordination.eventProcessing.EnrollmentEventProcessing;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.events.publish.CourseDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.coordination.eventProcessing.EnrollmentEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.CourseDeletedEvent;
 
 public class CourseDeletedEventHandler extends EnrollmentEventHandler {
     public CourseDeletedEventHandler(EnrollmentRepository enrollmentRepository, EnrollmentEventProcessing enrollmentEventProcessing) {

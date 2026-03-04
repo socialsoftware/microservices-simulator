@@ -10,14 +10,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.helloworld.shared.dtos.TaskDto;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.helloworld.microservices.task.events.publish.TaskDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.helloworld.microservices.task.events.publish.TaskUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.helloworld.events.TaskDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.helloworld.events.TaskUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.helloworld.microservices.exception.HelloworldException;
-import pt.ulisboa.tecnico.socialsoftware.helloworld.coordination.webapi.requestDtos.CreateTaskRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.helloworld.microservices.task.coordination.webapi.requestDtos.CreateTaskRequestDto;
 
 
 @Service

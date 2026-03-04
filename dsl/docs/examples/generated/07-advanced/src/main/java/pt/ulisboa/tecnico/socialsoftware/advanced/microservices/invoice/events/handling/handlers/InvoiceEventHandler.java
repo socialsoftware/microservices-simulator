@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
-import pt.ulisboa.tecnico.socialsoftware.advanced.coordination.eventProcessing.InvoiceEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.coordination.eventProcessing.InvoiceEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregate.Invoice;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregate.InvoiceRepository;
 

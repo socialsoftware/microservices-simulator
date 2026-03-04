@@ -13,26 +13,20 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderCustomerDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderProductDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderItemDto;
-import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.enums.OrderStatus;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.enums.PaymentMethod;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderCustomerDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderCustomerUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderProductDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderProductUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderProductRemovedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderProductUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderItemRemovedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.publish.OrderItemUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.OrderDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.OrderUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.OrderProductRemovedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.OrderProductUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.OrderItemRemovedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.OrderItemUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.exception.AdvancedException;
-import pt.ulisboa.tecnico.socialsoftware.advanced.coordination.webapi.requestDtos.CreateOrderRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.coordination.webapi.requestDtos.CreateOrderRequestDto;
 
 
 @Service

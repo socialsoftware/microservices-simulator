@@ -12,20 +12,14 @@ import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.InvoiceDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.InvoiceOrderDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.InvoiceCustomerDto;
-import java.time.LocalDateTime;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.publish.InvoiceDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.publish.InvoiceUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.publish.InvoiceOrderDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.publish.InvoiceOrderUpdatedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.publish.InvoiceCustomerDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.publish.InvoiceCustomerUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.InvoiceDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.InvoiceUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.exception.AdvancedException;
-import pt.ulisboa.tecnico.socialsoftware.advanced.coordination.webapi.requestDtos.CreateInvoiceRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.coordination.webapi.requestDtos.CreateInvoiceRequestDto;
 
 
 @Service

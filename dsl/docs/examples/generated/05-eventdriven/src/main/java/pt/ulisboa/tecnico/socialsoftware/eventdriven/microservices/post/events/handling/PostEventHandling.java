@@ -5,10 +5,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
-import pt.ulisboa.tecnico.socialsoftware.eventdriven.coordination.eventProcessing.PostEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.coordination.eventProcessing.PostEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.aggregate.PostRepository;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.events.handling.handlers.AuthorUpdatedEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.events.publish.AuthorUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.events.AuthorUpdatedEvent;
 
 @Component
 public class PostEventHandling {

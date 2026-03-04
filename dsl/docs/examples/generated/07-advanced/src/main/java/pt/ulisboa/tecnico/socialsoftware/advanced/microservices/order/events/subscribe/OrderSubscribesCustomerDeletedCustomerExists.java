@@ -3,14 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.su
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.OrderCustomer;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.events.publish.CustomerDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.CustomerDeletedEvent;
 
 
 public class OrderSubscribesCustomerDeletedCustomerExists extends EventSubscription {
     public OrderSubscribesCustomerDeletedCustomerExists(OrderCustomer customer) {
         super(customer.getCustomerAggregateId(),
                 customer.getCustomerVersion(),
-                CustomerDeletedEvent.class);
+                CustomerDeletedEvent.class.getSimpleName());
     }
 
     @Override

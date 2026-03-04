@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
-import pt.ulisboa.tecnico.socialsoftware.advanced.coordination.eventProcessing.OrderEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.coordination.eventProcessing.OrderEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.Order;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.OrderRepository;
 

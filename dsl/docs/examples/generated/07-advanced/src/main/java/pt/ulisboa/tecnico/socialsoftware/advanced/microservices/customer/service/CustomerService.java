@@ -10,14 +10,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.CustomerDto;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.events.publish.CustomerDeletedEvent;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.events.publish.CustomerUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.CustomerDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.CustomerUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.exception.AdvancedException;
-import pt.ulisboa.tecnico.socialsoftware.advanced.coordination.webapi.requestDtos.CreateCustomerRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.coordination.webapi.requestDtos.CreateCustomerRequestDto;
 
 
 @Service

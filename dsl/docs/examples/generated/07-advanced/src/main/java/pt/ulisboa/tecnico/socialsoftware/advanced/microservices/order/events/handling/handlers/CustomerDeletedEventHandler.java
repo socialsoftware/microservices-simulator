@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.ha
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.OrderRepository;
-import pt.ulisboa.tecnico.socialsoftware.advanced.coordination.eventProcessing.OrderEventProcessing;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.events.publish.CustomerDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.coordination.eventProcessing.OrderEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.CustomerDeletedEvent;
 
 public class CustomerDeletedEventHandler extends OrderEventHandler {
     public CustomerDeletedEventHandler(OrderRepository orderRepository, OrderEventProcessing orderEventProcessing) {

@@ -2,10 +2,10 @@ package pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.su
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.Order;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.events.publish.CustomerDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.advanced.events.CustomerDeletedEvent;
 
 public class OrderSubscribesCustomerDeleted extends EventSubscription {
     public OrderSubscribesCustomerDeleted(Order order) {
-        super(order.getAggregateId(), 0, CustomerDeletedEvent.class);
+        super(order.getAggregateId(), 0, CustomerDeletedEvent.class.getSimpleName());
     }
 }

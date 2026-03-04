@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.coordination.eventProcessing.EnrollmentEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.coordination.eventProcessing.EnrollmentEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.aggregate.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.aggregate.EnrollmentRepository;
 

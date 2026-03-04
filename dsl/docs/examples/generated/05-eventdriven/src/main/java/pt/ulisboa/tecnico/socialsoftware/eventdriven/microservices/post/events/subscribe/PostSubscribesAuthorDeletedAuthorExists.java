@@ -3,14 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.events.
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.aggregate.PostAuthor;
-import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.events.publish.AuthorDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.events.AuthorDeletedEvent;
 
 
 public class PostSubscribesAuthorDeletedAuthorExists extends EventSubscription {
     public PostSubscribesAuthorDeletedAuthorExists(PostAuthor author) {
         super(author.getAuthorAggregateId(),
                 author.getAuthorVersion(),
-                AuthorDeletedEvent.class);
+                AuthorDeletedEvent.class.getSimpleName());
     }
 
     @Override

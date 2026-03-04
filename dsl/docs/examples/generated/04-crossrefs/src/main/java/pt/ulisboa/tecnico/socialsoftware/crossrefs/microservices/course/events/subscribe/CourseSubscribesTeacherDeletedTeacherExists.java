@@ -3,14 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.events.
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.aggregate.CourseTeacher;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.teacher.events.publish.TeacherDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.TeacherDeletedEvent;
 
 
 public class CourseSubscribesTeacherDeletedTeacherExists extends EventSubscription {
     public CourseSubscribesTeacherDeletedTeacherExists(CourseTeacher teacher) {
         super(teacher.getTeacherAggregateId(),
                 teacher.getTeacherVersion(),
-                TeacherDeletedEvent.class);
+                TeacherDeletedEvent.class.getSimpleName());
     }
 
     @Override
