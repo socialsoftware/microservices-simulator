@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.crossrefs.command.teacher;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.TeacherDto;
 
 public class UpdateTeacherCommand extends Command {

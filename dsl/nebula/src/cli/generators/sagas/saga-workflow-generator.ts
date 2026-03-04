@@ -24,7 +24,7 @@ export class SagaWorkflowGenerator {
 
         const imports: string[] = [];
         imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
-        imports.push(`import ${basePackage}.ms.coordination.workflow.CommandGateway;`);
+        imports.push(`import ${basePackage}.ms.coordination.workflow.command.CommandGateway;`);
         imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
         imports.push(`import ${basePackage}.ms.sagas.workflow.SagaStep;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);

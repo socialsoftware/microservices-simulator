@@ -115,8 +115,8 @@ export class CommandHandlerGenerator {
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ${basePackage}.ms.coordination.workflow.Command;
-import ${basePackage}.ms.coordination.workflow.CommandHandler;
+import ${basePackage}.ms.coordination.workflow.command.Command;
+import ${basePackage}.ms.coordination.workflow.command.CommandHandler;
 import ${commandPackage}.*;
 import ${servicePackage}.${capitalizedAggregate}Service;
 
@@ -168,9 +168,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
-import ${basePackage}.ms.coordination.workflow.Command;
-import ${basePackage}.ms.coordination.workflow.stream.MessagingObjectMapperProvider;
-import ${basePackage}.ms.coordination.workflow.stream.StreamCommandHandler;
+import ${basePackage}.ms.coordination.workflow.command.Command;
+import ${basePackage}.ms.coordination.workflow.command.stream.MessagingObjectMapperProvider;
+import ${basePackage}.ms.coordination.workflow.command.stream.StreamCommandHandler;
 
 import java.util.function.Consumer;
 

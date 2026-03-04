@@ -12,7 +12,7 @@ import jakarta.annotation.PostConstruct;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.coordination.sagas.*;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.service.AuthorService;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos.AuthorDto;

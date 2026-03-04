@@ -68,7 +68,7 @@ export abstract class SagaFunctionalityGeneratorBase {
 
         const imports: string[] = [];
         imports.push(`import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`);
-        imports.push(`import ${basePackage}.ms.coordination.workflow.CommandGateway;`);
+        imports.push(`import ${basePackage}.ms.coordination.workflow.command.CommandGateway;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.ServiceMapping;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.command.${lowerAggregate}.*;`);
 

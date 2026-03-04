@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.helloworld.microservices.task.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.helloworld.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.helloworld.command.task.*;
 import pt.ulisboa.tecnico.socialsoftware.helloworld.shared.dtos.TaskDto;

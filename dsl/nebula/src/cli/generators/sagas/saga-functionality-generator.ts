@@ -120,7 +120,7 @@ export class SagaFunctionalityGenerator {
         const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
 
         const imports: string[] = [];
-        imports.push(`import ${basePackage}.ms.coordination.workflow.CommandGateway;`);
+        imports.push(`import ${basePackage}.ms.coordination.workflow.command.CommandGateway;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.ServiceMapping;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.command.${lowerAggregate}.*;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
@@ -181,7 +181,7 @@ export class SagaFunctionalityGenerator {
             const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
 
             const imports: string[] = [];
-            imports.push(`import ${basePackage}.ms.coordination.workflow.CommandGateway;`);
+            imports.push(`import ${basePackage}.ms.coordination.workflow.command.CommandGateway;`);
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.ServiceMapping;`);
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.command.${lowerAggregate}.*;`);
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);

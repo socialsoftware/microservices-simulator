@@ -137,7 +137,7 @@ export class CommandGenerator {
     private buildImports(cmd: CommandInfo, basePackage: string, projectName: string, lowerAggregate: string, capitalizedAggregate: string, rootEntityName: string): string[] {
         const imports: string[] = [];
         imports.push(`import ${basePackage}.ms.coordination.unitOfWork.UnitOfWork;`);
-        imports.push(`import ${basePackage}.ms.coordination.workflow.Command;`);
+        imports.push(`import ${basePackage}.ms.coordination.workflow.command.Command;`);
 
         const dtoTypes = new Set<string>();
         for (const p of cmd.params) {

@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.book.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.command.book.*;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.BookDto;

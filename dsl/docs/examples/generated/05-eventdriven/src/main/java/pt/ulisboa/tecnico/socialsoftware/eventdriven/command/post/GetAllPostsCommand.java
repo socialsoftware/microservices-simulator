@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.eventdriven.command.post;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 
 public class GetAllPostsCommand extends Command {
 

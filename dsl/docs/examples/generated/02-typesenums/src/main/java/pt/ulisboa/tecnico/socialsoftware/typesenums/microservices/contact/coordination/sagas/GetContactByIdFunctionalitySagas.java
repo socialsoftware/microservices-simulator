@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.typesenums.microservices.contact.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.typesenums.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.typesenums.command.contact.*;
 import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.dtos.ContactDto;

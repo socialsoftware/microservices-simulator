@@ -34,7 +34,7 @@ export class SagaDeleteGenerator extends SagaFunctionalityGeneratorBase {
 
         return [
             `import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`,
-            `import ${basePackage}.ms.coordination.workflow.CommandGateway;`,
+            `import ${basePackage}.ms.coordination.workflow.command.CommandGateway;`,
             `import ${basePackage}.${options.projectName.toLowerCase()}.ServiceMapping;`,
             `import ${basePackage}.${options.projectName.toLowerCase()}.command.${lowerAggregate}.*;`,
             `import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`,

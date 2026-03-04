@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.command
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.command.post.*;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.service.PostService;
 

@@ -39,7 +39,7 @@ export class FunctionalitiesImportsBuilder {
         imports.push(`import ${basePackage}.ms.TransactionalModel;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
-        imports.push(`import ${basePackage}.ms.coordination.workflow.CommandGateway;`);
+        imports.push(`import ${basePackage}.ms.coordination.workflow.command.CommandGateway;`);
         imports.push(`import ${basePackage}.${projectName}.microservices.${aggregate.name.toLowerCase()}.coordination.sagas.*;`);
 
         

@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.advanced.microservices.product.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.advanced.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.advanced.command.product.*;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.ProductDto;

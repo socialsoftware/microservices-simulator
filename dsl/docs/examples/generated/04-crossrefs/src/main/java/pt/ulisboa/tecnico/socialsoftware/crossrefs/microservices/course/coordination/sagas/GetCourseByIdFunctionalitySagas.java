@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.command.course.*;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.CourseDto;

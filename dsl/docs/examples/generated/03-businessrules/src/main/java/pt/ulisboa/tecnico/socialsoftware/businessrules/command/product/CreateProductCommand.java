@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.businessrules.command.product;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.businessrules.microservices.product.coordination.webapi.requestDtos.CreateProductRequestDto;
 
 public class CreateProductCommand extends Command {

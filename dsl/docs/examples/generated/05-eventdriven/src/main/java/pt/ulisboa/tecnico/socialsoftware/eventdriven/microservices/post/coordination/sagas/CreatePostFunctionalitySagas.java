@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.command.post.*;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos.PostDto;
