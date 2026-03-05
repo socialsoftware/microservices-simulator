@@ -1,0 +1,44 @@
+package pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.testapp_variants.commandhandler;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.testapp.command.CreateCourseCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.testapp.command.GetCourseByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.testapp.service.CourseService;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+
+// C2: getAggregateTypeName() returns a static constant (NameExpr) rather than a string
+// literal (StringLiteralExpr). CommandHandlerVisitor filters for StringLiteralExpr only,
+// so the return value is discarded and aggregateTypeName ends up null.
+@Component
+public class CourseCommandHandlerConstantAggregate extends CommandHandler {
+
+    private static final String AGGREGATE_TYPE = "Course";
+
+    @Autowired
+    private CourseService courseService;
+
+    @Override
+    protected String getAggregateTypeName() {
+        return AGGREGATE_TYPE;
+    }
+
+    @Override
+    protected Object handleDomainCommand(Command command) {
+        return switch (command) {
+            case GetCourseByIdCommand cmd -> handleGetCourseById(cmd);
+            case CreateCourseCommand cmd -> handleCreateCourse(cmd);
+            default -> null;
+        };
+    }
+
+    private Object handleGetCourseById(GetCourseByIdCommand command) {
+        return courseService.getCourseById(0, (SagaUnitOfWork) command.getUnitOfWork());
+    }
+
+    private Object handleCreateCourse(CreateCourseCommand command) {
+        return courseService.createCourse((SagaUnitOfWork) command.getUnitOfWork());
+    }
+}
