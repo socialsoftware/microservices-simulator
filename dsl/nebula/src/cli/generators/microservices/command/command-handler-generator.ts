@@ -169,7 +169,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 import ${basePackage}.ms.coordination.workflow.command.Command;
-import ${basePackage}.ms.coordination.workflow.command.stream.MessagingObjectMapperProvider;
+import ${basePackage}.ms.coordination.workflow.command.MessagingObjectMapperProvider;
 import ${basePackage}.ms.coordination.workflow.command.stream.StreamCommandHandler;
 
 import java.util.function.Consumer;
