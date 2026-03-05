@@ -16,6 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggrega
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class RemoveStudentFromCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
 
@@ -38,6 +39,7 @@ public class RemoveStudentFromCourseExecutionFunctionalitySagas extends Workflow
         SagaStep getOldCourseExecutionStep = new SagaStep("getOldCourseExecutionStep", () -> {
             GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), courseExecutionAggregateId);
             getCourseExecutionByIdCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
+            getCourseExecutionByIdCommand.setForbiddenStates(new ArrayList<>(List.of(CourseExecutionSagaState.READ_COURSE)));
             CourseExecutionDto oldCourseExecution = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
             this.setOldCourseExecution(oldCourseExecution);
         });

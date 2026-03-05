@@ -40,7 +40,7 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
         SagaStep getCourseExecutionStep = new SagaStep("getCourseExecutionStep", () -> {
             GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
             getCourseExecutionByIdCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
-            getCourseExecutionByIdCommand.setForbiddenStates(List.of(GenericSagaState.IN_SAGA));
+            getCourseExecutionByIdCommand.setForbiddenStates(new ArrayList<>(List.of(CourseExecutionSagaState.READ_COURSE)));
             commandGateway.send(getCourseExecutionByIdCommand);
         });
 
