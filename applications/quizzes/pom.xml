@@ -118,56 +118,56 @@
         </profile>
         <!-- Microservice Profiles -->
         <profile>
-            <id>answer</id>
+            <id>answer-service</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.AnswerServiceApplication</start-class>
                 <activatedProperties>answer-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
-            <id>execution</id>
+            <id>execution-service</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.ExecutionServiceApplication</start-class>
                 <activatedProperties>execution-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
-            <id>course</id>
+            <id>course-service</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.CourseServiceApplication</start-class>
                 <activatedProperties>course-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
-            <id>question</id>
+            <id>question-service</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.QuestionServiceApplication</start-class>
                 <activatedProperties>question-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
-            <id>quiz</id>
+            <id>quiz-service</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.QuizServiceApplication</start-class>
                 <activatedProperties>quiz-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
-            <id>topic</id>
+            <id>topic-service</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.TopicServiceApplication</start-class>
                 <activatedProperties>topic-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
-            <id>tournament</id>
+            <id>tournament-service</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.TournamentServiceApplication</start-class>
                 <activatedProperties>tournament-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
         <profile>
-            <id>user</id>
+            <id>user-service</id>
             <properties>
                 <start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.UserServiceApplication</start-class>
                 <activatedProperties>user-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>

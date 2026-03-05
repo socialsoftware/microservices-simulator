@@ -25,7 +25,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import java.util.concurrent.atomic.AtomicInteger
 
 @SpringBootTest(classes = [TestApplication, LocalBeanConfiguration])
-@ActiveProfiles("local")
+@ActiveProfiles("test")
 @TestPropertySource(properties = [
         "resilience4j.retry.instances.commandGateway.max-attempts=5",
         "resilience4j.retry.instances.commandGateway.wait-duration=100ms",

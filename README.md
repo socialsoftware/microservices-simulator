@@ -21,7 +21,7 @@ execution to full distributed deployment.
 | Mode            | Description                                                                                                                                                                                                                                                                                | Profiles                                                  | Infrastructure                                                                                                                            |
 |-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
 | **Centralized** | Runs as a single application. Supports local (internal), stream (RabbitMQ), or gRPC service calls. Optionally uses `distributed-version` profile for Snowflake-based version IDs.                                                                                                          | `sagas\|tcc, local\|stream\|grpc`                         | PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                                 |
-| **Distributed** | Each domain service runs independently. Uses Eureka for discovery (or Spring Cloud Kubernetes on K8s) and RabbitMQ or gRPC. Optionally uses `distributed-version` profile for local version ID generation via Snowflake IDs. Can also be deployed on [Kubernetes](#kubernetes-deployment). | Service-specific (e.g., `answer,sagas\|tcc,stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
+| **Distributed** | Each domain service runs independently. Uses Eureka for discovery (or Spring Cloud Kubernetes on K8s) and RabbitMQ or gRPC. Optionally uses `distributed-version` profile for local version ID generation via Snowflake IDs. Can also be deployed on [Kubernetes](#kubernetes-deployment). | Service-specific (e.g., `answer-service,sagas\|tcc,stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
 
 ## Run Using Docker
 
@@ -40,43 +40,51 @@ Or run the service with the flag `--build`
 ### Running as Centralized with Local Service Calls
 
 ```bash
-# Sagas
-docker compose up quizzes-sagas
+# Sagas (default)
+docker compose up quizzes-local -d
 
 # TCC
-docker compose up quizzes-tcc
+TX_MODE=tcc docker compose up quizzes-local -d
 ```
 
 ### Running as Centralized with Remote Service Calls With RabbitMQ
 
 ```bash
-# Sagas
-docker compose up quizzes-sagas-stream
+# Sagas with Stream (default)
+docker compose up quizzes-remote -d
 
-# TCC
-docker compose up quizzes-tcc-stream
+# Sagas with gRPC
+COMM_LAYER=grpc docker compose up quizzes-remote -d
+
+# TCC with Stream
+TX_MODE=tcc docker compose up quizzes-remote -d
+
+# TCC with gRPC
+TX_MODE=tcc COMM_LAYER=grpc docker compose up quizzes-remote -d
 ```
 
 ### Running as Distributed
 
+First, build the gateway and all microservices:
+
 ```bash
-# Sagas (default) with Stream (default)
 docker compose build --with-dependencies gateway
-
-# TCC with Stream (default)
-TX_MODE=tcc docker compose build --with-dependencies gateway
-
-# With gRPC instead of stream
-COMM_LAYER=grpc docker compose build --with-dependencies gateway
-
-# TCC + gRPC
-TX_MODE=tcc COMM_LAYER=grpc docker compose build --with-dependencies gateway
 ```
 
-This will build the gateway and all microservices.
+Then, run the gateway and all microservices:
 
 ```bash
+# Sagas (default) with Stream (default)
 docker compose up gateway -d
+
+# TCC with Stream (default)
+TX_MODE=tcc docker compose up gateway -d
+
+# With gRPC instead of stream
+COMM_LAYER=grpc docker compose up gateway -d
+
+# TCC + gRPC
+TX_MODE=tcc COMM_LAYER=grpc docker compose up gateway -d
 ```
 
 #### Running with Distributed Version (no version-service needed)
@@ -100,29 +108,23 @@ Starting the gateway will automatically start the entire distributed ecosystem, 
 * `rabbitmq`: Message broker for async communication
 * `gateway`: API Gateway (entry point)
 
-**Microservices:**
+**Microservices:** (One Database per Service)
 
-* `version-service`
-* `answer-service`
-* `course-service`
-* `execution-service`
-* `question-service`
-* `quiz-service`
-* `topic-service`
-* `tournament-service`
-* `user-service`
+* `answer-service` -> `answer-db`
+* `course-service` -> `course-db`
+* `execution-service` -> `execution-db`
+* `question-service` -> `question-db`
+* `quiz-service` -> `quiz-db`
+* `topic-service` -> `topic-db`
+* `tournament-service` -> `tournament-db`
+* `user-service` -> `user-db`
 
-**Databases (One per service):**
-
-* `version-db`
-* `answer-db`
-* `course-db`
-* `execution-db`
-* `question-db`
-* `quiz-db`
-* `topic-db`
-* `tournament-db`
-* `user-db`
+> **Note:** The `version-service` is **not** started automatically. If you need centralized versioning (i.e., you are *
+*not** using the `distributed-version` profile), you must start it manually:
+>
+> ```bash
+> docker compose up version-service -d
+> ```
 
 ### Running Local Tests
 
@@ -381,23 +383,23 @@ mvn spring-boot:run -Dspring-boot.run.profiles=version-service,stream
 cd applications/quizzes
 ```
 
-| Service                  | Command                                                    |
-|--------------------------|------------------------------------------------------------|
-| Answer Service           | `mvn spring-boot:run -Panswer,sagas\|tcc,stream\|grpc`     |
-| Course Service           | `mvn spring-boot:run -Pcourse,sagas\|tcc,stream\|grpc`     |
-| Course Execution Service | `mvn spring-boot:run -Pexecution,sagas\|tcc,stream\|grpc`  |
-| Question Service         | `mvn spring-boot:run -Pquestion,sagas\|tcc,stream\|grpc`   |
-| Quiz Service             | `mvn spring-boot:run -Pquiz,sagas\|tcc,stream\|grpc`       |
-| Topic Service            | `mvn spring-boot:run -Ptopic,sagas\|tcc,stream\|grpc`      |
-| Tournament Service       | `mvn spring-boot:run -Ptournament,sagas\|tcc,stream\|grpc` |
-| User Service             | `mvn spring-boot:run -Puser,sagas\|tcc,stream\|grpc`       |
+| Service                  | Command                                                              |
+|--------------------------|----------------------------------------------------------------------|
+| Answer Service           | `mvn spring-boot:run -Panswer-service,sagas\|tcc,stream\|grpc`       |
+| Course Service           | `mvn spring-boot:run -Pcourse-service,sagas\|tcc,stream\|grpc`       |
+| Course Execution Service | `mvn spring-boot:run -Pexecution-service,sagas\|tcc,stream\|grpc`    |
+| Question Service         | `mvn spring-boot:run -Pquestion-service,sagas\|tcc,stream\|grpc`     |
+| Quiz Service             | `mvn spring-boot:run -Pquiz-service,sagas\|tcc,stream\|grpc`         |
+| Topic Service            | `mvn spring-boot:run -Ptopic-service,sagas\|tcc,stream\|grpc`        |
+| Tournament Service       | `mvn spring-boot:run -Ptournament-service,sagas\|tcc,stream\|grpc`   |
+| User Service             | `mvn spring-boot:run -Puser-service,sagas\|tcc,stream\|grpc`         |
 
 To use the distributed version profile (no version-service needed), add `distributed-version` to the Maven profiles.
 This also works in centralized mode with any communication profile:
 
 ```bash
 # Distributed mode example
-mvn spring-boot:run -Panswer,sagas,stream,distributed-version
+mvn spring-boot:run -Panswer-service,sagas,stream,distributed-version
 
 # Centralized mode examples
 mvn spring-boot:run -Psagas,local,distributed-version
@@ -775,7 +777,8 @@ For the transactional model independent part:
    The simulator uses Spring-Boot and JPA, so the domain entities definition uses the JPA notation.
    In [Tournament](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java)
    aggregate we can see the aggregate root entity and the reference to its internal entities.
-   > **NOTE**: It's recomended to create Aggregates with a single name (Example: instead of `CourseExecution`, use `Execution`)
+   > **NOTE**: It's recomended to create Aggregates with a single name (Example: instead of `CourseExecution`, use
+   `Execution`)
 2. **Specify Invariants**: The aggregate invariants are defined by overriding
    method [verifyInvariants()](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java).
 3. **Define Events**: Define the events published by upstream aggregates and subscribed by downstream aggregates,
