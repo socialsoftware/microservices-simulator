@@ -40,10 +40,16 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getCourseExecutionStep = new SagaStep("getCourseExecutionStep", () -> {
             GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
+<<<<<<< HEAD
             SagaCommand sagaCommand = new SagaCommand(getCourseExecutionByIdCommand);
             sagaCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
             sagaCommand.setForbiddenStates(List.of(GenericSagaState.IN_SAGA));
             commandGateway.send(sagaCommand);
+=======
+            getCourseExecutionByIdCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
+            getCourseExecutionByIdCommand.setForbiddenStates(new ArrayList<>(List.of(CourseExecutionSagaState.READ_COURSE)));
+            commandGateway.send(getCourseExecutionByIdCommand);
+>>>>>>> 8e6c2b1c (fix(Execution): change forbidden-state declarations in remove and anonymize student)
         });
 
         getCourseExecutionStep.registerCompensation(() -> {
