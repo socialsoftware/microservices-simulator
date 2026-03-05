@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.answers.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.answers.command.user.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;

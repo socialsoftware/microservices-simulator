@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.teastore.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.teastore.command.order.*;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.OrderDto;

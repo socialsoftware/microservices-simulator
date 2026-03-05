@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.answers.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.answers.command.quiz.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;

@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.commandHan
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.answers.command.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.service.TopicService;
 

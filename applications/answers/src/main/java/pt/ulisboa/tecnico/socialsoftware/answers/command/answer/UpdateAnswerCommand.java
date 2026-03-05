@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.command.answer;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 
 public class UpdateAnswerCommand extends Command {
