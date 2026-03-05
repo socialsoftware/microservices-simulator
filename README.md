@@ -442,7 +442,7 @@ kind create cluster --name microservices
 docker compose build --with-dependencies gateway
 
 # Load images into Kind cluster
-for img in gateway simulator quizzes-answer quizzes-course quizzes-execution quizzes-question quizzes-quiz quizzes-topic quizzes-tournament quizzes-user; do
+for img in gateway simulator quizzes; do
   kind load docker-image ${img}:latest --name microservices
 done
 ```

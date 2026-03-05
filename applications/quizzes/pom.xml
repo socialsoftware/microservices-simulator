@@ -313,6 +313,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>${start-class}</mainClass>
+                    <layout>ZIP</layout>
                 </configuration>
             </plugin>
             <plugin>

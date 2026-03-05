@@ -28,7 +28,7 @@ spec:
       serviceAccountName: microservices-sa
       containers:
         - name: course-service
-          image: simulatorcr.azurecr.io/quizzes-course:latest
+          image: simulatorcr.azurecr.io/quizzes:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8089
@@ -40,6 +40,8 @@ spec:
               memory: "512Mi"
               cpu: "500m"
           env:
+            - name: START_CLASS
+              value: "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.CourseServiceApplication"
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes,course-service,sagas,stream"
             - name: SPRING_DATASOURCE_URL

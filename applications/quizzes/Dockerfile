@@ -15,11 +15,12 @@ FROM base AS test
 CMD ["mvn", "-Ptest", "test"]
 
 FROM base AS run
-ARG PROFILE=tcc,dev
+ARG PROFILE=sagas,stream
 RUN mvn clean -P$PROFILE,kubernetes -Dmaven.test.skip=true package
 
 FROM eclipse-temurin:21-jre-alpine
 ARG APP_VERSION=3.1.0-SNAPSHOT
 ENV JAR_FILE=QuizzesTutor-${APP_VERSION}.jar
+ENV START_CLASS=pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator
 COPY --from=run target/QuizzesTutor-*.jar ./app.jar
-CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar", "./app.jar"]
+CMD ["sh", "-c", "java -Dloader.main=$START_CLASS -Djava.security.egd=file:/dev/./urandom -jar ./app.jar"]
