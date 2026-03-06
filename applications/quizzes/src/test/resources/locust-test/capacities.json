@@ -1,0 +1,20 @@
+{
+  "microservices": [
+    {
+      "name": "TournamentService",
+      "capacity": 2
+    }
+  ],
+  "endpoints": [
+    {
+      "name": "FindTournamentFunctionalitySagas",
+      "microservice": "TournamentService",
+      "requirement": 1
+    },
+    {
+      "name": "CreateTournamentFunctionalitySagas",
+      "microservice": "TournamentService",
+      "requirement": 2
+    }
+  ]
+}
