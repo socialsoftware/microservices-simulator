@@ -7,6 +7,10 @@ spring:
       - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
       - org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 
+eureka:
+  client:
+    enabled: false                # no service discovery needed for local analysis
+
 simulator:
   analysis:
     target-applications-dir: /applcations
