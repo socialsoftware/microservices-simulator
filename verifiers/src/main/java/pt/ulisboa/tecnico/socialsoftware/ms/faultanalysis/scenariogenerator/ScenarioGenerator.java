@@ -2,6 +2,9 @@ package pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.scenariogenerator;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.visitor.VoidVisitor;
+import org.codehaus.groovy.ast.ModuleNode;
+import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.SourceUnit;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +12,7 @@ import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.FaultAnalysisProperties;
 import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.scenariogenerator.visitor.CommandHandlerVisitor;
 import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.scenariogenerator.visitor.ServiceVisitor;
+import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.scenariogenerator.visitor.SpockTestVisitor;
 import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.scenariogenerator.visitor.WorkflowFunctionalityVisitor;
 
 import java.io.IOException;
@@ -60,6 +64,11 @@ public class ScenarioGenerator {
         javaFiles.forEach(p -> visitFile(p, workflowVisitor));
         logger.info("Pass 3 complete: {} sagas, {} steps found",
                 applicationAnalysisContext.sagas.size(), applicationAnalysisContext.steps.size());
+
+        // Pass 4: Parse Groovy/Spock test files to extract test inputs for scenario generation
+        SpockTestVisitor spockVisitor = new SpockTestVisitor();
+        groovyFiles.forEach(p -> visitGroovyFile(p, spockVisitor));
+        logger.info("Pass 4 complete: {} Groovy files analyzed", groovyFiles.size());
     }
 
     public ApplicationAnalysisContext getApplicationAnalysisContext() {
@@ -77,6 +86,20 @@ public class ScenarioGenerator {
     private void visitFile(Path p, VoidVisitor<ApplicationAnalysisContext> visitor) {
         try {
             visitor.visit(StaticJavaParser.parse(p), applicationAnalysisContext);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void visitGroovyFile(Path p, SpockTestVisitor visitor) {
+        try {
+            CompilerConfiguration config = new CompilerConfiguration();
+            SourceUnit su = SourceUnit.create(p.getFileName().toString(), Files.readString(p), config.getTolerance());
+            su.parse();
+            su.completePhase(); // phase must be marked complete before convert() can proceed
+            su.convert();
+            ModuleNode module = su.getAST();
+            module.getClasses().forEach(visitor::visitClass);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
