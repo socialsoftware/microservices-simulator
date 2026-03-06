@@ -1,6 +1,5 @@
 # Simulator Dockerfile for version-service
-FROM maven:3.9.7-eclipse-temurin-21-alpine AS base
-RUN apk add --no-cache gcompat
+FROM maven:3.9.7-eclipse-temurin-21 AS base
 
 COPY ./simulator/pom.xml ./pom.xml
 RUN mvn dependency:go-offline -B
@@ -10,7 +9,7 @@ FROM base AS run
 ARG PROFILE=version-service,stream
 RUN mvn clean package -P$PROFILE,kubernetes -Dmaven.test.skip=true
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre
 ARG APP_VERSION=3.1.0-SNAPSHOT
 ENV JAR_FILE=MicroservicesSimulator-${APP_VERSION}-exec.jar
 COPY --from=run target/MicroservicesSimulator-*-exec.jar ./app.jar

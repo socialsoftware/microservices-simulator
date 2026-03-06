@@ -18,9 +18,9 @@ in [Transactional Causal Consistent Microservices Simulator](https://doi.org/10.
 The simulator supports multiple execution modes to test different aspects of system behavior, ranging from simple local
 execution to full distributed deployment.
 
-| Mode            | Description                                                                                                                                                                                                                                                                                | Profiles                                                  | Infrastructure                                                                                                                            |
-|-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| **Centralized** | Runs as a single application. Supports local (internal), stream (RabbitMQ), or gRPC service calls. Optionally uses `distributed-version` profile for Snowflake-based version IDs.                                                                                                          | `sagas\|tcc, local\|stream\|grpc`                         | PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                                 |
+| Mode            | Description                                                                                                                                                                                                                                                                                | Profiles                                                          | Infrastructure                                                                                                                            |
+|-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| **Centralized** | Runs as a single application. Supports local (internal), stream (RabbitMQ), or gRPC service calls. Optionally uses `distributed-version` profile for Snowflake-based version IDs.                                                                                                          | `sagas\|tcc, local\|stream\|grpc`                                 | PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                                 |
 | **Distributed** | Each domain service runs independently. Uses Eureka for discovery (or Spring Cloud Kubernetes on K8s) and RabbitMQ or gRPC. Optionally uses `distributed-version` profile for local version ID generation via Snowflake IDs. Can also be deployed on [Kubernetes](#kubernetes-deployment). | Service-specific (e.g., `answer-service,sagas\|tcc,stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
 
 ## Run Using Docker
@@ -47,20 +47,20 @@ docker compose up quizzes-local -d
 TX_MODE=tcc docker compose up quizzes-local -d
 ```
 
-### Running as Centralized with Remote Service Calls With RabbitMQ
+### Running as Centralized with Remote Service Calls
 
 ```bash
 # Sagas with Stream (default)
-docker compose up quizzes-remote -d
+docker compose up quizzes-remote version-service -d
 
 # Sagas with gRPC
-COMM_LAYER=grpc docker compose up quizzes-remote -d
+COMM_LAYER=grpc docker compose up quizzes-remote version-service -d
 
 # TCC with Stream
-TX_MODE=tcc docker compose up quizzes-remote -d
+TX_MODE=tcc docker compose up quizzes-remote version-service -d
 
 # TCC with gRPC
-TX_MODE=tcc COMM_LAYER=grpc docker compose up quizzes-remote -d
+TX_MODE=tcc COMM_LAYER=grpc docker compose up quizzes-remote version-service -d
 ```
 
 ### Running as Distributed
@@ -78,13 +78,13 @@ Then, run the gateway and all microservices:
 docker compose up gateway -d
 
 # TCC with Stream (default)
-TX_MODE=tcc docker compose up gateway -d
+TX_MODE=tcc docker compose up gateway version-service -d
 
 # With gRPC instead of stream
-COMM_LAYER=grpc docker compose up gateway -d
+COMM_LAYER=grpc docker compose up gateway version-service -d
 
 # TCC + gRPC
-TX_MODE=tcc COMM_LAYER=grpc docker compose up gateway -d
+TX_MODE=tcc COMM_LAYER=grpc docker compose up gateway version-service -d
 ```
 
 #### Running with Distributed Version (no version-service needed)
@@ -146,6 +146,208 @@ docker compose up test-quizzes-sagas
 
 # Quizzes TCC:
 docker compose up test-quizzes-tcc
+```
+
+### Kubernetes Deployment
+
+The distributed mode can also be deployed on Kubernetes, using Spring Cloud Kubernetes for service discovery instead of
+Eureka.
+
+##### Prerequisites
+
+Install the following packages:
+
+- [Docker](https://docs.docker.com/get-docker/) - Container runtime
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) - Kubernetes CLI
+- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) (recommended) – Local Kubernetes cluster
+
+**Create a Kind cluster:**
+
+```bash
+kind create cluster --name microservices
+```
+
+##### Build and Load Images
+
+```bash
+# Build all Docker images
+docker compose build --with-dependencies gateway
+
+# Load images into Kind cluster
+for img in gateway simulator quizzes; do
+  kind load docker-image ${img}:latest --name microservices
+done
+```
+
+##### Deploy to Kubernetes
+
+```bash
+# Create namespace and RBAC
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/rbac.yaml
+kubectl apply -f k8s/configmap.yaml
+
+# Deploy infrastructure
+kubectl apply -f k8s/infrastructure/rabbitmq.yaml
+kubectl apply -f k8s/infrastructure/jaeger.yaml
+
+# Wait for infrastructure to be ready
+kubectl wait --for=condition=ready pod -l app=rabbitmq -n microservices-simulator --timeout=120s
+kubectl wait --for=condition=ready pod -l app=jaeger -n microservices-simulator --timeout=60s
+
+# Deploy microservices (choose one)
+# For stream communication
+kubectl apply -f k8s/services-stream/
+
+# For gRPC communication
+# kubectl apply -f k8s/services-grpc/
+
+# Check status
+kubectl get pods -n microservices-simulator
+```
+
+> **Note:** To change transactional model profile, edit `k8s/services-stream/` or `k8s/services-grpc/` and change the
+> `SPRING_PROFILES_ACTIVE` environment variable of each service.
+
+##### Access the Application
+
+```bash
+# Port-forward to gateway
+kubectl port-forward svc/gateway 8080:8080 -n microservices-simulator
+```
+
+##### Access Jaeger UI
+
+```bash
+kubectl port-forward svc/jaeger 16686:16686 -n microservices-simulator
+```
+
+Then open [http://localhost:16686](http://localhost:16686) to view distributed traces.
+
+##### Cleanup
+
+```bash
+kubectl delete namespace microservices-simulator
+```
+
+---
+
+#### Azure Kubernetes Service (AKS) Deployment
+
+Deploy the distributed mode to Azure Kubernetes Service for cloud-based deployments.
+
+##### Prerequisites
+
+- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) installed
+- Active Azure subscription (e.g., Azure for Students)
+
+##### Setup AKS Cluster
+
+```bash
+# Login to Azure
+az login
+
+# Create Resource Group
+az group create --name simulator-rg-es --location spaincentral
+
+# Create AKS Cluster (Free tier, minimal resources)
+az aks create \
+  --resource-group simulator-rg-es \
+  --name simulator-cluster \
+  --tier free \
+  --node-count 1 \
+  --node-vm-size Standard_B2s_v2 \
+  --generate-ssh-keys
+
+# Connect to the Cluster
+az aks get-credentials --resource-group simulator-rg-es --name simulator-cluster
+
+# Verify connection
+kubectl get nodes
+```
+
+##### Register Azure Resource Providers (One-time setup)
+
+```bash
+# Register Container Registry provider (required for ACR)
+az provider register --namespace Microsoft.ContainerRegistry
+
+# Check registration status (wait until "Registered")
+az provider show --namespace Microsoft.ContainerRegistry --query "registrationState"
+```
+
+##### Push Images to Azure Container Registry
+
+```bash
+# Run the push script (creates ACR, attaches to AKS, pushes images)
+chmod +x scripts/push-to-acr.sh
+./scripts/push-to-acr.sh
+```
+
+##### Deploy to Azure
+
+```bash
+# 1. Base setup
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/rbac.yaml
+
+# 2. Infrastructure (Centralized PostgreSQL + RabbitMQ)
+kubectl apply -f k8s/infrastructure/
+
+# 3. Wait for infrastructure to be ready
+kubectl wait --for=condition=ready pod -l app=postgres -n microservices-simulator --timeout=180s
+kubectl wait --for=condition=ready pod -l app=rabbitmq -n microservices-simulator --timeout=120s
+
+# 4. Deploy Azure-optimized microservices (uses ACR images + centralized DB)
+kubectl apply -f k8s/services-azure/
+
+# 5. Check status
+kubectl get pods -n microservices-simulator
+
+# 6. Access the gateway
+kubectl get svc gateway -n microservices-simulator
+# Or use port-forward
+kubectl port-forward -n microservices-simulator svc/gateway 8080:8080
+```
+
+**Save costs by stopping the cluster when not in use:**
+
+```bash
+# Stop the cluster
+az aks stop --name simulator-cluster --resource-group simulator-rg-es
+
+# Start the cluster again
+az aks start --name simulator-cluster --resource-group simulator-rg-es
+```
+
+##### Cleanup Azure Resources
+
+```bash
+# Delete the cluster
+az aks delete --name simulator-cluster --resource-group simulator-rg-es
+
+# Delete everything (including ACR)
+az group delete --name simulator-rg-es
+```
+
+##### Managing Multiple Clusters (Local vs Azure)
+
+When using both local (Kind) and Cloud (Azure) clusters, your `kubectl` context may be pointing to the wrong cluster.
+
+To see all available clusters:
+```bash
+kubectl config get-contexts
+```
+
+To switch back to your local Kind cluster:
+```bash
+kubectl config use-context kind-microservices
+```
+
+To switch to your Azure AKS cluster:
+```bash
+kubectl config use-context simulator-cluster
 ```
 
 ---
@@ -383,16 +585,16 @@ mvn spring-boot:run -Dspring-boot.run.profiles=version-service,stream
 cd applications/quizzes
 ```
 
-| Service                  | Command                                                              |
-|--------------------------|----------------------------------------------------------------------|
-| Answer Service           | `mvn spring-boot:run -Panswer-service,sagas\|tcc,stream\|grpc`       |
-| Course Service           | `mvn spring-boot:run -Pcourse-service,sagas\|tcc,stream\|grpc`       |
-| Course Execution Service | `mvn spring-boot:run -Pexecution-service,sagas\|tcc,stream\|grpc`    |
-| Question Service         | `mvn spring-boot:run -Pquestion-service,sagas\|tcc,stream\|grpc`     |
-| Quiz Service             | `mvn spring-boot:run -Pquiz-service,sagas\|tcc,stream\|grpc`         |
-| Topic Service            | `mvn spring-boot:run -Ptopic-service,sagas\|tcc,stream\|grpc`        |
-| Tournament Service       | `mvn spring-boot:run -Ptournament-service,sagas\|tcc,stream\|grpc`   |
-| User Service             | `mvn spring-boot:run -Puser-service,sagas\|tcc,stream\|grpc`         |
+| Service                  | Command                                                            |
+|--------------------------|--------------------------------------------------------------------|
+| Answer Service           | `mvn spring-boot:run -Panswer-service,sagas\|tcc,stream\|grpc`     |
+| Course Service           | `mvn spring-boot:run -Pcourse-service,sagas\|tcc,stream\|grpc`     |
+| Course Execution Service | `mvn spring-boot:run -Pexecution-service,sagas\|tcc,stream\|grpc`  |
+| Question Service         | `mvn spring-boot:run -Pquestion-service,sagas\|tcc,stream\|grpc`   |
+| Quiz Service             | `mvn spring-boot:run -Pquiz-service,sagas\|tcc,stream\|grpc`       |
+| Topic Service            | `mvn spring-boot:run -Ptopic-service,sagas\|tcc,stream\|grpc`      |
+| Tournament Service       | `mvn spring-boot:run -Ptournament-service,sagas\|tcc,stream\|grpc` |
+| User Service             | `mvn spring-boot:run -Puser-service,sagas\|tcc,stream\|grpc`       |
 
 To use the distributed version profile (no version-service needed), add `distributed-version` to the Maven profiles.
 This also works in centralized mode with any communication profile:
@@ -415,189 +617,6 @@ mvn spring-boot:run
 ```
 
 ---
-
-### Kubernetes Deployment
-
-The distributed mode can also be deployed on Kubernetes, using Spring Cloud Kubernetes for service discovery instead of
-Eureka.
-
-##### Prerequisites
-
-Install the following packages:
-
-- [Docker](https://docs.docker.com/get-docker/) - Container runtime
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) - Kubernetes CLI
-- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) (recommended) – Local Kubernetes cluster
-
-**Create a Kind cluster:**
-
-```bash
-kind create cluster --name microservices
-```
-
-##### Build and Load Images
-
-```bash
-# Build all Docker images
-docker compose build --with-dependencies gateway
-
-# Load images into Kind cluster
-for img in gateway simulator quizzes; do
-  kind load docker-image ${img}:latest --name microservices
-done
-```
-
-##### Deploy to Kubernetes
-
-```bash
-# Create namespace and RBAC
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/rbac.yaml
-kubectl apply -f k8s/configmap.yaml
-
-# Deploy infrastructure
-kubectl apply -f k8s/infrastructure/rabbitmq.yaml
-kubectl apply -f k8s/infrastructure/jaeger.yaml
-
-# Wait for infrastructure to be ready
-kubectl wait --for=condition=ready pod -l app=rabbitmq -n microservices-simulator --timeout=120s
-kubectl wait --for=condition=ready pod -l app=jaeger -n microservices-simulator --timeout=60s
-
-# Deploy microservices (choose one)
-# For stream communication
-kubectl apply -f k8s/services-stream/
-
-# For gRPC communication
-# kubectl apply -f k8s/services-grpc/
-
-# Check status
-kubectl get pods -n microservices-simulator
-```
-
-> **Note:** To change transactional model profile, edit `k8s/services-stream/` or `k8s/services-grpc/` and change the
-> `SPRING_PROFILES_ACTIVE` environment variable of each service.
-
-##### Access the Application
-
-```bash
-# Port-forward to gateway
-kubectl port-forward svc/gateway 8080:8080 -n microservices-simulator
-```
-
-##### Access Jaeger UI
-
-```bash
-kubectl port-forward svc/jaeger 16686:16686 -n microservices-simulator
-```
-
-Then open [http://localhost:16686](http://localhost:16686) to view distributed traces.
-
-##### Cleanup
-
-```bash
-kubectl delete namespace microservices-simulator
-```
-
----
-
-#### Azure Kubernetes Service (AKS) Deployment
-
-Deploy the distributed mode to Azure Kubernetes Service for cloud-based deployments.
-
-##### Prerequisites
-
-- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) installed
-- Active Azure subscription (e.g., Azure for Students)
-
-##### Setup AKS Cluster
-
-```bash
-# Login to Azure
-az login
-
-# Create Resource Group
-az group create --name simulator-rg-es --location spaincentral
-
-# Create AKS Cluster (Free tier, minimal resources)
-az aks create \
-  --resource-group simulator-rg-es \
-  --name simulator-cluster \
-  --tier free \
-  --node-count 1 \
-  --node-vm-size Standard_B2s_v2 \
-  --generate-ssh-keys
-
-# Connect to the Cluster
-az aks get-credentials --resource-group simulator-rg-es --name simulator-cluster
-
-# Verify connection
-kubectl get nodes
-```
-
-##### Register Azure Resource Providers (One-time setup)
-
-```bash
-# Register Container Registry provider (required for ACR)
-az provider register --namespace Microsoft.ContainerRegistry
-
-# Check registration status (wait until "Registered")
-az provider show --namespace Microsoft.ContainerRegistry --query "registrationState"
-```
-
-##### Push Images to Azure Container Registry
-
-```bash
-# Run the push script (creates ACR, attaches to AKS, pushes images)
-chmod +x scripts/push-to-acr.sh
-./scripts/push-to-acr.sh
-```
-
-##### Deploy to Azure
-
-```bash
-# 1. Base setup
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/configmap.yaml
-kubectl apply -f k8s/rbac.yaml
-
-# 2. Infrastructure (Centralized PostgreSQL + RabbitMQ)
-kubectl apply -f k8s/infrastructure/
-
-# 3. Wait for infrastructure to be ready
-kubectl wait --for=condition=ready pod -l app=postgres -n microservices-simulator --timeout=180s
-kubectl wait --for=condition=ready pod -l app=rabbitmq -n microservices-simulator --timeout=120s
-
-# 4. Deploy Azure-optimized microservices (uses ACR images + centralized DB)
-kubectl apply -f k8s/services-azure/
-
-# 5. Check status
-kubectl get pods -n microservices-simulator
-
-# 6. Access the gateway
-kubectl get svc gateway -n microservices-simulator
-# Or use port-forward
-kubectl port-forward -n microservices-simulator svc/gateway 8080:8080
-```
-
-**Save costs by stopping the cluster when not in use:**
-
-```bash
-# Stop the cluster
-az aks stop --name simulator-cluster --resource-group simulator-rg-es
-
-# Start the cluster again
-az aks start --name simulator-cluster --resource-group simulator-rg-es
-```
-
-##### Cleanup Azure Resources
-
-```bash
-# Delete the cluster
-az aks delete --name simulator-cluster --resource-group simulator-rg-es
-
-# Delete everything (including ACR)
-az group delete --name simulator-rg-es
-```
 
 ## Test Cases
 

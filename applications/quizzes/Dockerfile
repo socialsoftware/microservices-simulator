@@ -1,7 +1,6 @@
 # http://whitfin.io/speeding-up-maven-docker-builds/
 
-FROM maven:3.9.7-eclipse-temurin-21-alpine AS base
-RUN apk add --no-cache gcompat
+FROM maven:3.9.7-eclipse-temurin-21 AS base
 
 COPY ./simulator/pom.xml ./simulator/pom.xml
 COPY ./simulator/src ./simulator/src
@@ -18,7 +17,7 @@ FROM base AS run
 ARG PROFILE=sagas,stream
 RUN mvn clean -P$PROFILE,kubernetes -Dmaven.test.skip=true package
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre
 ARG APP_VERSION=3.1.0-SNAPSHOT
 ENV JAR_FILE=QuizzesTutor-${APP_VERSION}.jar
 ENV START_CLASS=pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator

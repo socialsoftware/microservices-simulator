@@ -40,7 +40,7 @@ x-microservice-deps: &microservice-deps
     condition: service_started
 
 x-test-quizzes: &test-quizzes
-  image: maven:3.9.7-eclipse-temurin-21-alpine
+  image: maven:3.9.7-eclipse-temurin-21
   stop_signal: SIGKILL
   stdin_open: true
   tty: true
