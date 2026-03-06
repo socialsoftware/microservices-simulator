@@ -45,7 +45,8 @@ public class StreamCommandGateway extends CommandGateway {
         String appName = applicationContext.getEnvironment().getProperty("spring.application.name");
         String service = command.getServiceName() != null ? command.getServiceName() : "";
 
-        // If appName equals service and a local CommandHandler bean exists, dispatch locally
+        // If appName equals service and a local CommandHandler bean exists, dispatch
+        // locally
         String handlerBeanName = command.getServiceName() + "CommandHandler";
         if (service.equals(appName) && applicationContext.containsBean(handlerBeanName)) {
             CommandHandler handler = (CommandHandler) applicationContext.getBean(handlerBeanName);
@@ -84,7 +85,11 @@ public class StreamCommandGateway extends CommandGateway {
 
         CommandResponse resp;
         try {
-            resp = responseFuture.get();
+            resp = responseFuture.get(commandTimeoutSeconds, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (java.util.concurrent.TimeoutException e) {
+            throw new RuntimeException(String.format(
+                    "Timeout after %ds waiting for response from service '%s' for command %s",
+                    commandTimeoutSeconds, command.getServiceName(), command.getClass().getSimpleName()), e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Interrupted while waiting for command response", e);

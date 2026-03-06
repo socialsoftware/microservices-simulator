@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command;
 
 import io.github.resilience4j.retry.RetryRegistry;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
@@ -17,6 +18,9 @@ public abstract class CommandGateway {
     protected final Logger logger = Logger.getLogger(getClass().getName());
     protected final ApplicationContext applicationContext;
     protected final ExecutorService executor = Executors.newCachedThreadPool();
+
+    @Value("${command.gateway.timeout-seconds:10}")
+    protected int commandTimeoutSeconds;
 
     protected CommandGateway(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;

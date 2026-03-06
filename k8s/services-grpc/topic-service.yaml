@@ -34,7 +34,7 @@ spec:
       serviceAccountName: microservices-sa
       containers:
         - name: topic-service
-          image: quizzes-topic:latest
+          image: quizzes:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8086
@@ -49,6 +49,8 @@ spec:
               memory: "1Gi"
               cpu: "1000m"
           env:
+            - name: START_CLASS
+              value: "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.TopicServiceApplication"
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes,topic-service,sagas,grpc"
             - name: SPRING_DATASOURCE_URL
