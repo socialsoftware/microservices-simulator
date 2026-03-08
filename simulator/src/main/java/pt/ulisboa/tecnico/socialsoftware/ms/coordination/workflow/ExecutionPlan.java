@@ -132,7 +132,7 @@ public class ExecutionPlan {
                 .thenAccept(ignored -> {
                     try {
                         logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayAfterValue, true);
+                        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayAfterValue, false);
                         Thread.sleep(delayAfterValue);
                         TraceManager.getInstance().endDelaySpan(delaySpan);
                     } catch (InterruptedException e) {
@@ -186,7 +186,7 @@ public class ExecutionPlan {
                     .thenAccept(ignored -> {
                         try {
                             logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                            Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayAfterValue, true);
+                            Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayAfterValue, false);
                             Thread.sleep(delayAfterValue);
                             TraceManager.getInstance().endDelaySpan(delaySpan);
                         } catch (InterruptedException e) {
