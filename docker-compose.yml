@@ -36,9 +36,11 @@ x-microservice-deps: &microservice-deps
     condition: service_healthy
   rabbitmq:
     condition: service_healthy
+  jaeger:
+    condition: service_started
 
 x-test-quizzes: &test-quizzes
-  image: maven:3.9.7-eclipse-temurin-21-alpine
+  image: maven:3.9.7-eclipse-temurin-21
   stop_signal: SIGKILL
   stdin_open: true
   tty: true
@@ -78,95 +80,54 @@ services:
   # MONOLITHIC CONFIGURATIONS
   # ============================================
 
-  quizzes-sagas:
+  quizzes-local:
     build:
       context: .
       dockerfile: applications/quizzes/Dockerfile
       args:
-        PROFILE: sagas,local
-    image: quizzes-sagas
-    container_name: quizzes-sagas
+        PROFILE: ${TX_MODE:-sagas},local
+    image: quizzes
+    container_name: quizzes-local
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
-    networks:
-      - messaging-network
-
-  quizzes-sagas-stream:
-    build:
-      context: .
-      dockerfile: applications/quizzes/Dockerfile
-      args:
-        PROFILE: sagas,stream
-    image: quizzes-sagas-stream
-    container_name: quizzes-sagas-stream
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      version-service:
+      jaeger:
         condition: service_started
     ports:
       - "8080:8080"
     restart: unless-stopped
     environment:
+      <<: *version-mode
+      SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+    networks:
+      - messaging-network
+
+  quizzes-remote:
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: ${TX_MODE:-sagas},${COMM_LAYER:-stream}
+    image: quizzes
+    container_name: quizzes-remote
+    depends_on:
+      postgres:
+        condition: service_healthy
+      <<: *microservice-deps
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      <<: *version-mode
+      SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},${COMM_LAYER:-stream}
+      EUREKA_HOST: eureka-server
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
       SPRING_RABBITMQ_HOST: rabbitmq
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
     volumes:
       - ./applications/quizzes/src/test/resources:/src/test/resources
-    networks:
-      - messaging-network
-
-  quizzes-tcc:
-    build:
-      context: .
-      dockerfile: applications/quizzes/Dockerfile
-      args:
-        PROFILE: tcc,dev
-    image: quizzes-tcc
-    container_name: quizzes-tcc
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
-    networks:
-      - messaging-network
-
-  quizzes-tcc-stream:
-    build:
-      context: .
-      dockerfile: applications/quizzes/Dockerfile
-      args:
-        PROFILE: tcc,stream
-    image: quizzes-tcc-stream
-    container_name: quizzes-tcc-stream
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      version-service:
-        condition: service_started
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
-      SPRING_RABBITMQ_HOST: rabbitmq
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
     networks:
       - messaging-network
 
@@ -249,8 +210,6 @@ services:
     container_name: gateway
     depends_on:
       <<: *microservice-deps
-      jaeger:
-        condition: service_started
       answer-service:
         condition: service_healthy
       course-service:
@@ -267,9 +226,6 @@ services:
         condition: service_healthy
       user-service:
         condition: service_healthy
-      version-service:
-        condition: service_healthy
-        required: false
     ports:
       - "8080:8080"
     restart: unless-stopped
@@ -301,9 +257,10 @@ services:
       - "8081:8081"
     restart: unless-stopped
     environment:
-      SPRING_PROFILES_ACTIVE: version-service,stream
+      SPRING_PROFILES_ACTIVE: version-service,${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://version-db:5432/versiondb
       SPRING_RABBITMQ_HOST: rabbitmq
+      EUREKA_HOST: eureka-server
     networks:
       - messaging-network
     healthcheck:
@@ -314,9 +271,7 @@ services:
     build:
       context: .
       dockerfile: applications/quizzes/Dockerfile
-      args:
-        PROFILE: answer,${TX_MODE:-sagas},${COMM_LAYER:-stream}
-    image: quizzes-answer
+    image: quizzes
     container_name: answer-service
     depends_on:
       <<: *microservice-deps
@@ -327,6 +282,8 @@ services:
     restart: unless-stopped
     environment:
       <<: *microservice-env
+      START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.AnswerServiceApplication
+      SPRING_PROFILES_ACTIVE: answer-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://answer-db:5432/answerdb
     networks:
       - messaging-network
@@ -338,9 +295,7 @@ services:
     build:
       context: .
       dockerfile: applications/quizzes/Dockerfile
-      args:
-        PROFILE: course,${TX_MODE:-sagas},${COMM_LAYER:-stream}
-    image: quizzes-course
+    image: quizzes
     container_name: course-service
     depends_on:
       <<: *microservice-deps
@@ -351,6 +306,8 @@ services:
     restart: unless-stopped
     environment:
       <<: *microservice-env
+      START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.CourseServiceApplication
+      SPRING_PROFILES_ACTIVE: course-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://course-db:5432/coursedb
     networks:
       - messaging-network
@@ -362,9 +319,7 @@ services:
     build:
       context: .
       dockerfile: applications/quizzes/Dockerfile
-      args:
-        PROFILE: execution,${TX_MODE:-sagas},${COMM_LAYER:-stream}
-    image: quizzes-execution
+    image: quizzes
     container_name: execution-service
     depends_on:
       <<: *microservice-deps
@@ -375,6 +330,8 @@ services:
     restart: unless-stopped
     environment:
       <<: *microservice-env
+      START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.ExecutionServiceApplication
+      SPRING_PROFILES_ACTIVE: execution-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://execution-db:5432/executiondb
     networks:
       - messaging-network
@@ -386,9 +343,7 @@ services:
     build:
       context: .
       dockerfile: applications/quizzes/Dockerfile
-      args:
-        PROFILE: question,${TX_MODE:-sagas},${COMM_LAYER:-stream}
-    image: quizzes-question
+    image: quizzes
     container_name: question-service
     depends_on:
       <<: *microservice-deps
@@ -399,6 +354,8 @@ services:
     restart: unless-stopped
     environment:
       <<: *microservice-env
+      START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.QuestionServiceApplication
+      SPRING_PROFILES_ACTIVE: question-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://question-db:5432/questiondb
     networks:
       - messaging-network
@@ -410,9 +367,7 @@ services:
     build:
       context: .
       dockerfile: applications/quizzes/Dockerfile
-      args:
-        PROFILE: quiz,${TX_MODE:-sagas},${COMM_LAYER:-stream}
-    image: quizzes-quiz
+    image: quizzes
     container_name: quiz-service
     depends_on:
       <<: *microservice-deps
@@ -423,6 +378,8 @@ services:
     restart: unless-stopped
     environment:
       <<: *microservice-env
+      START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.QuizServiceApplication
+      SPRING_PROFILES_ACTIVE: quiz-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://quiz-db:5432/quizdb
     networks:
       - messaging-network
@@ -434,9 +391,7 @@ services:
     build:
       context: .
       dockerfile: applications/quizzes/Dockerfile
-      args:
-        PROFILE: topic,${TX_MODE:-sagas},${COMM_LAYER:-stream}
-    image: quizzes-topic
+    image: quizzes
     container_name: topic-service
     depends_on:
       <<: *microservice-deps
@@ -447,6 +402,8 @@ services:
     restart: unless-stopped
     environment:
       <<: *microservice-env
+      START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.TopicServiceApplication
+      SPRING_PROFILES_ACTIVE: topic-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://topic-db:5432/topicdb
     networks:
       - messaging-network
@@ -458,9 +415,7 @@ services:
     build:
       context: .
       dockerfile: applications/quizzes/Dockerfile
-      args:
-        PROFILE: tournament,${TX_MODE:-sagas},${COMM_LAYER:-stream}
-    image: quizzes-tournament
+    image: quizzes
     container_name: tournament-service
     depends_on:
       <<: *microservice-deps
@@ -471,6 +426,8 @@ services:
     restart: unless-stopped
     environment:
       <<: *microservice-env
+      START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.TournamentServiceApplication
+      SPRING_PROFILES_ACTIVE: tournament-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://tournament-db:5432/tournamentdb
     networks:
       - messaging-network
@@ -482,9 +439,7 @@ services:
     build:
       context: .
       dockerfile: applications/quizzes/Dockerfile
-      args:
-        PROFILE: user,${TX_MODE:-sagas},${COMM_LAYER:-stream}
-    image: quizzes-user
+    image: quizzes
     container_name: user-service
     depends_on:
       <<: *microservice-deps
@@ -495,6 +450,8 @@ services:
     restart: unless-stopped
     environment:
       <<: *microservice-env
+      START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.UserServiceApplication
+      SPRING_PROFILES_ACTIVE: user-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://user-db:5432/userdb
     networks:
       - messaging-network
@@ -507,23 +464,24 @@ services:
   # ============================================
 
   test-simulator-sagas:
-    image: maven:3.9.7-eclipse-temurin-21-alpine
+    image: maven:3.9.7-eclipse-temurin-21
     stop_signal: SIGKILL
     stdin_open: true
     tty: true
     working_dir: /simulator
     volumes:
       - ./simulator:/simulator
+      - mavencache:/root/.m2
     command: mvn -Ptest-sagas test
 
   build-simulator:
-    image: maven:3.9.7-eclipse-temurin-21-alpine
+    image: maven:3.9.7-eclipse-temurin-21
     stop_signal: SIGKILL
     working_dir: /simulator
     volumes:
       - ./simulator:/simulator
       - mavencache:/root/.m2
-    command: mvn install -DskipTests
+    command: mvn clean install -DskipTests
 
   test-quizzes-sagas:
     <<: *test-quizzes

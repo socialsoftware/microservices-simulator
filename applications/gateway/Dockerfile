@@ -1,6 +1,5 @@
 # Gateway Dockerfile
-FROM maven:3.9.7-eclipse-temurin-21-alpine AS base
-RUN apk add --no-cache gcompat
+FROM maven:3.9.7-eclipse-temurin-21 AS base
 
 COPY ./simulator/pom.xml ./simulator/pom.xml
 COPY ./simulator/src ./simulator/src
@@ -13,7 +12,7 @@ COPY ./applications/gateway/src ./src
 FROM base AS run
 RUN mvn -Pkubernetes clean -Dmaven.test.skip=true package
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre
 ARG APP_VERSION=0.0.1-SNAPSHOT
 ENV JAR_FILE=gateway-${APP_VERSION}.jar
 COPY --from=run target/gateway-*.jar ./app.jar

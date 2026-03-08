@@ -10,6 +10,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 @Component
 @Profile("local")
 public class LocalCommandGateway extends CommandGateway {
@@ -26,6 +30,23 @@ public class LocalCommandGateway extends CommandGateway {
                 command.getServiceName() + "CommandHandler");
 
         logger.info("Executing command: " + command.getClass().getSimpleName());
-        return handler.handle(command);
+
+        try {
+            return CompletableFuture.supplyAsync(() -> handler.handle(command), executor)
+                    .get(commandTimeoutSeconds, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(String.format(
+                    "Timeout after %ds executing command %s on service '%s'",
+                    commandTimeoutSeconds, command.getClass().getSimpleName(), command.getServiceName()), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while executing command", e);
+        } catch (java.util.concurrent.ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            }
+            throw new RuntimeException(cause);
+        }
     }
 }

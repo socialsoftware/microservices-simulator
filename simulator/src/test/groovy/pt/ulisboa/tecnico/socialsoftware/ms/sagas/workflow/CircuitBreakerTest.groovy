@@ -25,12 +25,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import java.util.concurrent.atomic.AtomicInteger
 
 @SpringBootTest(classes = [TestApplication, LocalBeanConfiguration])
-@ActiveProfiles("local")
+@ActiveProfiles("test")
 @TestPropertySource(properties = [
         "resilience4j.retry.instances.commandGateway.max-attempts=5",
         "resilience4j.retry.instances.commandGateway.wait-duration=100ms",
+        "resilience4j.retry.instances.commandGateway.enable-exponential-backoff=true",
+        "resilience4j.retry.instances.commandGateway.exponential-backoff-multiplier=2",
         "resilience4j.retry.instances.commandGateway.retry-exceptions[0]=java.lang.RuntimeException",
-        "resilience4j.retry.instances.commandGateway.ignore-exceptions[0]=pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException"
+        "resilience4j.retry.instances.commandGateway.ignore-exceptions[0]=pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException",
+        "command.gateway.timeout-seconds=1"
 ])
 class CircuitBreakerTest extends SpockTest {
 
@@ -107,6 +110,51 @@ class CircuitBreakerTest extends SpockTest {
         LocalBeanConfiguration.retryableAttempts.get() == 5
     }
 
+    def "exponential backoff increases wait time between retries"() {
+        given:
+        def command = new Command(null, "timed", null)
+
+        when:
+        try {
+            localCommandGateway.send(command)
+        } catch (RuntimeException ignored) {}
+
+        then: "intervals should increase exponentially"
+        LocalBeanConfiguration.timedAttempts.get() == 5
+        def timestamps = LocalBeanConfiguration.timedTimestamps
+        timestamps.size() == 5
+
+        and: "each interval should be roughly double the previous"
+        def intervals = []
+        for (int i = 1; i < timestamps.size(); i++) {
+            intervals << (timestamps[i] - timestamps[i - 1])
+        }
+        // With 100ms base and multiplier 2: ~100ms, ~200ms, ~400ms, ~800ms
+        // Verify each subsequent interval is larger than the previous
+        for (int i = 1; i < intervals.size(); i++) {
+            assert intervals[i] > intervals[i - 1] * 0.8: // allow some tolerance
+                    "Interval ${i} (${intervals[i]}ms) should be larger than interval ${i-1} (${intervals[i-1]}ms)"
+        }
+        println "Retry intervals: ${intervals}ms"
+    }
+
+    def "timeout triggers retry when handler is slow"() {
+        given:
+        def command = new Command(null, "slow", null)
+
+        when:
+        def failureCount = 0
+        try {
+            localCommandGateway.send(command)
+        } catch (RuntimeException ignored) {
+            failureCount++
+        }
+
+        then:
+        failureCount == 1
+        LocalBeanConfiguration.slowAttempts.get() == 5
+    }
+
     @SpringBootConfiguration
     @EnableAutoConfiguration(exclude = [DataSourceAutoConfiguration, HibernateJpaAutoConfiguration])
     @ImportAutoConfiguration([RetryAutoConfiguration, CircuitBreakerAutoConfiguration])
@@ -117,11 +165,17 @@ class CircuitBreakerTest extends SpockTest {
         static final AtomicInteger retryableAttempts = new AtomicInteger()
         static final AtomicInteger simulatorExceptionAttempts = new AtomicInteger()
         static final AtomicInteger eventuallySucceedsAttempts = new AtomicInteger()
+        static final AtomicInteger slowAttempts = new AtomicInteger()
+        static final AtomicInteger timedAttempts = new AtomicInteger()
+        static final List<Long> timedTimestamps = Collections.synchronizedList(new ArrayList<>())
 
         static void resetCounters() {
             retryableAttempts.set(0)
             simulatorExceptionAttempts.set(0)
             eventuallySucceedsAttempts.set(0)
+            slowAttempts.set(0)
+            timedAttempts.set(0)
+            timedTimestamps.clear()
         }
 
         @Bean
@@ -173,6 +227,40 @@ class CircuitBreakerTest extends SpockTest {
                         throw new RuntimeException("Temporary failure")
                     }
                     return "Success after retries"
+                }
+            }
+        }
+
+        @Bean
+        CommandHandler slowCommandHandler() {
+            return new CommandHandler() {
+                @Override
+                protected String getAggregateTypeName() { return "test" }
+
+                @Override
+                protected Object handleDomainCommand(Command command) {
+                    slowAttempts.incrementAndGet()
+                    try {
+                        Thread.sleep(3000)
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt()
+                    }
+                    return "Should not reach here"
+                }
+            }
+        }
+
+        @Bean
+        CommandHandler timedCommandHandler() {
+            return new CommandHandler() {
+                @Override
+                protected String getAggregateTypeName() { return "test" }
+
+                @Override
+                protected Object handleDomainCommand(Command command) {
+                    timedAttempts.incrementAndGet()
+                    timedTimestamps.add(System.currentTimeMillis())
+                    throw new RuntimeException("Timed failure")
                 }
             }
         }

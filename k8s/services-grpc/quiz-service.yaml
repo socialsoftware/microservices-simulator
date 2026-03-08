@@ -34,7 +34,7 @@ spec:
       serviceAccountName: microservices-sa
       containers:
         - name: quiz-service
-          image: quizzes-quiz:latest
+          image: quizzes:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8085
@@ -49,6 +49,8 @@ spec:
               memory: "1Gi"
               cpu: "1000m"
           env:
+            - name: START_CLASS
+              value: "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.QuizServiceApplication"
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes,quiz-service,sagas,grpc"
             - name: SPRING_DATASOURCE_URL

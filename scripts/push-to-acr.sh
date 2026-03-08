@@ -47,14 +47,7 @@ echo "[4/5] Tagging and pushing images..."
 declare -A IMAGES=(
     ["gateway:latest"]="gateway"
     ["simulator:latest"]="simulator"
-    ["quizzes-answer:latest"]="quizzes-answer"
-    ["quizzes-course:latest"]="quizzes-course"
-    ["quizzes-execution:latest"]="quizzes-execution"
-    ["quizzes-question:latest"]="quizzes-question"
-    ["quizzes-quiz:latest"]="quizzes-quiz"
-    ["quizzes-topic:latest"]="quizzes-topic"
-    ["quizzes-tournament:latest"]="quizzes-tournament"
-    ["quizzes-user:latest"]="quizzes-user"
+    ["quizzes:latest"]="quizzes"
 )
 
 ACR_LOGIN_SERVER="${ACR_NAME}.azurecr.io"

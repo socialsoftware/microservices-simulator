@@ -28,7 +28,7 @@ spec:
       serviceAccountName: microservices-sa
       containers:
         - name: execution-service
-          image: simulatorcr.azurecr.io/quizzes-execution:latest
+          image: simulatorcr.azurecr.io/quizzes:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8083
@@ -40,6 +40,8 @@ spec:
               memory: "512Mi"
               cpu: "500m"
           env:
+            - name: START_CLASS
+              value: "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.ExecutionServiceApplication"
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes,execution-service,sagas,stream"
             - name: SPRING_DATASOURCE_URL

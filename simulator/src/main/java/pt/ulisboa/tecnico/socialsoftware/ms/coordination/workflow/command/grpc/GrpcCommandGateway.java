@@ -141,7 +141,8 @@ public class GrpcCommandGateway extends CommandGateway {
                 .build();
 
         try {
-            CommandServiceGrpc.CommandServiceBlockingStub stub = CommandServiceGrpc.newBlockingStub(channel);
+            CommandServiceGrpc.CommandServiceBlockingStub stub = CommandServiceGrpc.newBlockingStub(channel)
+                    .withDeadlineAfter(commandTimeoutSeconds, java.util.concurrent.TimeUnit.SECONDS);
             return stub.send(request);
         } finally {
             channel.shutdown();

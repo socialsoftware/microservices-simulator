@@ -28,7 +28,7 @@ spec:
       serviceAccountName: microservices-sa
       containers:
         - name: tournament-service
-          image: simulatorcr.azurecr.io/quizzes-tournament:latest
+          image: simulatorcr.azurecr.io/quizzes:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8087
@@ -40,6 +40,8 @@ spec:
               memory: "512Mi"
               cpu: "500m"
           env:
+            - name: START_CLASS
+              value: "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.TournamentServiceApplication"
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes,tournament-service,sagas,stream"
             - name: SPRING_DATASOURCE_URL
