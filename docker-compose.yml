@@ -120,6 +120,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
       SPRING_RABBITMQ_HOST: rabbitmq
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+    volumes:
+      - ./applications/quizzes/src/test/resources:/src/test/resources
     networks:
       - messaging-network
 

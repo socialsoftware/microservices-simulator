@@ -14,7 +14,7 @@
     {
       "name": "CreateTournamentFunctionalitySagas",
       "microservice": "TournamentService",
-      "requirement": 2
+      "requirement": 1
     }
   ]
 }

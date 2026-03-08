@@ -40,12 +40,14 @@ public class CapacityManager {
         Path filePath = Paths.get(directory, "capacities.json");
         File jsonFile = filePath.toFile();
         if (!jsonFile.exists()) {
+            System.err.println("[CapacityManager] CRITICAL: File not found at " + jsonFile.getAbsolutePath());
             return;
         }
 
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode root = mapper.readTree(jsonFile);
+            System.out.println("[CapacityManager] Loading configuration from: " + jsonFile.getAbsolutePath());
 
             if (root.has("microservices")) {
                 JsonNode microservices = root.get("microservices");
@@ -94,6 +96,7 @@ public class CapacityManager {
 
         Integer requirement = endpointRequirements.get(functionalityName);
         if (requirement != null && requirement > 0) {
+            System.out.println("[CapacityManager] ACQUIRING " + requirement + " for " + functionalityName + " on " + msName + ". Available before: " + semaphore.availablePermits());
             semaphore.acquire(requirement);
         }
     }
@@ -109,6 +112,7 @@ public class CapacityManager {
             Semaphore semaphore = msCapacities.get(msName);
             if (semaphore != null && requirement != null && requirement > 0) {
                 semaphore.release(requirement);
+                System.out.println("[CapacityManager] RELEASED " + requirement + " for " + functionalityName + " on " + msName + ". Available after: " + semaphore.availablePermits());
             }
         }
     }
