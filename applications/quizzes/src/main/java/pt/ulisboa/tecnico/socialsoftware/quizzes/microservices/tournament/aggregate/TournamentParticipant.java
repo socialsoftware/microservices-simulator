@@ -46,7 +46,9 @@ public class TournamentParticipant {
         setParticipantName(other.getParticipantName());
         setParticipantUsername(other.getParticipantUsername());
         setParticipantVersion(other.getParticipantVersion());
-        setParticipantAnswer(new TournamentParticipantQuizAnswer(other.getParticipantAnswer()));
+        if (other.getParticipantAnswer() != null) {
+            setParticipantAnswer(new TournamentParticipantQuizAnswer(other.getParticipantAnswer()));
+        }
         setEnrollTime(other.getEnrollTime());
         setState(other.getState());
     }
@@ -101,7 +103,9 @@ public class TournamentParticipant {
 
     public void setParticipantAnswer(TournamentParticipantQuizAnswer participantAnswer) {
         this.participantAnswer = participantAnswer;
-        this.participantAnswer.setTournamentParticipant(this);
+        if (this.participantAnswer != null) {
+            this.participantAnswer.setTournamentParticipant(this);
+        }
     }
 
     public Long getParticipantVersion() {
