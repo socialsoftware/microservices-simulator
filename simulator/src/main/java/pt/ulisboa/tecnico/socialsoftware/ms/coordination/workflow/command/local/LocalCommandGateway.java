@@ -30,23 +30,6 @@ public class LocalCommandGateway extends CommandGateway {
                 command.getServiceName() + "CommandHandler");
 
         logger.info("Executing command: " + command.getClass().getSimpleName());
-
-        try {
-            return CompletableFuture.supplyAsync(() -> handler.handle(command), executor)
-                    .get(commandTimeoutSeconds, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            throw new RuntimeException(String.format(
-                    "Timeout after %ds executing command %s on service '%s'",
-                    commandTimeoutSeconds, command.getClass().getSimpleName(), command.getServiceName()), e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Interrupted while executing command", e);
-        } catch (java.util.concurrent.ExecutionException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof RuntimeException) {
-                throw (RuntimeException) cause;
-            }
-            throw new RuntimeException(cause);
-        }
+        return handler.handle(command);
     }
 }
