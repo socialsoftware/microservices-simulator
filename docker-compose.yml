@@ -203,8 +203,10 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: applications/gateway/Dockerfile
-    image: gateway
+      dockerfile: simulator/Dockerfile
+      args:
+        PROFILE: gateway
+    image: simulator
     container_name: gateway
     depends_on:
       <<: *microservice-deps
@@ -228,6 +230,7 @@ services:
       - "8080:8080"
     restart: unless-stopped
     environment:
+      SPRING_PROFILES_ACTIVE: gateway
       VERSION_SERVICE_HOST: version-service
       EUREKA_HOST: eureka-server
       GATEWAY_LOG_LEVEL: INFO

@@ -576,7 +576,7 @@ running RabbitMQ for inter-service communication.
 
 ```bash
 cd simulator
-mvn spring-boot:run -Dspring-boot.run.profiles=version-service,stream
+mvn clean spring-boot:run -Dspring-boot.run.profiles=version-service,stream -Dspring-boot.run.mainClass=pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionServiceApplication
 ```
 
 **2. Start each Quizzes microservice (from `applications/quizzes`):**
@@ -609,11 +609,11 @@ mvn spring-boot:run -Psagas,stream,distributed-version
 mvn spring-boot:run -Psagas,grpc,distributed-version
 ```
 
-**3. Start the Gateway (from `applications/gateway`):**
+**3. Start the Gateway (from `simulator/`):**
 
 ```bash
-cd applications/gateway
-mvn spring-boot:run
+cd simulator/
+mvn spring-boot:run -Dspring-boot.run.profiles=gateway -Dspring-boot.run.mainClass=pt.ulisboa.tecnico.socialsoftware.ms.gateway.GatewayApplication
 ```
 
 ---

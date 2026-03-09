@@ -42,7 +42,7 @@ spec:
               cpu: "1000m"
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: "kubernetes"
+              value: "gateway,kubernetes"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: "http://jaeger:4317"
           readinessProbe:
