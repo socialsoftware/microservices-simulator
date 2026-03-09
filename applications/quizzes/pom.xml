@@ -173,6 +173,20 @@
                 <activatedProperties>user-service,${transaction.pattern},${communication.layer}${version.suffix}</activatedProperties>
             </properties>
         </profile>
+        <!-- Gateway Profile -->
+        <profile>
+            <id>gateway</id>
+            <properties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.ms.gateway.GatewayApplication</start-class>
+                <activatedProperties>gateway</activatedProperties>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
         <!-- Communication Layer Profiles -->
         <profile>
             <id>local</id>

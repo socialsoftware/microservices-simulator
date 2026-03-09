@@ -1,5 +1,6 @@
-package pt.ulisboa.tecnico.socialsoftware.gateway;
+package pt.ulisboa.tecnico.socialsoftware.ms.gateway;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
 public class AdminController {
 
     private final WebClient webClient;

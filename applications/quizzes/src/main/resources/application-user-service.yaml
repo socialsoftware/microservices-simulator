@@ -27,6 +27,13 @@ grpc:
   server:
     port: 9098
 
+routes:
+  - id: user-service
+    uri: lb://user${gateway.service-suffix}
+    predicates:
+      - Path=/users/**
+    order: 2
+
 ---
 spring:
   config:

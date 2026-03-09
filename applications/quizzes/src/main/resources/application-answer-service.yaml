@@ -27,6 +27,13 @@ grpc:
   server:
     port: 9092
 
+routes:
+  - id: answer-service
+    uri: lb://answer${gateway.service-suffix}
+    predicates:
+      - Path=/quizzes/*/answer
+    order: 5
+
 ---
 spring:
   config:

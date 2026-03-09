@@ -27,6 +27,20 @@ grpc:
   server:
     port: 9095
 
+routes:
+  - id: quiz-service
+    uri: lb://quiz${gateway.service-suffix}
+    predicates:
+      - Path=/quizzes/**
+    order: 7
+
+  - id: quiz-service-execution-post
+    uri: lb://quiz${gateway.service-suffix}
+    predicates:
+      - Method=POST
+      - Path=/executions/{executionId}
+    order: 9
+
 ---
 spring:
   config:

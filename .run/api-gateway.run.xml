@@ -1,7 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="api-gateway" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <module name="gateway" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.gateway.GatewayApplication" />
+    <option name="ACTIVE_PROFILES" value="gateway" />
+    <module name="MicroservicesSimulator" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.ms.gateway.GatewayApplication" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="pt.ulisboa.tecnico.socialsoftware.gateway.*" />

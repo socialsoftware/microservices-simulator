@@ -27,6 +27,13 @@ grpc:
   server:
     port: 9097
 
+routes:
+  - id: tournament-service
+    uri: lb://tournament${gateway.service-suffix}
+    predicates:
+      - Path=/tournaments/**, /executions/*/tournaments/**, /tournament/**
+    order: 6
+
 ---
 spring:
   config:

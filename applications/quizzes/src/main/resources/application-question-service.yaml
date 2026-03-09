@@ -27,6 +27,13 @@ grpc:
   server:
     port: 9094
 
+routes:
+  - id: question-service
+    uri: lb://question${gateway.service-suffix}
+    predicates:
+      - Path=/questions/**, /courses/*/questions/**
+    order: 4
+
 ---
 spring:
   config:

@@ -27,6 +27,25 @@ grpc:
   server:
     port: 9093
 
+routes:
+  - id: execution-service-users
+    uri: lb://execution${gateway.service-suffix}
+    predicates:
+      - Path=/users/*/executions
+    order: 1
+
+  - id: execution-service-create
+    uri: lb://execution${gateway.service-suffix}
+    predicates:
+      - Path=/executions/create
+    order: 8
+
+  - id: execution-service
+    uri: lb://execution${gateway.service-suffix}
+    predicates:
+      - Path=/executions/**
+    order: 10
+
 ---
 spring:
   config:

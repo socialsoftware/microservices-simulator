@@ -27,6 +27,13 @@ grpc:
   server:
     port: 9096
 
+routes:
+  - id: topic-service
+    uri: lb://topic${gateway.service-suffix}
+    predicates:
+      - Path=/courses/*/topics/**, /courses/*/create, /topics/**
+    order: 3
+
 ---
 spring:
   config:
