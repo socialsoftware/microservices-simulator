@@ -86,7 +86,7 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: ${TX_MODE:-sagas},local
-    image: quizzes-local
+    image: quizzes
     container_name: quizzes-local
     depends_on:
       postgres:
@@ -110,7 +110,7 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: ${TX_MODE:-sagas},${COMM_LAYER:-stream}
-    image: quizzes-remote
+    image: quizzes
     container_name: quizzes-remote
     depends_on:
       postgres:
