@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.CreateQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.*;
@@ -21,14 +22,14 @@ import java.util.stream.Collectors;
 public class QuestionService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
-    
+
     private final QuestionRepository questionRepository;
 
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     @Autowired
     private QuestionFactory questionFactory;
-    
+
     public QuestionService(UnitOfWorkService unitOfWorkService, QuestionRepository questionRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.questionRepository = questionRepository;
@@ -36,7 +37,8 @@ public class QuestionService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public QuestionDto getQuestionById(Integer aggregateId, UnitOfWork unitOfWork) {
-        return questionFactory.createQuestionDto((Question) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
+        return questionFactory
+                .createQuestionDto((Question) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -51,7 +53,8 @@ public class QuestionService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public QuestionDto createQuestion(QuestionCourse course, QuestionDto questionDto, List<TopicDto> topics, UnitOfWork unitOfWork) {
+    public QuestionDto createQuestion(QuestionCourse course, QuestionDto questionDto, List<TopicDto> topics,
+            UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
 
         List<QuestionTopic> questionTopics = topics.stream()
@@ -60,6 +63,8 @@ public class QuestionService {
 
         Question question = questionFactory.createQuestion(aggregateId, course, questionDto, questionTopics);
         unitOfWorkService.registerChanged(question, unitOfWork);
+        unitOfWorkService.registerEvent(
+                new CreateQuestionEvent(course.getCourseAggregateId()), unitOfWork);
         return questionFactory.createQuestionDto(question);
     }
 
@@ -68,11 +73,14 @@ public class QuestionService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateQuestion(QuestionDto questionDto, UnitOfWork unitOfWork) {
-        Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(), unitOfWork);
+        Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.getAggregateId(),
+                unitOfWork);
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
         newQuestion.update(questionDto);
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
-        unitOfWorkService.registerEvent(new UpdateQuestionEvent(newQuestion.getAggregateId(), newQuestion.getTitle(), newQuestion.getContent()), unitOfWork);
+        unitOfWorkService.registerEvent(
+                new UpdateQuestionEvent(newQuestion.getAggregateId(), newQuestion.getTitle(), newQuestion.getContent()),
+                unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -81,7 +89,7 @@ public class QuestionService {
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
         newQuestion.remove();
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
-        unitOfWorkService.registerEvent(new DeleteQuestionEvent(newQuestion.getAggregateId()), unitOfWork);
+        unitOfWorkService.registerEvent(new DeleteQuestionEvent(newQuestion.getQuestionCourse().getCourseAggregateId()), unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -112,7 +120,9 @@ public class QuestionService {
 
     }
 
-    /************************************************ EVENT PROCESSING ************************************************/
+    /************************************************
+     * EVENT PROCESSING
+     ************************************************/
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public QuestionDto updateTopic(Integer questionAggregateId, Integer topicAggregateId, String topicName, Long aggregateVersion, UnitOfWork unitOfWork) {
@@ -121,10 +131,12 @@ public class QuestionService {
 
         QuestionTopic questionTopic = newQuestion.findTopic(topicAggregateId);
         /*
-        if(questionTopic != null && questionTopic.getAggregateId().equals(topicAggregateId) && questionTopic.getVersion() >= aggregateVersion) {
-            return null;
-        }
-        */
+         * if(questionTopic != null &&
+         * questionTopic.getAggregateId().equals(topicAggregateId) &&
+         * questionTopic.getVersion() >= aggregateVersion) {
+         * return null;
+         * }
+         */
         questionTopic.setTopicName(topicName);
         questionTopic.setTopicVersion(aggregateVersion);
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
@@ -137,15 +149,15 @@ public class QuestionService {
         Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
 
         QuestionTopic questionTopic = newQuestion.findTopic(topicAggregateId);
-        if(questionTopic != null && questionTopic.getTopicAggregateId().equals(topicAggregateId) && questionTopic.getTopicVersion() >= aggregateVersion) {
+        if (questionTopic != null && questionTopic.getTopicAggregateId().equals(topicAggregateId)
+                && questionTopic.getTopicVersion() >= aggregateVersion) {
             return null;
         }
-        if(questionTopic != null) {
+        if (questionTopic != null) {
             questionTopic.setState(Aggregate.AggregateState.INACTIVE);
         }
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
         return new QuestionDto(newQuestion);
     }
-
 
 }

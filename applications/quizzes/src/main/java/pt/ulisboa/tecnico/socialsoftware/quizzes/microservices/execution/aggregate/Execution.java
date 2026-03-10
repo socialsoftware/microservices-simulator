@@ -7,6 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.subscribe.CourseExecutionSubscribesRemoveUser;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.subscribe.ExecutionSubscribesCreateQuestion;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.subscribe.ExecutionSubscribesDeleteQuestion;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -24,6 +26,7 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
     INTER-INVARIANTS
         USER_EXISTS
         COURSE_EXISTS (does it count? course doesn't send events)
+        CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT (needs service-level context to know if this is the last execution)
  */
 
 @Entity
@@ -35,11 +38,13 @@ public abstract class Execution extends Aggregate {
     private CourseExecutionCourse courseExecutionCourse;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "execution")
     private Set<CourseExecutionStudent> students = new HashSet<>();
+    private int courseQuestionCount = 0;
 
     public Execution() {
     }
 
-    public Execution(Integer aggregateId, CourseExecutionDto courseExecutionDto, CourseExecutionCourse courseExecutionCourse) {
+    public Execution(Integer aggregateId, CourseExecutionDto courseExecutionDto,
+            CourseExecutionCourse courseExecutionCourse) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setAcronym(courseExecutionDto.getAcronym());
@@ -55,6 +60,7 @@ public abstract class Execution extends Aggregate {
         setEndDate(other.getEndDate());
         setExecutionCourse(new CourseExecutionCourse(other.getExecutionCourse()));
         setStudents(other.getStudents().stream().map(CourseExecutionStudent::new).collect(Collectors.toSet()));
+        this.courseQuestionCount = other.getCourseQuestionCount();
     }
 
     @Override
@@ -62,8 +68,14 @@ public abstract class Execution extends Aggregate {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (getState() == ACTIVE) {
             interInvariantUsersExist(eventSubscriptions);
+            interInvariantCourseHasNoContent(eventSubscriptions);
         }
         return eventSubscriptions;
+    }
+
+    private void interInvariantCourseHasNoContent(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new ExecutionSubscribesCreateQuestion(this.courseExecutionCourse));
+        eventSubscriptions.add(new ExecutionSubscribesDeleteQuestion(this.courseExecutionCourse));
     }
 
     private void interInvariantUsersExist(Set<EventSubscription> eventSubscriptions) {
@@ -120,7 +132,7 @@ public abstract class Execution extends Aggregate {
     }
 
     /*
-        REMOVE_NO_STUDENTS
+     * REMOVE_NO_STUDENTS
      */
     public boolean removedNoStudents() {
         if (getState() == AggregateState.DELETED) {
@@ -140,7 +152,7 @@ public abstract class Execution extends Aggregate {
 
     @Override
     public void verifyInvariants() {
-        if (!(removedNoStudents() /*&& allStudentsAreActive()*/)) {
+        if (!(removedNoStudents() /* && allStudentsAreActive() */)) {
             throw new QuizzesException(QuizzesErrorMessage.INVARIANT_BREAK, getAggregateId());
         }
     }
@@ -148,7 +160,7 @@ public abstract class Execution extends Aggregate {
     @Override
     public void remove() {
         /*
-            CANNOT_REMOVE_IF_STUDENTS
+         * CANNOT_REMOVE_IF_STUDENTS
          */
         if (!getStudents().isEmpty()) {
             throw new QuizzesException(QuizzesErrorMessage.CANNOT_DELETE_COURSE_EXECUTION, getAggregateId());
@@ -156,6 +168,13 @@ public abstract class Execution extends Aggregate {
         super.remove();
     }
 
+    public int getCourseQuestionCount() {
+        return courseQuestionCount;
+    }
+
+    public void setCourseQuestionCount(int courseQuestionCount) {
+        this.courseQuestionCount = courseQuestionCount;
+    }
 
     @Override
     public void setVersion(Long version) {
@@ -187,7 +206,8 @@ public abstract class Execution extends Aggregate {
     public void removeStudent(Integer userAggregateId) {
         CourseExecutionStudent studentToRemove = null;
         if (!hasStudent(userAggregateId)) {
-            throw new QuizzesException(QuizzesErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, getAggregateId());
+            throw new QuizzesException(QuizzesErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId,
+                    getAggregateId());
         }
         for (CourseExecutionStudent student : this.students) {
             if (student.getUserAggregateId().equals(userAggregateId)) {

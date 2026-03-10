@@ -35,11 +35,25 @@ public class ExecutionCommandHandler extends CommandHandler {
             case EnrollStudentCommand cmd -> handleEnrollStudent(cmd);
             case AnonymizeStudentCommand cmd -> handleAnonymizeStudent(cmd);
             case RemoveUserCommand cmd -> handleRemoveUser(cmd);
+            case UpdateCourseQuestionCountCommand cmd -> handleUpdateCourseQuestionCount(cmd);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 yield null;
             }
         };
+    }
+
+    private Object handleUpdateCourseQuestionCount(UpdateCourseQuestionCountCommand command) {
+        logger.info("Updating course question count for execution: " + command.getCourseExecutionAggregateId()
+                + " increment: " + command.isIncrement());
+        if (command.isIncrement()) {
+            executionService.incrementCourseQuestionCount(command.getCourseExecutionAggregateId(),
+                    command.getUnitOfWork());
+        } else {
+            executionService.decrementCourseQuestionCount(command.getCourseExecutionAggregateId(),
+                    command.getUnitOfWork());
+        }
+        return null;
     }
 
     private Object handleCreateCourseExecution(CreateCourseExecutionCommand command) {
