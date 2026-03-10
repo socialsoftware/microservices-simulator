@@ -230,6 +230,7 @@ services:
       - "8080:8080"
     restart: unless-stopped
     environment:
+      START_CLASS: pt.ulisboa.tecnico.socialsoftware.ms.gateway.GatewayApplication
       SPRING_PROFILES_ACTIVE: gateway
       VERSION_SERVICE_HOST: version-service
       EUREKA_HOST: eureka-server
@@ -258,6 +259,7 @@ services:
       - "8081:8081"
     restart: unless-stopped
     environment:
+      START_CLASS: pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionServiceApplication
       SPRING_PROFILES_ACTIVE: version-service,${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://version-db:5432/versiondb
       SPRING_RABBITMQ_HOST: rabbitmq
