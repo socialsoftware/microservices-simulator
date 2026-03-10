@@ -58,6 +58,7 @@ public final class QuizzesErrorMessage {
     public static final String CANNOT_DELETE_COURSE_EXECUTION = "Cannot delete course execution with aggregate id %d.";
     public static final String CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT = "Cannot delete the last course execution %d of a course that still has questions.";
 
+    public static final String DUPLICATE_COURSE_EXECUTION = "Course execution with acronym %s and academic term %s already exists.";
     public static final String COURSE_EXECUTION_STUDENT_NOT_FOUND = "Student with aggregate id %d not found in course execution %d.";
 
     public static final String TOPIC_MISSING_NAME = "Topic requires a name.";

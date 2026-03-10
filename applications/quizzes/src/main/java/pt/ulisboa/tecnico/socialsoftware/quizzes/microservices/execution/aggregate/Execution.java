@@ -20,9 +20,9 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
 /*
     INTRA-INVARIANTS
         REMOVE_NO_STUDENTS
-        REMOVE_COURSE_IS_VALID
         ALL_STUDENTS_ARE_ACTIVE
         CANNOT_REMOVE_IF_STUDENTS
+        NO_DUPLICATE_COURSE_EXECUTION
     INTER-INVARIANTS
         USER_EXISTS
         COURSE_EXISTS (does it count? course doesn't send events)

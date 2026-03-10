@@ -69,6 +69,20 @@ class CreateCourseExecutionTest extends QuizzesSpockTest {
         thrown(QuizzesException)
     }
 
+    def "create course execution with duplicate acronym and academic term throws exception"() {
+        when: 'creating a course execution with the same acronym and academic term as the one in setup'
+        courseExecutionFunctionalities.createCourseExecution(new CourseExecutionDto(
+            name: COURSE_EXECUTION_NAME,
+            type: COURSE_EXECUTION_TYPE,
+            acronym: COURSE_EXECUTION_ACRONYM,
+            academicTerm: COURSE_EXECUTION_ACADEMIC_TERM,
+            endDate: DateHandler.toISOString(TIME_4)
+        ))
+
+        then: 'NO_DUPLICATE_COURSE_EXECUTION invariant is violated'
+        thrown(QuizzesException)
+    }
+
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 }

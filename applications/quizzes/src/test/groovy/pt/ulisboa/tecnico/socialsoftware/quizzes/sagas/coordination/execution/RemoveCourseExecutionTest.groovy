@@ -41,7 +41,7 @@ class RemoveCourseExecutionTest extends QuizzesSpockTest {
         when:
         courseExecutionFunctionalities.removeCourseExecution(courseExecutionDto.getAggregateId())
 
-        then:
+        then: 'CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT invariant is violated'
         thrown(QuizzesException)
     }
 

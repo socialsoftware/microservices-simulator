@@ -57,6 +57,17 @@ public class ExecutionService {
     public CourseExecutionDto createCourseExecution(CourseExecutionDto courseExecutionDto, UnitOfWork unitOfWork) {
         CourseExecutionCourse courseExecutionCourse = new CourseExecutionCourse(courseExecutionDto);
 
+        // NO_DUPLICATE_COURSE_EXECUTION
+        Set<Integer> existingIds = courseExecutionCustomRepository.findCourseExecutionIdsOfAllNonDeleted();
+        for (Integer id : existingIds) {
+            Execution existing = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+            if (existing.getAcronym().equals(courseExecutionDto.getAcronym())
+                    && existing.getAcademicTerm().equals(courseExecutionDto.getAcademicTerm())) {
+                throw new QuizzesException(DUPLICATE_COURSE_EXECUTION, courseExecutionDto.getAcronym(),
+                        courseExecutionDto.getAcademicTerm());
+            }
+        }
+
         Execution execution = courseExecutionFactory.createCourseExecution(
                 aggregateIdGeneratorService.getNewAggregateId(), courseExecutionDto, courseExecutionCourse);
 
