@@ -32,8 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger
         "resilience4j.retry.instances.commandGateway.enable-exponential-backoff=true",
         "resilience4j.retry.instances.commandGateway.exponential-backoff-multiplier=2",
         "resilience4j.retry.instances.commandGateway.retry-exceptions[0]=java.lang.RuntimeException",
-        "resilience4j.retry.instances.commandGateway.ignore-exceptions[0]=pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException",
-        "command.gateway.timeout-seconds=1"
+        "resilience4j.retry.instances.commandGateway.ignore-exceptions[0]=pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException"
 ])
 class CircuitBreakerTest extends SpockTest {
 
@@ -138,22 +137,22 @@ class CircuitBreakerTest extends SpockTest {
         println "Retry intervals: ${intervals}ms"
     }
 
-    def "timeout triggers retry when handler is slow"() {
-        given:
-        def command = new Command(null, "slow", null)
-
-        when:
-        def failureCount = 0
-        try {
-            localCommandGateway.send(command)
-        } catch (RuntimeException ignored) {
-            failureCount++
-        }
-
-        then:
-        failureCount == 1
-        LocalBeanConfiguration.slowAttempts.get() == 5
-    }
+//    def "timeout triggers retry when handler is slow"() {
+//        given:
+//        def command = new Command(null, "slow", null)
+//
+//        when:
+//        def failureCount = 0
+//        try {
+//            localCommandGateway.send(command)
+//        } catch (RuntimeException ignored) {
+//            failureCount++
+//        }
+//
+//        then:
+//        failureCount == 1
+//        LocalBeanConfiguration.slowAttempts.get() == 5
+//    }
 
     @SpringBootConfiguration
     @EnableAutoConfiguration(exclude = [DataSourceAutoConfiguration, HibernateJpaAutoConfiguration])

@@ -17,8 +17,7 @@
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
-        <spring-boot.run.mainClass>pt.ulisboa.tecnico.socialsoftware.ms.gateway.GatewayApplication</spring-boot.run.mainClass>
-        <start-class>${spring-boot.run.mainClass}</start-class>
+        <start-class>pt.ulisboa.tecnico.socialsoftware.ms.gateway.GatewayApplication</start-class>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -32,15 +31,6 @@
         </dependencies>
     </dependencyManagement>
     <profiles>
-        <profile>
-            <id>sagas</id>
-            <properties>
-                <activatedProperties>sagas</activatedProperties>
-            </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
         <profile>
             <id>test-sagas</id>
             <properties>
@@ -73,6 +63,34 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <!-- Application Profiles -->
+        <profile>
+            <id>gateway</id>
+            <properties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.ms.gateway.GatewayApplication</start-class>
+                <activatedProperties>gateway</activatedProperties>
+            </properties>
+        </profile>
+        <profile>
+            <id>version-service</id>
+            <properties>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionServiceApplication</start-class>
+                <activatedProperties>version-service,${communication.layer}</activatedProperties>
+            </properties>
+        </profile>
+        <!-- Communication Layer Profiles -->
+        <profile>
+            <id>stream</id>
+            <properties>
+                <communication.layer>stream</communication.layer>
+            </properties>
+        </profile>
+        <profile>
+            <id>grpc</id>
+            <properties>
+                <communication.layer>grpc</communication.layer>
+            </properties>
         </profile>
         <profile>
             <id>kubernetes</id>
@@ -274,7 +292,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <classifier>exec</classifier>
-                    <mainClass>${spring-boot.run.mainClass}</mainClass>
+                    <mainClass>${start-class}</mainClass>
                     <layout>ZIP</layout>
                 </configuration>
             </plugin>

@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: simulator
+  profiles:
+    active: "@activatedProperties@"

@@ -572,11 +572,11 @@ running RabbitMQ for inter-service communication.
 
 #### Running the Microservices
 
-**1. Start the Version Service** (skip this step if using `distributed-version` profile)**:**
+**1. Start the Version Service (stream or grpc)** (skip this step if using `distributed-version` profile)**:**
 
 ```bash
 cd simulator
-mvn clean spring-boot:run -Dspring-boot.run.profiles=version-service,stream -Dspring-boot.run.mainClass=pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionServiceApplication
+mvn clean -Pversion-service,stream spring-boot:run
 ```
 
 **2. Start each Quizzes microservice (from `applications/quizzes`):**
@@ -613,7 +613,7 @@ mvn spring-boot:run -Psagas,grpc,distributed-version
 
 ```bash
 cd simulator/
-mvn spring-boot:run -Dspring-boot.run.profiles=gateway -Dspring-boot.run.mainClass=pt.ulisboa.tecnico.socialsoftware.ms.gateway.GatewayApplication
+mvn -Pgateway spring-boot:run
 ```
 
 ---
@@ -729,16 +729,14 @@ map the service name to the service port automatically.
 
 ### API Gateway Configuration
 
-The [Gateway application.yaml](applications/gateway/src/main/resources/application.yaml) configures:
+The [Gateway application-gateway.yaml](simulator/src/main/resources/application-gateway.yaml) configures:
 
-1. **Service discovery** ([lines 8-25](applications/gateway/src/main/resources/application.yaml)): Eureka discovery for
+1. **Service discovery** ([lines 20-28](simulator/src/main/resources/application-gateway.yaml)): Eureka discovery for
    local distributed deployments; Kubernetes discovery is enabled via the `kubernetes` profile.
 
-2. **Route definitions** ([lines 30-87](applications/gateway/src/main/resources/application.yaml)): Map API paths to
-   backend services using `lb://<service>${gateway.service-suffix}` URIs.
+2. **Route definitions** ([lines 290-300 in application.yaml](applications/quizzes/src/main/resources/application.yaml)): The API Gateway is a Spring MVC-based application that dynamically proxies HTTP requests to backend services. Routes are configured via `gateway.routes.imports` referencing the target microservice application properties, which the `DynamicMVCProxyController` uses to forward REST calls.
 
-3. **Version service URL** ([line 18](applications/gateway/src/main/resources/application.yaml)): Base URL for the
-   version service used by admin endpoints.
+3. **Version service URL**: The Admin controller endpoints directly interact with the remote microservices for configuration sync.
 
 ## Code structure
 
@@ -779,7 +777,7 @@ domain specific code.
 ![Application Decomposition](data/figs/application_decomposition.png)
 
 The API Gateway is used when running the quizzes application as microservices to route API requests to the appropriate
-microservice.
+microservice. The gateway operates as an MVC application using a custom dynamic proxy controller to forward REST requests.
 
 ## How to implement and test your own business logic for Sagas and TCC (Illustrated with Quizzes Microservice System)
 
@@ -855,8 +853,8 @@ For the inter-service communication:
 3. **Configure gRPC Server Port** (for `grpc` profile): Define the gRPC server port in the service profile file and
    expose it via Eureka metadata,
    like [tournament-service gRPC config](applications/quizzes/src/main/resources/application-tournament-service.yaml).
-4. **Configure API Gateway Routes**: Define the route mappings in the
-   [Gateway application.yaml](applications/gateway/src/main/resources/application.yaml) to route API requests to the
+4. **Configure API Gateway Routes**: Define the route mappings in the microservice's application yaml file and import it via
+   `gateway.routes.imports` properties to have the MVC proxy controller route HTTP requests to the
    new microservice.
 
 To write tests:

@@ -8,7 +8,7 @@ spring:
     discovery:
       enabled: true
     function:
-      definition: ""  # Disable default function routing
+      definition: "" # Disable default function routing
 
 server:
   port: 8080
@@ -34,6 +34,9 @@ logging:
     org.springframework.core.io.buffer: ${BUFFER_LOG_LEVEL:DEBUG}
 
 management:
+  health:
+    rabbit:
+      enabled: false
   endpoints:
     web:
       exposure:
