@@ -9,7 +9,6 @@ public class CapacityService {
     private static String directory;
 
     public void loadDir(String dir, String testNameFile) {
-        // ? TODO - different paths needed?
         directory = dir + "/src/test/resources/" + testNameFile + "/";
         CapacityManager.setDirectory(directory);
         CapacityManager.getInstance().load();

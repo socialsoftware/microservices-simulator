@@ -22,6 +22,7 @@ public class ExecutionPlan {
     private HashMap<FlowStep, CompletableFuture<Void>> stepFutures = new HashMap<>();
     private WorkflowFunctionality functionality;
     private String functionalityName;
+    private String requestId;
     private Map<String, List<Integer>> behaviour;
     private static final int DEFAULT_VALUE = 0;
     private static final int THROW_EXCEPTION = 1;
@@ -41,6 +42,7 @@ public class ExecutionPlan {
         behaviour = BehaviourHandler.getInstance().loadStepsFile(functionalityName);
         BehaviourHandler.getInstance().appendToReport(reportSteps(behaviour));
         
+        this.requestId = UUID.randomUUID().toString().substring(0, 8);
         CapacityManager.getInstance().load();
 
         this.traceManager = TraceManager.getInstance();
@@ -86,7 +88,7 @@ public class ExecutionPlan {
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         try {
-            CapacityManager.getInstance().acquire(this.functionalityName);
+            CapacityManager.getInstance().acquire(this.functionalityName, this.requestId);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Capacity acquisition interrupted", e);
@@ -108,7 +110,7 @@ public class ExecutionPlan {
             if (faultValue == THROW_EXCEPTION) {
                 logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork.getVersion());
 
-                CapacityManager.getInstance().release(this.functionalityName);
+                CapacityManager.getInstance().release(this.functionalityName, this.requestId);
                 throw new SimulatorException("Fault on " + stepName );
 
             }
@@ -160,7 +162,7 @@ public class ExecutionPlan {
 
             if (faultValue == THROW_EXCEPTION) {  
                 logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork.getVersion());
-                CapacityManager.getInstance().release(this.functionalityName);
+                CapacityManager.getInstance().release(this.functionalityName, this.requestId);
                 throw new SimulatorException("Fault on " + stepName );
             }
             if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies         
@@ -204,7 +206,7 @@ public class ExecutionPlan {
 
         // Wait for all steps to complete
         return CompletableFuture.allOf(this.stepFutures.values().toArray(new CompletableFuture[0]))
-                .whenComplete((res, ex) -> CapacityManager.getInstance().release(this.functionalityName));
+                .whenComplete((res, ex) -> CapacityManager.getInstance().release(this.functionalityName, this.requestId));
     }
 
     private String reportSteps(Map<String, List<Integer>> behaviour) {
@@ -276,7 +278,7 @@ public class ExecutionPlan {
 
     public CompletableFuture<Void> executeSteps(List<FlowStep> steps, UnitOfWork unitOfWork) {
         try {
-            CapacityManager.getInstance().acquire(this.functionalityName);
+            CapacityManager.getInstance().acquire(this.functionalityName, this.requestId);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Capacity acquisition interrupted", e);
@@ -294,7 +296,7 @@ public class ExecutionPlan {
             behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
             if (behaviourValues.get(0) == THROW_EXCEPTION) {  
                 logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-                CapacityManager.getInstance().release(this.functionalityName);
+                CapacityManager.getInstance().release(this.functionalityName, this.requestId);
                 throw new SimulatorException("Fault on " + stepName );
 
             }
@@ -313,7 +315,7 @@ public class ExecutionPlan {
             behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
             if (behaviourValues.get(0) == THROW_EXCEPTION) {   
                 logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-                CapacityManager.getInstance().release(this.functionalityName);
+                CapacityManager.getInstance().release(this.functionalityName, this.requestId);
                 throw new SimulatorException("Fault on " + stepName );
             }
             if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies
@@ -331,7 +333,7 @@ public class ExecutionPlan {
         }
 
         return CompletableFuture.allOf(this.stepFutures.values().toArray(new CompletableFuture[0]))
-                .whenComplete((res, ex) -> CapacityManager.getInstance().release(this.functionalityName))
+                .whenComplete((res, ex) -> CapacityManager.getInstance().release(this.functionalityName, this.requestId))
                 .thenRun(() -> {
                     for (FlowStep step : steps) {
                         executedSteps.put(step, true);

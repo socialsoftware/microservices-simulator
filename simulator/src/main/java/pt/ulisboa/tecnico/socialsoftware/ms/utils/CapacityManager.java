@@ -3,23 +3,24 @@ package pt.ulisboa.tecnico.socialsoftware.ms.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
-
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
 public class CapacityManager {
-    // TODO - How to test this!?
     private static CapacityManager instance;
     private static String directory;
     private final Map<String, Semaphore> msCapacities = new ConcurrentHashMap<>();
     private final Map<String, Integer> endpointRequirements = new ConcurrentHashMap<>();
     private final Map<String, String> endpointToMicroservice = new ConcurrentHashMap<>();
     private volatile boolean loaded = false;
+
+    private final Map<String, List<String>> waitingRequests = new ConcurrentHashMap<>();
+    private final Map<String, List<String>> activeRequests = new ConcurrentHashMap<>();
+    private BufferedWriter writer;
 
     public static synchronized CapacityManager getInstance() {
         if (instance == null) {
@@ -33,10 +34,10 @@ public class CapacityManager {
     }
 
     public synchronized void load() {
-        // ! TODO - Change this to correct format
         if (loaded || directory == null || directory.isEmpty()) {
             return;
         }
+
         Path filePath = Paths.get(directory, "capacities.json");
         File jsonFile = filePath.toFile();
         if (!jsonFile.exists()) {
@@ -55,6 +56,9 @@ public class CapacityManager {
                     String msName = ms.get("name").asText();
                     int capacity = ms.get("capacity").asInt();
                     msCapacities.put(msName, new Semaphore(capacity, true));
+
+                    waitingRequests.put(msName, Collections.synchronizedList(new ArrayList<>()));
+                    activeRequests.put(msName, Collections.synchronizedList(new ArrayList<>()));
                 }
             }
 
@@ -71,21 +75,24 @@ public class CapacityManager {
 
             loaded = true;
             System.out.println("Capacity configuration loaded from " + filePath);
+
+            // Init report file
+            Path reportPath = Paths.get(directory, "CapacityReport.txt");
+            writer = new BufferedWriter(new FileWriter(reportPath.toFile(), false));
+            writer.write("### CAPACITY MANAGER REPORT STARTED: " + new Date() + " ###\n");
+            writer.flush();
         } catch (IOException | NumberFormatException e) {
             System.err.println("Error loading capacity configuration: " + e.getMessage());
         }
     }
 
-    public void acquire(String functionalityName) throws InterruptedException {
-        // ? TODO - Are we using endpoits or functionalities? Are they the same?
+    public void acquire(String functionalityName, String requestId) throws InterruptedException {
         if (!loaded) {
             return;
         }
 
         String msName = endpointToMicroservice.get(functionalityName);
         if (msName == null) {
-            // If not configured, we assume it doesn't require capacity or isn't monitored
-            // ? TODO - raise error?
             return;
         }
 
@@ -96,12 +103,21 @@ public class CapacityManager {
 
         Integer requirement = endpointRequirements.get(functionalityName);
         if (requirement != null && requirement > 0) {
-            System.out.println("[CapacityManager] ACQUIRING " + requirement + " for " + functionalityName + " on " + msName + ". Available before: " + semaphore.availablePermits());
-            semaphore.acquire(requirement);
+            waitingRequests.get(msName).add(requestId);
+            logState(msName, "WAITING", requestId);
+
+            try {
+                semaphore.acquire(requirement);
+            } finally {
+                waitingRequests.get(msName).remove(requestId);
+            }
+
+            activeRequests.get(msName).add(requestId);
+            logState(msName, "ACQUIRED", requestId);
         }
     }
 
-    public void release(String functionalityName) {
+    public void release(String functionalityName, String requestId) {
         if (!loaded) {
             return;
         }
@@ -112,17 +128,53 @@ public class CapacityManager {
             Semaphore semaphore = msCapacities.get(msName);
             if (semaphore != null && requirement != null && requirement > 0) {
                 semaphore.release(requirement);
-                System.out.println("[CapacityManager] RELEASED " + requirement + " for " + functionalityName + " on " + msName + ". Available after: " + semaphore.availablePermits());
+                activeRequests.get(msName).remove(requestId);
+                logState(msName, "RELEASED", requestId);
+            }
+        }
+    }
+
+    private synchronized void logState(String msName, String action, String logId) {
+        List<String> active_snapshot;
+        List<String> waiting_snapshot;
+        synchronized (activeRequests.get(msName)) {
+            active_snapshot = new ArrayList<>(activeRequests.get(msName));
+        }
+        synchronized (waitingRequests.get(msName)) {
+            waiting_snapshot = new ArrayList<>(waitingRequests.get(msName));
+        }
+
+        int available = msCapacities.get(msName).availablePermits();
+        String logMsg = String.format("[%s] %s: %s | Active: %s | Waiting: %s | Available: %d",
+                msName, action, logId, active_snapshot, waiting_snapshot, available);
+        // System.out.println("[CapacityManager] " + logMsg);
+
+        if (writer != null) {
+            try {
+                writer.write(logMsg + "\n");
+                writer.flush();
+            } catch (IOException e) {
+                System.err.println("Error writing to capacity report: " + e.getMessage());
             }
         }
     }
 
     public synchronized void reset() {
-        // ? TODO - needed?
         msCapacities.clear();
         endpointRequirements.clear();
         endpointToMicroservice.clear();
         loaded = false;
+
+        waitingRequests.clear();
+        activeRequests.clear();
+        if (writer != null) {
+            try {
+                writer.close();
+                writer = null;
+            } catch (IOException e) {
+                System.err.println("Error closing capacity report: " + e.getMessage());
+            }
+        }
     }
 
     public Map<String, Integer> getAvailableCapacities() {
