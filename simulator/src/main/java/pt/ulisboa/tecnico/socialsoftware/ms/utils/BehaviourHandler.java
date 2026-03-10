@@ -14,7 +14,12 @@ public class BehaviourHandler {
     private static String directory;
     private static Map<String, Integer> funcRetry = new HashMap<>();
     private static final String REPORT_FILE = "BehaviourReport.txt";
- 
+    private BehaviourMode mode = BehaviourMode.DETERMINISTIC;
+
+    public enum BehaviourMode {
+        DETERMINISTIC,
+        STOCHASTIC
+    }
 
     public static synchronized BehaviourHandler getInstance() {
         if (instance == null) {
@@ -27,7 +32,29 @@ public class BehaviourHandler {
         directory = dir;
     }
 
-    
+    public void setMode(BehaviourMode mode) {
+        this.mode = mode;
+    }
+
+    public Map<String, List<Integer>> getBehaviour(String funcName,
+            List<pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep> plan) {
+
+        if (mode == BehaviourMode.DETERMINISTIC) {
+            return loadStepsFile(funcName);
+        } else {
+            Map<String, List<Integer>> map = new LinkedHashMap<>();
+            NetworkManager.getInstance().load();
+
+            for (pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep step : plan) {
+                int fault = NetworkManager.getInstance().generateFault();
+                int delayBefore = NetworkManager.getInstance().generateDelay(funcName, step.getName());
+                int delayAfter = NetworkManager.getInstance().generateDelay(funcName, step.getName());
+                map.put(step.getName(), Arrays.asList(fault, delayBefore, delayAfter));
+            }
+            return map;
+        }
+    }
+
     public Map<String, List<Integer>> loadStepsFile(String funcName) {
         Map<String, List<Integer>> map = new LinkedHashMap<>();
         if (directory == null) {
@@ -39,34 +66,31 @@ public class BehaviourHandler {
         }
         int functionalityCounter = getFuncionalityCounter(funcName);
         try {
-            List<String[]> block = parseCSVForBlock(filePath,funcName, functionalityCounter);
+            List<String[]> block = parseCSVForBlock(filePath, funcName, functionalityCounter);
             if (!block.isEmpty()) {
                 for (String[] row : block) {
                     String key = row[0];
                     List<Integer> values = Arrays.asList(
-                        Integer.parseInt(row[1]),
-                        Integer.parseInt(row[2]),
-                        Integer.parseInt(row[3])
-                        );
-                        map.put(key, values);
-                    }
+                            Integer.parseInt(row[1]),
+                            Integer.parseInt(row[2]),
+                            Integer.parseInt(row[3]));
+                    map.put(key, values);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }     
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return map;
     }
-    
+
     private static synchronized int getFuncionalityCounter(String functionality) {
         return funcCounter.compute(functionality, (k, v) -> (v == null) ? 1 : v + 1);
     }
 
-   
-    
     public static List<String[]> parseCSVForBlock(Path filePath, String funcName, int targetBlock) throws IOException {
         List<String[]> currentBlock = new ArrayList<>();
         int blockNumber = 0;
-    
+
         try (BufferedReader br = Files.newBufferedReader(filePath)) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -74,7 +98,7 @@ public class BehaviourHandler {
 
                 if (line.contains("retry"))
                     funcRetry.put(funcName, Integer.parseInt(line.split(",")[1]));
-    
+
                 if (line.equalsIgnoreCase("run")) {
                     blockNumber++;
 
@@ -82,40 +106,37 @@ public class BehaviourHandler {
                     if (blockNumber == targetBlock && !line.isEmpty()) {
                         currentBlock.add(line.split(","));
                     }
-        
+
                     if (blockNumber > targetBlock) {
-                        break; 
+                        break;
                     }
                 }
             }
         }
-    
+
         return currentBlock;
     }
-    
-    
+
     public void appendToReport(String content) {
-        
+
         if (directory == null) {
             return;
         }
         if (content == null || content.isEmpty()) {
             return;
         }
-    
+
         Path filePath = Paths.get(directory, REPORT_FILE);
-        try (BufferedWriter writer = Files.newBufferedWriter(filePath, 
-                java.nio.file.StandardOpenOption.CREATE, 
+        try (BufferedWriter writer = Files.newBufferedWriter(filePath,
+                java.nio.file.StandardOpenOption.CREATE,
                 java.nio.file.StandardOpenOption.APPEND)) {
             writer.write(content);
-            writer.newLine(); 
+            writer.newLine();
         } catch (IOException e) {
             System.err.println("Failed to write to file: " + filePath);
             e.printStackTrace();
         }
     }
-    
-
 
     public void cleanUpCounter() {
         funcCounter.clear();
@@ -138,7 +159,8 @@ public class BehaviourHandler {
     }
 
     public int getRetryValue(String funcName) {
-        System.out.println("\u001B[33mRetry value for " + funcName + ": " + funcRetry.getOrDefault(funcName, 0) + "\u001B[0m");
+        System.out.println(
+                "\u001B[33mRetry value for " + funcName + ": " + funcRetry.getOrDefault(funcName, 0) + "\u001B[0m");
         return funcRetry.getOrDefault(funcName, 0);
     }
 }

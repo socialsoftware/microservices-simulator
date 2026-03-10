@@ -14,6 +14,15 @@ public class BehaviourService {
         directory = dir + "/src/test/resources/" + testNameFile + "/";
         BehaviourHandler.getInstance();
         BehaviourHandler.setDirectory(directory);
+        NetworkManager.setDirectory(directory);
+    }
+
+    public void setMode(String mode) {
+        if (mode.equalsIgnoreCase("stochastic")) {
+            BehaviourHandler.getInstance().setMode(BehaviourHandler.BehaviourMode.STOCHASTIC);
+        } else {
+            BehaviourHandler.getInstance().setMode(BehaviourHandler.BehaviourMode.DETERMINISTIC);
+        }
     }
 
     public void cleanUpCounter() {

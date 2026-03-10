@@ -13,6 +13,8 @@ import java.util.concurrent.Semaphore;
 public class CapacityManager {
     private static CapacityManager instance;
     private static String directory;
+    private static final String CONFIG_FILE = "capacities.json";
+    private static final String REPORT_FILE = "CapacityReport.txt";
     private final Map<String, Semaphore> msCapacities = new ConcurrentHashMap<>();
     private final Map<String, Integer> endpointRequirements = new ConcurrentHashMap<>();
     private final Map<String, String> endpointToMicroservice = new ConcurrentHashMap<>();
@@ -38,7 +40,7 @@ public class CapacityManager {
             return;
         }
 
-        Path filePath = Paths.get(directory, "capacities.json");
+        Path filePath = Paths.get(directory, CONFIG_FILE);
         File jsonFile = filePath.toFile();
         if (!jsonFile.exists()) {
             System.err.println("[CapacityManager] CRITICAL: File not found at " + jsonFile.getAbsolutePath());
@@ -77,7 +79,7 @@ public class CapacityManager {
             System.out.println("Capacity configuration loaded from " + filePath);
 
             // Init report file
-            Path reportPath = Paths.get(directory, "CapacityReport.txt");
+            Path reportPath = Paths.get(directory, REPORT_FILE);
             writer = new BufferedWriter(new FileWriter(reportPath.toFile(), false));
             writer.write("### CAPACITY MANAGER REPORT STARTED: " + new Date() + " ###\n");
             writer.flush();

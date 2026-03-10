@@ -17,13 +17,19 @@ public class BehaviourController {
     private BehaviourService behaviourService;
 
    @PostMapping("/behaviour/load")
-    public String load(@RequestParam String dir) {
-        System.out.println("Behaviour load started");
-        behaviourService.LoadDir(mavenBaseDir, dir);
-        System.out.println("Provided dir: " + dir);
-        return "OK";
-    }
+   public String load(@RequestParam String dir) {
+       System.out.println("Behaviour load started");
+       behaviourService.LoadDir(mavenBaseDir, dir);
+       System.out.println("Provided dir: " + dir);
+       return "OK";
+   }
 
+   @PostMapping("/behaviour/mode")
+   public String setMode(@RequestParam String mode) {
+       System.out.println("Behaviour mode set to: " + mode);
+       behaviourService.setMode(mode);
+       return "OK";
+   }
     
     @GetMapping(value = "/behaviour/clean")
     public String clean() {
