@@ -83,15 +83,6 @@
                 </dependency>
             </dependencies>
         </profile>
-        <profile>
-            <id>stream</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
     </profiles>
     <dependencies>
         <dependency>
@@ -113,6 +104,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-messaging</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -219,12 +214,11 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
-            <optional>true</optional>
+            <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
-            <artifactId>grpc-netty</artifactId>
+            <artifactId>grpc-netty-shaded</artifactId>
             <version>1.78.0</version>
         </dependency>
         <dependency>
@@ -281,6 +275,7 @@
                 <configuration>
                     <classifier>exec</classifier>
                     <mainClass>${spring-boot.run.mainClass}</mainClass>
+                    <layout>ZIP</layout>
                 </configuration>
             </plugin>
             <plugin>

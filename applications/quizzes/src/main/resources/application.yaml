@@ -10,6 +10,10 @@ spring:
   main:
     allow-bean-definition-overriding: true
 
+  autoconfigure:
+    exclude:
+      - org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAutoConfiguration
+
   datasource:
     url: jdbc:postgresql://localhost:5432/msdb
     driver-class-name: org.postgresql.Driver
@@ -278,6 +282,9 @@ spring:
   config:
     activate:
       on-profile: gateway
+
+  autoconfigure:
+    exclude: []  # Re-enable gateway autoconfiguration when gateway profile is active
 
 gateway:
   routes:

@@ -1,11 +1,14 @@
 spring:
-  main:
-    web-application-type: reactive
+  threads:
+    virtual:
+      enabled: true
   application:
     name: gateway
   cloud:
     discovery:
       enabled: true
+    function:
+      definition: ""  # Disable default function routing
 
 server:
   port: 8080

@@ -7,14 +7,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Profile("gateway")
 @Service
-@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
 public class DynamicGatewayService {
 
     private static final Logger logger = LoggerFactory.getLogger(DynamicGatewayService.class);

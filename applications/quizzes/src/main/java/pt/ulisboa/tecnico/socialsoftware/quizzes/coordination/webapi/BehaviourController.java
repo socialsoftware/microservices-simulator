@@ -24,7 +24,7 @@ public class BehaviourController {
         return "OK";
     }
 
-    
+
     @GetMapping(value = "/behaviour/clean")
     public String clean() {
         System.out.println("Report clean started");
