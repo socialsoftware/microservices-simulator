@@ -40,7 +40,8 @@ public class ExecutionService {
 
     private static final Logger logger = LoggerFactory.getLogger(ExecutionService.class);
 
-    public ExecutionService(UnitOfWorkService unitOfWorkService, CourseExecutionRepository courseExecutionRepository, CourseExecutionCustomRepository courseExecutionCustomRepository) {
+    public ExecutionService(UnitOfWorkService unitOfWorkService, CourseExecutionRepository courseExecutionRepository,
+            CourseExecutionCustomRepository courseExecutionCustomRepository) {
         this.unitOfWorkService = unitOfWorkService;
         this.courseExecutionRepository = courseExecutionRepository;
         this.courseExecutionCustomRepository = courseExecutionCustomRepository;
@@ -48,14 +49,16 @@ public class ExecutionService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public CourseExecutionDto getCourseExecutionById(Integer executionAggregateId, UnitOfWork unitOfWorkWork) {
-        return courseExecutionFactory.createCourseExecutionDto((Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWorkWork));
+        return courseExecutionFactory.createCourseExecutionDto(
+                (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWorkWork));
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public CourseExecutionDto createCourseExecution(CourseExecutionDto courseExecutionDto, UnitOfWork unitOfWork) {
         CourseExecutionCourse courseExecutionCourse = new CourseExecutionCourse(courseExecutionDto);
 
-        Execution execution = courseExecutionFactory.createCourseExecution(aggregateIdGeneratorService.getNewAggregateId(), courseExecutionDto, courseExecutionCourse);
+        Execution execution = courseExecutionFactory.createCourseExecution(
+                aggregateIdGeneratorService.getNewAggregateId(), courseExecutionDto, courseExecutionCourse);
 
         unitOfWorkService.registerChanged(execution, unitOfWork);
         return courseExecutionFactory.createCourseExecutionDto(execution);
@@ -71,35 +74,42 @@ public class ExecutionService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeCourseExecution(Integer executionAggregateId, UnitOfWork unitOfWork) {
-        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId,
+                unitOfWork);
         Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
 
-        /*
-            REMOVE_COURSE_IS_VALID
-         */
         int numberOfExecutionsOfCourse = Math.toIntExact(getAllCourseExecutions(unitOfWork).stream()
-                .filter(ce -> ce.getCourseAggregateId() == newExecution.getExecutionCourse().getCourseAggregateId())
+                .filter(ce -> ce.getCourseAggregateId()
+                        .equals(newExecution.getExecutionCourse().getCourseAggregateId()))
                 .count());
-        if (numberOfExecutionsOfCourse == 1) {
-            throw new QuizzesException(CANNOT_DELETE_COURSE_EXECUTION);
+
+        /*
+         * CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+         */
+        if (numberOfExecutionsOfCourse == 1 && newExecution.getCourseQuestionCount() > 0) {
+            throw new QuizzesException(QuizzesErrorMessage.CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT,
+                    executionAggregateId);
         }
 
         newExecution.remove();
+
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
         unitOfWorkService.registerEvent(new DeleteCourseExecutionEvent(newExecution.getAggregateId()), unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void enrollStudent(Integer courseExecutionAggregateId, UserDto userDto, UnitOfWork unitOfWork) {
-        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId,
+                unitOfWork);
 
         CourseExecutionStudent courseExecutionStudent = new CourseExecutionStudent(userDto);
-        if (!courseExecutionStudent.isActive()){
+        if (!courseExecutionStudent.isActive()) {
             throw new QuizzesException(QuizzesErrorMessage.INACTIVE_USER, courseExecutionStudent.getUserAggregateId());
         }
 
         if (oldExecution.hasStudent(courseExecutionStudent.getUserAggregateId())) {
-            throw new QuizzesException(COURSE_EXECUTION_STUDENT_ALREADY_ENROLLED, courseExecutionStudent.getUserAggregateId(), courseExecutionAggregateId);
+            throw new QuizzesException(COURSE_EXECUTION_STUDENT_ALREADY_ENROLLED,
+                    courseExecutionStudent.getUserAggregateId(), courseExecutionAggregateId);
         }
 
         Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
@@ -120,17 +130,22 @@ public class ExecutionService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void removeStudentFromCourseExecution(Integer courseExecutionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
-        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId, unitOfWork);
+    public void removeStudentFromCourseExecution(Integer courseExecutionAggregateId, Integer userAggregateId,
+            UnitOfWork unitOfWork) {
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionAggregateId,
+                unitOfWork);
         Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.removeStudent(userAggregateId);
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
-        unitOfWorkService.registerEvent(new DisenrollStudentFromCourseExecutionEvent(courseExecutionAggregateId, userAggregateId), unitOfWork);
+        unitOfWorkService.registerEvent(
+                new DisenrollStudentFromCourseExecutionEvent(courseExecutionAggregateId, userAggregateId), unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public UserDto getStudentByExecutionIdAndUserId(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
-        Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+    public UserDto getStudentByExecutionIdAndUserId(Integer executionAggregateId, Integer userAggregateId,
+            UnitOfWork unitOfWork) {
+        Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId,
+                unitOfWork);
         if (!execution.hasStudent(userAggregateId)) {
             throw new QuizzesException(COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, executionAggregateId);
         }
@@ -139,19 +154,23 @@ public class ExecutionService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void anonymizeStudent(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
-        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId,
+                unitOfWork);
         if (!oldExecution.hasStudent(userAggregateId)) {
             throw new QuizzesException(COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, executionAggregateId);
         }
         Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).anonymize();
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
-        unitOfWorkService.registerEvent(new AnonymizeStudentEvent(executionAggregateId, "ANONYMOUS", "ANONYMOUS", userAggregateId), unitOfWork);
+        unitOfWorkService.registerEvent(
+                new AnonymizeStudentEvent(executionAggregateId, "ANONYMOUS", "ANONYMOUS", userAggregateId), unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateExecutionStudentName(Integer executionAggregateId, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
-        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+    public void updateExecutionStudentName(Integer executionAggregateId, Integer userAggregateId, String name,
+            UnitOfWork unitOfWork) {
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId,
+                unitOfWork);
 
         logger.info("Updating student name for user {} in execution {}", userAggregateId, executionAggregateId);
 
@@ -161,20 +180,43 @@ public class ExecutionService {
         Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setName(name);
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
-        unitOfWorkService.registerEvent(new UpdateStudentNameEvent(executionAggregateId, userAggregateId, name), unitOfWork);
+        unitOfWorkService.registerEvent(new UpdateStudentNameEvent(executionAggregateId, userAggregateId, name),
+                unitOfWork);
     }
 
-    /************************************************ EVENT PROCESSING ************************************************/
+    /************************************************
+     * EVENT PROCESSING
+     ************************************************/
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public CourseExecutionDto removeUser(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         logger.info("Removing user by creating DisenrollStudentFromCourseExecutionEvent");
-        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork);
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId,
+                unitOfWork);
         Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
         newExecution.findStudent(userAggregateId).setActive(false);
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
-        unitOfWorkService.registerEvent(new DisenrollStudentFromCourseExecutionEvent(executionAggregateId, userAggregateId), unitOfWork);
+        unitOfWorkService.registerEvent(
+                new DisenrollStudentFromCourseExecutionEvent(executionAggregateId, userAggregateId), unitOfWork);
         return new CourseExecutionDto(newExecution);
     }
-}
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void incrementCourseQuestionCount(Integer executionAggregateId, UnitOfWork unitOfWork) {
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId,
+                unitOfWork);
+        Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
+        newExecution.setCourseQuestionCount(newExecution.getCourseQuestionCount() + 1);
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void decrementCourseQuestionCount(Integer executionAggregateId, UnitOfWork unitOfWork) {
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId,
+                unitOfWork);
+        Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
+        int newCount = Math.max(0, newExecution.getCourseQuestionCount() - 1);
+        newExecution.setCourseQuestionCount(newCount);
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
+    }
+}

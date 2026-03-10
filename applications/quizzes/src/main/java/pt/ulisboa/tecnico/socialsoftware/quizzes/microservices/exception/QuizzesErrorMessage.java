@@ -56,14 +56,14 @@ public final class QuizzesErrorMessage {
 
     public static final String COURSE_EXECUTION_INVALID = "Course execution aggregate id %d  and version %d breaks invariants.";
     public static final String CANNOT_DELETE_COURSE_EXECUTION = "Cannot delete course execution with aggregate id %d.";
-    public static final String COURSE_EXECUTION_STUDENT_NOT_FOUND = "Student with aggregate id %d not found in course execution %d.";
+    public static final String CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT = "Cannot delete the last course execution %d of a course that still has questions.";
 
+    public static final String COURSE_EXECUTION_STUDENT_NOT_FOUND = "Student with aggregate id %d not found in course execution %d.";
 
     public static final String TOPIC_MISSING_NAME = "Topic requires a name.";
     public static final String TOPIC_MISSING_COURSE = "Topic requires a course.";
     public static final String TOPIC_NOT_FOUND = "Topic with aggregate id %d not found.";
     public static final String TOPIC_DELETED = "Topic with aggregate id %d already deleted.";
-
 
     public static final String USER_MISSING_NAME = "User requires a name.";
     public static final String USER_MISSING_USERNAME = "User requires an username.";
