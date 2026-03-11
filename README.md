@@ -29,6 +29,18 @@ execution to full distributed deployment.
 
 - [Docker Compose V2](https://docs.docker.com/compose/install/)
 
+### Docker Compose Structure
+
+The project uses a two-layer Docker Compose configuration:
+1. **Root `docker-compose.yml`**: Defines shared infrastructure components (PostgreSQL, RabbitMQ, Jaeger, Eureka).
+2. **Application `docker-compose.yml`** (in `applications/quizzes`): Extends the root configuration with quiz-specific microservices and test environments.
+
+To run the full system, always execute Docker Compose commands from the `applications/quizzes` directory.
+
+```bash
+cd applications/quizzes
+```
+
 ### Build the Application
 
 ```bash
@@ -65,26 +77,30 @@ TX_MODE=tcc COMM_LAYER=grpc docker compose up quizzes-remote version-service -d
 
 ### Running as Distributed
 
-First, build the gateway and all microservices:
-
-```bash
-docker compose build --with-dependencies gateway
-```
-
-Then, run the gateway and all microservices:
+Run the gateway and all microservices:
 
 ```bash
 # Sagas (default) with Stream (default)
 docker compose up gateway -d
 
 # TCC with Stream (default)
-TX_MODE=tcc docker compose up gateway version-service -d
+TX_MODE=tcc docker compose up -d
 
 # With gRPC instead of stream
-COMM_LAYER=grpc docker compose up gateway version-service -d
+COMM_LAYER=grpc docker compose up -d
 
 # TCC + gRPC
-TX_MODE=tcc COMM_LAYER=grpc docker compose up gateway version-service -d
+TX_MODE=tcc COMM_LAYER=grpc docker compose up -d
+```
+
+Run the centralized version service:
+
+```bash
+# With Stream (default)
+docker compose up version-service -d
+
+# With gRPC instead of stream
+COMM_LAYER=grpc docker compose up version-service -d
 ```
 
 #### Running with Distributed Version (no version-service needed)
@@ -94,18 +110,22 @@ version IDs locally using Snowflake IDs.
 
 ```bash
 # Sagas + Stream + Distributed Version
-VERSION_MODE=distributed-version docker compose up gateway -d
+VERSION_MODE=distributed-version docker compose up -d
 
 # Sagas + gRPC + Distributed Version
-VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up gateway -d
+VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up -d
 ```
+> **Note:** The `distributed-version` profile can also be used with the centralized quizzes-local and quizzes-remote.
 
-Starting the gateway will automatically start the entire distributed ecosystem, including:
+
+Distributed ecosystem:
 
 **Infrastructure:**
 
 * `eureka-server`: Service discovery
-* `rabbitmq`: Message broker for async communication
+* `rabbitmq`: Message broker
+* `jaeger`: Distributed tracing
+* `eureka`: Service discovery 
 * `gateway`: API Gateway (entry point)
 
 **Microservices:** (One Database per Service)
