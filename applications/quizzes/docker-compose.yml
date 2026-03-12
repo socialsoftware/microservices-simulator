@@ -401,28 +401,28 @@ services:
 
   test-quizzes-sagas:
     <<: *test-quizzes
-    command: mvn -Ptest-sagas test
+    command: mvn clean -Ptest-sagas test
 
   test-quizzes-tcc:
     <<: *test-quizzes
-    command: mvn -Ptest-tcc test
+    command: mvn clean -Ptest-tcc test
 
   test-fig3a:
     <<: *test-quizzes
-    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'sequential update name in course execution and then add student as tournament participant'
+    command: mvn clean -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'sequential update name in course execution and then add student as tournament participant'
 
   test-fig3b:
     <<: *test-quizzes
-    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'sequential add student as tournament participant and then update name in course execution'
+    command: mvn clean -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'sequential add student as tournament participant and then update name in course execution'
 
   test-fig3c:
     <<: *test-quizzes
-    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add student as tournament participant and update name in course execution - add student finishes first'
+    command: mvn clean -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add student as tournament participant and update name in course execution - add student finishes first'
 
   test-fig3d:
     <<: *test-quizzes
-    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add student as tournament participant and update name in course execution - update name finishes first'
+    command: mvn clean -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add student as tournament participant and update name in course execution - update name finishes first'
 
   test-fig4:
     <<: *test-quizzes
-    command: mvn -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add creator as tournament participant and update name in course execution - update name finishes first and event processing starts before add creator finishes'
+    command: mvn clean -Ptest-tcc test -Dtest=TournamentFunctionalityCausalTest#'concurrent add creator as tournament participant and update name in course execution - update name finishes first and event processing starts before add creator finishes'
