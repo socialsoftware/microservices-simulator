@@ -1,8 +1,8 @@
-# TCC (Try-Confirm-Cancel / Causal)
+# TCC (Transactional Causal Consistency)
 
 ## What It Is
 
-TCC (implemented here as "Causal") handles concurrent writes to the same aggregate by **merging** conflicting versions at commit time, rather than using semantic locks. Two concurrent updates to different fields of the same aggregate can both succeed; conflicting updates to fields declared in the same **intention** abort.
+TCC handles concurrent writes to the same aggregate by **merging** conflicting versions at commit time, rather than using semantic locks. Two concurrent updates to different fields of the same aggregate can both succeed; conflicting updates to fields declared in the same **intention** abort.
 
 ## Key Classes
 
