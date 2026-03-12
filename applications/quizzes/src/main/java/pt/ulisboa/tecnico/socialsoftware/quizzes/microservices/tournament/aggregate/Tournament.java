@@ -3,8 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggre
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
+import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.INVARIANT_BREAK;
 
 /* each version of the tournament is a new instance of the tournament*/
 /*
@@ -331,7 +331,7 @@ public abstract class Tournament extends Aggregate {
          * DELETE invariant applies to all states
          */
         if (!invariantDeleteWhenNoParticipants()) {
-            throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+            throw new QuizzesException(INVARIANT_BREAK, getAggregateId());
         }
         /*
          * All other invariants only apply to ACTIVE aggregates (class-level comment:
@@ -347,7 +347,7 @@ public abstract class Tournament extends Aggregate {
                     && invariantCreatorIsNotAnonymous()
                     && invariantFinalAfterStart()
                     && invariantCancelledFieldsAreFinal())) {
-                throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+                throw new QuizzesException(INVARIANT_BREAK, getAggregateId());
             }
         }
     }
