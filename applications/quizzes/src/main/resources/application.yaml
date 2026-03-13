@@ -7,6 +7,10 @@ spring:
       stream: remote
       grpc: remote
 
+  config:
+    import:
+      - "classpath:application-common.yaml"
+
   main:
     allow-bean-definition-overriding: true
 
@@ -158,7 +162,7 @@ spring:
 
         # --- Response channel ---
         commandResponseChannel-in-0:
-          destination: quizzes-command-responses
+          destination: ${spring.application.name}-command-responses
           group: response-group
 
         # --- Single Event channel (all events go through here) ---
@@ -258,7 +262,7 @@ spring:
 grpc:
   server:
     port: 9090
-  fallback-service: quizzes
+  fallback-service: ${spring.application.name}
   command:
     default-port: 9090
     version:
@@ -277,22 +281,4 @@ eureka:
     instance-id: ${spring.application.name}:${random.uuid}
     metadata-map:
       grpcPort: ${grpc.server.port}
----
-spring:
-  config:
-    activate:
-      on-profile: gateway
 
-  autoconfigure:
-    exclude: []  # Re-enable gateway autoconfiguration when gateway profile is active
-
-gateway:
-  routes:
-    imports:
-      - application-answer-service.yaml
-      - application-execution-service.yaml
-      - application-question-service.yaml
-      - application-quiz-service.yaml
-      - application-topic-service.yaml
-      - application-tournament-service.yaml
-      - application-user-service.yaml

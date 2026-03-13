@@ -1,42 +1,35 @@
 spring:
   application:
-    name: quiz
+    name: __service_name__ # Make sure the app name is only one word, with no hyphens or underscores.
   datasource:
     url: jdbc:postgresql://localhost:5432/${spring.application.name}db
 
   cloud:
     function:
-      definition: commandResponseChannel;quizServiceCommandChannel;quizEventSubscriber;
+      definition: commandResponseChannel;__serviceName__ServiceCommandChannel;__serviceName__EventSubscriber;
     stream:
       bindings:
-        quiz-command-channel:
+        __service_name__-command-channel:
           destination: ${spring.application.name}-command-channel
-        quizServiceCommandChannel-in-0:
+        __serviceName__ServiceCommandChannel-in-0:
           destination: ${spring.application.name}-command-channel
           group: ${spring.application.name}-service-group
         commandResponseChannel-in-0:
           destination: ${spring.application.name}-command-responses
           group: ${spring.application.name}-response-group
-        quizEventSubscriber-in-0:
+        __serviceName__EventSubscriber-in-0:
           destination: event-channel
           group: ${spring.application.name}-service-group
 
 server:
-  port: 8085
+  port: __http_port__
 grpc:
   server:
-    port: 9095
+    port: __grpc_port__
 
 routes:
   - id: ${spring.application.name}-service
     uri: lb://${spring.application.name}${gateway.service-suffix}
     predicates:
-      - Path=/quizzes/**
-    order: 7
-
-  - id: ${spring.application.name}-service-execution-post
-    uri: lb://${spring.application.name}${gateway.service-suffix}
-    predicates:
-      - Method=POST
-      - Path=/executions/{executionId}
-    order: 9
+      - Path=/__service_name__/**
+    order: __route_order__

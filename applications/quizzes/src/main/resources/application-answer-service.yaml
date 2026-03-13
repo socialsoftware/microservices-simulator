@@ -2,7 +2,7 @@ spring:
   application:
     name: answer
   datasource:
-    url: jdbc:postgresql://localhost:5432/answerdb
+    url: jdbc:postgresql://localhost:5432/${spring.application.name}db
 
   cloud:
     function:
@@ -10,16 +10,16 @@ spring:
     stream:
       bindings:
         answer-command-channel:
-          destination: answer-command-channel
+          destination: ${spring.application.name}-command-channel
         answerServiceCommandChannel-in-0:
-          destination: answer-command-channel
-          group: answer-service-group
+          destination: ${spring.application.name}-command-channel
+          group: ${spring.application.name}-service-group
         commandResponseChannel-in-0:
-          destination: answer-command-responses
-          group: answer-response-group
+          destination: ${spring.application.name}-command-responses
+          group: ${spring.application.name}-response-group
         answerEventSubscriber-in-0:
           destination: event-channel
-          group: answer-service-group
+          group: ${spring.application.name}-service-group
 
 server:
   port: 8082
@@ -28,31 +28,8 @@ grpc:
     port: 9092
 
 routes:
-  - id: answer-service
-    uri: lb://answer${gateway.service-suffix}
+  - id: ${spring.application.name}-service
+    uri: lb://${spring.application.name}${gateway.service-suffix}
     predicates:
       - Path=/quizzes/*/answer
     order: 5
-
----
-spring:
-  config:
-    activate:
-      on-profile: "!kubernetes"
-  cloud:
-    discovery:
-      enabled: true
-
-eureka:
-  client:
-    enabled: true
-    service-url:
-      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-    registry-fetch-interval-seconds: 5
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${random.uuid}
-    metadata-map:
-      grpcPort: ${grpc.server.port}

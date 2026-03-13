@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: __app_name__ # Make sure the app name is only one word, with no hyphens or underscores.
+  profiles:
+    active: "@activatedProperties@"
+    group:
+      stream: remote
+      grpc: remote
+
+  config:
+    import:
+      - "classpath:application-common.yaml"
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${spring.application.name}db
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+
+  jpa:
+    properties:
+      jakarta.persistence.sharedCache.mode: UNSPECIFIED
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+    show-sql: false
+    open-in-view: false
+
+  cloud:
+    kubernetes:
+      enabled: false
+      discovery:
+        enabled: false
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+command:
+  gateway:
+    timeout-seconds: 10
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,beans"
+
+# Add profile-specific sections (stream/grpc) and service imports as needed for your app.
