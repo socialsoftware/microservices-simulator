@@ -29,7 +29,7 @@ spec:
       serviceAccountName: microservices-sa
       containers:
         - name: gateway
-          image: simulatorcr.azurecr.io/gateway:latest
+          image: simulatorcr.azurecr.io/simulator:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -41,6 +41,8 @@ spec:
               memory: "512Mi"
               cpu: "500m"
           env:
+            - name: START_CLASS
+              value: "pt.ulisboa.tecnico.socialsoftware.ms.gateway.GatewayApplication"
             - name: SPRING_PROFILES_ACTIVE
               value: "gateway,kubernetes"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT

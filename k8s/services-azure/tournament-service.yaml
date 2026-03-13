@@ -43,7 +43,7 @@ spec:
             - name: START_CLASS
               value: "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.TournamentServiceApplication"
             - name: SPRING_PROFILES_ACTIVE
-              value: "kubernetes,tournament-service,sagas,stream"
+              value: "kubernetes,tournament-service,sagas,stream,distributed-version"
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:postgresql://postgres:5432/tournamentdb"
             - name: SPRING_RABBITMQ_HOST

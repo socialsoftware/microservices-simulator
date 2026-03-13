@@ -45,7 +45,6 @@ echo "[4/5] Tagging and pushing images..."
 
 # Array of local images and their ACR names
 declare -A IMAGES=(
-    ["gateway:latest"]="gateway"
     ["simulator:latest"]="simulator"
     ["quizzes:latest"]="quizzes"
 )

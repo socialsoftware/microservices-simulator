@@ -191,10 +191,10 @@ kind create cluster --name microservices
 
 ```bash
 # Build all Docker images
-docker compose build --with-dependencies gateway
+docker compose build
 
 # Load images into Kind cluster
-for img in gateway simulator quizzes; do
+for img in simulator quizzes; do
   kind load docker-image ${img}:latest --name microservices
 done
 ```
@@ -270,7 +270,7 @@ az login
 # Create Resource Group
 az group create --name simulator-rg-es --location spaincentral
 
-# Create AKS Cluster (Free tier, minimal resources)
+# Create AKS Cluster (Free tier, minimal resources) -- This is a cluster example
 az aks create \
   --resource-group simulator-rg-es \
   --name simulator-cluster \
