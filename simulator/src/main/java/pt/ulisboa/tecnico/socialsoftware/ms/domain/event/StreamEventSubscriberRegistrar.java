@@ -27,34 +27,40 @@ public class StreamEventSubscriberRegistrar implements BeanDefinitionRegistryPos
         this.environment = environment;
     }
 
+    // This method dynamically registers Spring Cloud Stream function beans for event subscribers based on the spring.cloud.function.definition property.
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-        String appName = environment.getProperty("spring.application.name");
-        if (appName == null || appName.isBlank()) {
-            logger.warning("No spring.application.name property found. Cannot register event subscriber dynamically.");
+        String functionDefinition = environment.getProperty("spring.cloud.function.definition", "");
+        if (functionDefinition.isBlank()) {
+            logger.warning("No spring.cloud.function.definition property found. Cannot register event subscribers dynamically.");
             return;
         }
 
-        String subscriberBeanName = appName + "EventSubscriber";
+        String[] functionNames = functionDefinition.split(";");
+        for (String name : functionNames) {
+            String subscriberBeanName = name.trim();
+            if (subscriberBeanName.isEmpty() || !subscriberBeanName.endsWith("EventSubscriber")) {
+                continue;
+            }
 
-        if (registry.containsBeanDefinition(subscriberBeanName)) {
-            logger.info("Subscriber bean " + subscriberBeanName + " already exists. Skipping dynamic registration.");
-            return;
+            if (registry.containsBeanDefinition(subscriberBeanName)) {
+                logger.info("Subscriber bean " + subscriberBeanName + " already exists. Skipping dynamic registration.");
+                continue;
+            }
+
+            logger.info("Auto-registering stream event subscriber: " + subscriberBeanName);
+
+            RootBeanDefinition channelDef = new RootBeanDefinition();
+            channelDef.setTargetType(ResolvableType.forClassWithGenerics(Consumer.class, ResolvableType.forClassWithGenerics(Message.class, String.class)));
+            channelDef.setInstanceSupplier(() -> {
+                EventSubscriberService service = ((ConfigurableListableBeanFactory) registry).getBean(EventSubscriberService.class);
+                return (Consumer<Message<?>>) message -> {
+                    @SuppressWarnings("unchecked") Message<String> stringMessage = (Message<String>) message;
+                    service.processEvent(stringMessage);
+                };
+            });
+            registry.registerBeanDefinition(subscriberBeanName, channelDef);
         }
-
-        logger.info("Auto-registering stream event subscriber: " + subscriberBeanName);
-
-        RootBeanDefinition channelDef = new RootBeanDefinition();
-        channelDef.setTargetType(ResolvableType.forClassWithGenerics(Consumer.class, ResolvableType.forClassWithGenerics(Message.class, String.class)));
-        channelDef.setInstanceSupplier(() -> {
-            EventSubscriberService service = ((ConfigurableListableBeanFactory) registry).getBean(EventSubscriberService.class);
-            return (Consumer<Message<?>>) message -> {
-                // Ensure proper wildcard generics matching for processEvent
-                @SuppressWarnings("unchecked") Message<String> stringMessage = (Message<String>) message;
-                service.processEvent(stringMessage);
-            };
-        });
-        registry.registerBeanDefinition(subscriberBeanName, channelDef);
     }
 
     @Override
