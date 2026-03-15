@@ -15,7 +15,11 @@ import java.nio.file.Paths
 
 class SpockTestVisitorSpec extends AnalysisTestSupport {
 
-    static final String GROOVY_FIXTURES_BASE = "src/test/resources/testapp-groovy"
+    static String GROOVY_FIXTURES
+
+    def setupSpec() {
+        GROOVY_FIXTURES = "${targetApplicationsDir}/src/test/groovy/${basePackagePath}"
+    }
 
     private ApplicationAnalysisContext buildFullContext() {
         def context = new ApplicationAnalysisContext()
@@ -62,8 +66,8 @@ class SpockTestVisitorSpec extends AnalysisTestSupport {
         def spockVisitor = new SpockTestVisitor(context)
 
         when: "Groovy test files are collected and analyzed"
-        collectGroovyFile("${GROOVY_FIXTURES_BASE}/TestAppBaseSpec.groovy", spockVisitor)
-        collectGroovyFile("${GROOVY_FIXTURES_BASE}/CreateCourseSagaDirectSpec.groovy", spockVisitor)
+        collectGroovyFile("${GROOVY_FIXTURES}/TestAppBaseSpec.groovy", spockVisitor)
+        collectGroovyFile("${GROOVY_FIXTURES}/CreateCourseSagaDirectSpec.groovy", spockVisitor)
         spockVisitor.analyzeCollectedClasses()
 
         then: "one saga input seed is extracted"
@@ -108,8 +112,8 @@ class SpockTestVisitorSpec extends AnalysisTestSupport {
         def spockVisitor = new SpockTestVisitor(context)
 
         when:
-        collectGroovyFile("${GROOVY_FIXTURES_BASE}/TestAppBaseSpec.groovy", spockVisitor)
-        collectGroovyFile("${GROOVY_FIXTURES_BASE}/CreateCourseSagaDirectSpec.groovy", spockVisitor)
+        collectGroovyFile("${GROOVY_FIXTURES}/TestAppBaseSpec.groovy", spockVisitor)
+        collectGroovyFile("${GROOVY_FIXTURES}/CreateCourseSagaDirectSpec.groovy", spockVisitor)
         spockVisitor.analyzeCollectedClasses()
 
         then: "courseIds recipe exists in the seed's all-recipes (via courseDto dependency)"
@@ -135,8 +139,8 @@ class SpockTestVisitorSpec extends AnalysisTestSupport {
         def spockVisitor = new SpockTestVisitor(context)
 
         when:
-        collectGroovyFile("${GROOVY_FIXTURES_BASE}/TestAppBaseSpec.groovy", spockVisitor)
-        collectGroovyFile("${GROOVY_FIXTURES_BASE}/UpdateCourseSagaIndirectSpec.groovy", spockVisitor)
+        collectGroovyFile("${GROOVY_FIXTURES}/TestAppBaseSpec.groovy", spockVisitor)
+        collectGroovyFile("${GROOVY_FIXTURES}/UpdateCourseSagaIndirectSpec.groovy", spockVisitor)
         spockVisitor.analyzeCollectedClasses()
 
         then: "one indirect saga seed is extracted"
@@ -153,8 +157,8 @@ class SpockTestVisitorSpec extends AnalysisTestSupport {
         def spockVisitor = new SpockTestVisitor(context)
 
         when:
-        collectGroovyFile("${GROOVY_FIXTURES_BASE}/TestAppBaseSpec.groovy", spockVisitor)
-        collectGroovyFile("${GROOVY_FIXTURES_BASE}/UpdateCourseSagaIndirectSpec.groovy", spockVisitor)
+        collectGroovyFile("${GROOVY_FIXTURES}/TestAppBaseSpec.groovy", spockVisitor)
+        collectGroovyFile("${GROOVY_FIXTURES}/UpdateCourseSagaIndirectSpec.groovy", spockVisitor)
         spockVisitor.analyzeCollectedClasses()
 
         then: "courseDto recipe uses named-arg constructor"
@@ -185,8 +189,8 @@ class SpockTestVisitorSpec extends AnalysisTestSupport {
         def spockVisitor = new SpockTestVisitor(context)
 
         when:
-        collectGroovyFile("${GROOVY_FIXTURES_BASE}/TestAppBaseSpec.groovy", spockVisitor)
-        collectGroovyFile("${GROOVY_FIXTURES_BASE}/CreateCourseSagaDirectSpec.groovy", spockVisitor)
+        collectGroovyFile("${GROOVY_FIXTURES}/TestAppBaseSpec.groovy", spockVisitor)
+        collectGroovyFile("${GROOVY_FIXTURES}/CreateCourseSagaDirectSpec.groovy", spockVisitor)
         spockVisitor.analyzeCollectedClasses()
 
         then: "courseDto recipe tracks its initializer dependencies"

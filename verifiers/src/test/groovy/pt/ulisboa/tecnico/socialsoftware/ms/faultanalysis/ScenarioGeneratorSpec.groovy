@@ -7,10 +7,9 @@ class ScenarioGeneratorSpec extends AnalysisTestSupport {
 
     def "ScenarioGenerator full pipeline produces correct ApplicationAnalysisContext"() {
         given: "a ScenarioGenerator pointed at the test application"
-        def props = new FaultAnalysisProperties(TEST_APP_BASE, "pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.testapp")
-        def generator = new ScenarioGenerator(props)
+        def generator = new ScenarioGenerator(testAppProperties())
 
-        when: "the three-pass analysis runs"
+        when: "the full analysis pipeline runs"
         generator.init()
         def ctx = generator.applicationAnalysisContext
 
@@ -67,5 +66,15 @@ class ScenarioGeneratorSpec extends AnalysisTestSupport {
                 .stepFootprints[0].aggregateName == "Course"
         updateCourseSaga.steps.find { it.name == "UpdateCourseSaga::updateCourseStep" }
                 .stepFootprints[0].accessPolicy == AccessPolicy.WRITE
+
+        and: "Pass 3.5 — saga creation site found in CourseFunctionalities"
+        ctx.sagaCreationSites.size() == 1
+        ctx.sagaCreationSites[0].className() == "CourseFunctionalities"
+        ctx.sagaCreationSites[0].methodName() == "createCourse"
+        ctx.sagaCreationSites[0].sagaClassName() == "CreateCourseSaga"
+
+        and: "Pass 4 — input seeds extracted from Groovy test fixtures"
+        ctx.inputSeeds.size() >= 1
+        ctx.inputSeeds.any { it.sagaClassName == "CreateCourseSaga" }
     }
 }

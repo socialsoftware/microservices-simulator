@@ -14,13 +14,24 @@ import java.nio.file.Paths
 
 abstract class AnalysisTestSupport extends Specification {
 
-    static final String TEST_APP_BASE =
-            "src/test/java/pt/ulisboa/tecnico/socialsoftware/ms/faultanalysis/testapp"
+    static String targetApplicationsDir
+    static String targetApplicationBasePackage
+    static String javaSourceDir
+    static String basePackagePath
 
     def setupSpec() {
+        def props = new Properties()
+        new File("src/test/resources/application-test.properties").withInputStream {
+            props.load(it)
+        }
+        targetApplicationsDir = props.getProperty("simulator.analysis.target-applications-dir")
+        targetApplicationBasePackage = props.getProperty("simulator.analysis.target-application-base-package")
+        javaSourceDir = "${targetApplicationsDir}/src/main/java"
+        basePackagePath = targetApplicationBasePackage.replace('.', '/')
+
         def solver = new CombinedTypeSolver(
                 new ReflectionTypeSolver(false),
-                new JavaParserTypeSolver(new File("src/test/java"))
+                new JavaParserTypeSolver(new File(javaSourceDir))
         )
         StaticJavaParser.getParserConfiguration()
                 .setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21)
@@ -32,6 +43,10 @@ abstract class AnalysisTestSupport extends Specification {
     }
 
     protected Path testAppPath(String relativePath) {
-        Paths.get("${TEST_APP_BASE}/${relativePath}")
+        Paths.get("${javaSourceDir}/${basePackagePath}/${relativePath}")
+    }
+
+    protected FaultAnalysisProperties testAppProperties() {
+        new FaultAnalysisProperties(targetApplicationsDir, targetApplicationBasePackage)
     }
 }

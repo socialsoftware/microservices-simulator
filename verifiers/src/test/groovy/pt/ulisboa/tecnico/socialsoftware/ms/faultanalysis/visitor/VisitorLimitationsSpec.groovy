@@ -19,8 +19,7 @@ import spock.lang.PendingFeature
  */
 class VisitorLimitationsSpec extends AnalysisTestSupport {
 
-    static final String VARIANTS_BASE =
-            "src/test/java/pt/ulisboa/tecnico/socialsoftware/ms/faultanalysis/testapp_variants"
+    static final String VARIANTS_BASE = "src/test/resources/testapp_variants"
 
     protected variantPath(String relativePath) {
         java.nio.file.Paths.get("${VARIANTS_BASE}/${relativePath}")
