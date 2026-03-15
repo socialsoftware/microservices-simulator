@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.FaultAnalysisProperties;
 import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.scenariogenerator.visitor.CommandHandlerVisitor;
+import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.scenariogenerator.visitor.SagaCreationSiteVisitor;
 import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.scenariogenerator.visitor.ServiceVisitor;
 import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.scenariogenerator.visitor.SpockTestVisitor;
 import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.scenariogenerator.visitor.WorkflowFunctionalityVisitor;
@@ -65,10 +66,18 @@ public class ScenarioGenerator {
         logger.info("Pass 3 complete: {} sagas, {} steps found",
                 applicationAnalysisContext.sagas.size(), applicationAnalysisContext.steps.size());
 
-        // Pass 4: Parse Groovy/Spock test files to extract test inputs for scenario generation
-        SpockTestVisitor spockVisitor = new SpockTestVisitor();
-        groovyFiles.forEach(p -> visitGroovyFile(p, spockVisitor));
-        logger.info("Pass 4 complete: {} Groovy files analyzed", groovyFiles.size());
+        // Pass 3.5: Scan all Java methods for saga constructor calls (general, not just Functionalities)
+        SagaCreationSiteVisitor sagaCreationSiteVisitor = new SagaCreationSiteVisitor();
+        javaFiles.forEach(p -> visitFile(p, sagaCreationSiteVisitor));
+        logger.info("Pass 3.5 complete: {} saga creation sites found",
+                applicationAnalysisContext.sagaCreationSites.size());
+
+        // Pass 4: Groovy test input extraction (two-phase)
+        SpockTestVisitor spockVisitor = new SpockTestVisitor(applicationAnalysisContext);
+        groovyFiles.forEach(p -> visitGroovyFileCollect(p, spockVisitor));
+        spockVisitor.analyzeCollectedClasses();
+        logger.info("Pass 4 complete: {} input seeds extracted",
+                applicationAnalysisContext.inputSeeds.size());
     }
 
     public ApplicationAnalysisContext getApplicationAnalysisContext() {
@@ -91,7 +100,7 @@ public class ScenarioGenerator {
         }
     }
 
-    private void visitGroovyFile(Path p, SpockTestVisitor visitor) {
+    private void visitGroovyFileCollect(Path p, SpockTestVisitor visitor) {
         try {
             CompilerConfiguration config = new CompilerConfiguration();
             SourceUnit su = SourceUnit.create(p.getFileName().toString(), Files.readString(p), config.getTolerance());
@@ -99,7 +108,7 @@ public class ScenarioGenerator {
             su.completePhase(); // phase must be marked complete before convert() can proceed
             su.convert();
             ModuleNode module = su.getAST();
-            module.getClasses().forEach(visitor::visitClass);
+            module.getClasses().forEach(visitor::collectClass);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

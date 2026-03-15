@@ -42,9 +42,9 @@ class ScenarioGeneratorSpec extends AnalysisTestSupport {
         courseExecHandler.commandDispatch["GetCourseExecutionByIdCommand"].accessPolicy == AccessPolicy.READ
         courseExecHandler.commandDispatch["CreateCourseExecutionCommand"].accessPolicy == AccessPolicy.WRITE
 
-        and: "Pass 3 — 2 sagas with 4 steps and correct footprints"
-        ctx.sagas.size() == 2
-        ctx.steps.size() == 4
+        and: "Pass 3 — 3 sagas with 5 steps and correct footprints"
+        ctx.sagas.size() == 3
+        ctx.steps.size() == 5
 
         def createExecSaga = ctx.sagas.find { it.name == "CreateCourseExecutionSaga" }
         createExecSaga != null
