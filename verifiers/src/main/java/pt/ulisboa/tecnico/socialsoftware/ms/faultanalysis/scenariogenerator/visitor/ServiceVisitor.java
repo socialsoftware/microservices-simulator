@@ -32,6 +32,11 @@ public class ServiceVisitor extends VoidVisitorAdapter<ApplicationAnalysisContex
                 return;
             }
 
+            // Only process classes that inject UnitOfWorkService via a constructor parameter
+            if (!hasUnitOfWorkServiceConstructorParam(decl)) {
+                return;
+            }
+
             String packageName = decl.resolve().getPackageName();
             Path filePath = cu.getStorage().map(CompilationUnit.Storage::getPath).orElse(null);
             String className = decl.getNameAsString();
@@ -47,6 +52,15 @@ public class ServiceVisitor extends VoidVisitorAdapter<ApplicationAnalysisContex
             context.services.add(serviceBB);
             logger.info("Service {}: {}", className, serviceBB.getMethodAccessPolicies());
         });
+    }
+
+    /**
+     * Returns true if any constructor declares a parameter whose type contains "UnitOfWorkService".
+     */
+    private boolean hasUnitOfWorkServiceConstructorParam(ClassOrInterfaceDeclaration decl) {
+        return decl.getConstructors().stream()
+                .anyMatch(ctor -> ctor.getParameters().stream()
+                        .anyMatch(param -> param.getTypeAsString().contains("UnitOfWorkService")));
     }
 
     /**

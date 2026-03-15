@@ -7,6 +7,33 @@ import pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.scenariogenerator.visi
 
 class ServiceVisitorSpec extends AnalysisTestSupport {
 
+    def "ServiceVisitor ignores @Service classes without UnitOfWorkService constructor parameter"() {
+        given:
+        def context = new ApplicationAnalysisContext()
+        def visitor = new ServiceVisitor()
+
+        when: "visiting a @Service class whose constructor does not take UnitOfWorkService"
+        visitor.visit(parseFile(testAppPath("service/CourseFactory.java")), context)
+
+        then: "no service is registered"
+        context.services.isEmpty()
+    }
+
+    def "ServiceVisitor only picks up services with UnitOfWorkService constructor when scanning a mixed package"() {
+        given:
+        def context = new ApplicationAnalysisContext()
+        def visitor = new ServiceVisitor()
+
+        when: "visiting all three files in the service package"
+        visitor.visit(parseFile(testAppPath("service/CourseService.java")), context)
+        visitor.visit(parseFile(testAppPath("service/CourseExecutionService.java")), context)
+        visitor.visit(parseFile(testAppPath("service/CourseFactory.java")), context)
+
+        then: "only the two real services are registered — factory is excluded"
+        context.services.size() == 2
+        context.services.every { it.name != "CourseFactory" }
+    }
+
     def "ServiceVisitor classifies READ and WRITE methods for both services"() {
         given:
         def context = new ApplicationAnalysisContext()

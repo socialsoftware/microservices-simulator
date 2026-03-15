@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.faultanalysis.testapp_variants.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -11,8 +10,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 @Service
 public class CourseServiceWithHelper {
 
-    @Autowired
-    private SagaUnitOfWorkService unitOfWorkService;
+    private final SagaUnitOfWorkService unitOfWorkService;
+
+    public CourseServiceWithHelper(SagaUnitOfWorkService unitOfWorkService) {
+        this.unitOfWorkService = unitOfWorkService;
+    }
 
     public Object createCourse(SagaUnitOfWork unitOfWork) {
         return doCreate(unitOfWork);
