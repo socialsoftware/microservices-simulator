@@ -42,7 +42,7 @@ public class DynamicMVCProxyController {
         this.restClient = restClientBuilder.build();
     }
 
-    // Refresh routes every 15 seconds
+    // Refresh routes every 15 seconds to keep up with dynamic service changes
     @Scheduled(fixedRate = 15000)
     public void refreshRoutes() {
         logger.info("Refreshing routes...");

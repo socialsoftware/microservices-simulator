@@ -54,6 +54,10 @@ x-test-quizzes: &test-quizzes
   volumes:
     - .:/quizzes
     - mavencache:/root/.m2
+  environment:
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+  networks:
+    - messaging-network
 
 services:
   # ============================================
