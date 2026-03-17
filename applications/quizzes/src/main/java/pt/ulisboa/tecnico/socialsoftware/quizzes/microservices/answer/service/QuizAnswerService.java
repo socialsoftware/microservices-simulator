@@ -9,11 +9,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.CreateQuizAnswerEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.QuizAnswerQuestionAnswerEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
@@ -65,12 +67,18 @@ public class QuizAnswerService {
     public QuizAnswerDto startQuiz(Integer quizAggregateId, Integer courseExecutionAggregateId, QuizDto quizDto,
             UserDto userDto, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        // QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
 
         // COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION
         if (!courseExecutionAggregateId.equals(quizDto.getCourseExecutionAggregateId())) {
             throw new QuizzesException(QuizzesErrorMessage.QUIZ_DOES_NOT_BELONG_TO_COURSE_EXECUTION, quizAggregateId,
                     courseExecutionAggregateId);
+        }
+
+        // Inter-invariant: UNIQUE_QUIZ_ANSWER_PER_STUDENT
+        Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
+        if (quiz.hasStudentWithAnswer(userDto.getAggregateId())) {
+            throw new QuizzesException(QuizzesErrorMessage.QUIZ_ALREADY_STARTED_BY_STUDENT,
+                    userDto.getAggregateId(), quizAggregateId);
         }
 
         // QUESTIONS_ANSWER_QUESTIONS_BELONG_TO_QUIZ because questions come from the quiz
@@ -81,6 +89,8 @@ public class QuizAnswerService {
         quizAnswer.setAnswerDate(DateHandler.now());
 
         unitOfWorkService.registerChanged(quizAnswer, unitOfWork);
+        unitOfWorkService.registerEvent(
+                new CreateQuizAnswerEvent(quizAggregateId, userDto.getAggregateId()), unitOfWork);
         return quizAnswerFactory.createQuizAnswerDto(quizAnswer);
     }
 

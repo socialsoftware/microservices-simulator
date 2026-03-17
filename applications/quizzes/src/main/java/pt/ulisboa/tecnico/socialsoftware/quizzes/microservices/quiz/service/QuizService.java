@@ -209,4 +209,12 @@ public class QuizService {
         newQuiz.remove();
         unitOfWorkService.registerChanged(newQuiz, unitOfWork);
     }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void addStudentToQuizAnswers(Integer quizAggregateId, Integer studentAggregateId, UnitOfWork unitOfWork) {
+        Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
+        Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
+        newQuiz.addStudentWithAnswer(studentAggregateId);
+        unitOfWorkService.registerChanged(newQuiz, unitOfWork);
+    }
 }

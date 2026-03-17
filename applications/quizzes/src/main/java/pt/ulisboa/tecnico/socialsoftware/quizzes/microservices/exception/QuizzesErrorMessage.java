@@ -91,6 +91,8 @@ public final class QuizzesErrorMessage {
 
     public static final String QUIZ_ANSWER_NOT_FOUND = "Answer with aggregate id %d not found.";
 
+    public static final String QUIZ_ALREADY_STARTED_BY_STUDENT = "Student %d already has an answer for quiz %d.";
+
     public static final String NO_USER_ANSWER_FOR_QUIZ = "Answer for user aggregate id %d and quiz aggregate id %d not found.";
 
     public static final String QUIZ_ANSWER_DELETED = "Answer with aggregate id %d already deleted.";

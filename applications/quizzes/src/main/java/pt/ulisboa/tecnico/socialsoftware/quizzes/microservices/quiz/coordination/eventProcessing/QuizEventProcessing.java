@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordinatio
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.CreateQuizAnswerEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateQuestionEvent;
@@ -28,5 +29,10 @@ public class QuizEventProcessing {
     public void processDeleteQuizQuestionEvent(Integer aggregateId, DeleteQuestionEvent deleteQuestionEvent) {
         logger.info("Processing DeleteQuizQuestionEvent: aggregateId={}, event={}", aggregateId, deleteQuestionEvent);
         quizFunctionalities.removeQuizQuestion(aggregateId, deleteQuestionEvent);
+    }
+
+    public void processCreateQuizAnswerEvent(Integer quizAggregateId, CreateQuizAnswerEvent event) {
+        logger.info("Processing CreateQuizAnswerEvent for quiz {}: student {}", quizAggregateId, event.getStudentAggregateId());
+        quizFunctionalities.addStudentToQuizAnswers(quizAggregateId, event.getStudentAggregateId());
     }
 }

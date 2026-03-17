@@ -204,4 +204,24 @@ public class QuizFunctionalities {
         }
     }
 
+    public void addStudentToQuizAnswers(Integer quizAggregateId, Integer studentAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                AddStudentToQuizAnswersFunctionalitySagas addSagas = new AddStudentToQuizAnswersFunctionalitySagas(
+                        sagaUnitOfWorkService, quizAggregateId, studentAggregateId, sagaUnitOfWork, commandGateway);
+                addSagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                AddStudentToQuizAnswersFunctionalityTCC addTCC = new AddStudentToQuizAnswersFunctionalityTCC(
+                        causalUnitOfWorkService, quizAggregateId, studentAggregateId, causalUnitOfWork, commandGateway);
+                addTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
 }

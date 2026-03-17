@@ -4,12 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.CreateQuizAnswerEvent;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandling;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.eventProcessing.QuizEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.handling.handlers.CreateQuizAnswerEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.handling.handlers.DeleteCourseExecutionEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.handling.handlers.DeleteQuestionEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.handling.handlers.UpdateQuestionEventHandler;
@@ -48,5 +50,14 @@ public class QuizEventHandling implements EventHandling {
     public void handleRemoveQuestionEvent() throws Throwable {
         eventApplicationService.handleSubscribedEvent(DeleteQuestionEvent.class,
                 new DeleteQuestionEventHandler(quizRepository, quizEventProcessing));
+    }
+
+    /*
+        UNIQUE_QUIZ_ANSWER_PER_STUDENT
+     */
+    @Scheduled(fixedDelay = 1000)
+    public void handleCreateQuizAnswerEvents() {
+        eventApplicationService.handleSubscribedEvent(CreateQuizAnswerEvent.class,
+                new CreateQuizAnswerEventHandler(quizRepository, quizEventProcessing));
     }
 }

@@ -2,9 +2,11 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate;
 
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import java.util.Collections;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesCreateQuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesDeleteCourseExecution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesDeleteQuestion;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesUpdateQuestion;
@@ -29,6 +31,7 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
     INTER-INVARIANTS
         QUESTION_EXISTS
         COURSE_EXECUTION_EXISTS
+        UNIQUE_QUIZ_ANSWER_PER_STUDENT (tracked via studentsWithAnswers; guard checked in QuizAnswerService)
  */
 @Entity
 public abstract class Quiz extends Aggregate {
@@ -49,6 +52,11 @@ public abstract class Quiz extends Aggregate {
      */
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "quiz")
     private QuizCourseExecution quizCourseExecution;
+    /*
+        UNIQUE_QUIZ_ANSWER_PER_STUDENT — eventually consistent; updated via CreateQuizAnswerEvent
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set<Integer> studentsWithAnswers = new HashSet<>();
 
     public Quiz() {
         this.quizCourseExecution = null;
@@ -80,6 +88,7 @@ public abstract class Quiz extends Aggregate {
         setResultsDate(other.getResultsDate());
         setQuizType(other.getQuizType());
         setQuizQuestions(other.getQuizQuestions().stream().map(QuizQuestion::new).collect(Collectors.toSet()));
+        this.studentsWithAnswers = new HashSet<>(other.getStudentsWithAnswers());
     }
 
     public boolean invariantDateOrdering() {
@@ -106,6 +115,7 @@ public abstract class Quiz extends Aggregate {
         if (getState() == ACTIVE) {
             interInvariantCourseExecutionExists(eventSubscriptions);
             interInvariantQuestionsExist(eventSubscriptions);
+            interInvariantUniqueQuizAnswerPerStudent(eventSubscriptions);
         }
         return eventSubscriptions;
     }
@@ -119,6 +129,10 @@ public abstract class Quiz extends Aggregate {
             eventSubscriptions.add(new QuizSubscribesUpdateQuestion(quizQuestion));
             eventSubscriptions.add(new QuizSubscribesDeleteQuestion(quizQuestion));
         }
+    }
+
+    private void interInvariantUniqueQuizAnswerPerStudent(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new QuizSubscribesCreateQuizAnswer(this));
     }
 
     public LocalDateTime getCreationDate() {
@@ -226,5 +240,21 @@ public abstract class Quiz extends Aggregate {
             }
         }
         return null;
+    }
+
+    public Set<Integer> getStudentsWithAnswers() {
+        return Collections.unmodifiableSet(studentsWithAnswers);
+    }
+
+    public void setStudentsWithAnswers(Set<Integer> studentsWithAnswers) {
+        this.studentsWithAnswers = new HashSet<>(studentsWithAnswers);
+    }
+
+    public void addStudentWithAnswer(Integer studentAggregateId) {
+        this.studentsWithAnswers.add(studentAggregateId);
+    }
+
+    public boolean hasStudentWithAnswer(Integer studentAggregateId) {
+        return this.studentsWithAnswers.contains(studentAggregateId);
     }
 }
