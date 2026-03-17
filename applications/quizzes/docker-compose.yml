@@ -30,6 +30,16 @@ x-service-healthcheck: &service-healthcheck
   retries: 5
   start_period: 180s
 
+x-limits-small: &limits-small
+  mem_limit: ${SMALL_MEM_LIMIT:-384m}
+  mem_reservation: ${SMALL_MEM_RESERVATION:-256m}
+  cpus: ${SMALL_CPUS:-0.5}
+
+x-limits-medium: &limits-medium
+  mem_limit: ${MEDIUM_MEM_LIMIT:-768m}
+  mem_reservation: ${MEDIUM_MEM_RESERVATION:-512m}
+  cpus: ${MEDIUM_CPUS:-1.0}
+
 x-microservice-env: &microservice-env
   <<: *version-mode
   EUREKA_HOST: eureka-server
@@ -46,16 +56,19 @@ x-microservice-deps: &microservice-deps
 
 x-test-quizzes: &test-quizzes
   profiles: ["test"]
-  image: maven:3.9.7-eclipse-temurin-21
+  build:
+    context: ../../
+    dockerfile: applications/quizzes/Dockerfile.test
+  image: quizzes-tests:latest
+  pull_policy: build
   stop_signal: SIGKILL
   stdin_open: true
   tty: true
   working_dir: /quizzes
-  volumes:
-    - .:/quizzes
-    - mavencache:/root/.m2
   environment:
     OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+  volumes:
+    - m2_cache:/root/.m2
   networks:
     - messaging-network
 
@@ -99,7 +112,8 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: ${TX_MODE:-sagas},local
-    image: quizzes
+    image: quizzes:latest
+    pull_policy: build
     container_name: quizzes-local
     depends_on:
       postgres:
@@ -124,7 +138,8 @@ services:
       dockerfile: applications/quizzes/Dockerfile
       args:
         PROFILE: ${TX_MODE:-sagas},${COMM_LAYER:-stream}
-    image: quizzes
+    image: quizzes:latest
+    pull_policy: build
     container_name: quizzes-remote
     depends_on:
       postgres:
@@ -148,56 +163,64 @@ services:
   # =====================================================
 
   answer-db:
-    <<: *service-db
+    profiles: ["microservices"]
+    <<: [*service-db, *limits-small]
     container_name: answer-db
     environment:
       <<: *postgres-env
       POSTGRES_DB: answerdb
 
   course-db:
-    <<: *service-db
+    profiles: ["microservices"]
+    <<: [*service-db, *limits-small]
     container_name: course-db
     environment:
       <<: *postgres-env
       POSTGRES_DB: coursedb
 
   execution-db:
-    <<: *service-db
+    profiles: ["microservices"]
+    <<: [*service-db, *limits-small]
     container_name: execution-db
     environment:
       <<: *postgres-env
       POSTGRES_DB: executiondb
 
   question-db:
-    <<: *service-db
+    profiles: ["microservices"]
+    <<: [*service-db, *limits-small]
     container_name: question-db
     environment:
       <<: *postgres-env
       POSTGRES_DB: questiondb
 
   quiz-db:
-    <<: *service-db
+    profiles: ["microservices"]
+    <<: [*service-db, *limits-small]
     container_name: quiz-db
     environment:
       <<: *postgres-env
       POSTGRES_DB: quizdb
 
   topic-db:
-    <<: *service-db
+    profiles: ["microservices"]
+    <<: [*service-db, *limits-small]
     container_name: topic-db
     environment:
       <<: *postgres-env
       POSTGRES_DB: topicdb
 
   tournament-db:
-    <<: *service-db
+    profiles: ["microservices"]
+    <<: [*service-db, *limits-small]
     container_name: tournament-db
     environment:
       <<: *postgres-env
       POSTGRES_DB: tournamentdb
 
   user-db:
-    <<: *service-db
+    profiles: ["microservices"]
+    <<: [*service-db, *limits-small]
     container_name: user-db
     environment:
       <<: *postgres-env
@@ -208,10 +231,12 @@ services:
   # ============================================
 
   answer-service:
+    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
-    image: quizzes
+    image: quizzes:latest
+    pull_policy: build
     container_name: answer-service
     depends_on:
       <<: *microservice-deps
@@ -225,6 +250,8 @@ services:
       START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.AnswerServiceApplication
       SPRING_PROFILES_ACTIVE: answer-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://answer-db:5432/answerdb
+      JAVA_TOOL_OPTIONS: '${JAVA_TOOL_OPTIONS:--XX:InitialRAMPercentage=50.0 -XX:MaxRAMPercentage=75.0}'
+    <<: *limits-medium
     networks:
       - messaging-network
     healthcheck:
@@ -232,10 +259,12 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8082/actuator/health || exit 1"]
 
   course-service:
+    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
-    image: quizzes
+    image: quizzes:latest
+    pull_policy: build
     container_name: course-service
     depends_on:
       <<: *microservice-deps
@@ -249,6 +278,8 @@ services:
       START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.CourseServiceApplication
       SPRING_PROFILES_ACTIVE: course-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://course-db:5432/coursedb
+      JAVA_TOOL_OPTIONS: '${JAVA_TOOL_OPTIONS:--XX:InitialRAMPercentage=50.0 -XX:MaxRAMPercentage=75.0}'
+    <<: *limits-medium
     networks:
       - messaging-network
     healthcheck:
@@ -256,10 +287,12 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8089/actuator/health || exit 1"]
 
   execution-service:
+    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
-    image: quizzes
+    image: quizzes:latest
+    pull_policy: build
     container_name: execution-service
     depends_on:
       <<: *microservice-deps
@@ -273,6 +306,8 @@ services:
       START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.ExecutionServiceApplication
       SPRING_PROFILES_ACTIVE: execution-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://execution-db:5432/executiondb
+      JAVA_TOOL_OPTIONS: '${JAVA_TOOL_OPTIONS:--XX:InitialRAMPercentage=50.0 -XX:MaxRAMPercentage=75.0}'
+    <<: *limits-medium
     networks:
       - messaging-network
     healthcheck:
@@ -280,10 +315,12 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8083/actuator/health || exit 1"]
 
   question-service:
+    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
-    image: quizzes
+    image: quizzes:latest
+    pull_policy: build
     container_name: question-service
     depends_on:
       <<: *microservice-deps
@@ -297,6 +334,8 @@ services:
       START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.QuestionServiceApplication
       SPRING_PROFILES_ACTIVE: question-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://question-db:5432/questiondb
+      JAVA_TOOL_OPTIONS: '${JAVA_TOOL_OPTIONS:--XX:InitialRAMPercentage=50.0 -XX:MaxRAMPercentage=75.0}'
+    <<: *limits-medium
     networks:
       - messaging-network
     healthcheck:
@@ -304,10 +343,12 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8084/actuator/health || exit 1"]
 
   quiz-service:
+    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
-    image: quizzes
+    image: quizzes:latest
+    pull_policy: build
     container_name: quiz-service
     depends_on:
       <<: *microservice-deps
@@ -321,6 +362,8 @@ services:
       START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.QuizServiceApplication
       SPRING_PROFILES_ACTIVE: quiz-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://quiz-db:5432/quizdb
+      JAVA_TOOL_OPTIONS: '${JAVA_TOOL_OPTIONS:--XX:InitialRAMPercentage=50.0 -XX:MaxRAMPercentage=75.0}'
+    <<: *limits-medium
     networks:
       - messaging-network
     healthcheck:
@@ -328,10 +371,12 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8085/actuator/health || exit 1"]
 
   topic-service:
+    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
-    image: quizzes
+    image: quizzes:latest
+    pull_policy: build
     container_name: topic-service
     depends_on:
       <<: *microservice-deps
@@ -345,6 +390,8 @@ services:
       START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.TopicServiceApplication
       SPRING_PROFILES_ACTIVE: topic-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://topic-db:5432/topicdb
+      JAVA_TOOL_OPTIONS: '${JAVA_TOOL_OPTIONS:--XX:InitialRAMPercentage=50.0 -XX:MaxRAMPercentage=75.0}'
+    <<: *limits-medium
     networks:
       - messaging-network
     healthcheck:
@@ -352,10 +399,12 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8086/actuator/health || exit 1"]
 
   tournament-service:
+    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
-    image: quizzes
+    image: quizzes:latest
+    pull_policy: build
     container_name: tournament-service
     depends_on:
       <<: *microservice-deps
@@ -369,6 +418,8 @@ services:
       START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.TournamentServiceApplication
       SPRING_PROFILES_ACTIVE: tournament-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://tournament-db:5432/tournamentdb
+      JAVA_TOOL_OPTIONS: '${JAVA_TOOL_OPTIONS:--XX:InitialRAMPercentage=50.0 -XX:MaxRAMPercentage=75.0}'
+    <<: *limits-medium
     networks:
       - messaging-network
     healthcheck:
@@ -376,10 +427,12 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8087/actuator/health || exit 1"]
 
   user-service:
+    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
-    image: quizzes
+    image: quizzes:latest
+    pull_policy: build
     container_name: user-service
     depends_on:
       <<: *microservice-deps
@@ -393,6 +446,8 @@ services:
       START_CLASS: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.UserServiceApplication
       SPRING_PROFILES_ACTIVE: user-service,${TX_MODE:-sagas},${COMM_LAYER:-stream}
       SPRING_DATASOURCE_URL: jdbc:postgresql://user-db:5432/userdb
+      JAVA_TOOL_OPTIONS: '${JAVA_TOOL_OPTIONS:--XX:InitialRAMPercentage=50.0 -XX:MaxRAMPercentage=75.0}'
+    <<: *limits-medium
     networks:
       - messaging-network
     healthcheck:

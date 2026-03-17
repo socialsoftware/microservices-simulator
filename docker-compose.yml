@@ -24,6 +24,16 @@ x-service-healthcheck: &service-healthcheck
   retries: 5
   start_period: 180s
 
+x-limits-small: &limits-small
+  mem_limit: ${SMALL_MEM_LIMIT:-384m}
+  mem_reservation: ${SMALL_MEM_RESERVATION:-256m}
+  cpus: ${SMALL_CPUS:-0.5}
+
+x-limits-medium: &limits-medium
+  mem_limit: ${MEDIUM_MEM_LIMIT:-768m}
+  mem_reservation: ${MEDIUM_MEM_RESERVATION:-512m}
+  cpus: ${MEDIUM_CPUS:-1.0}
+
 x-microservice-deps: &microservice-deps
   eureka-server:
     condition: service_healthy
@@ -39,8 +49,10 @@ services:
   eureka-server:
     image: steeltoeoss/eureka-server:latest
     container_name: eureka-server
+    profiles: ["infra"]
     ports:
       - "8761:8761"
+    <<: *limits-small
     networks:
       - messaging-network
     restart: unless-stopped
@@ -54,6 +66,7 @@ services:
   jaeger:
     image: jaegertracing/all-in-one:1.75.0
     container_name: jaeger
+    profiles: ["infra"]
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
     ports:
@@ -62,6 +75,7 @@ services:
       - "14268:14268" # Jaeger HTTP
       - "4317:4317"   # OTLP gRPC receiver
       - "4318:4318"   # OTLP HTTP receiver
+    <<: *limits-small
     restart: unless-stopped
     networks:
       - messaging-network
@@ -70,6 +84,7 @@ services:
     image: rabbitmq:4-management
     container_name: rabbitmq
     hostname: rabbitmq
+    profiles: ["infra"]
     ports:
       - "5672:5672"   # AMQP port
       - "15672:15672" # Management UI port
@@ -79,6 +94,7 @@ services:
       RABBITMQ_DEFAULT_VHOST: /
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    <<: *limits-small
     networks:
       - messaging-network
     restart: unless-stopped
@@ -93,7 +109,7 @@ services:
   # ============================================
   version-db:
     profiles: ["version-service"]
-    <<: *service-db
+    <<: [*service-db, *limits-small]
     container_name: version-db
     environment:
       <<: *postgres-env
@@ -106,7 +122,8 @@ services:
       dockerfile: simulator/Dockerfile
       args:
         PROFILE: version-service,${COMM_LAYER:-stream}
-    image: simulator
+    image: simulator:latest
+    pull_policy: build
     container_name: version-service
     depends_on:
       <<: *microservice-deps
@@ -121,6 +138,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://version-db:5432/versiondb
       SPRING_RABBITMQ_HOST: rabbitmq
       EUREKA_HOST: eureka-server
+      JAVA_TOOL_OPTIONS: '${JAVA_TOOL_OPTIONS:--XX:InitialRAMPercentage=50.0 -XX:MaxRAMPercentage=75.0}'
+    <<: *limits-medium
     networks:
       - messaging-network
     healthcheck:
@@ -133,8 +152,10 @@ services:
       dockerfile: simulator/Dockerfile
       args:
         PROFILE: gateway
-    image: simulator
+    image: simulator:latest
+    pull_policy: build
     container_name: gateway
+    profiles: ["microservices"]
     depends_on:
       <<: *microservice-deps
     ports:
@@ -148,6 +169,8 @@ services:
       GATEWAY_LOG_LEVEL: INFO
       REACTIVE_LOG_LEVEL: INFO
       BUFFER_LOG_LEVEL: INFO
+      JAVA_TOOL_OPTIONS: '${JAVA_TOOL_OPTIONS:--XX:InitialRAMPercentage=50.0 -XX:MaxRAMPercentage=75.0}'
+    <<: *limits-medium
     networks:
       - messaging-network
     healthcheck:
@@ -155,33 +178,26 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health || exit 1"]
 
   # ============================================
-  # TEST CONTAINERS (SIMULATOR)
+  # TEST CONTAINER (SIMULATOR)
   # ============================================
   test-simulator-sagas:
     profiles: ["test"]
-    image: maven:3.9.7-eclipse-temurin-21
+    build:
+      context: .
+      dockerfile: simulator/Dockerfile.test
+    image: simulator-tests:latest
+    pull_policy: build
     stop_signal: SIGKILL
     stdin_open: true
     tty: true
     working_dir: /simulator
-    volumes:
-      - ./simulator:/simulator
-      - mavencache:/root/.m2
     command: mvn -Ptest-sagas test
-
-  build-simulator:
-    profiles: ["build"]
-    image: maven:3.9.7-eclipse-temurin-21
-    stop_signal: SIGKILL
-    working_dir: /simulator
     volumes:
-      - ./simulator:/simulator
-      - mavencache:/root/.m2
-    command: mvn clean install -DskipTests
+      - m2_cache:/root/.m2
 
 volumes:
-  mavencache:
   rabbitmq_data:
+  m2_cache:
 
 networks:
   messaging-network:

@@ -200,6 +200,9 @@ spring:
     port: 5672
     username: guest
     password: guest
+    listener:
+      simple:
+        default-requeue-rejected: false
 ---
 spring:
   config:

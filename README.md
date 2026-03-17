@@ -32,7 +32,8 @@ execution to full distributed deployment.
 ### Docker Compose Structure
 
 The project uses a two-layer Docker Compose configuration:
-1. **Root `docker-compose.yml`**: Defines shared infrastructure components (PostgreSQL, RabbitMQ, Jaeger, Eureka).
+1. **Root `docker-compose.yml`**: Defines shared infrastructure components (PostgreSQL, RabbitMQ, Jaeger, Eureka). These
+   are under the `infra` profile, while the `gateway` is under the `microservices` profile.
 2. **Application `docker-compose.yml`** (in `applications/quizzes`): Extends the root configuration with quiz-specific microservices and test environments.
 
 To run the full system, always execute Docker Compose commands from the `applications/quizzes` directory.
@@ -81,16 +82,16 @@ Run the gateway and all microservices:
 
 ```bash
 # Sagas (default) with Stream (default)
-docker compose up gateway -d
+docker compose --profile microservices up gateway -d
 
 # TCC with Stream (default)
-TX_MODE=tcc docker compose up -d
+TX_MODE=tcc docker compose --profile microservices up -d
 
 # With gRPC instead of stream
-COMM_LAYER=grpc docker compose up -d
+COMM_LAYER=grpc docker compose --profile microservices up -d
 
 # TCC + gRPC
-TX_MODE=tcc COMM_LAYER=grpc docker compose up -d
+TX_MODE=tcc COMM_LAYER=grpc docker compose --profile microservices up -d
 ```
 
 Run the centralized version service:
@@ -110,10 +111,10 @@ version IDs locally using Snowflake IDs.
 
 ```bash
 # Sagas + Stream + Distributed Version
-VERSION_MODE=distributed-version docker compose up -d
+VERSION_MODE=distributed-version docker compose --profile microservices up -d
 
 # Sagas + gRPC + Distributed Version
-VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up -d
+VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose --profile microservices up -d
 ```
 > **Note:** The `distributed-version` profile can also be used with the centralized quizzes-local and quizzes-remote.
 
@@ -482,7 +483,7 @@ There is two ways to set up the database:
 ### Setting up Jaeger Tracing
 
 ```bash
-docker compose up jaeger -d
+docker compose --profile infra up jaeger -d
 ```
 
 ---
@@ -546,7 +547,7 @@ mvn clean -Ptest-tcc test
 1. **Start RabbitMQ (for stream profile):**
 
     ```bash
-    docker compose up rabbitmq -d
+    docker compose --profile infra up rabbitmq -d
     ```
 
 #### Running with Stream
@@ -579,7 +580,7 @@ running RabbitMQ for inter-service communication.
 3. Start Eureka service discovery (required for local microservices):
 
     ```bash
-    docker compose up eureka-server -d
+    docker compose --profile infra up eureka-server -d
     ```
 
 4. **Install the simulator library (if not already done):**
@@ -936,7 +937,7 @@ To reproduce the paper results follow the steps:
 * Run:
 
 ```
-docker compose up test-fig3a
+docker compose --profile test up test-fig3a
 ```
 
 ### Figure 3(b)
@@ -945,7 +946,7 @@ docker compose up test-fig3a
 * Run:
 
 ```
-docker compose up test-fig3b
+docker compose --profile test up test-fig3b
 ```
 
 ### Figure 3(c)
@@ -954,7 +955,7 @@ docker compose up test-fig3b
 * Run:
 
 ```
-docker compose up test-fig3c
+docker compose --profile test up test-fig3c
 ```
 
 ### Figure 3(d)
@@ -963,7 +964,7 @@ docker compose up test-fig3c
 * Run:
 
 ```
-docker compose up test-fig3d
+docker compose --profile test up test-fig3d
 ```
 
 ### Figure 4
@@ -972,5 +973,5 @@ docker compose up test-fig3d
 * Run:
 
 ```
-docker compose up test-fig4
+docker compose --profile test up test-fig4
 ```
