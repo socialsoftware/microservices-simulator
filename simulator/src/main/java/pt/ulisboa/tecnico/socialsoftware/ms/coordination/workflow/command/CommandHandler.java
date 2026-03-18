@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 public abstract class CommandHandler {
-    @Autowired(required = false)
-    private TransactionCommandHandler transactionCoordinator;
+    @Autowired
+    private TransactionCommandHandler transactionCommandHandler;
 
     protected abstract String getAggregateTypeName();
 
@@ -14,10 +14,6 @@ public abstract class CommandHandler {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public Object handle(Command command) {
-        if (transactionCoordinator != null) {
-            return transactionCoordinator.handle(command, this);
-        }
-
-        return handleDomainCommand(command);
+        return transactionCommandHandler.handle(command, this);
     }
 }
