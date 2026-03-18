@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="quizzes-sagas-grpc" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="quizzes">
-    <option name="ACTIVE_PROFILES" value="grpc, sagas" />
+  <configuration default="false" name="quizzes-tcc-stream-distributed" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="quizzes">
+    <option name="ACTIVE_PROFILES" value="stream, tcc, distributed-version" />
     <option name="ALTERNATIVE_JRE_PATH" value="21" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="ENABLE_JMX_AGENT" value="false" />

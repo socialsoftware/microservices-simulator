@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="quizzes-simulator-tcc-grpc" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="quizzes-simulator">
+  <configuration default="false" name="quizzes-tcc-grpc" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="quizzes">
     <option name="ACTIVE_PROFILES" value="grpc, tcc" />
     <option name="ALTERNATIVE_JRE_PATH" value="21" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
