@@ -401,7 +401,7 @@ IntelliJ, these configurations will be automatically available in the Run/Debug 
 
 ### Running as Centralized with Remote Service Calls
 
-- Run the `quizzes-simulator` folder (contains `sagas-stream`, `sagas-grpc`, `tcc-stream`, `tcc-grpc` configurations)
+- Run the `quizzes` folder (contains `sagas-stream`, `sagas-grpc`, `tcc-stream`, `tcc-grpc`, etc. configurations)
 - Run one of the `version-service` folder configurations (`version-stream` or `version-grpc`) matching the communication
   layer
 
