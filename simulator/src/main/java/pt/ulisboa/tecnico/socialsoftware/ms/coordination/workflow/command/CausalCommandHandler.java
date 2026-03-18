@@ -13,12 +13,13 @@ import java.util.logging.Logger;
 
 @Component
 @Profile("tcc")
-public class CausalCommandHandler {
+public class CausalCommandHandler implements TransactionCommandHandler {
     private static final Logger logger = Logger.getLogger(CausalCommandHandler.class.getName());
 
     @Autowired
     private CausalUnitOfWorkService causalUnitOfWorkService;
 
+    @Override
     public Object handle(Command command, CommandHandler serviceCommandHandler) {
         return switch (command) {
             case CommitCausalCommand commitCausalCommand -> handleCommitCausal(commitCausalCommand);

@@ -6,10 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 public abstract class CommandHandler {
     @Autowired(required = false)
-    private SagaCommandHandler sagaCommandHandler;
-
-    @Autowired(required = false)
-    private CausalCommandHandler causalCommandHandler;
+    private TransactionCommandHandler transactionCoordinator;
 
     protected abstract String getAggregateTypeName();
 
@@ -17,12 +14,8 @@ public abstract class CommandHandler {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public Object handle(Command command) {
-        if (causalCommandHandler != null) {
-            return causalCommandHandler.handle(command, this);
-        }
-
-        if (sagaCommandHandler != null) {
-            return sagaCommandHandler.handle(command, this);
+        if (transactionCoordinator != null) {
+            return transactionCoordinator.handle(command, this);
         }
 
         return handleDomainCommand(command);

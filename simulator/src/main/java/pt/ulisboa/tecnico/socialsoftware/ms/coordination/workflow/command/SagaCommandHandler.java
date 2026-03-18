@@ -12,12 +12,13 @@ import java.util.logging.Logger;
 
 @Component
 @Profile("sagas")
-public class SagaCommandHandler {
+public class SagaCommandHandler implements TransactionCommandHandler {
     private static final Logger logger = Logger.getLogger(SagaCommandHandler.class.getName());
 
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
 
+    @Override
     public Object handle(Command command, CommandHandler serviceCommandHandler) {
         if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
             sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
