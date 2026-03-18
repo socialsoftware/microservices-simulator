@@ -39,7 +39,7 @@ public class ExecutionPlan {
         this.functionality = functionality;
         this.functionalityName = functionality.getClass().getSimpleName();
 
-        behaviour = BehaviourHandler.getInstance().getBehaviour(functionalityName, plan);
+        behaviour = BehaviourHandler.getInstance().getBehaviour(functionality, plan);
         BehaviourHandler.getInstance().appendToReport(reportSteps(behaviour));
         
         this.requestId = UUID.randomUUID().toString().substring(0, 8);

@@ -34,25 +34,64 @@ public class BehaviourHandler {
 
     public void setMode(BehaviourMode mode) {
         this.mode = mode;
+
+        // TODO - Change this
+        if (mode == BehaviourMode.STOCHASTIC) {
+            NetworkManager.getInstance().reset();
+            NetworkManager.getInstance().load();
+        }
     }
 
-    public Map<String, List<Integer>> getBehaviour(String funcName,
+    public Map<String, List<Integer>> getBehaviour(
+            pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality functionality,
             List<pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep> plan) {
 
         if (mode == BehaviourMode.DETERMINISTIC) {
+            String funcName = functionality.getClass().getSimpleName();
             return loadStepsFile(funcName);
         } else {
-            Map<String, List<Integer>> map = new LinkedHashMap<>();
-            NetworkManager.getInstance().load();
+            // Extract source service from functionality package
+            String packageName = functionality.getClass().getPackageName();
+            String[] parts = packageName.split("\\.");
+            String sourceService = (parts.length >= 7) ? parts[6] : "unknown";
 
+            Map<String, List<Integer>> map = new LinkedHashMap<>();
             for (pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep step : plan) {
+                String targetService = findTargetService(step.getName());
+
+                int delayBefore = NetworkManager.getInstance().generateDelay(sourceService, targetService);
+                int delayAfter = NetworkManager.getInstance().generateDelay(sourceService, targetService);
                 int fault = NetworkManager.getInstance().generateFault();
-                int delayBefore = NetworkManager.getInstance().generateDelay(funcName, step.getName());
-                int delayAfter = NetworkManager.getInstance().generateDelay(funcName, step.getName());
+
                 map.put(step.getName(), Arrays.asList(fault, delayBefore, delayAfter));
             }
             return map;
         }
+    }
+
+    private String findTargetService(String stepName) {
+        String lowerStepName = stepName.toLowerCase();
+        try {
+            // Iterate through ServiceMapping using Java Reflection
+            Class<?> serviceMappingClass = Class.forName("pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping");
+            Object[] constants = serviceMappingClass.getEnumConstants();
+            for (Object constant : constants) {
+                String serviceName = (String) serviceMappingClass.getMethod("getServiceName").invoke(constant);
+                if (lowerStepName.contains(serviceName.toLowerCase())) {
+                    return serviceName;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Reflection failed on ServiceMapping: " + e.getMessage());
+        }
+
+        // Edge cases where service name is not explicitly in the step name
+        if (lowerStepName.contains("creator") || lowerStepName.contains("student")
+                || lowerStepName.contains("enroll")) {
+            return "execution";
+        }
+
+        return "unknown";
     }
 
     public Map<String, List<Integer>> loadStepsFile(String funcName) {
