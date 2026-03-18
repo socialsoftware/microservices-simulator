@@ -5,7 +5,7 @@ WORKDIR /workspace
 # Install simulator artifact needed by quizzes.
 COPY simulator/pom.xml simulator/pom.xml
 COPY simulator/src simulator/src
-RUN mvn -q -DskipTests -f simulator/pom.xml install
+RUN mvn -q -DskipTests -f simulator/pom.xml clean install
 
 FROM maven:3.9.7-eclipse-temurin-21
 
