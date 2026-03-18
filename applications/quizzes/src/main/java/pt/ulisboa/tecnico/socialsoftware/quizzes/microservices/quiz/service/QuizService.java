@@ -211,6 +211,15 @@ public class QuizService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void assertStudentHasNoAnswer(Integer quizAggregateId, Integer studentAggregateId, UnitOfWork unitOfWork) {
+        Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
+        if (quiz.hasStudentWithAnswer(studentAggregateId)) {
+            throw new QuizzesException(QuizzesErrorMessage.QUIZ_ALREADY_STARTED_BY_STUDENT,
+                    studentAggregateId, quizAggregateId);
+        }
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void addStudentToQuizAnswers(Integer quizAggregateId, Integer studentAggregateId, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
         Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);

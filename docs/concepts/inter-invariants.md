@@ -30,7 +30,8 @@ Publisher aggregate                Consumer aggregate
 | Polling method | `<consumer>/events/handling/<Consumer>EventHandling.java` | `@Scheduled` poll loop |
 | Cached state field | `<consumer>/aggregate/<Consumer>.java` | Local copy of publisher data |
 | Update functionality | `<consumer>/coordination/sagas/XxxFunctionalitySagas.java` + TCC | Workflow that applies the update to the aggregate |
-| Guard | `<consumer>/service/<Consumer>Service.java` | Check before the mutating call |
+| Guard method | `<consumer>/service/<Consumer>Service.java` | Loads its own aggregate, checks cached state, throws if guard fails |
+| Guard invocation | `<operation>/coordination/sagas/<Op>FunctionalitySagas.java` + TCC | Dedicated step or call before the mutating command |
 | Error message | `QuizzesErrorMessage.java` | Enum entry for the thrown exception |
 
 ## Tracked State Patterns
@@ -52,6 +53,12 @@ For TCC, this is critical: `EventSubscriberService` uses `publisherAggregateId` 
 
 **Wrong:** using the entity ID (e.g., `questionAggregateId`) when the consumer subscribes by `courseAggregateId`.
 **Right:** using the same anchor ID in both the event and the subscription.
+
+## Guard placement rule
+
+The guard method belongs in the **consumer service** — the service that owns the aggregate holding the cached state. `aggregateLoadAndRegisterRead` must only be called with the service's own aggregate type; the consumer service satisfies this because it owns the consumer aggregate.
+
+The guard is **not** placed inline inside the operation service (e.g., `QuizAnswerService`). Instead, the operation's functionality (Sagas or TCC) calls the guard via a dedicated command/step before the mutating call. This keeps each service's reads restricted to its own aggregate type.
 
 ## Eventual Consistency Trade-off
 

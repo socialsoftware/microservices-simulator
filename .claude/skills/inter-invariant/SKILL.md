@@ -195,15 +195,38 @@ CANNOT_<OPERATION>_WHEN_<CONDITION>("Cannot <operation>: <human-readable reason>
 
 ---
 
-## Step 14 — Enforce the guard in the service
+## Step 14 — Enforce the guard
 
-In the guarded service method, add the check **before** the mutating call (e.g. `aggregate.remove()`):
+The guard has two parts:
+
+**Part A — guard method in the consumer service** (`<consumer>/service/<Consumer>Service.java`):
 ```java
-// Inter-invariant: <one-line description>
-if (<guard condition on tracked state>) {
-    throw new QuizzesException(CANNOT_<OPERATION>_WHEN_<CONDITION>, aggregateId);
+@Transactional(isolation = Isolation.SERIALIZABLE)
+public void assertCanPerform<Operation>(Integer consumerAggregateId, ..., UnitOfWork unitOfWork) {
+    <Consumer> aggregate = (<Consumer>) unitOfWorkService.aggregateLoadAndRegisterRead(consumerAggregateId, unitOfWork);
+    // Inter-invariant: <one-line description>
+    if (<guard condition on tracked state>) {
+        throw new QuizzesException(CANNOT_<OPERATION>_WHEN_<CONDITION>, consumerAggregateId);
+    }
 }
 ```
+
+The guard method loads only the consumer's own aggregate type (`aggregateLoadAndRegisterRead` must not be used to load a different service's aggregate). If the guard fails, it throws here.
+
+**Part B — guard invocation in the guarded operation's functionality**:
+
+Create a command (`command/<consumer>/Assert<Condition>Command.java`) and add a dedicated step in both `<op>/coordination/sagas/<Op>FunctionalitySagas.java` and the TCC variant that sends this command **before** the mutating step:
+```java
+// Sagas
+Step checkGuardStep = new SagaStep("checkGuardStep", () -> {
+    commandGateway.send(new Assert<Condition>Command(unitOfWork, ServiceMapping.<CONSUMER>.getServiceName(), ...));
+});
+// mutatingStep depends on checkGuardStep
+```
+
+For TCC, add the command send inline before the mutating command in the single composite step.
+
+Do **not** add the guard check inside the operation service itself (e.g., `QuizAnswerService.startQuiz()`), as that would require loading a foreign aggregate type.
 
 ---
 
@@ -247,6 +270,8 @@ Create `docs/examples/cannot-<operation>-when-<condition>.md` with:
 - [ ] Sagas + TCC functionality classes created
 - [ ] State update method(s) added to ConsumerService
 - [ ] Error message added to `QuizzesErrorMessage`
-- [ ] Guard check added to the guarded service method
+- [ ] Guard method added to the consumer service (loads only its own aggregate type)
+- [ ] Guard command created
+- [ ] Guard invocation step added to both Sagas and TCC functionalities (before the mutating step)
 - [ ] Tests written and passing (`mvn clean -Ptest-sagas test`)
 - [ ] Summary markdown written in `docs/examples/`

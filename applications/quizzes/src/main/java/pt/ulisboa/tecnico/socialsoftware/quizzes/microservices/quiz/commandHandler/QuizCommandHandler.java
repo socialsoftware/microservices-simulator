@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.AddStudentToQuizAnswersCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.AssertStudentHasNoAnswerCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService;
 
 import java.util.logging.Logger;
@@ -37,6 +38,7 @@ public class QuizCommandHandler extends CommandHandler {
             case RemoveQuizQuestionCommand cmd -> handleRemoveQuizQuestion(cmd);
             case RemoveQuizCommand cmd -> handleRemoveQuiz(cmd);
             case AddStudentToQuizAnswersCommand cmd -> handleAddStudentToQuizAnswers(cmd);
+            case AssertStudentHasNoAnswerCommand cmd -> handleAssertStudentHasNoAnswer(cmd);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 yield null;
@@ -144,6 +146,15 @@ public class QuizCommandHandler extends CommandHandler {
     private Object handleAddStudentToQuizAnswers(AddStudentToQuizAnswersCommand command) {
         logger.info("Adding student " + command.getStudentAggregateId() + " to quiz answers for quiz " + command.getQuizAggregateId());
         quizService.addStudentToQuizAnswers(
+                command.getQuizAggregateId(),
+                command.getStudentAggregateId(),
+                command.getUnitOfWork());
+        return null;
+    }
+
+    private Object handleAssertStudentHasNoAnswer(AssertStudentHasNoAnswerCommand command) {
+        logger.info("Asserting student " + command.getStudentAggregateId() + " has no answer for quiz " + command.getQuizAggregateId());
+        quizService.assertStudentHasNoAnswer(
                 command.getQuizAggregateId(),
                 command.getStudentAggregateId(),
                 command.getUnitOfWork());

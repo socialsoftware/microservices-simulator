@@ -1,7 +1,7 @@
 # UNIQUE_QUIZ_ANSWER_PER_STUDENT
 
 **Type:** Inter-invariant
-**Enforced in:** `QuizAnswerService.startQuiz()`
+**Enforced in:** `QuizService.assertStudentHasNoAnswer()`, invoked from a dedicated step in `StartQuizFunctionality` before the answer is created
 **Rule:** A student can only create one `QuizAnswer` per quiz. If the student has already started a quiz, any subsequent `startQuiz()` call for the same quiz throws `QUIZ_ALREADY_STARTED_BY_STUDENT`.
 
 ---
@@ -9,23 +9,28 @@
 ## Data Flow
 
 ```
-QuizAnswerService               Quiz aggregate
-     │                               │
-     │  startQuiz()                  │
-     │──► registers CreateQuizAnswerEvent ──────────────────────────────────────►│
-     │                               │  QuizEventHandling (1s poll)              │
-     │                               │  handleCreateQuizAnswerEvents()           │
-     │                               │  → CreateQuizAnswerEventHandler           │
-     │                               │  → QuizEventProcessing                    │
-     │                               │  → QuizFunctionalities                    │
-     │                               │  → AddStudentToQuizAnswersCommand         │
-     │                               │  → QuizService.addStudentToQuizAnswers()  │
-     │                               │  → Quiz.studentsWithAnswers.add(studentId)│
-     │                               │
-     │  startQuiz() [2nd call]        │
-     │──► loads Quiz aggregate        │
-     │    quiz.hasStudentWithAnswer() = true
-     │──► throws QUIZ_ALREADY_STARTED_BY_STUDENT
+StartQuizFunctionality          QuizService             QuizAnswerService       Quiz aggregate
+        │                           │                         │                      │
+        │  checkUniqueAnswerStep     │                         │                      │
+        │──► AssertStudentHasNoAnswerCommand                   │                      │
+        │                           │ assertStudentHasNoAnswer()                      │
+        │                           │──► aggregateLoadAndRegisterRead(quizId)         │
+        │                           │    quiz.hasStudentWithAnswer() = false          │
+        │                           │    (ok, proceed)                                │
+        │  startQuizStep             │                         │                      │
+        │──────────────────────────────────────────────────────►                      │
+        │                           │              startQuiz() registers              │
+        │                           │              CreateQuizAnswerEvent ────────────►│
+        │                           │                         │  QuizEventHandling    │
+        │                           │                         │  (1s poll)            │
+        │                           │                         │  → addStudentToQuizAnswers()
+        │                           │                         │  → studentsWithAnswers.add(id)
+        │                           │                         │                      │
+        │  [2nd call, same student]  │                         │                      │
+        │──► AssertStudentHasNoAnswerCommand                   │                      │
+        │                           │ assertStudentHasNoAnswer()                      │
+        │                           │──► quiz.hasStudentWithAnswer() = true           │
+        │                           │──► throws QUIZ_ALREADY_STARTED_BY_STUDENT       │
 ```
 
 ---
@@ -46,7 +51,10 @@ QuizAnswerService               Quiz aggregate
 | Sagas functionality | `microservices/quiz/coordination/sagas/AddStudentToQuizAnswersFunctionalitySagas.java` |
 | TCC functionality | `microservices/quiz/coordination/causal/AddStudentToQuizAnswersFunctionalityTCC.java` |
 | State update | `microservices/quiz/service/QuizService.java` — `addStudentToQuizAnswers()` |
-| Guard | `microservices/answer/service/QuizAnswerService.java` — `startQuiz()` |
+| Guard command | `command/quiz/AssertStudentHasNoAnswerCommand.java` |
+| Guard | `microservices/quiz/service/QuizService.java` — `assertStudentHasNoAnswer()` |
+| Guard invocation (Sagas) | `microservices/answer/coordination/sagas/StartQuizFunctionalitySagas.java` — `checkUniqueAnswerStep` |
+| Guard invocation (TCC) | `microservices/answer/coordination/causal/StartQuizFunctionalityTCC.java` — before `StartQuizCommand` |
 | Error message | `microservices/exception/QuizzesErrorMessage.java` — `QUIZ_ALREADY_STARTED_BY_STUDENT` |
 | Tests | `src/test/groovy/.../sagas/coordination/answer/StartQuizTest.groovy` |
 
@@ -80,15 +88,26 @@ private void interInvariantUniqueQuizAnswerPerStudent(Set<EventSubscription> sub
 }
 ```
 
-### Guard check (guarded operation)
+### Guard method (consumer service)
 ```java
-// QuizAnswerService.startQuiz()
+// QuizService.assertStudentHasNoAnswer()
 // Inter-invariant: UNIQUE_QUIZ_ANSWER_PER_STUDENT
 Quiz quiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
-if (quiz.hasStudentWithAnswer(userDto.getAggregateId())) {
+if (quiz.hasStudentWithAnswer(studentAggregateId)) {
     throw new QuizzesException(QuizzesErrorMessage.QUIZ_ALREADY_STARTED_BY_STUDENT,
-            userDto.getAggregateId(), quizAggregateId);
+            studentAggregateId, quizAggregateId);
 }
+```
+
+### Guard invocation (functionality step)
+```java
+// StartQuizFunctionalitySagas.buildWorkflow() — checkUniqueAnswerStep
+SagaStep checkUniqueAnswerStep = new SagaStep("checkUniqueAnswerStep", () -> {
+    AssertStudentHasNoAnswerCommand assertCommand = new AssertStudentHasNoAnswerCommand(unitOfWork,
+            ServiceMapping.QUIZ.getServiceName(), quizAggregateId, userAggregateId);
+    commandGateway.send(assertCommand);
+});
+// startQuizStep depends on checkUniqueAnswerStep
 ```
 
 ---

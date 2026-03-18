@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.StartQuizCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.AssertStudentHasNoAnswerCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GetQuizByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetUserByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
@@ -44,6 +45,11 @@ public class StartQuizFunctionalityTCC extends WorkflowFunctionality {
                     ServiceMapping.USER.getServiceName(), userAggregateId);
             UserDto userDto = (UserDto) commandGateway.send(getUserByIdCommand);
             this.setUserDto(userDto);
+
+            // UNIQUE_QUIZ_ANSWER_PER_STUDENT
+            AssertStudentHasNoAnswerCommand assertCommand = new AssertStudentHasNoAnswerCommand(unitOfWork,
+                    ServiceMapping.QUIZ.getServiceName(), quizAggregateId, userAggregateId);
+            commandGateway.send(assertCommand);
 
             StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork,
                     ServiceMapping.ANSWER.getServiceName(), quizAggregateId, courseExecutionAggregateId,
