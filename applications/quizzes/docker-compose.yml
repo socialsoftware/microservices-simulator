@@ -444,6 +444,9 @@ services:
   test-quizzes-sagas:
     <<: *test-quizzes
     command: mvn clean -Ptest-sagas test
+    depends_on:
+      jaeger:
+        condition: service_started
 
   test-quizzes-tcc:
     <<: *test-quizzes
