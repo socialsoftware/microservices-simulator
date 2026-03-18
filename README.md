@@ -159,6 +159,14 @@ docker compose down
 docker compose down -v
 ```
 
+### Cleaning Maven Cache
+
+If the simulator library version is updated in `simulator/pom.xml`, you must clean the Maven cache volume to ensure the test containers use the updated version.
+
+```bash
+docker volume rm microservices-simulator_m2_cache
+```
+
 ### Running Local Tests
 
 **Simulator Sagas:**
