@@ -1,7 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
@@ -29,8 +30,9 @@ public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getQuizStep = new SagaStep("getQuizStep", () -> {
             GetQuizByIdCommand getQuizByIdCommand = new GetQuizByIdCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizAggregateId);
-            getQuizByIdCommand.setSemanticLock(QuizSagaState.READ_QUIZ);
-            QuizDto quizDto = (QuizDto) commandGateway.send(getQuizByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getQuizByIdCommand);
+            sagaCommand.setSemanticLock(QuizSagaState.READ_QUIZ);
+            QuizDto quizDto = (QuizDto) commandGateway.send(sagaCommand);
             this.setQuizDto(quizDto);
         });
     

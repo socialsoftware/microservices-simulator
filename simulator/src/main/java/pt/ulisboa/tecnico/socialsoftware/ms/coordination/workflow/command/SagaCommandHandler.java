@@ -15,26 +15,29 @@ import java.util.logging.Logger;
 public class SagaCommandHandler implements TransactionCommandHandler {
     private static final Logger logger = Logger.getLogger(SagaCommandHandler.class.getName());
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
 
-    @Override
     public Object handle(Command command, CommandHandler serviceCommandHandler) {
-        if (command.getForbiddenStates() != null && !command.getForbiddenStates().isEmpty()) {
-            sagaUnitOfWorkService.verifySagaState(command.getRootAggregateId(), command.getForbiddenStates());
+        if (command instanceof SagaCommand sagaCommand) {
+            if (sagaCommand.getForbiddenStates() != null && !sagaCommand.getForbiddenStates().isEmpty()) {
+                sagaUnitOfWorkService.verifySagaState(sagaCommand.getRootAggregateId(), sagaCommand.getForbiddenStates());
+            }
         }
 
         Object returnObject = switch (command) {
             case CommitSagaCommand commitSagaCommand -> handleCommitSaga(commitSagaCommand);
             case AbortSagaCommand abortSagaCommand -> handleAbortSaga(abortSagaCommand);
+            case SagaCommand sagaCommand -> serviceCommandHandler.handleDomainCommand(sagaCommand.getPayload());
             default -> serviceCommandHandler.handleDomainCommand(command);
         };
 
-        if (command.getSemanticLock() != null) {
+        if (command instanceof SagaCommand sagaCommand && sagaCommand.getSemanticLock() != null) {
             sagaUnitOfWorkService.registerSagaState(
-                    command.getRootAggregateId(),
-                    command.getSemanticLock(),
-                    (SagaUnitOfWork) command.getUnitOfWork());
+                    sagaCommand.getRootAggregateId(),
+                    sagaCommand.getSemanticLock(),
+                    (SagaUnitOfWork) sagaCommand.getUnitOfWork());
         }
 
         return returnObject;

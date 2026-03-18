@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 public class CausalCommandHandler implements TransactionCommandHandler {
     private static final Logger logger = Logger.getLogger(CausalCommandHandler.class.getName());
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private CausalUnitOfWorkService causalUnitOfWorkService;
 

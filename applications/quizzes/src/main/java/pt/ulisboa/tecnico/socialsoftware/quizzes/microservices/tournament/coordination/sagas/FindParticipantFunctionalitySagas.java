@@ -1,8 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -35,15 +36,17 @@ public class FindParticipantFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getTournamentStep = new SagaStep("getTournamentStep", () -> {
             GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
-            getTournamentByIdCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
-            TournamentDto tournament = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getTournamentByIdCommand);
+            sagaCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
+            TournamentDto tournament = (TournamentDto) commandGateway.send(sagaCommand);
             this.setTournament(tournament);
         });
 
         getTournamentStep.registerCompensation(() -> {
             Command command = new Command(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
-            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            SagaCommand sagaCommand = new SagaCommand(command);
+            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(sagaCommand);
         }, unitOfWork);
 
         SagaStep getParticipantStep = new SagaStep("getParticipantStep", () -> {

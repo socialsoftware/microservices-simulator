@@ -1,8 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -56,8 +57,9 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getCourseStep = new SagaStep("getCourseStep", () -> {
             GetCourseByIdCommand getCourseByIdCommand = new GetCourseByIdCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
-            getCourseByIdCommand.setSemanticLock(CourseSagaState.READ_COURSE);
-            CourseDto course = (CourseDto) commandGateway.send(getCourseByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getCourseByIdCommand);
+            sagaCommand.setSemanticLock(CourseSagaState.READ_COURSE);
+            CourseDto course = (CourseDto) commandGateway.send(sagaCommand);
             this.courseDto = course;
 
             QuestionCourse questionCourse = new QuestionCourse(course);
@@ -67,16 +69,18 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
         getCourseStep.registerCompensation(() -> {
             Logger.getLogger(CreateQuestionFunctionalitySagas.class.getName()).info("Compensating getCourseStep");
             Command command = new Command(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseDto.getAggregateId());
-            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            SagaCommand sagaCommand = new SagaCommand(command);
+            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(sagaCommand);
         }, unitOfWork);
 
         SagaStep getTopicsStep = new SagaStep("getTopicsStep", () -> {
             List<TopicDto> topics = questionDto.getTopicDto().stream()
                     .map(topicDto -> { // TODO
                         GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId());
-                        getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
-                        return (TopicDto) commandGateway.send(getTopicByIdCommand);
+                        SagaCommand sagaCommand = new SagaCommand(getTopicByIdCommand);
+                        sagaCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
+                        return (TopicDto) commandGateway.send(sagaCommand);
                     })
                     .collect(Collectors.toList());
             this.setTopics(topics);
@@ -86,8 +90,9 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
             Logger.getLogger(CreateQuestionFunctionalitySagas.class.getName()).info("Compensating getTopicsStep");
             questionDto.getTopicDto().forEach(topicDto -> {
                 Command command = new Command(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId());
-                command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-                commandGateway.send(command);
+                SagaCommand sagaCommand = new SagaCommand(command);
+                sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+                commandGateway.send(sagaCommand);
             });
         }, unitOfWork);
 

@@ -6,6 +6,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CausalCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
@@ -293,6 +294,11 @@ class BeanConfigurationCausal {
     }
 
     // Command Handlers
+    @Bean
+    CausalCommandHandler causalCommandHandler() {
+        return new CausalCommandHandler()
+    }
+
     @Bean
     UserCommandHandler userCommandHandler() {
         return new UserCommandHandler();

@@ -1,8 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -39,16 +40,18 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getCourseExecutionStep = new SagaStep("getCourseExecutionStep", () -> {
             GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
-            getCourseExecutionByIdCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
-            getCourseExecutionByIdCommand.setForbiddenStates(List.of(GenericSagaState.IN_SAGA));
-            commandGateway.send(getCourseExecutionByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getCourseExecutionByIdCommand);
+            sagaCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
+            sagaCommand.setForbiddenStates(List.of(GenericSagaState.IN_SAGA));
+            commandGateway.send(sagaCommand);
         });
 
         getCourseExecutionStep.registerCompensation(() -> {
             Logger.getLogger(AnonymizeStudentFunctionalitySagas.class.getName()).info("Compensating getCourseExecutionStep");
             Command command = new Command(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
-            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            SagaCommand sagaCommand = new SagaCommand(command);
+            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(sagaCommand);
         }, unitOfWork);
 
         SagaStep anonymizeStudentStep = new SagaStep("anonymizeStudentStep", () -> {

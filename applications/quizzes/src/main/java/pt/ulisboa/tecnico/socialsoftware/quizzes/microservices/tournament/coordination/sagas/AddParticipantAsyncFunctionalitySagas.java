@@ -1,7 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -51,8 +52,9 @@ public class AddParticipantAsyncFunctionalitySagas extends WorkflowFunctionality
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
-            addParticipantCommand.setForbiddenStates(states);
-            commandGateway.send(addParticipantCommand);
+            SagaCommand sagaCommand = new SagaCommand(addParticipantCommand);
+            sagaCommand.setForbiddenStates(states);
+            commandGateway.send(sagaCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
         this.workflow.addStep(getUserStep);

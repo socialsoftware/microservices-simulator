@@ -1,8 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -35,15 +36,17 @@ public class RemoveQuestionFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getQuestionStep = new SagaStep("getQuestionStep", () -> {
             GetQuestionByIdCommand getQuestionByIdCommand = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
-            getQuestionByIdCommand.setSemanticLock(QuestionSagaState.READ_QUESTION);
-            QuestionDto question = (QuestionDto) commandGateway.send(getQuestionByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getQuestionByIdCommand);
+            sagaCommand.setSemanticLock(QuestionSagaState.READ_QUESTION);
+            QuestionDto question = (QuestionDto) commandGateway.send(sagaCommand);
             this.setQuestion(question);
         });
 
         getQuestionStep.registerCompensation(() -> {
             Command command = new Command(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
-            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            SagaCommand sagaCommand = new SagaCommand(command);
+            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(sagaCommand);
         }, unitOfWork);
 
         SagaStep removeQuestionStep = new SagaStep("removeQuestionStep", () -> {

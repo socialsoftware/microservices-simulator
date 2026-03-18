@@ -7,6 +7,7 @@ import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.stream.CommandResponseAggregator
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.stream.StreamCommandGateway
@@ -15,7 +16,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.DistributedVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.IVersionService
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
@@ -327,6 +327,11 @@ class BeanConfigurationSagas {
     }
 
     // Command Handlers
+    @Bean
+    SagaCommandHandler sagaCommandHandler() {
+        return new SagaCommandHandler()
+    }
+
     @Bean
     UserCommandHandler userCommandHandler() {
         return new UserCommandHandler()
