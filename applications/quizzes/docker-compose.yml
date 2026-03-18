@@ -55,7 +55,6 @@ x-microservice-deps: &microservice-deps
     condition: service_started
 
 x-test-quizzes: &test-quizzes
-  profiles: ["test"]
   build:
     context: ../../
     dockerfile: applications/quizzes/Dockerfile.test
@@ -78,7 +77,6 @@ services:
   # ============================================
 
   postgres:
-    profiles: ["monolith"]
     image: postgres:14-alpine
     container_name: postgres
     shm_size: 1g
@@ -106,7 +104,6 @@ services:
   # ============================================
 
   quizzes-local:
-    profiles: ["monolith"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
@@ -120,19 +117,21 @@ services:
         condition: service_healthy
       jaeger:
         condition: service_started
+      eureka-server:
+        condition: service_healthy
     ports:
       - "8080:8080"
     restart: unless-stopped
     environment:
       <<: *version-mode
       SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local
+      EUREKA_HOST: eureka-server
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
     networks:
       - messaging-network
 
   quizzes-remote:
-    profiles: ["monolith"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
@@ -163,7 +162,6 @@ services:
   # =====================================================
 
   answer-db:
-    profiles: ["microservices"]
     <<: [*service-db, *limits-small]
     container_name: answer-db
     environment:
@@ -171,7 +169,6 @@ services:
       POSTGRES_DB: answerdb
 
   course-db:
-    profiles: ["microservices"]
     <<: [*service-db, *limits-small]
     container_name: course-db
     environment:
@@ -179,7 +176,6 @@ services:
       POSTGRES_DB: coursedb
 
   execution-db:
-    profiles: ["microservices"]
     <<: [*service-db, *limits-small]
     container_name: execution-db
     environment:
@@ -187,7 +183,6 @@ services:
       POSTGRES_DB: executiondb
 
   question-db:
-    profiles: ["microservices"]
     <<: [*service-db, *limits-small]
     container_name: question-db
     environment:
@@ -195,7 +190,6 @@ services:
       POSTGRES_DB: questiondb
 
   quiz-db:
-    profiles: ["microservices"]
     <<: [*service-db, *limits-small]
     container_name: quiz-db
     environment:
@@ -203,7 +197,6 @@ services:
       POSTGRES_DB: quizdb
 
   topic-db:
-    profiles: ["microservices"]
     <<: [*service-db, *limits-small]
     container_name: topic-db
     environment:
@@ -211,7 +204,6 @@ services:
       POSTGRES_DB: topicdb
 
   tournament-db:
-    profiles: ["microservices"]
     <<: [*service-db, *limits-small]
     container_name: tournament-db
     environment:
@@ -219,7 +211,6 @@ services:
       POSTGRES_DB: tournamentdb
 
   user-db:
-    profiles: ["microservices"]
     <<: [*service-db, *limits-small]
     container_name: user-db
     environment:
@@ -231,7 +222,6 @@ services:
   # ============================================
 
   answer-service:
-    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
@@ -259,7 +249,6 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8082/actuator/health || exit 1"]
 
   course-service:
-    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
@@ -287,7 +276,6 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8089/actuator/health || exit 1"]
 
   execution-service:
-    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
@@ -315,7 +303,6 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8083/actuator/health || exit 1"]
 
   question-service:
-    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
@@ -343,7 +330,6 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8084/actuator/health || exit 1"]
 
   quiz-service:
-    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
@@ -371,7 +357,6 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8085/actuator/health || exit 1"]
 
   topic-service:
-    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
@@ -399,7 +384,6 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8086/actuator/health || exit 1"]
 
   tournament-service:
-    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile
@@ -427,7 +411,6 @@ services:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8087/actuator/health || exit 1"]
 
   user-service:
-    profiles: ["microservices"]
     build:
       context: ../../
       dockerfile: applications/quizzes/Dockerfile

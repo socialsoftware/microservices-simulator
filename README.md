@@ -18,10 +18,10 @@ in [Transactional Causal Consistent Microservices Simulator](https://doi.org/10.
 The simulator supports multiple execution modes to test different aspects of system behavior, ranging from simple local
 execution to full distributed deployment.
 
-| Mode            | Description                                                                                                                                                                                                                                                                                | Profiles                                                          | Infrastructure                                                                                                                            |
+| Mode            | Description                                                                                                                                                                                                                                                                                | Spring Profiles                                                   | Infrastructure                                                                                                                            |
 |-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
 | **Centralized** | Runs as a single application. Supports local (internal), stream (RabbitMQ), or gRPC service calls. Optionally uses `distributed-version` profile for Snowflake-based version IDs.                                                                                                          | `sagas\|tcc, local\|stream\|grpc`                                 | PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                                 |
-| **Distributed** | Each domain service runs independently. Uses Eureka for discovery (or Spring Cloud Kubernetes on K8s) and RabbitMQ or gRPC. Optionally uses `distributed-version` profile for local version ID generation via Snowflake IDs. Can also be deployed on [Kubernetes](#kubernetes-deployment). | Service-specific (e.g., `answer-service,sagas\|tcc,stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
+| **Distributed** | Each domain service runs independently. Uses Eureka for discovery (or Spring Cloud Kubernetes on K8s) and RabbitMQ or gRPC. Optionally uses `distributed-version` profile for local version ID generation via Snowflake IDs. Can also be deployed on [Kubernetes](#kubernetes-deployment). | Service-specific (e.g., `answer-service, sagas\|tcc, stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
 
 ## Run Using Docker
 
@@ -32,23 +32,14 @@ execution to full distributed deployment.
 ### Docker Compose Structure
 
 The project uses a two-layer Docker Compose configuration:
-1. **Root `docker-compose.yml`**: Defines shared infrastructure components (PostgreSQL, RabbitMQ, Jaeger, Eureka). These
-   are under the `infra` profile, while the `gateway` is under the `microservices` profile.
-2. **Application `docker-compose.yml`** (in `applications/quizzes`): Extends the root configuration with quiz-specific microservices and test environments.
+1. **Root `docker-compose.yml`**: Defines shared infrastructure components (PostgreSQL, RabbitMQ, Jaeger, Eureka) and simulator services (gateway, version-service, tests).
+2. **Application `docker-compose.yml`** (in `applications/quizzes`): Extends the root configuration with quiz-specific services and test environments.
 
 To run the full system, always execute Docker Compose commands from the `applications/quizzes` directory.
 
 ```bash
 cd applications/quizzes
 ```
-
-### Build the Application
-
-```bash
-docker compose build
-```
-
-Or run the service with the flag `--build`
 
 ### Running as Centralized with Local Service Calls
 
@@ -63,16 +54,16 @@ TX_MODE=tcc docker compose up quizzes-local -d
 ### Running as Centralized with Remote Service Calls
 
 ```bash
-# Sagas with Stream (default)
+# Sagas with Stream (default) + centralized IDs (version-service)
 docker compose up quizzes-remote version-service -d
 
-# Sagas with gRPC
+# Sagas with gRPC + centralized IDs (version-service)
 COMM_LAYER=grpc docker compose up quizzes-remote version-service -d
 
-# TCC with Stream
+# TCC with Stream + centralized IDs (version-service)
 TX_MODE=tcc docker compose up quizzes-remote version-service -d
 
-# TCC with gRPC
+# TCC with gRPC + centralized IDs (version-service)
 TX_MODE=tcc COMM_LAYER=grpc docker compose up quizzes-remote version-service -d
 ```
 
@@ -82,39 +73,54 @@ Run the gateway and all microservices:
 
 ```bash
 # Sagas (default) with Stream (default)
-docker compose --profile microservices up gateway -d
+docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 
 # TCC with Stream (default)
-TX_MODE=tcc docker compose --profile microservices up -d
+TX_MODE=tcc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 
 # With gRPC instead of stream
-COMM_LAYER=grpc docker compose --profile microservices up -d
+COMM_LAYER=grpc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 
 # TCC + gRPC
-TX_MODE=tcc COMM_LAYER=grpc docker compose --profile microservices up -d
+TX_MODE=tcc COMM_LAYER=grpc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 ```
 
-Run the centralized version service:
+#### Version IDs: Centralized vs Distributed
+
+There are two supported strategies:
+
+**Centralized ID generation (version-service container).** Required for `quizzes-remote` and **microservices** when you want centralized IDs. Not required for `quizzes-local` (single process), so centralized IDs work without a separate container. Start it with:
 
 ```bash
-# With Stream (default)
 docker compose up version-service -d
+```
 
-# With gRPC instead of stream
-COMM_LAYER=grpc docker compose up version-service -d
+**Distributed ID generation (no version-service).** Enable with `VERSION_MODE=distributed-version`. Works with `quizzes-local`, `quizzes-remote`, and **microservices**.
+
+**Quick examples (distributed IDs):**
+
+```bash
+# quizzes-local (distributed IDs)
+VERSION_MODE=distributed-version docker compose up quizzes-local -d
+
+# quizzes-remote (distributed IDs)
+VERSION_MODE=distributed-version docker compose up quizzes-remote -d
+
+# microservices (distributed IDs)
+VERSION_MODE=distributed-version docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 ```
 
 #### Running with Distributed Version (no version-service needed)
 
-Use the `VERSION_MODE` environment variable to enable the `distributed-version` profile. Each microservice will generate
+Use the `VERSION_MODE` environment variable to enable the `distributed-version` Spring profile. Each service will generate
 version IDs locally using Snowflake IDs.
 
 ```bash
 # Sagas + Stream + Distributed Version
-VERSION_MODE=distributed-version docker compose --profile microservices up -d
+VERSION_MODE=distributed-version docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 
 # Sagas + gRPC + Distributed Version
-VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose --profile microservices up -d
+VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 ```
 > **Note:** The `distributed-version` profile can also be used with the centralized quizzes-local and quizzes-remote.
 
@@ -127,7 +133,7 @@ Distributed ecosystem:
 * `rabbitmq`: Message broker
 * `jaeger`: Distributed tracing
 * `eureka`: Service discovery 
-* `gateway`: API Gateway (entry point)
+* `gateway`: API Gateway (entry point for distributed application)
 
 **Microservices:** (One Database per Service)
 
@@ -140,20 +146,20 @@ Distributed ecosystem:
 * `tournament-service` -> `tournament-db`
 * `user-service` -> `user-db`
 
-> **Note:** The `version-service` is **not** started automatically. If you need centralized versioning (i.e., you are *
-*not** using the `distributed-version` profile), you must start it manually:
->
-> ```bash
-> docker compose up version-service -d
-> ```
-
-### Running Local Tests
-
-> **Note:** Run `build-simulator` first before running tests.
+### Stopping Containers
 
 ```bash
-docker compose up build-simulator
+# Stop running containers (keeps volumes)
+docker compose stop
+
+# Stop and remove containers (keeps volumes)
+docker compose down
+
+# Stop and remove containers and volumes (full reset)
+docker compose down -v
 ```
+
+### Running Local Tests
 
 **Simulator Sagas:**
 
@@ -483,7 +489,7 @@ There is two ways to set up the database:
 ### Setting up Jaeger Tracing
 
 ```bash
-docker compose --profile infra up jaeger -d
+docker compose up jaeger -d
 ```
 
 ---
@@ -547,7 +553,7 @@ mvn clean -Ptest-tcc test
 1. **Start RabbitMQ (for stream profile):**
 
     ```bash
-    docker compose --profile infra up rabbitmq -d
+    docker compose up rabbitmq -d
     ```
 
 #### Running with Stream
@@ -580,7 +586,7 @@ running RabbitMQ for inter-service communication.
 3. Start Eureka service discovery (required for local microservices):
 
     ```bash
-    docker compose --profile infra up eureka-server -d
+    docker compose up eureka-server -d
     ```
 
 4. **Install the simulator library (if not already done):**
@@ -937,7 +943,7 @@ To reproduce the paper results follow the steps:
 * Run:
 
 ```
-docker compose --profile test up test-fig3a
+docker compose up test-fig3a
 ```
 
 ### Figure 3(b)
@@ -946,7 +952,7 @@ docker compose --profile test up test-fig3a
 * Run:
 
 ```
-docker compose --profile test up test-fig3b
+docker compose up test-fig3b
 ```
 
 ### Figure 3(c)
@@ -955,7 +961,7 @@ docker compose --profile test up test-fig3b
 * Run:
 
 ```
-docker compose --profile test up test-fig3c
+docker compose up test-fig3c
 ```
 
 ### Figure 3(d)
@@ -964,7 +970,7 @@ docker compose --profile test up test-fig3c
 * Run:
 
 ```
-docker compose --profile test up test-fig3d
+docker compose up test-fig3d
 ```
 
 ### Figure 4
@@ -973,5 +979,5 @@ docker compose --profile test up test-fig3d
 * Run:
 
 ```
-docker compose --profile test up test-fig4
+docker compose up test-fig4
 ```
