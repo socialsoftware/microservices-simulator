@@ -75,6 +75,7 @@ resilience4j:
           - java.lang.RuntimeException
         ignore-exceptions:
           - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+          - pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException
 
 management:
   endpoints:

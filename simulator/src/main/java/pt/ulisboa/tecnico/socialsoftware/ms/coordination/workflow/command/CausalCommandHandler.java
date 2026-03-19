@@ -28,6 +28,7 @@ public class CausalCommandHandler implements TransactionCommandHandler {
             case AbortCausalCommand abortCausalCommand -> handleAbortCausal(abortCausalCommand);
             case GetConcurrentAggregateCommand getConcurrentAggregateCommand ->
                     handleGetConcurrentAggregate(getConcurrentAggregateCommand, serviceCommandHandler);
+            case CausalCommand causalCommand -> serviceCommandHandler.handleDomainCommand(causalCommand.getPayload());
             default -> serviceCommandHandler.handleDomainCommand(command);
         };
     }
