@@ -12,6 +12,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
@@ -23,7 +25,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Controller
 @Profile("gateway")
@@ -59,6 +60,7 @@ public class DynamicMVCProxyController {
 
                 if (routes != null) {
                     for (Map<String, Object> routeMap : routes) {
+                        @SuppressWarnings("unchecked")
                         List<Object> predicates = (List<Object>) routeMap.getOrDefault("predicates", Collections.emptyList());
                         for (Object predicateObj : predicates) {
                             String predicate = predicateObj.toString();
@@ -131,8 +133,13 @@ public class DynamicMVCProxyController {
         try {
             return requestSpec.retrieve()
                     .toEntity(byte[].class);
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            logger.error("Proxy error ({} ) from {}: {}", e.getStatusCode(), targetUrl, e.getResponseBodyAsString());
+            return ResponseEntity.status(e.getStatusCode())
+                    .headers(e.getResponseHeaders())
+                    .body(e.getResponseBodyAsByteArray());
         } catch (RestClientException e) {
-            logger.error("Proxy error to {}: {}", targetUrl, e.getMessage());
+            logger.error("Proxy connection error to {}: {}", targetUrl, e.getMessage());
             return ResponseEntity.status(502).build();
         }
     }

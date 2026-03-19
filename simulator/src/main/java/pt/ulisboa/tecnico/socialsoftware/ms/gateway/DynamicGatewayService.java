@@ -4,7 +4,6 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.annotation.Profile;
@@ -35,30 +34,24 @@ public class DynamicGatewayService {
     @PostConstruct
     public void logDiscoveryStatus() {
         logger.info("=== Gateway Service Discovery Status ===");
+        logger.info("Discovery client type: {}", discoveryClient.getClass().getSimpleName());
 
         List<String> allServices = discoveryClient.getServices();
-        logger.info("Discovery client type: {}", discoveryClient.getClass().getSimpleName());
-        logger.info("Total services found: {}", allServices.size());
-
         if (allServices.isEmpty()) {
-            logger.warn("No services discovered! Check if service discovery is configured correctly.");
+            logger.info("No services discovered yet. This is normal during startup as services register with the discovery server.");
         } else {
+            logger.info("Total services found: {}", allServices.size());
             logger.info("All discovered services: {}", allServices);
         }
 
         List<String> availableServices = getAvailableServices();
-        if (availableServices.isEmpty()) {
-            logger.warn("No broadcast services available after filtering (suffix: '{}', excluded: {})",
-                    serviceSuffix, excludeServices);
-        } else {
+        if (!availableServices.isEmpty()) {
             logger.info("Available broadcast services ({}): {}", availableServices.size(), availableServices);
         }
 
         String versionUrl = getVersionServiceUrl();
         if (versionUrl != null) {
             logger.info("Version service URL: {}", versionUrl);
-        } else {
-            logger.warn("Version service not found!");
         }
 
         logger.info("=========================================");

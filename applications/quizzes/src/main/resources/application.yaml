@@ -9,14 +9,7 @@ spring:
 
   config:
     import:
-      - "classpath:application-common.yaml"
-
-  main:
-    allow-bean-definition-overriding: true
-
-  autoconfigure:
-    exclude:
-      - org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAutoConfiguration
+      - "optional:classpath:application.yaml"
 
   datasource:
     url: jdbc:postgresql://localhost:5432/msdb
@@ -37,44 +30,14 @@ spring:
     template:
       check-template-location: false
 
-  task:
-    scheduling:
-      pool:
-        size: 5
-
-  cloud:
-    kubernetes:
-      enabled: false
-      discovery:
-        enabled: false
-
-eureka:
-  client:
-    enabled: false
-    register-with-eureka: false
-    fetch-registry: false
-
-maven:
-  basedir: "@project.basedir@"
-
-command:
-  gateway:
-    timeout-seconds: 10
+  maven:
+    basedir: "@project.basedir@"
 
 resilience4j:
   retry:
     instances:
       commandGateway:
-        max-attempts: 5
-        wait-duration: 500ms
-        enable-exponential-backoff: true
-        exponential-backoff-multiplier: 2
-        enable-randomized-wait: true
-        randomized-wait-factor: 0.5
-        retry-exceptions:
-          - java.lang.RuntimeException
         ignore-exceptions:
-          - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
           - pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException
 
 management:
@@ -201,9 +164,6 @@ spring:
     port: 5672
     username: guest
     password: guest
-    listener:
-      simple:
-        default-requeue-rejected: false
 ---
 spring:
   config:
@@ -250,6 +210,7 @@ spring:
         courseEventSubscriber-in-0:
           destination: event-channel
           group: course-service-group
+          
         topicEventSubscriber-in-0:
           destination: event-channel
           group: topic-service-group
