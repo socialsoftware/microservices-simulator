@@ -11,13 +11,23 @@ An inter-invariant is a consistency rule that spans multiple aggregates and is m
 
 ---
 
-## Step 0 — Understand the request
+## Step 0 — Understand the request and identify the pattern
 
 Parse `$ARGUMENTS` to identify:
+
+**For both patterns:**
 - **ConsumerAggregate**: the aggregate that must observe external state
 - **PublisherAggregate**: the aggregate that owns the changing data
 - **Trigger events**: what domain actions the consumer must react to
-- **Tracked state**: what data the consumer needs to cache locally (could be a boolean flag, a count, a reference, a set of IDs — anything)
+- **Tracked state**: what data the consumer needs to cache locally (boolean flag, count, reference, set of IDs, …)
+- **Update logic**: how the cached state changes in response to each event
+
+**Determine the pattern:**
+
+- **Reactive-update**: the enforcement IS the state update — no guard or error throw is needed. Use this when a domain event should cause the consumer to update its own state (e.g., topic deleted → remove from set).
+- **Guard-enforcement**: the consumer also needs a guard method that throws before a mutating operation is allowed. Use this when an operation must be blocked based on cached external state.
+
+**For guard-enforcement only, also identify:**
 - **Guard condition**: the boolean predicate checked when the guarded operation is called
 - **Guarded operation**: the service method that throws when the guard fails
 - **Error message key**: name for the `QuizzesErrorMessage` enum entry
@@ -35,16 +45,20 @@ Before writing anything, read:
 4. The `microservices/<consumer>/events/` directory — understand existing event wiring
 5. The `events/` top-level directory — see existing shared event classes
 6. The `microservices/<consumer>/coordination/` directory — existing functionality examples
-7. `QuizzesErrorMessage.java` — existing error constants
-8. The existing test class closest to the guarded operation
+7. `QuizzesErrorMessage.java` — existing error constants (guard-enforcement only)
+8. The existing test class closest to the affected operation
 
-Use `docs/examples/cannot-delete-last-execution-with-content.md` as a structural reference (data flow, file list, code snippets per layer, consistency note, test table), but do not copy its domain logic.
+Use the appropriate worked example as a structural reference:
+- **Guard-enforcement pattern**: `docs/examples/cannot-delete-last-execution-with-content.md`
+- **Reactive-update or multiple invariants**: `docs/examples/tournament-inter-invariants.md`
+
+Do not copy domain logic — use them for structure (data flow, file list, code shape per layer).
 
 ---
 
 ## Step 2 — Design the tracked state
 
-Decide what the consumer needs to cache locally to evaluate the guard at operation time.
+Decide what the consumer needs to cache locally.
 
 Examples:
 - A counter (`int questionCount`) when the condition depends on a running total
@@ -52,7 +66,11 @@ Examples:
 - A set of IDs (`Set<Integer> enrolledUserIds`) when the condition depends on membership
 - A single reference (`Integer linkedAggregateId`) when the condition checks existence
 
-Choose the simplest representation that satisfies the guard. Document your decision before proceeding.
+**Reactive-update**: the update logic IS the enforcement — no guard is needed. Document the update rule (e.g., "remove topicId from set on DeleteTopic event").
+
+**Guard-enforcement**: also design the guard predicate that will be checked at operation time (e.g., "throw if questionCount > 0").
+
+Choose the simplest representation that satisfies the invariant. Document your decision before proceeding.
 
 ---
 
@@ -119,6 +137,14 @@ public class ConsumerSubscribesXxx extends EventSubscription {
 
 `subscribedAggregateId` must match `publisherAggregateId` used in the event.
 
+**Per-entity subscriptions**: if the consumer tracks a set of entities and each entity independently publishes events, create one subscription per entity in the set. The `subscribedAggregateId` is each entity's own aggregate ID:
+```java
+// In interInvariantXxx():
+for (ConsumerEntity entity : this.entitySet) {
+    eventSubscriptions.add(new ConsumerSubscribesXxx(entity));
+}
+```
+
 ---
 
 ## Step 7 — Implement: Command
@@ -184,9 +210,11 @@ Add the method(s) called by the command handler to `<Consumer>Service.java`. The
 
 The exact logic depends on the tracked state type — a counter increments/decrements, a boolean flips, a set adds/removes an ID, etc.
 
+**Reactive-update**: this update IS the enforcement. No further guard step is needed — stop here (skip Steps 13–14).
+
 ---
 
-## Step 13 — Add error message
+## Step 13 — Add error message *(Guard-Enforcement Pattern Only)*
 
 In `QuizzesErrorMessage.java`:
 ```java
@@ -195,7 +223,7 @@ CANNOT_<OPERATION>_WHEN_<CONDITION>("Cannot <operation>: <human-readable reason>
 
 ---
 
-## Step 14 — Enforce the guard
+## Step 14 — Enforce the guard *(Guard-Enforcement Pattern Only)*
 
 The guard has two parts:
 
@@ -234,7 +262,13 @@ Do **not** add the guard check inside the operation service itself (e.g., `QuizA
 
 Add test cases to the relevant `*Test.groovy` under `src/test/groovy/.../sagas/coordination/<consumer>/`.
 
-Cover at minimum:
+**Reactive-update**: cover at minimum:
+| Scenario | Expected outcome |
+|----------|-----------------|
+| Event received, state updated | Consumer aggregate reflects the change |
+| Event received for non-member entity | State unchanged |
+
+**Guard-enforcement**: cover at minimum:
 | Scenario | Expected outcome |
 |----------|-----------------|
 | Guard condition is false (operation safe) | Operation succeeds |
@@ -247,7 +281,7 @@ Trigger event processing manually in tests by calling the `<Consumer>EventHandli
 
 ## Step 16 — Write summary markdown
 
-Create `docs/examples/cannot-<operation>-when-<condition>.md` with:
+Create `docs/examples/<invariant-name>.md` with:
 - One-line rule description (type, enforced in, rule)
 - Data flow diagram (ASCII)
 - Key files table
@@ -259,6 +293,7 @@ Create `docs/examples/cannot-<operation>-when-<condition>.md` with:
 
 ## Checklist before finishing
 
+**Both patterns:**
 - [ ] Event class(es) created with correct `publisherAggregateId`
 - [ ] Events registered in publisher service
 - [ ] Tracked state field(s) added, initialised, and copied in copy-constructor
@@ -269,9 +304,11 @@ Create `docs/examples/cannot-<operation>-when-<condition>.md` with:
 - [ ] EventProcessing → Functionalities wiring added
 - [ ] Sagas + TCC functionality classes created
 - [ ] State update method(s) added to ConsumerService
+- [ ] Tests written and passing (`mvn clean -Ptest-sagas test`)
+- [ ] Summary markdown written in `docs/examples/`
+
+**Guard-enforcement pattern only:**
 - [ ] Error message added to `QuizzesErrorMessage`
 - [ ] Guard method added to the consumer service (loads only its own aggregate type)
 - [ ] Guard command created
 - [ ] Guard invocation step added to both Sagas and TCC functionalities (before the mutating step)
-- [ ] Tests written and passing (`mvn clean -Ptest-sagas test`)
-- [ ] Summary markdown written in `docs/examples/`
