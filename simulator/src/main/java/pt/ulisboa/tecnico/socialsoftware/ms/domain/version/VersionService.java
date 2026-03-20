@@ -34,6 +34,12 @@ public class VersionService implements IVersionService {
 
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Override
+    public Long getNextVersionNumber() {
+        return this.getVersionNumber() + 1;
+    }
+
     // If a functionality has started and committed in the meanwhile this one will
     // get a new version number to commit
     // If non has committed in between we commit with the same version as the

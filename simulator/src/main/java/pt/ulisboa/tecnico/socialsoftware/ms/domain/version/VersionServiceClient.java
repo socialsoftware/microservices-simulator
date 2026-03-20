@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.DecrementVersionCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.GetNextVersionCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.GetVersionCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.IncrementVersionCommand;
 
@@ -24,6 +25,12 @@ public class VersionServiceClient implements IVersionService {
     public Long getVersionNumber() {
         logger.debug("Requesting version number via CommandGateway");
         return (Long) commandGateway.send(new GetVersionCommand());
+    }
+
+    @Override
+    public Long getNextVersionNumber() {
+        logger.debug("Requesting next version number via CommandGateway");
+        return (Long) commandGateway.send(new GetNextVersionCommand());
     }
 
     @Override

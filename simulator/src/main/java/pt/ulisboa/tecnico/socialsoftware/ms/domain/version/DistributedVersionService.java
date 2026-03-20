@@ -40,6 +40,13 @@ public class DistributedVersionService implements IVersionService {
     }
 
     @Override
+    public Long getNextVersionNumber() {
+        long id = idGenerator.nextId();
+        logger.debug("Generated distributed next version number: {}", id);
+        return id;
+    }
+
+    @Override
     public Long incrementAndGetVersionNumber() {
         long id = idGenerator.nextId();
         logger.debug("Generated distributed commit version number: {}", id);

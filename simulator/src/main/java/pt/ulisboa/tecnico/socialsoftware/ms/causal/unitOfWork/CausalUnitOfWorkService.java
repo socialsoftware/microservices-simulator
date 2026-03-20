@@ -51,9 +51,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public CausalUnitOfWork createUnitOfWork(String functionalityName) {
-        Long lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
-
-        CausalUnitOfWork unitOfWork = new CausalUnitOfWork(lastCommittedAggregateVersionNumber + 1, functionalityName);
+        CausalUnitOfWork unitOfWork = new CausalUnitOfWork(versionService.getNextVersionNumber(), functionalityName);
 
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", functionalityName, unitOfWork.getVersion());
 
