@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.webapi;
+package pt.ulisboa.tecnico.socialsoftware.ms.coordination.webapi;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

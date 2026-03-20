@@ -14,7 +14,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService;
 @Profile("course-service")
 @SpringBootApplication(scanBasePackages = {
         "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course",
-        "pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.webapi",
         "pt.ulisboa.tecnico.socialsoftware.ms",
 })
 @EnableJpaRepositories(basePackages = {
