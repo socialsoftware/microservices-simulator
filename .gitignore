@@ -43,6 +43,10 @@ jmeter-results/
 
 
 **/BehaviourReport.txt
-.vscode/settings.json
+**/CapacityReport.txt
+.vscode/*
 
 **/logs/
+
+### Python ###
+**/__pycache__/

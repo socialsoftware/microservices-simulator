@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.utils;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -34,17 +36,9 @@ public class BehaviourHandler {
 
     public void setMode(BehaviourMode mode) {
         this.mode = mode;
-
-        // TODO - Change this
-        if (mode == BehaviourMode.STOCHASTIC) {
-            NetworkManager.getInstance().reset();
-            NetworkManager.getInstance().load();
-        }
     }
 
-    public Map<String, List<Integer>> getBehaviour(
-            pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality functionality,
-            List<pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep> plan) {
+    public Map<String, List<Integer>> getBehaviour(WorkflowFunctionality functionality, List<FlowStep> plan) {
 
         if (mode == BehaviourMode.DETERMINISTIC) {
             String funcName = functionality.getClass().getSimpleName();
@@ -56,7 +50,7 @@ public class BehaviourHandler {
             String sourceService = (parts.length >= 7) ? parts[6] : "unknown";
 
             Map<String, List<Integer>> map = new LinkedHashMap<>();
-            for (pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep step : plan) {
+            for (FlowStep step : plan) {
                 String targetService = findTargetService(step.getName());
 
                 int delayBefore = NetworkManager.getInstance().generateDelay(sourceService, targetService);

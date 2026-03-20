@@ -14,7 +14,9 @@ public class BehaviourService {
         directory = dir + "/src/test/resources/" + testNameFile + "/";
         BehaviourHandler.getInstance();
         BehaviourHandler.setDirectory(directory);
+        NetworkManager.getInstance().reset();
         NetworkManager.setDirectory(directory);
+        NetworkManager.getInstance().load();
     }
 
     public void setMode(String mode) {
@@ -31,7 +33,7 @@ public class BehaviourService {
 
     public void cleanReportFile() {
         BehaviourHandler.getInstance().cleanReportFile();
-        
+
     }
 
     public void cleanDirectory() {

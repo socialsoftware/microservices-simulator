@@ -21,6 +21,7 @@ class NetworkStochasticUser(HttpUser):
 
         try:
             # Load behaviours and change mode
+            requests.get(f"{host}/behaviour/clean").raise_for_status()
             requests.post(
                 f"{host}/behaviour/mode?mode=STOCHASTIC").raise_for_status()
             requests.post(
@@ -88,6 +89,8 @@ class NetworkStochasticUser(HttpUser):
             requests.get(f"{host}/scheduler/stop")
             requests.get(f"{host}/traces/end")
             requests.get(f"{host}/traces/flush")
+            requests.post(
+                f"{host}/behaviour/mode?mode=DETERMINISTIC").raise_for_status()
         except:
             pass
 
